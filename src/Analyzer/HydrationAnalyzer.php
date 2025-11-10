@@ -23,10 +23,22 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 class HydrationAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly int $rowThreshold = 99,
-        private readonly int $criticalThreshold = 999,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private int $rowThreshold = 99,
+        /**
+         * @readonly
+         */
+        private int $criticalThreshold = 999,
     ) {
     }
 

@@ -45,10 +45,22 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
     private const MIN_QUERY_COUNT = 3;
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly int $maxJoinsRecommended = 5,
-        private readonly int $maxJoinsCritical = 8,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private int $maxJoinsRecommended = 5,
+        /**
+         * @readonly
+         */
+        private int $maxJoinsCritical = 8,
     ) {
     }
 

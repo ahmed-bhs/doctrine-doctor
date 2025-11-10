@@ -56,13 +56,29 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     public function __construct(
         /**
          * @var AnalyzerInterface[]
+         * @readonly
          */
-        private readonly iterable $analyzers,
-        private readonly ?DoctrineDataCollector $doctrineDataCollector,
-        private readonly ?EntityManagerInterface $entityManager,
-        private readonly ?Stopwatch $stopwatch,
-        private readonly bool $showDebugInfo,
-        private readonly DataCollectorHelpers $dataCollectorHelpers,
+        private iterable $analyzers,
+        /**
+         * @readonly
+         */
+        private ?DoctrineDataCollector $doctrineDataCollector,
+        /**
+         * @readonly
+         */
+        private ?EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private ?Stopwatch $stopwatch,
+        /**
+         * @readonly
+         */
+        private bool $showDebugInfo,
+        /**
+         * @readonly
+         */
+        private DataCollectorHelpers $dataCollectorHelpers,
     ) {
     }
 
@@ -285,7 +301,9 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $issueReconstructor = new IssueReconstructor();
 
         $this->memoizedIssues = array_map(
-            $issueReconstructor->reconstructIssue(...),
+            function ($issueData) use ($issueReconstructor) {
+                return $issueReconstructor->reconstructIssue($issueData);
+            },
             $issuesData,
         );
 

@@ -21,7 +21,10 @@ use Doctrine\DBAL\Driver\Middleware;
 class QueryLoggingMiddleware implements Middleware
 {
     public function __construct(
-        private readonly SimpleQueryLogger $simpleQueryLogger,
+        /**
+         * @readonly
+         */
+        private SimpleQueryLogger $simpleQueryLogger,
     ) {
     }
 

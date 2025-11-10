@@ -17,13 +17,25 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
 class EagerLoadingSuggestion implements SuggestionInterface
 {
-    private readonly string $entity;
+    /**
+     * @readonly
+     */
+    private string $entity;
 
-    private readonly string $relation;
+    /**
+     * @readonly
+     */
+    private string $relation;
 
-    private readonly int $queryCount;
+    /**
+     * @readonly
+     */
+    private int $queryCount;
 
-    private readonly string $example;
+    /**
+     * @readonly
+     */
+    private string $example;
 
     public function __construct(array $data)
     {

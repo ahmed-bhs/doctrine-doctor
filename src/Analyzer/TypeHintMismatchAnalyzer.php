@@ -36,7 +36,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  * The UnitOfWork uses strict comparison (===) which considers "5.0" !== 5.0,
  * causing Doctrine to think the value changed when it hasn't.
  */
-final readonly class TypeHintMismatchAnalyzer implements AnalyzerInterface
+final class TypeHintMismatchAnalyzer implements AnalyzerInterface
 {
     /**
      * Mapping of Doctrine types to expected PHP types.
@@ -79,8 +79,17 @@ final readonly class TypeHintMismatchAnalyzer implements AnalyzerInterface
     ];
 
     public function __construct(
+        /**
+         * @readonly
+         */
         private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
         private IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
         private SuggestionFactory $suggestionFactory,
     ) {
     }

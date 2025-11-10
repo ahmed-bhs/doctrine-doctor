@@ -54,7 +54,10 @@ class PartialObjectAnalyzer implements AnalyzerInterface
     ];
 
     public function __construct(
-        private readonly int $threshold = 5,
+        /**
+         * @readonly
+         */
+        private int $threshold = 5,
     ) {
     }
 

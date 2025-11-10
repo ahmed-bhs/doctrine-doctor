@@ -34,12 +34,15 @@ use Webmozart\Assert\Assert;
  * ```
  * @implements ArrayAccess<string, mixed>
  */
-final readonly class SafeContext implements ArrayAccess
+final class SafeContext implements ArrayAccess
 {
     /**
      * @param array<string, mixed> $data
      */
     public function __construct(
+        /**
+         * @readonly
+         */
         private array $data,
     ) {
     }

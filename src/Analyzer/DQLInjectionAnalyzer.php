@@ -21,8 +21,14 @@ use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 class DQLInjectionAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
     ) {
     }
 

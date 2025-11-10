@@ -21,9 +21,18 @@ use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 class EntityManagerClearAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly int $batchSizeThreshold = 20,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private int $batchSizeThreshold = 20,
     ) {
     }
 

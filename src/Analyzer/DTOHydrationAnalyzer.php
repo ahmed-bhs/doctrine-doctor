@@ -55,7 +55,10 @@ class DTOHydrationAnalyzer implements AnalyzerInterface
     private const MIN_OCCURRENCES = 2;
 
     public function __construct(
-        private readonly SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
     ) {
     }
 

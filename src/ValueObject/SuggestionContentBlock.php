@@ -26,7 +26,7 @@ use Webmozart\Assert\Assert;
  * - link: External link (documentation, etc.)
  * - comparison: Side-by-side comparison of bad vs good code
  */
-final readonly class SuggestionContentBlock
+final class SuggestionContentBlock
 {
     public const TYPE_TEXT = 'text';
 
@@ -45,8 +45,17 @@ final readonly class SuggestionContentBlock
     public const TYPE_COMPARISON = 'comparison';
 
     public function __construct(
+        /**
+         * @readonly
+         */
         private string $type,
+        /**
+         * @readonly
+         */
         private string|array $content,
+        /**
+         * @readonly
+         */
         private ?array $metadata = null,
     ) {
         $allowedTypes = [

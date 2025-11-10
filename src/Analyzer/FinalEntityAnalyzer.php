@@ -38,8 +38,14 @@ class FinalEntityAnalyzer implements AnalyzerInterface
     private array $checkedEntities = [];
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
     ) {
     }
 

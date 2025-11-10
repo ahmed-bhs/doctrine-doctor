@@ -33,8 +33,14 @@ class OrderFixture implements FixtureInterface
      * @param array<Product> $products
      */
     public function __construct(
-        private readonly array $users,
-        private readonly array $products,
+        /**
+         * @readonly
+         */
+        private array $users,
+        /**
+         * @readonly
+         */
+        private array $products,
     ) {
     }
 

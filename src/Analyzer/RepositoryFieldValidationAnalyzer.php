@@ -32,9 +32,18 @@ use Psr\Log\LoggerInterface;
 class RepositoryFieldValidationAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly IssueFactoryInterface $issueFactory,
-        private readonly ?LoggerInterface $logger = null,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private ?LoggerInterface $logger = null,
     ) {
     }
 

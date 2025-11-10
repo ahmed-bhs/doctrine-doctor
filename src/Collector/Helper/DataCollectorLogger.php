@@ -17,12 +17,19 @@ use Psr\Log\LoggerInterface;
  * Helper for conditional logging in DataCollector.
  * Extracted from DoctrineDoctorDataCollector to reduce complexity.
  */
-final readonly class DataCollectorLogger
+final class DataCollectorLogger
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         private LoggerInterface $logger,
-        private DataCollectorConfig $dataCollectorConfig = new DataCollectorConfig(),
+        /**
+         * @readonly
+         */
+        private ?DataCollectorConfig $dataCollectorConfig = null
     ) {
+        $this->dataCollectorConfig = $dataCollectorConfig ?? new DataCollectorConfig();
     }
 
     /**
@@ -30,7 +37,7 @@ final readonly class DataCollectorLogger
      */
     public function logErrorIfDebugEnabled(string $message, \Throwable $throwable): void
     {
-        if ($this->dataCollectorConfig->debugMode) {
+        if ($this->dataCollectorConfig->debugMode ?? false) {
             $this->logger->error('DoctrineDoctor: ' . $message, [
                 'exception' => $throwable::class,
                 'message'   => $throwable->getMessage(),
@@ -45,7 +52,7 @@ final readonly class DataCollectorLogger
      */
     public function logWarningIfDebugEnabled(string $message, \Throwable $throwable): void
     {
-        if ($this->dataCollectorConfig->debugMode) {
+        if ($this->dataCollectorConfig->debugMode ?? false) {
             $this->logger->warning('DoctrineDoctor: ' . $message, [
                 'exception' => $throwable::class,
                 'message'   => $throwable->getMessage(),
@@ -60,7 +67,7 @@ final readonly class DataCollectorLogger
      */
     public function logDebugIfEnabled(string $message, \Throwable $throwable): void
     {
-        if ($this->dataCollectorConfig->debugMode) {
+        if ($this->dataCollectorConfig->debugMode ?? false) {
             $this->logger->debug('DoctrineDoctor: ' . $message, [
                 'exception' => $throwable::class,
                 'message'   => $throwable->getMessage(),
@@ -76,7 +83,7 @@ final readonly class DataCollectorLogger
      */
     public function logInfoIfEnabled(string $message, array $context = []): void
     {
-        if ($this->dataCollectorConfig->debugMode) {
+        if ($this->dataCollectorConfig->debugMode ?? false) {
             $this->logger->info('DoctrineDoctor: ' . $message, $context);
         }
     }

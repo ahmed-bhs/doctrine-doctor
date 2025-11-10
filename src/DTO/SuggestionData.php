@@ -17,11 +17,20 @@ use Webmozart\Assert\Assert;
  * Data Transfer Object representing a code suggestion.
  * Immutable and type-safe.
  */
-final readonly class SuggestionData
+final class SuggestionData
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         public string $code,
+        /**
+         * @readonly
+         */
         public string $description,
+        /**
+         * @readonly
+         */
         public ?string $category = null,
     ) {
         Assert::stringNotEmpty($code, 'Suggestion code cannot be empty');

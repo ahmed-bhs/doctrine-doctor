@@ -324,10 +324,22 @@ final class IssueDeduplicatorTest extends TestCase
     ): IssueInterface {
         return new class($title, $description, $severity, $queries) implements IssueInterface {
             public function __construct(
-                private readonly string $title,
-                private readonly string $description,
-                private readonly Severity $severity,
-                private readonly array $queries,
+                /**
+                 * @readonly
+                 */
+                private string $title,
+                /**
+                 * @readonly
+                 */
+                private string $description,
+                /**
+                 * @readonly
+                 */
+                private Severity $severity,
+                /**
+                 * @readonly
+                 */
+                private array $queries,
             ) {
             }
 

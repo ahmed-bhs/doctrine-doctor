@@ -50,9 +50,18 @@ class DoctrineCacheAnalyzer implements AnalyzerInterface
     ];
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly string $environment = 'prod',
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private string $environment = 'prod',
     ) {
     }
 

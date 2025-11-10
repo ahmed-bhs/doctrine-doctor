@@ -18,18 +18,31 @@ use Webmozart\Assert\Assert;
  * Data Transfer Object representing a database query.
  * Immutable and type-safe replacement for associative arrays.
  */
-readonly class QueryData
+class QueryData
 {
     /**
      * @param array<string, mixed>                  $params    Query parameters
      * @param array<int, array<string, mixed>>|null $backtrace Stack trace of query execution
      */
     public function __construct(
+        /**
+         * @readonly
+         */
         public string $sql,
+        /**
+         * @readonly
+         */
         public QueryExecutionTime $executionTime,
-        /** @var array<mixed> */
+        /** @var array<mixed>
+         * @readonly */
         public array $params = [],
+        /**
+         * @readonly
+         */
         public ?array $backtrace = null,
+        /**
+         * @readonly
+         */
         public ?int $rowCount = null,
     ) {
         Assert::stringNotEmpty($sql, 'SQL query cannot be empty');

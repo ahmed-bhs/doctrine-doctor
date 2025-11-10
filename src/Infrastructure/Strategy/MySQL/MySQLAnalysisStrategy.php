@@ -69,9 +69,18 @@ class MySQLAnalysisStrategy implements PlatformAnalysisStrategy
     ];
 
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        /**
+         * @readonly
+         */
+        private Connection $connection,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 
@@ -872,7 +881,9 @@ class MySQLAnalysisStrategy implements PlatformAnalysisStrategy
      */
     private function getMissingModes(string $currentMode): array
     {
-        $activeModes = array_map(trim(...), explode(',', strtoupper($currentMode)));
+        $activeModes = array_map(function ($mode) {
+            return trim($mode);
+        }, explode(',', strtoupper($currentMode)));
         $missing     = [];
 
         foreach (self::RECOMMENDED_SQL_MODES as $mode) {
@@ -887,7 +898,9 @@ class MySQLAnalysisStrategy implements PlatformAnalysisStrategy
     private function getFixCommand(string $currentMode, array $missingModes): string
     {
         $allModes = array_merge(
-            array_filter(array_map(trim(...), explode(',', $currentMode)), fn (string $mode): bool => '' !== $mode),
+            array_filter(array_map(function ($mode) {
+                return trim($mode);
+            }, explode(',', $currentMode)), fn (string $mode): bool => '' !== $mode),
             $missingModes,
         );
         $newMode = implode(',', array_unique($allModes));

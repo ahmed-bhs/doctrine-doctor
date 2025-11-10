@@ -47,9 +47,18 @@ use ReflectionMethod;
 class EmbeddableMutabilityAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
     ) {
     }
 

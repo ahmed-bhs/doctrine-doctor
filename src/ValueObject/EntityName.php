@@ -16,9 +16,12 @@ use Webmozart\Assert\Assert;
 /**
  * Value Object representing an entity name.
  */
-final readonly class EntityName implements \Stringable
+final class EntityName implements \Stringable
 {
     private function __construct(
+        /**
+         * @readonly
+         */
         private string $value,
     ) {
         Assert::stringNotEmpty($value, 'Entity name cannot be empty');

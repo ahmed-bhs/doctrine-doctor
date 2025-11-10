@@ -25,9 +25,12 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
  * Helper for reconstructing issues from serialized data.
  * Extracted from DoctrineDoctorDataCollector to reduce complexity.
  */
-final readonly class IssueReconstructor
+final class IssueReconstructor
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         private ?SuggestionRendererInterface $templateRenderer = null,
     ) {
     }

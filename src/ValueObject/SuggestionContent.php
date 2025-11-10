@@ -17,13 +17,14 @@ use Webmozart\Assert\Assert;
  * Represents structured content for a suggestion.
  * Supports different content types: code blocks, text, options, links, warnings, etc.
  */
-final readonly class SuggestionContent
+final class SuggestionContent
 {
     /**
      * @param SuggestionContentBlock[] $blocks
      */
     public function __construct(
-        /** @var array<mixed> */
+        /** @var array<mixed>
+         * @readonly */
         private array $blocks,
     ) {
         Assert::allIsInstanceOf($blocks, SuggestionContentBlock::class, 'All blocks must be instances of SuggestionContentBlock');

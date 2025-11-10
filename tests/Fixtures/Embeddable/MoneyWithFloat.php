@@ -17,11 +17,17 @@ use Doctrine\ORM\Mapping as ORM;
  * Test embeddable with float for money (should trigger FloatInMoneyEmbeddableAnalyzer).
  */
 #[ORM\Embeddable]
-readonly class MoneyWithFloat
+class MoneyWithFloat
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         #[ORM\Column(type: 'float')] // CRITICAL PROBLEM: Float for money!
         private float $amount,
+        /**
+         * @readonly
+         */
         #[ORM\Column(type: 'string', length: 3)]
         private string $currency,
     ) {

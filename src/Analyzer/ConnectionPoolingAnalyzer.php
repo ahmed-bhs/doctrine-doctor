@@ -42,11 +42,23 @@ use Psr\Log\LoggerInterface;
 class ConnectionPoolingAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly ?DatabasePlatformDetector $databasePlatformDetector = null,
+        /**
+         * @readonly
+         */
+        private Connection $connection,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private ?DatabasePlatformDetector $databasePlatformDetector = null,
         private ?PlatformAnalysisStrategyFactory $platformAnalysisStrategyFactory = null,
-        private readonly ?LoggerInterface $logger = null,
+        /**
+         * @readonly
+         */
+        private ?LoggerInterface $logger = null,
     ) {
     }
 

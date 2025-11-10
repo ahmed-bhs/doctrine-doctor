@@ -22,9 +22,18 @@ use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 class BulkOperationAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly int $threshold = 20,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private int $threshold = 20,
     ) {
     }
 

@@ -16,11 +16,20 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Config;
  * Encapsulates all configuration parameters to reduce constructor complexity
  * and eliminate boolean flag anti-pattern.
  */
-final readonly class MissingIndexAnalyzerConfig
+final class MissingIndexAnalyzerConfig
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         public int $slowQueryThreshold = 50,
+        /**
+         * @readonly
+         */
         public int $minRowsScanned = 1000,
+        /**
+         * @readonly
+         */
         public bool $enabled = true,
     ) {
     }

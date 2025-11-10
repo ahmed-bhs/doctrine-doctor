@@ -18,16 +18,26 @@ use Webmozart\Assert\Assert;
 /**
  * Template-based suggestion implementation.
  */
-final readonly class ModernSuggestion implements SuggestionInterface
+final class ModernSuggestion implements SuggestionInterface
 {
     /**
      * @param array<string, mixed> $context
      */
     public function __construct(
+        /**
+         * @readonly
+         */
         private string $templateName,
-        /** @var array<mixed> */
+        /** @var array<mixed>
+         * @readonly */
         private array $context,
+        /**
+         * @readonly
+         */
         private SuggestionMetadata $suggestionMetadata,
+        /**
+         * @readonly
+         */
         private ?SuggestionRendererInterface $suggestionRenderer = null,
     ) {
         Assert::stringNotEmpty($templateName, 'Template name cannot be empty');

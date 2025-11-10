@@ -23,16 +23,40 @@ use Symfony\Component\Stopwatch\Stopwatch;
  * Data Transfer Object for services stored in ServiceHolder.
  * Reduces parameter count by encapsulating related services.
  */
-final readonly class ServiceHolderData
+final class ServiceHolderData
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         public iterable $analyzers,
+        /**
+         * @readonly
+         */
         public ?EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
         public ?Stopwatch $stopwatch,
+        /**
+         * @readonly
+         */
         public DatabaseInfoCollector $databaseInfoCollector,
+        /**
+         * @readonly
+         */
         public IssueReconstructor $issueReconstructor,
+        /**
+         * @readonly
+         */
         public QueryStatsCalculator $queryStatsCalculator,
+        /**
+         * @readonly
+         */
         public DataCollectorLogger $dataCollectorLogger,
+        /**
+         * @readonly
+         */
         public IssueDeduplicator $issueDeduplicator,
     ) {
     }

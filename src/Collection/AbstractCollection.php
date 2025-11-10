@@ -34,7 +34,10 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
      * @param iterable<int, T> $items
      */
     protected function __construct(
-        private readonly iterable $items = [],
+        /**
+         * @readonly
+         */
+        private iterable $items = [],
     ) {
         Assert::isIterable($items, 'Items must be iterable, got %s');
     }
@@ -279,7 +282,9 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
             $groups[$key][] = $item;
         }
 
-        return array_map(static::fromArray(...), $groups);
+        return array_map(function ($group) {
+            return static::fromArray($group);
+        }, $groups);
     }
 
     /**

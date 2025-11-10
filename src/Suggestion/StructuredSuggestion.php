@@ -21,12 +21,24 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
  * This provides a better user experience by organizing suggestion content
  * in a clear, standardized format.
  */
-final readonly class StructuredSuggestion implements SuggestionInterface
+final class StructuredSuggestion implements SuggestionInterface
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         private string $title,
+        /**
+         * @readonly
+         */
         private SuggestionContent $suggestionContent,
+        /**
+         * @readonly
+         */
         private SuggestionMetadata $suggestionMetadata,
+        /**
+         * @readonly
+         */
         private ?string $summary = null,
     ) {
     }

@@ -23,12 +23,18 @@ use RuntimeException;
  * implements SuggestionRendererInterface (Domain)
  * following the Dependency Inversion Principle.
  */
-final readonly class PhpTemplateRenderer implements TemplateRendererInterface, SuggestionRendererInterface
+final class PhpTemplateRenderer implements TemplateRendererInterface, SuggestionRendererInterface
 {
+    /**
+     * @readonly
+     */
     private string $templateDirectory;
 
     public function __construct(
         ?string $templateDirectory = null,
+        /**
+         * @readonly
+         */
         private ?LoggerInterface $logger = null,
     ) {
         $this->templateDirectory = $templateDirectory ?? $this->getDefaultTemplateDirectory();

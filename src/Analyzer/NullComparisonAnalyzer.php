@@ -41,7 +41,10 @@ class NullComparisonAnalyzer implements AnalyzerInterface
     private const NULL_COMPARISON_PATTERN = '/(\w+(?:\.\w+)?)\s*(=|!=|<>)\s*NULL\b/i';
 
     public function __construct(
-        private readonly SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
     ) {
     }
 

@@ -42,7 +42,10 @@ class OrderByWithoutLimitAnalyzer implements AnalyzerInterface
     private const ORDER_BY_PATTERN = '/\bORDER\s+BY\s+([^;]+?)(?:\s+(?:LIMIT|OFFSET)|;|\s*$)/is';
 
     public function __construct(
-        private readonly SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
     ) {
     }
 

@@ -34,7 +34,10 @@ class EntityWithEntityManager
      * ANTI-PATTERN: EntityManager in constructor.
      */
     public function __construct(
-        private readonly EntityManagerInterface $em,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $em,
     ) {
     }
 

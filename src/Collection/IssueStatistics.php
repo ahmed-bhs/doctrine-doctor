@@ -17,7 +17,7 @@ use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
  * Provides statistical analysis and grouping capabilities for IssueCollection.
  * Follows Single Responsibility Principle.
  */
-final readonly class IssueStatistics
+final class IssueStatistics
 {
     /**
      * Severity levels in order of importance.
@@ -31,6 +31,9 @@ final readonly class IssueStatistics
     ];
 
     public function __construct(
+        /**
+         * @readonly
+         */
         private IssueCollection $issueCollection,
     ) {
     }

@@ -17,9 +17,15 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
 class QueryOptimizationSuggestion implements SuggestionInterface
 {
-    private readonly string $code;
+    /**
+     * @readonly
+     */
+    private string $code;
 
-    private readonly string $description;
+    /**
+     * @readonly
+     */
+    private string $description;
 
     public function __construct(array $data)
     {

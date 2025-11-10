@@ -100,7 +100,9 @@ abstract class DatabaseTestCase extends TestCase
     {
         $schemaTool = new SchemaTool($this->entityManager);
         $metadata = array_map(
-            $this->entityManager->getClassMetadata(...),
+            function ($entity) {
+                return $this->entityManager->getClassMetadata($entity);
+            },
             $entities,
         );
 

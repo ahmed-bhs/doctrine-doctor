@@ -21,8 +21,14 @@ use Doctrine\DBAL\Driver\Statement;
 class QueryLoggingConnection implements DriverConnection
 {
     public function __construct(
-        private readonly DriverConnection $driverConnection,
-        private readonly SimpleQueryLogger $simpleQueryLogger,
+        /**
+         * @readonly
+         */
+        private DriverConnection $driverConnection,
+        /**
+         * @readonly
+         */
+        private SimpleQueryLogger $simpleQueryLogger,
     ) {
     }
 

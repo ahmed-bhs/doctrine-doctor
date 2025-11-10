@@ -27,12 +27,19 @@ use ReflectionClass;
  * Helper for collecting database information.
  * Extracted from DoctrineDoctorDataCollector to reduce complexity.
  */
-final readonly class DatabaseInfoCollector
+final class DatabaseInfoCollector
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         private LoggerInterface $logger,
-        private DataCollectorConfig $dataCollectorConfig = new DataCollectorConfig(),
+        /**
+         * @readonly
+         */
+        private ?DataCollectorConfig $dataCollectorConfig = null
     ) {
+        $this->dataCollectorConfig = $dataCollectorConfig ?? new DataCollectorConfig();
     }
 
     /**
@@ -251,7 +258,7 @@ final readonly class DatabaseInfoCollector
      */
     private function logErrorIfDebugEnabled(string $message, \Throwable $throwable): void
     {
-        if ($this->dataCollectorConfig->debugMode) {
+        if ($this->dataCollectorConfig->debugMode ?? false) {
             $this->logger->error('DoctrineDoctor: ' . $message, [
                 'exception' => $throwable::class,
                 'message'   => $throwable->getMessage(),
@@ -266,7 +273,7 @@ final readonly class DatabaseInfoCollector
      */
     private function logWarningIfDebugEnabled(string $message, \Throwable $throwable): void
     {
-        if ($this->dataCollectorConfig->debugMode) {
+        if ($this->dataCollectorConfig->debugMode ?? false) {
             $this->logger->warning('DoctrineDoctor: ' . $message, [
                 'exception' => $throwable::class,
                 'message'   => $throwable->getMessage(),
@@ -281,7 +288,7 @@ final readonly class DatabaseInfoCollector
      */
     private function logDebugIfEnabled(string $message, \Throwable $throwable): void
     {
-        if ($this->dataCollectorConfig->debugMode) {
+        if ($this->dataCollectorConfig->debugMode ?? false) {
             $this->logger->debug('DoctrineDoctor: ' . $message, [
                 'exception' => $throwable::class,
                 'message'   => $throwable->getMessage(),

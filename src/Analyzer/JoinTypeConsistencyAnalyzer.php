@@ -45,7 +45,10 @@ class JoinTypeConsistencyAnalyzer implements AnalyzerInterface
     private const AGGREGATION_WITH_INNER_JOIN_PATTERN = '/SELECT.*?\b(COUNT|SUM|AVG)\s*\([^)]+\).*?FROM.*?INNER\s+JOIN/is';
 
     public function __construct(
-        private readonly SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
     ) {
     }
 

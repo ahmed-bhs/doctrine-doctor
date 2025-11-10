@@ -44,7 +44,10 @@ class TransactionBoundaryAnalyzer implements AnalyzerInterface
     private const MAX_TRANSACTION_DURATION = 1.0;
 
     public function __construct(
-        private readonly IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
     ) {
     }
 

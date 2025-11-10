@@ -17,11 +17,20 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
 class BatchOperationSuggestion implements SuggestionInterface
 {
-    private readonly string $table;
+    /**
+     * @readonly
+     */
+    private string $table;
 
-    private readonly int $operationCount;
+    /**
+     * @readonly
+     */
+    private int $operationCount;
 
-    private readonly string $example;
+    /**
+     * @readonly
+     */
+    private string $example;
 
     public function __construct(array $data)
     {

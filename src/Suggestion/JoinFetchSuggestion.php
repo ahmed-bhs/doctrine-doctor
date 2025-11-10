@@ -17,11 +17,20 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
 class JoinFetchSuggestion implements SuggestionInterface
 {
-    private readonly string $entity;
+    /**
+     * @readonly
+     */
+    private string $entity;
 
-    private readonly string $relation;
+    /**
+     * @readonly
+     */
+    private string $relation;
 
-    private readonly string $example;
+    /**
+     * @readonly
+     */
+    private string $example;
 
     public function __construct(array $data)
     {

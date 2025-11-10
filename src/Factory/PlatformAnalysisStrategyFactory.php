@@ -25,9 +25,18 @@ use RuntimeException;
 class PlatformAnalysisStrategyFactory
 {
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        /**
+         * @readonly
+         */
+        private Connection $connection,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 

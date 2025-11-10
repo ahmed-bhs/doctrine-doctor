@@ -17,11 +17,20 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
 class FlushInLoopSuggestion implements SuggestionInterface
 {
-    private readonly int $flushCount;
+    /**
+     * @readonly
+     */
+    private int $flushCount;
 
-    private readonly float $operationsBetweenFlush;
+    /**
+     * @readonly
+     */
+    private float $operationsBetweenFlush;
 
-    private readonly string $example;
+    /**
+     * @readonly
+     */
+    private string $example;
 
     public function __construct(array $data)
     {

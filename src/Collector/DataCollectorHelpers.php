@@ -21,13 +21,28 @@ use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
  * Aggregates helper services for DoctrineDoctorDataCollector.
  * Reduces constructor parameter count by grouping related dependencies.
  */
-final readonly class DataCollectorHelpers
+final class DataCollectorHelpers
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         public DatabaseInfoCollector $databaseInfoCollector,
+        /**
+         * @readonly
+         */
         public IssueReconstructor $issueReconstructor,
+        /**
+         * @readonly
+         */
         public QueryStatsCalculator $queryStatsCalculator,
+        /**
+         * @readonly
+         */
         public DataCollectorLogger $dataCollectorLogger,
+        /**
+         * @readonly
+         */
         public IssueDeduplicator $issueDeduplicator,
     ) {
     }

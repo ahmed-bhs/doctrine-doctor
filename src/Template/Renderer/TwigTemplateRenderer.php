@@ -21,9 +21,12 @@ use Twig\Error\Error as TwigError;
  * Useful for testing and when Twig templates are preferred.
  * Implements SuggestionRendererInterface (Domain) following DIP.
  */
-final readonly class TwigTemplateRenderer implements TemplateRendererInterface, SuggestionRendererInterface
+final class TwigTemplateRenderer implements TemplateRendererInterface, SuggestionRendererInterface
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         private Environment $twigEnvironment,
     ) {
     }

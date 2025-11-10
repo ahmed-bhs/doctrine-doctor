@@ -22,10 +22,22 @@ use Psr\Log\LoggerInterface;
 class GetReferenceAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly int $threshold = 2,
-        private readonly ?LoggerInterface $logger = null,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private int $threshold = 2,
+        /**
+         * @readonly
+         */
+        private ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -74,7 +86,9 @@ class GetReferenceAnalyzer implements AnalyzerInterface
                 }
 
                 // Calculate total count across all tables
-                $totalCount = array_sum(array_map(count(...), $simpleSelectQueries));
+                $totalCount = array_sum(array_map(function ($queries) {
+                    return count($queries);
+                }, $simpleSelectQueries));
 
                 $this->logger?->info('[GetReferenceAnalyzer] Summary', [
                     'examined' => $queriesExamined,

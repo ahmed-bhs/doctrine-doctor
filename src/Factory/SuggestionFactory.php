@@ -32,9 +32,12 @@ use Webmozart\Assert\Assert;
  * - Encapsulates complexity of severity calculation
  * - Easy to extend with new suggestion types
  */
-final readonly class SuggestionFactory
+final class SuggestionFactory
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         private SuggestionRendererInterface $suggestionRenderer,
     ) {
         Assert::isInstanceOf($suggestionRenderer, SuggestionRendererInterface::class);
@@ -778,7 +781,9 @@ Detected {$queryCount} repetitive " . ($queryCount > 1 ? 'queries' : 'query') . 
             return '// Unable to generate migration code: table or columns missing.';
         }
 
-        $indexName = 'IDX_' . strtoupper($table) . '_' . implode('_', array_map(strtoupper(...), $columns));
+        $indexName = 'IDX_' . strtoupper($table) . '_' . implode('_', array_map(function ($column) {
+            return strtoupper($column);
+        }, $columns));
         $cols      = implode(', ', $columns);
 
         return sprintf('CREATE INDEX %s ON %s (%s);', $indexName, $table, $cols);

@@ -46,7 +46,10 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements AnalyzerInterface
     ];
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
     ) {
     }
 

@@ -28,9 +28,18 @@ use Psr\Log\LoggerInterface;
 class CollectionInitializationAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly ?LoggerInterface $logger = null,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private ?LoggerInterface $logger = null,
     ) {
     }
 

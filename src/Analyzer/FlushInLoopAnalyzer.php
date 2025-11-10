@@ -22,9 +22,18 @@ use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 class FlushInLoopAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly int $flushCountThreshold = 5,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private int $flushCountThreshold = 5,
     ) {
     }
 

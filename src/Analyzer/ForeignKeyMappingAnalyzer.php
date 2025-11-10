@@ -58,8 +58,14 @@ class ForeignKeyMappingAnalyzer implements AnalyzerInterface
     ];
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
     ) {
     }
 

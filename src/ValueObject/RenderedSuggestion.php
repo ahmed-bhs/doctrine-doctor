@@ -17,11 +17,20 @@ use InvalidArgumentException;
  * Value Object representing a rendered suggestion with formatted output.
  * Immutable.
  */
-final readonly class RenderedSuggestion
+final class RenderedSuggestion
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         public string $code,
+        /**
+         * @readonly
+         */
         public string $description,
+        /**
+         * @readonly
+         */
         public SuggestionMetadata $metadata,
     ) {
         if ('' === $description || '0' === $description) {

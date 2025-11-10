@@ -41,8 +41,14 @@ class PropertyTypeMismatchAnalyzer implements AnalyzerInterface
     private array $checkedEntities = [];
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
     ) {
     }
 
@@ -419,11 +425,16 @@ class PropertyTypeMismatchAnalyzer implements AnalyzerInterface
      */
     private function checkEnumBackingType(mixed $value, array|object $fieldMapping, object $entity, string $fieldName): ?object
     {
-        if (!is_object($value) || !enum_exists($value::class)) {
+        if (!is_object($value) || !class_exists($value::class)) {
             return null;
         }
 
         $enumClass      = $value::class;
+
+        if (!enum_exists($enumClass)) {
+            return null;
+        }
+
         $reflectionEnum = new ReflectionEnum($enumClass);
 
         if (!$reflectionEnum->isBacked()) {

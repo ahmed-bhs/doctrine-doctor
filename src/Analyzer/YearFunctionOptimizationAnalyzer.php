@@ -43,7 +43,10 @@ class YearFunctionOptimizationAnalyzer implements AnalyzerInterface
     private const DATE_FUNCTION_PATTERN = '/\b(YEAR|MONTH|DAY|DATE|HOUR|MINUTE)\s*\(\s*(\w+(?:\.\w+)?)\s*\)\s*(=|<>|!=|>|<|>=|<=)\s*([^\s]+)/i';
 
     public function __construct(
-        private readonly SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
     ) {
     }
 

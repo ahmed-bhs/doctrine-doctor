@@ -32,10 +32,22 @@ use Psr\Log\LoggerInterface;
 class AutoGenerateProxyClassesAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly string $environment = 'prod',
-        private readonly ?LoggerInterface $logger = null,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private string $environment = 'prod',
+        /**
+         * @readonly
+         */
+        private ?LoggerInterface $logger = null,
     ) {
     }
 

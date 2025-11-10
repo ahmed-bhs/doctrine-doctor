@@ -58,7 +58,7 @@ final class IssueCollection extends AbstractCollection
      */
     public function merge(self $other): self
     {
-        return self::fromArray([...$this->toArray(), ...$other->toArray()]);
+        return self::fromArray(array_merge($this->toArray(), $other->toArray()));
     }
 
     // Convenience methods that delegate to helper classes

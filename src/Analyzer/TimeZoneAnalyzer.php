@@ -43,10 +43,22 @@ class TimeZoneAnalyzer implements AnalyzerInterface
     private ?PlatformAnalysisStrategyFactory $platformAnalysisStrategyFactory = null;
 
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly ?DatabasePlatformDetector $databasePlatformDetector = null,
-        private readonly ?LoggerInterface $logger = null,
+        /**
+         * @readonly
+         */
+        private Connection $connection,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private ?DatabasePlatformDetector $databasePlatformDetector = null,
+        /**
+         * @readonly
+         */
+        private ?LoggerInterface $logger = null,
     ) {
     }
 

@@ -51,11 +51,20 @@ class NamingConventionAnalyzer implements AnalyzerInterface
         'references', 'check', 'unique', 'transaction', 'commit', 'rollback',
     ];
 
-    private readonly NamingConventionHelper $helper;
+    /**
+     * @readonly
+     */
+    private NamingConventionHelper $helper;
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly TemplateRendererInterface $templateRenderer,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private TemplateRendererInterface $templateRenderer,
     ) {
         $this->helper = new NamingConventionHelper();
     }

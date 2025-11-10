@@ -24,8 +24,14 @@ use Doctrine\DBAL\ServerVersionProvider;
 class QueryLoggingDriver implements Driver
 {
     public function __construct(
-        private readonly Driver $wrappedDriver,
-        private readonly SimpleQueryLogger $simpleQueryLogger,
+        /**
+         * @readonly
+         */
+        private Driver $wrappedDriver,
+        /**
+         * @readonly
+         */
+        private SimpleQueryLogger $simpleQueryLogger,
     ) {
     }
 

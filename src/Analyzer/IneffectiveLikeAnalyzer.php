@@ -43,7 +43,10 @@ class IneffectiveLikeAnalyzer implements AnalyzerInterface
     private const LIKE_LEADING_WILDCARD_PATTERN = '/\bLIKE\s+([\'"])(%[^\'\"]+)\1/i';
 
     public function __construct(
-        private readonly SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
     ) {
     }
 

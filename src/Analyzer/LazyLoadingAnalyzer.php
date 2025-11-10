@@ -21,9 +21,18 @@ use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 class LazyLoadingAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly int $threshold = 10,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private int $threshold = 10,
     ) {
     }
 
@@ -168,7 +177,9 @@ class LazyLoadingAnalyzer implements AnalyzerInterface
         // Convert to PascalCase
         $parts = explode('_', (string) $table);
 
-        return implode('', array_map(ucfirst(...), $parts));
+        return implode('', array_map(function ($part) {
+            return ucfirst($part);
+        }, $parts));
     }
 
     private function inferRelationFromBacktrace(?array $backtrace): string

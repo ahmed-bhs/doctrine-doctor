@@ -17,9 +17,12 @@ use Webmozart\Assert\Assert;
  * Value Object representing a database table name.
  * Handles name validation and entity inference.
  */
-final readonly class TableName implements \Stringable
+final class TableName implements \Stringable
 {
     private function __construct(
+        /**
+         * @readonly
+         */
         private string $value,
     ) {
         Assert::stringNotEmpty($value, 'Table name cannot be empty');
@@ -56,7 +59,9 @@ final readonly class TableName implements \Stringable
 
         // Convert to PascalCase
         $parts      = explode('_', (string) $cleanName);
-        $entityName = implode('', array_map(ucfirst(...), $parts));
+        $entityName = implode('', array_map(function ($part) {
+            return ucfirst($part);
+        }, $parts));
 
         return EntityName::fromString($entityName);
     }

@@ -23,10 +23,22 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 class EagerLoadingAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly int $joinThreshold = 4,
-        private readonly int $criticalJoinThreshold = 7,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private int $joinThreshold = 4,
+        /**
+         * @readonly
+         */
+        private int $criticalJoinThreshold = 7,
     ) {
     }
 

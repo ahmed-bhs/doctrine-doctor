@@ -17,16 +17,26 @@ use Webmozart\Assert\Assert;
  * Value Object containing metadata about a suggestion.
  * Immutable and type-safe.
  */
-final readonly class SuggestionMetadata
+final class SuggestionMetadata
 {
     /**
      * @param array<string> $tags
      */
     public function __construct(
+        /**
+         * @readonly
+         */
         public SuggestionType $type,
+        /**
+         * @readonly
+         */
         public Severity $severity,
+        /**
+         * @readonly
+         */
         public string $title,
-        /** @var array<mixed> */
+        /** @var array<mixed>
+         * @readonly */
         public array $tags = [],
     ) {
         Assert::stringNotEmpty($title, 'Title cannot be empty');

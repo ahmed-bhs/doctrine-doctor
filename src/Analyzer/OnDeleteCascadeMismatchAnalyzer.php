@@ -40,8 +40,14 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 class OnDeleteCascadeMismatchAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly TemplateRendererInterface $templateRenderer,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private TemplateRendererInterface $templateRenderer,
     ) {
     }
 

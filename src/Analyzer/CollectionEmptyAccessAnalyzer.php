@@ -47,8 +47,14 @@ class CollectionEmptyAccessAnalyzer implements AnalyzerInterface
     private array $collectionStates = [];
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly IssueFactoryInterface $issueFactory,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private IssueFactoryInterface $issueFactory,
     ) {
     }
 

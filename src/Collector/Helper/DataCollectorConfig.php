@@ -15,9 +15,12 @@ namespace AhmedBhs\DoctrineDoctor\Collector\Helper;
  * Configuration for DataCollector helpers.
  * Eliminates boolean flag anti-pattern.
  */
-final readonly class DataCollectorConfig
+final class DataCollectorConfig
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         public bool $debugMode = false,
     ) {
     }

@@ -48,9 +48,18 @@ class ColumnTypeAnalyzer implements AnalyzerInterface
     private const SIMPLE_ARRAY_MAX_LENGTH = 255;
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly ?LoggerInterface $logger = null,
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private ?LoggerInterface $logger = null,
     ) {
     }
 

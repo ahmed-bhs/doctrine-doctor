@@ -17,11 +17,17 @@ use Doctrine\ORM\Mapping as ORM;
  * Test embeddable missing Value Object methods (should trigger EmbeddableWithoutValueObjectAnalyzer).
  */
 #[ORM\Embeddable]
-readonly class IncompleteMoney
+class IncompleteMoney
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         #[ORM\Column(type: 'integer')]
         private int $amount,
+        /**
+         * @readonly
+         */
         #[ORM\Column(type: 'string', length: 3)]
         private string $currency,
     ) {

@@ -64,7 +64,10 @@ class QueryCachingOpportunityAnalyzer implements AnalyzerInterface
     private const FREQUENCY_THRESHOLD_CRITICAL = 10;
 
     public function __construct(
-        private readonly SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
     ) {
     }
 

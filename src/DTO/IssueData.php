@@ -19,20 +19,39 @@ use Webmozart\Assert\Assert;
  * Data Transfer Object representing an analyzer issue.
  * Immutable and type-safe.
  */
-final readonly class IssueData
+final class IssueData
 {
     /**
      * @param QueryData[]                           $queries
      * @param array<int, array<string, mixed>>|null $backtrace
      */
     public function __construct(
+        /**
+         * @readonly
+         */
         public string $type,
+        /**
+         * @readonly
+         */
         public string $title,
+        /**
+         * @readonly
+         */
         public string $description,
+        /**
+         * @readonly
+         */
         public Severity $severity,
+        /**
+         * @readonly
+         */
         public ?SuggestionInterface $suggestion = null,
-        /** @var array<mixed> */
+        /** @var array<mixed>
+         * @readonly */
         public array $queries = [],
+        /**
+         * @readonly
+         */
         public ?array $backtrace = null,
     ) {
         Assert::stringNotEmpty($type, 'Issue type cannot be empty');
@@ -59,7 +78,9 @@ final readonly class IssueData
     public static function fromArray(array $data): self
     {
         $queries = array_map(
-            QueryData::fromArray(...),
+            function ($queryData) {
+                return QueryData::fromArray($queryData);
+            },
             $data['queries'] ?? [],
         );
 

@@ -31,7 +31,10 @@ class BlogFixture implements FixtureInterface
      * @param array<User> $users
      */
     public function __construct(
-        private readonly array $users,
+        /**
+         * @readonly
+         */
+        private array $users,
     ) {
     }
 

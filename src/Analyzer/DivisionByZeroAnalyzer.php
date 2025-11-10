@@ -48,7 +48,10 @@ class DivisionByZeroAnalyzer implements AnalyzerInterface
     private const PROTECTED_PATTERN = '/NULLIF|COALESCE|CASE\s+WHEN/i';
 
     public function __construct(
-        private readonly SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private SuggestionFactory $suggestionFactory,
     ) {
     }
 

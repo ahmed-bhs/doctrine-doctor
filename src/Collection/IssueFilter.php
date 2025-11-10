@@ -19,7 +19,7 @@ use Webmozart\Assert\Assert;
  * Provides filtering capabilities for IssueCollection.
  * Follows Single Responsibility Principle.
  */
-final readonly class IssueFilter
+final class IssueFilter
 {
     /**
      * Severity levels in order of importance.
@@ -33,6 +33,9 @@ final readonly class IssueFilter
     ];
 
     public function __construct(
+        /**
+         * @readonly
+         */
         private IssueCollection $issueCollection,
     ) {
     }

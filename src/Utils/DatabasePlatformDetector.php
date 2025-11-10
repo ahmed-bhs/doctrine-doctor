@@ -29,7 +29,10 @@ use Webmozart\Assert\Assert;
 class DatabasePlatformDetector
 {
     public function __construct(
-        private readonly Connection $connection,
+        /**
+         * @readonly
+         */
+        private Connection $connection,
     ) {
     }
 

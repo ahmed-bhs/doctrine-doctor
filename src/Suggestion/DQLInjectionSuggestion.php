@@ -17,11 +17,20 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
 class DQLInjectionSuggestion implements SuggestionInterface
 {
-    private readonly string $riskLevel;
+    /**
+     * @readonly
+     */
+    private string $riskLevel;
 
-    private readonly array $indicators;
+    /**
+     * @readonly
+     */
+    private array $indicators;
 
-    private readonly string $example;
+    /**
+     * @readonly
+     */
+    private string $example;
 
     public function __construct(array $data)
     {

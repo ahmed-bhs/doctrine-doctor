@@ -17,11 +17,17 @@ use Doctrine\ORM\Mapping as ORM;
  * Test embeddable that is properly immutable (should NOT trigger EmbeddableMutabilityAnalyzer).
  */
 #[ORM\Embeddable]
-readonly class ImmutableMoney
+class ImmutableMoney
 {
     public function __construct(
+        /**
+         * @readonly
+         */
         #[ORM\Column(type: 'integer')]
         private int $amount,
+        /**
+         * @readonly
+         */
         #[ORM\Column(type: 'string', length: 3)]
         private string $currency,
     ) {

@@ -15,10 +15,11 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
-readonly class ConfigurationSuggestion implements SuggestionInterface
+class ConfigurationSuggestion implements SuggestionInterface
 {
     public function __construct(
-        /** @var array<mixed> */
+        /** @var array<mixed>
+         * @readonly */
         private array $data,
     ) {
     }

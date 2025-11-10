@@ -14,7 +14,10 @@ namespace AhmedBhs\DoctrineDoctor\Detector;
 class PatternDetector implements DetectorInterface
 {
     public function __construct(
-        private readonly string $pattern,
+        /**
+         * @readonly
+         */
+        private string $pattern,
     ) {
     }
 
