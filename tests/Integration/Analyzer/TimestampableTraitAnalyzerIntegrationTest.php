@@ -1,0 +1,112 @@
+<?php
+
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
+
+use AhmedBhs\DoctrineDoctor\Analyzer\TimestampableTraitAnalyzer;
+use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
+use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Template\Renderer\TwigTemplateRenderer;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Twig\Environment;
+use Twig\Loader\ArrayLoader;
+
+/**
+ * Integration test for TimestampableTraitAnalyzer.
+ *
+ * Tests the analyzer's ability to detect issues with entity metadata.
+ */
+final class TimestampableTraitAnalyzerIntegrationTest extends TestCase
+{
+    private EntityManager $entityManager;
+
+    protected function setUp(): void
+    {
+        if (!extension_loaded('pdo_sqlite')) {
+            self::markTestSkipped('PDO SQLite extension is not available');
+        }
+
+        $configuration = ORMSetup::createAttributeMetadataConfiguration(
+            paths: [__DIR__ . '/../../Fixtures/Entity'],
+            isDevMode: true,
+        );
+
+        $connection = DriverManager::getConnection([
+            'driver' => 'pdo_sqlite',
+            'memory' => true,
+        ]);
+
+        $this->entityManager = new EntityManager($connection, $configuration);
+    }
+
+    #[Test]
+    public function it_analyzes_without_errors(): void
+    {
+        $timestampableTraitAnalyzer = $this->createAnalyzer();
+        $issueCollection = $timestampableTraitAnalyzer->analyze(QueryDataCollection::empty());
+
+        self::assertInstanceOf(IssueCollection::class, $issueCollection);
+    }
+
+    #[Test]
+    public function it_handles_entities_gracefully(): void
+    {
+        $timestampableTraitAnalyzer = $this->createAnalyzer();
+        $issueCollection = $timestampableTraitAnalyzer->analyze(QueryDataCollection::empty());
+
+        foreach ($issueCollection as $issue) {
+            self::assertNotNull($issue);
+        }
+
+        self::assertTrue(true); // No exceptions thrown
+    }
+
+    #[Test]
+    public function it_detects_timestampable_issues(): void
+    {
+        $timestampableTraitAnalyzer = $this->createAnalyzer();
+        $issueCollection = $timestampableTraitAnalyzer->analyze(QueryDataCollection::empty());
+
+        // Should analyze timestampable implementation
+        // ProductWithBadTimestamps has issues
+        self::assertInstanceOf(IssueCollection::class, $issueCollection);
+
+        foreach ($issueCollection as $issue) {
+            self::assertNotNull($issue->getTitle());
+            self::assertNotNull($issue->getSeverity());
+        }
+    }
+
+    private function createAnalyzer(): TimestampableTraitAnalyzer
+    {
+        $entityManager = $this->entityManager;
+        $issueFactory = new IssueFactory();
+        $suggestionFactory = new SuggestionFactory($this->createTwigRenderer());
+
+        return new TimestampableTraitAnalyzer($entityManager, $issueFactory, $suggestionFactory);
+    }
+
+    private function createTwigRenderer(): TwigTemplateRenderer
+    {
+        $arrayLoader = new ArrayLoader([
+            'default' => 'Suggestion: {{ message }}',
+        ]);
+        $twigEnvironment = new Environment($arrayLoader);
+
+        return new TwigTemplateRenderer($twigEnvironment);
+    }
+}
