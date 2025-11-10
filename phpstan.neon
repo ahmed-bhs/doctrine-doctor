@@ -1,0 +1,102 @@
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+
+parameters:
+    level: 8
+
+    paths:
+        - src
+        - tests
+
+    excludePaths:
+        - tests/Fixtures/*
+        - vendor/*
+        - var/*
+        - src/Template/Suggestions/*
+
+    # Doctrine specific settings
+    doctrine:
+        repositoryClass: Doctrine\ORM\EntityRepository
+
+    # Type coverage and strictness (optimal for open source)
+    reportUnmatchedIgnoredErrors: false
+    checkUninitializedProperties: true
+    checkBenevolentUnionTypes: true
+    checkImplicitMixed: false
+    checkExplicitMixedMissingReturn: false
+    checkFunctionNameCase: true
+    checkInternalClassCaseSensitivity: true
+    checkTooWideReturnTypesInProtectedAndPublicMethods: false
+
+    # PHPDoc rules - more lenient for legacy code
+    treatPhpDocTypesAsCertain: false
+    reportMaybesInMethodSignatures: false
+    reportStaticMethodSignatures: false
+
+    # Ignore specific errors patterns (only for legitimate cases)
+    ignoreErrors:
+        # PHPUnit: Dynamic calls to static methods are standard practice
+        - identifier: staticMethod.dynamicCall
+
+        # Defensive coding: Already narrowed types checks are good for open source
+        - identifier: method.alreadyNarrowedType
+        - identifier: staticMethod.alreadyNarrowedType
+        - identifier: function.alreadyNarrowedType
+
+        # PHPUnit: assertEquals is perfectly fine, assertSame is too strict for many cases
+        - identifier: phpunit.assertEquals
+
+        # Ternary short syntax is readable and concise
+        - identifier: ternary.shortNotAllowed
+
+        # Empty() is useful for checking various falsy values
+        - identifier: empty.notAllowed
+
+        # These are often false positives or overly strict for open source
+        - identifier: cast.useless
+
+        # Array value types: Doctrine metadata arrays have complex structures
+        # Adding @phpstan-type annotations would clutter the codebase
+        - identifier: missingType.iterableValue
+
+        # Array access on objects: Doctrine metadata uses ArrayAccess interface
+        # This is a legitimate pattern in Doctrine ORM
+        - identifier: typePerfect.noArrayAccessOnObject
+
+        # Generic types: Doctrine metadata uses complex generic structures
+        # Full generic type specifications would be overly verbose
+        - identifier: missingType.generics
+
+        # Template types: Doctrine's generic types are often impossible to resolve statically
+        - identifier: argument.templateType
+
+        # Encapsed strings: PHP automatically casts array/objects in string interpolation
+        # This is a standard PHP feature, not an error
+        - identifier: encapsedStringPart.nonString
+
+        # Too wide bool returns: Sometimes methods return true/false for clarity
+        # Even if one branch is always taken
+        - identifier: return.tooWideBool
+
+        # Always true/false comparisons: May be defensive programming or PHP version checks
+        - identifier: greaterOrEqual.alwaysTrue
+        - identifier: lessOrEqual.alwaysTrue
+        - identifier: identical.alwaysTrue
+        - identifier: identical.alwaysFalse
+        - identifier: instanceof.alwaysTrue
+        - identifier: instanceof.alwaysFalse
+
+        # Function/method impossible types: PHPStan may not understand all runtime conditions
+        - identifier: function.impossibleType
+        - identifier: method.impossibleType
+
+        # Unused method results: Some methods are called for side effects
+        - identifier: method.resultUnused
+
+        # Return unused types: Methods may return null for future extensibility
+        - identifier: return.unusedType
+
+    # Parallel processing for better performance
+    parallel:
+        maximumNumberOfProcesses: 4
+        processTimeout: 300.0

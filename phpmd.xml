@@ -1,0 +1,281 @@
+<?xml version="1.0"?>
+<ruleset name="Doctrine Doctor PHPMD Ruleset"
+         xmlns="http://pmd.sf.net/ruleset/1.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0 http://pmd.sf.net/ruleset_xml_schema.xsd"
+         xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_xml_schema.xsd">
+
+    <description>
+        Custom PHPMD ruleset for Doctrine Doctor - Symfony Bundle for analyzing Doctrine queries
+        Optimized for modern PHP 8.2+, Doctrine ORM analysis tools, and Symfony profiler integration
+    </description>
+
+    <!-- ============================================== -->
+    <!-- CODE SIZE RULES (adjusted for analyzer complexity) -->
+    <!-- ============================================== -->
+
+    <rule ref="rulesets/codesize.xml/CyclomaticComplexity">
+        <properties>
+            <!-- Analyzers may have complex logic for query pattern detection -->
+            <property name="reportLevel" value="13"/>
+            <property name="showClassesComplexity" value="true"/>
+            <property name="showMethodsComplexity" value="true"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/NPathComplexity">
+        <properties>
+            <!-- Increased for complex query analysis patterns -->
+            <property name="minimum" value="300"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/ExcessiveMethodLength">
+        <properties>
+            <!-- Analyzers may need detailed logic -->
+            <property name="minimum" value="150"/>
+            <property name="ignore-whitespace" value="true"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/ExcessiveClassLength">
+        <properties>
+            <!-- Some analyzers are comprehensive -->
+            <property name="minimum" value="1200"/>
+            <property name="ignore-whitespace" value="true"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/ExcessiveParameterList">
+        <properties>
+            <!-- DI and factory patterns may require multiple dependencies -->
+            <property name="minimum" value="9"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/ExcessivePublicCount">
+        <properties>
+            <!-- Collections and factories expose rich domain APIs -->
+            <property name="minimum" value="28"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/TooManyFields">
+        <properties>
+            <property name="maxfields" value="20"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/TooManyMethods">
+        <properties>
+            <!-- Collections and factories may have many domain-specific methods -->
+            <property name="maxmethods" value="30"/>
+            <property name="ignorepattern" value="(^(get|set|is|has|with))i"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/TooManyPublicMethods">
+        <properties>
+            <!-- Collections provide rich domain APIs, factories have one method per suggestion type -->
+            <property name="maxmethods" value="24"/>
+            <property name="ignorepattern" value="(^(get|set|is|has|with))i"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/ExcessiveClassComplexity">
+        <properties>
+            <!-- Analyzers and database strategies have complex domain logic -->
+            <property name="maximum" value="90"/>
+        </properties>
+    </rule>
+
+    <!-- ============================================== -->
+    <!-- CLEAN CODE RULES (strict enforcement) -->
+    <!-- ============================================== -->
+
+    <rule ref="rulesets/cleancode.xml/BooleanArgumentFlag">
+        <properties>
+            <property name="exceptions" value=""/>
+        </properties>
+    </rule>
+
+    <!-- Disabled: Modern PHP allows else expressions for clarity -->
+    <!-- <rule ref="rulesets/cleancode.xml/ElseExpression"/> -->
+
+    <rule ref="rulesets/cleancode.xml/StaticAccess">
+        <properties>
+            <!-- Allow static factories, value objects, utility helpers + Webmozart\Assert (standard library) + test helpers -->
+            <property name="exceptions" value="\AhmedBhs\DoctrineDoctor\Collection\IssueCollection,\AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection,\AhmedBhs\DoctrineDoctor\ValueObject\Severity,\AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory,\AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType,\AhmedBhs\DoctrineDoctor\ValueObject\SuggestionContentBlock,\AhmedBhs\DoctrineDoctor\Helper\MappingHelper,\AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter,\AhmedBhs\DoctrineDoctor\ValueObject\Helper\MarkdownFormatter,\Webmozart\Assert\Assert,\AhmedBhs\DoctrineDoctor\Collector\ServiceHolder,\AhmedBhs\DoctrineDoctor\DTO\QueryData,\AhmedBhs\DoctrineDoctor\Suggestion\StructuredSuggestion,\AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime,\AhmedBhs\DoctrineDoctor\ValueObject\EntityName,\AhmedBhs\DoctrineDoctor\ValueObject\TableName,\AhmedBhs\DoctrineDoctor\ValueObject\SuggestionContent,\AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/cleancode.xml/DuplicatedArrayKey"/>
+    <rule ref="rulesets/cleancode.xml/ErrorControlOperator"/>
+    <rule ref="rulesets/cleancode.xml/MissingImport"/>
+    <rule ref="rulesets/cleancode.xml/UndefinedVariable"/>
+    <rule ref="rulesets/cleancode.xml/IfStatementAssignment"/>
+
+    <!-- ============================================== -->
+    <!-- DESIGN RULES (security and best practices) -->
+    <!-- ============================================== -->
+
+    <rule ref="rulesets/design.xml/EvalExpression"/>
+    <rule ref="rulesets/design.xml/ExitExpression"/>
+    <rule ref="rulesets/design.xml/GotoStatement"/>
+
+    <rule ref="rulesets/design.xml/DepthOfInheritance">
+        <properties>
+            <property name="minimum" value="4"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/design.xml/NumberOfChildren">
+        <properties>
+            <!-- 25 issue types is normal for comprehensive analyzer -->
+            <property name="minimum" value="30"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/design.xml/DevelopmentCodeFragment">
+        <properties>
+            <!-- Extended list for debugging functions -->
+            <property name="unwanted-functions" value="var_dump,print_r,debug_zval_dump,debug_print_backtrace,dump,dd,ray"/>
+        </properties>
+    </rule>
+
+    <!-- Disabled: Empty catch blocks may be intentional for optional operations -->
+    <!-- <rule ref="rulesets/design.xml/EmptyCatchBlock"/> -->
+
+    <rule ref="rulesets/design.xml/CountInLoopExpression"/>
+    <rule ref="rulesets/design.xml/CouplingBetweenObjects">
+        <properties>
+            <!-- Analyzers bridge multiple concerns (ORM, Reflection, Issue creation) -->
+            <property name="maximum" value="20"/>
+        </properties>
+    </rule>
+
+    <!-- ============================================== -->
+    <!-- NAMING RULES (with Doctrine context) -->
+    <!-- ============================================== -->
+
+    <rule ref="rulesets/naming.xml/ConstructorWithNameAsEnclosingClass"/>
+
+    <rule ref="rulesets/naming.xml/LongClassName">
+        <properties>
+            <!-- Descriptive analyzer names are acceptable -->
+            <property name="maximum" value="55"/>
+            <property name="subtract-suffixes" value="Analyzer,Factory,Interface,Collection,Repository"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/naming.xml/ShortClassName">
+        <properties>
+            <property name="minimum" value="3"/>
+            <property name="exceptions" value="App,DTO"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/naming.xml/ShortVariable">
+        <properties>
+            <!-- Extended exceptions for common Doctrine/Symfony variables -->
+            <property name="minimum" value="3"/>
+            <property name="exceptions" value="id,em,qb,dql,sql,orm,key,row,col,map,dto,url,uri,ref,idx,opt,io"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/naming.xml/LongVariable">
+        <properties>
+            <!-- Increased to accommodate descriptive dependency injection parameter names -->
+            <property name="maximum" value="35"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/naming.xml/ShortMethodName">
+        <properties>
+            <property name="minimum" value="3"/>
+            <property name="exceptions" value="get,set,add,has,is,to"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/naming.xml/ConstantNamingConventions"/>
+    <rule ref="rulesets/naming.xml/BooleanGetMethodName">
+        <properties>
+            <property name="checkParameterizedMethods" value="true"/>
+        </properties>
+    </rule>
+
+    <!-- ============================================== -->
+    <!-- UNUSED CODE RULES (strict detection) -->
+    <!-- ============================================== -->
+
+    <!-- Disabled: Parameters prefixed with _ are intentionally unused (PHP 8+ convention) -->
+    <!-- This is a valid pattern to mark unused parameters explicitly -->
+    <!-- <rule ref="rulesets/unusedcode.xml/UnusedFormalParameter">
+        <properties>
+            <property name="allow-unused-foreach-variables" value="false"/>
+        </properties>
+    </rule> -->
+
+    <rule ref="rulesets/unusedcode.xml/UnusedLocalVariable"/>
+    <rule ref="rulesets/unusedcode.xml/UnusedPrivateField"/>
+    <rule ref="rulesets/unusedcode.xml/UnusedPrivateMethod"/>
+
+    <!-- ============================================== -->
+    <!-- CONTROVERSIAL RULES (coding standards) -->
+    <!-- ============================================== -->
+
+    <rule ref="rulesets/controversial.xml/CamelCaseClassName"/>
+    <rule ref="rulesets/controversial.xml/CamelCasePropertyName">
+        <properties>
+            <property name="allow-underscore" value="false"/>
+        </properties>
+    </rule>
+
+    <!-- Disabled: PHPUnit test methods use snake_case (aligned with ECS config) -->
+    <!-- Tests are excluded via pattern below -->
+    <!-- <rule ref="rulesets/controversial.xml/CamelCaseMethodName">
+        <properties>
+            <property name="allow-underscore" value="true"/>
+            <property name="allow-underscore-test" value="true"/>
+        </properties>
+    </rule> -->
+
+    <!-- Disabled: Parameters prefixed with _ are intentionally unused (PHP 8+ convention) -->
+    <!-- PHPMD reports this as violation but it's a valid PHP pattern -->
+    <!-- <rule ref="rulesets/controversial.xml/CamelCaseParameterName">
+        <properties>
+            <property name="allow-underscore" value="false"/>
+        </properties>
+    </rule> -->
+
+    <!-- Disabled: Double underscore prefix ($__var) is intentional for template scope isolation -->
+    <!-- Variables like $__context and $__templatePath prevent naming conflicts in extracted template scope -->
+    <!-- This is a standard PHP template pattern -->
+    <!-- <rule ref="rulesets/controversial.xml/CamelCaseVariableName">
+        <properties>
+            <property name="allow-underscore" value="false"/>
+        </properties>
+    </rule> -->
+
+    <rule ref="rulesets/controversial.xml/Superglobals"/>
+
+    <!-- ============================================== -->
+    <!-- EXCLUSIONS (false positives) -->
+    <!-- ============================================== -->
+
+    <!-- Exclude Config value objects - boolean flags are intentional for configuration -->
+    <exclude-pattern>*/Config/*Config.php</exclude-pattern>
+    <exclude-pattern>*/Helper/*Config.php</exclude-pattern>
+
+    <!-- Exclude template files with PHP interpolation (aligned with ECS, PHPStan, Deptrac) -->
+    <exclude-pattern>*/Template/Suggestions/*</exclude-pattern>
+
+    <!-- Exclude Symfony DI - high coupling is expected in dependency injection container -->
+    <exclude-pattern>*/DependencyInjection/Configuration.php</exclude-pattern>
+    <exclude-pattern>*/DependencyInjection/*Extension.php</exclude-pattern>
+
+    <!-- Tests are now analyzed (aligned with ECS and PHPStan) -->
+    <!-- Test Fixtures are excluded as they contain intentionally malformed code -->
+    <exclude-pattern>tests/Fixtures/*</exclude-pattern>
+</ruleset>
+

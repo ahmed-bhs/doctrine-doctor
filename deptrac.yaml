@@ -1,0 +1,399 @@
+deptrac:
+  # ============================================================
+  # CONFIGURATION
+  # ============================================================
+  paths:
+    - ./src
+
+  exclude_files:
+    - '#.*test.*#i'
+    - '#.*Test\.php$#'
+    - '#.*Template/Suggestions/.*#'  # Exclude template files with PHP interpolation
+
+  # ============================================================
+  # ANALYZER CONFIGURATION
+  # ============================================================
+  analyser:
+    types:
+      - 'class'          # Analyze class dependencies
+      - 'class_superglobal'
+      - 'function'       # Analyze function calls
+      - 'use'            # Analyze use statements
+
+  # ============================================================
+  # LAYERS DEFINITION
+  # Architecture: Layered Architecture with DDD principles
+  #
+  # Flow: Domain → Application → Infrastructure → Presentation
+  # ============================================================
+  layers:
+    # --------------------------------------------------------
+    # 🔵 DOMAIN LAYER - Business Core (Zero Dependencies)
+    # --------------------------------------------------------
+    # Pure business logic, no framework dependencies
+    # These are the heart of the application
+
+    - name: ValueObject
+      collectors:
+        - type: directory
+          value: src/ValueObject/.*
+      # Examples: Severity, SuggestionType, DatabasePlatform
+
+    - name: DTO
+      collectors:
+        - type: directory
+          value: src/DTO/.*
+      # Examples: QueryData, IssueData, SuggestionData
+
+    - name: Issue
+      collectors:
+        - type: directory
+          value: src/Issue/.*
+      # Business entities representing detected problems
+
+    - name: Suggestion
+      collectors:
+        - type: directory
+          value: src/Suggestion/.*
+      # Business entities representing improvement suggestions
+
+    - name: Collection
+      collectors:
+        - type: directory
+          value: src/Collection/.*
+      # Typed collections for Issues, Queries, etc.
+
+    # --------------------------------------------------------
+    # 🟢 APPLICATION LAYER - Business Logic & Orchestration
+    # --------------------------------------------------------
+    # Use cases and business rules implementation
+
+    - name: Analyzer
+      collectors:
+        - type: directory
+          value: src/Analyzer/.*
+      # Core business logic: detect issues in Doctrine code
+
+    - name: Detector
+      collectors:
+        - type: directory
+          value: src/Detector/.*
+      # Specialized detectors used by Analyzers
+
+    - name: Helper
+      collectors:
+        - type: directory
+          value: src/Helper/.*
+      # Pure domain helpers (no external dependencies)
+
+    # --------------------------------------------------------
+    # 🟡 INFRASTRUCTURE LAYER - Technical Implementation
+    # --------------------------------------------------------
+    # Framework integration, external services, adapters
+
+    - name: Factory
+      collectors:
+        - type: directory
+          value: src/Factory/.*
+      # Create complex objects with Infrastructure dependencies
+      # Moved to Infrastructure because Factories often need TemplateRenderer
+
+    - name: Strategy
+      collectors:
+        - type: directory
+          value: src/Infrastructure/Strategy/.*
+      # Platform-specific analysis strategies (MySQL, PostgreSQL, etc.)
+      # Moved to Infrastructure because they use Factory + Utils
+
+    - name: Collector
+      collectors:
+        - type: directory
+          value: src/Collector/.*
+      # Symfony Profiler integration - orchestrates Analyzers
+
+    - name: Template
+      collectors:
+        - type: directory
+          value: src/Template/.*
+      # Template rendering system (Twig adapter)
+
+    - name: Generator
+      collectors:
+        - type: directory
+          value: src/Generator/.*
+      # Code generation (migrations, repositories, etc.)
+
+    - name: Utils
+      collectors:
+        - type: directory
+          value: src/Utils/.*
+      # Technical utilities (platform detection, etc.)
+
+    - name: Service
+      collectors:
+        - type: directory
+          value: src/Service/.*
+      # Business services (deduplication, severity calculation, message enhancement)
+      # Infrastructure layer because services orchestrate and transform data
+
+    # --------------------------------------------------------
+    # 🟣 PRESENTATION LAYER - User Interface
+    # --------------------------------------------------------
+    # CLI commands, user interaction
+
+    - name: Command
+      collectors:
+        - type: directory
+          value: src/Command/.*
+      # Symfony Console commands
+
+    # --------------------------------------------------------
+    # ⚫ CONFIGURATION LAYER - Dependency Injection
+    # --------------------------------------------------------
+    # Bundle configuration and service wiring
+
+    - name: DependencyInjection
+      collectors:
+        - type: directory
+          value: src/DependencyInjection/.*
+
+    - name: Bundle
+      collectors:
+        - type: class
+          value: AhmedBhs\DoctrineDoctor\DoctrineDoctorBundle
+
+  # ============================================================
+  # DEPENDENCY RULES
+  #
+  # General principle: Layers can only depend on layers below them
+  # Domain ← Application ← Infrastructure ← Presentation
+  # ============================================================
+  ruleset:
+    # --------------------------------------------------------
+    # 🔵 DOMAIN LAYER RULES
+    # Pure domain logic - no dependencies on other layers
+    # --------------------------------------------------------
+
+    ValueObject:
+      - ValueObject  # ValueObjects can depend on each other
+
+    DTO:
+      - ValueObject  # DTOs use ValueObjects for type safety
+      - DTO          # DTOs can compose other DTOs
+      - Suggestion   # DTOs can reference Domain entities for data transfer
+                     # IssueData contains optional Suggestion (valid pattern)
+
+    Issue:
+      - ValueObject  # Issues use ValueObjects (Severity, etc.)
+      - DTO          # Issues are built from DTOs
+      - Suggestion   # Issues contain Suggestions (composition)
+
+    Suggestion:
+      - ValueObject  # Suggestions use ValueObjects (SuggestionType)
+      - DTO          # Suggestions are built from DTOs
+      # MUST NOT depend on Issue (avoid circular dependency)
+
+    Collection:
+      - ValueObject  # Collections are typed with ValueObjects
+      - DTO          # Collections can hold DTOs
+      - Issue        # IssueCollection holds Issues
+      - Suggestion   # Collections can hold Suggestions
+
+    # --------------------------------------------------------
+    # 🟢 APPLICATION LAYER RULES
+    # Business logic - depends only on Domain
+    # --------------------------------------------------------
+
+    Analyzer:
+      - ValueObject  # Use domain ValueObjects
+      - DTO          # Analyzers receive DTOs as input
+      - Issue        # Analyzers CREATE Issues directly
+      - Suggestion   # Analyzers CREATE Suggestions directly
+      - Collection   # Analyzers return Collections of Issues
+      - Detector     # Analyzers can delegate to Detectors
+      - Strategy     # Analyzers use Strategies (Infrastructure - platform-specific)
+      - Helper       # Analyzers can use Helpers (Application layer)
+      - Factory      # Some Analyzers use PlatformAnalysisStrategyFactory
+      - Utils        # InnoDBEngineAnalyzer uses DatabasePlatformDetector (platform detection)
+      - Template     # Some Analyzers use TemplateRendererInterface for complex suggestions
+      # Note: Template dependency allowed for Analyzers that create complex formatted suggestions
+      # Note: Utils allowed for DatabasePlatformDetector (platform-specific infrastructure utility)
+
+    Detector:
+      - ValueObject  # Use domain ValueObjects
+      - DTO          # Detectors work with DTOs
+      - Collection   # Detectors may return Collections
+
+    Helper:
+      - ValueObject  # Helpers work with ValueObjects only
+      # Pure domain helpers - no external dependencies
+
+    # --------------------------------------------------------
+    # 🟡 INFRASTRUCTURE LAYER RULES
+    # Technical implementation - can use Application + Domain
+    # --------------------------------------------------------
+
+    Factory:
+      - ValueObject  # Factories use ValueObjects
+      - DTO          # Factories transform DTOs into Entities
+      - Issue        # Factories create Issues
+      - Suggestion   # Factories create Suggestions
+      - Collection   # Factories can create Collections
+      - Strategy     # PlatformAnalysisStrategyFactory creates Strategy instances
+      - Template     # SuggestionFactory uses SuggestionRendererInterface
+      - Utils        # PlatformAnalysisStrategyFactory uses DatabasePlatformDetector
+      # Factory is Infrastructure - can use other Infrastructure components
+
+    Strategy:
+      - ValueObject  # Strategies use ValueObjects
+      - DTO          # Strategies work with DTOs
+      - Issue        # Strategies can create Issues
+      - Suggestion   # Strategies can create Suggestions
+      - Collection   # Strategies return Collections
+      - Factory      # Strategies use SuggestionFactory (injected)
+      - Utils        # Strategies use DatabasePlatformDetector (injected)
+      # Platform-specific implementations (Infrastructure layer)
+      # Strategy is Infrastructure because it depends on Factory + Utils
+
+    Collector:
+      - ValueObject  # Use domain types
+      - DTO          # Transform raw data to DTOs
+      - Issue        # Collect Issues from Analyzers
+      - Suggestion   # Handle Suggestions
+      - Collection   # Aggregate results in Collections
+      - Analyzer     # Orchestrate all Analyzers
+      - Strategy     # Use platform-specific Strategies
+      - Factory      # Use Factories to create complex objects
+      - Template     # Render suggestions via templates
+      - Service      # Use Services (IssueDeduplicator, etc.)
+      # The Collector is the orchestrator of the analysis process
+
+    Template:
+      - ValueObject  # Templates may display ValueObjects
+      - DTO          # STRICT: Templates work ONLY with data (DTOs)
+      - Suggestion   # Template implements SuggestionRendererInterface (DIP)
+      # Templates implement Domain interfaces (Dependency Inversion)
+      # Infrastructure → Domain (allowed)
+
+    Generator:
+      - ValueObject  # Use domain types
+      - DTO          # Work with DTOs
+      - Issue        # Generate code based on Issues
+      - Suggestion   # Generate code from Suggestions
+      - Collection   # Process collections of Issues
+      - Analyzer     # May run analysis before generation
+      - Strategy     # Use platform-specific Strategies
+      - Factory      # Use Factories
+
+    Utils:
+      - ValueObject  # Utils can use ValueObjects only
+      # ACCEPTABLE: Contains DatabasePlatformDetector (Infrastructure utility)
+      # Used by Factory layer only (Infrastructure → Infrastructure)
+      # Note: Utils is acceptable for Infrastructure-level utilities
+      # that don't contain business logic
+
+    Service:
+      - ValueObject  # Services use ValueObjects (Severity)
+      - Issue        # Services work with Issues (IssueDeduplicator)
+      - Collection   # Services transform Collections (IssueCollection)
+      # Business services in Infrastructure layer
+      # - SeverityCalculator: Calculates severity based on metrics
+      # - IssueDeduplicator: Removes redundant issues
+      # - MessageEnhancer: Enriches messages with context
+
+    # --------------------------------------------------------
+    # 🟣 PRESENTATION LAYER RULES
+    # User interface - can use everything except Config
+    # --------------------------------------------------------
+
+    Command:
+      - ValueObject  # Display domain types
+      - DTO          # Work with DTOs
+      - Issue        # Display Issues
+      - Suggestion   # Display Suggestions
+      - Collection   # Display Collections
+      - Analyzer     # Trigger analysis
+      - Strategy     # May use Strategies
+      - Factory      # May use Factories
+      - Collector    # Primary interaction point
+      - Generator    # Trigger code generation
+      # Commands are thin - they delegate to Collector/Generator
+
+    # --------------------------------------------------------
+    # ⚫ CONFIGURATION LAYER RULES
+    # Dependency Injection - can use everything (wiring layer)
+    # --------------------------------------------------------
+
+    DependencyInjection:
+      - ValueObject
+      - DTO
+      - Issue
+      - Suggestion
+      - Collection
+      - Analyzer
+      - Detector
+      - Strategy
+      - Helper
+      - Factory
+      - Collector
+      - Template
+      - Generator
+      - Utils
+      - Service
+      - Command
+
+    Bundle:
+      - DependencyInjection
+
+  # ============================================================
+  # ARCHITECTURE VALIDATION: ZERO VIOLATIONS
+  # ============================================================
+  #
+  # This project follows Clean Architecture & DDD principles:
+  #
+  # 📐 Architecture Principles:
+  # - Domain layer has zero external dependencies
+  # - Dependencies point inward (Dependency Inversion Principle)
+  # - Clear separation of concerns across layers
+  # - Platform-specific logic isolated in Strategy pattern
+  #
+  # Layer Boundaries:
+  # - Domain → Pure business logic (ValueObjects, DTOs, Entities)
+  # - Application → Business rules & orchestration (Analyzers, Detectors)
+  # - Infrastructure → Technical implementation (Factories, Strategies, Templates)
+  # - Presentation → User interface (Commands)
+  #
+  # 🔒 Key Design Patterns:
+  # - Strategy Pattern: Platform-specific database analysis
+  # - Dependency Inversion: SuggestionRendererInterface in Domain
+  # - Factory Pattern: Complex object creation with dependencies
+  # - Repository Pattern: Doctrine ORM integration
+  #
+  # ============================================================
+  # BEST PRACTICES & GUIDELINES
+  # ============================================================
+  #
+  # 1. ANALYZERS (Application Layer)
+  #    DO: Create Issues and Suggestions directly (new CodeQualityIssue(...))
+  #    DO: Use Helper classes for common mapping operations
+  #    DO: Inject PlatformAnalysisStrategyFactory for platform-specific logic
+  #    📢 DON'T: Inject IssueFactory or SuggestionFactory
+  #    📢 DON'T: Use Utils classes (use Domain ValueObjects instead)
+  #    📢 DON'T: Access Template layer directly
+  #
+  # 2. DOMAIN LAYER (ValueObject, DTO, Issue, Suggestion, Collection)
+  #    DO: Keep zero external dependencies
+  #    DO: Use immutable objects (readonly properties)
+  #    DO: Define interfaces for Infrastructure implementations (DIP)
+  #    📢 DON'T: Import anything from Infrastructure or Application
+  #
+  # 3. INFRASTRUCTURE LAYER (Factory, Strategy, Template)
+  #    DO: Implement Domain interfaces (SuggestionRendererInterface)
+  #    DO: Use Factories for complex object creation
+  #    DO: Isolate platform-specific logic in Strategy classes
+  #    📢 DON'T: Let Infrastructure leak into Application
+  #
+  # 4. DEPENDENCY FLOW
+  #    Presentation → Infrastructure → Application → Domain
+  #    ↓              ↓                ↓             ↓
+  #    Commands   →   Collector    →  Analyzer  →  Issue/Suggestion
