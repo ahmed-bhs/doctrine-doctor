@@ -29,7 +29,8 @@ Unlike static analysis tools (PHPStan, Psalm) that analyze code without executio
 </td>
 <td width="50%" align="center" valign="top">
 
-<video src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo.webm" width="100%" autoplay loop muted playsinline style="border: 1px solid #d0d7de; box-shadow: 0 1px 3px rgba(0,0,0,0.12);"></video>
+![Doctrine Doctor Demo](https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo.gif)
+
 </td>
 </tr>
 </table>
