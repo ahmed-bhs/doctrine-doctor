@@ -1,0 +1,27 @@
+doctrine_doctor:
+    enabled: true
+
+    # Profiler integration (automatically enabled in dev/test environments)
+    profiler:
+        enabled: '%kernel.debug%'
+
+    # Analysis configuration
+    analysis:
+        # Enable/disable specific analyzer categories
+        categories:
+            performance: true
+            security: true
+            best_practices: true
+            maintenance: true
+
+        # Severity levels to report (debug, info, warning, error, critical)
+        min_severity: 'info'
+
+        # Maximum queries to analyze per request (0 = unlimited)
+        max_queries: 0
+
+    # Suggestions configuration
+    suggestions:
+        enabled: true
+        # Show code examples in suggestions
+        show_examples: true

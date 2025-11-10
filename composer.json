@@ -24,12 +24,18 @@
     "performance-monitoring",
     "query-analysis"
   ],
+  "homepage": "https://github.com/ahmed-bhs/doctrine-doctor",
   "authors": [
     {
       "name": "Ahmed EBEN HASSINE",
-      "email": "ahmedbhs123@example.com"
+      "email": "ahmedbhs123@example.com",
+      "role": "Developer"
     }
   ],
+  "support": {
+    "issues": "https://github.com/ahmed-bhs/doctrine-doctor/issues",
+    "source": "https://github.com/ahmed-bhs/doctrine-doctor"
+  },
   "require": {
     "php": "^8.2",
     "symfony/framework-bundle": "^6.0|^7.0",
@@ -130,7 +136,18 @@
   "config": {
     "allow-plugins": {
       "phpstan/extension-installer": true,
-      "dealerdirect/phpcodesniffer-composer-installer": true
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "symfony/flex": true
+    },
+    "sort-packages": true
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-main": "1.x-dev"
+    },
+    "symfony": {
+      "allow-contrib": false,
+      "require": "^6.0|^7.0"
     }
   }
 }
