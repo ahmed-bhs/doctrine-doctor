@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Analyzer\SetMaxResultsWithCollectionJoinAnalyzer;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -41,7 +42,8 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         $renderer = new InMemoryTemplateRenderer();
         $suggestionFactory = new SuggestionFactory($renderer);
         $issueFactory = new IssueFactory();
-        $this->analyzer = new SetMaxResultsWithCollectionJoinAnalyzer($issueFactory, $suggestionFactory);
+        $sqlExtractor = new SqlStructureExtractor();
+        $this->analyzer = new SetMaxResultsWithCollectionJoinAnalyzer($issueFactory, $suggestionFactory, $sqlExtractor);
     }
 
     #[Test]
@@ -340,5 +342,129 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
 
         // This is a CRITICAL issue due to silent data loss
         self::assertEquals('critical', $data['severity']);
+    }
+
+    #[Test]
+    public function it_ignores_translation_join_with_locale_filter_in_on_clause(): void
+    {
+        // Sylius pattern: Translation join with locale filter
+        // This is SAFE because locale filter ensures at most 1 translation per product
+        $queries = QueryDataBuilder::create()
+            ->addQuery(
+                'SELECT s0_.code, s0_.id, s1_.name, s1_.slug, s1_.id ' .
+                'FROM sylius_product s0_ ' .
+                'INNER JOIN sylius_product_translation s1_ ON s0_.id = s1_.translatable_id AND (s1_.locale = ?) ' .
+                'WHERE s0_.enabled = ? ' .
+                'LIMIT 4'
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        // Should NOT flag this as an issue - locale filter ensures single row per product
+        self::assertCount(0, $issues, 'Translation joins with locale filter should be safe');
+    }
+
+    #[Test]
+    public function it_ignores_translation_join_with_locale_in_and_clause(): void
+    {
+        // Alternative pattern: locale filter as separate AND condition
+        $queries = QueryDataBuilder::create()
+            ->addQuery(
+                'SELECT t0_.id, t0_.name, t1_.id, t1_.content ' .
+                'FROM blog_post t0_ ' .
+                'INNER JOIN blog_post_translation t1_ ON t0_.id = t1_.post_id AND t1_.locale = ? ' .
+                'LIMIT 10'
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(0, $issues, 'Translation joins with AND locale = ? should be safe');
+    }
+
+    #[Test]
+    public function it_detects_true_collection_join_without_locale_filter(): void
+    {
+        // This is a REAL problem: joining multiple images without any constraint
+        $queries = QueryDataBuilder::create()
+            ->addQuery(
+                'SELECT p0_.id, p0_.name, i1_.id, i1_.url ' .
+                'FROM product p0_ ' .
+                'LEFT JOIN product_images i1_ ON p0_.id = i1_.product_id ' .
+                'LIMIT 10'
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        // Should flag this - no constraint on images, could load partial collection
+        self::assertCount(1, $issues, 'Unconstrained collection joins should be flagged');
+    }
+
+    #[Test]
+    public function it_handles_real_sylius_query_from_repository(): void
+    {
+        // Exact query from Sylius that was a false positive
+        $queries = QueryDataBuilder::create()
+            ->addQuery(
+                'SELECT s0_.code AS code_0, s0_.created_at AS created_at_1, s0_.updated_at AS updated_at_2, ' .
+                's0_.enabled AS enabled_3, s0_.id AS id_4, s0_.variant_selection_method AS variant_selection_method_5, ' .
+                's0_.average_rating AS average_rating_6, s1_.name AS name_7, s1_.slug AS slug_8, ' .
+                's1_.description AS description_9, s1_.meta_keywords AS meta_keywords_10, ' .
+                's1_.meta_description AS meta_description_11, s1_.id AS id_12, s1_.short_description AS short_description_13, ' .
+                's1_.locale AS locale_14, s0_.main_taxon_id AS main_taxon_id_15, s0_.product_type_id AS product_type_id_16, ' .
+                's1_.translatable_id AS translatable_id_17 ' .
+                'FROM sylius_product s0_ ' .
+                'INNER JOIN sylius_product_translation s1_ ON s0_.id = s1_.translatable_id AND (s1_.locale = ?) ' .
+                'WHERE EXISTS (SELECT 1 FROM sylius_product_channels s2_ WHERE s2_.product_id = s0_.id AND s2_.channel_id IN (?)) ' .
+                'AND s0_.enabled = ? ' .
+                'ORDER BY s0_.created_at DESC, s0_.id ASC ' .
+                'LIMIT 4'
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        // This is SAFE - locale filter ensures single translation per product
+        self::assertCount(0, $issues, 'Sylius product query with translation should not trigger false positive');
+    }
+
+    #[Test]
+    public function it_detects_multiple_unfiltered_collections(): void
+    {
+        // Real problem: joining multiple collections without constraints
+        $queries = QueryDataBuilder::create()
+            ->addQuery(
+                'SELECT p0_.id, c1_.id, t2_.id ' .
+                'FROM posts p0_ ' .
+                'LEFT JOIN comments c1_ ON p0_.id = c1_.post_id ' .
+                'LEFT JOIN tags t2_ ON p0_.id = t2_.post_id ' .
+                'LIMIT 10'
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        // Should flag - no constraints on collections
+        self::assertCount(1, $issues);
+    }
+
+    #[Test]
+    public function it_handles_case_insensitive_locale_keyword(): void
+    {
+        // Test with lowercase 'locale' keyword
+        $queries = QueryDataBuilder::create()
+            ->addQuery(
+                'select t0_.id, t1_.id from product t0_ ' .
+                'inner join product_translation t1_ on t0_.id = t1_.product_id and (t1_.locale = ?) ' .
+                'limit 5'
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        // Should recognize locale filter even in lowercase
+        self::assertCount(0, $issues);
     }
 }

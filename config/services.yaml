@@ -453,5 +453,6 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\SetMaxResultsWithCollectionJoinAnalyzer:
         arguments:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }

@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -56,6 +57,10 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private SqlStructureExtractor $sqlExtractor,
     ) {
     }
 
@@ -98,6 +103,8 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements AnalyzerInterface
      * 1. Query must have LIMIT clause
      * 2. Query must have JOIN (LEFT JOIN or INNER JOIN)
      * 3. Query must SELECT columns from joined table (fetch join)
+     * 4. JOIN must not have constraints that guarantee single row per entity
+     *    (e.g., locale filters, unique constraints)
      */
     private function hasLimitWithFetchJoin(string $sql): bool
     {
@@ -110,7 +117,7 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements AnalyzerInterface
         }
 
         // Must have JOIN
-        if (1 !== preg_match('/\s(?:LEFT\s+JOIN|INNER\s+JOIN|JOIN)\s+/i', (string) $sql)) {
+        if (!$this->sqlExtractor->hasJoin($sql)) {
             return false;
         }
 
@@ -137,7 +144,58 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements AnalyzerInterface
 
         // If selecting from multiple table aliases, it's likely a fetch join
         // (selecting both parent entity and joined collection)
-        return count($uniqueAliases) >= 2;
+        if (count($uniqueAliases) < 2) {
+            return false;
+        }
+
+        // Check for safe patterns that indicate single-row joins
+        // These patterns prevent false positives for translation tables, etc.
+        if ($this->hasSingleRowJoinConstraint($sql)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Detect if JOIN has constraints that guarantee at most one row per parent entity.
+     * Common patterns:
+     * - Translation tables with locale filter: AND (t1_.locale = ?)
+     * - Unique constraints on joined table
+     * - Primary key equality in JOIN condition
+     *
+     * These patterns are safe with LIMIT because they don't create row multiplication.
+     */
+    private function hasSingleRowJoinConstraint(string $sql): bool
+    {
+        // Pattern 1: Translation pattern with locale filter
+        // Example: INNER JOIN translation t1_ ON ... AND (t1_.locale = ?)
+        // This guarantees at most 1 translation row per entity
+        if (1 === preg_match('/JOIN\s+\w+\s+\w+_\s+ON\s+.*?\s+AND\s+\(\w+_\.LOCALE\s*=\s*\?\)/i', $sql)) {
+            return true;
+        }
+
+        // Pattern 2: Direct locale equality in ON clause
+        // Example: JOIN translation t1_ ON t0_.id = t1_.entity_id AND t1_.locale = ?
+        if (1 === preg_match('/ON\s+.*?\s+AND\s+\w+_\.LOCALE\s*=\s*\?/i', $sql)) {
+            return true;
+        }
+
+        // Pattern 3: Join on unique identifier (primary key on joined table)
+        // Example: JOIN user_profile t1_ ON t0_.id = t1_.user_id (where user_id is unique)
+        // This is harder to detect reliably, so we look for common naming patterns
+        // Note: This is a heuristic and may not catch all cases
+        if (1 === preg_match('/JOIN\s+\w+\s+\w+_\s+ON\s+\w+_\.ID\s*=\s*\w+_\.(?:\w+_)?ID(?:\s+WHERE|\s+AND|\s+ORDER|\s+LIMIT|$)/i', $sql)) {
+            // Only if there's exactly one JOIN condition (simple case)
+            $joinConditions = substr_count($sql, ' AND ');
+            if ($joinConditions === 0) {
+                // This might be a one-to-one relationship, but we can't be sure
+                // For now, we'll be conservative and flag it as potentially problematic
+                // unless we see other indicators
+            }
+        }
+
+        return false;
     }
 
     private function createIssue(QueryData $queryData): IssueInterface
@@ -185,25 +243,14 @@ Problem: If the main entity has multiple related items, only some will be loaded
 
     /**
      * Extract table names from SQL for better context in error messages.
+     * Uses SQL parser instead of regex for robust extraction.
      * @return string[]
      */
     private function extractTableNames(string $sql): array
     {
+        $allTables = $this->sqlExtractor->extractAllTables($sql);
 
-        $tables = [];
-
-        // Pattern: FROM table_name alias
-        if (1 === preg_match('/FROM\s+(\w+)\s+(\w+)/i', $sql, $matches)) {
-            $tables[] = $matches[1];
-        }
-
-        // Pattern: JOIN table_name alias
-        preg_match_all('/JOIN\s+(\w+)\s+(\w+)/i', $sql, $joinMatches);
-
-        if ([] !== $joinMatches[1]) {
-            return array_merge($tables, $joinMatches[1]);
-        }
-
-        return $tables;
+        // Extract just the table names
+        return array_map(fn($table) => $table['table'], $allTables);
     }
 }
