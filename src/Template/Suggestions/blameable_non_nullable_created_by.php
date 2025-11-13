@@ -93,10 +93,13 @@ class <?= $e(basename(str_replace('\\', '/', $entityClass))) ?> implements Blame
 -- Make the column NOT NULL
 -- First ensure all existing rows have a value!
 UPDATE <?= $e(strtolower(basename(str_replace('\\', '/', $entityClass)))) ?>
+// Pattern: Simple pattern match: /(?<!^)[A-Z]/
 SET <?= $e(strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName))) ?>_id = 1
+// Pattern: Simple pattern match: /(?<!^)[A-Z]/
 WHERE <?= $e(strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName))) ?>_id IS NULL;
 
 ALTER TABLE <?= $e(strtolower(basename(str_replace('\\', '/', $entityClass)))) ?>
+// Pattern: Simple pattern match: /(?<!^)[A-Z]/
 MODIFY COLUMN <?= $e(strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName))) ?>_id INT NOT NULL;
 </code></pre>
 

@@ -191,6 +191,7 @@ final class IssueDeduplicator
             }
         }
 
+        // Pattern: Complex structure extraction (consider using parser)
         if (false !== preg_match('/(?:entity|class|Entity)\s+["\']?([A-Z]\w+)["\']?/i', $description, $matches)) {
             if (isset($matches[1])) {
                 return $matches[1];
@@ -204,6 +205,7 @@ final class IssueDeduplicator
             }
         }
 
+        // Pattern: SQL query structure extraction
         if ('' !== $sql && false !== preg_match('/FROM\s+(\w+)/i', $sql, $matches)) {
             if (isset($matches[1])) {
                 return $matches[1];

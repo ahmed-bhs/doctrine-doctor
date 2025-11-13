@@ -95,7 +95,9 @@ class LazyLoadingAnalyzer implements AnalyzerInterface
 
         foreach ($queryDataCollection as $index => $queryData) {
             // Pattern: SELECT ... FROM table WHERE id = ? (single entity load)
-            if (1 === preg_match('/SELECT\s+.*\s+FROM\s+(\w+)\s+.*WHERE\s+.*\.?id\s*=\s*\?/i', $queryData->sql, $matches)) {
+            // Use negative lookbehind (?<![_\w]) to ensure 'id' is not preceded by underscore or word char
+            // This prevents matching foreign keys like 'user_id', 'product_id', etc.
+            if (1 === preg_match('/SELECT\s+.*\s+FROM\s+(\w+)\s+.*WHERE\s+.*(?<![_\w])id\s*=\s*\?/i', $queryData->sql, $matches)) {
                 $table = $matches[1];
 
                 // Group by table and check if they're sequential
@@ -192,6 +194,7 @@ class LazyLoadingAnalyzer implements AnalyzerInterface
         assert(is_iterable($backtrace), '$backtrace must be iterable');
 
         foreach ($backtrace as $frame) {
+            // Pattern: Simple pattern match: /^get([A-Z]\w+)/
             if (isset($frame['function']) && 1 === preg_match('/^get([A-Z]\w+)/', $frame['function'], $matches)) {
                 return lcfirst($matches[1]);
             }

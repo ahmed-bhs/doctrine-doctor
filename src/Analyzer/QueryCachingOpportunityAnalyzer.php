@@ -117,6 +117,7 @@ class QueryCachingOpportunityAnalyzer implements AnalyzerInterface
         foreach ($queryDataCollection as $query) {
             $sql = $this->extractSQL($query);
             $executionTime = $this->extractExecutionTime($query);
+            $params = $this->extractParams($query);
 
             if ('' === $sql || '0' === $sql) {
                 continue;
@@ -125,18 +126,22 @@ class QueryCachingOpportunityAnalyzer implements AnalyzerInterface
             // Normalize query (replace values with placeholders)
             $normalized = $this->normalizeQuery($sql);
 
-            if (!isset($queryFrequencies[$normalized])) {
-                $queryFrequencies[$normalized] = 0;
-                $queryDetails[$normalized] = [
+            // Create a unique key combining normalized SQL + parameters
+            // This ensures we only count TRUE duplicates (same query + same params)
+            $queryKey = $this->createQueryKey($normalized, $params);
+
+            if (!isset($queryFrequencies[$queryKey])) {
+                $queryFrequencies[$queryKey] = 0;
+                $queryDetails[$queryKey] = [
                     'originalSql' => $sql,
                     'totalTime' => 0.0,
                     'backtrace' => $this->extractBacktrace($query),
                 ];
             }
 
-            $queryFrequencies[$normalized]++;
-            $existingTotal = $queryDetails[$normalized]['totalTime'];
-            $queryDetails[$normalized]['totalTime'] = $existingTotal + $executionTime;
+            $queryFrequencies[$queryKey]++;
+            $existingTotal = $queryDetails[$queryKey]['totalTime'];
+            $queryDetails[$queryKey]['totalTime'] = $existingTotal + $executionTime;
         }
 
         /** @phpstan-ignore-next-line */
@@ -254,6 +259,45 @@ class QueryCachingOpportunityAnalyzer implements AnalyzerInterface
     }
 
     /**
+     * Extract parameters from query data.
+     * @return array<mixed>
+     */
+    private function extractParams(array|object $query): array
+    {
+        if (is_array($query)) {
+            $params = $query['params'] ?? [];
+            return is_array($params) ? $params : [];
+        }
+
+        if (is_object($query) && property_exists($query, 'params')) {
+            $params = $query->params ?? [];
+            return is_array($params) ? $params : [];
+        }
+
+        return [];
+    }
+
+    /**
+     * Create a unique key for query identification.
+     * Combines normalized SQL with serialized parameters to detect TRUE duplicates.
+     *
+     * @param array<mixed> $params
+     */
+    private function createQueryKey(string $normalizedSql, array $params): string
+    {
+        // If no params available (old data or native queries), fall back to SQL-only key
+        if (empty($params)) {
+            return $normalizedSql;
+        }
+
+        // Create a deterministic hash of parameters
+        // We use json_encode for simplicity, but could use serialize() for more precision
+        $paramsHash = md5(json_encode($params, JSON_THROW_ON_ERROR));
+
+        return $normalizedSql . '::' . $paramsHash;
+    }
+
+    /**
      * Normalize a query by replacing values with placeholders.
      * This allows detecting structurally identical queries.
      */
@@ -277,6 +321,7 @@ class QueryCachingOpportunityAnalyzer implements AnalyzerInterface
             return $sql;
         }
 
+        // Pattern: Match double-quoted strings
         $normalized = preg_replace('/"[^"]*"/', '?', $normalized);
         if (null === $normalized) {
             return $sql;
@@ -314,6 +359,7 @@ class QueryCachingOpportunityAnalyzer implements AnalyzerInterface
                 return $table;
             }
 
+            // Pattern: SQL JOIN detection/extraction
             if (1 === preg_match('/\bJOIN\s+(?:\w+\.)?(' . preg_quote($table, '/') . ')\b/i', $sql)) {
                 return $table;
             }

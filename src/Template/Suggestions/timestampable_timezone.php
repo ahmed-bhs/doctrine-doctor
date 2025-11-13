@@ -101,12 +101,15 @@ public function get<?php echo ucfirst($fieldName); ?>Display(string $userTimezon
     <div class="query-item">
         <pre><code class="language-sql">-- Migration to datetimetz
 ALTER TABLE products
+    // Pattern: Simple pattern match: /(?<!^)[A-Z]/
     ALTER COLUMN <?php echo strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName)); ?>
     TYPE TIMESTAMPTZ
+    // Pattern: Simple pattern match: /(?<!^)[A-Z]/
     USING <?php echo strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName)); ?> AT TIME ZONE 'UTC';
 
 -- Or for MySQL (limited timezone support)
 ALTER TABLE products
+    // Pattern: Simple pattern match: /(?<!^)[A-Z]/
     MODIFY <?php echo strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName)); ?>
     TIMESTAMP;</code></pre>
     </div>

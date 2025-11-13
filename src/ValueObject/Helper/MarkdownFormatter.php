@@ -79,6 +79,7 @@ final class MarkdownFormatter
                 continue;
             }
 
+            // Pattern: Simple pattern match: /^[-•]\s/
             if (1 !== preg_match('/^[-•]\s/', $line)) {
                 return false;
             }
@@ -137,6 +138,7 @@ final class MarkdownFormatter
     private static function applyInlineMarkdown(string $text): string
     {
         $text = (string) preg_replace('/\*\*([^*]+)\*\*/', '<strong>$1</strong>', $text);
+        // Pattern: Extract inline code markdown
         $text = (string) preg_replace('/`([^`]+)`/', '<code>$1</code>', $text);
 
         return $text;
