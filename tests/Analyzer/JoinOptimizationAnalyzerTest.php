@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\JoinOptimizationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -34,6 +35,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
         $this->analyzer = new JoinOptimizationAnalyzer(
             PlatformAnalyzerTestHelper::createTestEntityManager(),
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            new SqlStructureExtractor(),
             5,  // maxJoinsRecommended (default)
             8,  // maxJoinsCritical (default)
         );
@@ -541,5 +543,181 @@ final class JoinOptimizationAnalyzerTest extends TestCase
         }
 
         self::assertTrue($hasTooMany || $hasUnused, 'Should detect at least one issue type');
+    }
+
+    #[Test]
+    public function it_handles_join_without_alias_used_in_where(): void
+    {
+        // Arrange: JOIN without alias, but table name used in WHERE clause
+        // This is a common pattern for many-to-many join tables
+        // Example from Sylius: sylius_channel_locales join table
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM a')
+            ->addQuery('SELECT * FROM b')
+            ->addQuery('SELECT t0.code, t0.id FROM sylius_locale t0 ' .
+                'INNER JOIN sylius_channel_locales ON t0.id = sylius_channel_locales.locale_id ' .
+                'WHERE sylius_channel_locales.channel_id = 1')
+            ->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag as unused since table is used in WHERE
+        $issuesArray = $issues->toArray();
+        $unusedIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            return str_contains($issue->getTitle(), 'Unused') &&
+                   isset($data['table']) &&
+                   $data['table'] === 'sylius_channel_locales';
+        });
+
+        self::assertCount(0, $unusedIssues, 'Should NOT flag JOIN without alias when table is used in WHERE clause');
+    }
+
+    #[Test]
+    public function it_handles_join_without_alias_used_in_on_clause(): void
+    {
+        // Arrange: JOIN without alias, table used in ON clause of subsequent JOIN
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM a')
+            ->addQuery('SELECT * FROM b')
+            ->addQuery('SELECT u.id FROM users u ' .
+                'INNER JOIN user_roles ON u.id = user_roles.user_id ' .
+                'INNER JOIN roles r ON user_roles.role_id = r.id ' .
+                'WHERE r.name = "admin"')
+            ->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag as unused
+        $issuesArray = $issues->toArray();
+        $unusedIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            return str_contains($issue->getTitle(), 'Unused') &&
+                   isset($data['table']) &&
+                   $data['table'] === 'user_roles';
+        });
+
+        self::assertCount(0, $unusedIssues, 'Should NOT flag JOIN without alias when table is used in ON clause');
+    }
+
+    #[Test]
+    public function it_avoids_capturing_on_keyword_as_alias(): void
+    {
+        // Arrange: Query where "ON" could be mistakenly captured as alias
+        // This was a bug where the regex captured "ON" as the alias
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM a')
+            ->addQuery('SELECT * FROM b')
+            ->addQuery('SELECT t0.code FROM sylius_locale t0 ' .
+                'INNER JOIN sylius_channel_locales ON t0.id = sylius_channel_locales.locale_id')
+            ->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT create invalid "Unused JOIN" with alias "ON"
+        $issuesArray = $issues->toArray();
+        $onAliasIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            return isset($data['alias']) && $data['alias'] === 'ON';
+        });
+
+        self::assertCount(0, $onAliasIssues, 'Should NOT capture "ON" keyword as JOIN alias');
+    }
+
+    #[Test]
+    public function it_handles_real_sylius_locale_query(): void
+    {
+        // Arrange: Real query from Sylius that was reported as false positive
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM a')
+            ->addQuery('SELECT * FROM b')
+            ->addQuery(
+                'SELECT t0.code AS code_1, t0.created_at AS created_at_2, t0.updated_at AS updated_at_3, t0.id AS id_4 ' .
+                'FROM sylius_locale t0 ' .
+                'INNER JOIN sylius_channel_locales ON t0.id = sylius_channel_locales.locale_id ' .
+                'WHERE sylius_channel_locales.channel_id = ?',
+            )
+            ->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag this as an issue
+        $issuesArray = $issues->toArray();
+        $unusedJoinIssues = array_filter($issuesArray, static function ($issue) {
+            return str_contains($issue->getTitle(), 'Unused JOIN');
+        });
+
+        self::assertCount(0, $unusedJoinIssues, 'Should NOT flag real Sylius locale query as having unused JOIN');
+    }
+
+    #[Test]
+    public function it_handles_join_with_as_keyword(): void
+    {
+        // Arrange: JOIN with explicit AS keyword
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM a')
+            ->addQuery('SELECT * FROM b')
+            ->addQuery('SELECT u.id, o.total FROM users AS u ' .
+                'INNER JOIN orders AS o ON u.id = o.user_id ' .
+                'WHERE o.total > 100')
+            ->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should handle AS keyword correctly
+        $issuesArray = $issues->toArray();
+        $unusedJoinIssues = array_filter($issuesArray, static function ($issue) {
+            return str_contains($issue->getTitle(), 'Unused JOIN');
+        });
+
+        self::assertCount(0, $unusedJoinIssues, 'Should correctly parse JOINs with AS keyword');
+    }
+
+    #[Test]
+    public function it_extracts_backtrace_from_query_for_unused_join(): void
+    {
+        // Arrange: Query with unused JOIN and backtrace
+        $backtrace = [
+            [
+                'file' => '/app/src/Controller/UserController.php',
+                'line' => 42,
+                'function' => 'getUsers',
+                'class' => 'App\\Controller\\UserController',
+            ],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM a')
+            ->addQuery('SELECT * FROM b')
+            ->addQueryWithBacktrace(
+                'SELECT u.id, u.name FROM users u INNER JOIN orders o ON u.id = o.user_id',
+                $backtrace,
+                10.5,
+            )
+            ->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert
+        $issuesArray = $issues->toArray();
+        self::assertGreaterThan(0, count($issuesArray), 'Should detect unused JOIN');
+
+        $issue = $issuesArray[0];
+        $data = $issue->getData();
+
+        self::assertStringContainsString('Unused JOIN', $issue->getTitle());
+        self::assertArrayHasKey('backtrace', $data, 'Issue should have backtrace');
+        self::assertNotNull($data['backtrace'], 'Backtrace should not be null');
+        self::assertIsArray($data['backtrace'], 'Backtrace should be an array');
+        self::assertArrayHasKey('file', $data['backtrace'][0], 'Backtrace should have file');
+        self::assertArrayHasKey('line', $data['backtrace'][0], 'Backtrace should have line');
+        self::assertEquals('/app/src/Controller/UserController.php', $data['backtrace'][0]['file']);
+        self::assertEquals(42, $data['backtrace'][0]['line']);
     }
 }
