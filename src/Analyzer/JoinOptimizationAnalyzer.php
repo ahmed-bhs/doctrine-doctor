@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -53,6 +54,10 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private SqlStructureExtractor $sqlExtractor,
         /**
          * @readonly
          */
@@ -254,67 +259,46 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
 
     private function hasJoin(string $sql): bool
     {
-        // Pattern: Detect JOIN in SQL query
-        return 1 === preg_match('/\b(LEFT|INNER|RIGHT|OUTER)?\s*JOIN\b/i', $sql);
+        return $this->sqlExtractor->hasJoin($sql);
     }
 
     /**
-     * Extract JOIN information from SQL query.
+     * Extract JOIN information from SQL query using SQL parser.
+     *
+     * This replaces the previous 46-line regex implementation with a clean,
+     * parser-based approach that automatically handles:
+     * - JOIN type normalization (LEFT OUTER → LEFT)
+     * - Alias extraction (never captures 'ON' as alias)
+     * - Table name extraction
      */
     private function extractJoins(string $sql): array
     {
+        $parsedJoins = $this->sqlExtractor->extractJoins($sql);
 
         $joins = [];
 
-        // Pattern to match JOINs
-        // Captures: JOIN type, table name, optional alias
-        // The alias is optional - some JOINs don't have aliases (e.g., many-to-many join tables)
-        // We need to avoid capturing "ON" as the alias
-        $pattern = '/\b(LEFT\s+OUTER|LEFT|INNER|RIGHT|RIGHT\s+OUTER)?\s*JOIN\s+(\w+)(?:\s+(?:AS\s+)?(\w+))?/i';
+        foreach ($parsedJoins as $join) {
+            $tableName = $join['table'];
+            $alias = $join['alias'];
 
-        if (preg_match_all($pattern, $sql, $matches, PREG_SET_ORDER) >= 1) {
-            assert(is_iterable($matches), '$matches must be iterable');
-
-            foreach ($matches as $match) {
-                $joinType  = strtoupper(trim($match[1] ?: 'INNER'));
-                $tableName = $match[2];
-                $alias     = $match[3] ?? null;
-
-                // Filter out 'ON' keyword if it was captured as alias (bug fix)
-                if (null !== $alias && strtoupper($alias) === 'ON') {
-                    $alias = null;
+            // Handle tables without aliases: if table is used directly in query, use table name as alias
+            // Example: INNER JOIN sylius_channel_locales ON ... WHERE sylius_channel_locales.channel_id = ?
+            if (null === $alias) {
+                // Check if table name is used directly in the query (without alias)
+                if (1 === preg_match('/\b' . preg_quote($tableName, '/') . '\.\w+/i', $sql)) {
+                    // Table is used without alias (e.g., sylius_channel_locales.channel_id)
+                    $alias = $tableName;
                 }
-
-                // Skip if no alias and this is likely a join table (used in WHERE)
-                // Example: INNER JOIN sylius_channel_locales ON ... WHERE sylius_channel_locales.channel_id = ?
-                if (null === $alias) {
-                    // Check if table name is used directly in the query (without alias)
-                    if (1 === preg_match('/\b' . preg_quote($tableName, '/') . '\.\w+/i', $sql)) {
-                        // Table is used without alias (e.g., sylius_channel_locales.channel_id)
-                        // This is valid - use table name as alias for analysis
-                        $alias = $tableName;
-                    } else {
-                        // No alias and table not used - skip this JOIN from unused check
-                        continue;
-                    }
-                }
-
-                // Normalize JOIN type
-                if ('LEFT OUTER' === $joinType) {
-                    $joinType = 'LEFT';
-                } elseif ('RIGHT OUTER' === $joinType) {
-                    $joinType = 'RIGHT';
-                } elseif ('' === $joinType) {
-                    $joinType = 'INNER';
-                }
-
-                $joins[] = [
-                    'type'       => $joinType,
-                    'table'      => $tableName,
-                    'alias'      => $alias,
-                    'full_match' => $match[0],
-                ];
+                // Note: We don't skip joins without alias anymore - they count towards "too many joins"
+                // The unused join check will handle them separately
             }
+
+            $joins[] = [
+                'type'       => $join['type'],
+                'table'      => $tableName,
+                'alias'      => $alias,  // Can be null
+                'full_match' => $join['type'] . ' JOIN ' . $tableName . ($join['alias'] ? ' ' . $join['alias'] : ''),
+            ];
         }
 
         return $joins;
@@ -450,6 +434,12 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
     private function checkUnusedJoin(array $join, string $sql, array|object $query): ?PerformanceIssue
     {
         $alias = $join['alias'];
+
+        // Skip joins without aliases - can't check if they're unused
+        // (These still count towards "too many joins" detection)
+        if (null === $alias) {
+            return null;
+        }
 
         // Remove the JOIN clause itself from search
         $sqlWithoutJoin = preg_replace('/' . preg_quote((string) $join['full_match'], '/') . '.*?(?=(?:LEFT|INNER|RIGHT|WHERE|GROUP|ORDER|LIMIT|$))/is', '', $sql);

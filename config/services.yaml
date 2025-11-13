@@ -4,6 +4,35 @@ services:
         autoconfigure: true
         public: false
 
+    # Create a dedicated EntityManager service for Doctrine Doctor analyzers
+    # This allows us to decorate it without affecting the global EntityManager
+    doctrine_doctor.entity_manager:
+        alias: 'doctrine.orm.entity_manager'
+        public: false
+
+    # Decorate the EntityManager with our metadata provider wrapper
+    # This makes vendor filtering COMPLETELY transparent - no analyzer changes needed!
+    doctrine_doctor.entity_manager_with_filtered_metadata:
+        class: AhmedBhs\DoctrineDoctor\Metadata\EntityManagerMetadataDecorator
+        decorates: 'doctrine_doctor.entity_manager'
+        decoration_inner_name: 'doctrine_doctor.entity_manager.inner'
+        arguments:
+            $decoratedEntityManager: '@doctrine_doctor.entity_manager.inner'
+            $metadataProvider: '@AhmedBhs\DoctrineDoctor\Metadata\EntityMetadataProvider'
+
+    # Entity Metadata Provider - provides filtered metadata
+    AhmedBhs\DoctrineDoctor\Metadata\EntityMetadataProvider:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+            $excludeVendorEntities: '%doctrine_doctor.analysis.exclude_third_party_entities%'
+
+    # Bind the decorated EntityManager to all analyzers automatically
+    # Analyzers request EntityManagerInterface and get our decorated version
+    _instanceof:
+        AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface:
+            bind:
+                Doctrine\ORM\EntityManagerInterface $entityManager: '@doctrine_doctor.entity_manager'
+
     # Tag all analyzers automatically
     AhmedBhs\DoctrineDoctor\Analyzer\:
         resource: '../src/Analyzer/*'
@@ -52,6 +81,9 @@ services:
             $dataCollectorHelpers: '@AhmedBhs\DoctrineDoctor\Collector\DataCollectorHelpers'
         tags:
             - { name: data_collector, id: doctrine_doctor, template: '@doctrine_doctor/profiler/doctrine_doctor.html.twig', priority: 249 }
+
+    # Parsers
+    AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor: ~
 
     # Factories
     AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface:
@@ -320,8 +352,18 @@ services:
         arguments:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine.orm.entity_manager'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
             $maxJoinsRecommended: '%doctrine_doctor.analyzers.join_optimization.max_joins_recommended%'
             $maxJoinsCritical: '%doctrine_doctor.analyzers.join_optimization.max_joins_critical%'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\AutoGenerateProxyClassesAnalyzer:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $environment: '%kernel.environment%'
+            $logger: '@?logger'
         tags:
             - { name: doctrine_doctor.analyzer }
 
