@@ -99,12 +99,12 @@ class SlowQueryAnalyzer implements AnalyzerInterface
         }
 
         // Pattern: Detect ORDER BY clause
-        if (1 === preg_match('/ORDER BY/i', $sql)) {
+        if (str_contains(strtoupper($sql), 'ORDER BY')) {
             $optimizations[] = 'Ensure ORDER BY columns are indexed';
         }
 
         // Pattern: Detect GROUP BY clause
-        if (1 === preg_match('/GROUP BY/i', $sql)) {
+        if (str_contains(strtoupper($sql), 'GROUP BY')) {
             $optimizations[] = 'Ensure GROUP BY columns are indexed';
         }
 
