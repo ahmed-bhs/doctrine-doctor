@@ -93,7 +93,7 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
                         continue;
                     }
 
-                    yield from $this->analyzeQueryJoins($context, $joins, $metadataMap, $seenIssues);
+                    yield from $this->analyzeQueryJoins($context, $joins, $metadataMap, $seenIssues, $query);
                 }
             },
         );
@@ -138,13 +138,13 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
      * @param array<string, bool> $seenIssues
      * @return \Generator<PerformanceIssue>
      */
-    private function analyzeQueryJoins(array $context, array $joins, array $metadataMap, array &$seenIssues): \Generator
+    private function analyzeQueryJoins(array $context, array $joins, array $metadataMap, array &$seenIssues, array|object $query): \Generator
     {
         // Check 1: Too many JOINs
         yield from $this->checkAndYieldTooManyJoins($context, $joins, $seenIssues);
 
         // Check 2 & 3: Suboptimal and unused JOINs
-        yield from $this->checkAndYieldJoinIssues($context, $joins, $metadataMap, $seenIssues);
+        yield from $this->checkAndYieldJoinIssues($context, $joins, $metadataMap, $seenIssues, $query);
     }
 
     /**
@@ -176,13 +176,13 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
      * @param array<string, bool> $seenIssues
      * @return \Generator<PerformanceIssue>
      */
-    private function checkAndYieldJoinIssues(array $context, array $joins, array $metadataMap, array &$seenIssues): \Generator
+    private function checkAndYieldJoinIssues(array $context, array $joins, array $metadataMap, array &$seenIssues, array|object $query): \Generator
     {
         assert(is_iterable($joins), '$joins must be iterable');
 
         foreach ($joins as $join) {
             yield from $this->checkAndYieldSuboptimalJoin($join, $metadataMap, $context, $seenIssues);
-            yield from $this->checkAndYieldUnusedJoin($join, $context['sql'], $seenIssues);
+            yield from $this->checkAndYieldUnusedJoin($join, $context['sql'], $seenIssues, $query);
         }
     }
 
@@ -214,9 +214,9 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
      * @param array<string, bool> $seenIssues
      * @return \Generator<PerformanceIssue>
      */
-    private function checkAndYieldUnusedJoin(array $join, string $sql, array &$seenIssues): \Generator
+    private function checkAndYieldUnusedJoin(array $join, string $sql, array &$seenIssues, array|object $query): \Generator
     {
-        $unusedJoin = $this->checkUnusedJoin($join, $sql);
+        $unusedJoin = $this->checkUnusedJoin($join, $sql, $query);
 
         if ($unusedJoin instanceof PerformanceIssue) {
             $key = $this->buildIssueKey($unusedJoin);
@@ -241,8 +241,10 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
 
         $map                  = [];
         $classMetadataFactory = $this->entityManager->getMetadataFactory();
+        $allMetadata          = $classMetadataFactory->getAllMetadata();
 
-        foreach ($classMetadataFactory->getAllMetadata() as $classMetadatum) {
+        // Metadata is automatically filtered by EntityManagerMetadataDecorator
+        foreach ($allMetadata as $classMetadatum) {
             $tableName       = $classMetadatum->getTableName();
             $map[$tableName] = $classMetadatum;
         }
@@ -252,6 +254,7 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
 
     private function hasJoin(string $sql): bool
     {
+        // Pattern: Detect JOIN in SQL query
         return 1 === preg_match('/\b(LEFT|INNER|RIGHT|OUTER)?\s*JOIN\b/i', $sql);
     }
 
@@ -264,8 +267,10 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
         $joins = [];
 
         // Pattern to match JOINs
-        // Captures: JOIN type, table name, alias
-        $pattern = '/\b(LEFT\s+OUTER|LEFT|INNER|RIGHT|RIGHT\s+OUTER)?\s*JOIN\s+(\w+)\s+(?:AS\s+)?(\w+)/i';
+        // Captures: JOIN type, table name, optional alias
+        // The alias is optional - some JOINs don't have aliases (e.g., many-to-many join tables)
+        // We need to avoid capturing "ON" as the alias
+        $pattern = '/\b(LEFT\s+OUTER|LEFT|INNER|RIGHT|RIGHT\s+OUTER)?\s*JOIN\s+(\w+)(?:\s+(?:AS\s+)?(\w+))?/i';
 
         if (preg_match_all($pattern, $sql, $matches, PREG_SET_ORDER) >= 1) {
             assert(is_iterable($matches), '$matches must be iterable');
@@ -273,7 +278,26 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
             foreach ($matches as $match) {
                 $joinType  = strtoupper(trim($match[1] ?: 'INNER'));
                 $tableName = $match[2];
-                $alias     = $match[3];
+                $alias     = $match[3] ?? null;
+
+                // Filter out 'ON' keyword if it was captured as alias (bug fix)
+                if (null !== $alias && strtoupper($alias) === 'ON') {
+                    $alias = null;
+                }
+
+                // Skip if no alias and this is likely a join table (used in WHERE)
+                // Example: INNER JOIN sylius_channel_locales ON ... WHERE sylius_channel_locales.channel_id = ?
+                if (null === $alias) {
+                    // Check if table name is used directly in the query (without alias)
+                    if (1 === preg_match('/\b' . preg_quote($tableName, '/') . '\.\w+/i', $sql)) {
+                        // Table is used without alias (e.g., sylius_channel_locales.channel_id)
+                        // This is valid - use table name as alias for analysis
+                        $alias = $tableName;
+                    } else {
+                        // No alias and table not used - skip this JOIN from unused check
+                        continue;
+                    }
+                }
 
                 // Normalize JOIN type
                 if ('LEFT OUTER' === $joinType) {
@@ -423,7 +447,7 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
     /**
      * Check if JOIN alias is actually used in the query.
      */
-    private function checkUnusedJoin(array $join, string $sql): ?PerformanceIssue
+    private function checkUnusedJoin(array $join, string $sql, array|object $query): ?PerformanceIssue
     {
         $alias = $join['alias'];
 
@@ -435,8 +459,8 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
 
         if (1 !== preg_match($aliasPattern, (string) $sqlWithoutJoin)) {
             // Alias not used anywhere
-            // Create synthetic backtrace pointing to SQL query location
-            $backtrace = $this->createSqlBacktrace();
+            // Extract backtrace from query object
+            $backtrace = $this->extractBacktrace($query);
 
             $performanceIssue = new PerformanceIssue([
                 'query'     => $this->truncateQuery($sql),
@@ -552,13 +576,15 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
     }
 
     /**
-     * Create synthetic backtrace for SQL query issues.
+     * Extract backtrace from query object.
      * @return array<int, array<string, mixed>>|null
      */
-    private function createSqlBacktrace(): ?array
+    private function extractBacktrace(array|object $query): ?array
     {
-        // Since we don't have the actual code location for generated SQL,
-        // we return null to indicate no backtrace is available
-        return null;
+        if (is_array($query)) {
+            return $query['backtrace'] ?? null;
+        }
+
+        return is_object($query) && property_exists($query, 'backtrace') ? ($query->backtrace ?? null) : null;
     }
 }

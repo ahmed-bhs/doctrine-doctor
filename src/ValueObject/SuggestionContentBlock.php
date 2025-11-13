@@ -290,6 +290,7 @@ final class SuggestionContentBlock
                 assert(is_iterable($items), '$items must be iterable');
 
                 foreach ($items as $item) {
+                    // Pattern: Simple pattern match: /^[-•]\s+/
                     $item = preg_replace('/^[-•]\s+/', '', trim($item));
 
                     if ('' !== $item) {

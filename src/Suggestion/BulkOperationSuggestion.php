@@ -271,6 +271,7 @@ class BulkOperationSuggestion implements SuggestionInterface
 
     private function tableToEntityName(string $table): string
     {
+        // Pattern: Simple pattern match: /^(tbl_|tb_)/
         $table = preg_replace('/^(tbl_|tb_)/', '', $table);
         $parts = explode('_', (string) $table);
 

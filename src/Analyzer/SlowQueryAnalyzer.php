@@ -93,22 +93,27 @@ class SlowQueryAnalyzer implements AnalyzerInterface
     {
         $optimizations = [];
 
+        // Pattern: SQL query structure extraction
         if (1 === preg_match('/(SELECT.*FROM.*WHERE.*\(.*SELECT)/i', $sql)) {
             $optimizations[] = 'Subquery detected - consider rewriting as JOIN';
         }
 
+        // Pattern: Detect ORDER BY clause
         if (1 === preg_match('/ORDER BY/i', $sql)) {
             $optimizations[] = 'Ensure ORDER BY columns are indexed';
         }
 
+        // Pattern: Detect GROUP BY clause
         if (1 === preg_match('/GROUP BY/i', $sql)) {
             $optimizations[] = 'Ensure GROUP BY columns are indexed';
         }
 
+        // Pattern: Simple pattern match: /LIKE\s+[\
         if (1 === preg_match('/LIKE\s+[\'"]%/i', $sql)) {
             $optimizations[] = 'Leading wildcard LIKE detected - cannot use index efficiently';
         }
 
+        // Pattern: SQL query structure extraction
         if (1 === preg_match('/SELECT DISTINCT/i', $sql)) {
             $optimizations[] = 'DISTINCT operation can be expensive';
         }

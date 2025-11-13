@@ -314,7 +314,9 @@ class SQLInjectionInRawQueriesAnalyzer implements AnalyzerInterface
         array &$issues,
     ): void {
         if (
+            // Pattern: Simple pattern match: /[\
             1 === preg_match('/[\'"].*?[\'"][\s]*\.[\s]*\$\w+/s', $source)
+            // Pattern: Variable/interpolation detection
             || 1 === preg_match('/\$\w+[\s]*\.[\s]*[\'"].*?[\'"]/s', $source)
         ) {
             $issues[] = $this->createConcatenationIssue($className, $reflectionMethod->getName(), $reflectionMethod);
@@ -332,7 +334,9 @@ class SQLInjectionInRawQueriesAnalyzer implements AnalyzerInterface
         array &$issues,
     ): void {
         if (
+            // Pattern: Character validation/sanitization
             1 === preg_match('/"[^"]*\$\w+[^"]*"/s', $source)
+            // Pattern: Detect WHERE clause in SQL
             && 1 === preg_match('/SELECT|INSERT|UPDATE|DELETE|FROM|WHERE/i', $source)
         ) {
             $issues[] = $this->createInterpolationIssue($className, $reflectionMethod->getName(), $reflectionMethod);
@@ -354,6 +358,8 @@ class SQLInjectionInRawQueriesAnalyzer implements AnalyzerInterface
 
             if (
                 1 === preg_match($pattern, $source)
+                // Pattern: Variable/interpolation detection
+                // Pattern: Variable/interpolation detection
                 && (1 === preg_match('/\$\w+\s*=.*?\..*?;/s', $source) || 1 === preg_match('/\$\w+\s*\.=.*?;/s', $source))
             ) {
                 $issues[] = $this->createMissingParametersIssue($className, $reflectionMethod->getName(), $sqlMethod, $reflectionMethod);
@@ -372,8 +378,11 @@ class SQLInjectionInRawQueriesAnalyzer implements AnalyzerInterface
         array &$issues,
     ): void {
         if (
+            // Pattern: Complex structure extraction (consider using parser)
             1 === preg_match('/sprintf\s*\(\s*[\'"].*?(SELECT|INSERT|UPDATE|DELETE).*?[\'"]/is', $source)
+            // Pattern: Variable/interpolation detection
             && (1 === preg_match('/\$_(GET|POST|REQUEST|COOKIE|SERVER)/i', $source)
+             // Pattern: Variable/interpolation detection
              || 1 === preg_match('/\$request->get/i', $source))
         ) {
             $issues[] = $this->createSprintfIssue($className, $reflectionMethod->getName(), $reflectionMethod);

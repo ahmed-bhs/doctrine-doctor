@@ -88,9 +88,11 @@ class <?= basename(str_replace('\\', '/', $entityClass)) ?> implements SoftDelet
     <pre><code class="language-sql">
 -- Make the column nullable and set all values to NULL
 UPDATE <?= strtolower(basename(str_replace('\\', '/', $entityClass))) ?>
+// Pattern: Simple pattern match: /(?<!^)[A-Z]/
 SET <?= strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName)) ?> = NULL;
 
 ALTER TABLE <?= strtolower(basename(str_replace('\\', '/', $entityClass))) ?>
+// Pattern: Simple pattern match: /(?<!^)[A-Z]/
 MODIFY COLUMN <?= strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName)) ?> DATETIME NULL;
 </code></pre>
 

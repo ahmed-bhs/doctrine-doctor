@@ -51,6 +51,29 @@ class SensitiveDataExposureAnalyzer implements AnalyzerInterface
         'bank_account',
     ];
 
+    // Patterns that indicate metadata/flags rather than actual sensitive data
+    // These are boolean-like fields that indicate preferences or states
+    private const METADATA_PREFIXES = [
+        'is_',           // is_credit_card_saved, is_verified
+        'has_',          // has_payment_method, has_token
+        'should_',       // should_save_card
+        'can_',          // can_save_payment
+        'allow_',        // allow_credit_card
+        'enable_',       // enable_password_reset
+        'require_',      // require_token
+    ];
+
+    // Patterns that indicate metadata suffixes
+    private const METADATA_SUFFIXES = [
+        '_enabled',      // credit_card_enabled
+        '_allowed',      // password_reset_allowed
+        '_required',     // token_required
+        '_count',        // failed_password_count
+        '_at',           // password_reset_at (timestamps)
+        '_date',         // token_expiry_date
+        '_time',         // last_password_change_time
+    ];
+
     public function __construct(
         /**
          * @readonly
@@ -173,6 +196,11 @@ class SensitiveDataExposureAnalyzer implements AnalyzerInterface
         foreach ($classMetadata->getFieldNames() as $fieldName) {
             $lowerField = strtolower($fieldName);
 
+            // Skip metadata/flag fields
+            if ($this->isMetadataField($lowerField)) {
+                continue;
+            }
+
             foreach (self::SENSITIVE_PATTERNS as $pattern) {
                 if (str_contains($lowerField, $pattern)) {
                     $sensitiveFields[] = $fieldName;
@@ -182,6 +210,28 @@ class SensitiveDataExposureAnalyzer implements AnalyzerInterface
         }
 
         return $sensitiveFields;
+    }
+
+    /**
+     * Check if a field name indicates metadata/flag rather than actual sensitive data.
+     */
+    private function isMetadataField(string $lowerFieldName): bool
+    {
+        // Check prefixes (is_, has_, etc.)
+        foreach (self::METADATA_PREFIXES as $prefix) {
+            if (str_starts_with($lowerFieldName, $prefix)) {
+                return true;
+            }
+        }
+
+        // Check suffixes (_enabled, _allowed, etc.)
+        foreach (self::METADATA_SUFFIXES as $suffix) {
+            if (str_ends_with($lowerFieldName, $suffix)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function checkToStringMethod(
@@ -241,6 +291,7 @@ class SensitiveDataExposureAnalyzer implements AnalyzerInterface
         assert(is_iterable($sensitiveFields), '$sensitiveFields must be iterable');
 
         foreach ($sensitiveFields as $sensitiveField) {
+            // Pattern: Simple pattern match: /[\
             if (1 === preg_match('/[\'"]' . $sensitiveField . '[\'"]|->get' . ucfirst((string) $sensitiveField) . '/i', $source)) {
                 $exposedFields[] = $sensitiveField;
             }
@@ -287,6 +338,7 @@ class SensitiveDataExposureAnalyzer implements AnalyzerInterface
         assert(is_iterable($sensitiveFields), '$sensitiveFields must be iterable');
 
         foreach ($sensitiveFields as $sensitiveField) {
+            // Pattern: Simple pattern match: /[\
             if (1 === preg_match('/[\'"]' . $sensitiveField . '[\'"]|->get' . ucfirst((string) $sensitiveField) . '/i', $source)) {
                 $exposedFields[] = $sensitiveField;
             }
