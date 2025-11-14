@@ -8,18 +8,21 @@ $lastBackslash                                                                  
 $shortClass                                                                                              = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClass;
 ob_start();
 ?>
-<div class="suggestion-header"><h4>🔒 Insecure Random Number Generation</h4></div>
+<div class="suggestion-header"><h4>Insecure random generation</h4></div>
 <div class="suggestion-content">
-<div class="alert alert-danger">⛔ <strong>SECURITY RISK: <?php echo $e($insecureFunction); ?>() in <?php echo $e($shortClass); ?>::<?php echo $e($methodName); ?>()</strong></div>
-<h4>Insecure</h4>
-<div class="query-item"><pre><code class="language-php">// INSECURE: Predictable!
+<div class="alert alert-danger"><strong>Security risk</strong> - <?php echo $e($insecureFunction); ?>() in <?php echo $e($shortClass); ?>::<?php echo $e($methodName); ?>()</div>
+
+<p>Functions like <code>rand()</code>, <code>mt_rand()</code>, and <code>uniqid()</code> are predictable and shouldn't be used for security-sensitive values like tokens or session IDs.</p>
+
+<h4>Current code</h4>
+<div class="query-item"><pre><code class="language-php">// Predictable
 $token = bin2hex(<?php echo $e($insecureFunction); ?>(16));</code></pre></div>
-<h4> Cryptographically Secure</h4>
-<div class="query-item"><pre><code class="language-php">//  SECURE: Cryptographically strong
+
+<h4>Use cryptographically secure functions</h4>
+<div class="query-item"><pre><code class="language-php">// Cryptographically secure
 $token = bin2hex(random_bytes(16));
 // Or for integers:
 $number = random_int(1000, 9999);</code></pre></div>
-<p><strong>Never use</strong> <code>rand()</code>, <code>mt_rand()</code>, or <code>uniqid()</code> for security tokens, passwords, or session IDs!</p>
 </div>
 <?php
 $code = ob_get_clean();

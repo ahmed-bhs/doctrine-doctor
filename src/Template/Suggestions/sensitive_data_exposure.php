@@ -8,30 +8,28 @@ $lastBackslash                                                                  
 $shortClass                                                                                                                          = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClass;
 ob_start();
 ?>
-<div class="suggestion-header"><h4>🔒 Sensitive Data Exposure</h4></div>
+<div class="suggestion-header"><h4>Sensitive data exposure</h4></div>
 <div class="suggestion-content">
-<div class="alert alert-danger">⛔ <strong>SECURITY: Sensitive data exposed in <?php echo $e($shortClass); ?>::<?php echo $e($methodName); ?>()</strong><br>
+<div class="alert alert-danger"><strong>Security issue in <?php echo $e($shortClass); ?>::<?php echo $e($methodName); ?>()</strong><br>
 Exposure type: <?php echo $e($exposureType); ?><br>
 Exposed fields: <code><?php echo implode(', ', array_map($e, $exposedFields)); ?></code></div>
-<h4>Problem</h4>
-<p>Sensitive fields (passwords, tokens, etc.) are being serialized/exposed.</p>
-<h4> Solution: Use #[Ignore] or Custom Serializer</h4>
+
+<p>Sensitive fields like passwords and API tokens are being serialized. This can expose them in API responses, logs, or error messages.</p>
+
+<h4>Use #[Ignore]</h4>
 <div class="query-item"><pre><code class="language-php">use Symfony\Component\Serializer\Annotation\Ignore;
 
 class <?php echo $e($shortClass); ?> {
-    #[Ignore]  // Never serialize this field
+    #[Ignore]
     private string $password;
 
     #[Ignore]
     private ?string $apiToken = null;
 }</code></pre></div>
-<ul>
-<li>Never serialize passwords, API tokens, or PII</li>
-<li>Use <code>#[Ignore]</code> or <code>#[Groups]</code> for sensitive fields</li>
-<li>Implement custom normalization for API responses</li>
-</ul>
+
+<p>Use <code>#[Ignore]</code> or <code>#[Groups]</code> to exclude sensitive fields from serialization. Never expose passwords, tokens, or personally identifiable information.</p>
 </div>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Prevent exposure of sensitive fields in %s::%s()', $shortClass, $methodName)];
+return ['code' => $code, 'description' => sprintf('Sensitive data exposed in %s::%s()', $shortClass, $methodName)];
