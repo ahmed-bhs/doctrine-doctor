@@ -40,7 +40,7 @@ ob_start();
 }</code></pre>
     </div>
 
-    <h4> Recommended Doctrine Approach</h4>
+    <h4>Recommended Doctrine Approach</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
     /** @<?php echo $e($associationType); ?>(targetEntity="<?php echo $e($targetEntity); ?>") */
@@ -59,11 +59,11 @@ ob_start();
 
     <h4>Benefits of Object Relations</h4>
     <ul>
-        <li> Object-oriented code instead of procedural</li>
-        <li> Automatic lazy loading of related entities</li>
-        <li> Type safety and IDE autocomplete</li>
-        <li> Doctrine manages the relationship automatically</li>
-        <li> Easier to work with joins and queries</li>
+        <li>Object-oriented code instead of procedural</li>
+        <li>Automatic lazy loading of related entities</li>
+        <li>Type safety and IDE autocomplete</li>
+        <li>Doctrine manages the relationship automatically</li>
+        <li>Easier to work with joins and queries</li>
     </ul>
 
     <h4>Migration Steps</h4>

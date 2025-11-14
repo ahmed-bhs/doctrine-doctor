@@ -17,7 +17,7 @@ ob_start();
 ?>
 
 <div class="sql-issue">
-    <h2>🐛 <?= htmlspecialchars($aggregation) ?>() with INNER JOIN - Wrong Results!</h2>
+    <h2> <?= htmlspecialchars($aggregation) ?>() with INNER JOIN - Wrong Results!</h2>
 
     <div class="issue-description">
         <p><strong>Critical Issue:</strong> Using <code><?= htmlspecialchars($aggregation) ?>()</code> with <code>INNER JOIN</code> on one-to-many relationships causes <strong>row duplication</strong> → incorrect aggregates.</p>

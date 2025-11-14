@@ -12,7 +12,7 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>💡 Incomplete Value Object</h4>
+    <h4>Incomplete Value Object</h4>
 </div>
 
 <div class="suggestion-content">
@@ -34,13 +34,13 @@ readonly class <?php echo $e($embeddableClass); ?> {
             throw new \InvalidArgumentException('Amount cannot be negative');
         }
     }
-    
+
     // Equality check
     public function equals(self $other): bool {
-        return $this->amount === $other->amount 
+        return $this->amount === $other->amount
             && $this->currency === $other->currency;
     }
-    
+
     // Immutable operations
     public function add(self $other): self {
         if ($this->currency !== $other->currency) {
@@ -48,7 +48,7 @@ readonly class <?php echo $e($embeddableClass); ?> {
         }
         return new self($this->amount + $other->amount, $this->currency);
     }
-    
+
     // String representation
     public function __toString(): string {
         return sprintf('%.2f %s', $this->amount / 100, $this->currency);

@@ -19,7 +19,7 @@ ob_start();
 ?>
 
 <div class="ineffective-like-pattern">
-    <h2>📢 Ineffective LIKE Pattern Detected</h2>
+    <h2> Ineffective LIKE Pattern Detected</h2>
 
     <div class="original-query">
         <p><strong>Your query:</strong></p>
@@ -54,7 +54,7 @@ ob_start();
     </div>
 
     <div class="summary">
-        <h3>📖 Summary</h3>
+        <h3>Summary</h3>
         <p><strong>Golden Rule:</strong> Never use leading wildcards (<code>%...</code>) in user-facing features!</p>
     </div>
 </div>

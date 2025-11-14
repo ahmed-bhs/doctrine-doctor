@@ -23,12 +23,12 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h3>🚨 CRITICAL: cascade="remove" on ManyToMany</h3>
+    <h3>cascade="remove" on ManyToMany</h3>
 </div>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        <strong>DATA LOSS RISK!</strong><br>
+        <strong>Data Loss Risk</strong><br>
         <code>$<?= $e($fieldName) ?></code> in <code><?= $e($shortClass) ?></code> has <code>cascade="remove"</code> on ManyToMany to <code><?= $e($shortTarget) ?></code>.
         <br><br>
         <strong>Deleting one <?= $e($shortClass) ?> will DELETE ALL related <?= $e($shortTarget) ?>s, even those shared with other entities!</strong>
@@ -36,16 +36,16 @@ ob_start();
 
     <h4>Solution: Remove cascade="remove"</h4>
     <div class="code-comparison">
-        <pre><code class="language-php">// Before: DANGEROUS
+        <pre><code class="language-php">// Before: Dangerous
 class <?= $e($shortClass) ?> {
     #[ORM\ManyToMany(
         targetEntity: <?= $e($shortTarget) ?>::class,
-        cascade: ['remove']  // DANGER!
+        cascade: ['remove']
     )]
     private Collection $<?= $e($fieldName) ?>;
 }
 
-// After: SAFE
+// After: Safe
 class <?= $e($shortClass) ?> {
     #[ORM\ManyToMany(targetEntity: <?= $e($shortTarget) ?>::class)]
     private Collection $<?= $e($fieldName) ?>;

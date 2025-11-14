@@ -53,7 +53,7 @@ ob_start();
 
     <?php if (isset($infoMessage)) { ?>
     <div class="alert alert-info">
-        ℹ️ <?php echo $e($infoMessage); ?>
+         <?php echo $e($infoMessage); ?>
     </div>
     <?php } ?>
 

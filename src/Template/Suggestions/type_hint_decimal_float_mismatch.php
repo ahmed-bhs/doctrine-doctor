@@ -37,7 +37,7 @@ ob_start();
     <p>The decimal type returns string from database but your property expects float. This causes performance issues and precision loss.</p>
 
     <div class="alert alert-danger">
-        🚨 <?php echo $e($warningMessage); ?>
+         <?php echo $e($warningMessage); ?>
     </div>
 
     <h4>Choose Your Solution</h4>
@@ -64,7 +64,7 @@ ob_start();
 
         <?php if ([] !== $option['cons']) { ?>
         <div class="cons">
-            <strong>📢 Cons:</strong>
+            <strong> Cons:</strong>
             <ul>
                 <?php foreach ($option['cons'] as $con) { ?>
                 <li><?php echo $e($con); ?></li>
@@ -76,7 +76,7 @@ ob_start();
     <?php } ?>
 
     <div class="alert alert-info">
-        ℹ️ <?php echo $e($infoMessage); ?>
+         <?php echo $e($infoMessage); ?>
     </div>
 
     <p>

@@ -8,7 +8,7 @@ ob_start();
 ?>
 <div class="suggestion-header"><h4>Configuration Issue: <?php echo $e($setting); ?></h4></div>
 <div class="suggestion-content">
-<div class="alert alert-warning">⚙️ <strong>Configuration needs adjustment</strong><?php if ($description) {
+<div class="alert alert-warning"> <strong>Configuration needs adjustment</strong><?php if ($description) {
     ?><br><?php echo $e($description); ?><?php
 } ?></div>
 <h4>Current vs Recommended</h4>

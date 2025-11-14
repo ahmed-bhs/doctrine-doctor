@@ -59,7 +59,7 @@ END</code></pre>
     </div>
 
     <div class="doctrine-example">
-        <h3>🔍 DQL Example (Doctrine)</h3>
+        <h3> DQL Example (Doctrine)</h3>
         <div class="code-comparison">
             <div class="unsafe-example">
                 <p><em>Unsafe</em></p>
@@ -73,7 +73,7 @@ END</code></pre>
     </div>
 
     <div class="learn-more">
-        <h3>📖 Learn More</h3>
+        <h3>Learn More</h3>
         <ul>
             <li>Division by zero is a critical error that stops query execution</li>
             <li>Always validate divisor before division operations</li>

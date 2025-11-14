@@ -46,7 +46,7 @@ ob_start();
 }</code></pre>
     </div>
 
-    <h4> Recommended</h4>
+    <h4>Recommended</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
     #[ORM\ManyToOne(targetEntity: '...')]

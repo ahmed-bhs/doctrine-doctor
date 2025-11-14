@@ -36,7 +36,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        🚨 <strong>An empty IN() clause will cause a SQL syntax error at runtime.</strong>
+         <strong>An empty IN() clause will cause a SQL syntax error at runtime.</strong>
     </div>
 
     <p>Always validate that the array is not empty before using IN() clause. Here are several approaches:</p>
@@ -63,7 +63,7 @@ ob_start();
 
         <?php if (isset($option['cons']) && is_array($option['cons']) && [] !== $option['cons']) { ?>
         <div class="cons">
-            <strong>📢 Cons:</strong>
+            <strong> Cons:</strong>
             <ul>
                 <?php foreach ($option['cons'] as $con) { ?>
                 <li><?php echo $e($con); ?></li>

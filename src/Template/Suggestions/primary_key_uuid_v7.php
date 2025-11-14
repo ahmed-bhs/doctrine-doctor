@@ -17,7 +17,7 @@ ob_start();
 ?>
 
 <div class="uuid-v7-suggestion">
-    <h2>⚡ Upgrade to UUID v7 for Better Performance</h2>
+    <h2>Upgrade to UUID v7 for Better Performance</h2>
 
     <div class="entity-info">
         <p><strong>Entity:</strong> <code><?= htmlspecialchars($short_name) ?></code></p>

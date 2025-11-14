@@ -12,7 +12,7 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>🔒 Embeddable Should Be Immutable</h4>
+    <h4>Embeddable Should Be Immutable</h4>
 </div>
 
 <div class="suggestion-content">
@@ -27,7 +27,7 @@ ob_start();
 class <?= $e($embeddableClass) ?> {
     private int $amount;
     private string $currency;
-    
+
     public function setAmount(int $amount): void {
         $this->amount = $amount;  // Mutable!
     }
@@ -40,10 +40,10 @@ readonly class <?= $e($embeddableClass) ?> {
         private int $amount,
         private string $currency
     ) {}
-    
+
     // Only getters, no setters
     public function getAmount(): int { return $this->amount; }
-    
+
     // Return new instance for changes
     public function withAmount(int $amount): self {
         return new self($amount, $this->currency);

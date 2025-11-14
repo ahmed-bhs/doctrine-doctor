@@ -32,10 +32,10 @@ ob_start();
 
     <h4>Performance Impact</h4>
     <ul>
-        <li>1-3 JOINs: ⚡⚡⚡⚡⚡ Excellent</li>
-        <li>4-5 JOINs: ⚡⚡⚡⚡ Good</li>
-        <li>6-7 JOINs: ⚡⚡⚡ Acceptable</li>
-        <li><strong>8+ JOINs: ⚡⚡ Poor (current: <?php echo $joinCount; ?>)</strong></li>
+        <li>1-3 JOINs: Excellent</li>
+        <li>4-5 JOINs: Good</li>
+        <li>6-7 JOINs: Acceptable</li>
+        <li><strong>8+ JOINs: Poor (current: <?php echo $joinCount; ?>)</strong></li>
     </ul>
 
     <h4>Problem: Too Complex Query</h4>
@@ -43,7 +43,7 @@ ob_start();
         <?php echo formatSqlWithHighlight(substr($sql, 0, 200) . '...'); ?>
     </div>
 
-    <h4> Solution 1: Split into Multiple Queries</h4>
+    <h4>Solution 1: Split into Multiple Queries</h4>
     <div class="query-item">
         <pre><code class="language-php">// Instead of 1 query with <?php echo $joinCount; ?> JOINs:
 $orders = $qb->select('o', 'c', 'a', 'city', 'country', 'region', 'items', 'products')
@@ -66,7 +66,7 @@ $addresses = $em->createQuery('SELECT a FROM Address a WHERE a.customer IN (:ids
    ->getResult();</code></pre>
     </div>
 
-    <h4> Solution 2: Use DTOs for Read-Only Data</h4>
+    <h4>Solution 2: Use DTOs for Read-Only Data</h4>
     <div class="query-item">
         <pre><code class="language-php">// Load only needed fields (much faster)
 $data = $em->createQuery(

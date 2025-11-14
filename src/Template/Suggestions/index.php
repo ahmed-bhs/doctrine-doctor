@@ -13,7 +13,7 @@ ob_start();
 ?>
 <div class="suggestion-header"><h4>Add Database Index</h4></div>
 <div class="suggestion-content">
-<div class="alert alert-info">💡 <strong>Missing Index Suggestion</strong><br>
+<div class="alert alert-info"> <strong>Missing Index Suggestion</strong><br>
 Table: <code><?php echo $e($table); ?></code><br>
 Columns: <code><?php echo $e($columnsList); ?></code></div>
 <h4>Migration Code</h4>

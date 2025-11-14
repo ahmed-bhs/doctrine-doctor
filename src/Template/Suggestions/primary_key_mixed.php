@@ -21,7 +21,7 @@ ob_start();
 ?>
 
 <div class="mixed-primary-keys">
-    <h2>⚖️ Mixed Primary Key Strategies</h2>
+    <h2>Mixed Primary Key Strategies</h2>
 
     <div class="key-statistics">
         <p><strong>Your codebase uses:</strong></p>

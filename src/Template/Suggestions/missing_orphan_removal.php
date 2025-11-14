@@ -38,7 +38,7 @@ ob_start();
 <div class="suggestion-content">
     <?php if ($isNotNullFK) { ?>
     <div class="alert alert-danger">
-        🚨 <strong>CRITICAL: Foreign key is NOT NULL but orphanRemoval is missing!</strong><br><br>
+        <strong>Foreign key is NOT NULL but orphanRemoval is missing</strong><br><br>
         This is inconsistent - children cannot be orphaned but you're not deleting them.
     </div>
     <?php } else { ?>
@@ -66,7 +66,7 @@ $item = $<?php echo lcfirst($e($entityClass)); ?>->get<?php echo ucfirst($e($fie
 $<?php echo lcfirst($e($entityClass)); ?>->remove<?php echo ucfirst(rtrim($e($fieldName), 's')); ?>($item);
 $em->flush();
 
-//  <?php echo $e($targetClass); ?> remains in database with <?php echo $e($mappedBy); ?>_id = NULL (orphan!)
+// <?php echo $e($targetClass); ?> remains in database with <?php echo $e($mappedBy); ?>_id = NULL (orphan!)
 // This pollutes your database with garbage data</code></pre>
     </div>
 
@@ -107,8 +107,8 @@ $em->flush();
 
     <h4>When NOT to use</h4>
     <ul>
-        <li>📢 Children are independent entities (Order → Products)</li>
-        <li>📢 Children can be reassigned to other parents</li>
+        <li>Children are independent entities (Order → Products)</li>
+        <li>Children can be reassigned to other parents</li>
     </ul>
 
     <p>

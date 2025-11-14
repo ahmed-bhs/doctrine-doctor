@@ -39,14 +39,14 @@ ob_start();
         <li>LEFT JOIN is doing extra work for nothing</li>
     </ul>
 
-    <h4> Solution: Use INNER JOIN</h4>
+    <h4>Solution: Use INNER JOIN</h4>
     <div class="query-item">
         <pre><code class="language-php">// Current (suboptimal):
 $qb->select('o')
    ->from(Order::class, 'o')
    ->leftJoin('o.relation', '<?php echo $e($alias); ?>');
 
-//  Better (20-30% faster):
+// Better (20-30% faster):
 $qb->select('o')
    ->from(Order::class, 'o')
    ->innerJoin('o.relation', '<?php echo $e($alias); ?>');
@@ -55,15 +55,15 @@ $qb->select('o')
 
     <h4>When to Use Each</h4>
     <ul>
-        <li><strong>NOT NULL FK</strong> (@JoinColumn(nullable=false)) → INNER JOIN </li>
-        <li><strong>Nullable FK</strong> (@JoinColumn(nullable=true)) → LEFT JOIN </li>
+        <li><strong>NOT NULL FK</strong> (@JoinColumn(nullable=false)) → INNER JOIN</li>
+        <li><strong>Nullable FK</strong> (@JoinColumn(nullable=true)) → LEFT JOIN</li>
     </ul>
 
     <div class="alert alert-info">
-        ℹ️ <strong>Performance Impact:</strong><br>
+        <strong>Performance Impact:</strong><br>
         <ul>
-            <li>INNER JOIN: ⚡⚡⚡⚡⚡ Fast (filters rows early)</li>
-            <li>LEFT JOIN on NOT NULL: ⚡⚡⚡⚡ Slower (processes all rows)</li>
+            <li>INNER JOIN: Fast (filters rows early)</li>
+            <li>LEFT JOIN on NOT NULL: Slower (processes all rows)</li>
         </ul>
     </div>
 </div>

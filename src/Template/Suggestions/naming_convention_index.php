@@ -38,7 +38,7 @@ ob_start();
         <pre><code class="language-php">#[ORM\Index(name: '<?php echo $e($current); ?>', columns: ['...'])]</code></pre>
     </div>
 
-    <h4> Recommended</h4>
+    <h4>Recommended</h4>
     <div class="query-item">
         <pre><code class="language-php">#[ORM\Index(name: '<?php echo $e($suggested); ?>', columns: ['...'])]</code></pre>
     </div>

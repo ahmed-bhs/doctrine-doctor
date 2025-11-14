@@ -32,20 +32,20 @@ ob_start();
         <li>Wasted database resources</li>
     </ul>
 
-    <h4> Solution 1: Remove the JOIN</h4>
+    <h4>Solution 1: Remove the JOIN</h4>
     <div class="query-item">
         <pre><code class="language-php">// Remove this line:
 ->leftJoin('o.relation', '<?php echo $e($alias); ?>')  // ← Not used anywhere</code></pre>
     </div>
 
-    <h4> Solution 2: Use the JOIN (Fetch the Data)</h4>
+    <h4>Solution 2: Use the JOIN (Fetch the Data)</h4>
     <div class="query-item">
         <pre><code class="language-php">// If you want to preload the relation:
 ->leftJoin('o.relation', '<?php echo $e($alias); ?>')
 ->addSelect('<?php echo $e($alias); ?>')  // ← Add this</code></pre>
     </div>
 
-    <h4> Solution 3: Use for Filtering</h4>
+    <h4>Solution 3: Use for Filtering</h4>
     <div class="query-item">
         <pre><code class="language-php">// If you want to filter by the relation:
 ->innerJoin('o.relation', '<?php echo $e($alias); ?>')
@@ -53,7 +53,7 @@ ob_start();
     </div>
 
     <div class="alert alert-info">
-        ℹ️ <strong>Performance Impact:</strong><br>
+        <strong>Performance Impact:</strong><br>
         Removing unused JOIN: 10-20% faster
     </div>
 </div>

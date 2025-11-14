@@ -42,7 +42,7 @@ ob_start();
     </div>
 
     <div class="performance-impact">
-        <h3>📖 Performance Impact</h3>
+        <h3>Performance Impact</h3>
         <table class="performance-table">
             <thead>
                 <tr>
@@ -53,27 +53,27 @@ ob_start();
             </thead>
             <tbody>
                 <tr>
-                    <td>📢 <code><?= htmlspecialchars($function) ?>(<?= htmlspecialchars($field) ?>)</code></td>
+                    <td> <code><?= htmlspecialchars($function) ?>(<?= htmlspecialchars($field) ?>)</code></td>
                     <td>NO</td>
-                    <td>🐌 Slow (full scan)</td>
+                    <td> Slow (full scan)</td>
                 </tr>
                 <tr>
                     <td><code><?= htmlspecialchars($field) ?> BETWEEN ...</code></td>
                     <td>YES</td>
-                    <td>⚡ Fast (index seek)</td>
+                    <td> Fast (index seek)</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
     <div class="common-examples">
-        <h3>📖 Common Examples</h3>
+        <h3>Common Examples</h3>
 
         <div class="example">
             <h4>YEAR() Optimization</h4>
             <div class="code-comparison">
                 <div class="slow-example">
-                    <p><em>📢 Slow: Full table scan</em></p>
+                    <p><em>Slow: Full table scan</em></p>
                     <pre><code class="language-sql">WHERE YEAR(created_at) = 2023</code></pre>
                 </div>
                 <div class="fast-example">
@@ -89,7 +89,7 @@ WHERE created_at >= '2023-01-01' AND created_at < '2024-01-01'</code></pre>
             <h4>MONTH() Optimization</h4>
             <div class="code-comparison">
                 <div class="slow-example">
-                    <p><em>📢 Slow</em></p>
+                    <p><em>Slow</em></p>
                     <pre><code class="language-sql">WHERE MONTH(created_at) = 12</code></pre>
                 </div>
                 <div class="fast-example">
@@ -103,7 +103,7 @@ WHERE created_at >= '2023-01-01' AND created_at < '2024-01-01'</code></pre>
             <h4>DATE() Optimization</h4>
             <div class="code-comparison">
                 <div class="slow-example">
-                    <p><em>📢 Slow</em></p>
+                    <p><em>Slow</em></p>
                     <pre><code class="language-sql">WHERE DATE(created_at) = '2023-01-15'</code></pre>
                 </div>
                 <div class="fast-example">
@@ -117,7 +117,7 @@ WHERE created_at >= '2023-01-15' AND created_at < '2023-01-16'</code></pre>
     </div>
 
     <div class="doctrine-example">
-        <h3>🔍 DQL Example (Doctrine)</h3>
+        <h3> DQL Example (Doctrine)</h3>
         <div class="code-comparison">
             <div class="slow-example">
                 <p><em>Slow: Function prevents index usage</em></p>
@@ -134,7 +134,7 @@ WHERE created_at >= '2023-01-15' AND created_at < '2023-01-16'</code></pre>
     </div>
 
     <div class="why-matters">
-        <h3>💡 Why This Matters</h3>
+        <h3> Why This Matters</h3>
         <ol>
             <li><strong>Without index:</strong> Database scans EVERY row, applies function, then compares</li>
             <li><strong>With index:</strong> Database uses B-tree to jump directly to matching rows</li>
@@ -142,7 +142,7 @@ WHERE created_at >= '2023-01-15' AND created_at < '2023-01-16'</code></pre>
 
         <p>On a table with 1 million rows:</p>
         <ul>
-            <li>📢 Function: ~5000ms (5 seconds)</li>
+            <li> Function: ~5000ms (5 seconds)</li>
             <li>Range: ~50ms (0.05 seconds)</li>
         </ul>
 
@@ -150,7 +150,7 @@ WHERE created_at >= '2023-01-15' AND created_at < '2023-01-16'</code></pre>
     </div>
 
     <div class="general-rule">
-        <h3>📖 General Rule</h3>
+        <h3>General Rule</h3>
         <p><strong>Never use functions on indexed columns in WHERE clause.</strong></p>
 
         <p>Functions that prevent index usage:</p>

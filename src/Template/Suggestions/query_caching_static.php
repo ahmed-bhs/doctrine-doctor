@@ -21,7 +21,7 @@ ob_start();
 
 <div class="static-table-caching">
     <div class="header">
-        <p>💡 Query on static table <code><?= htmlspecialchars($table_name) ?></code> (rarely-changing lookup data)</p>
+        <p> Query on static table <code><?= htmlspecialchars($table_name) ?></code> (rarely-changing lookup data)</p>
     </div>
 
     <div class="original-query">

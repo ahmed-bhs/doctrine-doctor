@@ -17,7 +17,7 @@ ob_start();
 ?>
 
 <div class="auto-increment-suggestion">
-    <h2>🔢 Consider UUID v7 Instead of Auto-Increment</h2>
+    <h2>Consider UUID v7 Instead of Auto-Increment</h2>
 
     <div class="entity-info">
         <p><strong>Entity:</strong> <code><?= htmlspecialchars($short_name) ?></code></p>
