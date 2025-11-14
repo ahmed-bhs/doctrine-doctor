@@ -35,7 +35,7 @@ ob_start();
     </div>
 
     <div class="alert alert-warning">
-        Using <code>= NULL</code> or <code>!= NULL</code> will NOT work as expected. The condition will never match any rows.
+        Using <code>= NULL</code> or <code>!= NULL</code> will NOT work. The condition never matches rows because <code>= NULL</code> returns UNKNOWN, not TRUE.
     </div>
 
     <h4>Correct Code</h4>
@@ -43,24 +43,7 @@ ob_start();
         <pre><code class="language-php"><?php echo $e($goodCode); ?></code></pre>
     </div>
 
-    <h4>Why This Matters</h4>
-    <ul>
-        <li><code>IS NULL</code> and <code>IS NOT NULL</code> are the SQL standard for NULL comparisons</li>
-        <li><code>= NULL</code> always returns UNKNOWN (three-valued logic), never TRUE or FALSE</li>
-        <li>Your queries will work correctly and return expected results</li>
-        <li>No performance impact - database handles IS NULL efficiently</li>
-    </ul>
-
-    <h4>SQL NULL Three-Valued Logic</h4>
-    <div class="query-item">
-        <pre><code class="language-sql">-- These NEVER match:
-WHERE column = NULL    -- Returns UNKNOWN (not TRUE)
-WHERE column != NULL   -- Returns UNKNOWN (not TRUE)
-
--- These work correctly:
-WHERE column IS NULL       -- Returns TRUE when NULL
-WHERE column IS NOT NULL   -- Returns TRUE when NOT NULL</code></pre>
-    </div>
+    <p><code>IS NULL</code> and <code>IS NOT NULL</code> are the SQL standard. <code>= NULL</code> always returns UNKNOWN (three-valued logic), never TRUE or FALSE.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html#helper-methods" target="_blank" class="doc-link">

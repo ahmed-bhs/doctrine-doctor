@@ -23,53 +23,27 @@ ob_start();
         Your entity uses soft delete but has a relation with <code>onDelete="CASCADE"</code>. This causes data loss.
     </div>
 
-    <p>Soft delete means entities are never physically deleted from the database. CASCADE DELETE triggers physical deletion when the parent is removed. When you soft delete a parent, CASCADE will physically delete children, which defeats the purpose of soft delete.</p>
+    <p>Soft delete keeps entities in database. CASCADE DELETE physically deletes children when parent is removed, causing data loss.</p>
 
-    <h3>Current code</h3>
+    <h3>Current</h3>
     <pre><code class="language-php">#[ORM\Entity]
 #[Gedmo\SoftDeleteable]
 class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
 {
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTime $deletedAt = null;
-
-    #[ORM\ManyToOne(targetEntity: Category::class)]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Category $<?= $fieldName ?>;
-}
+}</code></pre>
 
-// What happens:
-// 1. Soft delete Post: deletedAt = now() ← Post stays in DB
-// 2. Hard delete Category: CASCADE triggers ← Related Posts are PHYSICALLY deleted!
-// 3. Result: Data loss</code></pre>
-
-    <h3>Option 1: Remove CASCADE DELETE</h3>
+    <h3>Solution: Use SET NULL</h3>
     <pre><code class="language-php">#[ORM\Entity]
 #[Gedmo\SoftDeleteable]
 class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
 {
-    #[ORM\ManyToOne(targetEntity: Category::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL', nullable: true)]
     private ?Category $<?= $fieldName ?>;
-
-    // Or use RESTRICT to prevent deletion
-    // #[ORM\JoinColumn(onDelete: 'RESTRICT')]
 }</code></pre>
 
-    <h3>Option 2: Soft delete children too</h3>
-    <p>Use ORM cascade, not database cascade:</p>
-
-    <pre><code class="language-php">#[ORM\Entity]
-#[Gedmo\SoftDeleteable]
-class Category
-{
-    #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'category', cascade: ['remove'])]
-    private Collection $posts;
-}
-
-// Now when Category is soft deleted, Posts are also soft deleted</code></pre>
-
-    <p>Choose SET NULL if children should be orphaned, or ORM cascade if children should also soft delete. Never mix soft delete with database CASCADE DELETE.</p>
+    <p>Use SET NULL to orphan children, or ORM cascade to soft delete children too. Never mix soft delete with database CASCADE DELETE.</p>
 </div>
 
 <?php

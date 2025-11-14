@@ -23,49 +23,23 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
-    </svg>
-    <h4>Fix Table Naming Convention</h4>
+    <h4>Fix Table Naming</h4>
 </div>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong>Table naming convention violation detected.</strong>
+        <strong>Table naming violation:</strong> '<?php echo $e($current); ?>' should be '<?php echo $e($suggested); ?>'
     </div>
 
     <h4>Current</h4>
-    <div class="query-item">
-        <pre><code class="language-php">#[ORM\Table(name: '<?php echo $e($current); ?>')]
-class <?php echo $e($entityClass); ?>
-{
-    // ...
-}</code></pre>
-    </div>
+    <pre><code class="language-php">#[ORM\Table(name: '<?php echo $e($current); ?>')]
+class <?php echo $e($entityClass); ?> {}</code></pre>
 
     <h4>Recommended</h4>
-    <div class="query-item">
-        <pre><code class="language-php">#[ORM\Table(name: '<?php echo $e($suggested); ?>')]
-class <?php echo $e($entityClass); ?>
-{
-    // ...
-}</code></pre>
-    </div>
+    <pre><code class="language-php">#[ORM\Table(name: '<?php echo $e($suggested); ?>')]
+class <?php echo $e($entityClass); ?> {}</code></pre>
 
-    <h4>Doctrine/Symfony conventions</h4>
-    <ul>
-        <li>Tables: snake_case, plural (users, order_items, product_categories)</li>
-        <li>Avoid SQL reserved keywords (order, group, user, etc.)</li>
-        <li>Use only: letters, numbers, underscores</li>
-    </ul>
-
-    <h4>After fixing</h4>
-    <ol>
-        <li>Create migration: <code>php bin/console make:migration</code></li>
-        <li>Review migration to rename table</li>
-        <li>Run migration: <code>php bin/console doctrine:migrations:migrate</code></li>
-    </ol>
+    <p><strong>Convention:</strong> snake_case, plural (users, order_items). Avoid SQL keywords. Create migration with <code>make:migration</code>.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/naming-strategy.html" target="_blank" class="doc-link">

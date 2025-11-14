@@ -39,40 +39,15 @@ ob_start();
          <strong>An empty IN() clause will cause a SQL syntax error at runtime.</strong>
     </div>
 
-    <p>Always validate that the array is not empty before using IN() clause. Here are several approaches:</p>
+    <p>Always validate that the array is not empty before using IN() clause.</p>
 
-    <?php foreach ($options as $index => $option) { ?>
-    <div class="suggestion-option">
-        <h4><?php echo $e($option['title'] ?? 'Option'); ?></h4>
-        <p><?php echo $e($option['description'] ?? ''); ?></p>
+    <?php $option = $options[0] ?? ['title' => 'Early Return Pattern', 'description' => 'Check for empty array before building query', 'code' => 'if (empty($ids)) { return []; }']; ?>
+    <h4><?php echo $e($option['title'] ?? 'Solution'); ?></h4>
+    <p><?php echo $e($option['description'] ?? ''); ?></p>
 
-        <div class="query-item">
-            <pre><code class="language-php"><?php echo $e($option['code'] ?? ''); ?></code></pre>
-        </div>
-
-        <?php if (isset($option['pros']) && is_array($option['pros']) && [] !== $option['pros']) { ?>
-        <div class="pros">
-            <strong>Pros:</strong>
-            <ul>
-                <?php foreach ($option['pros'] as $pro) { ?>
-                <li><?php echo $e($pro); ?></li>
-                <?php } ?>
-            </ul>
-        </div>
-        <?php } ?>
-
-        <?php if (isset($option['cons']) && is_array($option['cons']) && [] !== $option['cons']) { ?>
-        <div class="cons">
-            <strong> Cons:</strong>
-            <ul>
-                <?php foreach ($option['cons'] as $con) { ?>
-                <li><?php echo $e($con); ?></li>
-                <?php } ?>
-            </ul>
-        </div>
-        <?php } ?>
+    <div class="query-item">
+        <pre><code class="language-php"><?php echo $e($option['code'] ?? ''); ?></code></pre>
     </div>
-    <?php } ?>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html" target="_blank" class="doc-link">

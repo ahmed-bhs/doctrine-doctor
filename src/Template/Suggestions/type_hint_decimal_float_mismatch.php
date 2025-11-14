@@ -40,50 +40,16 @@ ob_start();
          <?php echo $e($warningMessage); ?>
     </div>
 
-    <h4>Choose Your Solution</h4>
+    <h4>Solution: Change type hint to string</h4>
+    <?php $option = $options[0] ?? ['title' => 'Change type hint', 'description' => 'Use string type hint', 'code' => 'private string $field;']; ?>
+    <p><?php echo $e($option['description']); ?></p>
 
-    <?php foreach ($options as $index => $option) { ?>
-    <div class="suggestion-option">
-        <h4><?php echo $e($option['title']); ?></h4>
-        <p><?php echo $e($option['description']); ?></p>
-
-        <div class="query-item">
-            <pre><code class="language-php"><?php echo $e($option['code']); ?></code></pre>
-        </div>
-
-        <?php if ([] !== $option['pros']) { ?>
-        <div class="pros">
-            <strong>Pros:</strong>
-            <ul>
-                <?php foreach ($option['pros'] as $pro) { ?>
-                <li><?php echo $e($pro); ?></li>
-                <?php } ?>
-            </ul>
-        </div>
-        <?php } ?>
-
-        <?php if ([] !== $option['cons']) { ?>
-        <div class="cons">
-            <strong> Cons:</strong>
-            <ul>
-                <?php foreach ($option['cons'] as $con) { ?>
-                <li><?php echo $e($con); ?></li>
-                <?php } ?>
-            </ul>
-        </div>
-        <?php } ?>
-    </div>
-    <?php } ?>
-
-    <div class="alert alert-info">
-         <?php echo $e($infoMessage); ?>
+    <div class="query-item">
+        <pre><code class="language-php"><?php echo $e($option['code']); ?></code></pre>
     </div>
 
-    <p>
-        <a href="<?php echo $e($moneyLibraryLink); ?>" target="_blank" class="doc-link">
-            📖 Money PHP Library (moneyphp/money) →
-        </a>
-    </p>
+    <p><?php echo $e($infoMessage); ?></p>
+
     <p>
         <a href="<?php echo $e($doctrineTypesLink); ?>" target="_blank" class="doc-link">
             📖 Doctrine Mapping Types Reference →

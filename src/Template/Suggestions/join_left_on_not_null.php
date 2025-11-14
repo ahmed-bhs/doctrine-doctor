@@ -21,51 +21,19 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong>Performance Improvement Available</strong><br>
-        LEFT JOIN on table '<?php echo $e($table); ?>' which has a NOT NULL foreign key.<br>
-        Using INNER JOIN would be 20-30% faster.
+        <strong>Performance:</strong> LEFT JOIN on '<?php echo $e($table); ?>' which has NOT NULL FK. INNER JOIN would be 20-30% faster.
     </div>
 
-    <h4>Current Query (Suboptimal)</h4>
-    <div class="query-item">
-        <?php echo formatSqlWithHighlight("LEFT JOIN {$table} {$alias}"); ?>
-    </div>
-
-    <h4>Problem</h4>
-    <ul>
-        <li>LEFT JOIN includes rows where the relation is NULL</li>
-        <li>But your foreign key is NOT NULL (relation is mandatory)</li>
-        <li>Database never returns NULL for this relation</li>
-        <li>LEFT JOIN is doing extra work for nothing</li>
-    </ul>
+    <p>LEFT JOIN includes NULL rows, but your FK is NOT NULL (mandatory). Database never returns NULL here, so LEFT JOIN does extra work.</p>
 
     <h4>Solution: Use INNER JOIN</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Current (suboptimal):
-$qb->select('o')
-   ->from(Order::class, 'o')
-   ->leftJoin('o.relation', '<?php echo $e($alias); ?>');
+    <pre><code class="language-php">// Current (slow):
+$qb->leftJoin('o.relation', '<?php echo $e($alias); ?>');
 
 // Better (20-30% faster):
-$qb->select('o')
-   ->from(Order::class, 'o')
-   ->innerJoin('o.relation', '<?php echo $e($alias); ?>');
-   // or ->join() which is an alias for innerJoin()</code></pre>
-    </div>
+$qb->innerJoin('o.relation', '<?php echo $e($alias); ?>');</code></pre>
 
-    <h4>When to Use Each</h4>
-    <ul>
-        <li><strong>NOT NULL FK</strong> (@JoinColumn(nullable=false)) → INNER JOIN</li>
-        <li><strong>Nullable FK</strong> (@JoinColumn(nullable=true)) → LEFT JOIN</li>
-    </ul>
-
-    <div class="alert alert-info">
-        <strong>Performance Impact:</strong><br>
-        <ul>
-            <li>INNER JOIN: Fast (filters rows early)</li>
-            <li>LEFT JOIN on NOT NULL: Slower (processes all rows)</li>
-        </ul>
-    </div>
+    <p><strong>Rule:</strong> NOT NULL FK → INNER JOIN. Nullable FK → LEFT JOIN.</p>
 </div>
 
 <?php
