@@ -39,55 +39,28 @@ ob_start();
     </ul>
 
     <h4>Problem: Too Complex Query</h4>
-    <div class="query-item">
-        <?php echo formatSqlWithHighlight(substr($sql, 0, 200) . '...'); ?>
-    </div>
+    <p>Query contains <strong><?php echo $joinCount; ?> JOINs</strong>. Recommended: 5 max for optimal performance.</p>
 
-    <h4>Solution 1: Split into Multiple Queries</h4>
+    <h4>Solution: Split into Multiple Queries</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Instead of 1 query with <?php echo $joinCount; ?> JOINs:
-$orders = $qb->select('o', 'c', 'a', 'city', 'country', 'region', 'items', 'products')
-   ->from(Order::class, 'o')
-   ->innerJoin('o.customer', 'c')
-   // ... <?php echo $joinCount; ?> JOINs total
-   ->getQuery()->getResult();
+        <pre><code class="language-php">// Instead of 1 query with <?php echo $joinCount; ?> JOINs, split into 2-3:
 
-// Split into 2-3 queries:
 // Query 1: Orders with customer
 $orders = $qb->select('o', 'c')
    ->from(Order::class, 'o')
    ->innerJoin('o.customer', 'c')
    ->getQuery()->getResult();
 
-// Query 2: Load addresses separately if needed
+// Query 2: Load related data separately if needed
 $customerIds = array_map(fn($o) => $o->getCustomer()->getId(), $orders);
 $addresses = $em->createQuery('SELECT a FROM Address a WHERE a.customer IN (:ids)')
    ->setParameter('ids', $customerIds)
-   ->getResult();</code></pre>
+   ->getResult();
+
+// Or use DTOs for read-only data (faster, less memory)</code></pre>
     </div>
 
-    <h4>Solution 2: Use DTOs for Read-Only Data</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Load only needed fields (much faster)
-$data = $em->createQuery(
-   'SELECT NEW App\\DTO\\OrderSummary(
-       o.id,
-       c.name,
-       a.city
-   )
-   FROM Order o
-   JOIN o.customer c
-   JOIN c.address a'
-)->getResult();</code></pre>
-    </div>
-
-    <h4>Benefits of Reducing JOINs</h4>
-    <ul>
-        <li>50-70% faster query execution</li>
-        <li>Less memory usage</li>
-        <li>Better database indexing</li>
-        <li>More maintainable code</li>
-    </ul>
+    <p>Splitting queries typically improves performance by 50-70% and reduces memory usage.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html" target="_blank" class="doc-link">

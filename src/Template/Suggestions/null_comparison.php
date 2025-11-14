@@ -21,7 +21,7 @@ ob_start();
 ?>
 
 <div class="null-comparison-issue">
-    <h2> Incorrect NULL Comparison Detected</h2>
+    <h2>Incorrect NULL Comparison Detected</h2>
 
     <div class="original-query">
         <p><strong>Your query:</strong></p>
@@ -29,50 +29,31 @@ ob_start();
     </div>
 
     <div class="problem-description">
-        <p><strong>Problem:</strong></p>
-        <p>In SQL, <code>NULL</code> is not a value — it represents the <strong>absence of a value</strong>. You cannot compare to <code>NULL</code> using <code><?= htmlspecialchars($operator) ?></code>.</p>
-    </div>
-
-    <div class="explanation">
-        <h3>Why This Is Wrong</h3>
-        <pre><code class="language-sql">--  This NEVER returns any rows (even if bonus is NULL!)
-WHERE <?= htmlspecialchars($field) ?> = NULL
-
---  This ALSO never returns any rows!
-WHERE <?= htmlspecialchars($field) ?> != NULL</code></pre>
-        <p><strong>Why?</strong> In SQL, <code>NULL = NULL</code> is <strong>UNKNOWN</strong> (not TRUE), so the condition fails.</p>
+        <p><code>NULL</code> represents the absence of a value. <code>NULL = NULL</code> returns <strong>UNKNOWN</strong> (not TRUE), so the condition always fails.</p>
     </div>
 
     <div class="correct-syntax">
-        <h3>Correct Syntax</h3>
-        <p>Use <code>IS NULL</code> or <code>IS NOT NULL</code>:</p>
+        <h3>Solution</h3>
         <pre><code class="language-sql"><?= htmlspecialchars($correct) ?></code></pre>
     </div>
 
     <div class="examples">
-        <h3>Examples</h3>
         <div class="code-comparison">
             <div class="wrong-example">
-                <p><em>WRONG: Find employees without bonus</em></p>
-                <pre><code class="language-sql">SELECT * FROM employees WHERE bonus = NULL;</code></pre>
+                <p><em>WRONG</em></p>
+                <pre><code class="language-sql">WHERE bonus = NULL
+WHERE bonus != NULL</code></pre>
             </div>
             <div class="correct-example">
                 <p><em>CORRECT</em></p>
-                <pre><code class="language-sql">SELECT * FROM employees WHERE bonus IS NULL;</code></pre>
-            </div>
-            <div class="wrong-example">
-                <p><em>WRONG: Find employees with bonus</em></p>
-                <pre><code class="language-sql">SELECT * FROM employees WHERE bonus != NULL;</code></pre>
-            </div>
-            <div class="correct-example">
-                <p><em>CORRECT</em></p>
-                <pre><code class="language-sql">SELECT * FROM employees WHERE bonus IS NOT NULL;</code></pre>
+                <pre><code class="language-sql">WHERE bonus IS NULL
+WHERE bonus IS NOT NULL</code></pre>
             </div>
         </div>
     </div>
 
     <div class="doctrine-example">
-        <h3> DQL Example (Doctrine)</h3>
+        <h3>DQL (Doctrine)</h3>
         <div class="code-comparison">
             <div class="incorrect-example">
                 <p><em>Incorrect</em></p>
@@ -80,48 +61,9 @@ WHERE <?= htmlspecialchars($field) ?> != NULL</code></pre>
             </div>
             <div class="correct-example">
                 <p><em>Correct</em></p>
-                <pre><code class="language-php">$qb->where('e.bonus IS NULL');
-
-// Or use the dedicated method
-$qb->where($qb->expr()->isNull('e.bonus'));</code></pre>
+                <pre><code class="language-php">$qb->where('e.bonus IS NULL');</code></pre>
             </div>
         </div>
-    </div>
-
-    <div class="quick-reference">
-        <h3>Quick Reference</h3>
-        <table class="reference-table">
-            <thead>
-                <tr>
-                    <th> Don't Use</th>
-                    <th>Use Instead</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><code>field = NULL</code></td>
-                    <td><code>field IS NULL</code></td>
-                </tr>
-                <tr>
-                    <td><code>field != NULL</code></td>
-                    <td><code>field IS NOT NULL</code></td>
-                </tr>
-                <tr>
-                    <td><code>field <> NULL</code></td>
-                    <td><code>field IS NOT NULL</code></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="sql-rules">
-        <h3>SQL NULL Rules</h3>
-        <ol>
-            <li><code>NULL = NULL</code> → UNKNOWN (not TRUE!)</li>
-            <li><code>NULL != NULL</code> → UNKNOWN</li>
-            <li><code>NULL IS NULL</code> → TRUE</li>
-            <li><code>NULL IS NOT NULL</code> → FALSE</li>
-        </ol>
     </div>
 </div>
 

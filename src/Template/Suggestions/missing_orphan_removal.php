@@ -36,38 +36,15 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-    <?php if ($isNotNullFK) { ?>
-    <div class="alert alert-danger">
-        <strong>Foreign key is NOT NULL but orphanRemoval is missing</strong><br><br>
-        This is inconsistent - children cannot be orphaned but you're not deleting them.
-    </div>
-    <?php } else { ?>
     <div class="alert alert-warning">
-        <strong>Composition relationship detected without orphanRemoval=true</strong>
-    </div>
-    <?php } ?>
-
-    <h4>Current configuration</h4>
-    <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
-    #[ORM\OneToMany(
-        targetEntity: <?php echo $e($targetClass); ?>::class,
-        mappedBy: '<?php echo $e($mappedBy); ?>',
-        <?php echo $e($currentCascade); ?>
-    )]
-    private Collection $<?php echo $e($fieldName); ?>;
-}</code></pre>
+        <strong>Composition relationship without orphanRemoval=true</strong>
     </div>
 
     <h4>Problem</h4>
     <div class="query-item">
-        <pre><code class="language-php">$<?php echo lcfirst($e($entityClass)); ?> = $em->find(<?php echo $e($entityClass); ?>::class, $id);
-$item = $<?php echo lcfirst($e($entityClass)); ?>->get<?php echo ucfirst($e($fieldName)); ?>()->first();
-$<?php echo lcfirst($e($entityClass)); ?>->remove<?php echo ucfirst(rtrim($e($fieldName), 's')); ?>($item);
+        <pre><code class="language-php">$<?php echo lcfirst($e($entityClass)); ?>->remove<?php echo ucfirst(rtrim($e($fieldName), 's')); ?>($item);
 $em->flush();
-
-// <?php echo $e($targetClass); ?> remains in database with <?php echo $e($mappedBy); ?>_id = NULL (orphan!)
-// This pollutes your database with garbage data</code></pre>
+// <?php echo $e($targetClass); ?> remains in database with <?php echo $e($mappedBy); ?>_id = NULL (orphan!)</code></pre>
     </div>
 
     <h4>Solution: Add orphanRemoval=true</h4>
@@ -80,36 +57,14 @@ $em->flush();
         orphanRemoval: true  // ← Add this
     )]
     private Collection $<?php echo $e($fieldName); ?>;
-}</code></pre>
+}
+
+// Now removing from collection deletes the record
+$<?php echo lcfirst($e($entityClass)); ?>->remove<?php echo ucfirst(rtrim($e($fieldName), 's')); ?>($item);
+$em->flush(); // <?php echo $e($targetClass); ?> automatically DELETED</code></pre>
     </div>
 
-    <h4>Behavior with orphanRemoval=true</h4>
-    <div class="query-item">
-        <pre><code class="language-php">$<?php echo lcfirst($e($entityClass)); ?>->remove<?php echo ucfirst(rtrim($e($fieldName), 's')); ?>($item);
-$em->flush();
-// <?php echo $e($targetClass); ?> is automatically DELETED from database</code></pre>
-    </div>
-
-    <h4>Benefits</h4>
-    <ul>
-        <li>No orphaned records in database</li>
-        <li>Automatic cleanup when removing from collection</li>
-        <li>Consistent with composition semantics</li>
-        <li>Database stays clean</li>
-    </ul>
-
-    <h4>When to use orphanRemoval=true</h4>
-    <ul>
-        <li>Parent fully owns children (Order → OrderItems)</li>
-        <li>Children cannot exist without parent</li>
-        <li>Removing from collection = deleting from database</li>
-    </ul>
-
-    <h4>When NOT to use</h4>
-    <ul>
-        <li>Children are independent entities (Order → Products)</li>
-        <li>Children can be reassigned to other parents</li>
-    </ul>
+    <p><strong>Use when:</strong> Parent fully owns children (Order → OrderItems). <strong>Don't use when:</strong> Children are independent (Order → Products).</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">

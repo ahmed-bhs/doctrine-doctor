@@ -46,51 +46,22 @@ foreach ($entities as $entity) {
 // Total: <?php echo $queryCount; ?> queries</code></pre>
     </div>
 
-    <h4>Fix with eager loading</h4>
+    <h4>Solution: Use JOIN to eager load</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Load everything in one go
-$entities = $entityManager
-    ->createQuery('
-        SELECT e, r
-        FROM App\\Entity\\<?php echo $e($entity); ?> e
-        JOIN e.<?php echo $e($relation); ?> r
-    ')
+        <pre><code class="language-php">// QueryBuilder approach
+$entities = $repository->createQueryBuilder('e')
+    ->leftJoin('e.<?php echo $e($relation); ?>', 'r')
+    ->addSelect('r')
+    ->getQuery()
     ->getResult();
 
 foreach ($entities as $entity) {
     $entity->get<?php echo ucfirst($relation); ?>(); // Already loaded, no query
 }
-// Total: 1 query</code></pre>
+// Total: 1 query instead of <?php echo $queryCount; ?></code></pre>
     </div>
 
-    <h4>Other options</h4>
-
-    <h5>Using a repository method</h5>
-    <div class="query-item">
-        <pre><code class="language-php">// In your repository
-/**
- * @return array<mixed>
- */
-public function findAllWithRelation(): array
-{
-    return $this->createQueryBuilder('e')
-        ->leftJoin('e.<?php echo $e($relation); ?>', 'r')
-        ->addSelect('r')
-        ->getQuery()
-        ->getResult();
-}</code></pre>
-    </div>
-
-    <h5>Setting fetch mode in the entity</h5>
-    <div class="query-item">
-        <pre><code class="language-php">// In your entity (use sparingly)
-#[ORM\ManyToOne(fetch: 'EAGER')]
-private ?RelatedEntity $<?php echo $e($relation); ?> = null;</code></pre>
-    </div>
-
-    <p>The JOIN approach is usually better because it's explicit — you know exactly when you're loading the relation. Setting <code>fetch: EAGER</code> globally can lead to loading data you don't actually need.</p>
-
-    <p>With eager loading, you go from <?php echo $queryCount; ?> queries down to just 1. The difference becomes really noticeable with larger datasets.</p>
+    <p>This reduces <?php echo $queryCount; ?> queries down to 1. Avoid setting <code>fetch: 'EAGER'</code> globally as it loads data you might not need.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">

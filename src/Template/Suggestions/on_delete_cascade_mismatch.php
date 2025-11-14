@@ -43,51 +43,21 @@ ob_start();
     </div>
 
     <h4>The Problem</h4>
-    <p>
-        When ORM cascade and database constraints differ, behavior depends on <strong>HOW</strong> you delete:
-    </p>
+    <p>Deletion behavior depends on HOW you delete:</p>
     <ul>
         <li><code>$em->remove($entity)</code> uses ORM cascade (<code><?php echo $e($ormCascade); ?></code>)</li>
         <li>Direct SQL <code>DELETE</code> uses database constraint (<code><?php echo $e($dbOnDelete); ?></code>)</li>
     </ul>
 
-    <h4>Example Scenario</h4>
+    <h4>Solution: Align ORM and Database</h4>
+    <p>Decide on desired deletion behavior, then update both ORM cascade and database constraint to match.</p>
     <div class="query-item">
-        <pre><code class="language-php">// Via ORM (uses cascade="<?php echo $e($ormCascade); ?>")
-$em->remove($<?php echo lcfirst($e($entityClass)); ?>);
-$em->flush();
-// Behavior: <?php echo 'remove' === $ormCascade ? 'Children ARE deleted' : 'Children are NOT deleted'; ?>
-
-// Via direct SQL (uses onDelete="<?php echo $e($dbOnDelete); ?>")
-DELETE FROM table WHERE id = ?;
-// Behavior: <?php echo 'CASCADE' === $dbOnDelete ? 'Children ARE deleted' : ('SET NULL' === $dbOnDelete ? 'Children foreign keys set to NULL' : 'Children are NOT affected'); ?>
-</code></pre>
-    </div>
-
-    <h4>Recommended Solution</h4>
-    <p>Align the ORM cascade behavior with the database onDelete constraint, or vice versa.</p>
-
-    <h5>Steps to Fix:</h5>
-    <ol>
-        <li>Review the relationship between <code><?php echo $e($entityClass); ?></code> and <code><?php echo $e($targetClass); ?></code></li>
-        <li>Decide on the desired deletion behavior (CASCADE, SET NULL, RESTRICT, etc.)</li>
-        <li>Update the <code>@JoinColumn(onDelete="...")</code> attribute to match ORM cascade</li>
-        <li>Or update the <code>cascade={...}</code> option to match database constraint</li>
-        <li>Create and run a migration to update the database constraint</li>
-    </ol>
-
-    <h5>Example Fix:</h5>
-    <div class="query-item">
-        <pre><code class="language-php">// Option 1: Make database match ORM cascade
+        <pre><code class="language-php">// Aligned configuration
 #[ORM\ManyToOne(targetEntity: <?php echo $e($targetClass); ?>::class, cascade: ['<?php echo $e($ormCascade); ?>'])]
 #[ORM\JoinColumn(onDelete: '<?php echo 'remove' === $ormCascade ? 'CASCADE' : 'SET NULL'; ?>')]
 private $<?php echo $e($fieldName); ?>;
 
-// Option 2: Make ORM cascade match database
-#[ORM\ManyToOne(targetEntity: <?php echo $e($targetClass); ?>::class, cascade: [<?php echo 'CASCADE' === $dbOnDelete ? "'remove'" : "'persist'"; ?>])]
-#[ORM\JoinColumn(onDelete: '<?php echo $e($dbOnDelete); ?>')]
-private $<?php echo $e($fieldName); ?>;
-</code></pre>
+// Then create and run a migration to update the database constraint</code></pre>
     </div>
 
     <p>

@@ -34,32 +34,14 @@ ob_start();
     </div>
 
     <div class="recommended-fix">
-        <h3>Recommended Fix</h3>
-        <p>Use <code>NULLIF()</code> to safely handle zero values:</p>
+        <h3>Solution: Use NULLIF()</h3>
+        <p>Safely handle zero values:</p>
         <pre><code class="language-sql"><?= htmlspecialchars($safe_division) ?></code></pre>
-
-        <div class="explanation">
-            <p><strong>How it works:</strong></p>
-            <ul>
-                <li><code>NULLIF(<?= htmlspecialchars($divisor) ?>, 0)</code> returns <code>NULL</code> if <?= htmlspecialchars($divisor) ?> equals 0</li>
-                <li>Division by <code>NULL</code> returns <code>NULL</code> instead of an error</li>
-                <li>Your application can handle <code>NULL</code> results gracefully</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="alternative-solution">
-        <h3>📖 Alternative: CASE Statement</h3>
-        <p>For more control over the result:</p>
-        <pre><code class="language-sql">CASE
-    WHEN <?= htmlspecialchars($divisor) ?> = 0 THEN 0  -- or NULL, or any default value
-    ELSE <?= htmlspecialchars($dividend) ?> / <?= htmlspecialchars($divisor) ?>
-
-END</code></pre>
+        <p><code>NULLIF(<?= htmlspecialchars($divisor) ?>, 0)</code> returns <code>NULL</code> if divisor is 0. Division by <code>NULL</code> returns <code>NULL</code> instead of an error.</p>
     </div>
 
     <div class="doctrine-example">
-        <h3> DQL Example (Doctrine)</h3>
+        <h3>DQL Example (Doctrine)</h3>
         <div class="code-comparison">
             <div class="unsafe-example">
                 <p><em>Unsafe</em></p>
@@ -70,15 +52,6 @@ END</code></pre>
                 <pre><code class="language-php">$qb->select('(o.revenue / NULLIF(o.quantity, 0)) as avg_price');</code></pre>
             </div>
         </div>
-    </div>
-
-    <div class="learn-more">
-        <h3>Learn More</h3>
-        <ul>
-            <li>Division by zero is a critical error that stops query execution</li>
-            <li>Always validate divisor before division operations</li>
-            <li>Use database functions (<code>NULLIF</code>, <code>COALESCE</code>, <code>CASE</code>) for safety</li>
-        </ul>
     </div>
 </div>
 

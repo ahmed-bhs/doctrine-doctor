@@ -12,25 +12,24 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>🚨 CRITICAL: Float in Money Embeddable</h4>
+    <h4>Float Used in Money Embeddable</h4>
 </div>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        💰 <strong>CRITICAL:</strong> Money embeddable <code><?php echo $e($embeddableClass); ?>::$<?php echo $e($fieldName); ?></code> uses float!<br>
-        <strong>Risk:</strong> Rounding errors in financial calculations (0.1 + 0.2 ≠ 0.3)
+        Money embeddable <code><?php echo $e($embeddableClass); ?>::$<?php echo $e($fieldName); ?></code> uses float, which causes rounding errors in financial calculations (0.1 + 0.2 ≠ 0.3).
     </div>
 
     <h4>Solution: Use Integer (Cents)</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Before: Float (WRONG)
+        <pre><code class="language-php">// Before:
 #[ORM\Embeddable]
 class <?php echo $e($embeddableClass); ?> {
     #[ORM\Column(type: 'float')]
     private float $<?php echo $e($fieldName); ?>;
 }
 
-// After: Integer cents (CORRECT)
+// After:
 #[ORM\Embeddable]
 readonly class <?php echo $e($embeddableClass); ?> {
     #[ORM\Column(type: 'integer')]

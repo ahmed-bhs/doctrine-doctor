@@ -36,38 +36,12 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <code>$<?php echo $e($fieldName); ?></code> has <code>orphanRemoval=true</code> but no <code>cascade="remove"</code>. This creates inconsistent delete behavior.
+        <code>orphanRemoval=true</code> without <code>cascade="remove"</code> creates inconsistent delete behavior.
     </div>
 
-    <p>With orphanRemoval only, removing an item from the collection deletes it, but deleting the parent leaves orphans. Add cascade remove for consistent behavior.</p>
+    <p>Remove from collection → deleted. Delete parent → NOT deleted (FK error or orphans).</p>
 
-    <h4>Current configuration</h4>
-    <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
-    #[ORM\OneToMany(
-        targetEntity: <?php echo $e($targetClass); ?>::class,
-        mappedBy: '<?php echo $e($mappedBy); ?>',
-        <?php echo $e($currentCascade); ?>,
-        orphanRemoval: true
-    )]
-    private Collection $<?php echo $e($fieldName); ?>;
-}</code></pre>
-    </div>
-
-    <h4>Current behavior</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Remove from collection → item deleted
-$<?php echo lcfirst($e($entityClass)); ?>->remove<?php echo ucfirst(rtrim($e($fieldName), 's')); ?>($item);
-$em->flush();
-
-// Delete parent → items NOT deleted
-$em->remove($<?php echo lcfirst($e($entityClass)); ?>);
-$em->flush();
-// FK constraint error or orphaned records
-</code></pre>
-    </div>
-
-    <h4>Recommended fix</h4>
+    <h4>Solution: Add cascade remove</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
     #[ORM\OneToMany(
@@ -80,7 +54,7 @@ $em->flush();
 }</code></pre>
     </div>
 
-    <p>For complete composition: use <code>cascade: ['persist', 'remove']</code> with <code>orphanRemoval: true</code>. This ensures children are deleted both when removed from the collection and when the parent is deleted.</p>
+    <p>For complete composition, use <code>cascade: ['persist', 'remove']</code> with <code>orphanRemoval: true</code>. Children are then deleted both when removed from collection and when parent is deleted.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">

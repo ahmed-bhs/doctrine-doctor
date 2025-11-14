@@ -6,20 +6,20 @@ declare(strict_types=1);
 $e                                                        = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Memory Leak Risk: Batch Processing Needed</h4></div>
+<div class="suggestion-header"><h4>Batch Processing Needed</h4></div>
 <div class="suggestion-content">
-<div class="alert alert-danger"><strong>Memory Leak Risk</strong><br>
-<?php echo $operationCount; ?> operations without clear() - Memory usage will grow indefinitely!</div>
+<div class="alert alert-danger">
+<?php echo $operationCount; ?> operations without clear() will cause memory usage to grow indefinitely.</div>
 <h4>Problem</h4>
-<div class="query-item"><pre><code class="language-php">// Memory leak: Doctrine keeps ALL entities in memory
+<div class="query-item"><pre><code class="language-php">// Doctrine keeps ALL entities in memory
 for ($i = 0; $i < <?php echo $operationCount; ?>; $i++) {
     $entity = $em->find(Entity::class, $i);
     $entity->process();
     $em->flush();
 }
 // Memory usage: <?php echo $operationCount; ?> * entity size!</code></pre></div>
-<h4> Solution</h4>
-<div class="query-item"><pre><code class="language-php">//  Batch with clear() to free memory
+<h4>Solution</h4>
+<div class="query-item"><pre><code class="language-php">// Batch with clear() to free memory
 $batchSize = 20;
 for ($i = 0; $i < <?php echo $operationCount; ?>; $i++) {
     $entity = $em->find(Entity::class, $i);

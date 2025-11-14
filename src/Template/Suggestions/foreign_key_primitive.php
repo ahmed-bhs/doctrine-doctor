@@ -40,7 +40,7 @@ ob_start();
 }</code></pre>
     </div>
 
-    <h4>Recommended Doctrine Approach</h4>
+    <h4>Solution: Use Proper Object Relations</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
     /** @<?php echo $e($associationType); ?>(targetEntity="<?php echo $e($targetEntity); ?>") */
@@ -49,30 +49,10 @@ ob_start();
     public function get<?php echo ucfirst(rtrim((string) $fieldName, 'Id_')); ?>(): <?php echo $e($targetEntity); ?> {
         return $this-><?php echo $e(rtrim((string) $fieldName, 'Id_')); ?>;
     }
-
-    public function set<?php echo ucfirst(rtrim((string) $fieldName, 'Id_')); ?>(<?php echo $e($targetEntity); ?> $<?php echo $e(rtrim((string) $fieldName, 'Id_')); ?>): self {
-        $this-><?php echo $e(rtrim((string) $fieldName, 'Id_')); ?> = $<?php echo $e(rtrim((string) $fieldName, 'Id_')); ?>;
-        return $this;
-    }
 }</code></pre>
     </div>
 
-    <h4>Benefits of Object Relations</h4>
-    <ul>
-        <li>Object-oriented code instead of procedural</li>
-        <li>Automatic lazy loading of related entities</li>
-        <li>Type safety and IDE autocomplete</li>
-        <li>Doctrine manages the relationship automatically</li>
-        <li>Easier to work with joins and queries</li>
-    </ul>
-
-    <h4>Migration Steps</h4>
-    <ol>
-        <li>Add the new <?php echo $e($associationType); ?> relation field</li>
-        <li>Create migration to keep the database column</li>
-        <li>Update all code using the old field</li>
-        <li>Remove the primitive field once migration is complete</li>
-    </ol>
+    <p>Object relations give you automatic lazy loading, type safety, IDE autocomplete, and easier queries. This is what ORMs are for.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/association-mapping.html" target="_blank" class="doc-link">

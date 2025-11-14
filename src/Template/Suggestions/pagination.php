@@ -41,10 +41,9 @@ ob_start();
 // Loads all <?php echo $resultCount; ?> entities into memory</code></pre>
     </div>
 
-    <h4>Add pagination</h4>
+    <h4>Solution: Add pagination</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Load in chunks
-$page = 1;
+        <pre><code class="language-php">$page = 1;
 $pageSize = 50;
 
 $entities = $repository->createQueryBuilder('e')
@@ -56,46 +55,7 @@ $entities = $repository->createQueryBuilder('e')
 // Only 50 entities in memory at once</code></pre>
     </div>
 
-    <h4>Other approaches</h4>
-
-    <h5>Using Doctrine Paginator</h5>
-    <div class="query-item">
-        <pre><code class="language-php">use Doctrine\ORM\Tools\Pagination\Paginator;
-
-$query = $entityManager->createQuery('SELECT e FROM Entity e')
-    ->setFirstResult(0)
-    ->setMaxResults(50);
-
-$paginator = new Paginator($query);
-
-foreach ($paginator as $entity) {
-    // Process entity
-}
-
-// Total count: $paginator->count()</code></pre>
-    </div>
-
-    <h5>Batch processing for background jobs</h5>
-    <div class="query-item">
-        <pre><code class="language-php">// When you need to process everything
-$batchSize = 20;
-$i = 0;
-
-$query = $entityManager->createQuery('SELECT e FROM Entity e');
-$iterableResult = $query->toIterable();
-
-foreach ($iterableResult as $entity) {
-    // Process entity
-
-    if (($i % $batchSize) === 0) {
-        $entityManager->flush();
-        $entityManager->clear();
-    }
-    $i++;
-}</code></pre>
-    </div>
-
-    <p>Typical page sizes: 10-50 for web pages, 100-1000 for APIs. Always set a reasonable maximum to prevent abuse.</p>
+    <p>For batch processing background jobs, use <code>toIterable()</code> with periodic <code>flush()/clear()</code> calls. Typical page sizes: 10-50 for web pages, 100-1000 for APIs.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/pagination.html" target="_blank" class="doc-link">

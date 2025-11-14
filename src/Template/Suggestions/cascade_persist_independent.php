@@ -29,32 +29,9 @@ ob_start();
         This entity is referenced by <strong><?php echo $referenceCount; ?> entities</strong> - it's independent!
     </div>
 
-    <h4>Why This Is a Problem</h4>
-    <ul>
-        <li><?php echo $e($targetEntity); ?> is referenced by <?php echo $referenceCount; ?> entities (independent entity)</li>
-        <li>cascade="persist" will CREATE new <?php echo $e($targetEntity); ?> records</li>
-        <li>You should LOAD existing <?php echo $e($targetEntity); ?> from database instead</li>
-    </ul>
+    <p><?php echo $e($targetEntity); ?> is referenced by <?php echo $referenceCount; ?> entities (independent). cascade="persist" will create duplicates instead of loading existing records.</p>
 
-    <h4>Current Configuration</h4>
-    <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
-    /** @<?php echo $e($associationType); ?>(targetEntity="<?php echo $e($targetEntity); ?>", cascade={"persist"}) */
-    private <?php echo $e($targetEntity); ?> $<?php echo $e($fieldName); ?>;
-}</code></pre>
-    </div>
-
-    <h4>Current Usage (Creates Duplicates)</h4>
-    <div class="query-item">
-        <pre><code class="language-php">$entity = new <?php echo $e($entityClass); ?>();
-$<?php echo $e($fieldName); ?> = new <?php echo $e($targetEntity); ?>();  // Creates NEW record!
-$<?php echo $e($fieldName); ?>->setName('John Doe');
-$entity->set<?php echo ucfirst((string) $fieldName); ?>($<?php echo $e($fieldName); ?>);
-$em->persist($entity);  // Also persists <?php echo $e($targetEntity); ?> (duplicate!)
-$em->flush();</code></pre>
-    </div>
-
-    <h4>Solution 1: Remove cascade="persist" and Load from Database</h4>
+    <h4>Solution: Remove cascade="persist" and Load Existing Entity</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
     /** @<?php echo $e($associationType); ?>(targetEntity="<?php echo $e($targetEntity); ?>") */
@@ -62,8 +39,7 @@ $em->flush();</code></pre>
     // NO CASCADE
 }
 
-// Load existing <?php echo $e($targetEntity); ?>
-
+// Load existing <?php echo $e($targetEntity); ?> (or use getReference() for better performance)
 $entity = new <?php echo $e($entityClass); ?>();
 $<?php echo $e($fieldName); ?> = $em->find(<?php echo $e($targetEntity); ?>::class, $<?php echo $e($fieldName); ?>Id);
 $entity->set<?php echo ucfirst((string) $fieldName); ?>($<?php echo $e($fieldName); ?>);
@@ -71,28 +47,7 @@ $em->persist($entity);
 $em->flush();</code></pre>
     </div>
 
-    <h4>Solution 2: Use getReference() for Better Performance</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Even faster - creates proxy without hitting DB
-$<?php echo $e($fieldName); ?> = $em->getReference(<?php echo $e($targetEntity); ?>::class, $<?php echo $e($fieldName); ?>Id);
-$entity->set<?php echo ucfirst((string) $fieldName); ?>($<?php echo $e($fieldName); ?>);
-$em->persist($entity);
-$em->flush();</code></pre>
-    </div>
-
-    <h4>Benefits of Removing cascade="persist"</h4>
-    <ul>
-        <li>No duplicate <?php echo $e($targetEntity); ?> records</li>
-        <li>Referential integrity maintained</li>
-        <li>Forces developers to use existing records</li>
-        <li>Clearer code intent</li>
-    </ul>
-
-    <div class="alert alert-info">
-        <strong>When cascade="persist" IS Appropriate:</strong><br>
-        Only on composition relationships (Order → OrderItems) where child entities don't exist independently.<br>
-        <strong>Never</strong> on User, Customer, Product, Category, etc.
-    </div>
+    <p><strong>Use cascade="persist" only</strong> on composition relationships (Order → OrderItems) where children don't exist independently. <strong>Never</strong> on User, Customer, Product, Category, etc.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" class="doc-link">

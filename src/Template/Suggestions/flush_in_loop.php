@@ -30,26 +30,12 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        <strong>Found <?php echo $flushCount; ?> flush() calls</strong> inside a loop. This will slow down your application considerably.
+        <strong><?php echo $flushCount; ?> flush() calls</strong> in loop = <?php echo $flushCount; ?> transactions instead of 1.
     </div>
 
-    <p>When you call flush() in every iteration, you're creating a separate database transaction each time. That's <?php echo $flushCount; ?> transactions when you only need one.</p>
-
-    <h4>Current code</h4>
+    <h4>Solution: Batch processing</h4>
     <div class="query-item">
-        <pre><code class="language-php">foreach ($items as $item) {
-    $entity = new Entity();
-    $entity->setData($item);
-    $em->persist($entity);
-    $em->flush();  // Creates a transaction every time
-}
-// Total: <?php echo $flushCount; ?> separate transactions</code></pre>
-    </div>
-
-    <h4>Better approach</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Process in batches
-$batchSize = 20;
+        <pre><code class="language-php">$batchSize = 20;
 $i = 0;
 
 foreach ($items as $item) {
@@ -66,18 +52,10 @@ foreach ($items as $item) {
 
 $em->flush();
 $em->clear();
-
 // Total: ~<?php echo ceil($flushCount / 20); ?> transactions instead of <?php echo $flushCount; ?></code></pre>
     </div>
 
-    <p>By batching, you reduce the number of transactions from <?php echo $flushCount; ?> down to about <?php echo ceil($flushCount / 20); ?>. Each flush() creates a complete database transaction with all its overhead — query generation, index updates, locks, and commits.</p>
-
-    <p>A few things to keep in mind:</p>
-    <ul>
-        <li>Use a batch size around 20-50 for inserts, smaller for updates</li>
-        <li>Call clear() after flush() to prevent memory issues</li>
-        <li>Don't forget to flush what's left after the loop</li>
-    </ul>
+    <p>Use batch size 20-50 for inserts. Always call <code>clear()</code> after <code>flush()</code> to prevent memory issues.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank" class="doc-link">

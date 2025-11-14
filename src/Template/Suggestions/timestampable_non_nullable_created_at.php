@@ -22,16 +22,16 @@ ob_start();
 
     <h4>Solution: Make it non-nullable</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Before: Nullable (wrong)
+        <pre><code class="language-php">// Before:
 class <?= $e($entityClass) ?> {
-    #[ORM\Column(nullable: true)]  // Wrong!
+    #[ORM\Column(nullable: true)]
     #[Gedmo\Timestampable(on: 'create')]
     private ?\DateTimeImmutable $<?= $e($fieldName) ?>;
 }
 
-// After: Non-nullable (correct)
+// After:
 class <?= $e($entityClass) ?> {
-    #[ORM\Column(nullable: false)]  // Correct
+    #[ORM\Column(nullable: false)]
     #[Gedmo\Timestampable(on: 'create')]
     private \DateTimeImmutable $<?= $e($fieldName) ?>;
 }</code></pre>

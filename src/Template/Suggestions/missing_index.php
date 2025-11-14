@@ -48,20 +48,12 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        <strong>No index found on <?php echo $e($tableDisplay); ?></strong><br>
-        Columns: <code><?php echo $e($columnsList); ?></code>
+        <strong>No index on <?php echo $e($tableDisplay); ?></strong> (<?php echo $e($columnsList); ?>)
     </div>
 
-    <p>Without an index on these columns, the database has to scan the entire table for every query. This works fine with a few hundred rows, but as your table grows, queries will get noticeably slower.</p>
+    <p>Without an index, full table scan on every query. Slow with 10k+ rows.</p>
 
-    <h4>How to add an index</h4>
-
-    <h5>Quick test with SQL</h5>
-    <div class="query-item">
-        <?php echo formatSqlWithHighlight("CREATE INDEX {$indexName} ON {$realTableName} ({$columnsList});"); ?>
-    </div>
-
-    <h5>In a migration (recommended)</h5>
+    <h4>Solution</h4>
     <div class="query-item">
         <pre><code class="language-php">public function up(Schema $schema): void
 {
@@ -69,19 +61,7 @@ ob_start();
 }</code></pre>
     </div>
 
-    <h5>In your entity</h5>
-    <div class="query-item">
-        <pre><code class="language-php">#[ORM\Table(name: '<?php echo $e($realTableName); ?>')]
-#[ORM\Index(name: '<?php echo $e($indexName); ?>', columns: [<?php echo implode(', ', array_map(fn ($c): string => "'" . $e(trim($c)) . "'", explode(',', (string) $columnsList))); ?>])]
-class YourEntity
-{
-    // ...
-}</code></pre>
-    </div>
-
-    <p>Indexes speed up reads but add a small overhead to writes. Focus on indexing columns you actually query on — typically those in WHERE, JOIN, and ORDER BY clauses. You can use EXPLAIN to check if your indexes are being used.</p>
-
-    <p>For tables with more than 10k rows, the difference is usually quite noticeable. Query time goes from scanning every row to a quick lookup.</p>
+    <p>Or add to entity: <code>#[ORM\Index(name: '<?php echo $e($indexName); ?>', columns: [<?php echo implode(', ', array_map(fn ($c): string => "'" . $e(trim($c)) . "'", explode(',', (string) $columnsList))); ?>])]</code></p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index" target="_blank" class="doc-link">

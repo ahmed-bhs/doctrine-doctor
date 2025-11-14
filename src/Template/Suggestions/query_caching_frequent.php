@@ -56,36 +56,11 @@ ob_start();
 
     <h4>Performance Impact</h4>
     <ul>
-        <li><strong>Current:</strong> <?php echo $count; ?> DB hits → <?php echo number_format($totalTime, 2); ?>ms wasted</li>
-        <li><strong>With cache:</strong> 1 DB hit + <?php echo $count - 1; ?> cache hits</li>
-        <li><strong>Speed improvement:</strong> ~<?php echo number_format($improvement, 0); ?>% faster</li>
-        <li><strong>Fewer DB hits:</strong> <?php echo $count - 1; ?> redundant queries eliminated</li>
+        <li><strong>Current:</strong> <?php echo $count; ?> DB hits → <?php echo number_format($totalTime, 2); ?>ms</li>
+        <li><strong>With cache:</strong> 1 DB hit + <?php echo $count - 1; ?> cache hits → ~<?php echo number_format($improvement, 0); ?>% faster</li>
     </ul>
 
-    <h4>Cache Duration Guide</h4>
-    <ul>
-        <li><strong>Static data</strong> (countries, currencies): 86400s (24h)</li>
-        <li><strong>Products/catalog</strong>: 3600s (1h)</li>
-        <li><strong>Stock/inventory</strong>: 300s (5min)</li>
-        <li><strong>User sessions</strong>: 300s (5min)</li>
-    </ul>
-
-    <h4>Cache Key Best Practices</h4>
-    <div class="alert alert-info">
-        <strong>Good cache keys:</strong><br>
-        <ul>
-            <li><code>'product_' . $id</code> - Unique per product</li>
-            <li><code>'users_active_count'</code> - Descriptive name</li>
-            <li><code>'order_items_' . $orderId</code> - Unique per order</li>
-        </ul>
-
-        <strong>Bad cache keys:</strong><br>
-        <ul>
-            <li><code>'products'</code> - Too generic, causes collisions</li>
-            <li><code>'data'</code> - Meaningless, hard to debug</li>
-            <li>User-specific data with shared key - Privacy/security risk</li>
-        </ul>
-    </div>
+    <p><strong>Cache duration:</strong> Static data (countries): 24h, Products: 1h, Stock: 5min. Use unique, descriptive cache keys like <code>'product_' . $id</code>.</p>
 </div>
 
 <?php
