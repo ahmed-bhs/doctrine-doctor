@@ -3,6 +3,7 @@ includes:
 
 parameters:
     level: 8
+    phpVersion: 80100  # Enforce PHP 8.1 compatibility
 
     paths:
         - src
