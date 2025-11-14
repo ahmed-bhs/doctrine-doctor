@@ -27,7 +27,7 @@ final class DataCollectorLogger
         /**
          * @readonly
          */
-        private ?DataCollectorConfig $dataCollectorConfig = null
+        private ?DataCollectorConfig $dataCollectorConfig = null,
     ) {
         $this->dataCollectorConfig = $dataCollectorConfig ?? new DataCollectorConfig();
     }

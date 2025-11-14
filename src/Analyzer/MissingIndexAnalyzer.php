@@ -60,7 +60,7 @@ class MissingIndexAnalyzer implements AnalyzerInterface
         /**
          * @readonly
          */
-        private ?QueryColumnExtractor $queryColumnExtractor = null
+        private ?QueryColumnExtractor $queryColumnExtractor = null,
     ) {
         $this->missingIndexAnalyzerConfig = $missingIndexAnalyzerConfig ?? new MissingIndexAnalyzerConfig();
         $this->queryColumnExtractor = $queryColumnExtractor ?? new QueryColumnExtractor();
