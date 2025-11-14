@@ -14,26 +14,17 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>Database CASCADE Without ORM Cascade</h4>
+    <h4>Database CASCADE without ORM cascade</h4>
 </div>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong>Database/ORM Mismatch</strong><br>
-        Database has <code>onDelete="CASCADE"</code> but ORM has no <code>cascade="remove"</code>.<br>
-        Behavior differs between ORM and database deletes!
+        Database has <code>onDelete="CASCADE"</code> but ORM has no <code>cascade="remove"</code>. Behavior differs between ORM and database deletes.
     </div>
 
-    <h4>Problem</h4>
-    <p>
-        Behavior differs depending on how you delete:
-    </p>
-    <ul>
-        <li><strong>ORM delete:</strong> Children remain (no cascade)</li>
-        <li><strong>Database delete:</strong> Children are deleted (onDelete="CASCADE")</li>
-    </ul>
+    <p>ORM delete leaves children intact (no cascade). Database delete removes children (onDelete CASCADE). This inconsistency can lead to unexpected behavior.</p>
 
-    <h4> Solution: Align ORM with Database</h4>
+    <h4>Fix</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($parentClass); ?> {
     /** @OneToMany(cascade={"persist", "remove"}) */
@@ -41,9 +32,7 @@ ob_start();
 }</code></pre>
     </div>
 
-    <div class="alert alert-info">
-        ℹ️ <strong>Rule:</strong> ORM cascade should match database onDelete behavior
-    </div>
+    <p>Add cascade="remove" to match the database onDelete="CASCADE" so behavior is consistent.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" class="doc-link">

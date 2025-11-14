@@ -17,17 +17,18 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>Inconsistency: orphanRemoval=true with nullable FK</h4>
+    <h4>orphanRemoval=true with nullable FK</h4>
 </div>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong>Bidirectional Association Inconsistency</strong><br>
         <code><?php echo $e($parentField); ?></code> has <code>orphanRemoval=true</code> but
-        <code><?php echo $e($childField); ?></code> in <code><?php echo $e($childClass); ?></code> has <code>nullable=true</code>.
+        <code><?php echo $e($childField); ?></code> has <code>nullable=true</code>.
     </div>
 
-    <h4>📢 Current Configuration</h4>
+    <p>orphanRemoval means Doctrine should DELETE orphans, but nullable FK allows the foreign key to be NULL. This creates an inconsistency: should orphans be deleted or set to NULL?</p>
+
+    <h4>Current code</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($parentClass); ?> {
     /** @OneToMany(orphanRemoval=true) */
@@ -35,19 +36,12 @@ ob_start();
 }
 
 class <?php echo $e($childClass); ?> {
-    /** @ManyToOne @JoinColumn(nullable=true) */  //  Inconsistent!
+    /** @ManyToOne @JoinColumn(nullable=true) */
     private ?<?php echo $e($parentClass); ?> $<?php echo $e($childField); ?>;
 }</code></pre>
     </div>
 
-    <h4>Problem</h4>
-    <p>
-        <code>orphanRemoval=true</code> means Doctrine should DELETE orphans,
-        but <code>nullable=true</code> allows the FK to be set to NULL.
-        This creates an inconsistency: should orphans be deleted or set to NULL?
-    </p>
-
-    <h4> Solution: Make FK NOT NULL</h4>
+    <h4>Fix</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($childClass); ?> {
     /** @ManyToOne @JoinColumn(nullable=false, onDelete="CASCADE") */
@@ -55,9 +49,7 @@ class <?php echo $e($childClass); ?> {
 }</code></pre>
     </div>
 
-    <div class="alert alert-info">
-        ℹ️ <strong>Rule:</strong> orphanRemoval=true requires nullable=false
-    </div>
+    <p>Make the FK NOT NULL to match orphanRemoval=true. Children can't exist without a parent, so the FK should never be NULL.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">

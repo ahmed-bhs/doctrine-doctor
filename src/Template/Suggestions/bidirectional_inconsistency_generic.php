@@ -34,13 +34,7 @@ ob_start();
 
     <p><?php echo $e($description); ?></p>
 
-    <h4>What to Check</h4>
-    <ul>
-        <li>Review cascade settings on both sides of the relationship</li>
-        <li>Ensure orphanRemoval settings are consistent</li>
-        <li>Check onDelete database-level constraints</li>
-        <li>Verify nullable settings match the expected behavior</li>
-    </ul>
+    <p>Check cascade settings, orphanRemoval, onDelete constraints, and nullable settings on both sides of the relationship. Make sure they're aligned.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html" target="_blank" class="doc-link">

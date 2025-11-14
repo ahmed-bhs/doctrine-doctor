@@ -14,26 +14,17 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>orphanRemoval without cascade="persist" Is Incomplete</h4>
+    <h4>orphanRemoval without cascade="persist"</h4>
 </div>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong>Incomplete Configuration</strong><br>
-        <code><?php echo $e($parentField); ?></code> has <code>orphanRemoval=true</code> but no <code>cascade="persist"</code>.<br>
-        You can delete children but not automatically save new ones!
+        <code><?php echo $e($parentField); ?></code> has <code>orphanRemoval=true</code> but no <code>cascade="persist"</code>. You can delete children but not automatically save new ones.
     </div>
 
-    <h4>Problem</h4>
-    <p>
-        With <code>orphanRemoval</code> but no <code>cascade="persist"</code>:
-    </p>
-    <ul>
-        <li> Removing children from collection will delete them</li>
-        <li>📢 Adding new children requires manual persist()</li>
-    </ul>
+    <p>With orphanRemoval but no cascade persist, removing children from the collection will delete them, but adding new children requires manual persist(). This is usually not what you want for a composition relationship.</p>
 
-    <h4> Solution: Add cascade="persist" for Full Composition</h4>
+    <h4>Fix</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($parentClass); ?> {
     /**
@@ -46,19 +37,7 @@ ob_start();
 }</code></pre>
     </div>
 
-    <h4>Full Composition Relationships</h4>
-    <p>
-        For true parent-child composition (Order → OrderItems):
-    </p>
-    <ul>
-        <li><code>cascade={"persist", "remove"}</code></li>
-        <li><code>orphanRemoval=true</code></li>
-        <li><code>nullable=false</code> on child FK</li>
-    </ul>
-
-    <div class="alert alert-info">
-        ℹ️ <strong>Rule:</strong> orphanRemoval usually needs cascade="persist" for full composition
-    </div>
+    <p>For full composition (Order → OrderItems), use <code>cascade={"persist", "remove"}</code> with <code>orphanRemoval=true</code>. This way both adding and removing children works automatically.</p>
 </div>
 
 <?php
