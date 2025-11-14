@@ -21,20 +21,6 @@ $indexName = $context['index_name'] ?? null;
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
-// Helper function for SQL formatting with syntax highlighting (like profiler)
-$formatSql = function (string $sql): string {
-    static $formatter = null;
-
-    if (null === $formatter) {
-        $formatter = new Doctrine\SqlFormatter\SqlFormatter(
-            new Doctrine\SqlFormatter\HtmlHighlighter(),
-        );
-    }
-
-    return $formatter->format($sql);
-};
-
-// Start output buffering for clean code block
 ob_start();
 ?>
 

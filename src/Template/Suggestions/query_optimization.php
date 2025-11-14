@@ -19,11 +19,7 @@ if ($isPHP) {
     echo '<pre><code class="language-php">' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</code></pre>';
 } else {
     // Display SQL with syntax highlighting
-    try {
-        echo formatSqlWithHighlight($code);
-    } catch (\Throwable $e) {
-        echo '<pre><code class="language-sql">' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</code></pre>';
-    }
+    echo '<pre><code class="language-sql">' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</code></pre>';
 }
 ?></div>
 <h4>Suggested Optimization</h4>

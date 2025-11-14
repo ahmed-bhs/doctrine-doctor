@@ -23,8 +23,7 @@ ob_start();
 <div class="query-item"><pre><code class="language-php">class <?php echo $e($shortClass); ?> {
     #[ORM\OneToMany(
         targetEntity: <?php echo $e($shortTarget); ?>::class,
-        cascade: [<?php echo $isComposition ? "'persist', 'remove'" : "'persist'"; ?>],
-        <?php echo $isComposition ? 'orphanRemoval: true' : ''; ?>
+        cascade: [<?php echo $isComposition ? "'persist', 'remove'" : "'persist'"; ?>]<?php echo $isComposition ? ",\n        orphanRemoval: true" : ''; ?>
 
     )]
     private Collection $<?php echo $e($fieldName); ?>;

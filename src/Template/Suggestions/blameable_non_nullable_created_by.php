@@ -31,7 +31,7 @@ class <?= $e(basename(str_replace('\\', '/', $entityClass))) . "\n" ?>
 {
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $<?= $e($fieldName) ?> = null;
+    private User $<?= $e($fieldName) ?>;
 
     public function __construct(User $<?= $e($fieldName) ?>)
     {
