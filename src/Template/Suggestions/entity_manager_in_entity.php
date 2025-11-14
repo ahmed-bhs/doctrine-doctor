@@ -32,37 +32,25 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-    <p><?php echo $e($description); ?></p>
-
     <div class="alert alert-danger">
-        🚨 <strong>Domain Model Purity</strong><br><br>
-        Entities represent business concepts, not database operations.
-        Mixing persistence logic violates Clean Architecture and DDD principles.
+        Entities should represent business concepts, not database operations. Mixing persistence violates Clean Architecture.
     </div>
 
-    <h4>Current Code (Incorrect)</h4>
+    <h4>Current code (incorrect)</h4>
     <div class="query-item">
         <pre><code class="language-php"><?php echo $e($badCode); ?></code></pre>
     </div>
 
-    <h4>Correct Code</h4>
+    <h4>Solution</h4>
     <div class="query-item">
         <pre><code class="language-php"><?php echo $e($goodCode); ?></code></pre>
     </div>
 
-    <p>Keeping persistence logic out of your entities makes them easier to test and maintains a clean separation of concerns. Entities should represent your business logic, not know about how they're saved to a database.</p>
-
-    <?php if ($benefits && is_iterable($benefits)) { ?>
-    <ul>
-        <?php foreach ($benefits as $benefit) { ?>
-        <li><?php echo $benefit; ?></li>
-        <?php } ?>
-    </ul>
-    <?php } ?>
+    <p>Keep persistence logic out of entities for better testing and separation of concerns.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/architecture.html" target="_blank" class="doc-link">
-            📖 Doctrine architecture docs
+            📖 Doctrine architecture →
         </a>
     </p>
 </div>

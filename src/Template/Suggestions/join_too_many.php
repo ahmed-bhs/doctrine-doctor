@@ -26,45 +26,29 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        <strong>Performance Issue</strong><br>
-        Query contains <strong><?php echo $joinCount; ?> JOINs</strong> which is excessive (recommended: 5 max).
+        Query with <strong><?php echo $joinCount; ?> JOINs</strong> exceeds recommendation (5 max).
     </div>
 
-    <h4>Performance Impact</h4>
-    <ul>
-        <li>1-3 JOINs: Excellent</li>
-        <li>4-5 JOINs: Good</li>
-        <li>6-7 JOINs: Acceptable</li>
-        <li><strong>8+ JOINs: Poor (current: <?php echo $joinCount; ?>)</strong></li>
-    </ul>
-
-    <h4>Problem: Too Complex Query</h4>
-    <p>Query contains <strong><?php echo $joinCount; ?> JOINs</strong>. Recommended: 5 max for optimal performance.</p>
-
-    <h4>Solution: Split into Multiple Queries</h4>
+    <h4>Solution: Split into multiple queries</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Instead of 1 query with <?php echo $joinCount; ?> JOINs, split into 2-3:
-
-// Query 1: Orders with customer
+        <pre><code class="language-php">// Query 1: Orders with customer
 $orders = $qb->select('o', 'c')
    ->from(Order::class, 'o')
    ->innerJoin('o.customer', 'c')
    ->getQuery()->getResult();
 
-// Query 2: Load related data separately if needed
+// Query 2: Load related data separately
 $customerIds = array_map(fn($o) => $o->getCustomer()->getId(), $orders);
 $addresses = $em->createQuery('SELECT a FROM Address a WHERE a.customer IN (:ids)')
    ->setParameter('ids', $customerIds)
-   ->getResult();
-
-// Or use DTOs for read-only data (faster, less memory)</code></pre>
+   ->getResult();</code></pre>
     </div>
 
-    <p>Splitting queries typically improves performance by 50-70% and reduces memory usage.</p>
+    <p>Splitting improves performance by 50-70%. Consider DTOs for read-only data.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html" target="_blank" class="doc-link">
-            📖 Doctrine Query Builder Documentation →
+            📖 Doctrine Query Builder →
         </a>
     </p>
 </div>

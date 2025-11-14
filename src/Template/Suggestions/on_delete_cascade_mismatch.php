@@ -36,33 +36,21 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        <strong>Mismatch detected between ORM cascade and database onDelete constraint.</strong><br><br>
-        - ORM cascade: <code><?php echo $e($ormCascade); ?></code><br>
-        - Database onDelete: <code><?php echo $e($dbOnDelete); ?></code><br><br>
-        This mismatch can cause inconsistent behavior depending on whether you delete via ORM or direct SQL.
+        ORM cascade <code><?php echo $e($ormCascade); ?></code> conflicts with DB onDelete <code><?php echo $e($dbOnDelete); ?></code>. Deletion behavior varies by method (ORM vs SQL).
     </div>
 
-    <h4>The Problem</h4>
-    <p>Deletion behavior depends on HOW you delete:</p>
-    <ul>
-        <li><code>$em->remove($entity)</code> uses ORM cascade (<code><?php echo $e($ormCascade); ?></code>)</li>
-        <li>Direct SQL <code>DELETE</code> uses database constraint (<code><?php echo $e($dbOnDelete); ?></code>)</li>
-    </ul>
-
-    <h4>Solution: Align ORM and Database</h4>
-    <p>Decide on desired deletion behavior, then update both ORM cascade and database constraint to match.</p>
+    <h4>Solution: Align both settings</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Aligned configuration
-#[ORM\ManyToOne(targetEntity: <?php echo $e($targetClass); ?>::class, cascade: ['<?php echo $e($ormCascade); ?>'])]
+        <pre><code class="language-php">#[ORM\ManyToOne(targetEntity: <?php echo $e($targetClass); ?>::class, cascade: ['<?php echo $e($ormCascade); ?>'])]
 #[ORM\JoinColumn(onDelete: '<?php echo 'remove' === $ormCascade ? 'CASCADE' : 'SET NULL'; ?>')]
 private $<?php echo $e($fieldName); ?>;
 
-// Then create and run a migration to update the database constraint</code></pre>
+// Then run migration to update database constraint</code></pre>
     </div>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn" target="_blank" class="doc-link">
-            📖 Doctrine JoinColumn Documentation →
+            📖 Doctrine JoinColumn →
         </a>
     </p>
 </div>

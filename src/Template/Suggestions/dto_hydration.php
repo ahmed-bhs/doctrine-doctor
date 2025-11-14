@@ -21,27 +21,12 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong>Found <?php echo $queryCount; ?> <?php echo $queryCount > 1 ? 'queries' : 'query'; ?></strong> with aggregations (<?php echo implode(', ', array_map($e, $aggregations)); ?>). Using DTO hydration here would be 3-5x faster and type-safe.
-    </div>
-
-    <p>When aggregating data, use DTOs for 3-5x faster performance, 70% less memory, and type safety.</p>
-
-    <h4>Current approach (slow, no type safety)</h4>
-    <div class="query-item">
-        <pre><code class="language-php">$results = $em->createQuery("
-    SELECT u.name, u.email, SUM(o.total) as revenue
-    FROM User u JOIN u.orders o GROUP BY u.id
-")->getResult();
-
-foreach ($results as $row) {
-    echo $row['name'] . ': ' . $row['revenue']; // Array access, no autocomplete
-}</code></pre>
+        <?php echo $queryCount; ?> aggregation <?php echo $queryCount > 1 ? 'queries' : 'query'; ?> (<?php echo implode(', ', array_map($e, $aggregations)); ?>). DTO hydration is 3-5x faster and type-safe.
     </div>
 
     <h4>Solution: Use DTO with NEW syntax</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Create a DTO
-class UserRevenue {
+        <pre><code class="language-php">class UserRevenue {
     public function __construct(
         public readonly string $name,
         public readonly string $email,
@@ -49,22 +34,21 @@ class UserRevenue {
     ) {}
 }
 
-// Use NEW syntax
 $results = $em->createQuery("
     SELECT NEW App\\DTO\\UserRevenue(u.name, u.email, SUM(o.total))
     FROM User u JOIN u.orders o GROUP BY u.id
 ")->getResult();
 
 foreach ($results as $userRevenue) {
-    echo $userRevenue->name . ': ' . $userRevenue->revenue; // Type-safe, autocomplete
+    echo $userRevenue->name . ': ' . $userRevenue->revenue; // Type-safe
 }</code></pre>
     </div>
 
-    <p>For 10,000 rows: arrays take ~500ms and 50MB, DTOs take ~150ms and 15MB.</p>
+    <p>Performance: 10k rows with DTOs uses 70% less memory and runs 3x faster than arrays.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#new-operator-syntax" target="_blank" class="doc-link">
-            📖 Doctrine NEW operator docs
+            📖 Doctrine NEW operator →
         </a>
     </p>
 </div>

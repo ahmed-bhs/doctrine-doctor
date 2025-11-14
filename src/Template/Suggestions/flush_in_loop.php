@@ -30,7 +30,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        <strong><?php echo $flushCount; ?> flush() calls</strong> in loop = <?php echo $flushCount; ?> transactions instead of 1.
+        <?php echo $flushCount; ?> flush() calls = <?php echo $flushCount; ?> transactions instead of batched processing.
     </div>
 
     <h4>Solution: Batch processing</h4>
@@ -45,21 +45,21 @@ foreach ($items as $item) {
 
     if (($i % $batchSize) === 0) {
         $em->flush();
-        $em->clear(); // Free up memory
+        $em->clear();
     }
     $i++;
 }
 
 $em->flush();
 $em->clear();
-// Total: ~<?php echo ceil($flushCount / 20); ?> transactions instead of <?php echo $flushCount; ?></code></pre>
+// Result: ~<?php echo ceil($flushCount / 20); ?> transactions instead of <?php echo $flushCount; ?></code></pre>
     </div>
 
-    <p>Use batch size 20-50 for inserts. Always call <code>clear()</code> after <code>flush()</code> to prevent memory issues.</p>
+    <p>Batch size 20-50 for inserts. Always <code>clear()</code> after <code>flush()</code>.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank" class="doc-link">
-            📖 Doctrine documentation on batch processing
+            📖 Doctrine batch processing →
         </a>
     </p>
 </div>

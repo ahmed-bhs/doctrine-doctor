@@ -30,15 +30,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong><?php echo $e($method); ?></strong> returned <strong><?php echo $resultCount; ?> results</strong> without pagination. This can lead to memory issues as your dataset grows.
-    </div>
-
-    <p>Loading all <?php echo $resultCount; ?> entities at once means they're all sitting in memory. For smaller datasets this is fine, but it doesn't scale well.</p>
-
-    <h4>Current code</h4>
-    <div class="query-item">
-        <pre><code class="language-php">$entities = $repository->findAll();
-// Loads all <?php echo $resultCount; ?> entities into memory</code></pre>
+        <strong><?php echo $e($method); ?></strong> returned <?php echo $resultCount; ?> results without pagination.
     </div>
 
     <h4>Solution: Add pagination</h4>
@@ -55,11 +47,11 @@ $entities = $repository->createQueryBuilder('e')
 // Only 50 entities in memory at once</code></pre>
     </div>
 
-    <p>For batch processing background jobs, use <code>toIterable()</code> with periodic <code>flush()/clear()</code> calls. Typical page sizes: 10-50 for web pages, 100-1000 for APIs.</p>
+    <p>Batch jobs: use <code>toIterable()</code> with periodic <code>flush()/clear()</code>. Pages: 10-50 for web, 100-1000 for APIs.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/pagination.html" target="_blank" class="doc-link">
-            📖 Doctrine pagination docs
+            📖 Doctrine pagination →
         </a>
     </p>
 </div>

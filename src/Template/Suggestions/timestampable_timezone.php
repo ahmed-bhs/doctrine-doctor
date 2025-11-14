@@ -18,27 +18,10 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></strong> uses <code>datetime</code> without timezone info. This causes issues when users are in different timezones.
+        <code>datetime</code> without timezone causes issues across timezones. Store in UTC and convert for display.
     </div>
 
-    <p>When you store <code>2024-01-15 14:00:00</code> without timezone info, is that EST or CET? The database doesn't know, so a user in New York and a user in Paris will see different times for the same event.</p>
-
-    <h4>Current code</h4>
-    <div class="query-item">
-        <pre><code class="language-php">#[ORM\Column(type: 'datetime')]
-private \DateTime $<?php echo $e($fieldName); ?>;</code></pre>
-    </div>
-
-    <h4>Option 1: Store with timezone</h4>
-    <div class="query-item">
-        <pre><code class="language-php">#[ORM\Column(type: 'datetimetz_immutable')]
-private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
-
-// Stored as: 2024-01-15 14:00:00-05:00
-// Displays correctly in any timezone</code></pre>
-    </div>
-
-    <h4>Option 2: Store in UTC</h4>
+    <h4>Solution: Store in UTC</h4>
     <div class="query-item">
         <pre><code class="language-php">#[ORM\Column(type: 'datetime_immutable')]
 private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
@@ -57,11 +40,11 @@ public function get<?php echo ucfirst($fieldName); ?>Display(string $userTimezon
 }</code></pre>
     </div>
 
-    <p>Most applications store everything in UTC and convert to the user's timezone when displaying. This is simpler and works well. Use <code>datetimetz</code> if you need to preserve the original timezone.</p>
+    <p>Or use <code>datetimetz_immutable</code> to preserve original timezone.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz" target="_blank" class="doc-link">
-            📖 Doctrine: DateTimeTZ Type →
+            📖 Doctrine DateTimeTZ →
         </a>
     </p>
 </div>

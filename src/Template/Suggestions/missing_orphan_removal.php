@@ -37,17 +37,10 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong>Composition relationship without orphanRemoval=true</strong>
+        Removing from collection leaves orphan records with NULL FK. Add <code>orphanRemoval=true</code> for composition.
     </div>
 
-    <h4>Problem</h4>
-    <div class="query-item">
-        <pre><code class="language-php">$<?php echo lcfirst($e($entityClass)); ?>->remove<?php echo ucfirst(rtrim($e($fieldName), 's')); ?>($item);
-$em->flush();
-// <?php echo $e($targetClass); ?> remains in database with <?php echo $e($mappedBy); ?>_id = NULL (orphan!)</code></pre>
-    </div>
-
-    <h4>Solution: Add orphanRemoval=true</h4>
+    <h4>Solution</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
     #[ORM\OneToMany(
@@ -59,16 +52,16 @@ $em->flush();
     private Collection $<?php echo $e($fieldName); ?>;
 }
 
-// Now removing from collection deletes the record
+// Removing from collection now deletes the record
 $<?php echo lcfirst($e($entityClass)); ?>->remove<?php echo ucfirst(rtrim($e($fieldName), 's')); ?>($item);
-$em->flush(); // <?php echo $e($targetClass); ?> automatically DELETED</code></pre>
+$em->flush();</code></pre>
     </div>
 
-    <p><strong>Use when:</strong> Parent fully owns children (Order → OrderItems). <strong>Don't use when:</strong> Children are independent (Order → Products).</p>
+    <p>Use when parent fully owns children (Order → OrderItems). Don't use for independent children (Order → Products).</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">
-            📖 Doctrine Orphan Removal Documentation →
+            📖 Doctrine Orphan Removal →
         </a>
     </p>
 </div>

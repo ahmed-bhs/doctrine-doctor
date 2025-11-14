@@ -21,49 +21,23 @@ ob_start();
 ?>
 
 <div class="null-comparison-issue">
-    <h2>Incorrect NULL Comparison Detected</h2>
+    <h2>Incorrect NULL Comparison</h2>
 
-    <div class="original-query">
-        <p><strong>Your query:</strong></p>
+    <div class="alert alert-danger">
+        <code>NULL = NULL</code> returns UNKNOWN, not TRUE. Use <code>IS NULL</code> instead.
+    </div>
+
+    <h4>Your query</h4>
+    <div class="query-item">
         <pre><code class="language-sql"><?= htmlspecialchars($incorrect) ?></code></pre>
     </div>
 
-    <div class="problem-description">
-        <p><code>NULL</code> represents the absence of a value. <code>NULL = NULL</code> returns <strong>UNKNOWN</strong> (not TRUE), so the condition always fails.</p>
-    </div>
+    <h4>Solution</h4>
+    <div class="query-item">
+        <pre><code class="language-sql"><?= htmlspecialchars($correct) ?>
 
-    <div class="correct-syntax">
-        <h3>Solution</h3>
-        <pre><code class="language-sql"><?= htmlspecialchars($correct) ?></code></pre>
-    </div>
-
-    <div class="examples">
-        <div class="code-comparison">
-            <div class="wrong-example">
-                <p><em>WRONG</em></p>
-                <pre><code class="language-sql">WHERE bonus = NULL
-WHERE bonus != NULL</code></pre>
-            </div>
-            <div class="correct-example">
-                <p><em>CORRECT</em></p>
-                <pre><code class="language-sql">WHERE bonus IS NULL
-WHERE bonus IS NOT NULL</code></pre>
-            </div>
-        </div>
-    </div>
-
-    <div class="doctrine-example">
-        <h3>DQL (Doctrine)</h3>
-        <div class="code-comparison">
-            <div class="incorrect-example">
-                <p><em>Incorrect</em></p>
-                <pre><code class="language-php">$qb->where('e.bonus = NULL');</code></pre>
-            </div>
-            <div class="correct-example">
-                <p><em>Correct</em></p>
-                <pre><code class="language-php">$qb->where('e.bonus IS NULL');</code></pre>
-            </div>
-        </div>
+-- DQL example
+$qb->where('e.<?= htmlspecialchars($field) ?> IS NULL');</code></pre>
     </div>
 </div>
 

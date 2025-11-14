@@ -37,31 +37,17 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-    <p><?php echo $e($description); ?></p>
-
     <div class="alert alert-warning">
-        Very high precision uses more storage and may impact performance. Most use cases don't need precision > 20.
+        Precision (<?php echo $currentPrecision; ?>,<?php echo $currentScale; ?>) may be excessive. Most cases need 10-20.
     </div>
 
-    <p>Most applications work fine with precision between 10-20. Higher values use more storage and can slow things down slightly.</p>
+    <h4>Impact: More storage, slower operations, larger indexes</h4>
 
-    <ul>
-        <?php foreach ($precisionNeeds as $need) { ?>
-        <li><?php echo $e($need); ?></li>
-        <?php } ?>
-    </ul>
-
-    <h4>Performance Impact</h4>
-    <ul>
-        <li>💾 Higher storage requirements (more bytes per row)</li>
-        <li>⚡ Slower comparisons and calculations</li>
-        <li>📖 Larger indexes (if indexed)</li>
-        <li>🔄 Increased memory usage during queries</li>
-    </ul>
+    <p>Typical needs: Money (10,2), Scientific (15,6), Crypto (20,8). Consider reducing if excessive.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal" target="_blank" class="doc-link">
-            📖 Doctrine Decimal Type Documentation →
+            📖 Doctrine Decimal Type →
         </a>
     </p>
 </div>

@@ -48,12 +48,10 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        <strong>No index on <?php echo $e($tableDisplay); ?></strong> (<?php echo $e($columnsList); ?>)
+        No index on <strong><?php echo $e($tableDisplay); ?></strong> (<?php echo $e($columnsList); ?>) causes full table scan.
     </div>
 
-    <p>Without an index, full table scan on every query. Slow with 10k+ rows.</p>
-
-    <h4>Solution</h4>
+    <h4>Solution: Add index via migration</h4>
     <div class="query-item">
         <pre><code class="language-php">public function up(Schema $schema): void
 {
@@ -61,11 +59,11 @@ ob_start();
 }</code></pre>
     </div>
 
-    <p>Or add to entity: <code>#[ORM\Index(name: '<?php echo $e($indexName); ?>', columns: [<?php echo implode(', ', array_map(fn ($c): string => "'" . $e(trim($c)) . "'", explode(',', (string) $columnsList))); ?>])]</code></p>
+    <p>Or via entity annotation: <code>#[ORM\Index(name: '<?php echo $e($indexName); ?>', columns: [<?php echo implode(', ', array_map(fn ($c): string => "'" . $e(trim($c)) . "'", explode(',', (string) $columnsList))); ?>])]</code></p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index" target="_blank" class="doc-link">
-            📖 Doctrine indexing docs
+            📖 Doctrine indexing →
         </a>
     </p>
 </div>

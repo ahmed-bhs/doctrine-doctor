@@ -31,41 +31,28 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong>Found <?php echo $queryCount; ?> queries</strong> loading the <code><?php echo $e($relation); ?></code> relation. This is the classic N+1 problem.
+        <strong>N+1 query problem:</strong> <?php echo $queryCount; ?> queries loading <code><?php echo $e($relation); ?></code> relation.
     </div>
 
-    <p>When you access a lazy-loaded relation inside a loop, Doctrine fires off a separate query for each item. So if you loop through 100 entities, you'll end up with 101 queries (1 for the entities + 100 for the relation).</p>
-
-    <h4>Current code</h4>
+    <h4>Solution: Eager load with JOIN</h4>
     <div class="query-item">
-        <pre><code class="language-php">$entities = $repository->findAll();
-
-foreach ($entities as $entity) {
-    $entity->get<?php echo ucfirst($relation); ?>(); // Triggers a query each time
-}
-// Total: <?php echo $queryCount; ?> queries</code></pre>
-    </div>
-
-    <h4>Solution: Use JOIN to eager load</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// QueryBuilder approach
-$entities = $repository->createQueryBuilder('e')
+        <pre><code class="language-php">$entities = $repository->createQueryBuilder('e')
     ->leftJoin('e.<?php echo $e($relation); ?>', 'r')
     ->addSelect('r')
     ->getQuery()
     ->getResult();
 
 foreach ($entities as $entity) {
-    $entity->get<?php echo ucfirst($relation); ?>(); // Already loaded, no query
+    $entity->get<?php echo ucfirst($relation); ?>(); // Already loaded
 }
-// Total: 1 query instead of <?php echo $queryCount; ?></code></pre>
+// Result: 1 query instead of <?php echo $queryCount; ?></code></pre>
     </div>
 
-    <p>This reduces <?php echo $queryCount; ?> queries down to 1. Avoid setting <code>fetch: 'EAGER'</code> globally as it loads data you might not need.</p>
+    <p>Avoid <code>fetch: 'EAGER'</code> globally as it loads data you might not need.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">
-            📖 Doctrine docs on DQL joins
+            📖 Doctrine DQL joins →
         </a>
     </p>
 </div>

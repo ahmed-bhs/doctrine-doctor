@@ -36,10 +36,8 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <code>orphanRemoval=true</code> without <code>cascade="remove"</code> creates inconsistent delete behavior.
+        <code>orphanRemoval=true</code> without <code>cascade="remove"</code> causes inconsistent deletion.
     </div>
-
-    <p>Remove from collection → deleted. Delete parent → NOT deleted (FK error or orphans).</p>
 
     <h4>Solution: Add cascade remove</h4>
     <div class="query-item">
@@ -47,18 +45,18 @@ ob_start();
     #[ORM\OneToMany(
         targetEntity: <?php echo $e($targetClass); ?>::class,
         mappedBy: '<?php echo $e($mappedBy); ?>',
-        cascade: ['persist', 'remove'],  // Added cascade remove
+        cascade: ['persist', 'remove'],  // Add this
         orphanRemoval: true
     )]
     private Collection $<?php echo $e($fieldName); ?>;
 }</code></pre>
     </div>
 
-    <p>For complete composition, use <code>cascade: ['persist', 'remove']</code> with <code>orphanRemoval: true</code>. Children are then deleted both when removed from collection and when parent is deleted.</p>
+    <p>Complete composition requires both <code>cascade: ['persist', 'remove']</code> and <code>orphanRemoval: true</code>.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">
-            📖 Doctrine orphan removal docs
+            📖 Doctrine orphan removal →
         </a>
     </p>
 </div>
