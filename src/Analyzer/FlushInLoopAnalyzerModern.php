@@ -17,6 +17,7 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use Webmozart\Assert\Assert;
 
 /**
  * VERSION: FlushInLoopAnalyzer using the new architecture.
@@ -57,7 +58,7 @@ class FlushInLoopAnalyzerModern implements AnalyzerInterface
                 $queriesArray  = iterator_to_array($queryDataCollection);
                 $flushPatterns = $this->detectFlushPatterns($queriesArray);
 
-                assert(is_iterable($flushPatterns), '$flushPatterns must be iterable');
+                Assert::isIterable($flushPatterns, '$flushPatterns must be iterable');
 
                 foreach ($flushPatterns as $flushPattern) {
                     if ($flushPattern['flush_count'] >= $this->flushCountThreshold) {
@@ -127,10 +128,10 @@ class FlushInLoopAnalyzerModern implements AnalyzerInterface
         $lastFlushIndex           = -1;
         $operationsSinceLastFlush = 0;
 
-        assert(is_iterable($queries), '$queries must be iterable');
+        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $index => $queryData) {
-            assert(is_int($index), 'Array index must be int');
+            Assert::integer($index, 'Array index must be int');
 
             if ($queryData->isInsert() || $queryData->isUpdate() || $queryData->isDelete()) {
                 ++$operationsSinceLastFlush;
@@ -190,7 +191,7 @@ class FlushInLoopAnalyzerModern implements AnalyzerInterface
         $affectedQueries = [];
         $totalTime       = 0;
 
-        assert(is_iterable($flushGroups), '$flushGroups must be iterable');
+        Assert::isIterable($flushGroups, '$flushGroups must be iterable');
 
         foreach ($flushGroups as $flushGroup) {
             for ($i = $flushGroup['start_index']; $i <= $flushGroup['end_index']; ++$i) {
@@ -240,7 +241,7 @@ class FlushInLoopAnalyzerModern implements AnalyzerInterface
             return '';
         }
 
-        assert(is_iterable($backtrace), '$backtrace must be iterable');
+        Assert::isIterable($backtrace, '$backtrace must be iterable');
 
         foreach ($backtrace as $frame) {
             if (isset($frame['file'], $frame['line'])) {

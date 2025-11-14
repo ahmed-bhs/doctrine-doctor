@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -72,7 +74,7 @@ class CollectionEmptyAccessAnalyzer implements AnalyzerInterface
                 $unitOfWork      = $this->entityManager->getUnitOfWork();
                 $managedEntities = $unitOfWork->getIdentityMap();
 
-                assert(is_iterable($managedEntities), '$managedEntities must be iterable');
+                Assert::isIterable($managedEntities, '$managedEntities must be iterable');
 
                 foreach ($managedEntities as $entityClass => $entities) {
                     try {
@@ -82,11 +84,11 @@ class CollectionEmptyAccessAnalyzer implements AnalyzerInterface
                     }
 
                     // Check each entity instance
-                    assert(is_iterable($entities), '$entities must be iterable');
+                    Assert::isIterable($entities, '$entities must be iterable');
 
                     foreach ($entities as $entity) {
                         $entityIssues = $this->checkEntityCollections($entity, $metadata);
-                        assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                         foreach ($entityIssues as $entityIssue) {
                             yield $entityIssue;

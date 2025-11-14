@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects transaction boundary issues and improper transaction management.
@@ -60,7 +61,7 @@ class TransactionBoundaryAnalyzer implements AnalyzerInterface
             function () use ($queryDataCollection) {
                 $state = $this->initializeTransactionState();
 
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $queryData) {
                     $this->updateTimeState($queryData, $state);
@@ -204,7 +205,7 @@ class TransactionBoundaryAnalyzer implements AnalyzerInterface
      */
     private function checkUnclosedTransactions(array $state): \Generator
     {
-        assert(is_iterable($state['transactionStack']), 'transactionStack must be iterable');
+        Assert::isIterable($state['transactionStack'], 'transactionStack must be iterable');
 
         foreach ($state['transactionStack'] as $txId) {
             yield $this->createUnclosedTransactionIssue($state['flushesInCurrentTransaction'][$txId] ?? 0);

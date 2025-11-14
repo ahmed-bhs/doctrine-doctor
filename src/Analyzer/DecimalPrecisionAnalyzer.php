@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -78,7 +80,7 @@ class DecimalPrecisionAnalyzer implements AnalyzerInterface
 
                     $entityIssues = $this->analyzeEntity($classMetadatum);
 
-                    assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -220,7 +222,7 @@ class DecimalPrecisionAnalyzer implements AnalyzerInterface
         $moneyPatterns = ['price', 'amount', 'cost', 'total', 'balance', 'fee', 'charge', 'payment'];
         $fieldLower    = strtolower($fieldName);
 
-        assert(is_iterable($moneyPatterns), '$moneyPatterns must be iterable');
+        Assert::isIterable($moneyPatterns, '$moneyPatterns must be iterable');
 
         foreach ($moneyPatterns as $moneyPattern) {
             if (str_contains($fieldLower, $moneyPattern)) {
@@ -236,7 +238,7 @@ class DecimalPrecisionAnalyzer implements AnalyzerInterface
         $percentagePatterns = ['percent', 'percentage', 'rate', 'ratio'];
         $fieldLower         = strtolower($fieldName);
 
-        assert(is_iterable($percentagePatterns), '$percentagePatterns must be iterable');
+        Assert::isIterable($percentagePatterns, '$percentagePatterns must be iterable');
 
         foreach ($percentagePatterns as $percentagePattern) {
             if (str_contains($fieldLower, $percentagePattern)) {

@@ -69,12 +69,13 @@ final class MissingIndexAnalyzerRepetitiveQueriesTest extends TestCase
 
         // Create 11 identical queries with 0.27ms execution time
         // These are BELOW the 50ms threshold, but should still be analyzed because repetitive
+        // Use 'name' instead of 'id' because id is PRIMARY KEY (optimally indexed)
         $queries = [];
         for ($i = 1; $i <= 11; $i++) {
             $queries[] = new QueryData(
-                sql: 'SELECT * FROM users WHERE id = ?',
+                sql: 'SELECT * FROM users WHERE name = ?',
                 executionTime: QueryExecutionTime::fromMilliseconds(0.27), // < 50ms!
-                params: [$i],
+                params: ["User {$i}"],
                 backtrace: [['file' => __FILE__, 'line' => __LINE__]],
             );
         }
@@ -83,8 +84,8 @@ final class MissingIndexAnalyzerRepetitiveQueriesTest extends TestCase
         $issues = iterator_to_array($analyzer->analyze(QueryDataCollection::fromArray($queries)));
 
         // Assert: Should detect the repetitive pattern even though queries are fast
-        // Because: $isRepetitive = count >= 3 (line 133 MissingIndexAnalyzer.php)
-        self::assertGreaterThanOrEqual(1, count($issues), 'Should detect repetitive fast queries (11 queries of 0.27ms each)');
+        // Because: $isRepetitive = count >= 3 and 'name' is not indexed
+        self::assertGreaterThanOrEqual(1, count($issues), 'Should detect repetitive fast queries on unindexed column (11 queries of 0.27ms each)');
 
         if (count($issues) > 0) {
             $issue = $issues[0];

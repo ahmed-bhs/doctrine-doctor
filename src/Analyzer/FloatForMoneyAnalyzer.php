@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -160,7 +162,7 @@ class FloatForMoneyAnalyzer implements AnalyzerInterface
 
                     $entityIssues = $this->analyzeEntity($classMetadatum);
 
-                    assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;

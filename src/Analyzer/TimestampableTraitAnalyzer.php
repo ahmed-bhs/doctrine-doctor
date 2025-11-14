@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -115,7 +117,7 @@ class TimestampableTraitAnalyzer implements AnalyzerInterface
              */
             function () {
                 $classMetadataFactory = $this->entityManager->getMetadataFactory();
-                $allFieldsWithoutTimezone = []; // Collect all fields missing timezone
+                $allTimestampFields = []; // Collect all timestamp fields with their types
 
                 foreach ($classMetadataFactory->getAllMetadata() as $classMetadatum) {
                     if ($classMetadatum->isMappedSuperclass) {
@@ -126,18 +128,35 @@ class TimestampableTraitAnalyzer implements AnalyzerInterface
                         continue;
                     }
 
-                    $entityIssues = $this->analyzeEntity($classMetadatum, $allFieldsWithoutTimezone);
+                    $entityIssues = $this->analyzeEntity($classMetadatum, $allTimestampFields);
 
-                    assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
                     }
                 }
 
-                // Generate ONE global warning for all missing timezone fields
-                if ([] !== $allFieldsWithoutTimezone) {
-                    yield $this->createGlobalTimezoneWarning(array_values($allFieldsWithoutTimezone));
+                // Detect timezone inconsistencies (mix of datetime and datetimetz)
+                if ([] !== $allTimestampFields) {
+                    $datetimeCount = 0;
+                    $datetimetzCount = 0;
+
+                    foreach ($allTimestampFields as $field) {
+                        if (in_array($field['type'], ['datetime', 'datetime_immutable'], true)) {
+                            $datetimeCount++;
+                        } elseif (in_array($field['type'], ['datetimetz', 'datetimetz_immutable'], true)) {
+                            $datetimetzCount++;
+                        }
+                    }
+
+                    // Only warn if there's a MIX (inconsistency)
+                    // If all are datetime → mono-timezone app (OK)
+                    // If all are datetimetz → multi-timezone app (OK)
+                    // If mixed → inconsistent (BAD)
+                    if ($datetimeCount > 0 && $datetimetzCount > 0) {
+                        yield $this->createTimezoneInconsistencyIssue($datetimeCount, $datetimetzCount, $allTimestampFields);
+                    }
                 }
             },
         );
@@ -145,11 +164,11 @@ class TimestampableTraitAnalyzer implements AnalyzerInterface
 
     /**
      * @param ClassMetadata<object> $classMetadata
-     * @param array<int|string, array{entity: string, field: string}> $allFieldsWithoutTimezone
-     * @param-out array<int|string, array{entity: string, field: string}> $allFieldsWithoutTimezone
+     * @param array<int|string, array{entity: string, field: string, type: string}> $allTimestampFields
+     * @param-out array<int|string, array{entity: string, field: string, type: string}> $allTimestampFields
      * @return array<\AhmedBhs\DoctrineDoctor\Issue\IssueInterface>
      */
-    private function analyzeEntity(ClassMetadata $classMetadata, array &$allFieldsWithoutTimezone): array
+    private function analyzeEntity(ClassMetadata $classMetadata, array &$allTimestampFields): array
     {
         $issues = [];
         $timestampFields = $this->findTimestampFields($classMetadata);
@@ -158,7 +177,7 @@ class TimestampableTraitAnalyzer implements AnalyzerInterface
             return $issues;
         }
 
-        assert(is_iterable($timestampFields), '$timestampFields must be iterable');
+        Assert::isIterable($timestampFields, '$timestampFields must be iterable');
 
         foreach ($timestampFields as $fieldName => $mapping) {
             // Check for DateTime instead of DateTimeImmutable
@@ -166,17 +185,17 @@ class TimestampableTraitAnalyzer implements AnalyzerInterface
                 $issues[] = $this->createMutableDateTimeIssue($classMetadata, $fieldName);
             }
 
-            // Check for missing timezone (datetime instead of datetimetz)
-            // COLLECT instead of creating individual issues
-            if ($this->isMissingTimezone($mapping)) {
-                $className = $classMetadata->getName();
-                $lastBackslashPos = strrpos($className, '\\');
-                $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
-                $allFieldsWithoutTimezone[] = [
-                    'entity' => $shortClassName,
-                    'field' => $fieldName,
-                ];
-            }
+            // Collect ALL timestamp fields with their type for inconsistency detection
+            $className = $classMetadata->getName();
+            $lastBackslashPos = strrpos($className, '\\');
+            $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
+            $type = MappingHelper::getString($mapping, 'type');
+
+            $allTimestampFields[] = [
+                'entity' => $shortClassName,
+                'field' => $fieldName,
+                'type' => $type,
+            ];
 
             // Check for nullable createdAt
             if ($this->isCreatedAtNullable($fieldName, $mapping)) {
@@ -244,7 +263,7 @@ class TimestampableTraitAnalyzer implements AnalyzerInterface
     private function usesMutableDateTime(ClassMetadata $classMetadata, string $fieldName): bool
     {
         $className = $classMetadata->getName();
-        assert(class_exists($className));
+        Assert::classExists($className);
         $reflectionClass = new ReflectionClass($className);
 
         if (!$reflectionClass->hasProperty($fieldName)) {
@@ -322,7 +341,7 @@ class TimestampableTraitAnalyzer implements AnalyzerInterface
     private function hasPublicSetter(ClassMetadata $classMetadata, string $fieldName): bool
     {
         $className = $classMetadata->getName();
-        assert(class_exists($className));
+        Assert::classExists($className);
         $reflectionClass = new ReflectionClass($className);
         $setterName = 'set' . ucfirst($fieldName);
 
@@ -351,7 +370,7 @@ class TimestampableTraitAnalyzer implements AnalyzerInterface
     {
         // Check for KnpLabs trait usage
         $traits = $reflectionClass->getTraitNames();
-        assert(is_iterable($traits), '$traits must be iterable');
+        Assert::isIterable($traits, '$traits must be iterable');
 
         foreach ($traits as $trait) {
             if (str_contains($trait, 'TimestampableEntity') ||
@@ -395,44 +414,58 @@ class TimestampableTraitAnalyzer implements AnalyzerInterface
         ]);
     }
 
-    // Note: createMissingTimezoneIssue method removed as it was unused
-    // Timezone validation is now handled by TimeZoneAnalyzer
-
     /**
-     * Create ONE global warning for all fields missing timezone.
-     * @param array<int, array{entity: string, field: string}> $fields
+     * Create a warning for timezone inconsistency (mix of datetime and datetimetz).
+     * @param array<int, array{entity: string, field: string, type: string}> $allFields
      */
-    private function createGlobalTimezoneWarning(array $fields): IssueInterface
+    private function createTimezoneInconsistencyIssue(int $datetimeCount, int $datetimetzCount, array $allFields): IssueInterface
     {
-        $totalFields = count($fields);
-        $sampleFields = array_slice($fields, 0, 5);
-        $fieldList = implode(', ', array_map(
-            fn (array $field): string => sprintf('%s::$%s', $field['entity'], $field['field']),
-            $sampleFields,
-        ));
+        // Filter to show samples of each type
+        $datetimeFields = array_filter($allFields, fn($f) => in_array($f['type'], ['datetime', 'datetime_immutable'], true));
+        $datetimetzFields = array_filter($allFields, fn($f) => in_array($f['type'], ['datetimetz', 'datetimetz_immutable'], true));
 
-        if ($totalFields > 5) {
-            $fieldList .= sprintf(' (and %d more)', $totalFields - 5);
+        $datetimeSamples = array_slice(array_values($datetimeFields), 0, 3);
+        $datetimetzSamples = array_slice(array_values($datetimetzFields), 0, 3);
+
+        $datetimeList = implode(', ', array_map(
+            fn (array $field): string => sprintf('%s::$%s', $field['entity'], $field['field']),
+            $datetimeSamples,
+        ));
+        if ($datetimeCount > 3) {
+            $datetimeList .= sprintf(' (and %d more)', $datetimeCount - 3);
+        }
+
+        $datetimetzList = implode(', ', array_map(
+            fn (array $field): string => sprintf('%s::$%s', $field['entity'], $field['field']),
+            $datetimetzSamples,
+        ));
+        if ($datetimetzCount > 3) {
+            $datetimetzList .= sprintf(' (and %d more)', $datetimetzCount - 3);
         }
 
         $description = sprintf(
-            'Found %d timestamp fields using datetime type without timezone information: %s. ' .
-            'This can cause issues in multi-timezone applications. ' .
-            'If your application uses a single timezone (e.g., all in UTC), this is acceptable. ' .
-            'Otherwise, consider using datetimetz (or datetimetz_immutable) to store timezone information.',
-            $totalFields,
-            $fieldList,
+            'Detected inconsistent timezone handling: %d fields use datetime (no timezone) while %d fields use datetimetz (with timezone). ' .
+            'This mixing can lead to bugs and data inconsistencies. ' .
+            'Choose ONE approach for your application: either use datetime everywhere (mono-timezone/UTC) or datetimetz everywhere (multi-timezone). ' .
+            'datetime fields: %s. datetimetz fields: %s.',
+            $datetimeCount,
+            $datetimetzCount,
+            $datetimeList,
+            $datetimetzList,
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'timestampable_missing_timezone_global',
-            'title'       => sprintf('%d Timestamp Fields Without Timezone', $totalFields),
+            'type'        => 'timestampable_timezone_inconsistency',
+            'title'       => 'Inconsistent Timezone Usage Detected',
             'description' => $description,
-            'severity'    => 'info', // INFO instead of WARNING (less noise)
+            'severity'    => 'warning', // WARNING for inconsistency
             'category'    => 'configuration',
-            'suggestion'  => $this->createGlobalTimezoneAwareSuggestion($totalFields),
+            'suggestion'  => $this->createTimezoneInconsistencySuggestion($datetimeCount, $datetimetzCount),
             'backtrace'   => [
-                'fields' => $fields,
+                'datetime_count' => $datetimeCount,
+                'datetimetz_count' => $datetimetzCount,
+                'datetime_fields' => array_values($datetimeFields),
+                'datetimetz_fields' => array_values($datetimetzFields),
             ],
         ]);
     }
@@ -517,6 +550,23 @@ class TimestampableTraitAnalyzer implements AnalyzerInterface
     }
 
     // Note: createTimezoneAwareSuggestion removed as unused - timezone handled by TimeZoneAnalyzer
+
+    private function createTimezoneInconsistencySuggestion(int $datetimeCount, int $datetimetzCount): SuggestionInterface
+    {
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'timestampable_timezone_inconsistency',
+            context: [
+                'datetime_count' => $datetimeCount,
+                'datetimetz_count' => $datetimetzCount,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::configuration(),
+                severity: Severity::warning(),
+                title: 'Inconsistent Timezone Usage',
+                tags: ['timestampable', 'timezone', 'datetime', 'datetimetz', 'configuration', 'warning'],
+            ),
+        );
+    }
 
     private function createGlobalTimezoneAwareSuggestion(int $totalFields): SuggestionInterface
     {

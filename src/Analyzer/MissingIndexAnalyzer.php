@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Config\MissingIndexAnalyzerConfig;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\QueryColumnExtractor;
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
@@ -36,6 +37,8 @@ use Webmozart\Assert\Assert;
  */
 class MissingIndexAnalyzer implements AnalyzerInterface
 {
+    private SqlStructureExtractor $sqlExtractor;
+
     public function __construct(
         /**
          * @readonly
@@ -60,10 +63,12 @@ class MissingIndexAnalyzer implements AnalyzerInterface
         /**
          * @readonly
          */
-        private ?QueryColumnExtractor $queryColumnExtractor = null
+        private ?QueryColumnExtractor $queryColumnExtractor = null,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
         $this->missingIndexAnalyzerConfig = $missingIndexAnalyzerConfig ?? new MissingIndexAnalyzerConfig();
         $this->queryColumnExtractor = $queryColumnExtractor ?? new QueryColumnExtractor();
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -115,7 +120,7 @@ class MissingIndexAnalyzer implements AnalyzerInterface
     {
         $queryPatterns = [];
 
-        assert(is_iterable($queriesArray), '$queriesArray must be iterable');
+        Assert::isIterable($queriesArray, '$queriesArray must be iterable');
 
         foreach ($queriesArray as $queryArray) {
             $pattern = $this->normalizeQuery($queryArray->sql);
@@ -144,7 +149,7 @@ class MissingIndexAnalyzer implements AnalyzerInterface
     {
         $queriesToExplain = [];
 
-        assert(is_iterable($queriesArray), '$queriesArray must be iterable');
+        Assert::isIterable($queriesArray, '$queriesArray must be iterable');
 
         foreach ($queriesArray as $queryArray) {
             $executionTime = $queryArray->executionTime->inMilliseconds();
@@ -183,7 +188,7 @@ class MissingIndexAnalyzer implements AnalyzerInterface
      */
     private function analyzeSelectedQueries(array $queriesToExplain, array &$debugStats): \Generator
     {
-        assert(is_iterable($queriesToExplain), '$queriesToExplain must be iterable');
+        Assert::isIterable($queriesToExplain, '$queriesToExplain must be iterable');
 
         foreach ($queriesToExplain as $pattern => $queryData) {
             try {
@@ -225,7 +230,7 @@ class MissingIndexAnalyzer implements AnalyzerInterface
      */
     private function processExplainRows(array $explain, QueryData $queryData, array &$debugStats): \Generator
     {
-        assert(is_iterable($explain), '$explain must be iterable');
+        Assert::isIterable($explain, '$explain must be iterable');
 
         foreach ($explain as $row) {
             Assert::isArray($row);
@@ -351,8 +356,8 @@ class MissingIndexAnalyzer implements AnalyzerInterface
         $sql    = $queryData->sql;
         $params = $queryData->params;
 
-        // Skip non-SELECT queries
-        if (1 !== preg_match('/^\s*SELECT/i', $sql)) {
+        // Skip non-SELECT queries using SQL parser
+        if (!$this->sqlExtractor->isSelectQuery($sql)) {
             return [];
         }
 
@@ -526,6 +531,7 @@ class MissingIndexAnalyzer implements AnalyzerInterface
         $rows         = (int) ($explainRow['rows'] ?? 0);
         $type         = strtoupper($explainRow['type'] ?? '');
         $possibleKeys = $explainRow['possible_keys'] ?? null;
+        $extra        = $explainRow['Extra'] ?? '';
 
         // Skip if no table
         if (null === $table) {
@@ -541,22 +547,45 @@ class MissingIndexAnalyzer implements AnalyzerInterface
         // No key used but possible keys exist = MySQL couldn't find an appropriate index
         $hasPossibleKeysButNotUsed = null === $key && null !== $possibleKeys;
 
+        // Check if an index is effectively used
+        // If MySQL uses an index with 'ref', 'eq_ref', 'const', or 'range', it's good
+        $indexEffectivelyUsed = null !== $key && in_array($type, ['REF', 'EQ_REF', 'CONST', 'RANGE'], true);
+
+        // Ignore filesort on small result sets (1-to-many relations)
+        // If rows <= threshold and using filesort, it's acceptable (sorting few rows is instant)
+        $maxFilesortRows = $this->missingIndexAnalyzerConfig?->maxRowsForAcceptableFilesort ?? 10;
+        $isAcceptableFilesort = $rows <= $maxFilesortRows && str_contains($extra, 'Using filesort');
+
         // Suggest if:
-        // 1. Full table scan (ALL) regardless of rows
+        // 1. Full table scan (ALL) - but only if rows > threshold (avoid dev env false positives)
         // 2. Full index scan (INDEX) with no possible_keys (missing selective index)
         // 3. Has possible keys but MySQL chose not to use any (needs better index)
-        // 4. Many rows scanned (>= threshold)
+        // 4. Many rows scanned (>= threshold) without proper index usage
 
-        if ($isFullTableScan) {
-            return true; // Always suggest for full table scans
+        if ($isFullTableScan && $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned) {
+            return true; // Full table scan with significant rows
         }
 
         if ($isFullIndexScan && null === $possibleKeys) {
             return true; // Full index scan without selective index available
         }
 
-        if ($hasPossibleKeysButNotUsed) {
-            return true; // MySQL has indexes but chose not to use them
+        if ($hasPossibleKeysButNotUsed && $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned) {
+            return true; // MySQL has indexes but chose not to use them (on significant data)
+        }
+
+        // Don't suggest if index is already effectively used
+        if ($indexEffectivelyUsed) {
+            // Even if rows is high (like 1074 in dev), if MySQL uses an index properly, it's OK
+            // Exception: if it's scanning a huge number of rows even with an index
+            if ($rows < $this->missingIndexAnalyzerConfig?->minRowsScanned * 10) {
+                return false; // Index is used and rows are reasonable
+            }
+        }
+
+        // Ignore acceptable filesort cases
+        if ($isAcceptableFilesort) {
+            return false; // Filesort on 2-10 rows is instant, no index needed for ORDER BY
         }
 
         // For other cases, only suggest if many rows scanned
@@ -608,22 +637,9 @@ class MissingIndexAnalyzer implements AnalyzerInterface
 
     private function normalizeQuery(string $sql): string
     {
-        // Normalize whitespace
-        $normalized = preg_replace('/\s+/', ' ', trim($sql));
-
-        // Replace string literals
-        $normalized = preg_replace("/'(?:[^'\\\\]|\\\\.)*'/", '?', (string) $normalized);
-
-        // Replace numeric literals
-        $normalized = preg_replace('/\b(\d+)\b/', '?', (string) $normalized);
-
-        // Normalize IN clauses
-        $normalized = preg_replace('/IN\s*\([^)]+\)/i', 'IN (?)', (string) $normalized);
-
-        // Normalize = placeholders
-        $normalized = preg_replace('/=\s*\?/', '= ?', (string) $normalized);
-
-        return strtoupper((string) $normalized);
+        // Use SQL parser to normalize query pattern
+        // Use universal normalization method shared across all analyzers
+        return strtoupper($this->sqlExtractor->normalizeQuery($sql));
     }
 
     /**
@@ -633,23 +649,20 @@ class MissingIndexAnalyzer implements AnalyzerInterface
      */
     private function extractTableNameWithAlias(string $sql, string $alias): array
     {
-        // Pattern to match: FROM table_name alias or FROM table_name AS alias
-        // Also handles JOINs: JOIN table_name alias or JOIN table_name AS alias
-        $pattern = '/(?:FROM|JOIN)\s+([`\w]+)\s+(?:AS\s+)?' . preg_quote($alias, '/') . '\b/i';
+        // Use SQL parser to extract table name with alias
+        $result = $this->sqlExtractor->extractTableNameWithAlias($sql, $alias);
 
-        if (1 === preg_match($pattern, $sql, $matches)) {
-            $realTableName = trim($matches[1], '`');
-
+        if (null === $result) {
+            // Fallback if parser fails
             return [
-                'realName' => $realTableName,
-                'display'  => $realTableName . ' ' . $alias,
+                'realName' => $alias,
+                'display'  => $alias,
             ];
         }
 
-        // If no alias found (table name is the same as alias), return just the table name
         return [
-            'realName' => $alias,
-            'display'  => $alias,
+            'realName' => $result['realName'],
+            'display'  => $result['display'],
         ];
     }
 

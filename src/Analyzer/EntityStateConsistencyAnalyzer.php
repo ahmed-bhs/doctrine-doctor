@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -64,14 +66,14 @@ class EntityStateConsistencyAnalyzer implements AnalyzerInterface
                 // Check managed entities
                 $managedEntities = $unitOfWork->getIdentityMap();
 
-                assert(is_iterable($managedEntities), '$managedEntities must be iterable');
+                Assert::isIterable($managedEntities, '$managedEntities must be iterable');
 
                 foreach ($managedEntities as $managedEntity) {
-                    assert(is_iterable($managedEntity), '$managedEntity must be iterable');
+                    Assert::isIterable($managedEntity, '$managedEntity must be iterable');
 
                     foreach ($managedEntity as $entity) {
                         $entityIssues = $this->checkEntityState($entity, $unitOfWork);
-                        assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                         foreach ($entityIssues as $entityIssue) {
                             yield $entityIssue;

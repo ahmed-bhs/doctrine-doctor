@@ -174,7 +174,7 @@ final class CascadePersistOnIndependentEntityAnalyzerTest extends TestCase
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
         self::assertNotFalse($issue);
         // Product severity depends on reference count (info/warning/high)
-        self::assertContains($issue->getSeverity()->value, ['info', 'warning', 'high', 'critical']);
+        self::assertContains($issue->getSeverity()->value, ['info', 'warning', 'warning', 'critical']);
     }
 
     #[Test]

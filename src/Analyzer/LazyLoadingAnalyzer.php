@@ -11,15 +11,19 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use Webmozart\Assert\Assert;
 
 class LazyLoadingAnalyzer implements AnalyzerInterface
 {
+    private SqlStructureExtractor $sqlExtractor;
+
     public function __construct(
         /**
          * @readonly
@@ -33,7 +37,9 @@ class LazyLoadingAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private int $threshold = 10,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -46,7 +52,7 @@ class LazyLoadingAnalyzer implements AnalyzerInterface
             function () use ($queryDataCollection) {
                 $lazyLoadPatterns = $this->detectLazyLoadingPatterns($queryDataCollection);
 
-                assert(is_iterable($lazyLoadPatterns), '$lazyLoadPatterns must be iterable');
+                Assert::isIterable($lazyLoadPatterns, '$lazyLoadPatterns must be iterable');
 
                 foreach ($lazyLoadPatterns as $lazyLoadPattern) {
                     if ($lazyLoadPattern['count'] >= $this->threshold) {
@@ -91,15 +97,15 @@ class LazyLoadingAnalyzer implements AnalyzerInterface
         $sequentialQueries = [];
 
         // Detect SELECT queries that load single entities by ID (lazy loading pattern)
-        assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
         foreach ($queryDataCollection as $index => $queryData) {
+            // Detect lazy loading pattern using SQL parser
             // Pattern: SELECT ... FROM table WHERE id = ? (single entity load)
-            // Use negative lookbehind (?<![_\w]) to ensure 'id' is not preceded by underscore or word char
-            // This prevents matching foreign keys like 'user_id', 'product_id', etc.
-            if (1 === preg_match('/SELECT\s+.*\s+FROM\s+(\w+)\s+.*WHERE\s+.*(?<![_\w])id\s*=\s*\?/i', $queryData->sql, $matches)) {
-                $table = $matches[1];
+            // Parser properly handles SQL structure and avoids false positives
+            $table = $this->sqlExtractor->detectLazyLoadingPattern($queryData->sql);
 
+            if (null !== $table) {
                 // Group by table and check if they're sequential
                 if (!isset($sequentialQueries[$table])) {
                     $sequentialQueries[$table] = [];
@@ -113,7 +119,7 @@ class LazyLoadingAnalyzer implements AnalyzerInterface
         }
 
         // Analyze sequential patterns
-        assert(is_iterable($sequentialQueries), '$sequentialQueries must be iterable');
+        Assert::isIterable($sequentialQueries, '$sequentialQueries must be iterable');
 
         foreach ($sequentialQueries as $table => $queryGroup) {
             if (count($queryGroup) >= $this->threshold) {
@@ -125,7 +131,7 @@ class LazyLoadingAnalyzer implements AnalyzerInterface
                     $totalTime    = 0;
                     $queryDetails = [];
 
-                    assert(is_iterable($queryGroup), '$queryGroup must be iterable');
+                    Assert::isIterable($queryGroup, '$queryGroup must be iterable');
 
                     foreach ($queryGroup as $item) {
                         $queryData = $item['query'];
@@ -191,7 +197,7 @@ class LazyLoadingAnalyzer implements AnalyzerInterface
         }
 
         // Try to find getter methods in backtrace
-        assert(is_iterable($backtrace), '$backtrace must be iterable');
+        Assert::isIterable($backtrace, '$backtrace must be iterable');
 
         foreach ($backtrace as $frame) {
             // Pattern: Simple pattern match: /^get([A-Z]\w+)/

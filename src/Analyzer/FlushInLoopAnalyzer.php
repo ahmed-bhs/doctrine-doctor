@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use Webmozart\Assert\Assert;
 
 class FlushInLoopAnalyzer implements AnalyzerInterface
 {
@@ -47,13 +48,13 @@ class FlushInLoopAnalyzer implements AnalyzerInterface
             function () use ($queryDataCollection) {
                 $flushPatterns = $this->detectFlushPatterns($queryDataCollection);
 
-                assert(is_iterable($flushPatterns), '$flushPatterns must be iterable');
+                Assert::isIterable($flushPatterns, '$flushPatterns must be iterable');
 
                 foreach ($flushPatterns as $flushPattern) {
-                    assert(is_array($flushPattern));
+                    Assert::isArray($flushPattern);
                     $flushCount = $flushPattern['flush_count'] ?? 0;
                     $operationsBetweenFlush = $flushPattern['operations_between_flush'] ?? 0;
-                    assert(is_int($flushCount));
+                    Assert::integer($flushCount);
                     assert(is_float($operationsBetweenFlush) || is_int($operationsBetweenFlush));
 
                     if ($flushCount >= $this->flushCountThreshold) {
@@ -65,7 +66,7 @@ class FlushInLoopAnalyzer implements AnalyzerInterface
 
                         $queries = $flushPattern['queries'] ?? [];
                         $backtrace = $flushPattern['backtrace'] ?? null;
-                        assert(is_array($queries));
+                        Assert::isArray($queries);
 
                         $issueData = new IssueData(
                             type: 'flush_in_loop',
@@ -121,10 +122,10 @@ class FlushInLoopAnalyzer implements AnalyzerInterface
         $lastFlushIndex           = -1;
         $operationsSinceLastFlush = 0;
 
-        assert(is_iterable($queriesArray), '$queriesArray must be iterable');
+        Assert::isIterable($queriesArray, '$queriesArray must be iterable');
 
         foreach ($queriesArray as $index => $queryData) {
-            assert(is_int($index), 'Array index must be int');
+            Assert::integer($index, 'Array index must be int');
 
             if ($queryData->isInsert() || $queryData->isUpdate() || $queryData->isDelete()) {
                 ++$operationsSinceLastFlush;
@@ -189,7 +190,7 @@ class FlushInLoopAnalyzer implements AnalyzerInterface
         $affectedQueries = [];
         $totalTime       = 0;
 
-        assert(is_iterable($flushGroups), '$flushGroups must be iterable');
+        Assert::isIterable($flushGroups, '$flushGroups must be iterable');
 
         foreach ($flushGroups as $flushGroup) {
             for ($i = $flushGroup['start_index']; $i <= $flushGroup['end_index']; ++$i) {
@@ -245,7 +246,7 @@ class FlushInLoopAnalyzer implements AnalyzerInterface
         }
 
         // Get the first meaningful frame
-        assert(is_iterable($backtrace), '$backtrace must be iterable');
+        Assert::isIterable($backtrace, '$backtrace must be iterable');
 
         foreach ($backtrace as $frame) {
             if (isset($frame['file'], $frame['line'])) {

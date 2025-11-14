@@ -22,6 +22,12 @@ use Webmozart\Assert\Assert;
 final class IssueData
 {
     /**
+     * @var QueryData[]
+     * @readonly
+     */
+    public array $queries;
+
+    /**
      * @param QueryData[]                           $queries
      * @param array<int, array<string, mixed>>|null $backtrace
      */
@@ -46,9 +52,8 @@ final class IssueData
          * @readonly
          */
         public ?SuggestionInterface $suggestion = null,
-        /** @var array<mixed>
-         * @readonly */
-        public array $queries = [],
+        /** @var array<mixed> */
+        array $queries = [],
         /**
          * @readonly
          */
@@ -69,6 +74,10 @@ final class IssueData
         if (null !== $backtrace) {
             Assert::isArray($backtrace, 'Backtrace must be an array or null');
         }
+
+        // Deduplicate identical queries to avoid showing duplicates in profiler
+        // Keep only unique query patterns (based on normalized SQL)
+        $this->queries = self::deduplicateQueries($queries);
     }
 
     /**
@@ -134,5 +143,56 @@ final class IssueData
     public function getSeverityValue(): string
     {
         return $this->severity->getValue();
+    }
+
+    /**
+     * Deduplicate identical queries to avoid showing duplicates in profiler.
+     * Groups queries by normalized SQL and keeps only one representative per pattern.
+     *
+     * @param QueryData[] $queries
+     * @return QueryData[]
+     */
+    private static function deduplicateQueries(array $queries): array
+    {
+        if (empty($queries)) {
+            return [];
+        }
+
+        $seen = [];
+        $unique = [];
+
+        foreach ($queries as $query) {
+            // Normalize query for comparison (remove parameters, normalize whitespace)
+            $normalized = self::normalizeQueryForDeduplication($query->sql);
+
+            // Only keep first occurrence of each unique pattern
+            if (!isset($seen[$normalized])) {
+                $seen[$normalized] = true;
+                $unique[] = $query;
+            }
+        }
+
+        return $unique;
+    }
+
+    /**
+     * Normalize query SQL for deduplication comparison.
+     */
+    private static function normalizeQueryForDeduplication(string $sql): string
+    {
+        // Normalize whitespace
+        $normalized = preg_replace('/\s+/', ' ', trim($sql));
+
+        // Replace parameter placeholders with standard marker
+        $normalized = str_replace('?', 'PARAM', (string) $normalized);
+
+        // Replace numeric literals
+        $normalized = preg_replace('/\b\d+\b/', 'NUM', (string) $normalized);
+
+        // Replace string literals
+        $normalized = preg_replace("/'(?:[^'\\\\]|\\\\.)*'/", 'STR', (string) $normalized);
+
+        // Uppercase for case-insensitive comparison
+        return strtoupper((string) $normalized);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+
 /*
  * This file is part of the Doctrine Doctor.
  * (c) 2025 Ahmed EBEN HASSINE
@@ -10,6 +11,8 @@
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
+
+use Webmozart\Assert\Assert;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -65,21 +68,22 @@ class BidirectionalConsistencyAnalyzer implements AnalyzerInterface
                 $classMetadataFactory = $this->entityManager->getMetadataFactory();
                 $allMetadata          = $classMetadataFactory->getAllMetadata();
 
+                // Metadata is automatically filtered by EntityManagerMetadataDecorator
                 // Create metadata map for quick lookup
                 $metadataMap = [];
 
-                assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                 foreach ($allMetadata as $metadata) {
                     $metadataMap[$metadata->getName()] = $metadata;
                 }
 
-                assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                 foreach ($allMetadata as $metadata) {
                     $entityIssues = $this->analyzeEntity($metadata, $metadataMap);
 
-                    assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -132,7 +136,7 @@ class BidirectionalConsistencyAnalyzer implements AnalyzerInterface
             if (null === $mappedBy) {
                 continue;
             }
-            assert(is_string($mappedBy), 'mappedBy must be string');
+            Assert::string($mappedBy, 'mappedBy must be string');
 
             // Get target entity metadata
             $targetEntity   = MappingHelper::getString($associationMapping, 'targetEntity');
@@ -145,7 +149,7 @@ class BidirectionalConsistencyAnalyzer implements AnalyzerInterface
             // Check for inconsistencies
             $inconsistencies = $this->checkBidirectionalConsistency($associationMapping, $targetMetadata, $mappedBy);
 
-            assert(is_iterable($inconsistencies), '$inconsistencies must be iterable');
+            Assert::isIterable($inconsistencies, '$inconsistencies must be iterable');
 
             foreach ($inconsistencies as $inconsistency) {
                 $issue    = $this->createIssue($entityClass, $fieldName, $associationMapping, $inconsistency);
@@ -179,7 +183,7 @@ class BidirectionalConsistencyAnalyzer implements AnalyzerInterface
         if ($this->hasOrphanRemovalButNullableFK($owningMapping, $inverseMapping)) {
             $inconsistencies[] = [
                 'type'          => 'orphan_removal_nullable_fk',
-                'severity'      => 'high',
+                'severity'      => 'critical',
                 'inverse_field' => $mappedBy,
             ];
         }
@@ -188,7 +192,7 @@ class BidirectionalConsistencyAnalyzer implements AnalyzerInterface
         if ($this->hasCascadeRemoveButSetNull($owningMapping, $inverseMapping)) {
             $inconsistencies[] = [
                 'type'          => 'cascade_remove_set_null',
-                'severity'      => 'medium',
+                'severity'      => 'warning',
                 'inverse_field' => $mappedBy,
             ];
         }
@@ -197,7 +201,7 @@ class BidirectionalConsistencyAnalyzer implements AnalyzerInterface
         if ($this->hasOrphanRemovalWithoutCascadePersist($owningMapping)) {
             $inconsistencies[] = [
                 'type'          => 'orphan_removal_no_persist',
-                'severity'      => 'medium',
+                'severity'      => 'warning',
                 'inverse_field' => $mappedBy,
             ];
         }
@@ -206,7 +210,7 @@ class BidirectionalConsistencyAnalyzer implements AnalyzerInterface
         if ($this->hasOnDeleteCascadeButNoCascadeORM($owningMapping, $inverseMapping)) {
             $inconsistencies[] = [
                 'type'          => 'ondelete_cascade_no_orm',
-                'severity'      => 'medium',
+                'severity'      => 'warning',
                 'inverse_field' => $mappedBy,
             ];
         }
@@ -232,9 +236,15 @@ class BidirectionalConsistencyAnalyzer implements AnalyzerInterface
         $firstJoinColumn = reset($joinColumns);
 
         // Handle both array and object joinColumn (Doctrine 3 vs 4)
+        // IMPORTANT: According to Doctrine documentation (https://www.doctrine-project.org/projects/doctrine-orm/en/2.14/reference/annotations-reference.html#annref_joincolumn),
+        // the default for 'nullable' is TRUE. As stated in Doctrine\ORM\UnitOfWork:
+        // "the default for 'nullable' is true. Unfortunately, it seems this default is not applied at the metadata driver, factory or other
+        // level, but in fact we may have an undefined 'nullable' key here, so we must assume that default here as well."
+        // See also: \Doctrine\ORM\Tools\EntityGenerator::isAssociationIsNullable
+        // See also: \Doctrine\ORM\Persisters\Entity\BasicEntityPersister::getJoinSQLForJoinColumns
         $nullable = is_array($firstJoinColumn)
-            ? ($firstJoinColumn['nullable'] ?? true)
-            : ($firstJoinColumn->nullable ?? true);
+            ? ($firstJoinColumn['nullable'] ?? true)  // Default to TRUE (NULLABLE) per Doctrine spec
+            : ($firstJoinColumn->nullable ?? true);   // Default to TRUE (NULLABLE) per Doctrine spec
 
         return (bool) $nullable;
     }
@@ -330,11 +340,11 @@ class BidirectionalConsistencyAnalyzer implements AnalyzerInterface
         ]);
 
         // Convert string severity to Severity enum
-        $severityString = $inconsistency['severity'] ?? 'medium';
+        $severityString = $inconsistency['severity'] ?? 'warning';
         $severity = match ($severityString) {
-            'high' => Severity::CRITICAL,
-            'medium' => Severity::WARNING,
-            'low' => Severity::INFO,
+            'critical' => Severity::CRITICAL,
+            'warning' => Severity::WARNING,
+            'info' => Severity::INFO,
             default => Severity::WARNING,
         };
         $codeQualityIssue->setSeverity($severity);
@@ -431,28 +441,19 @@ class BidirectionalConsistencyAnalyzer implements AnalyzerInterface
                 $shortTargetName,
                 $inverseField,
             ),
-            // TODO: Implement these suggestion methods
-            'cascade_remove_set_null',
-            'orphan_removal_no_persist',
-            'ondelete_cascade_no_orm' => $this->suggestionFactory->createFromTemplate(
-                'bidirectional_inconsistency_generic',
-                [
-                    'title'       => 'Fix Bidirectional Inconsistency: ' . ucfirst(str_replace('_', ' ', $type)),
-                    'description' => DescriptionHighlighter::highlight(
-                        'The bidirectional association between {class}::{field} and {target}::{inverseField} has inconsistent configuration. Please review the cascade and orphanRemoval settings.',
-                        [
-                            'class' => $shortClassName,
-                            'field' => '$' . $fieldName,
-                            'target' => $shortTargetName,
-                            'inverseField' => '$' . $inverseField,
-                        ],
-                    ),
-                ],
-                new SuggestionMetadata(
-                    type: SuggestionType::codeQuality(),
-                    severity: Severity::warning(),
-                    title: 'Fix Bidirectional Inconsistency: ' . ucfirst(str_replace('_', ' ', $type)),
-                ),
+            'cascade_remove_set_null' => $this->createCascadeRemoveSetNullSuggestion(
+                $shortClassName,
+                $fieldName,
+                $shortTargetName,
+                $inverseField,
+            ),
+            'orphan_removal_no_persist' => $this->createOrphanRemovalNoPersistSuggestion(
+                $shortClassName,
+                $fieldName,
+            ),
+            'ondelete_cascade_no_orm' => $this->createOnDeleteCascadeNoORMSuggestion(
+                $shortClassName,
+                $fieldName,
             ),
             default => $this->suggestionFactory->createFromTemplate(
                 'bidirectional_inconsistency_generic',
@@ -492,6 +493,67 @@ class BidirectionalConsistencyAnalyzer implements AnalyzerInterface
         );
     }
 
+    private function createCascadeRemoveSetNullSuggestion(
+        string $parentClass,
+        string $parentField,
+        string $childClass,
+        string $childField,
+    ): SuggestionInterface {
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'bidirectional_cascade_set_null',
+            context: [
+                'parent_class' => $parentClass,
+                'parent_field' => $parentField,
+                'child_class'  => $childClass,
+                'child_field'  => $childField,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::codeQuality(),
+                severity: Severity::warning(),
+                title: 'cascade="remove" with onDelete="SET NULL" Inconsistency',
+                tags: ['bidirectional', 'cascade', 'ondelete'],
+            ),
+        );
+    }
+
+    private function createOrphanRemovalNoPersistSuggestion(
+        string $parentClass,
+        string $parentField,
+    ): SuggestionInterface {
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'bidirectional_orphan_no_persist',
+            context: [
+                'parent_class' => $parentClass,
+                'parent_field' => $parentField,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::codeQuality(),
+                severity: Severity::warning(),
+                title: 'orphanRemoval without cascade="persist"',
+                tags: ['bidirectional', 'orphan-removal', 'cascade'],
+            ),
+        );
+    }
+
+    private function createOnDeleteCascadeNoORMSuggestion(
+        string $parentClass,
+        string $parentField,
+    ): SuggestionInterface {
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'bidirectional_ondelete_no_orm',
+            context: [
+                'parent_class' => $parentClass,
+                'parent_field' => $parentField,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::codeQuality(),
+                severity: Severity::warning(),
+                title: 'onDelete="CASCADE" without cascade="remove"',
+                tags: ['bidirectional', 'cascade', 'ondelete'],
+            ),
+        );
+    }
+
     private function getShortClassName(string $fullClassName): string
     {
         $parts = explode('\\', $fullClassName);
@@ -506,7 +568,7 @@ class BidirectionalConsistencyAnalyzer implements AnalyzerInterface
     private function createEntityFieldBacktrace(string $entityClass, string $fieldName): ?array
     {
         try {
-            assert(class_exists($entityClass));
+            Assert::classExists($entityClass);
             $reflectionClass = new ReflectionClass($entityClass);
             $fileName        = $reflectionClass->getFileName();
 

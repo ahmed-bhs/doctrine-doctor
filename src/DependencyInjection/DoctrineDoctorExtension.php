@@ -28,6 +28,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\EntityManagerClearAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\EntityManagerInEntityAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\EntityStateConsistencyAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\FinalEntityAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\FindAllAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\FlushInLoopAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\GetReferenceAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\HydrationAnalyzer;
@@ -110,6 +111,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
     {
         $containerBuilder->setParameter('doctrine_doctor.enabled', $config['enabled']);
         $containerBuilder->setParameter('doctrine_doctor.profiler.show_debug_info', $config['profiler']['show_debug_info']);
+        $containerBuilder->setParameter('doctrine_doctor.analysis.exclude_third_party_entities', $config['analysis']['exclude_third_party_entities']);
     }
 
     /**
@@ -168,6 +170,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
             'hydration' => HydrationAnalyzer::class,
             'eager_loading' => EagerLoadingAnalyzer::class,
             'entity_manager_clear' => EntityManagerClearAnalyzer::class,
+            'find_all' => FindAllAnalyzer::class,
             'get_reference' => GetReferenceAnalyzer::class,
             'flush_in_loop' => FlushInLoopAnalyzer::class,
             'lazy_loading' => LazyLoadingAnalyzer::class,

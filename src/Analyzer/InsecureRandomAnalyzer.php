@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -69,7 +72,13 @@ class InsecureRandomAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private ?LoggerInterface $logger = null,
+        /**
+         * @readonly
+         */
+        private ?PhpCodeParser $phpCodeParser = null,
     ) {
+        // Dependency injection with fallback for backwards compatibility
+        $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
     }
 
     /**
@@ -86,12 +95,12 @@ class InsecureRandomAnalyzer implements AnalyzerInterface
                     $metadataFactory = $this->entityManager->getMetadataFactory();
                     $allMetadata     = $metadataFactory->getAllMetadata();
 
-                    assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                    Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                     foreach ($allMetadata as $metadata) {
                         $entityIssues = $this->analyzeEntity($metadata);
 
-                        assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                         foreach ($entityIssues as $entityIssue) {
                             yield $entityIssue;
@@ -138,7 +147,6 @@ class InsecureRandomAnalyzer implements AnalyzerInterface
      */
     private function analyzeMethod(string $entityClass, \ReflectionMethod $reflectionMethod): array
     {
-
         $issues = [];
         $source = $this->getMethodSource($reflectionMethod);
 
@@ -153,21 +161,32 @@ class InsecureRandomAnalyzer implements AnalyzerInterface
             return [];
         }
 
-        // Check for insecure random functions
-        foreach (self::INSECURE_FUNCTIONS as $function) {
-            if (1 === preg_match('/\b' . $function . '\s*\(/i', $source)) {
-                $issues[] = $this->createInsecureRandomIssue(
-                    $entityClass,
-                    $methodName,
-                    $function,
-                    $reflectionMethod,
-                );
-            }
-        }
+        // Use PHP Parser instead of regex for robust detection
+        // This eliminates false positives from comments and strings
+        $insecureCalls = $this->phpCodeParser->detectInsecureRandom($reflectionMethod, self::INSECURE_FUNCTIONS);
 
-        // Check for weak hash-based "randomness"
-        if (1 === preg_match('/md5\s*\(\s*(rand|mt_rand|time|microtime)/i', $source)) {
-            $issues[] = $this->createWeakHashIssue($entityClass, $methodName, $reflectionMethod);
+        // Track which functions we've already reported to avoid duplicates
+        $reportedFunctions = [];
+
+        foreach ($insecureCalls as $call) {
+            if ('direct_call' === $call['type']) {
+                // Report direct insecure function call
+                $function = $call['function'];
+
+                // Only report each function once
+                if (!isset($reportedFunctions[$function])) {
+                    $issues[] = $this->createInsecureRandomIssue(
+                        $entityClass,
+                        $methodName,
+                        $function,
+                        $reflectionMethod,
+                    );
+                    $reportedFunctions[$function] = true;
+                }
+            } elseif ('weak_hash' === $call['type']) {
+                // Report weak hash with insecure random (md5(rand()), etc.)
+                $issues[] = $this->createWeakHashIssue($entityClass, $methodName, $reflectionMethod);
+            }
         }
 
         return $issues;

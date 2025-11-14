@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -70,12 +72,12 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements AnalyzerInterface
                 $classMetadataFactory = $this->entityManager->getMetadataFactory();
                 $allMetadata          = $classMetadataFactory->getAllMetadata();
 
-                assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                 foreach ($allMetadata as $metadata) {
                     $entityIssues = $this->analyzeEntity($metadata, $allMetadata);
 
-                    assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -179,7 +181,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements AnalyzerInterface
         // Find target entity metadata
         $targetMetadata = null;
 
-        assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+        Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
         foreach ($allMetadata as $metadata) {
             if ($metadata->getName() === $targetEntity) {
@@ -214,7 +216,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements AnalyzerInterface
             return false;
         }
 
-        assert(is_array($joinColumns), '$joinColumns must be array');
+        Assert::isArray($joinColumns, '$joinColumns must be array');
         $firstJoinColumn = reset($joinColumns);
         // Handle both array and object joinColumn
         $nullable = is_array($firstJoinColumn)
@@ -234,6 +236,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements AnalyzerInterface
         $cascade          = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $hasCascadeRemove = in_array('remove', $cascade, true) || in_array('all', $cascade, true);
         $isNotNullFK      = $this->isForeignKeyNotNull($targetEntity, $mapping, $allMetadata);
+        $isVendor         = $this->isVendorEntity($entityClass);
 
         // Create synthetic backtrace
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
@@ -248,11 +251,22 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements AnalyzerInterface
             'backtrace'          => $backtrace,
         ]);
 
-        // CRITICAL if FK is not nullable (inconsistent: can't be orphaned but orphanRemoval is missing)
-        $severity = $isNotNullFK ? 'critical' : 'warning';
+        // Adjust severity based on vendor status
+        if ($isVendor) {
+            // Downgrade severity for vendor entities
+            $severity = $isNotNullFK ? 'warning' : 'info';
+        } else {
+            // CRITICAL if FK is not nullable (inconsistent: can't be orphaned but orphanRemoval is missing)
+            $severity = $isNotNullFK ? 'critical' : 'warning';
+        }
 
         $codeQualityIssue->setSeverity($severity);
-        $codeQualityIssue->setTitle('Missing orphanRemoval on Composition Relationship');
+
+        $title = 'Missing orphanRemoval on Composition Relationship';
+        if ($isVendor) {
+            $title .= ' (vendor dependency)';
+        }
+        $codeQualityIssue->setTitle($title);
 
         $message = DescriptionHighlighter::highlight(
             "OneToMany field {field} in entity {class} appears to be a composition relationship but lacks {orphan}. This leaves orphaned records in the database when children are removed from the collection.",
@@ -262,8 +276,17 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements AnalyzerInterface
                 'orphan' => 'orphanRemoval=true',
             ],
         );
+
+        if ($isVendor) {
+            $message .= "\n\nWARNING: This entity is from a vendor dependency. " .
+                "This may be an intentional design choice. Consider:\n" .
+                "1. Verifying if this is intentional (e.g., Reviews should persist independently)\n" .
+                "2. Creating a local entity that extends this class if you need different behavior\n" .
+                "3. Accepting this as vendor design decision";
+        }
+
         $codeQualityIssue->setMessage($message);
-        $codeQualityIssue->setSuggestion($this->buildSuggestion($entityClass, $fieldName, $mapping, $isNotNullFK));
+        $codeQualityIssue->setSuggestion($this->buildSuggestion($entityClass, $fieldName, $mapping, $isNotNullFK, $isVendor));
 
         return $codeQualityIssue;
     }
@@ -273,6 +296,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements AnalyzerInterface
         string $fieldName,
         array|object $mapping,
         bool $isNotNullFK,
+        bool $isVendor = false,
     ): SuggestionInterface {
         $targetEntity    = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $cascade         = MappingHelper::getArray($mapping, 'cascade') ?? [];
@@ -284,10 +308,18 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements AnalyzerInterface
             ? '// No cascade'
             : 'cascade: [' . implode(', ', array_map(fn (string $cascadeOp): string => sprintf("'%s'", $cascadeOp), $cascade)) . ']';
 
+        if ($isVendor) {
+            $severity = $isNotNullFK ? Severity::warning() : Severity::info();
+            $title = 'Vendor Entity - Review orphanRemoval Design';
+        } else {
+            $severity = $isNotNullFK ? Severity::critical() : Severity::warning();
+            $title = 'Add orphanRemoval for Composition Relationship';
+        }
+
         $suggestionMetadata = new SuggestionMetadata(
             type: SuggestionType::codeQuality(),
-            severity: $isNotNullFK ? Severity::critical() : Severity::warning(),
-            title: 'Add orphanRemoval for Composition Relationship',
+            severity: $severity,
+            title: $title,
         );
 
         return $this->suggestionFactory->createFromTemplate(
@@ -299,9 +331,31 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements AnalyzerInterface
                 'mapped_by'       => $mappedBy,
                 'current_cascade' => $currentCascade,
                 'is_not_null_fk'  => $isNotNullFK,
+                'is_vendor'       => $isVendor,
             ],
             $suggestionMetadata,
         );
+    }
+
+    /**
+     * Check if an entity class is from a vendor dependency.
+     * Simply checks if the file path contains /vendor/ directory.
+     */
+    private function isVendorEntity(string $entityClass): bool
+    {
+        try {
+            $reflectionClass = new \ReflectionClass($entityClass);
+            $filename = $reflectionClass->getFileName();
+
+            if (false === $filename) {
+                return false;
+            }
+
+            // Check if file is in vendor directory
+            return str_contains($filename, '/vendor/') || str_contains($filename, '\\vendor\\');
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     private function getShortClassName(string $fullClassName): string
@@ -318,7 +372,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements AnalyzerInterface
     private function createEntityFieldBacktrace(string $entityClass, string $fieldName): ?array
     {
         try {
-            assert(class_exists($entityClass));
+            Assert::classExists($entityClass);
             $reflectionClass = new ReflectionClass($entityClass);
             $fileName        = $reflectionClass->getFileName();
 

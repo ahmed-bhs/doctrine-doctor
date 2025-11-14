@@ -24,6 +24,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use ReflectionClass;
 use ReflectionMethod;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects Doctrine Embeddables that are not immutable.
@@ -79,7 +80,7 @@ class EmbeddableMutabilityAnalyzer implements AnalyzerInterface
 
                     $entityIssues = $this->analyzeEmbeddable($classMetadatum);
 
-                    assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -96,7 +97,7 @@ class EmbeddableMutabilityAnalyzer implements AnalyzerInterface
     private function analyzeEmbeddable(ClassMetadata $classMetadata): array
     {
         $className       = $classMetadata->getName();
-        assert(class_exists($className));
+        Assert::classExists($className);
         $reflectionClass = new ReflectionClass($className);
 
         $mutabilityIssues = $this->detectMutabilityIssues($reflectionClass);

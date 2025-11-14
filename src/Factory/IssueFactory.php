@@ -127,6 +127,10 @@ class IssueFactory implements IssueFactoryInterface
         // Performance issues
         'setMaxResults_with_collection_join' => PerformanceIssue::class,
         'setMaxResults with Collection Join' => PerformanceIssue::class,
+        'unused_eager_load'                  => PerformanceIssue::class,
+        'Unused Eager Load'                  => PerformanceIssue::class,
+        'nested_n_plus_one'                  => NPlusOneIssue::class,
+        'Nested N+1'                         => NPlusOneIssue::class,
         // Embeddable issues
         'missing_embeddable_opportunity'              => CodeQualityIssue::class,
         'embeddable_mutability'                       => CodeQualityIssue::class,
@@ -136,6 +140,7 @@ class IssueFactory implements IssueFactoryInterface
         'timestampable_mutable_datetime'              => CodeQualityIssue::class,
         'timestampable_missing_timezone'              => ConfigurationIssue::class,
         'timestampable_missing_timezone_global'       => ConfigurationIssue::class,
+        'timestampable_timezone_inconsistency'        => ConfigurationIssue::class,
         'timestampable_nullable_created_at'           => CodeQualityIssue::class,
         'timestampable_public_setter'                 => CodeQualityIssue::class,
         'blameable_nullable_created_by'               => CodeQualityIssue::class,

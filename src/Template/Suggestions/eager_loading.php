@@ -93,6 +93,24 @@ public function findAllWithRelation(): array
 private ?RelatedEntity $<?php echo $e($relation); ?> = null;</code></pre>
     </div>
 
+    <h4>⚖️ Trade-offs: Eager Loading (JOIN FETCH)</h4>
+    <div class="alert alert-warning">
+        <strong>Pros:</strong>
+        <ul>
+            <li><strong>Solves N+1 problem</strong>: Single query instead of N queries</li>
+            <li><strong>Minimal round-trips</strong>: One database call loads everything</li>
+            <li><strong>Best for guaranteed access</strong>: When you always need the relation</li>
+            <li><strong>Simple to implement</strong>: Just add JOIN FETCH to your query</li>
+        </ul>
+        <strong>Cons:</strong>
+        <ul>
+            <li><strong>Data duplication</strong>: JOIN can duplicate parent rows (Article repeated per Comment)</li>
+            <li><strong>Heavy JOINs</strong>: Large collections = large result sets</li>
+            <li><strong>Memory impact</strong>: Loads everything even if you only need count()</li>
+            <li><strong>Over-fetching risk</strong>: May load relations you don't actually use</li>
+        </ul>
+    </div>
+
     <h4>Best Practices</h4>
     <ul>
         <li>Always use JOIN FETCH when you know you'll need the relation</li>

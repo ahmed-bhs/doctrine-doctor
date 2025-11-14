@@ -5,12 +5,17 @@
 - [1. Overview](#1-overview)
 - [2. Configuration Structure](#2-configuration-structure)
 - [3. Global Settings](#3-global-settings)
-- [4. Profiler Configuration](#4-profiler-configuration)
-- [5. Analyzer Configuration](#5-analyzer-configuration)
-- [6. Performance Thresholds](#6-performance-thresholds)
-- [7. Group Management](#7-group-management)
-- [8. Environment-Specific Configuration](#8-environment-specific-configuration)
-- [9. Advanced Configuration](#9-advanced-configuration)
+- [4. Analysis Configuration](#4-analysis-configuration)
+  - [4.1 Excluding Vendor Entities](#41-excluding-vendor-entities)
+- [5. Profiler Configuration](#5-profiler-configuration)
+  - [5.1 Profiler Visibility](#51-profiler-visibility)
+  - [5.2 Debug Information](#52-debug-information)
+  - [5.3 Enabling Query Backtraces](#53-enabling-query-backtraces)
+- [6. Analyzer Configuration](#6-analyzer-configuration)
+- [7. Performance Thresholds](#7-performance-thresholds)
+- [8. Group Management](#8-group-management)
+- [9. Environment-Specific Configuration](#9-environment-specific-configuration)
+- [10. Advanced Configuration](#10-advanced-configuration)
 
 ---
 
@@ -131,9 +136,34 @@ doctrine_doctor:
 
 ---
 
-## 4. Profiler Configuration
+## 4. Analysis Configuration
 
-### 4.1 Profiler Visibility
+### 4.1 Excluding Vendor Entities
+
+```yaml
+doctrine_doctor:
+    analysis:
+        exclude_third_party_entities: true
+```
+
+**Type**: `boolean`
+**Default**: `true`
+**Description**: Automatically excludes entities from the `vendor/` directory during analysis. This filters out third-party entities from Symfony, Doctrine, FOSUserBundle, and other vendor bundles to provide cleaner, more relevant reports focused on your application code.
+
+**How it works**:
+- Uses **path-based detection** (`/vendor/` in file path) - 100% reliable
+- Filtering is **completely transparent** - no changes needed in your code
+- Results are **cached per request** for optimal performance (~0.1ms overhead)
+
+**Example**: With this enabled (recommended), entities like `Symfony\Component\Security\Core\User\User` or `FOS\UserBundle\Model\User` will be excluded from analysis, while your `App\Entity\User` will be analyzed normally.
+
+**When to disable**: Only disable if you need to analyze vendor entity mappings or debug third-party bundle configurations.
+
+---
+
+## 5. Profiler Configuration
+
+### 5.1 Profiler Visibility
 
 ```yaml
 doctrine_doctor:
@@ -145,7 +175,7 @@ doctrine_doctor:
 **Default**: `true`
 **Description**: Controls whether the "Doctrine Doctor" panel appears in the Symfony Profiler toolbar.
 
-### 4.2 Debug Information
+### 5.2 Debug Information
 
 ```yaml
 doctrine_doctor:
@@ -157,11 +187,28 @@ doctrine_doctor:
 **Default**: `false`
 **Description**: Displays internal debugging information (analyzer execution times, memory usage, service instances). **For development of Doctrine Doctor itself only.**
 
+### 5.3 Enabling Query Backtraces
+
+To see code location backtraces in Doctrine Doctor issues, enable Doctrine DBAL's backtrace collection:
+
+```yaml
+# config/packages/dev/doctrine.yaml
+doctrine:
+    dbal:
+        profiling_collect_backtrace: true
+```
+
+**Type**: `boolean`
+**Default**: `false`
+**Description**: Enables collection of stack traces for SQL queries, allowing Doctrine Doctor to show exactly where in your code each issue originates.
+
+**Note**: This is a Doctrine DBAL setting, not a Doctrine Doctor configuration. Add it to your `doctrine.yaml` file. Recommended for development environments only (minimal performance overhead ~2-5%).
+
 ---
 
-## 5. Analyzer Configuration
+## 6. Analyzer Configuration
 
-### 5.1 Performance Analyzers
+### 6.1 Performance Analyzers
 
 #### N+1 Query Analyzer
 
@@ -526,9 +573,9 @@ doctrine_doctor:
 
 ---
 
-## 6. Performance Thresholds
+## 7. Performance Thresholds
 
-### 6.1 Recommended Thresholds by Environment
+### 7.1 Recommended Thresholds by Environment
 
 #### Local Development
 
@@ -571,9 +618,9 @@ doctrine_doctor:
 
 ---
 
-## 7. Group Management
+## 8. Group Management
 
-### 7.1 Enable/Disable Analyzer Groups
+### 8.1 Enable/Disable Analyzer Groups
 
 ```yaml
 doctrine_doctor:
@@ -606,9 +653,9 @@ doctrine_doctor:
 
 ---
 
-## 8. Environment-Specific Configuration
+## 9. Environment-Specific Configuration
 
-### 8.1 Development Configuration
+### 9.1 Development Configuration
 
 ```yaml
 # config/packages/dev/doctrine_doctor.yaml
@@ -653,9 +700,9 @@ doctrine_doctor:
 
 ---
 
-## 9. Advanced Configuration
+## 10. Advanced Configuration
 
-### 9.1 Custom Analyzer Registration
+### 10.1 Custom Analyzer Registration
 
 ```yaml
 # config/services.yaml

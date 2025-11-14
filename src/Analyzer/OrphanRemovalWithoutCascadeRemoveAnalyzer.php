@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
@@ -59,12 +61,12 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements AnalyzerInterface
                 $classMetadataFactory = $this->entityManager->getMetadataFactory();
                 $allMetadata          = $classMetadataFactory->getAllMetadata();
 
-                assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                 foreach ($allMetadata as $metadata) {
                     $entityIssues = $this->analyzeEntity($metadata);
 
-                    assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;

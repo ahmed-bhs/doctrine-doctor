@@ -26,8 +26,8 @@ ob_start();
     <div class="key-statistics">
         <p><strong>Your codebase uses:</strong></p>
         <ul>
-            <li><strong><?= htmlspecialchars($auto_increment_count) ?> entities</strong> with auto-increment (INT)</li>
-            <li><strong><?= htmlspecialchars($uuid_count) ?> entities</strong> with UUIDs</li>
+            <li><strong><?= $auto_increment_count ?> entities</strong> with auto-increment (INT)</li>
+            <li><strong><?= $uuid_count ?> entities</strong> with UUIDs</li>
         </ul>
     </div>
 
@@ -41,7 +41,7 @@ ob_start();
 
     <div class="entities-lists">
         <div class="uuid-entities">
-            <h3>UUID Entities (<?= htmlspecialchars($uuid_count) ?>)</h3>
+            <h3>UUID Entities (<?= $uuid_count ?>)</h3>
             <?php if (!empty($uuid_entities)): ?>
                 <ul>
                     <?php foreach (array_slice($uuid_entities, 0, 5) as $entity): ?>
@@ -57,7 +57,7 @@ ob_start();
         </div>
 
         <div class="auto-increment-entities">
-            <h3>Auto-Increment Entities (<?= htmlspecialchars($auto_increment_count) ?>)</h3>
+            <h3>Auto-Increment Entities (<?= $auto_increment_count ?>)</h3>
             <?php if (!empty($auto_increment_entities)): ?>
                 <ul>
                     <?php foreach (array_slice($auto_increment_entities, 0, 5) as $entity): ?>

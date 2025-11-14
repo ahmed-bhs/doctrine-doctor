@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -83,7 +85,7 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
                 $metadataMap = $this->buildMetadataMap();
                 $seenIssues  = [];
 
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $query) {
                     $context = $this->extractQueryContext($query);
@@ -183,7 +185,7 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
      */
     private function checkAndYieldJoinIssues(array $context, array $joins, array $metadataMap, array &$seenIssues, array|object $query): \Generator
     {
-        assert(is_iterable($joins), '$joins must be iterable');
+        Assert::isIterable($joins, '$joins must be iterable');
 
         foreach ($joins as $join) {
             yield from $this->checkAndYieldSuboptimalJoin($join, $metadataMap, $context, $seenIssues);
@@ -368,19 +370,23 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
     }
 
     /**
-     * Determine if a JOIN relation is nullable.
+     * Determine if a JOIN relation is nullable using SQL parser.
+     *
+     * Migration from regex to SQL Parser:
+     * - Replaced regex pattern for ON clause extraction with SqlStructureExtractor::extractJoinOnClause()
+     * - More robust: properly parses JOIN structure
+     * - Handles complex ON conditions, multiple JOINs
      */
     private function isJoinNullable(array $join, string $sql, ClassMetadata $classMetadata): ?bool
     {
-        $onPattern = '/' . preg_quote((string) $join['full_match'], '/') . '\s+ON\s+([^)]+?)(?:WHERE|GROUP|ORDER|LIMIT|$)/is';
+        // Use SQL parser to extract ON clause
+        $onClause = $this->sqlExtractor->extractJoinOnClause($sql, (string) $join['full_match']);
 
-        if (1 === preg_match($onPattern, $sql, $onMatch)) {
-            $onClause = $onMatch[1];
-
+        if (null !== $onClause) {
             // Look for foreign key columns
             foreach ($classMetadata->getAssociationMappings() as $associationMapping) {
                 if (isset($associationMapping['joinColumns'])) {
-                    assert(is_iterable($associationMapping['joinColumns']), 'joinColumns must be iterable');
+                    Assert::isIterable($associationMapping['joinColumns'], 'joinColumns must be iterable');
 
                     foreach ($associationMapping['joinColumns'] as $joinColumn) {
                         $columnName = $joinColumn['name'] ?? null;
@@ -429,7 +435,12 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
     }
 
     /**
-     * Check if JOIN alias is actually used in the query.
+     * Check if JOIN alias is actually used in the query using SQL parser.
+     *
+     * Migration from regex to SQL Parser:
+     * - Replaced regex-based alias usage detection with SqlStructureExtractor::isAliasUsedInQuery()
+     * - More robust: checks all query clauses (SELECT, WHERE, GROUP BY, ORDER BY, HAVING, other JOINs)
+     * - Properly handles complex queries with subqueries, multiple JOINs
      */
     private function checkUnusedJoin(array $join, string $sql, array|object $query): ?PerformanceIssue
     {
@@ -441,13 +452,9 @@ class JoinOptimizationAnalyzer implements AnalyzerInterface
             return null;
         }
 
-        // Remove the JOIN clause itself from search
-        $sqlWithoutJoin = preg_replace('/' . preg_quote((string) $join['full_match'], '/') . '.*?(?=(?:LEFT|INNER|RIGHT|WHERE|GROUP|ORDER|LIMIT|$))/is', '', $sql);
-
-        // Check if alias is used in SELECT, WHERE, GROUP BY, ORDER BY, HAVING
-        $aliasPattern = '/\b' . preg_quote($alias, '/') . '\b\./';
-
-        if (1 !== preg_match($aliasPattern, (string) $sqlWithoutJoin)) {
+        // Use SQL parser to check if alias is used in the query
+        // (excluding the JOIN definition itself)
+        if (!$this->sqlExtractor->isAliasUsedInQuery($sql, $alias, (string) $join['full_match'])) {
             // Alias not used anywhere
             // Extract backtrace from query object
             $backtrace = $this->extractBacktrace($query);

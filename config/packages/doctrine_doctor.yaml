@@ -7,6 +7,12 @@ doctrine_doctor:
 
     # Analysis configuration
     analysis:
+        # Exclude entities from vendor/ directory during analysis
+        # This filters out third-party entities (Symfony, Doctrine, FOSUserBundle, etc.)
+        # to provide cleaner reports focused on your application code
+        # Recommended: true (default)
+        exclude_third_party_entities: true
+
         # Enable/disable specific analyzer categories
         categories:
             performance: true

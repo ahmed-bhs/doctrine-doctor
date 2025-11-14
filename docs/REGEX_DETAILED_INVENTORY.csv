@@ -1,0 +1,120 @@
+File Path,Line Number,Regex Function,Pattern,Purpose,Context,Complexity,Risk Level,Replacement Strategy
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/EntityManagerInEntityAnalyzer.php,262,preg_match,/\$this->em->flush\(\)/,Detect EntityManager flush call,Check for persistence in entities,Simple,Medium,Use str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/EntityManagerInEntityAnalyzer.php,250,preg_match,/\$this->em->persist\(/,Detect persist call,Check for persistence in entities,Simple,Medium,Use str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/EntityManagerInEntityAnalyzer.php,251,preg_match,/\$this->em->remove\(/,Detect remove call,Check for persistence in entities,Simple,Medium,Use str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SlowQueryAnalyzer.php,96,preg_match,/(SELECT.*FROM.*WHERE.*\(.*SELECT)/i,Detect subqueries in WHERE clause,Identify nested SELECTs,Medium,Low,Simple keyword search
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SlowQueryAnalyzer.php,100,preg_match,/ORDER BY/i,Detect ORDER BY clauses,Identify sorting operations,Simple,Low,str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SlowQueryAnalyzer.php,104,preg_match,/GROUP BY/i,Detect GROUP BY clauses,Identify grouping operations,Simple,Low,str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SlowQueryAnalyzer.php,108,preg_match,/LIKE\s+[\'"]%/i,Detect leading wildcard LIKE,Identify index-killing patterns,Medium,Low,String search for LIKE with %
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SlowQueryAnalyzer.php,112,preg_match,/SELECT DISTINCT/i,Detect DISTINCT operation,Identify potentially expensive operations,Simple,Low,str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/InsecureRandomAnalyzer.php,158,preg_match,/\b + function + \s*\(/i,Detect function call (dynamic),Check for insecure random functions,Medium,High,Use str_contains() + word boundary check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/InsecureRandomAnalyzer.php,169,preg_match,/md5\s*\(\s*(rand|mt_rand|time|microtime)/i,Detect weak hash-based randomness,Check for weak random hashing,Medium,High,Simple keyword match
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/JoinOptimizationAnalyzer.php,257,preg_match,/\b(LEFT|INNER|RIGHT|OUTER)?\s*JOIN\b/i,Detect any JOIN type,Check if query has JOINs,Medium,High,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/JoinOptimizationAnalyzer.php,272,preg_match_all,/\b(LEFT\s+OUTER|LEFT|INNER|RIGHT|RIGHT\s+OUTER)?\s*JOIN\s+(\w+)(?:\s+(?:AS\s+)?(\w+))?/i,Extract JOIN details,Parse all JOINs with table and alias,Complex,High,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/JoinOptimizationAnalyzer.php,291,preg_match,/\b + preg_quote($tableName, '/') + \.\w+/i,Check table usage,Verify if JOIN table is used,Complex,Medium,Custom table usage detector
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/JoinOptimizationAnalyzer.php,392,preg_match,Dynamic ON pattern,Extract ON clause,Get JOIN conditions,Complex,High,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/JoinOptimizationAnalyzer.php,454,preg_replace,Dynamic JOIN removal pattern,Remove JOIN from SQL,For unused JOIN analysis,Complex,High,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/JoinOptimizationAnalyzer.php,459,preg_match,Dynamic alias pattern,Check alias usage,Detect if JOIN alias is used,Complex,Medium,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/GetReferenceAnalyzer.php,214,preg_match,/\bJOIN\b/i,Check for JOINs,Detect complex queries,Simple,Low,str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/GetReferenceAnalyzer.php,221,preg_match,/WHERE\s+.*?\s+(AND|OR)\s+/i,Check for multiple conditions,Detect complex WHERE,Medium,Low,Simple condition search
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/GetReferenceAnalyzer.php,262,preg_match,Dynamic pattern,Match against dynamic pattern,Custom query matching,Complex,Medium,Custom implementation
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/GetReferenceAnalyzer.php,273,preg_match,/FROM\s+([^\s]+)/i,Extract table name,Get main table,Simple,Low,Simple string parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/GetReferenceAnalyzer.php,314,preg_replace,/\s+/,Normalize whitespace,Prepare for parsing,Simple,Low,preg_split() + implode()
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/FindAllAnalyzer.php,93,preg_match,/^SELECT/,Check if SELECT statement,Identify SELECT queries,Simple,Low,str_starts_with() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/FindAllAnalyzer.php,98,preg_match,/\sWHERE\s/i,Check for WHERE clause,Detect WHERE presence,Simple,Low,str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/FindAllAnalyzer.php,101,preg_match,/\sLIMIT\s/i,Check for LIMIT clause,Detect LIMIT presence,Simple,Low,str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/FindAllAnalyzer.php,115,preg_match,/FROM\s+(\w+)/i,Extract table name,Get main table,Simple,Low,Simple string parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLInjectionAnalyzer.php,156,preg_match,/['\"][^'\"]*\d+[^'\"]*['\"]/ ,Numeric value in quotes,Detect injection pattern,Medium,High,Use SQL tokenizer
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLInjectionAnalyzer.php,162,preg_match,/'.*(?:UNION|OR\s+1\s*=\s*1|AND\s+1\s*=\s*1|--|\#|\/\*).*'/i,SQL keywords in string,Detect SQL injection keywords,Complex,High,Use SQL tokenizer
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLInjectionAnalyzer.php,168,preg_match,/['\"].*(?:--|#|\/\*).*['\"]/ ,SQL comments in string,Detect SQL comment injection,Complex,High,Use SQL tokenizer
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLInjectionAnalyzer.php,174,preg_match,/'{2,}|(\"){2,}/ ,Consecutive quotes (escape),Detect quote escaping attempts,Medium,High,Simple quote counting
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLInjectionAnalyzer.php,180,preg_match,/LIKE\s+['\"][^?:]*%[^?:]*['\"]/ i,LIKE without parameter,Detect unparameterized LIKE,Medium,Medium,Custom LIKE detector
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLInjectionAnalyzer.php,187,preg_match,/WHERE\s+[^=]+\s*=\s*'[^'?:]+'/i,WHERE with literal string,Detect unparameterized WHERE,Medium,High,Custom WHERE detector
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLInjectionAnalyzer.php,193,preg_match,/(?:WHERE|AND|OR)\s+[^=]+\s*=\s*'[^']*'\s+(?:OR|AND)\s+/i,Multiple conditions (suspicious),Detect suspicious patterns,Complex,High,Use SQL tokenizer
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/EntityManagerClearAnalyzer.php,54,preg_match,/(?:INSERT INTO|UPDATE|DELETE FROM)\s+([^\s(]+)/i,Extract table from DML,Get affected table,Medium,Low,Simple keyword parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLValidationAnalyzer.php,141,preg_match,/\st\d+_/ ,Detect Doctrine alias pattern,Check if SQL is Doctrine-generated,Simple,Low,Simple pattern search
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLValidationAnalyzer.php,207,preg_match,/FROM\s+[A-Z]\w*\\[A-Z]\w*/i,Detect namespaced class in FROM,Check for pure DQL,Medium,Low,Simple FROM parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLValidationAnalyzer.php,208,preg_match,/SELECT\s+\w+\.\w+\s+FROM\s+[A-Z]\w+\s+\w+/ ,Detect entity alias pattern,Check for entity usage,Medium,Low,Simple FROM parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLValidationAnalyzer.php,245,preg_match_all,/FROM\s+([\w\\\\]+)/i,Extract entity FROM clause,Get entity class names,Medium,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLValidationAnalyzer.php,268,preg_match_all,/JOIN\s+([\w\\\\]+)/i,Extract entity JOIN clause,Get joined entities,Medium,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLValidationAnalyzer.php,303,preg_match,/FROM\s+(\w+)\s+(\w+)/i,Extract table and alias,Parse FROM clause,Simple,Low,Simple FROM parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLValidationAnalyzer.php,344,preg_match_all,Dynamic alias field pattern,Match alias field usage,Validate fields,Complex,Medium,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DQLValidationAnalyzer.php,498,preg_replace,/\s+/ ,Normalize whitespace,Prepare for parsing,Simple,Low,preg_split() + implode()
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/CollectionInitializationAnalyzer.php,167,preg_replace,/\/\/.*$/m,Remove single-line comments,Clean PHP code,Simple,Low,Keep as-is (works well)
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/CollectionInitializationAnalyzer.php,169,preg_replace,/\/\*.*?\*\//s,Remove multi-line comments,Clean PHP code,Simple,Low,Keep as-is (works well)
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/CollectionInitializationAnalyzer.php,205,preg_match,Dynamic collection pattern,Find collection initialization,Detect if collection is initialized,Complex,Medium,Use PHP AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/CollectionInitializationAnalyzer.php,393,preg_match,/parent\s*::\s*__construct\s*\(/ ,Detect parent constructor call,Check for parent initialization,Simple,Low,str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/IneffectiveLikeAnalyzer.php,76,preg_match_all,/\bLIKE\s+([\'"])(%[^\'\"]+)\1/i,Detect LIKE with leading wildcard,Find index-killing patterns,Medium,Low,Custom LIKE detector
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/YearFunctionOptimizationAnalyzer.php,76,preg_match_all,/\b(YEAR|MONTH|DAY|DATE|HOUR|MINUTE)\s*\(\s*(\w+(?:\.\w+)?)\s*\)\s*(=|<>|!=|>|<|>=|<=)\s*([^\s]+)/i,Detect date function in WHERE,Find function-based comparisons,Complex,Medium,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DTOHydrationAnalyzer.php,168,preg_replace,/\d+/ ,Replace numeric literals,Normalize query for comparison,Simple,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DTOHydrationAnalyzer.php,169,preg_replace,/'[^']*'/ ,Replace string literals,Normalize query for comparison,Simple,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DTOHydrationAnalyzer.php,170,preg_replace,/\"[^\"]*\"/ ,Replace double-quoted strings,Normalize query for comparison,Simple,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DTOHydrationAnalyzer.php,173,preg_replace,/\s+/ ,Normalize whitespace,Prepare for parsing,Simple,Low,preg_split() + implode()
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/NPlusOneAnalyzer.php,96,preg_replace,/\s+/ ,Normalize whitespace,Prepare for parsing,Simple,Low,preg_split() + implode()
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/NPlusOneAnalyzer.php,99,preg_replace,/'(?:[^'\\\\]|\\\\.)*'/ ,Replace string literals,Normalize query for comparison,Medium,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/NPlusOneAnalyzer.php,103,preg_replace,/\b(\d+)\b/ ,Replace numeric literals,Normalize query for comparison,Medium,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/NPlusOneAnalyzer.php,106,preg_replace,/IN\s*\([^)]+\)/i,Normalize IN clauses,Prepare for comparison,Medium,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/NPlusOneAnalyzer.php,109,preg_replace,/=\s*\?/ ,Normalize equals,Prepare for comparison,Simple,Low,Simple string replace
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/NPlusOneAnalyzer.php,122,preg_match,/FROM\s+(\w+)\s+\w+\s+WHERE\s+\w+\.(\w+)_id\s*=/i,Foreign key query pattern,Detect N+1 pattern,Medium,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/NPlusOneAnalyzer.php,134,preg_match,/JOIN\s+(\w+)\s+\w+\s+ON\s+\w+\.id\s*=\s*\w+\.(\w+)_id/i,JOIN with ID matching,Detect N+1 pattern,Medium,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/NPlusOneAnalyzer.php,146,preg_match,/SELECT\s+.*?\s+FROM\s+(\w+).*?WHERE.*?(\w+)_id\s*=/i,SELECT with foreign key,Detect N+1 pattern,Complex,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/NPlusOneAnalyzer.php,198,preg_replace,/^(tbl_|app_)/ ,Remove table prefix,Normalize table name,Simple,Low,Simple string replace
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SQLInjectionInRawQueriesAnalyzer.php,137,preg_match,/^\s*(SELECT|INSERT|UPDATE|DELETE)/i,Check if raw SQL,Verify query type,Simple,Low,str_starts_with() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SQLInjectionInRawQueriesAnalyzer.php,196,preg_match,Dynamic injection pattern,Match injection pattern,Detect injection attempts,Complex,High,Use SQL tokenizer
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SQLInjectionInRawQueriesAnalyzer.php,317,preg_match,/[\'"].*?[\'"][\s]*\.[\s]*\$\w+/s,String concatenation with variable,Detect injection risk,Complex,High,Use AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SQLInjectionInRawQueriesAnalyzer.php,318,preg_match,/\$\w+[\s]*\.[\s]*[\'"].*?[\'"]/s,Variable concatenation with string,Detect injection risk,Complex,High,Use AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SQLInjectionInRawQueriesAnalyzer.php,335,preg_match,/"[^"]*\$\w+[^"]*"/s,Variable in double quotes,Detect variable interpolation,Complex,High,Use AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SQLInjectionInRawQueriesAnalyzer.php,336,preg_match,/SELECT|INSERT|UPDATE|DELETE|FROM|WHERE/i,SQL keyword in suspicious context,Verify SQL content,Simple,Low,str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SQLInjectionInRawQueriesAnalyzer.php,356,preg_match,Dynamic SQL method pattern,Match method call with variable,Detect dynamic SQL execution,Complex,High,Use AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SQLInjectionInRawQueriesAnalyzer.php,357,preg_match,/\$\w+\s*=.*?\..*?;/s,Variable assignment with concatenation,Detect string building,Complex,High,Use AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SQLInjectionInRawQueriesAnalyzer.php,357,preg_match,/\$\w+\s*\.=.*?;/s,Append assignment operator,Detect string appending,Complex,High,Use AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SQLInjectionInRawQueriesAnalyzer.php,375,preg_match,/sprintf\s*\(\s*[\'"].*?(SELECT|INSERT|UPDATE|DELETE).*?[\'"]/is,sprintf with SQL,Detect dynamic SQL building,Complex,High,Use AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SQLInjectionInRawQueriesAnalyzer.php,376,preg_match,/\$_(GET|POST|REQUEST|COOKIE|SERVER)/i,Superglobal variable access,Detect user input usage,Simple,High,str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SQLInjectionInRawQueriesAnalyzer.php,377,preg_match,/\$request->get/i,Request object usage,Detect user input usage,Simple,High,str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryBuilderBestPracticesAnalyzer.php,120,preg_match,Dynamic injection pattern,Detect SQL injection,Custom pattern matching,Complex,High,Use SQL tokenizer
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryBuilderBestPracticesAnalyzer.php,131,preg_match,/\w+\s*[!=]=\s*NULL/i,Incorrect NULL comparison,Detect = NULL instead of IS NULL,Medium,Low,Simple NULL search
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryBuilderBestPracticesAnalyzer.php,137,preg_match,/IN\s*\(\s*\)/i,Empty IN clause,Detect IN (),Medium,Low,Simple IN search
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryBuilderBestPracticesAnalyzer.php,144,preg_match,/LIKE/i,Check for LIKE presence,Verify LIKE usage,Simple,Low,str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryBuilderBestPracticesAnalyzer.php,150,preg_match,/LIKE\s+[\'"]%.*%[\'\"]/,LIKE with both wildcards,Detect index-killing LIKE,Medium,Low,Custom LIKE detector
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryBuilderBestPracticesAnalyzer.php,158,preg_match_all,/:(\w+)/ ,Extract named parameters,Get all :paramName placeholders,Simple,Low,Simple string parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryCachingOpportunityAnalyzer.php,307,preg_replace,/\s+/ ,Normalize whitespace,Prepare for comparison,Simple,Low,preg_split() + implode()
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryCachingOpportunityAnalyzer.php,313,preg_replace,/\b\d+\b/ ,Replace numeric literals,Normalize query,Medium,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryCachingOpportunityAnalyzer.php,319,preg_replace,/'[^']*'/ ,Replace string literals,Normalize query,Simple,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryCachingOpportunityAnalyzer.php,324,preg_replace,/"[^"]*"/ ,Replace double-quoted strings,Normalize query,Simple,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryCachingOpportunityAnalyzer.php,330,preg_replace,/IN\s*\([^)]+\)/i,Normalize IN clause,Prepare for comparison,Medium,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryCachingOpportunityAnalyzer.php,357,preg_match,Dynamic table usage pattern,Find table in FROM clause,Detect table usage,Complex,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/QueryCachingOpportunityAnalyzer.php,361,preg_match,Dynamic table usage pattern,Find table in JOIN clause,Detect joined table usage,Complex,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/PartialObjectAnalyzer.php,163,preg_replace,/\d+/ ,Replace numeric literals,Normalize query,Simple,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/PartialObjectAnalyzer.php,164,preg_replace,/'[^']*'/ ,Replace string literals,Normalize query,Simple,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/PartialObjectAnalyzer.php,165,preg_replace,/\"[^\"]*\"/ ,Replace double-quoted strings,Normalize query,Simple,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/PartialObjectAnalyzer.php,168,preg_replace,/\s+/ ,Normalize whitespace,Prepare for comparison,Simple,Low,preg_split() + implode()
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/PartialObjectAnalyzer.php,182,preg_match,/SELECT\s+([a-z]\w*)\s+FROM/i,Extract SELECT alias,Get main alias,Simple,Low,Simple FROM parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/PartialObjectAnalyzer.php,236,preg_match,/FROM\s+([A-Z]\w+(?:\\[A-Z]\w+)*)/i,Extract entity class,Get entity from FROM,Medium,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/PartialObjectAnalyzer.php,241,preg_match,/FROM\s+([a-z_]+)/i,Extract table name,Get table from FROM,Simple,Low,Simple FROM parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/OrderByWithoutLimitAnalyzer.php,75,preg_match,/\b(?:LIMIT|OFFSET)\b/i,Detect LIMIT/OFFSET,Check for pagination,Simple,Low,str_contains() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/OrderByWithoutLimitAnalyzer.php,80,preg_match,/\bORDER\s+BY\s+([^;]+?)(?:\s+(?:LIMIT|OFFSET)|;|\s*$)/is,Extract ORDER BY clause,Get ORDER BY without LIMIT,Complex,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/NullComparisonAnalyzer.php,73,preg_match_all,/(\w+(?:\.\w+)?)\s*(=|!=|<>)\s*NULL\b/i,Detect NULL comparison,Find incorrect NULL checks,Medium,Low,Custom NULL detector
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/EagerLoadingAnalyzer.php,86,preg_match_all,/\bJOIN\b/i,Count JOINs in query,Count JOIN operations,Simple,Low,Simple JOIN counting
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/HydrationAnalyzer.php,108,preg_match,/LIMIT\s+(?:(\d+)\s*,\s*)?(\d+)(?:\s+OFFSET\s+\d+)?/i,Extract LIMIT/OFFSET,Get pagination parameters,Medium,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SensitiveDataExposureAnalyzer.php,251,preg_match,/json_encode\s*\(\s*\$this\s*\)/i,Detect json_encode of $this,Find sensitive data serialization,Medium,High,Use AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SensitiveDataExposureAnalyzer.php,252,preg_match,/serialize\s*\(\s*\$this\s*\)/i,Detect serialize of $this,Find sensitive data serialization,Medium,High,Use AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SensitiveDataExposureAnalyzer.php,294,preg_match,Dynamic sensitive field pattern,Detect sensitive field access,Find field reference,Complex,Medium,Use AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/SensitiveDataExposureAnalyzer.php,340,preg_match,Dynamic sensitive field pattern,Detect sensitive field access,Find field reference,Complex,Medium,Use AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/RepositoryFieldValidationAnalyzer.php,91,preg_match,/FROM\s+(\w+)\s+t\d+_/i,Extract table from Doctrine SQL,Get table from Doctrine pattern,Medium,Low,Simple pattern search
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/RepositoryFieldValidationAnalyzer.php,118,preg_match_all,/t\d+_\.(\w+)\s*(?:=|IN|LIKE|>|<|>=|<=|<>|!=)/i,Find referenced columns,Get columns used in query,Medium,Low,Use SQL tokenizer
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DivisionByZeroAnalyzer.php,43,preg_match (pattern definition),/(\w+(?:\.\w+)?)\s*\/\s*(\w+(?:\.\w+)?)/,Detect division operation,Find division expressions,Medium,Low,Use AST parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/DivisionByZeroAnalyzer.php,48,preg_match (pattern definition),/NULLIF|COALESCE|CASE\s+WHEN/i,Detect protected division,Find division protection,Simple,Low,Simple keyword search
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/MissingIndexAnalyzer.php,355,preg_match,/^\s*SELECT/i,Check if SELECT statement,Verify statement type,Simple,Low,str_starts_with() check
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/MissingIndexAnalyzer.php,434,preg_match,/\s+on\s+(\w+)/i,Extract ON clause index info,Get index usage info,Medium,Low,Simple string parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/MissingIndexAnalyzer.php,466,preg_match,/rows=(\d+)/i,Extract row count,Get affected rows,Simple,Low,Simple string parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/MissingIndexAnalyzer.php,476,preg_match,/(?:SCAN|SEARCH)\s+(\w+)/i,Extract table scan info,Get table name from explain,Medium,Low,Simple string parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/MissingIndexAnalyzer.php,504,preg_match,/USING INDEX\s+(\w+)/i,Extract index name,Get index usage info,Simple,Low,Simple string parsing
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/MissingIndexAnalyzer.php,636,preg_replace,/\s+/ ,Normalize whitespace,Prepare for comparison,Simple,Low,preg_split() + implode()
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/MissingIndexAnalyzer.php,639,preg_replace,/'(?:[^'\\\\]|\\\\.)*'/ ,Replace string literals,Normalize query,Medium,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/MissingIndexAnalyzer.php,642,preg_replace,/\b(\d+)\b/ ,Replace numeric literals,Normalize query,Medium,Low,Tokenize instead
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/MissingIndexAnalyzer.php,645,preg_replace,/IN\s*\([^)]+\)/i,Normalize IN clause,Prepare for comparison,Medium,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/MissingIndexAnalyzer.php,648,preg_replace,/=\s*\?/ ,Normalize equals,Prepare for comparison,Simple,Low,Simple string replace
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/MissingIndexAnalyzer.php,662,preg_match,Dynamic alias pattern,Find table from alias,Detect table usage,Complex,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/LazyLoadingAnalyzer.php,100,preg_match,/SELECT\s+.*\s+FROM\s+(\w+)\s+.*WHERE\s+.*(?<![_\w])id\s*=\s*\?/i,Detect lazy loading pattern,Find select-by-id queries,Complex,Low,Use SQL parser
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/LazyLoadingAnalyzer.php,177,preg_replace,/^(tbl_|tb_)/ ,Remove table prefix,Normalize table name,Simple,Low,Simple string replace
+/home/ahmed/Projets/doctrine-doctor/src/Analyzer/LazyLoadingAnalyzer.php,197,preg_match,/^get([A-Z]\w+)/ ,Extract property from getter,Get property name,Simple,Low,Simple string parsing

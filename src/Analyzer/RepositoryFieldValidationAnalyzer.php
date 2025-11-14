@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -31,6 +34,8 @@ use Psr\Log\LoggerInterface;
  */
 class RepositoryFieldValidationAnalyzer implements AnalyzerInterface
 {
+    private SqlStructureExtractor $sqlExtractor;
+
     public function __construct(
         /**
          * @readonly
@@ -44,7 +49,9 @@ class RepositoryFieldValidationAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private ?LoggerInterface $logger = null,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -55,7 +62,7 @@ class RepositoryFieldValidationAnalyzer implements AnalyzerInterface
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $queryData) {
                     // Detect queries that look like they come from repository methods
@@ -86,13 +93,14 @@ class RepositoryFieldValidationAnalyzer implements AnalyzerInterface
     {
         $sql = $queryData->sql;
 
-        // Pattern 1: Simple WHERE clauses from findBy/findOneBy
-        // SELECT ... FROM table t0_ WHERE t0_.field1 = ? AND t0_.field2 = ?
-        if (1 !== preg_match('/FROM\s+(\w+)\s+t\d+_/i', $sql, $tableMatch)) {
+        // Use SQL parser to extract main table
+        $mainTable = $this->sqlExtractor->extractMainTable($sql);
+
+        if (null === $mainTable || null === $mainTable['table']) {
             return null;
         }
 
-        $tableName = $tableMatch[1];
+        $tableName = $mainTable['table'];
 
         // Find the entity for this table
         $entity = $this->findEntityByTable($tableName);
@@ -113,17 +121,18 @@ class RepositoryFieldValidationAnalyzer implements AnalyzerInterface
             return null;
         }
 
-        // Extract column names from WHERE clause
-        // Match patterns like: t0_.column_name = ?
-        if (preg_match_all('/t\d+_\.(\w+)\s*(?:=|IN|LIKE|>|<|>=|<=|<>|!=)/i', $sql, $columnMatches) < 1) {
+        // Use SQL parser to extract WHERE conditions
+        $conditions = $this->sqlExtractor->extractWhereConditions($sql);
+
+        if ([] === $conditions) {
             return null;
         }
 
-        $columnsInQuery = array_unique($columnMatches[1]);
+        $columnsInQuery = array_unique(array_column($conditions, 'column'));
         $invalidFields  = [];
         $validFields    = [];
 
-        assert(is_iterable($columnsInQuery), '$columnsInQuery must be iterable');
+        Assert::isIterable($columnsInQuery, '$columnsInQuery must be iterable');
 
         foreach ($columnsInQuery as $columnInQuery) {
             // Check if this column corresponds to a mapped field or association
@@ -155,7 +164,7 @@ class RepositoryFieldValidationAnalyzer implements AnalyzerInterface
         try {
             $metadatas = $this->entityManager->getMetadataFactory()->getAllMetadata();
 
-            assert(is_iterable($metadatas), '$metadatas must be iterable');
+            Assert::isIterable($metadatas, '$metadatas must be iterable');
 
             foreach ($metadatas as $metadata) {
                 if ($metadata->getTableName() === $tableName) {
@@ -185,7 +194,7 @@ class RepositoryFieldValidationAnalyzer implements AnalyzerInterface
         // First, check if it's directly mapped
         $fieldNames = $classMetadata->getFieldNames();
 
-        assert(is_iterable($fieldNames), '$fieldNames must be iterable');
+        Assert::isIterable($fieldNames, '$fieldNames must be iterable');
 
         foreach ($fieldNames as $fieldName) {
             if ($classMetadata->getColumnName($fieldName) === $columnName) {
@@ -202,7 +211,7 @@ class RepositoryFieldValidationAnalyzer implements AnalyzerInterface
             $mapping = $classMetadata->getAssociationMapping($assocName);
 
             if (isset($mapping['joinColumns'])) {
-                assert(is_iterable($mapping['joinColumns']), 'joinColumns must be iterable');
+                Assert::isIterable($mapping['joinColumns'], 'joinColumns must be iterable');
 
                 foreach ($mapping['joinColumns'] as $joinColumn) {
                     if ($joinColumn['name'] === $columnName) {
@@ -230,7 +239,7 @@ class RepositoryFieldValidationAnalyzer implements AnalyzerInterface
             $shortEntityName,
         );
 
-        assert(is_iterable($invalidFields['invalidFields']), 'invalidFields must be iterable');
+        Assert::isIterable($invalidFields['invalidFields'], 'invalidFields must be iterable');
 
         foreach ($invalidFields['invalidFields'] as $field) {
             $description .= sprintf("  - '%s' does not exist\n", $field);
@@ -252,7 +261,7 @@ Available fields:
             // Show only similar fields or first 10 if no match
             $suggestions = [];
 
-            assert(is_iterable($invalidFields['invalidFields']), 'invalidFields must be iterable');
+            Assert::isIterable($invalidFields['invalidFields'], 'invalidFields must be iterable');
 
             foreach ($invalidFields['invalidFields'] as $invalidField) {
                 $similar = $this->findSimilarFields($invalidField, $allFields);
@@ -306,7 +315,7 @@ Query: " . substr($queryData->sql, 0, 200);
         $similar = [];
         $search  = strtolower($search);
 
-        assert(is_iterable($availableFields), '$availableFields must be iterable');
+        Assert::isIterable($availableFields, '$availableFields must be iterable');
 
         foreach ($availableFields as $availableField) {
             $fieldLower = strtolower($availableField);

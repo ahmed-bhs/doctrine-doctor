@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\DQLPatternMatcher;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -22,6 +23,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\QueryException;
 use Psr\Log\LoggerInterface;
+use Webmozart\Assert\Assert;
 
 /**
  * Validates DQL queries for syntax errors and semantic issues.
@@ -41,6 +43,8 @@ class DQLValidationAnalyzer implements AnalyzerInterface
     /** @var array<mixed> */
     private array $validatedDQL = [];
 
+    private DQLPatternMatcher $dqlMatcher;
+
     public function __construct(
         /**
          * @readonly
@@ -54,7 +58,9 @@ class DQLValidationAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private ?LoggerInterface $logger = null,
+        ?DQLPatternMatcher $dqlMatcher = null,
     ) {
+        $this->dqlMatcher = $dqlMatcher ?? new DQLPatternMatcher();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -65,7 +71,7 @@ class DQLValidationAnalyzer implements AnalyzerInterface
             function () use ($queryDataCollection) {
                 $this->validatedDQL = [];
 
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $queryData) {
                     // Try to extract DQL from SQL query
@@ -133,12 +139,8 @@ class DQLValidationAnalyzer implements AnalyzerInterface
      */
     private function reconstructDQLFromSQL(string $sql): ?string
     {
-        // Look for patterns that indicate this was DQL:
-        // 1. Alias patterns like "t0_", "t1_", etc. (Doctrine's SQL alias convention)
-        // 2. Generated column names like "id_0", "name_1"
-
-        // Check for Doctrine alias pattern (t0_, t1_, etc.) with space before
-        if (1 !== preg_match('/\st\d+_/', $sql)) {
+        // Check for Doctrine-generated SQL pattern
+        if (!$this->dqlMatcher->hasDoctrineSQLPattern($sql)) {
             // Doesn't look like Doctrine-generated SQL
             return null;
         }
@@ -177,7 +179,7 @@ class DQLValidationAnalyzer implements AnalyzerInterface
         }
 
         // Check 3: Validate JOIN associations
-        $joinErrors = $this->validateJoinAssociations();
+        $joinErrors = $this->validateJoinAssociations($dql);
         if ([] !== $joinErrors) {
             $errors = array_merge($errors, $joinErrors);
         }
@@ -202,11 +204,7 @@ class DQLValidationAnalyzer implements AnalyzerInterface
      */
     private function looksPureDQL(string $query): bool
     {
-        // DQL uses entity class names, not table names
-        // Look for patterns like "FROM App\Entity\User" or "SELECT u.name FROM User u"
-        return 1 === preg_match('/FROM\s+[A-Z]\w*\\[A-Z]\w*/i', $query) // Namespaced class
-            || 1 === preg_match('/SELECT\s+\w+\.\w+\s+FROM\s+[A-Z]\w+\s+\w+/', $query) // Entity alias
-        ;
+        return $this->dqlMatcher->looksPureDQL($query);
     }
 
     /**
@@ -238,51 +236,27 @@ class DQLValidationAnalyzer implements AnalyzerInterface
      */
     private function validateEntityReferences(string $query): array
     {
-
         $errors = [];
 
-        // Match entity class references (e.g., FROM App\Entity\User)
-        if (preg_match_all('/FROM\s+([\w\\\\]+)/i', $query, $matches) >= 1) {
-            assert(is_iterable($matches[1]), '$matches[1] must be iterable');
-
-            foreach ($matches[1] as $entityClass) {
-                // Skip if it's a table name (lowercase, underscores)
-                if (ctype_lower($entityClass[0])) {
-                    continue;
-                }
-
-                if (str_contains($entityClass, '_')) {
-                    continue;
-                }
-
-                if (!$this->isValidEntity($entityClass)) {
-                    $errors[] = sprintf(
-                        'Unknown entity class "%s" in FROM clause',
-                        $entityClass,
-                    );
-                }
+        // Extract and validate entity classes from FROM clause
+        $fromEntities = $this->dqlMatcher->extractEntityClassesFromFrom($query);
+        foreach ($fromEntities as $entityClass) {
+            if (!$this->isValidEntity($entityClass)) {
+                $errors[] = sprintf(
+                    'Unknown entity class "%s" in FROM clause',
+                    $entityClass,
+                );
             }
         }
 
-        // Match JOIN entity references
-        if (preg_match_all('/JOIN\s+([\w\\\\]+)/i', $query, $matches) >= 1) {
-            assert(is_iterable($matches[1]), '$matches[1] must be iterable');
-
-            foreach ($matches[1] as $entityClass) {
-                if (ctype_lower($entityClass[0])) {
-                    continue;
-                }
-
-                if (str_contains($entityClass, '_')) {
-                    continue;
-                }
-
-                if (!$this->isValidEntity($entityClass)) {
-                    $errors[] = sprintf(
-                        'Unknown entity class "%s" in JOIN clause',
-                        $entityClass,
-                    );
-                }
+        // Extract and validate entity classes from JOIN clause
+        $joinEntities = $this->dqlMatcher->extractEntityClassesFromJoin($query);
+        foreach ($joinEntities as $entityClass) {
+            if (!$this->isValidEntity($entityClass)) {
+                $errors[] = sprintf(
+                    'Unknown entity class "%s" in JOIN clause',
+                    $entityClass,
+                );
             }
         }
 
@@ -295,14 +269,14 @@ class DQLValidationAnalyzer implements AnalyzerInterface
      */
     private function validateFieldReferences(string $query): array
     {
-
         $errors = [];
 
         // Try to find table name and validate columns
-        // This is complex because we need to map tables to entities
-        if (1 === preg_match('/FROM\s+(\w+)\s+(\w+)/i', $query, $matches)) {
-            $tableName = $matches[1];
-            $alias     = $matches[2];
+        $tableAndAlias = $this->dqlMatcher->extractTableAndAlias($query);
+
+        if (null !== $tableAndAlias) {
+            $tableName = $tableAndAlias['table'];
+            $alias = $tableAndAlias['alias'];
 
             $entity = $this->findEntityByTableName($tableName);
 
@@ -324,11 +298,10 @@ class DQLValidationAnalyzer implements AnalyzerInterface
      */
     private function validateColumns(string $query, string $entityClass, string $alias): array
     {
-
         $errors = [];
 
         try {
-            assert(class_exists($entityClass));
+            Assert::classExists($entityClass);
             $metadata = $this->entityManager->getClassMetadata($entityClass);
         } catch (\Throwable $throwable) {
             $this->logger?->debug('Failed to load metadata for column validation', [
@@ -338,25 +311,16 @@ class DQLValidationAnalyzer implements AnalyzerInterface
             return [];
         }
 
-        // Match field references like "alias.fieldName"
-        $pattern = sprintf('/%s\.(\w+)/i', preg_quote($alias, '/'));
+        // Extract field references using DQL matcher
+        $fieldNames = $this->dqlMatcher->extractFieldReferences($query, $alias);
 
-        if (preg_match_all($pattern, $query, $matches) >= 1) {
-            assert(is_iterable($matches[1]), '$matches[1] must be iterable');
-
-            foreach ($matches[1] as $fieldName) {
-                // Skip SQL functions and keywords
-                if (in_array(strtoupper($fieldName), ['AS', 'FROM', 'WHERE', 'AND', 'OR'], true)) {
-                    continue;
-                }
-
-                if (!$metadata->hasField($fieldName) && !$metadata->hasAssociation($fieldName)) {
-                    $errors[] = sprintf(
-                        'Field "%s" does not exist in entity %s',
-                        $fieldName,
-                        $this->getShortClassName($entityClass),
-                    );
-                }
+        foreach ($fieldNames as $fieldName) {
+            if (!$metadata->hasField($fieldName) && !$metadata->hasAssociation($fieldName)) {
+                $errors[] = sprintf(
+                    'Field "%s" does not exist in entity %s',
+                    $fieldName,
+                    $this->getShortClassName($entityClass),
+                );
             }
         }
 
@@ -365,25 +329,78 @@ class DQLValidationAnalyzer implements AnalyzerInterface
 
     /**
      * Validate JOIN associations.
+     *
+     * Simplified validation covering most common cases:
+     * - FROM Entity alias
+     * - JOIN alias.association newAlias
+     *
+     * Limitation: Doesn't track chained JOINs (JOIN o.items i where o comes from u.orders)
+     * This would require full query context tracking, which is complex.
+     *
      * @return string[]
      */
-    private function validateJoinAssociations(): array
+    private function validateJoinAssociations(string $query): array
     {
+        $errors = [];
 
-        // Match JOIN patterns: JOIN alias.association newAlias
-        // Note: Full validation requires query context tracking
-        // Currently this is a placeholder for future enhancement
-        // if (preg_match_all('/JOIN\s+(\w+)\.(\w+)\s+(\w+)/i', $query, $matches)) {
-        //     // Find entity for source alias
-        //     // This is tricky without full query context, so we do best effort
-        //     // In a real implementation, we'd track aliases through the query
-        //     // foreach (array_keys($matches[2]) as $index) {
-        //         $sourceAlias = $matches[1][$index];
-        //         // Validate association exists
-        //     // }
-        // }
+        // Build alias map from FROM clause
+        $aliasMap = $this->dqlMatcher->buildAliasMap($query);
 
-        return [];
+        if ([] === $aliasMap) {
+            // No entity aliases found - skip validation
+            return [];
+        }
+
+        // Extract JOIN associations
+        $joins = $this->dqlMatcher->extractJoinAssociations($query);
+
+        foreach ($joins as $join) {
+            $sourceAlias = $join['source'];
+            $associationName = $join['association'];
+            $newAlias = $join['alias'];
+
+            // Check if source alias is in our map (FROM clause)
+            if (!isset($aliasMap[$sourceAlias])) {
+                // Source alias not from FROM clause - might be from previous JOIN
+                // Skip for now (would need full context tracking)
+                continue;
+            }
+
+            $entityClass = $aliasMap[$sourceAlias];
+
+            // Validate that association exists
+            if (!$this->isValidEntity($entityClass)) {
+                continue; // Entity itself is invalid, already reported elsewhere
+            }
+
+            try {
+                Assert::classExists($entityClass);
+                $metadata = $this->entityManager->getClassMetadata($entityClass);
+
+                if (!$metadata->hasAssociation($associationName)) {
+                    $errors[] = sprintf(
+                        'Association "%s" does not exist in entity %s (JOIN %s.%s %s)',
+                        $associationName,
+                        $this->getShortClassName($entityClass),
+                        $sourceAlias,
+                        $associationName,
+                        $newAlias,
+                    );
+                } else {
+                    // Association exists - add new alias to map for potential chained JOINs
+                    $targetEntity = $metadata->getAssociationTargetClass($associationName);
+                    $aliasMap[$newAlias] = $targetEntity;
+                }
+            } catch (\Throwable $throwable) {
+                $this->logger?->debug('Failed to validate JOIN association', [
+                    'entityClass' => $entityClass,
+                    'association' => $associationName,
+                    'exception' => $throwable::class,
+                ]);
+            }
+        }
+
+        return $errors;
     }
 
     /**
@@ -392,7 +409,7 @@ class DQLValidationAnalyzer implements AnalyzerInterface
     private function isValidEntity(string $className): bool
     {
         try {
-            assert(class_exists($className));
+            Assert::classExists($className);
             $metadata = $this->entityManager->getClassMetadata($className);
 
             return $metadata instanceof ClassMetadata;
@@ -414,7 +431,7 @@ class DQLValidationAnalyzer implements AnalyzerInterface
             /** @var array<ClassMetadata<object>> $allMetadata */
             $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
 
-            assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+            Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
             foreach ($allMetadata as $metadata) {
                 if ($metadata->getTableName() === $tableName) {
@@ -442,10 +459,10 @@ class DQLValidationAnalyzer implements AnalyzerInterface
 
 ";
 
-        assert(is_iterable($errors), '$errors must be iterable');
+        Assert::isIterable($errors, '$errors must be iterable');
 
         foreach ($errors as $i => $error) {
-            assert(is_int($i), 'Array key must be int');
+            Assert::integer($i, 'Array key must be int');
             $description .= sprintf("%d. %s
 ", $i + 1, $error);
         }
@@ -494,26 +511,7 @@ Solution:
      */
     private function formatQuery(string $query): string
     {
-        // Format and indent SQL
-        $formatted = preg_replace('/\s+/', ' ', $query) ?? $query;
-        $formatted = str_replace(
-            [' FROM ', ' WHERE ', ' JOIN ', ' ORDER BY ', ' GROUP BY ', ' LIMIT '],
-            ["
-  FROM ", "
-  WHERE ", "
-  JOIN ", "
-  ORDER BY ", "
-  GROUP BY ", "
-  LIMIT "],
-            $formatted,
-        );
-
-        if (strlen($formatted) > 500) {
-            return substr($formatted, 0, 500) . "
-  ... (truncated)";
-        }
-
-        return $formatted;
+        return $this->dqlMatcher->formatQueryForDisplay($query, 500);
     }
 
     /**

@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -18,9 +19,13 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use Webmozart\Assert\Assert;
+use Psr\Log\LoggerInterface;
 
 class BulkOperationAnalyzer implements AnalyzerInterface
 {
+    private SqlStructureExtractor $sqlExtractor;
+
     public function __construct(
         /**
          * @readonly
@@ -34,12 +39,25 @@ class BulkOperationAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private int $threshold = 20,
+        /**
+         * @readonly
+         */
+        private ?LoggerInterface $logger = null,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
+        // DEBUG: Write to file
+        file_put_contents('/tmp/bulk_analyzer_debug.txt', date('Y-m-d H:i:s') . ' - Starting analysis...' . PHP_EOL, FILE_APPEND);
+
+        $this->logger?->info('[BulkOperationAnalyzer] Starting analysis...');
         $bulkOperations = $this->detectBulkOperations($queryDataCollection);
+
+        file_put_contents('/tmp/bulk_analyzer_debug.txt', 'Detected ' . count($bulkOperations) . ' bulk operations' . PHP_EOL, FILE_APPEND);
+        $this->logger?->info('[BulkOperationAnalyzer] Detected ' . count($bulkOperations) . ' bulk operations');
 
         //  Use generator for memory efficiency
         return IssueCollection::fromGenerator(
@@ -47,7 +65,7 @@ class BulkOperationAnalyzer implements AnalyzerInterface
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($bulkOperations) {
-                assert(is_iterable($bulkOperations), '$bulkOperations must be iterable');
+                Assert::isIterable($bulkOperations, '$bulkOperations must be iterable');
 
                 foreach ($bulkOperations as $bulkOperation) {
                     if ($bulkOperation['count'] >= $this->threshold) {
@@ -91,13 +109,19 @@ class BulkOperationAnalyzer implements AnalyzerInterface
         $operations          = [];
         $updateDeleteQueries = [];
 
-        // Group UPDATE/DELETE queries by table and pattern
-        assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+        $this->logger?->info('[BulkOperationAnalyzer] detectBulkOperations() called');
 
+        // Group UPDATE/DELETE queries by table and pattern
+        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
+
+        $queryCount = 0;
         foreach ($queryDataCollection as $index => $queryData) {
-            // Detect UPDATE queries
-            if (1 === preg_match('/^UPDATE\s+(\w+)\s+.*WHERE\s+/i', $queryData->sql, $matches)) {
-                $table = $matches[1];
+            $queryCount++;
+            // Detect UPDATE queries using SQL parser
+            $updateTable = $this->sqlExtractor->detectUpdateQuery($queryData->sql);
+            if (null !== $updateTable) {
+                $this->logger?->info('[BulkOperationAnalyzer] Found UPDATE on table: ' . $updateTable);
+                $table = $updateTable;
                 $type  = 'UPDATE';
 
                 $key = $type . '_' . $table;
@@ -115,9 +139,10 @@ class BulkOperationAnalyzer implements AnalyzerInterface
                 $updateDeleteQueries[$key]['indices'][] = $index;
             }
 
-            // Detect DELETE queries
-            if (1 === preg_match('/^DELETE\s+FROM\s+(\w+)\s+.*WHERE\s+/i', $queryData->sql, $matches)) {
-                $table = $matches[1];
+            // Detect DELETE queries using SQL parser
+            $deleteTable = $this->sqlExtractor->detectDeleteQuery($queryData->sql);
+            if (null !== $deleteTable) {
+                $table = $deleteTable;
                 $type  = 'DELETE';
 
                 $key = $type . '_' . $table;
@@ -136,15 +161,34 @@ class BulkOperationAnalyzer implements AnalyzerInterface
             }
         }
 
+        file_put_contents('/tmp/bulk_analyzer_debug.txt', 'Examined ' . $queryCount . ' queries total' . PHP_EOL, FILE_APPEND);
+        file_put_contents('/tmp/bulk_analyzer_debug.txt', 'Found ' . count($updateDeleteQueries) . ' unique UPDATE/DELETE patterns' . PHP_EOL, FILE_APPEND);
+
+        $this->logger?->info('[BulkOperationAnalyzer] Examined ' . $queryCount . ' queries total');
+        $this->logger?->info('[BulkOperationAnalyzer] Found ' . count($updateDeleteQueries) . ' unique UPDATE/DELETE patterns');
+
         // Analyze patterns
-        assert(is_iterable($updateDeleteQueries), '$updateDeleteQueries must be iterable');
+        Assert::isIterable($updateDeleteQueries, '$updateDeleteQueries must be iterable');
 
         foreach ($updateDeleteQueries as $updateDeleteQuery) {
-            if (count($updateDeleteQuery['queries']) >= $this->threshold) {
+            $count = count($updateDeleteQuery['queries']);
+
+            file_put_contents('/tmp/bulk_analyzer_debug.txt', 'Checking ' . $updateDeleteQuery['type'] . ' on ' . $updateDeleteQuery['table'] . ': ' . $count . ' queries (threshold: ' . $this->threshold . ')' . PHP_EOL, FILE_APPEND);
+
+            $this->logger?->info('[BulkOperationAnalyzer] Checking ' . $updateDeleteQuery['type'] . ' on ' . $updateDeleteQuery['table'] . ': ' . $count . ' queries (threshold: ' . $this->threshold . ')');
+
+            if ($count >= $this->threshold) {
+                file_put_contents('/tmp/bulk_analyzer_debug.txt', 'Threshold reached! Checking if bulk operation...' . PHP_EOL, FILE_APPEND);
+
                 // Check if similar operations (likely in a loop)
                 $isBulkOperation = $this->isBulkOperation($updateDeleteQuery['queries']);
 
+                file_put_contents('/tmp/bulk_analyzer_debug.txt', 'isBulkOperation() returned: ' . ($isBulkOperation ? 'TRUE' : 'FALSE') . PHP_EOL, FILE_APPEND);
+
+                $this->logger?->info('[BulkOperationAnalyzer] isBulkOperation() returned: ' . ($isBulkOperation ? 'TRUE' : 'FALSE'));
+
                 if ($isBulkOperation) {
+                    file_put_contents('/tmp/bulk_analyzer_debug.txt', 'Creating bulk operation issue!' . PHP_EOL, FILE_APPEND);
                     $totalTime = array_sum(
                         array_map(fn (QueryData $queryData): float => $queryData->executionTime->inMilliseconds(), $updateDeleteQuery['queries']),
                     );
@@ -173,15 +217,15 @@ class BulkOperationAnalyzer implements AnalyzerInterface
             return false;
         }
 
-        // Check if queries have similar structure (normalize the SQL)
+        // Check if queries have similar structure using SQL parser
         $patterns = [];
 
-        assert(is_iterable($queries), '$queries must be iterable');
+        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
-            // Normalize by removing values
-            $normalized = preg_replace('/=\s*[\'"]?[^\'"\s,)]+[\'"]?/', '= ?', $query->sql);
-            $normalized = preg_replace('/\s+/', ' ', (string) $normalized);
+            // Use SQL parser to normalize query pattern
+            // Use universal normalization method shared across all analyzers
+            $normalized = $this->sqlExtractor->normalizeQuery($query->sql);
             $patterns[] = $normalized;
         }
 

@@ -66,8 +66,17 @@ interface PlatformAnalysisStrategy
     public function analyzeStrictMode(): iterable;
 
     /**
+     * Analyze performance-related configuration.
+     * MySQL/MariaDB: query_cache (deprecated), innodb_flush_log, binary logs, buffer_pool_size
+     * PostgreSQL: shared_buffers, work_mem, synchronous_commit
+     * SQLite: N/A (embedded database, skip)
+     * @return iterable<IssueInterface>
+     */
+    public function analyzePerformanceConfig(): iterable;
+
+    /**
      * Check if this strategy supports a specific analysis feature.
-     * @param string $feature Feature name (charset, collation, timezone, pooling, strict_mode)
+     * @param string $feature Feature name (charset, collation, timezone, pooling, strict_mode, performance)
      * @return bool True if feature is supported on this platform
      */
     public function supportsFeature(string $feature): bool;

@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -21,6 +22,8 @@ use Webmozart\Assert\Assert;
 
 class SlowQueryAnalyzer implements AnalyzerInterface
 {
+    private SqlStructureExtractor $sqlExtractor;
+
     public function __construct(
         /**
          * @readonly
@@ -34,9 +37,11 @@ class SlowQueryAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private int $threshold = 100,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
         Assert::greaterThan($threshold, 0, 'Threshold must be positive, got %s');
         Assert::lessThan($threshold, 100000, 'Threshold seems unreasonably high (>100s), got %s ms');
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -50,7 +55,7 @@ class SlowQueryAnalyzer implements AnalyzerInterface
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($slowQueries) {
-                assert(is_iterable($slowQueries), '$slowQueries must be iterable');
+                Assert::isIterable($slowQueries, '$slowQueries must be iterable');
 
                 foreach ($slowQueries as $slowQuery) {
                     $executionTimeMs = $slowQuery->executionTime->inMilliseconds();
@@ -86,35 +91,51 @@ class SlowQueryAnalyzer implements AnalyzerInterface
     }
 
     /**
-     * Analyze query to provide optimization hints.
-     * This is a simple helper that identifies query patterns.
+     * Analyze query to provide optimization hints using SQL parser.
+     * Identifies performance-impacting query patterns.
      */
     private function analyzeQueryOptimizations(string $sql): string
     {
         $optimizations = [];
 
-        // Pattern: SQL query structure extraction
-        if (1 === preg_match('/(SELECT.*FROM.*WHERE.*\(.*SELECT)/i', $sql)) {
+        // Use SQL parser to detect subqueries
+        if ($this->sqlExtractor->hasSubquery($sql)) {
             $optimizations[] = 'Subquery detected - consider rewriting as JOIN';
         }
 
-        // Pattern: Detect ORDER BY clause
-        if (str_contains(strtoupper($sql), 'ORDER BY')) {
-            $optimizations[] = 'Ensure ORDER BY columns are indexed';
+        // Use SQL parser to detect ORDER BY clause
+        if ($this->sqlExtractor->hasOrderBy($sql)) {
+            $orderByColumns = $this->sqlExtractor->extractOrderByColumnNames($sql);
+            if ([] !== $orderByColumns) {
+                $optimizations[] = sprintf(
+                    'Ensure ORDER BY columns are indexed: %s',
+                    implode(', ', $orderByColumns),
+                );
+            } else {
+                $optimizations[] = 'Ensure ORDER BY columns are indexed';
+            }
         }
 
-        // Pattern: Detect GROUP BY clause
-        if (str_contains(strtoupper($sql), 'GROUP BY')) {
-            $optimizations[] = 'Ensure GROUP BY columns are indexed';
+        // Use SQL parser to detect GROUP BY clause
+        if ($this->sqlExtractor->hasGroupBy($sql)) {
+            $groupByColumns = $this->sqlExtractor->extractGroupByColumns($sql);
+            if ([] !== $groupByColumns) {
+                $optimizations[] = sprintf(
+                    'Ensure GROUP BY columns are indexed: %s',
+                    implode(', ', $groupByColumns),
+                );
+            } else {
+                $optimizations[] = 'Ensure GROUP BY columns are indexed';
+            }
         }
 
-        // Pattern: Simple pattern match: /LIKE\s+[\
-        if (1 === preg_match('/LIKE\s+[\'"]%/i', $sql)) {
+        // Use SQL parser to detect leading wildcard LIKE
+        if ($this->sqlExtractor->hasLeadingWildcardLike($sql)) {
             $optimizations[] = 'Leading wildcard LIKE detected - cannot use index efficiently';
         }
 
-        // Pattern: SQL query structure extraction
-        if (1 === preg_match('/SELECT DISTINCT/i', $sql)) {
+        // Use SQL parser to detect DISTINCT
+        if ($this->sqlExtractor->hasDistinct($sql)) {
             $optimizations[] = 'DISTINCT operation can be expensive';
         }
 

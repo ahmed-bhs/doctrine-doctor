@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -64,7 +66,7 @@ class DivisionByZeroAnalyzer implements AnalyzerInterface
             function () use ($queryDataCollection) {
                 $seenDivisions = [];
 
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $query) {
                     $sql = $this->extractSQL($query);
@@ -83,7 +85,7 @@ class DivisionByZeroAnalyzer implements AnalyzerInterface
 
                     // Find all division operations
                     if (preg_match_all(self::DIVISION_PATTERN, $sql, $matches, PREG_SET_ORDER) >= 1) {
-                        assert(is_iterable($matches), '$matches must be iterable');
+                        Assert::isIterable($matches, '$matches must be iterable');
 
                         foreach ($matches as $match) {
                             $fullMatch = $match[0];

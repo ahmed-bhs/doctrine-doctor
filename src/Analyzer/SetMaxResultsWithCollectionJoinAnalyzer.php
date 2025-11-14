@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -72,7 +74,7 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements AnalyzerInterface
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $queryData) {
                     if (!$queryData->isSelect()) {
@@ -108,11 +110,8 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements AnalyzerInterface
      */
     private function hasLimitWithFetchJoin(string $sql): bool
     {
-        // Normalize SQL for easier matching
-        $sql = preg_replace('/\s+/', ' ', strtoupper($sql));
-
-        // Must have LIMIT
-        if (1 !== preg_match('/\sLIMIT\s+\d+/', (string) $sql)) {
+        // Must have LIMIT - use SQL parser
+        if (!$this->sqlExtractor->hasLimit($sql)) {
             return false;
         }
 
@@ -125,22 +124,12 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements AnalyzerInterface
         // Pattern: SELECT t0.col1, t1.col2 ... FROM table1 t0 JOIN table2 t1
         // If we select from both t0 and t1, it's a fetch join
 
-        // Extract SELECT clause
-        if (1 !== preg_match('/^SELECT\s+(.*?)\s+FROM/i', (string) $sql, $selectMatches)) {
+        // Extract table aliases from SELECT using SQL parser
+        $uniqueAliases = $this->sqlExtractor->extractTableAliasesFromSelect($sql);
+
+        if ([] === $uniqueAliases) {
             return false;
         }
-
-        $selectClause = $selectMatches[1];
-
-        // Extract table aliases from SELECT
-        // Pattern: t0_.column, t1_.column, etc.
-        preg_match_all('/(\w+)_\.\w+/', $selectClause, $aliasMatches);
-
-        if ([] === $aliasMatches[1]) {
-            return false;
-        }
-
-        $uniqueAliases = array_unique($aliasMatches[1]);
 
         // If selecting from multiple table aliases, it's likely a fetch join
         // (selecting both parent entity and joined collection)
@@ -168,31 +157,16 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements AnalyzerInterface
      */
     private function hasSingleRowJoinConstraint(string $sql): bool
     {
-        // Pattern 1: Translation pattern with locale filter
-        // Example: INNER JOIN translation t1_ ON ... AND (t1_.locale = ?)
-        // This guarantees at most 1 translation row per entity
-        if (1 === preg_match('/JOIN\s+\w+\s+\w+_\s+ON\s+.*?\s+AND\s+\(\w+_\.LOCALE\s*=\s*\?\)/i', $sql)) {
-            return true;
-        }
-
-        // Pattern 2: Direct locale equality in ON clause
-        // Example: JOIN translation t1_ ON t0_.id = t1_.entity_id AND t1_.locale = ?
-        if (1 === preg_match('/ON\s+.*?\s+AND\s+\w+_\.LOCALE\s*=\s*\?/i', $sql)) {
+        // Pattern 1 & 2: Translation pattern with locale filter
+        // Use SQL parser to detect locale constraints in JOINs
+        if ($this->sqlExtractor->hasLocaleConstraintInJoin($sql)) {
             return true;
         }
 
         // Pattern 3: Join on unique identifier (primary key on joined table)
-        // Example: JOIN user_profile t1_ ON t0_.id = t1_.user_id (where user_id is unique)
-        // This is harder to detect reliably, so we look for common naming patterns
-        // Note: This is a heuristic and may not catch all cases
-        if (1 === preg_match('/JOIN\s+\w+\s+\w+_\s+ON\s+\w+_\.ID\s*=\s*\w+_\.(?:\w+_)?ID(?:\s+WHERE|\s+AND|\s+ORDER|\s+LIMIT|$)/i', $sql)) {
-            // Only if there's exactly one JOIN condition (simple case)
-            $joinConditions = substr_count($sql, ' AND ');
-            if ($joinConditions === 0) {
-                // This might be a one-to-one relationship, but we can't be sure
-                // For now, we'll be conservative and flag it as potentially problematic
-                // unless we see other indicators
-            }
+        // Use SQL parser to detect unique JOIN constraints
+        if ($this->sqlExtractor->hasUniqueJoinConstraint($sql)) {
+            return true;
         }
 
         return false;

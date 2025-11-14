@@ -161,7 +161,7 @@ class DoctrineCacheAnalyzer implements AnalyzerInterface
         // Check if it's filesystem cache (better than array, but not optimal)
         if ($this->isFilesystemCache($cache)) {
             return $this->createIssue(
-                'medium',
+                'warning',
                 'Filesystem Cache for Metadata (Suboptimal)',
                 'metadata_cache_driver is using filesystem cache. Consider using Redis or APCu for better performance.',
                 'metadata',
@@ -182,7 +182,7 @@ class DoctrineCacheAnalyzer implements AnalyzerInterface
 
         if (!$cache instanceof CacheItemPoolInterface) {
             return $this->createIssue(
-                'high',
+                'warning',
                 'No Query Cache Configured',
                 'Query cache is not configured. DQL queries are recompiled on EVERY execution!',
                 'query',
@@ -193,7 +193,7 @@ class DoctrineCacheAnalyzer implements AnalyzerInterface
 
         if ($this->isArrayCache($cache)) {
             return $this->createIssue(
-                'high',
+                'warning',
                 'Array Cache in Production (Query)',
                 'query_cache_driver is using ArrayCache. DQL queries are recompiled on EVERY execution instead of being cached.',
                 'query',
@@ -204,7 +204,7 @@ class DoctrineCacheAnalyzer implements AnalyzerInterface
 
         if ($this->isFilesystemCache($cache)) {
             return $this->createIssue(
-                'medium',
+                'warning',
                 'Filesystem Cache for Queries (Suboptimal)',
                 'query_cache_driver is using filesystem cache. Consider using Redis or APCu for better performance.',
                 'query',
@@ -225,7 +225,7 @@ class DoctrineCacheAnalyzer implements AnalyzerInterface
 
         if (!$cache instanceof CacheItemPoolInterface) {
             return $this->createIssue(
-                'medium',
+                'warning',
                 'No Result Cache Configured',
                 'Result cache is not configured. Query results cannot be cached, missing optimization opportunities.',
                 'result',
@@ -236,7 +236,7 @@ class DoctrineCacheAnalyzer implements AnalyzerInterface
 
         if ($this->isArrayCache($cache)) {
             return $this->createIssue(
-                'medium',
+                'warning',
                 'Array Cache for Results',
                 'result_cache_driver is using ArrayCache. This provides no persistent caching across requests.',
                 'result',
@@ -316,7 +316,7 @@ class DoctrineCacheAnalyzer implements AnalyzerInterface
             // For now, we just warn if second level cache is enabled but might be using array
 
             return $this->createIssue(
-                'medium',
+                'warning',
                 'Second Level Cache Configuration',
                 'Second level cache is enabled. Ensure it uses Redis/APCu and not ArrayCache.',
                 'second_level',

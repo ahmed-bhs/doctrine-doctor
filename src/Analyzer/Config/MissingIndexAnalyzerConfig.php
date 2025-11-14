@@ -20,14 +20,23 @@ final class MissingIndexAnalyzerConfig
 {
     public function __construct(
         /**
+         * Slow query threshold in milliseconds
          * @readonly
          */
         public int $slowQueryThreshold = 50,
         /**
+         * Minimum rows scanned before suggesting an index
          * @readonly
          */
         public int $minRowsScanned = 1000,
         /**
+         * Maximum rows for acceptable filesort (1-to-many relations)
+         * Queries with ORDER BY that return <= this many rows won't trigger suggestions
+         * @readonly
+         */
+        public int $maxRowsForAcceptableFilesort = 10,
+        /**
+         * Enable or disable the analyzer
          * @readonly
          */
         public bool $enabled = true,

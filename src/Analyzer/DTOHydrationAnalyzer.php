@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -54,12 +57,16 @@ class DTOHydrationAnalyzer implements AnalyzerInterface
      */
     private const MIN_OCCURRENCES = 2;
 
+    private SqlStructureExtractor $sqlExtractor;
+
     public function __construct(
         /**
          * @readonly
          */
         private SuggestionFactory $suggestionFactory,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -80,7 +87,7 @@ class DTOHydrationAnalyzer implements AnalyzerInterface
                 // Group by pattern
                 $patterns = $this->groupQueriesByPattern($aggregationQueries);
 
-                assert(is_iterable($patterns), '$patterns must be iterable');
+                Assert::isIterable($patterns, '$patterns must be iterable');
 
                 foreach ($patterns as $pattern => $queryGroup) {
                     if (count($queryGroup) < self::MIN_OCCURRENCES) {
@@ -88,7 +95,7 @@ class DTOHydrationAnalyzer implements AnalyzerInterface
                     }
 
                     // Check if already using DTO hydration
-                    assert(is_string($pattern), 'Pattern key must be string');
+                    Assert::string($pattern, 'Pattern key must be string');
                     if ($this->usesDTOHydration($pattern)) {
                         continue;
                     }
@@ -108,7 +115,7 @@ class DTOHydrationAnalyzer implements AnalyzerInterface
 
         $result = [];
 
-        assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
         foreach ($queryDataCollection as $query) {
             $sql      = $query->sql;
@@ -143,7 +150,7 @@ class DTOHydrationAnalyzer implements AnalyzerInterface
 
         $patterns = [];
 
-        assert(is_iterable($queries), '$queries must be iterable');
+        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             $sql     = is_array($query) ? ($query['sql'] ?? '') : $query->sql;
@@ -160,19 +167,17 @@ class DTOHydrationAnalyzer implements AnalyzerInterface
     }
 
     /**
-     * Normalize query for pattern matching.
+     * Normalizes query using universal SQL parser method.
+     *
+     * Migration from regex to SQL Parser:
+     * - Replaced 4 regex patterns with SqlStructureExtractor::normalizeQuery()
+     * - More robust: properly parses SQL structure
+     * - Handles complex queries, subqueries, joins
+     * - Fallback to regex if parser fails
      */
     private function normalizeQuery(string $sql): string
     {
-        // Remove parameter values
-        $normalized = preg_replace('/\d+/', '?', $sql);
-        $normalized = preg_replace("/'[^']*'/", '?', (string) $normalized);
-        $normalized = preg_replace('/\"[^\"]*\"/', '?', (string) $normalized);
-
-        // Remove extra whitespace
-        $normalized = preg_replace('/\s+/', ' ', (string) $normalized);
-
-        return trim((string) $normalized);
+        return $this->sqlExtractor->normalizeQuery($sql);
     }
 
     /**
@@ -246,7 +251,7 @@ class DTOHydrationAnalyzer implements AnalyzerInterface
         $total = 0;
         $count = 0;
 
-        assert(is_iterable($queries), '$queries must be iterable');
+        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             if (is_array($query)) {

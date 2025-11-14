@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -78,12 +80,12 @@ class EntityManagerInEntityAnalyzer implements AnalyzerInterface
                     $metadataFactory = $this->entityManager->getMetadataFactory();
                     $allMetadata     = $metadataFactory->getAllMetadata();
 
-                    assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                    Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                     foreach ($allMetadata as $metadata) {
                         $entityIssues = $this->analyzeEntity($metadata);
 
-                        assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                         foreach ($entityIssues as $entityIssue) {
                             yield $entityIssue;
@@ -124,7 +126,7 @@ class EntityManagerInEntityAnalyzer implements AnalyzerInterface
         // Check 2: EntityManager as property (injected or created)
         $emProperties = $this->findEntityManagerProperties($reflectionClass);
 
-        assert(is_iterable($emProperties), '$emProperties must be iterable');
+        Assert::isIterable($emProperties, '$emProperties must be iterable');
 
         foreach ($emProperties as $emProperty) {
             $issue = $this->createEntityManagerPropertyIssue($entityClass, $emProperty);
@@ -136,7 +138,7 @@ class EntityManagerInEntityAnalyzer implements AnalyzerInterface
         // Check 3: EntityManager usage in methods (flush, persist, etc.)
         $methodsUsingEM = $this->findMethodsUsingEntityManager($reflectionClass);
 
-        assert(is_iterable($methodsUsingEM), '$methodsUsingEM must be iterable');
+        Assert::isIterable($methodsUsingEM, '$methodsUsingEM must be iterable');
 
         foreach ($methodsUsingEM as $methodUsing) {
             $issue = $this->createEntityManagerUsageIssue($entityClass, $methodUsing);
@@ -256,7 +258,7 @@ class EntityManagerInEntityAnalyzer implements AnalyzerInterface
                 '/\$em->persist\(/',
             ];
 
-            assert(is_iterable($emPatterns), '$emPatterns must be iterable');
+            Assert::isIterable($emPatterns, '$emPatterns must be iterable');
 
             foreach ($emPatterns as $emPattern) {
                 if (1 === preg_match($emPattern, $methodCode)) {
@@ -278,7 +280,7 @@ class EntityManagerInEntityAnalyzer implements AnalyzerInterface
             EntityManager::class,
         ];
 
-        assert(is_iterable($entityManagerTypes), '$entityManagerTypes must be iterable');
+        Assert::isIterable($entityManagerTypes, '$entityManagerTypes must be iterable');
 
         foreach ($entityManagerTypes as $entityManagerType) {
             if (str_contains($typeName, $entityManagerType)) {

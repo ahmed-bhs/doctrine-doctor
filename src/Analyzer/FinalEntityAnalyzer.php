@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use ReflectionClass;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects final entity classes that can cause problems with Doctrine proxies.
@@ -69,7 +70,7 @@ class FinalEntityAnalyzer implements AnalyzerInterface
                     return IssueCollection::empty();
                 }
 
-                assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                 foreach ($allMetadata as $metadata) {
                     // Skip already checked entities
@@ -104,7 +105,7 @@ class FinalEntityAnalyzer implements AnalyzerInterface
         $entityClass = $classMetadata->getName();
 
         // ClassMetadata always provides valid class name
-        assert(class_exists($entityClass));
+        Assert::classExists($entityClass);
         $reflectionClass = new ReflectionClass($entityClass);
 
         // Entity is not final, all good
@@ -161,7 +162,7 @@ class FinalEntityAnalyzer implements AnalyzerInterface
                 count($lazyAssociations),
             );
 
-            assert(is_iterable($lazyAssociations), '$lazyAssociations must be iterable');
+            Assert::isIterable($lazyAssociations, '$lazyAssociations must be iterable');
 
             foreach ($lazyAssociations as $assocName => $targetEntity) {
                 $description .= sprintf(

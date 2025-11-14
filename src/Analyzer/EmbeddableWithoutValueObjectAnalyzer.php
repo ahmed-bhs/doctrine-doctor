@@ -23,6 +23,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use ReflectionClass;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects Embeddables that don't implement typical Value Object methods.
@@ -53,20 +54,22 @@ class EmbeddableWithoutValueObjectAnalyzer implements AnalyzerInterface
         /**
          * @readonly
          */
-        private IssueFactoryInterface $issueFactory,
+        private IssueFactoryInterface  $issueFactory,
         /**
          * @readonly
          */
-        private SuggestionFactory $suggestionFactory,
-    ) {
+        private SuggestionFactory      $suggestionFactory,
+    )
+    {
     }
 
-    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+    public function analyze(QueryDataCollection $queryDataCollection)
+    : IssueCollection
     {
         return IssueCollection::fromGenerator(
-            /**
-             * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
-             */
+        /**
+         * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
+         */
             function () {
                 $classMetadataFactory = $this->entityManager->getMetadataFactory();
 
@@ -78,7 +81,7 @@ class EmbeddableWithoutValueObjectAnalyzer implements AnalyzerInterface
 
                     $entityIssues = $this->analyzeEmbeddable($classMetadatum);
 
-                    assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -92,11 +95,12 @@ class EmbeddableWithoutValueObjectAnalyzer implements AnalyzerInterface
      * @param ClassMetadata<object> $classMetadata
      * @return array<\AhmedBhs\DoctrineDoctor\Issue\IssueInterface>
      */
-    private function analyzeEmbeddable(ClassMetadata $classMetadata): array
+    private function analyzeEmbeddable(ClassMetadata $classMetadata)
+    : array
     {
-        $issues          = [];
-        $className       = $classMetadata->getName();
-        assert(class_exists($className));
+        $issues    = [];
+        $className = $classMetadata->getName();
+        Assert::classExists($className);
         $reflectionClass = new ReflectionClass($className);
 
         $missingMethods = [];
@@ -139,7 +143,8 @@ class EmbeddableWithoutValueObjectAnalyzer implements AnalyzerInterface
         return $issues;
     }
 
-    private function getMethodSource(\ReflectionMethod $reflectionMethod): string
+    private function getMethodSource(\ReflectionMethod $reflectionMethod)
+    : string
     {
         $filename = $reflectionMethod->getFileName();
 
@@ -170,11 +175,13 @@ class EmbeddableWithoutValueObjectAnalyzer implements AnalyzerInterface
      */
     private function createMissingMethodsIssue(
         ClassMetadata $classMetadata,
-        array $missingMethods,
-    ): IssueInterface {
-        $className      = $classMetadata->getName();
+        array         $missingMethods,
+    )
+    : IssueInterface
+    {
+        $className        = $classMetadata->getName();
         $lastBackslashPos = strrpos($className, '\\');
-        $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
+        $shortClassName   = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
             'Embeddable %s does not implement typical Value Object methods. ' .
@@ -186,14 +193,14 @@ class EmbeddableWithoutValueObjectAnalyzer implements AnalyzerInterface
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'embeddable_without_value_object_methods',
-            'title'       => sprintf('Incomplete Value Object: %s', $shortClassName),
+            'type' => 'embeddable_without_value_object_methods',
+            'title' => sprintf('Incomplete Value Object: %s', $shortClassName),
             'description' => $description,
-            'severity'    => 'info',
-            'category'    => 'code_quality',
-            'suggestion'  => $this->createValueObjectSuggestion($shortClassName, $missingMethods),
-            'backtrace'   => [
-                'embeddable'      => $className,
+            'severity' => 'info',
+            'category' => 'code_quality',
+            'suggestion' => $this->createValueObjectSuggestion($shortClassName, $missingMethods),
+            'backtrace' => [
+                'embeddable' => $className,
                 'missing_methods' => $missingMethods,
             ],
         ]);
@@ -204,13 +211,15 @@ class EmbeddableWithoutValueObjectAnalyzer implements AnalyzerInterface
      */
     private function createValueObjectSuggestion(
         string $className,
-        array $missingMethods,
-    ): SuggestionInterface {
+        array  $missingMethods,
+    )
+    : SuggestionInterface
+    {
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'embeddable_value_object_methods',
             context: [
                 'embeddable_class' => $className,
-                'missing_methods'  => $missingMethods,
+                'missing_methods' => $missingMethods,
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::codeQuality(),

@@ -24,6 +24,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use ReflectionClass;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects foreign keys mapped as primitive types instead of object relations.
@@ -51,10 +52,35 @@ class ForeignKeyMappingAnalyzer implements AnalyzerInterface
 
     /**
      * Entity name patterns that are likely referenced entities.
+     * More conservative list to avoid false positives.
      */
     private const ENTITY_PATTERNS = [
-        'user', 'customer', 'account', 'product', 'order', 'category',
-        'company', 'organization', 'team', 'group', 'role', 'permission',
+        'user', 'customer', 'account', 'product', 'category',
+        'company', 'organization', 'team', 'role', 'permission',
+        'author', 'publisher', 'supplier', 'vendor', 'manufacturer',
+        'country', 'state', 'province', 'city', 'region',
+        'currency', 'language', 'locale', 'timezone',
+    ];
+
+    /**
+     * Patterns that indicate a field is NOT a foreign key.
+     * These are typically configuration, counting, or measurement fields.
+     */
+    private const NON_FK_PATTERNS = [
+        'number', 'amount', 'quantity', 'total', 'sum', 'count',
+        'days', 'hours', 'minutes', 'seconds', 'duration', 'period',
+        'age', 'year', 'month', 'week', 'date', 'time',
+        'size', 'length', 'width', 'height', 'weight', 'volume',
+        'price', 'cost', 'fee', 'rate', 'tax', 'discount',
+        'status', 'level', 'priority', 'type', 'kind',
+        'position', 'index', 'order', 'sort', 'rank', 'score',
+        'version', 'revision', 'build', 'release',
+        'limit', 'max', 'min', 'threshold', 'boundary',
+        'flag', 'enabled', 'disabled', 'active', 'inactive',
+        'configuration', 'setting', 'option', 'parameter',
+        'expiration', 'expiry', 'timeout', 'delay',
+        'code', 'hash', 'token', 'key', 'secret',
+        'percentage', 'ratio', 'proportion', 'factor',
     ];
 
     public function __construct(
@@ -79,12 +105,12 @@ class ForeignKeyMappingAnalyzer implements AnalyzerInterface
                 $classMetadataFactory = $this->entityManager->getMetadataFactory();
                 $allMetadata          = $classMetadataFactory->getAllMetadata();
 
-                assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                 foreach ($allMetadata as $metadata) {
                     $entityIssues = $this->analyzeEntity($metadata, $allMetadata);
 
-                    assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -106,7 +132,7 @@ class ForeignKeyMappingAnalyzer implements AnalyzerInterface
         // Get all field mappings (excluding associations)
         $fieldMappings = $classMetadata->fieldMappings;
 
-        assert(is_iterable($fieldMappings), '$fieldMappings must be iterable');
+        Assert::isIterable($fieldMappings, '$fieldMappings must be iterable');
 
         foreach ($fieldMappings as $fieldName => $mapping) {
             // Skip non-integer fields (foreign keys are typically integers)
@@ -134,26 +160,120 @@ class ForeignKeyMappingAnalyzer implements AnalyzerInterface
 
     /**
      * Check if field name suggests it's a foreign key.
+     * Uses improved heuristics to reduce false positives.
      */
     private function isForeignKeyField(string $fieldName): bool
     {
-        // Check common FK suffixes
+        $lowerFieldName = strtolower($fieldName);
+
+        // Check common FK suffixes first (strongest indicator)
+        // This takes priority over non-FK patterns to avoid "countryId" vs "count" issues
         foreach (self::FK_SUFFIXES as $suffix) {
-            if (str_ends_with($fieldName, $suffix)) {
+            if (str_ends_with($lowerFieldName, strtolower($suffix)) && $lowerFieldName !== 'id') {
                 return true;
             }
         }
 
-        // Check if field name contains entity patterns
-        $lowerFieldName = strtolower($fieldName);
+        // Then check if this field is explicitly NOT a foreign key
+        // Only apply if it doesn't have a strong FK suffix
+        if ($this->isNonForeignKeyField($lowerFieldName)) {
+            return false;
+        }
 
+        // Check if field name contains entity patterns AND is a simple reference
+        // More restrictive: only match if it's a simple entity reference
         foreach (self::ENTITY_PATTERNS as $pattern) {
             if (str_contains($lowerFieldName, $pattern)) {
+                // Additional check: ensure it's not compound with non-FK patterns
+                if ($this->isSimpleEntityReference($lowerFieldName, $pattern)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if field is explicitly NOT a foreign key based on patterns.
+     */
+    private function isNonForeignKeyField(string $lowerFieldName): bool
+    {
+        foreach (self::NON_FK_PATTERNS as $pattern) {
+            if ($this->containsAsWholeWord($lowerFieldName, $pattern)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Check if a pattern appears as a whole word or suffix in the field name.
+     * This prevents false positives like "countryId" matching "count".
+     */
+    private function containsAsWholeWord(string $fieldName, string $pattern): bool
+    {
+        $patternLength = strlen($pattern);
+        $fieldLength = strlen($fieldName);
+
+        // Check if pattern appears at the end (suffix)
+        if (str_ends_with($fieldName, $pattern)) {
+            return true;
+        }
+
+        // Check if pattern appears at the beginning
+        if (str_starts_with($fieldName, $pattern)) {
+            return true;
+        }
+
+        // Check if pattern appears in the middle with word boundaries
+        $pos = strpos($fieldName, $pattern);
+        if ($pos === false) {
+            return false;
+        }
+
+        // Must have word boundaries before and after
+        $before = ($pos === 0) || !ctype_alpha($fieldName[$pos - 1]);
+        $after = ($pos + $patternLength === $fieldLength) || !ctype_alpha($fieldName[$pos + $patternLength]);
+
+        return $before && $after;
+    }
+
+    /**
+     * Check if a field is a simple entity reference (not compound).
+     * Examples:
+     * - GOOD: userId, customerId, productId
+     * - BAD: orderExpirationDays, userAge, productCount
+     */
+    private function isSimpleEntityReference(string $fieldName, string $entityPattern): bool
+    {
+        // Check if the field is exactly the entity name + optional suffix
+        $patternParts = [
+            $entityPattern,
+            $entityPattern . '_id',
+            $entityPattern . 'id',
+            $entityPattern . '_uid',
+            $entityPattern . 'uid',
+        ];
+
+        foreach ($patternParts as $pattern) {
+            if ($fieldName === $pattern) {
+                return true;
+            }
+        }
+
+        // Additional check: if it contains entity pattern but is much longer,
+        // it's likely compound (like orderExpirationDays)
+        $entityLength = strlen($entityPattern);
+        $fieldLength = strlen($fieldName);
+
+        // If field is significantly longer than entity pattern, it's compound
+        if ($fieldLength > $entityLength + 6) { // Allow for _id suffix
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -174,7 +294,7 @@ class ForeignKeyMappingAnalyzer implements AnalyzerInterface
         // Check if there's an association with this base name
         $associations = $classMetadata->getAssociationNames();
 
-        assert(is_iterable($associations), '$associations must be iterable');
+        Assert::isIterable($associations, '$associations must be iterable');
 
         foreach ($associations as $association) {
             if (strtolower($association) === strtolower($baseName)) {
@@ -246,7 +366,7 @@ class ForeignKeyMappingAnalyzer implements AnalyzerInterface
         // Try to find matching entity
         $baseNameLower = strtolower($baseName);
 
-        assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+        Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
         foreach ($allMetadata as $metadata) {
             $className = $metadata->getName();
@@ -309,7 +429,7 @@ class ForeignKeyMappingAnalyzer implements AnalyzerInterface
     private function createEntityFieldBacktrace(string $entityClass, string $fieldName): ?array
     {
         try {
-            assert(class_exists($entityClass));
+            Assert::classExists($entityClass);
             $reflectionClass = new ReflectionClass($entityClass);
             $fileName        = $reflectionClass->getFileName();
 

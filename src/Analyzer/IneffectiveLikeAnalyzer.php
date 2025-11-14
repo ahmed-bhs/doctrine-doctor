@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -59,7 +61,7 @@ class IneffectiveLikeAnalyzer implements AnalyzerInterface
             function () use ($queryDataCollection) {
                 $seenIssues = [];
 
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $query) {
                     $sql = $this->extractSQL($query);
@@ -74,7 +76,7 @@ class IneffectiveLikeAnalyzer implements AnalyzerInterface
 
                     // Detect LIKE with leading wildcard
                     if (preg_match_all(self::LIKE_LEADING_WILDCARD_PATTERN, $sql, $matches, PREG_SET_ORDER) >= 1) {
-                        assert(is_iterable($matches), '$matches must be iterable');
+                        Assert::isIterable($matches, '$matches must be iterable');
 
                         foreach ($matches as $match) {
                             $pattern = $match[2]; // The LIKE pattern (e.g., '%search%')
@@ -150,28 +152,28 @@ class IneffectiveLikeAnalyzer implements AnalyzerInterface
     ): PerformanceIssue {
         $backtrace = $this->extractBacktrace($query);
 
-        // Determine severity based on execution time and pattern
+        // Determine severity based on execution time
+        // Leading wildcard LIKE patterns are ALWAYS problematic (prevent index usage)
+        // even with good current performance. The severity reflects the urgency:
+        // < 100ms: WARNING - Pattern is technically problematic, will degrade with data growth
+        // >= 100ms: CRITICAL - Already slow, immediate action required
+        // This proactive approach helps catch issues in dev (small datasets) before production
         $severity = match (true) {
-            $executionTime > 200 => Severity::critical(),
-            $executionTime > 50 => Severity::warning(),
-            default => Severity::info(),
+            $executionTime >= 100 => Severity::critical(),
+            default => Severity::warning(), // Always warn - pattern prevents index usage
         };
 
         $likeType = $this->getLikeType($pattern);
 
+        // Adapt title and description based on execution time
+        [$title, $description] = $this->buildTitleAndDescription($pattern, $likeType, $executionTime, $severity);
+
         $issueData = new IssueData(
             type: 'ineffective_like_pattern',
-            title: 'Ineffective LIKE Pattern Detected',
-            description: sprintf(
-                "Query uses LIKE with leading wildcard (%s), forcing full table scan. " .
-                "This query took %.2fms. Consider using full-text search or moving wildcard to the end if possible. " .
-                "Pattern: LIKE '%s'",
-                $likeType,
-                $executionTime,
-                $pattern,
-            ),
+            title: $title,
+            description: $description,
             severity: $severity,
-            suggestion: $this->createIneffectiveLikeSuggestion($pattern, $sql, $likeType),
+            suggestion: $this->createIneffectiveLikeSuggestion($pattern, $sql, $likeType, $executionTime, $severity),
             queries: [],
             backtrace: $backtrace,
         );
@@ -208,24 +210,76 @@ class IneffectiveLikeAnalyzer implements AnalyzerInterface
     }
 
     /**
+     * Build title and description based on execution time and severity.
+     * @return array{string, string}
+     */
+    private function buildTitleAndDescription(
+        string $pattern,
+        string $likeType,
+        float $executionTime,
+        Severity $severity,
+    ): array {
+        $executionTimeStr = sprintf('%.2fms', $executionTime);
+
+        if ($severity->isCritical()) {
+            // >= 100ms: Critical - already slow, immediate action needed
+            $title = sprintf('LIKE Pattern Causing Slow Query (%s)', $executionTimeStr);
+            $description = sprintf(
+                "Query uses LIKE with leading wildcard (%s), forcing full table scan. " .
+                "**This query is already slow (%s)** and will get worse as data grows. " .
+                "Immediate action required: Consider using full-text search (MATCH AGAINST) or redesigning the search functionality. " .
+                "Pattern: LIKE '%s'",
+                $likeType,
+                $executionTimeStr,
+                $pattern,
+            );
+        } else {
+            // < 100ms: Warning - pattern is problematic, will degrade with scale
+            // Even with good current performance (common in dev/small datasets),
+            // this pattern prevents index usage and will cause issues at scale
+            $title = sprintf('LIKE Pattern Prevents Index Usage (%s)', $executionTimeStr);
+            $description = sprintf(
+                "Query uses LIKE with leading wildcard (%s), which **prevents index usage and forces full table scan**. " .
+                "Current performance is %s, but this pattern will degrade significantly as your dataset grows (common in production). " .
+                "**Action recommended**: Use full-text search (MATCH AGAINST) for better scalability, or redesign to avoid leading wildcards. " .
+                "Pattern: LIKE '%s'",
+                $likeType,
+                $executionTimeStr,
+                $pattern,
+            );
+        }
+
+        return [$title, $description];
+    }
+
+    /**
      * Create suggestion for ineffective LIKE pattern.
      */
     private function createIneffectiveLikeSuggestion(
         string $pattern,
         string $sql,
         string $likeType,
+        float $executionTime,
+        Severity $severity,
     ): mixed {
+        // Adapt suggestion title based on severity
+        $suggestionSeverity = $severity;
+        $suggestionTitle = $severity->isCritical()
+            ? 'Replace LIKE with full-text search (urgent performance issue)'
+            : 'Replace LIKE with full-text search (prevents index usage)';
+
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'ineffective_like',
             context: [
                 'pattern' => $pattern,
                 'like_type' => $likeType,
                 'original_query' => $sql,
+                'execution_time' => $executionTime,
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::performance(),
-                severity: Severity::warning(),
-                title: 'Replace LIKE with full-text search or optimize pattern',
+                severity: $suggestionSeverity,
+                title: $suggestionTitle,
                 tags: ['performance', 'index', 'like', 'full-text-search'],
             ),
         );

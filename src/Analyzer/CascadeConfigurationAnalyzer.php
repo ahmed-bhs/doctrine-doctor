@@ -21,6 +21,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
+use Webmozart\Assert\Assert;
 
 /**
  * Analyzes cascaconfiguration on entity associations.
@@ -71,12 +72,12 @@ class CascadeConfigurationAnalyzer implements AnalyzerInterface
                     $metadataFactory = $this->entityManager->getMetadataFactory();
                     $allMetadata     = $metadataFactory->getAllMetadata();
 
-                    assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                    Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                     foreach ($allMetadata as $metadata) {
                         $entityIssues = $this->analyzeEntity($metadata);
 
-                        assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                         foreach ($entityIssues as $entityIssue) {
                             yield $entityIssue;
@@ -469,7 +470,7 @@ class CascadeConfigurationAnalyzer implements AnalyzerInterface
     private function createEntityFieldBacktrace(string $entityClass, string $fieldName): ?array
     {
         try {
-            assert(class_exists($entityClass));
+            Assert::classExists($entityClass);
             $reflectionClass = new ReflectionClass($entityClass);
             $fileName        = $reflectionClass->getFileName();
 

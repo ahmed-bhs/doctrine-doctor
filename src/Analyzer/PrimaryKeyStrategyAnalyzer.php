@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -73,7 +75,7 @@ class PrimaryKeyStrategyAnalyzer implements AnalyzerInterface
 
                 $statistics = $this->gatherStatistics($allMetadata);
 
-                assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                 foreach ($allMetadata as $metadata) {
                     // Skip mapped superclasses and embeddables
@@ -183,7 +185,7 @@ class PrimaryKeyStrategyAnalyzer implements AnalyzerInterface
             'uuidEntities' => [],
         ];
 
-        assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+        Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
         foreach ($allMetadata as $metadata) {
             if ($metadata->isMappedSuperclass) {

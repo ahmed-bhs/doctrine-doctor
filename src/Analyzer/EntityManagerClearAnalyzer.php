@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -20,6 +23,8 @@ use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 
 class EntityManagerClearAnalyzer implements AnalyzerInterface
 {
+    private SqlStructureExtractor $sqlExtractor;
+
     public function __construct(
         /**
          * @readonly
@@ -33,7 +38,9 @@ class EntityManagerClearAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private int $batchSizeThreshold = 20,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -47,13 +54,21 @@ class EntityManagerClearAnalyzer implements AnalyzerInterface
                 $insertUpdateQueries = [];
 
                 // Group INSERT/UPDATE/DELETE queries by table
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $index => $queryData) {
-                    // Extract table name
-                    if (($queryData->isInsert() || $queryData->isUpdate() || $queryData->isDelete()) && 1 === preg_match('/(?:INSERT INTO|UPDATE|DELETE FROM)\s+([^\s(]+)/i', $queryData->sql, $matches)) {
-                        $table = $matches[1];
+                    // Extract table name using SQL parser
+                    $table = null;
 
+                    if ($queryData->isInsert()) {
+                        $table = $this->sqlExtractor->detectInsertQuery($queryData->sql);
+                    } elseif ($queryData->isUpdate()) {
+                        $table = $this->sqlExtractor->detectUpdateQuery($queryData->sql);
+                    } elseif ($queryData->isDelete()) {
+                        $table = $this->sqlExtractor->detectDeleteQuery($queryData->sql);
+                    }
+
+                    if (null !== $table) {
                         if (!isset($insertUpdateQueries[$table])) {
                             $insertUpdateQueries[$table] = [];
                         }
@@ -66,7 +81,7 @@ class EntityManagerClearAnalyzer implements AnalyzerInterface
                 }
 
                 // Detect potential batch operations without clear()
-                assert(is_iterable($insertUpdateQueries), '$insertUpdateQueries must be iterable');
+                Assert::isIterable($insertUpdateQueries, '$insertUpdateQueries must be iterable');
 
                 foreach ($insertUpdateQueries as $table => $tableQueries) {
                     $count = count($tableQueries);
@@ -78,7 +93,7 @@ class EntityManagerClearAnalyzer implements AnalyzerInterface
                         if ($isSequential) {
                             $queryDetails = [];
 
-                            assert(is_iterable($tableQueries), '$tableQueries must be iterable');
+                            Assert::isIterable($tableQueries, '$tableQueries must be iterable');
 
                             foreach ($tableQueries as $tableQuery) {
                                 $queryData = $tableQuery['query'];

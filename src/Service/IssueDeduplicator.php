@@ -255,6 +255,8 @@ final class IssueDeduplicator
 
         // Define priority weights for different issue types
         $priorities = [
+            'Bulk Operation' => 110, // Higher than N+1 - bulk operations are critical
+            'Inefficient Bulk' => 110, // Alternative title pattern
             'N+1 Query' => 100,
             'Missing Index' => 90,
             'Lazy Loading' => 80,
@@ -305,7 +307,9 @@ final class IssueDeduplicator
     private function getSeverityWeight(Severity $severity): int
     {
         return match ($severity) {
-            Severity::CRITICAL => 3,
+            Severity::CRITICAL => 5,
+            Severity::WARNING => 4,
+            Severity::WARNING => 3,
             Severity::WARNING => 2,
             Severity::INFO => 1,
         };

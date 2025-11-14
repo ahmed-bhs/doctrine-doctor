@@ -20,22 +20,28 @@ use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 
 /**
- * Analyzes database connection pool configuration.
+ * Analyzes database connection pool configuration and performance settings.
  * Checks max_connections and recommends optimal settings.
  * Platform-specific issues detected:
  * - MySQL/MariaDB:
  *   - Low max_connections setting
  *   - High connection pool utilization
- *   - High wait_timeout
+ *   - Query cache enabled (deprecated)
+ *   - InnoDB flush log at trx commit
+ *   - Binary logs enabled
+ *   - Buffer pool size too small
  * - PostgreSQL:
  *   - Low max_connections (uses more RAM than MySQL)
  *   - idle_in_transaction_session_timeout = 0 (CRITICAL!)
  *   - No statement_timeout
  *   - Recommendation for pgbouncer
+ *   - shared_buffers too small
+ *   - work_mem too small
+ *   - synchronous_commit in dev
  * Platform compatibility:
  * - MySQL: Full support
  * - MariaDB: Full support
- * - PostgreSQL: Full support (NEW!)
+ * - PostgreSQL: Full support
  * - SQLite: ⏭️ Skipped (embedded database)
  * - Doctrine DBAL: 2.x and 3.x+ compatible
  */
@@ -85,11 +91,15 @@ class ConnectionPoolingAnalyzer implements AnalyzerInterface
                     // Delegate to platform-specific strategy
                     $strategy = $strategyFactory->createStrategy();
 
-                    if (!$strategy->supportsFeature('pooling')) {
-                        return;
+                    // Analyze connection pooling
+                    if ($strategy->supportsFeature('pooling')) {
+                        yield from $strategy->analyzeConnectionPooling();
                     }
 
-                    yield from $strategy->analyzeConnectionPooling();
+                    // Analyze performance configuration
+                    if ($strategy->supportsFeature('performance')) {
+                        yield from $strategy->analyzePerformanceConfig();
+                    }
                 } catch (\Throwable $throwable) {
                     $this->logger?->error('ConnectionPoolingAnalyzer failed', [
                         'exception' => $throwable::class,

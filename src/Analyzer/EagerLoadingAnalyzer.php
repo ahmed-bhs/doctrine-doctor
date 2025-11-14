@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -22,6 +25,8 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 
 class EagerLoadingAnalyzer implements AnalyzerInterface
 {
+    private SqlStructureExtractor $sqlExtractor;
+
     public function __construct(
         /**
          * @readonly
@@ -39,7 +44,9 @@ class EagerLoadingAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private int $criticalJoinThreshold = 7,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -50,7 +57,7 @@ class EagerLoadingAnalyzer implements AnalyzerInterface
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $queryData) {
                     $joinCount = $this->countJoins($queryData->sql);
@@ -81,10 +88,11 @@ class EagerLoadingAnalyzer implements AnalyzerInterface
 
     private function countJoins(string $sql): int
     {
-        // Count all JOINs by simply counting the keyword "JOIN"
-        // This catches: INNER JOIN, LEFT JOIN, LEFT OUTER JOIN, RIGHT JOIN, FULL JOIN, CROSS JOIN, JOIN
-        $count = preg_match_all('/\bJOIN\b/i', $sql);
-        return false === $count ? 0 : $count;
+        // Use SQL parser to count JOINs
+        // Properly handles all JOIN types: INNER, LEFT, RIGHT, FULL, CROSS, etc.
+        $joins = $this->sqlExtractor->extractJoins($sql);
+
+        return count($joins);
     }
 
     private function generateSuggestion(int $joinCount): SuggestionInterface

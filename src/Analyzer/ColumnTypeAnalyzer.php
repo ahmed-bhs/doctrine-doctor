@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -78,12 +80,12 @@ class ColumnTypeAnalyzer implements AnalyzerInterface
                     $metadataFactory = $this->entityManager->getMetadataFactory();
                     $allMetadata     = $metadataFactory->getAllMetadata();
 
-                    assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                    Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                     foreach ($allMetadata as $metadata) {
                         $entityIssues = $this->analyzeEntity($metadata);
 
-                        assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                         foreach ($entityIssues as $entityIssue) {
                             yield $entityIssue;
@@ -191,7 +193,10 @@ class ColumnTypeAnalyzer implements AnalyzerInterface
         array $typeInfo,
     ): CodeQualityIssue {
         $shortClassName = $this->getShortClassName($entityClass);
+        $isVendor = $this->isVendorEntity($entityClass);
 
+        // Adjust severity and message for vendor entities
+        $severity = $typeInfo['severity'];
         $description = sprintf(
             'Field "%s::$%s" uses deprecated type "%s". %s. ' .
             'Use "%s" type instead for better security, performance, and maintainability.',
@@ -202,13 +207,36 @@ class ColumnTypeAnalyzer implements AnalyzerInterface
             $typeInfo['replacement'],
         );
 
+        if ($isVendor) {
+            // Downgrade severity for vendor code
+            $severity = 'critical' === $severity ? 'warning' : 'info';
+
+            $description .= sprintf(
+                "\n\nWARNING: This entity is from a vendor dependency. " .
+                "You cannot modify it directly. Consider:\n" .
+                "1. Creating a local entity that extends this class and overrides the field mapping\n" .
+                "2. Opening an issue/PR with the vendor to migrate to JSON\n" .
+                "3. Accepting this as a known vendor limitation",
+            );
+        }
+
         return new CodeQualityIssue([
-            'title'       => sprintf('Problematic column type "%s" in %s::$%s', $type, $shortClassName, $fieldName),
+            'title'       => sprintf(
+                'Problematic column type "%s" in %s::$%s%s',
+                $type,
+                $shortClassName,
+                $fieldName,
+                $isVendor ? ' (vendor dependency)' : ''
+            ),
             'description' => $description,
-            'severity'    => $typeInfo['severity'],
+            'severity'    => $severity,
             'suggestion'  => $this->suggestionFactory->createCodeSuggestion(
-                description: sprintf('Replace "%s" type with "%s"', $type, $typeInfo['replacement']),
-                code: $this->generateTypeReplacementCode($entityClass, $fieldName, $type),
+                description: $isVendor
+                    ? sprintf('Vendor entity - consider creating local override or opening vendor issue')
+                    : sprintf('Replace "%s" type with "%s"', $type, $typeInfo['replacement']),
+                code: $isVendor
+                    ? $this->generateVendorOverrideCode($entityClass, $fieldName, $type, $typeInfo['replacement'])
+                    : $this->generateTypeReplacementCode($entityClass, $fieldName, $type),
                 filePath: $entityClass,
             ),
             'backtrace' => null,
@@ -300,7 +328,7 @@ class ColumnTypeAnalyzer implements AnalyzerInterface
 
         $lowerFieldName = strtolower($fieldName);
 
-        assert(is_iterable($enumPatterns), '$enumPatterns must be iterable');
+        Assert::isIterable($enumPatterns, '$enumPatterns must be iterable');
 
         foreach ($enumPatterns as $enumPattern) {
             if (str_contains($lowerFieldName, $enumPattern)) {
@@ -538,6 +566,60 @@ class ColumnTypeAnalyzer implements AnalyzerInterface
 
         return $code . "}
 ";
+    }
+
+    /**
+     * Check if an entity class is from a vendor dependency.
+     * Simply checks if the file path contains /vendor/ directory.
+     */
+    private function isVendorEntity(string $entityClass): bool
+    {
+        try {
+            $reflectionClass = new \ReflectionClass($entityClass);
+            $filename = $reflectionClass->getFileName();
+
+            if (false === $filename) {
+                return false;
+            }
+
+            // Check if file is in vendor directory
+            return str_contains($filename, '/vendor/') || str_contains($filename, '\\vendor\\');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Generate code suggestion for overriding vendor entity field.
+     */
+    private function generateVendorOverrideCode(
+        string $vendorEntityClass,
+        string $fieldName,
+        string $oldType,
+        string $newType
+    ): string {
+        $vendorShortName = $this->getShortClassName($vendorEntityClass);
+
+        $code = "Vendor entity - cannot modify directly.
+
+";
+        $code .= "Options:
+";
+        $code .= "1. Create local entity extending {$vendorShortName} with overridden field
+";
+        $code .= "2. Open issue with vendor ({$vendorEntityClass})
+";
+        $code .= "3. Accept as vendor limitation
+
+";
+        $code .= "If creating override:
+";
+        $code .= "#[ORM\Column(type: '{$newType}')]
+";
+        $code .= "protected \${$fieldName};
+";
+
+        return $code;
     }
 
     private function getShortClassName(string $fullClassName): string

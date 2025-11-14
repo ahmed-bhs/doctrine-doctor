@@ -24,6 +24,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use ReflectionClass;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects cascade="persist" on associations to independent entities.
@@ -92,12 +93,12 @@ class CascadePersistOnIndependentEntityAnalyzer implements AnalyzerInterface
                 // Build reference count map (how many entities reference each entity)
                 $referenceCountMap = $this->buildReferenceCountMap($allMetadata);
 
-                assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                 foreach ($allMetadata as $metadata) {
                     $entityIssues = $this->analyzeEntity($metadata, $referenceCountMap);
 
-                    assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -126,7 +127,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements AnalyzerInterface
 
         $map = [];
 
-        assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+        Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
         foreach ($allMetadata as $metadata) {
             foreach ($metadata->getAssociationMappings() as $mapping) {
@@ -280,7 +281,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements AnalyzerInterface
 
         // High: Heavily referenced entities
         if ($referenceCount >= 5) {
-            return 'high';
+            return 'warning';
         }
 
         // Warning: Moderately referenced
@@ -382,7 +383,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements AnalyzerInterface
     private function createEntityFieldBacktrace(string $entityClass, string $fieldName): ?array
     {
         try {
-            assert(class_exists($entityClass));
+            Assert::classExists($entityClass);
             $reflectionClass = new ReflectionClass($entityClass);
             $fileName        = $reflectionClass->getFileName();
 

@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
@@ -53,12 +56,16 @@ class PartialObjectAnalyzer implements AnalyzerInterface
         'SET',
     ];
 
+    private SqlStructureExtractor $sqlExtractor;
+
     public function __construct(
         /**
          * @readonly
          */
         private int $threshold = 5,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -79,7 +86,7 @@ class PartialObjectAnalyzer implements AnalyzerInterface
                 // Group queries by their DQL pattern
                 $queryPatterns = $this->groupQueriesByPattern(QueryDataCollection::fromArray($queriesArray));
 
-                assert(is_iterable($queryPatterns), '$queryPatterns must be iterable');
+                Assert::isIterable($queryPatterns, '$queryPatterns must be iterable');
 
                 foreach ($queryPatterns as $pattern => $queryGroup) {
                     if (count($queryGroup) < $this->threshold) {
@@ -87,8 +94,12 @@ class PartialObjectAnalyzer implements AnalyzerInterface
                     }
 
                     // Check if queries are loading full entities
-                    assert(is_string($pattern), 'Pattern key must be string');
-                    if ($this->isFullEntityLoad($pattern)) {
+                    // Use first query's original SQL (not normalized pattern) for detection
+                    Assert::string($pattern, 'Pattern key must be string');
+                    $firstQuery = $queryGroup[0];
+                    $originalSql = $firstQuery->sql;
+
+                    if ($this->isFullEntityLoad($originalSql)) {
                         $issue = $this->createPartialObjectIssue($queryGroup);
                         yield $issue;
                     }
@@ -115,7 +126,7 @@ class PartialObjectAnalyzer implements AnalyzerInterface
 
         $patterns = [];
 
-        assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
         foreach ($queryDataCollection as $query) {
             $sql = $query->sql;
@@ -155,19 +166,17 @@ class PartialObjectAnalyzer implements AnalyzerInterface
     }
 
     /**
-     * Normalize query to detect patterns.
+     * Normalizes query using universal SQL parser method.
+     *
+     * Migration from regex to SQL Parser:
+     * - Replaced 4 regex patterns with SqlStructureExtractor::normalizeQuery()
+     * - More robust: properly parses SQL structure
+     * - Handles complex queries, subqueries, joins
+     * - Fallback to regex if parser fails
      */
     private function normalizeQuery(string $sql): string
     {
-        // Remove parameter values
-        $normalized = preg_replace('/\d+/', '?', $sql);
-        $normalized = preg_replace("/'[^']*'/", '?', (string) $normalized);
-        $normalized = preg_replace('/\"[^\"]*\"/', '?', (string) $normalized);
-
-        // Remove extra whitespace
-        $normalized = preg_replace('/\s+/', ' ', (string) $normalized);
-
-        return trim((string) $normalized);
+        return $this->sqlExtractor->normalizeQuery($sql);
     }
 
     /**
@@ -253,7 +262,7 @@ class PartialObjectAnalyzer implements AnalyzerInterface
         $total = 0;
         $count = 0;
 
-        assert(is_iterable($queries), '$queries must be iterable');
+        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             if ($query instanceof QueryData) {

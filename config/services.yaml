@@ -36,7 +36,7 @@ services:
     # Tag all analyzers automatically
     AhmedBhs\DoctrineDoctor\Analyzer\:
         resource: '../src/Analyzer/*'
-        exclude: '../src/Analyzer/{AnalyzerInterface.php,Helper,Config}'
+        exclude: '../src/Analyzer/{AnalyzerInterface.php,Helper,Config,Parser}'
         tags: ['doctrine_doctor.analyzer']
 
     # Data Collector Helpers (reduce coupling)
@@ -205,6 +205,14 @@ services:
         arguments:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $threshold: '%doctrine_doctor.analyzers.bulk_operation.threshold%'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\FindAllAnalyzer:
+        arguments:
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $threshold: '%doctrine_doctor.analyzers.find_all.threshold%'
+            $logger: '@?logger'
         tags:
             - { name: doctrine_doctor.analyzer }
 

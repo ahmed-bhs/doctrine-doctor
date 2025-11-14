@@ -360,6 +360,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             'total_issues' => $issueCollection->count(),
             'critical'     => $counts['critical'] ?? 0,
             'warning'      => $counts['warning'] ?? 0,
+            'info'         => $counts['info'] ?? 0,
         ];
 
         return $this->memoizedStats;

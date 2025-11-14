@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -19,9 +20,12 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use Webmozart\Assert\Assert;
 
 class HydrationAnalyzer implements AnalyzerInterface
 {
+    private SqlStructureExtractor $sqlExtractor;
+
     public function __construct(
         /**
          * @readonly
@@ -39,7 +43,9 @@ class HydrationAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private int $criticalThreshold = 999,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -50,7 +56,7 @@ class HydrationAnalyzer implements AnalyzerInterface
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $queryData) {
                     // Try to get row count from query data first
@@ -101,17 +107,9 @@ class HydrationAnalyzer implements AnalyzerInterface
      */
     private function estimateRowCountFromSql(string $sql): ?int
     {
-        // Match LIMIT clause (supports various formats)
-        // LIMIT 100
-        // LIMIT 10, 100 (offset, limit)
-        // LIMIT 100 OFFSET 10
-        if (1 === preg_match('/LIMIT\s+(?:(\d+)\s*,\s*)?(\d+)(?:\s+OFFSET\s+\d+)?/i', $sql, $matches)) {
-            // The second capture group always contains the limit value
-            // (whether it's "LIMIT 10" or "LIMIT 5, 10")
-            return (int) $matches[2];
-        }
-
-        return null;
+        // Use SQL parser to extract LIMIT value
+        // Supports various formats: LIMIT 100, LIMIT 10,100, LIMIT 100 OFFSET 10
+        return $this->sqlExtractor->getLimitValue($sql);
     }
 
     private function generateSuggestion(int $rowCount): SuggestionInterface
@@ -136,7 +134,7 @@ class HydrationAnalyzer implements AnalyzerInterface
         $suggestions[] = '// Option 4: Pagination (limit results)';
         $suggestions[] = '$query->setFirstResult($offset)->setMaxResults($limit);';
 
-        return $this->suggestionFactory->createQueryOptimization(
+        return $this->suggestionFactory->createHydrationOptimization(
             code: implode("
 ", $suggestions),
             optimization: sprintf(
@@ -144,7 +142,7 @@ class HydrationAnalyzer implements AnalyzerInterface
                 'Consider limiting results or using lighter hydration modes.',
                 $rowCount,
             ),
-            executionTime: 0.0,
+            rowCount: $rowCount,
             threshold: $this->rowThreshold,
         );
     }

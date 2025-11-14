@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -120,7 +122,7 @@ class MissingEmbeddableOpportunityAnalyzer implements AnalyzerInterface
 
                     $entityIssues = $this->analyzeEntity($classMetadatum);
 
-                    assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -173,7 +175,7 @@ class MissingEmbeddableOpportunityAnalyzer implements AnalyzerInterface
         $optionalFields = $pattern['optional'] ?? [];
 
         // Check if all required fields exist
-        assert(is_iterable($requiredFields), '$requiredFields must be iterable');
+        Assert::isIterable($requiredFields, '$requiredFields must be iterable');
 
         foreach ($requiredFields as $requiredField) {
             $requiredFieldLower = strtolower($requiredField);
@@ -187,7 +189,7 @@ class MissingEmbeddableOpportunityAnalyzer implements AnalyzerInterface
         }
 
         // Add optional fields if they exist
-        assert(is_iterable($optionalFields), '$optionalFields must be iterable');
+        Assert::isIterable($optionalFields, '$optionalFields must be iterable');
 
         foreach ($optionalFields as $optionalField) {
             $optionalFieldLower = strtolower($optionalField);

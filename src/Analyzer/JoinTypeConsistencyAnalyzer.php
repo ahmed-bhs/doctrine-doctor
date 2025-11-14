@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -33,23 +36,24 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 class JoinTypeConsistencyAnalyzer implements AnalyzerInterface
 {
     /**
-     * Pattern to detect LEFT JOIN followed by IS NOT NULL on the joined table.
-     * This is redundant - if you check IS NOT NULL, use INNER JOIN instead.
+     * Pattern to detect Doctrine Paginator COUNT queries.
+     * These queries wrap the original query in subqueries with DISTINCT to handle row duplication.
+     * Example: SELECT COUNT(*) FROM (SELECT DISTINCT id FROM (...) dctrn_result) dctrn_table
+     *
+     * This specific pattern is kept as regex because it's a very specific Doctrine internal pattern.
      */
-    private const LEFT_JOIN_WITH_NOT_NULL_PATTERN = '/LEFT\s+(?:OUTER\s+)?JOIN\s+(\w+)(?:\s+AS)?\s+(\w+).*?WHERE.*?\b\2\.(\w+)\s+IS\s+NOT\s+NULL/is';
+    private const DOCTRINE_PAGINATOR_PATTERN = '/SELECT\s+COUNT\(\*\).*?FROM\s*\(\s*SELECT\s+DISTINCT.*?dctrn_(result|table)/is';
 
-    /**
-     * Pattern to detect COUNT/SUM with INNER JOIN (potential row duplication).
-     * Example: SELECT COUNT(o.id) FROM orders o INNER JOIN order_items oi
-     */
-    private const AGGREGATION_WITH_INNER_JOIN_PATTERN = '/SELECT.*?\b(COUNT|SUM|AVG)\s*\([^)]+\).*?FROM.*?INNER\s+JOIN/is';
+    private SqlStructureExtractor $sqlExtractor;
 
     public function __construct(
         /**
          * @readonly
          */
         private SuggestionFactory $suggestionFactory,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -61,7 +65,7 @@ class JoinTypeConsistencyAnalyzer implements AnalyzerInterface
             function () use ($queryDataCollection) {
                 $seenIssues = [];
 
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $query) {
                     $sql = $this->extractSQL($query);
@@ -74,14 +78,23 @@ class JoinTypeConsistencyAnalyzer implements AnalyzerInterface
                     }
 
                     // Pattern 1: LEFT JOIN with IS NOT NULL check
-                    if (preg_match_all(self::LEFT_JOIN_WITH_NOT_NULL_PATTERN, $sql, $matches, PREG_SET_ORDER) >= 1) {
-                        assert(is_iterable($matches), '$matches must be iterable');
+                    // Migration from regex to SQL Parser:
+                    // - Use extractJoins() to find LEFT JOINs
+                    // - Use hasIsNotNullOnAlias() to check for IS NOT NULL on joined table
+                    $joins = $this->sqlExtractor->extractJoins($sql);
 
-                        foreach ($matches as $match) {
-                            $tableName = $match[1];
-                            $alias = $match[2];
-                            $field = $match[3];
+                    foreach ($joins as $join) {
+                        // Only check LEFT JOINs
+                        if ('LEFT' !== $join['type']) {
+                            continue;
+                        }
 
+                        $tableName = $join['table'];
+                        $alias = $join['alias'] ?? $tableName;
+
+                        // Check if this LEFT JOIN has IS NOT NULL condition
+                        $fieldName = $this->sqlExtractor->findIsNotNullFieldOnAlias($sql, $alias);
+                        if (null !== $fieldName) {
                             $key = 'left_join_not_null_' . md5($tableName . $alias);
                             if (isset($seenIssues[$key])) {
                                 continue;
@@ -92,7 +105,7 @@ class JoinTypeConsistencyAnalyzer implements AnalyzerInterface
                             yield $this->createLeftJoinWithNotNullIssue(
                                 $tableName,
                                 $alias,
-                                $field,
+                                $fieldName, // Field name extracted from IS NOT NULL condition
                                 $sql,
                                 $query,
                             );
@@ -100,8 +113,20 @@ class JoinTypeConsistencyAnalyzer implements AnalyzerInterface
                     }
 
                     // Pattern 2: COUNT/SUM/AVG with INNER JOIN (potential duplication bug)
-                    if (1 === preg_match(self::AGGREGATION_WITH_INNER_JOIN_PATTERN, $sql, $match)) {
-                        $aggregation = strtoupper($match[1]);
+                    // Migration from regex to SQL Parser:
+                    // - Use extractAggregationFunctions() to find aggregation functions (SQL Parser)
+                    // - Keep lightweight regex for INNER JOIN detection
+                    //
+                    // Why regex here? The SQL parser (phpmyadmin/sql-parser) doesn't parse subqueries recursively.
+                    // Example: "SELECT COUNT(*) FROM (SELECT * FROM users INNER JOIN orders) sub"
+                    // → extractJoins() only sees the outer query, misses INNER JOIN in subquery
+                    // → Simple regex scan works across all nesting levels
+                    // This is an appropriate use of regex: lightweight string pattern matching in valid SQL.
+                    $aggregations = $this->sqlExtractor->extractAggregationFunctions($sql);
+                    $hasInnerJoin = (bool) preg_match('/\bINNER\s+JOIN\b/i', $sql);
+
+                    if (!empty($aggregations) && $hasInnerJoin) {
+                        $aggregation = $aggregations[0]; // Use first aggregation function found
 
                         $key = 'aggregation_inner_join_' . md5($sql);
                         if (isset($seenIssues[$key])) {
@@ -110,10 +135,14 @@ class JoinTypeConsistencyAnalyzer implements AnalyzerInterface
 
                         $seenIssues[$key] = true;
 
+                        // Check if the query is protected against row duplication
+                        $isProtected = $this->isQueryProtectedAgainstDuplication($sql);
+
                         yield $this->createAggregationWithInnerJoinIssue(
                             $aggregation,
                             $sql,
                             $query,
+                            $isProtected,
                         );
                     }
                 }
@@ -141,6 +170,28 @@ class JoinTypeConsistencyAnalyzer implements AnalyzerInterface
         }
 
         return is_object($query) && property_exists($query, 'sql') ? ($query->sql ?? '') : '';
+    }
+
+    /**
+     * Check if a query is protected against row duplication.
+     * Returns true if:
+     * - Query uses Doctrine Paginator pattern (COUNT with DISTINCT in subquery)
+     * - Query explicitly uses DISTINCT or COUNT(DISTINCT)
+     */
+    private function isQueryProtectedAgainstDuplication(string $sql): bool
+    {
+        // Check for Doctrine Paginator pattern (kept as regex - specific Doctrine pattern)
+        if (1 === preg_match(self::DOCTRINE_PAGINATOR_PATTERN, $sql)) {
+            return true;
+        }
+
+        // Check for explicit DISTINCT usage
+        // Migration from regex to SQL Parser: use hasDistinct() method
+        if ($this->sqlExtractor->hasDistinct($sql)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -182,21 +233,41 @@ class JoinTypeConsistencyAnalyzer implements AnalyzerInterface
         string $aggregation,
         string $sql,
         array|object $query,
+        bool $isProtected,
     ): PerformanceIssue {
         $backtrace = $this->extractBacktrace($query);
 
-        $issueData = new IssueData(
-            type: 'aggregation_with_inner_join',
-            title: sprintf('%s with INNER JOIN May Cause Incorrect Results', $aggregation),
-            description: sprintf(
+        // Adapt message and severity based on whether the query is protected
+        if ($isProtected) {
+            // Query is protected (e.g., Doctrine Paginator with DISTINCT)
+            // Results are correct, but performance is suboptimal
+            $title = sprintf('%s with INNER JOIN - Performance Impact', $aggregation);
+            $description = sprintf(
+                "Query uses %s() with INNER JOIN and row duplication is handled by DISTINCT (likely via Doctrine Paginator). " .
+                "While the results are **correct**, the query generates duplicate rows before applying DISTINCT, which impacts performance. " .
+                "Consider optimizing the underlying query to reduce the number of JOINs or using subqueries to avoid generating duplicates in the first place.",
+                $aggregation,
+            );
+            $severity = Severity::info();
+        } else {
+            // Query is NOT protected - potential correctness issue
+            $title = sprintf('%s with INNER JOIN May Cause Incorrect Results', $aggregation);
+            $description = sprintf(
                 "Query uses %s() with INNER JOIN, which may cause row duplication and incorrect aggregate results. " .
                 "When using INNER JOIN on a *-to-many relationship, each parent row is duplicated for each child, " .
                 "causing COUNT/SUM/AVG to return inflated values. Consider using LEFT JOIN with DISTINCT, " .
                 "or a subquery to avoid duplication.",
                 $aggregation,
-            ),
-            severity: Severity::warning(),
-            suggestion: $this->createAggregationWithInnerJoinSuggestion($aggregation, $sql),
+            );
+            $severity = Severity::warning();
+        }
+
+        $issueData = new IssueData(
+            type: 'aggregation_with_inner_join',
+            title: $title,
+            description: $description,
+            severity: $severity,
+            suggestion: $this->createAggregationWithInnerJoinSuggestion($aggregation, $sql, $isProtected),
             queries: [],
             backtrace: $backtrace,
         );
@@ -249,18 +320,30 @@ class JoinTypeConsistencyAnalyzer implements AnalyzerInterface
     private function createAggregationWithInnerJoinSuggestion(
         string $aggregation,
         string $sql,
+        bool $isProtected,
     ): mixed {
+        $tags = $isProtected
+            ? ['performance', 'join', 'aggregation', 'optimization']
+            : ['bug', 'join', 'aggregation', 'count'];
+
+        $severity = $isProtected ? Severity::info() : Severity::warning();
+
+        $title = $isProtected
+            ? sprintf('Optimize %s query to avoid row duplication', $aggregation)
+            : sprintf('Fix %s with INNER JOIN row duplication', $aggregation);
+
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'aggregation_with_inner_join',
             context: [
                 'aggregation' => $aggregation,
                 'original_query' => $sql,
+                'is_protected' => $isProtected,
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::performance(),
-                severity: Severity::warning(),
-                title: sprintf('Fix %s with INNER JOIN row duplication', $aggregation),
-                tags: ['bug', 'join', 'aggregation', 'count'],
+                severity: $severity,
+                title: $title,
+                tags: $tags,
             ),
         );
     }

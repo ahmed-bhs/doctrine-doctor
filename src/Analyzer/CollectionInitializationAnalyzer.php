@@ -11,6 +11,10 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\TraitCollectionInitializationDetector;
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -27,6 +31,9 @@ use Psr\Log\LoggerInterface;
  */
 class CollectionInitializationAnalyzer implements AnalyzerInterface
 {
+    private readonly TraitCollectionInitializationDetector $traitDetector;
+    private readonly PhpCodeParser $phpCodeParser;
+
     public function __construct(
         /**
          * @readonly
@@ -40,7 +47,12 @@ class CollectionInitializationAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private ?LoggerInterface $logger = null,
+        ?TraitCollectionInitializationDetector $traitDetector = null,
+        ?PhpCodeParser $phpCodeParser = null,
     ) {
+        // Dependency Injection with fallback for backwards compatibility
+        $this->traitDetector = $traitDetector ?? new TraitCollectionInitializationDetector($logger);
+        $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
     }
 
     /**
@@ -58,12 +70,12 @@ class CollectionInitializationAnalyzer implements AnalyzerInterface
                     $metadataFactory = $this->entityManager->getMetadataFactory();
                     $allMetadata     = $metadataFactory->getAllMetadata();
 
-                    assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                    Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                     foreach ($allMetadata as $metadata) {
                         $entityIssues = $this->analyzeEntity($metadata);
 
-                        assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                         foreach ($entityIssues as $entityIssue) {
                             yield $entityIssue;
@@ -107,19 +119,21 @@ class CollectionInitializationAnalyzer implements AnalyzerInterface
                 continue;
             }
 
-            // Check if entity has a constructor
+            // Check if entity has a constructor (check entire inheritance chain)
             $reflectionClass = $classMetadata->getReflectionClass();
 
-            if (!$reflectionClass->hasMethod('__construct')) {
+            if (!$this->hasConstructorInHierarchy($reflectionClass)) {
                 $issues[] = $this->createMissingConstructorIssue($entityClass, $fieldName, $associationMapping);
                 continue;
             }
 
-            // Check if collection is initialized in constructor
-            $constructor = $reflectionClass->getMethod('__construct');
-
-            if (!$this->isCollectionInitializedInConstructor($constructor, $fieldName)) {
-                $issues[] = $this->createUninitializedCollectionIssue($entityClass, $fieldName, $associationMapping, $constructor);
+            // Check if collection is initialized in constructor (check entire hierarchy)
+            if (!$this->isCollectionInitializedInHierarchy($reflectionClass, $fieldName)) {
+                // Find the constructor to report in the issue
+                $constructor = $this->findConstructorInHierarchy($reflectionClass);
+                if (null !== $constructor) {
+                    $issues[] = $this->createUninitializedCollectionIssue($entityClass, $fieldName, $associationMapping, $constructor);
+                }
             }
         }
 
@@ -146,96 +160,25 @@ class CollectionInitializationAnalyzer implements AnalyzerInterface
 
     private function isCollectionInitializedInConstructor(\ReflectionMethod $reflectionMethod, string $fieldName): bool
     {
-        try {
-            $filename = $reflectionMethod->getFileName();
-            $startLine = $reflectionMethod->getStartLine();
-            $constructorCode = $this->extractConstructorCode($reflectionMethod);
-            if (null === $constructorCode) {
-                return false;
-            }
-
-            // Remove comments to avoid false positives
-            // Remove single-line comments (// ...)
-            $constructorCode = preg_replace('/\/\/.*$/m', '', $constructorCode) ?? $constructorCode;
-            // Remove multi-line comments (/* ... */)
-            $constructorCode = preg_replace('/\/\*.*?\*\//s', '', $constructorCode) ?? $constructorCode;
-
-            // Check if collection is initialized
-            // Look for patterns like: $this->fieldName = new ArrayCollection()
-
-            $escapedFieldName = preg_quote($fieldName, '/');
-
-            if ('' === $escapedFieldName) {
-                $this->logger?->warning('CollectionInitializationAnalyzer: preg_quote failed', [
-                    'fieldName' => $fieldName,
-                    'escapedType' => get_debug_type($escapedFieldName),
-                    'file' => $filename,
-                    'startLine' => $startLine,
-                ]);
-
-                return false;
-            }
-
-            // Build patterns safely using single quotes to avoid $this interpolation
-            $patterns = [
-                '/\$this->' . $escapedFieldName . '\s*=\s*new\s+ArrayCollection/',
-                '/\$this->' . $escapedFieldName . '\s*=\s*\[\]/', // PHP array initialization
-            ];
-
-            assert(is_iterable($patterns), '$patterns must be iterable');
-
-            foreach ($patterns as $patternIndex => $pattern) {
-                try {
-                    // Wrap each preg_match to catch PCRE errors (backtrack limit, etc.)
-                    $result = preg_match($pattern, $constructorCode);
-
-                    if (1 === $result) {
-                        return true;
-                    }
-
-                    // Check for preg errors
-                    $pregError = preg_last_error();
-
-                    if (PREG_NO_ERROR !== $pregError) {
-                        $errorMessages = [
-                            PREG_INTERNAL_ERROR        => 'PREG_INTERNAL_ERROR',
-                            PREG_BACKTRACK_LIMIT_ERROR => 'PREG_BACKTRACK_LIMIT_ERROR',
-                            PREG_RECURSION_LIMIT_ERROR => 'PREG_RECURSION_LIMIT_ERROR',
-                            PREG_BAD_UTF8_ERROR        => 'PREG_BAD_UTF8_ERROR',
-                            PREG_BAD_UTF8_OFFSET_ERROR => 'PREG_BAD_UTF8_OFFSET_ERROR',
-                        ];
-                        $errorName = $errorMessages[$pregError] ?? sprintf('UNKNOWN_ERROR(%s)', $pregError);
-
-                        $this->logger?->warning('CollectionInitializationAnalyzer: PCRE error', [
-                            'error' => $errorName,
-                            'patternIndex' => $patternIndex,
-                            'file' => $filename,
-                            'startLine' => $startLine,
-                        ]);
-                        continue;
-                    }
-                } catch (\Throwable $e) {
-                    $this->logger?->warning('CollectionInitializationAnalyzer: Regex exception', [
-                        'exception' => $e::class,
-                        'patternIndex' => $patternIndex,
-                        'file' => $filename,
-                        'startLine' => $startLine,
-                    ]);
-                    continue;
-                }
-            }
-
-            return false;
-        } catch (\Throwable $throwable) {
-            // Catch all errors in this method
-            $this->logger?->error('CollectionInitializationAnalyzer: Unexpected error', [
-                'exception' => $throwable::class,
-                'file' => $throwable->getFile(),
-                'line' => $throwable->getLine(),
-            ]);
-
-            return false;
+        // Use PhpCodeParser instead of complex regex patterns
+        // This provides robust AST-based detection that handles:
+        // - $this->field = new ArrayCollection()
+        // - $this->field = []
+        // - $this->initializeFieldCollection()
+        // - Various formatting styles
+        // - Ignores comments automatically
+        if ($this->phpCodeParser->hasCollectionInitialization($reflectionMethod, $fieldName)) {
+            return true;
         }
+
+        // Check if any trait used by the class initializes this collection
+        // This handles patterns like Sylius's TranslatableTrait which has its own constructor
+        $declaringClass = $reflectionMethod->getDeclaringClass();
+        if ($this->traitDetector->isCollectionInitializedInTraits($declaringClass, $fieldName)) {
+            return true;
+        }
+
+        return false;
     }
 
     private function createMissingConstructorIssue(string $entityClass, string $fieldName, array|object $mapping): CodeQualityIssue
@@ -303,6 +246,93 @@ class CollectionInitializationAnalyzer implements AnalyzerInterface
         $parts = explode('\\', $fullClassName);
 
         return end($parts);
+    }
+
+    /**
+     * Check if any class in the hierarchy has a constructor.
+     */
+    private function hasConstructorInHierarchy(\ReflectionClass $reflectionClass): bool
+    {
+        $current = $reflectionClass;
+
+        while ($current) {
+            if ($current->hasMethod('__construct')) {
+                return true;
+            }
+
+            $current = $current->getParentClass();
+            if (false === $current) {
+                break;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Find the first constructor in the hierarchy (starting from current class).
+     */
+    private function findConstructorInHierarchy(\ReflectionClass $reflectionClass): ?\ReflectionMethod
+    {
+        $current = $reflectionClass;
+
+        while ($current) {
+            if ($current->hasMethod('__construct')) {
+                return $current->getMethod('__construct');
+            }
+
+            $current = $current->getParentClass();
+            if (false === $current) {
+                break;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if collection is initialized in any constructor in the hierarchy.
+     * This walks up the inheritance chain and checks each constructor.
+     */
+    private function isCollectionInitializedInHierarchy(\ReflectionClass $reflectionClass, string $fieldName): bool
+    {
+        $current = $reflectionClass;
+
+        while ($current) {
+            // Check if current class has a constructor
+            if ($current->hasMethod('__construct')) {
+                $constructor = $current->getMethod('__construct');
+
+                // Check if this constructor initializes the collection
+                if ($this->isCollectionInitializedInConstructor($constructor, $fieldName)) {
+                    return true;
+                }
+
+                // Check if constructor calls parent::__construct()
+                // If it does, we need to continue checking parent constructors
+                $constructorCode = $this->extractConstructorCode($constructor);
+                if (null !== $constructorCode && preg_match('/parent\s*::\s*__construct\s*\(/', $constructorCode)) {
+                    // Continue to parent class
+                    $current = $current->getParentClass();
+                    if (false === $current) {
+                        break;
+                    }
+                    continue;
+                }
+
+                // Constructor doesn't call parent::__construct(), stop here
+                // The collection initialization must happen in this constructor or not at all
+                return false;
+            }
+
+            // No constructor in current class, check parent
+            $current = $current->getParentClass();
+            if (false === $current) {
+                break;
+            }
+        }
+
+        return false;
     }
 
     private function extractConstructorCode(\ReflectionMethod $reflectionMethod): ?string

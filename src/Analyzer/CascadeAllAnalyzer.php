@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -80,12 +82,12 @@ class CascadeAllAnalyzer implements AnalyzerInterface
                     $metadataFactory = $this->entityManager->getMetadataFactory();
                     $allMetadata     = $metadataFactory->getAllMetadata();
 
-                    assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                    Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                     foreach ($allMetadata as $metadata) {
                         $entityIssues = $this->analyzeEntity($metadata);
 
-                        assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                         foreach ($entityIssues as $entityIssue) {
                             yield $entityIssue;
@@ -317,7 +319,7 @@ class CascadeAllAnalyzer implements AnalyzerInterface
     {
         $requiredOperations = ['persist', 'remove', 'refresh', 'detach'];
 
-        assert(is_iterable($requiredOperations), '$requiredOperations must be iterable');
+        Assert::isIterable($requiredOperations, '$requiredOperations must be iterable');
 
         foreach ($requiredOperations as $requiredOperation) {
             if (!in_array($requiredOperation, $cascade, true)) {

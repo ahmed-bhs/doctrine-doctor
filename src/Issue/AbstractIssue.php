@@ -176,14 +176,12 @@ abstract class AbstractIssue implements IssueInterface
             return $severity;
         }
 
-        // Normalize legacy severity values to standard ones
+        // Normalize legacy severity values to standard ones (5-level system)
         $normalized = match ($severity) {
-            'high'   => 'warning',
-            'medium' => 'warning',
-            'low'    => 'info',
-            'error'  => 'warning',
-            'notice' => 'info',
-            default  => $severity,
+            'warning' => 'warning',  // Legacy: warning → medium
+            'error'   => 'warning',    // Legacy: error → high
+            'notice'  => 'info',    // Legacy: notice → info
+            default   => $severity, // Keep new levels as-is: info, low, medium, high, critical
         };
 
         return Severity::from($normalized);

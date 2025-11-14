@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -102,7 +104,7 @@ class SoftDeleteableTraitAnalyzer implements AnalyzerInterface
 
                     $entityIssues = $this->analyzeEntity($classMetadatum);
 
-                    assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -125,7 +127,7 @@ class SoftDeleteableTraitAnalyzer implements AnalyzerInterface
             return $issues;
         }
 
-        assert(is_iterable($softDeleteFields), '$softDeleteFields must be iterable');
+        Assert::isIterable($softDeleteFields, '$softDeleteFields must be iterable');
 
         foreach ($softDeleteFields as $fieldName => $mapping) {
             // CRITICAL: Check if deletedAt is NOT nullable (must be nullable!)
@@ -215,7 +217,7 @@ class SoftDeleteableTraitAnalyzer implements AnalyzerInterface
     private function usesMutableDateTime(ClassMetadata $classMetadata, string $fieldName): bool
     {
         $className = $classMetadata->getName();
-        assert(class_exists($className));
+        Assert::classExists($className);
         $reflectionClass = new ReflectionClass($className);
 
         if (!$reflectionClass->hasProperty($fieldName)) {
@@ -242,7 +244,7 @@ class SoftDeleteableTraitAnalyzer implements AnalyzerInterface
     private function hasPublicSetter(ClassMetadata $classMetadata, string $fieldName): bool
     {
         $className = $classMetadata->getName();
-        assert(class_exists($className));
+        Assert::classExists($className);
         $reflectionClass = new ReflectionClass($className);
         $setterName = 'set' . ucfirst($fieldName);
 
@@ -278,7 +280,7 @@ class SoftDeleteableTraitAnalyzer implements AnalyzerInterface
             $joinColumns = MappingHelper::getArray($mapping, 'joinColumns');
 
             if (is_array($joinColumns)) {
-                assert(is_iterable($joinColumns), '$joinColumns must be iterable');
+                Assert::isIterable($joinColumns, '$joinColumns must be iterable');
 
                 foreach ($joinColumns as $joinColumn) {
                     if (isset($joinColumn['onDelete']) && 'CASCADE' === strtoupper((string) $joinColumn['onDelete'])) {

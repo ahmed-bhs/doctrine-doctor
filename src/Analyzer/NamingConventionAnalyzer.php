@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\NamingConventionHelper;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -79,13 +81,13 @@ class NamingConventionAnalyzer implements AnalyzerInterface
                 $classMetadataFactory = $this->entityManager->getMetadataFactory();
                 $allMetadata          = $classMetadataFactory->getAllMetadata();
 
-                assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                 foreach ($allMetadata as $metadata) {
                     // Check table naming
                     $tableIssues = $this->analyzeTableNaming($metadata);
 
-                    assert(is_iterable($tableIssues), '$tableIssues must be iterable');
+                    Assert::isIterable($tableIssues, '$tableIssues must be iterable');
 
                     foreach ($tableIssues as $tableIssue) {
                         yield $tableIssue;
@@ -94,7 +96,7 @@ class NamingConventionAnalyzer implements AnalyzerInterface
                     // Check column naming
                     $columnIssues = $this->analyzeColumnNaming($metadata);
 
-                    assert(is_iterable($columnIssues), '$columnIssues must be iterable');
+                    Assert::isIterable($columnIssues, '$columnIssues must be iterable');
 
                     foreach ($columnIssues as $columnIssue) {
                         yield $columnIssue;
@@ -103,7 +105,7 @@ class NamingConventionAnalyzer implements AnalyzerInterface
                     // Check foreign key naming
                     $fkIssues = $this->analyzeForeignKeyNaming($metadata);
 
-                    assert(is_iterable($fkIssues), '$fkIssues must be iterable');
+                    Assert::isIterable($fkIssues, '$fkIssues must be iterable');
 
                     foreach ($fkIssues as $fkIssue) {
                         yield $fkIssue;
@@ -112,7 +114,7 @@ class NamingConventionAnalyzer implements AnalyzerInterface
                     // Check index naming
                     $indexIssues = $this->analyzeIndexNaming($metadata);
 
-                    assert(is_iterable($indexIssues), '$indexIssues must be iterable');
+                    Assert::isIterable($indexIssues, '$indexIssues must be iterable');
 
                     foreach ($indexIssues as $indexIssue) {
                         yield $indexIssue;
@@ -172,7 +174,7 @@ class NamingConventionAnalyzer implements AnalyzerInterface
                 $tableName,
                 'reserved_keyword',
                 $tableName . 's',
-                'info',  // Changed from 'high' to 'info' - Doctrine handles this automatically
+                'info',  // Changed from 'warning' to 'info' - Doctrine handles this automatically
             );
         }
 
@@ -220,7 +222,7 @@ class NamingConventionAnalyzer implements AnalyzerInterface
                     $fieldName,
                     'reserved_keyword',
                     $columnName . '_value',
-                    'info',  // Changed from 'high' to 'info' - Doctrine handles this automatically
+                    'info',  // Changed from 'warning' to 'info' - Doctrine handles this automatically
                 );
             }
 
@@ -254,7 +256,7 @@ class NamingConventionAnalyzer implements AnalyzerInterface
                 continue;
             }
 
-            assert(is_iterable($associationMapping['joinColumns']), 'joinColumns must be iterable');
+            Assert::isIterable($associationMapping['joinColumns'], 'joinColumns must be iterable');
 
             foreach ($associationMapping['joinColumns'] as $joinColumn) {
                 $columnName = $joinColumn['name'] ?? null;
@@ -325,7 +327,7 @@ class NamingConventionAnalyzer implements AnalyzerInterface
     private function getTableAttribute(string $entityClass): ?object
     {
         try {
-            assert(class_exists($entityClass));
+            Assert::classExists($entityClass);
             $reflectionClass = new ReflectionClass($entityClass);
             $tableAttributes = $reflectionClass->getAttributes(\Doctrine\ORM\Mapping\Table::class);
 

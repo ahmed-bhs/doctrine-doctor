@@ -353,7 +353,30 @@ class GetReferenceAnalyzer implements AnalyzerInterface
             return 'explicit_find'; // Default if no backtrace
         }
 
-        // Lazy loading indicators in backtrace
+        // FIRST: Check for explicit find() calls
+        // These are HIGHER priority than lazy loading indicators
+        $explicitFindIndicators = [
+            'EntityManager::find',
+            'EntityRepository::find',
+            'ObjectRepository::find',
+        ];
+
+        foreach ($backtrace as $frame) {
+            $frameSignature = ($frame['class'] ?? '') . '::' . ($frame['function'] ?? '');
+
+            foreach ($explicitFindIndicators as $indicator) {
+                if (false !== stripos($frameSignature, $indicator)) {
+                    $this->logger?->info('[GetReferenceAnalyzer] Explicit find() detected', [
+                        'frame' => $frameSignature,
+                        'indicator' => $indicator,
+                    ]);
+
+                    return 'explicit_find';
+                }
+            }
+        }
+
+        // SECOND: Check for lazy loading (only if no explicit find() found)
         $lazyLoadingIndicators = [
             // Collections (OneToMany, ManyToMany)
             'loadOneToManyCollection',
@@ -364,13 +387,9 @@ class GetReferenceAnalyzer implements AnalyzerInterface
             'BasicEntityPersister::loadOneToManyCollection',
             'BasicEntityPersister::loadManyToManyCollection',
 
-            // Proxies (ManyToOne, OneToOne) - ADDED
+            // Proxies (ManyToOne, OneToOne)
             'Proxy::__load',
             '__CG__::',  // Doctrine proxy class prefix
-            'BasicEntityPersister::load',
-            'EntityPersister::load',
-            'UnitOfWork::getById',
-            'UnitOfWork::loadFromIdentityMap',
         ];
 
         // Check each frame in backtrace
@@ -389,7 +408,7 @@ class GetReferenceAnalyzer implements AnalyzerInterface
             }
         }
 
-        $this->logger?->info('[GetReferenceAnalyzer] Explicit find() detected');
+        $this->logger?->info('[GetReferenceAnalyzer] Explicit find() detected (default)');
 
         return 'explicit_find';
     }

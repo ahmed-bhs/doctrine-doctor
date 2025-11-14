@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -68,7 +70,7 @@ class PropertyTypeMismatchAnalyzer implements AnalyzerInterface
                 $managedEntities = $unitOfWork->getIdentityMap();
 
                 // Check each entity type
-                assert(is_iterable($managedEntities), '$managedEntities must be iterable');
+                Assert::isIterable($managedEntities, '$managedEntities must be iterable');
 
                 foreach ($managedEntities as $entityClass => $entities) {
                     if (isset($this->checkedEntities[$entityClass])) {
@@ -84,11 +86,11 @@ class PropertyTypeMismatchAnalyzer implements AnalyzerInterface
                     }
 
                     // Check all entities of this class
-                    assert(is_iterable($entities), '$entities must be iterable');
+                    Assert::isIterable($entities, '$entities must be iterable');
 
                     foreach ($entities as $entity) {
                         $entityIssues = $this->checkEntityProperties($entity, $metadata);
-                        assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                         foreach ($entityIssues as $entityIssue) {
                             yield $entityIssue;

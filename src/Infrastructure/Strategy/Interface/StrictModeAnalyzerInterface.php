@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface;
+
+use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
+
+/**
+ * Interface for platform-specific strict mode / data integrity analysis.
+ *
+ * - MySQL/MariaDB: sql_mode (STRICT_TRANS_TABLES, etc.)
+ * - PostgreSQL: standard_conforming_strings, check_function_bodies
+ * - SQLite: foreign_keys pragma (CRITICAL!)
+ */
+interface StrictModeAnalyzerInterface
+{
+    /**
+     * Analyze strict mode / data integrity settings for the platform.
+     *
+     * @return iterable<IssueInterface>
+     */
+    public function analyze(): iterable;
+}

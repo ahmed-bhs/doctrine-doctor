@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -35,19 +38,18 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
  */
 class YearFunctionOptimizationAnalyzer implements AnalyzerInterface
 {
-    /**
-     * Pattern to detect date functions on columns in WHERE clause.
-     * Matches: YEAR(field), MONTH(field), DAY(field), DATE(field)
-     * Note: Searches globally, not just after WHERE, to catch multiple occurrences
-     */
-    private const DATE_FUNCTION_PATTERN = '/\b(YEAR|MONTH|DAY|DATE|HOUR|MINUTE)\s*\(\s*(\w+(?:\.\w+)?)\s*\)\s*(=|<>|!=|>|<|>=|<=)\s*([^\s]+)/i';
-
     public function __construct(
         /**
          * @readonly
          */
         private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         */
+        private ?SqlStructureExtractor $sqlExtractor = null,
     ) {
+        // Dependency injection with fallback for backwards compatibility
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -59,7 +61,7 @@ class YearFunctionOptimizationAnalyzer implements AnalyzerInterface
             function () use ($queryDataCollection) {
                 $seenIssues = [];
 
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $query) {
                     $sql            = $this->extractSQL($query);
@@ -72,26 +74,27 @@ class YearFunctionOptimizationAnalyzer implements AnalyzerInterface
                         continue;
                     }
 
-                    // Find all date function usages in WHERE
-                    if (preg_match_all(self::DATE_FUNCTION_PATTERN, $sql, $matches, PREG_SET_ORDER) >= 1) {
-                        assert(is_iterable($matches), '$matches must be iterable');
+                    // Use SQL Parser instead of regex for robust detection
+                    // This properly handles complex WHERE clauses and nested conditions
+                    $functionCalls = $this->sqlExtractor->extractFunctionsInWhere($sql);
 
-                        foreach ($matches as $match) {
-                            $function = strtoupper($match[1]);
-                            $field    = $match[2];
-                            $operator = $match[3];
-                            $value    = trim($match[4]);
+                    Assert::isIterable($functionCalls, '$functionCalls must be iterable');
 
-                            // Deduplicate
-                            $key = $function . '(' . $field . ')' . $operator . $value;
-                            if (isset($seenIssues[$key])) {
-                                continue;
-                            }
+                    foreach ($functionCalls as $call) {
+                        $function = $call['function'];
+                        $field    = $call['field'];
+                        $operator = $call['operator'];
+                        $value    = $call['value'];
 
-                            $seenIssues[$key] = true;
-
-                            yield $this->createDateFunctionIssue($function, $field, $operator, $value, $executionTime, $query);
+                        // Deduplicate
+                        $key = $function . '(' . $field . ')' . $operator . $value;
+                        if (isset($seenIssues[$key])) {
+                            continue;
                         }
+
+                        $seenIssues[$key] = true;
+
+                        yield $this->createDateFunctionIssue($function, $field, $operator, $value, $executionTime, $query);
                     }
                 }
             },

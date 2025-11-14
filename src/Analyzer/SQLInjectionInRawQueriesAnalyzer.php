@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -69,7 +71,7 @@ class SQLInjectionInRawQueriesAnalyzer implements AnalyzerInterface
             function () use ($queryDataCollection) {
                 try {
                     // Analyze runtime queries from the collection
-                    assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                    Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                     foreach ($queryDataCollection as $queryData) {
                         $issue = $this->analyzeQuery($queryData);
@@ -84,12 +86,12 @@ class SQLInjectionInRawQueriesAnalyzer implements AnalyzerInterface
                         $metadataFactory = $this->entityManager->getMetadataFactory();
                         $allMetadata     = $metadataFactory->getAllMetadata();
 
-                        assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                        Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                         foreach ($allMetadata as $metadata) {
                             $entityIssues = $this->analyzeEntity($metadata);
 
-                            assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                            Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                             foreach ($entityIssues as $entityIssue) {
                                 yield $entityIssue;
@@ -97,7 +99,7 @@ class SQLInjectionInRawQueriesAnalyzer implements AnalyzerInterface
                         }
 
                         // Also analyze repositories
-                        assert(is_iterable($allMetadata), '$allMetadata must be iterable');
+                        Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                         foreach ($allMetadata as $metadata) {
                             $repositoryClass = $metadata->customRepositoryClassName;
@@ -105,7 +107,7 @@ class SQLInjectionInRawQueriesAnalyzer implements AnalyzerInterface
                             if (null !== $repositoryClass && class_exists($repositoryClass)) {
                                 $repositoryIssues = $this->analyzeClass($repositoryClass);
 
-                                assert(is_iterable($repositoryIssues), '$repositoryIssues must be iterable');
+                                Assert::isIterable($repositoryIssues, '$repositoryIssues must be iterable');
 
                                 foreach ($repositoryIssues as $repositoryIssue) {
                                     yield $repositoryIssue;
@@ -190,7 +192,7 @@ class SQLInjectionInRawQueriesAnalyzer implements AnalyzerInterface
             '/BENCHMARK\s*\(/i',
         ];
 
-        assert(is_iterable($patterns), '$patterns must be iterable');
+        Assert::isIterable($patterns, '$patterns must be iterable');
 
         foreach ($patterns as $pattern) {
             if (1 === preg_match($pattern, $sql)) {
@@ -237,7 +239,7 @@ class SQLInjectionInRawQueriesAnalyzer implements AnalyzerInterface
         $issues = [];
 
         try {
-            assert(class_exists($className));
+            Assert::classExists($className);
             $reflectionClass = new ReflectionClass($className);
 
             foreach ($reflectionClass->getMethods() as $reflectionMethod) {

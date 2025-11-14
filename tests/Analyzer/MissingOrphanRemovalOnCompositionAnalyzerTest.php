@@ -495,4 +495,49 @@ final class MissingOrphanRemovalOnCompositionAnalyzerTest extends TestCase
             self::assertTrue($isValidTarget, "Target entity {$targetEntity} should be valid");
         }
     }
+
+    #[Test]
+    public function it_maintains_critical_severity_for_app_code_entities(): void
+    {
+        // Verify app code entities get correct severity (not downgraded)
+        $queries = QueryDataBuilder::create()->build();
+        $issues = $this->analyzer->analyze($queries);
+        $issuesArray = $issues->toArray();
+
+        // Find issues with NOT NULL FK (should be CRITICAL for app code)
+        $criticalIssues = array_filter(
+            $issuesArray,
+            fn ($issue) => $issue->getData()['nullable_fk'] === false
+        );
+
+        foreach ($criticalIssues as $issue) {
+            // App code with NOT NULL FK should be CRITICAL
+            self::assertEquals('critical', $issue->getSeverity()->value);
+            // Should NOT have vendor dependency marker
+            self::assertStringNotContainsString('vendor dependency', $issue->getTitle());
+        }
+    }
+
+    #[Test]
+    public function it_does_not_add_vendor_warnings_to_app_entities(): void
+    {
+        // Verify app entities don't get vendor-specific messages
+        $queries = QueryDataBuilder::create()->build();
+        $issues = $this->analyzer->analyze($queries);
+        $issuesArray = $issues->toArray();
+
+        foreach ($issuesArray as $issue) {
+            // App entities should NOT have vendor warning
+            self::assertStringNotContainsString(
+                'vendor dependency',
+                $issue->getDescription(),
+                'App entities should not have vendor warnings'
+            );
+            self::assertStringNotContainsString(
+                'intentional design choice',
+                $issue->getDescription(),
+                'App entities should not reference vendor design choices'
+            );
+        }
+    }
 }

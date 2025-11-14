@@ -25,6 +25,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\ManyToOneAssociationMapping;
 use ReflectionClass;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects bad practices in Blameable implementations.
@@ -110,7 +111,7 @@ class BlameableTraitAnalyzer implements AnalyzerInterface
 
                 $entityIssues = $this->analyzeEntity($classMetadatum);
 
-                assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                 foreach ($entityIssues as $entityIssue) {
                     yield $entityIssue;
@@ -132,7 +133,7 @@ class BlameableTraitAnalyzer implements AnalyzerInterface
             return $issues;
         }
 
-        assert(is_iterable($blameableFields), '$blameableFields must be iterable');
+        Assert::isIterable($blameableFields, '$blameableFields must be iterable');
 
         foreach ($blameableFields as $fieldName => $mapping) {
             // Check if createdBy is nullable
@@ -239,7 +240,7 @@ class BlameableTraitAnalyzer implements AnalyzerInterface
     private function hasPublicSetter(ClassMetadata $classMetadata, string $fieldName): bool
     {
         $className = $classMetadata->getName();
-        assert(class_exists($className));
+        Assert::classExists($className);
         $reflectionClass = new ReflectionClass($className);
         $setterName = 'set' . ucfirst($fieldName);
 
@@ -275,7 +276,7 @@ class BlameableTraitAnalyzer implements AnalyzerInterface
 
         // Check for KnpLabs trait usage
         $traits = $reflectionClass->getTraitNames();
-        assert(is_iterable($traits), '$traits must be iterable');
+        Assert::isIterable($traits, '$traits must be iterable');
 
         foreach ($traits as $trait) {
             if (str_contains($trait, 'BlameableEntity') ||

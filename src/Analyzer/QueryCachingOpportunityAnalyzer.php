@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -19,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects queries that could benefit from result caching.
@@ -63,12 +65,17 @@ class QueryCachingOpportunityAnalyzer implements AnalyzerInterface
 
     private const FREQUENCY_THRESHOLD_CRITICAL = 10;
 
+    private SqlStructureExtractor $sqlExtractor;
+
     public function __construct(
         /**
          * @readonly
          */
         private SuggestionFactory $suggestionFactory,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
+        // Dependency injection with fallback for backwards compatibility
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -112,7 +119,7 @@ class QueryCachingOpportunityAnalyzer implements AnalyzerInterface
         /** @var array<string, array{originalSql: string, totalTime: float, backtrace: ?array}> */
         $queryDetails = [];
 
-        assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
         foreach ($queryDataCollection as $query) {
             $sql = $this->extractSQL($query);
@@ -156,7 +163,7 @@ class QueryCachingOpportunityAnalyzer implements AnalyzerInterface
      */
     private function generateFrequentQueryIssues(array $queryFrequencies, array $queryDetails): \Generator
     {
-        assert(is_iterable($queryFrequencies), '$queryFrequencies must be iterable');
+        Assert::isIterable($queryFrequencies, '$queryFrequencies must be iterable');
 
         foreach ($queryFrequencies as $normalized => $count) {
             if ($count < self::FREQUENCY_THRESHOLD_INFO) {
@@ -186,7 +193,7 @@ class QueryCachingOpportunityAnalyzer implements AnalyzerInterface
     {
         $reportedStaticTables = [];
 
-        assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
         foreach ($queryDataCollection as $query) {
             $sql = $this->extractSQL($query);
@@ -301,39 +308,19 @@ class QueryCachingOpportunityAnalyzer implements AnalyzerInterface
      * Normalize a query by replacing values with placeholders.
      * This allows detecting structurally identical queries.
      */
+    /**
+     * Normalizes query using universal SQL parser method.
+     *
+     * Migration from regex to SQL Parser:
+     * - Replaced 5 regex patterns with SqlStructureExtractor::normalizeQuery()
+     * - More robust: properly parses SQL structure
+     * - Handles complex queries, subqueries, joins
+     * - Handles IN clauses automatically
+     * - Fallback to regex if parser fails
+     */
     private function normalizeQuery(string $sql): string
     {
-        // Remove extra whitespace
-        $normalized = preg_replace('/\s+/', ' ', trim($sql));
-        if (null === $normalized) {
-            return $sql;
-        }
-
-        // Replace numeric values
-        $normalized = preg_replace('/\b\d+\b/', '?', $normalized);
-        if (null === $normalized) {
-            return $sql;
-        }
-
-        // Replace string literals (single and double quotes)
-        $normalized = preg_replace("/'[^']*'/", '?', $normalized);
-        if (null === $normalized) {
-            return $sql;
-        }
-
-        // Pattern: Match double-quoted strings
-        $normalized = preg_replace('/"[^"]*"/', '?', $normalized);
-        if (null === $normalized) {
-            return $sql;
-        }
-
-        // Replace IN clause with multiple values
-        $normalized = preg_replace('/IN\s*\([^)]+\)/i', 'IN (?)', $normalized);
-        if (null === $normalized) {
-            return $sql;
-        }
-
-        return $normalized;
+        return $this->sqlExtractor->normalizeQuery($sql);
     }
 
     /**
@@ -350,18 +337,21 @@ class QueryCachingOpportunityAnalyzer implements AnalyzerInterface
     /**
      * Check if query is on a static table.
      * Returns table name if static, null otherwise.
+     *
+     * Migration from regex to SQL Parser:
+     * - Replaced 2 regex patterns (FROM/JOIN detection) with SqlStructureExtractor
+     * - More robust: handles subqueries, database prefixes, complex SQL
+     * - Avoids false positives from table names in comments or strings
      */
     private function getStaticTableFromQuery(string $sql): ?string
     {
-        foreach (self::STATIC_TABLES as $table) {
-            // Check for table name (with optional database prefix)
-            if (1 === preg_match('/\bFROM\s+(?:\w+\.)?(' . preg_quote($table, '/') . ')\b/i', $sql)) {
-                return $table;
-            }
+        // Use SQL parser to extract all table names from query
+        $tableNames = $this->sqlExtractor->getAllTableNames($sql);
 
-            // Pattern: SQL JOIN detection/extraction
-            if (1 === preg_match('/\bJOIN\s+(?:\w+\.)?(' . preg_quote($table, '/') . ')\b/i', $sql)) {
-                return $table;
+        // Check if any of the tables in the query is a known static table
+        foreach (self::STATIC_TABLES as $staticTable) {
+            if (in_array(strtolower($staticTable), $tableNames, true)) {
+                return $staticTable;
             }
         }
 

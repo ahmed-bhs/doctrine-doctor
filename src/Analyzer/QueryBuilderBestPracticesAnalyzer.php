@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\QueryBuilderPatternDetector;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
@@ -34,6 +37,8 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
  */
 class QueryBuilderBestPracticesAnalyzer implements AnalyzerInterface
 {
+    private QueryBuilderPatternDetector $patternDetector;
+
     public function __construct(
         /**
          * @readonly
@@ -43,7 +48,9 @@ class QueryBuilderBestPracticesAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private SuggestionFactory $suggestionFactory,
+        ?QueryBuilderPatternDetector $patternDetector = null,
     ) {
+        $this->patternDetector = $patternDetector ?? new QueryBuilderPatternDetector();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -54,7 +61,7 @@ class QueryBuilderBestPracticesAnalyzer implements AnalyzerInterface
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $query) {
                     $sql = $query->sql;
@@ -100,80 +107,33 @@ class QueryBuilderBestPracticesAnalyzer implements AnalyzerInterface
 
     private function hasPotentialSqlInjection(string $sql): bool
     {
-        // Detect patterns like: WHERE field = "value" or WHERE field = 'value'
-        // These might indicate string concatenation instead of parameters
-        // This is a heuristic - might have false positives but better safe than sorry
-
-        // Look for quoted strings that might be user input (common patterns)
-        $patterns = [
-            '/WHERE\s+\w+\s*=\s*"[^"]*"/',  // WHERE field = "value"
-            '/WHERE\s+\w+\s*=\s*\'[^\']*\'/', // WHERE field = 'value'
-            '/AND\s+\w+\s*=\s*"[^"]*"/',
-            '/AND\s+\w+\s*=\s*\'[^\']*\'/',
-            '/OR\s+\w+\s*=\s*"[^"]*"/',
-            '/OR\s+\w+\s*=\s*\'[^\']*\'/',
-        ];
-
-        assert(is_iterable($patterns), '$patterns must be iterable');
-
-        foreach ($patterns as $pattern) {
-            if (1 === preg_match($pattern, $sql)) {
-                return true;
-            }
-        }
-
-        return false;
+        $result = $this->patternDetector->detectPotentialSqlInjection($sql);
+        return $result['detected'];
     }
 
     private function hasIncorrectNullComparison(string $sql): bool
     {
-        // Detect: field = NULL or field != NULL
-        return (bool) preg_match('/\w+\s*[!=]=\s*NULL/i', $sql);
+        $result = $this->patternDetector->detectIncorrectNullComparison($sql);
+        return $result['detected'];
     }
 
     private function hasEmptyInClause(string $sql): bool
     {
-        // Detect: IN () - empty IN clause
-        return (bool) preg_match('/IN\s*\(\s*\)/i', $sql);
+        return $this->patternDetector->hasEmptyInClause($sql);
     }
 
     private function hasUnescapedLike(string $sql): bool
     {
-        // This is hard to detect perfectly, but we can look for LIKE with wildcards
-        // and no obvious escaping patterns
-        if (1 !== preg_match('/LIKE/i', $sql)) {
-            return false;
-        }
-
-        // If we see patterns like LIKE '%something%' in the query itself,
-        // it might indicate the value was concatenated instead of parameterized
-        return (bool) preg_match('/LIKE\s+[\'"]%.*%[\'"]/', $sql);
+        return $this->patternDetector->hasUnescapedLike($sql);
     }
 
     private function hasMissingParameters(QueryData $queryData): bool
     {
         $sql = $queryData->sql;
-
-        // Find all parameter placeholders in the query
-        preg_match_all('/:(\w+)/', $sql, $matches);
-        $placeholders = $matches[1];
-
-        if ([] === $placeholders) {
-            return false;
-        }
-
-        // Check if parameters are provided
         $params = $queryData->params ?? [];
 
-        assert(is_iterable($placeholders), '$placeholders must be iterable');
-
-        foreach ($placeholders as $placeholder) {
-            if (!array_key_exists($placeholder, $params)) {
-                return true;
-            }
-        }
-
-        return false;
+        $result = $this->patternDetector->detectMissingParameters($sql, $params);
+        return $result['hasMissing'];
     }
 
     private function createSqlInjectionIssue(QueryData $queryData): IssueInterface

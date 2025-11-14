@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use Webmozart\Assert\Assert;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -91,7 +93,7 @@ class FloatInMoneyEmbeddableAnalyzer implements AnalyzerInterface
 
                             $entityIssues = $this->analyzeEmbeddable($classMetadatum);
 
-                            assert(is_iterable($entityIssues), '$entityIssues must be iterable');
+                            Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                             foreach ($entityIssues as $entityIssue) {
                                 yield $entityIssue;
@@ -114,7 +116,7 @@ class FloatInMoneyEmbeddableAnalyzer implements AnalyzerInterface
                                     $embeddableMetadata = $classMetadataFactory->getMetadataFor($embeddableClassName);
                                     $embeddableIssues = $this->analyzeEmbeddable($embeddableMetadata);
 
-                                    assert(is_iterable($embeddableIssues), '$embeddableIssues must be iterable');
+                                    Assert::isIterable($embeddableIssues, '$embeddableIssues must be iterable');
 
                                     foreach ($embeddableIssues as $embeddableIssue) {
                                         yield $embeddableIssue;
@@ -173,7 +175,7 @@ class FloatInMoneyEmbeddableAnalyzer implements AnalyzerInterface
         }
 
         // Check if it has currency field (strong indicator)
-        assert(is_iterable($fieldNames), '$fieldNames must be iterable');
+        Assert::isIterable($fieldNames, '$fieldNames must be iterable');
 
         foreach ($fieldNames as $fieldName) {
             if (str_contains(strtolower($fieldName), 'currency')) {

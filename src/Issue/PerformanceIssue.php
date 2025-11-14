@@ -31,11 +31,6 @@ class PerformanceIssue extends AbstractIssue
         ], $data));
     }
 
-    public function getType(): string
-    {
-        return 'Performance';
-    }
-
     public function getCategory(): string
     {
         return IssueCategory::PERFORMANCE->value;

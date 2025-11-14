@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -18,9 +19,12 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use Psr\Log\LoggerInterface;
 
 class FindAllAnalyzer implements AnalyzerInterface
 {
+    private SqlStructureExtractor $sqlExtractor;
+
     public function __construct(
         /**
          * @readonly
@@ -34,7 +38,13 @@ class FindAllAnalyzer implements AnalyzerInterface
          * @readonly
          */
         private int $threshold = 99,
+        /**
+         * @readonly
+         */
+        private ?LoggerInterface $logger = null,
+        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -90,38 +100,42 @@ class FindAllAnalyzer implements AnalyzerInterface
         $normalized = strtoupper(trim($sql));
 
         // Must be a SELECT query
-        if (1 !== preg_match('/^SELECT/', $normalized)) {
+        if (!str_starts_with($normalized, 'SELECT')) {
             return false;
         }
 
-        // Has no WHERE clause (or only simple joins)
-        $hasWhere = preg_match('/\sWHERE\s/i', $sql);
+        try {
+            // Use SQL parser to properly detect WHERE/LIMIT (avoids false positives from comments/strings)
+            $hasWhere = !empty($this->sqlExtractor->extractWhereColumns($sql));
+            $hasLimit = $this->sqlExtractor->hasLimit($sql);
 
-        // Has no LIMIT clause
-        $hasLimit = preg_match('/\sLIMIT\s/i', $sql);
+            // Pattern: SELECT without WHERE and without LIMIT
+            return !$hasWhere && !$hasLimit;
+        } catch (\Throwable $e) {
+            // Fallback to simple string detection if parser fails
+            $this->logger?->warning('[FindAllAnalyzer] Parser failed, using fallback', [
+                'error' => $e->getMessage(),
+            ]);
 
-        // Pattern: SELECT without WHERE and without LIMIT
-        return 1 !== $hasWhere && 1 !== $hasLimit;
+            $sqlUpper = strtoupper($sql);
+            $hasWhere = str_contains($sqlUpper, ' WHERE ');
+            $hasLimit = str_contains($sqlUpper, ' LIMIT ');
+
+            return !$hasWhere && !$hasLimit;
+        }
     }
 
     private function estimateRowCount(QueryData $queryData): int
     {
-        // Try to extract table name
-        $sql = $queryData->sql;
-
-        // Pattern: FROM table_name
-        // Note: Full analysis would require row count checking
-        // Currently flagging all findAll() as potentially problematic
-        if (1 === preg_match('/FROM\s+(\w+)/i', $sql)) {
-            // If we have access to query result info, use it
-            // Otherwise, assume it's potentially large
-            // In a real scenario, you might want to query the table to get row count
-            // But for now, we'll flag it as potentially problematic
-
-            // You could extend this to actually count rows if needed
-            return 999; // Placeholder - assume potentially large
+        // PRIORITY 1: Use actual row count from query result if available
+        if (null !== $queryData->rowCount) {
+            return $queryData->rowCount;
         }
 
-        return 0;
+        // FALLBACK: For findAll() detection, we assume the query returns many rows
+        // since there's no WHERE/LIMIT clause. We use a high estimate to trigger
+        // the warning. In a real scenario without rowCount, it's better to be
+        // conservative and warn about potential issues.
+        return 999; // Assume potentially large result set
     }
 }

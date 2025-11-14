@@ -12,385 +12,132 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\MySQL;
 
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\CharsetAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\CollationAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\ConnectionPoolingAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\PerformanceConfigAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\StrictModeAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\TimezoneAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\MySQL\Analyzer\MySQLCharsetAnalyzer;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\MySQL\Analyzer\MySQLCollationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\MySQL\Analyzer\MySQLConnectionPoolingAnalyzer;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\MySQL\Analyzer\MySQLPerformanceConfigAnalyzer;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\MySQL\Analyzer\MySQLStrictModeAnalyzer;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\MySQL\Analyzer\MySQLTimezoneAnalyzer;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\PlatformAnalysisStrategy;
-use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
-use DateTimeZone;
 use Doctrine\DBAL\Connection;
 
 /**
- * Analysis strategy for MySQL and MariaDB platforms.
- * Implements platform-specific analysis logic for:
- * - Charset configuration (utf8 vs utf8mb4)
- * - Collation settings
- * - Timezone configuration
- * - Connection pooling (max_connections, wait_timeout)
- * - Strict mode (sql_mode settings)
+ * Facade for MySQL and MariaDB platform analysis.
+ * Delegates to specialized analyzers following Single Responsibility Principle.
+ *
+ * This facade maintains backward compatibility while allowing dependency injection
+ * of specialized analyzers for testing and extensibility.
  */
 class MySQLAnalysisStrategy implements PlatformAnalysisStrategy
 {
-    private const RECOMMENDED_CHARSET = 'utf8mb4';
-
-    private const RECOMMENDED_COLLATION = 'utf8mb4_unicode_ci';
-
-    private const SUBOPTIMAL_COLLATIONS = [
-        'utf8mb4_general_ci',
-        'utf8_general_ci',
-        'utf8_unicode_ci',
-    ];
-
-    private const RECOMMENDED_SQL_MODES = [
-        'STRICT_TRANS_TABLES',
-        'NO_ZERO_DATE',
-        'NO_ZERO_IN_DATE',
-        'ERROR_FOR_DIVISION_BY_ZERO',
-        'NO_ENGINE_SUBSTITUTION',
-    ];
-
-    private const RECOMMENDED_MIN_CONNECTIONS = 100;
-
-    private const RECOMMENDED_MAX_CONNECTIONS = 500;
-
-    /**
-     * @return array<mixed>
-     */
-    /**
-     * System/framework tables that can be ignored for charset issues.
-     */
-    private const SYSTEM_TABLES = [
-        'doctrine_migration_versions',
-        'migration_versions',
-        'migrations',
-        'phinxlog',
-        'sessions',
-        'cache',
-        'cache_items',
-        'messenger_messages',
-    ];
+    private readonly CharsetAnalyzerInterface $charsetAnalyzer;
+    private readonly CollationAnalyzerInterface $collationAnalyzer;
+    private readonly TimezoneAnalyzerInterface $timezoneAnalyzer;
+    private readonly ConnectionPoolingAnalyzerInterface $connectionPoolingAnalyzer;
+    private readonly StrictModeAnalyzerInterface $strictModeAnalyzer;
+    private readonly PerformanceConfigAnalyzerInterface $performanceConfigAnalyzer;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private Connection $connection,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private DatabasePlatformDetector $databasePlatformDetector,
+        private readonly Connection $connection,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        ?CharsetAnalyzerInterface $charsetAnalyzer = null,
+        ?CollationAnalyzerInterface $collationAnalyzer = null,
+        ?TimezoneAnalyzerInterface $timezoneAnalyzer = null,
+        ?ConnectionPoolingAnalyzerInterface $connectionPoolingAnalyzer = null,
+        ?StrictModeAnalyzerInterface $strictModeAnalyzer = null,
+        ?PerformanceConfigAnalyzerInterface $performanceConfigAnalyzer = null,
     ) {
+        $this->charsetAnalyzer = $charsetAnalyzer ?? new MySQLCharsetAnalyzer(
+            $this->connection,
+            $this->suggestionFactory,
+            $this->databasePlatformDetector,
+        );
+
+        $this->collationAnalyzer = $collationAnalyzer ?? new MySQLCollationAnalyzer(
+            $this->connection,
+            $this->suggestionFactory,
+            $this->databasePlatformDetector,
+        );
+
+        $this->timezoneAnalyzer = $timezoneAnalyzer ?? new MySQLTimezoneAnalyzer(
+            $this->connection,
+            $this->suggestionFactory,
+            $this->databasePlatformDetector,
+        );
+
+        $this->connectionPoolingAnalyzer = $connectionPoolingAnalyzer ?? new MySQLConnectionPoolingAnalyzer(
+            $this->connection,
+            $this->suggestionFactory,
+            $this->databasePlatformDetector,
+        );
+
+        $this->strictModeAnalyzer = $strictModeAnalyzer ?? new MySQLStrictModeAnalyzer(
+            $this->connection,
+            $this->suggestionFactory,
+            $this->databasePlatformDetector,
+        );
+
+        $this->performanceConfigAnalyzer = $performanceConfigAnalyzer ?? new MySQLPerformanceConfigAnalyzer(
+            $this->connection,
+            $this->suggestionFactory,
+            $this->databasePlatformDetector,
+        );
     }
 
+    /**
+     * Analyze charset configuration (utf8 vs utf8mb4).
+     */
     public function analyzeCharset(): iterable
     {
-        $databaseName = $this->connection->getDatabase();
-
-        if (null === $databaseName) {
-            return;
-        }
-
-        $dbCharset         = $this->getDatabaseCharset($databaseName);
-        $problematicTables = $this->getTablesWithWrongCharset();
-
-        // Check database charset
-        if ('utf8' === $dbCharset || 'utf8mb3' === $dbCharset) {
-            yield new DatabaseConfigIssue([
-                'title'       => 'Database using utf8 instead of utf8mb4',
-                'description' => sprintf(
-                    'Database "%s" is using charset "%s" which only supports 3-byte UTF-8. ' .
-                    'This causes issues with emojis (😱), some Asian characters, and mathematical symbols. ' .
-                    'Use utf8mb4 for full Unicode support.',
-                    $databaseName,
-                    $dbCharset,
-                ),
-                'severity'   => 'warning',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'Database charset',
-                    currentValue: $dbCharset,
-                    recommendedValue: self::RECOMMENDED_CHARSET,
-                    description: 'utf8mb4 supports all Unicode characters including emojis',
-                    fixCommand: sprintf('ALTER DATABASE `%s` CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;', $databaseName),
-                ),
-                'backtrace' => null,
-                'queries'   => [],
-            ]);
-        }
-
-        // Check tables charset
-        if ([] !== $problematicTables) {
-            $tableList = implode(', ', array_slice($problematicTables, 0, 5));
-
-            if (count($problematicTables) > 5) {
-                $tableList .= sprintf(' (and %d more)', count($problematicTables) - 5);
-            }
-
-            yield new DatabaseConfigIssue([
-                'title'       => sprintf('%d tables using utf8 charset', count($problematicTables)),
-                'description' => sprintf(
-                    'Found %d tables using utf8/utf8mb3 charset: %s. ' .
-                    'These tables should use utf8mb4 to support emojis and full Unicode.',
-                    count($problematicTables),
-                    $tableList,
-                ),
-                'severity'   => count($problematicTables) > 10 ? 'critical' : 'warning',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'Table charset',
-                    currentValue: 'utf8/utf8mb3',
-                    recommendedValue: self::RECOMMENDED_CHARSET,
-                    description: 'Convert all tables to utf8mb4',
-                    fixCommand: $this->getTableConversionCommand($problematicTables),
-                ),
-                'backtrace' => null,
-                'queries'   => [],
-            ]);
-        }
+        return $this->charsetAnalyzer->analyze();
     }
 
+    /**
+     * Analyze collation configuration and mismatches.
+     */
     public function analyzeCollation(): iterable
     {
-        $databaseName = $this->connection->getDatabase();
-
-        if (null === $databaseName) {
-            return;
-        }
-
-        $dbCollation  = $this->getDatabaseCollation($databaseName);
-
-        // Issue 1: Check database collation
-        if ($this->isSuboptimalCollation($dbCollation)) {
-            yield $this->createSuboptimalCollationIssue($databaseName, $dbCollation, 'database');
-        }
-
-        // Issue 2: Check tables with different collations
-        $diffCollationTables = $this->getTablesWithDifferentCollation($databaseName, $dbCollation);
-
-        if ([] !== $diffCollationTables) {
-            yield $this->createCollationMismatchIssue($diffCollationTables, $dbCollation);
-        }
-
-        // Issue 3: Check for collation mismatches in foreign key columns
-        $fkCollationMismatches = $this->getForeignKeyCollationMismatches($databaseName);
-
-        if ([] !== $fkCollationMismatches) {
-            yield $this->createForeignKeyCollationIssue($fkCollationMismatches);
-        }
+        return $this->collationAnalyzer->analyze();
     }
 
+    /**
+     * Analyze timezone configuration and PHP/MySQL mismatches.
+     */
     public function analyzeTimezone(): iterable
     {
-        $mysqlTimezone  = $this->getMySQLTimezone();
-        $phpTimezone    = $this->getPHPTimezone();
-        $systemTimezone = $this->getSystemTimezone();
-
-        // Issue 1: MySQL using SYSTEM timezone (ambiguous)
-        // Skip if SYSTEM resolves to UTC and PHP is also UTC (common and acceptable)
-        if ('SYSTEM' === $mysqlTimezone) {
-            $isUTCEverywhere = ('UTC' === $systemTimezone && 'UTC' === $phpTimezone);
-
-            if (!$isUTCEverywhere) {
-                yield $this->createSystemTimezoneIssue($systemTimezone, $phpTimezone);
-            }
-        }
-
-        // Issue 2: MySQL timezone != PHP timezone
-        $effectiveMysqlTz = ('SYSTEM' === $mysqlTimezone) ? $systemTimezone : $mysqlTimezone;
-
-        if ($this->timezonesAreDifferent($effectiveMysqlTz, $phpTimezone)) {
-            yield $this->createTimezoneMismatchIssue($effectiveMysqlTz, $phpTimezone);
-        }
-
-        // Issue 3: Check if timezone tables are loaded
-        if (!$this->areTimezoneTablesLoaded()) {
-            yield $this->createMissingTimezoneTablesIssue();
-        }
+        return $this->timezoneAnalyzer->analyze();
     }
 
+    /**
+     * Analyze connection pooling settings.
+     */
     public function analyzeConnectionPooling(): iterable
     {
-        $maxConnections     = $this->getMaxConnections();
-        $maxUsedConnections = $this->getMaxUsedConnections();
-
-        // Check if max_connections is too low
-        if ($maxConnections < self::RECOMMENDED_MIN_CONNECTIONS) {
-            yield new DatabaseConfigIssue([
-                'title'       => 'Low max_connections setting',
-                'description' => sprintf(
-                    'Current max_connections is %d, which is below the recommended minimum of %d. ' .
-                    'This may cause "Too many connections" errors during peak load.',
-                    $maxConnections,
-                    self::RECOMMENDED_MIN_CONNECTIONS,
-                ),
-                'severity'   => 'warning',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'max_connections',
-                    currentValue: (string) $maxConnections,
-                    recommendedValue: (string) self::RECOMMENDED_MIN_CONNECTIONS,
-                    description: 'Increase to handle more concurrent connections',
-                    fixCommand: $this->getMaxConnectionsFixCommand(self::RECOMMENDED_MIN_CONNECTIONS),
-                ),
-                'backtrace' => null,
-                'queries'   => [],
-            ]);
-        }
-
-        // Check if approaching max_connections
-        $utilizationPercent = ($maxUsedConnections / $maxConnections) * 100;
-
-        if ($utilizationPercent > 80) {
-            yield new DatabaseConfigIssue([
-                'title'       => 'High connection pool utilization',
-                'description' => sprintf(
-                    'Connection pool utilization is %.1f%% (%d/%d connections used). ' .
-                    'You are approaching the max_connections limit. Consider increasing it.',
-                    $utilizationPercent,
-                    $maxUsedConnections,
-                    $maxConnections,
-                ),
-                'severity'   => $utilizationPercent > 90 ? 'critical' : 'warning',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'max_connections',
-                    currentValue: (string) $maxConnections,
-                    recommendedValue: (string) min($maxConnections * 2, self::RECOMMENDED_MAX_CONNECTIONS),
-                    description: 'Increase to prevent connection errors during peak load',
-                    fixCommand: $this->getMaxConnectionsFixCommand(min($maxConnections * 2, self::RECOMMENDED_MAX_CONNECTIONS)),
-                ),
-                'backtrace' => null,
-                'queries'   => [],
-            ]);
-        }
+        return $this->connectionPoolingAnalyzer->analyze();
     }
 
+    /**
+     * Analyze strict mode (sql_mode) settings.
+     */
     public function analyzeStrictMode(): iterable
     {
-        $sqlMode      = $this->getSqlMode();
-        $missingModes = $this->getMissingModes($sqlMode);
-
-        if ([] !== $missingModes) {
-            yield new DatabaseConfigIssue([
-                'title'       => 'Missing SQL Strict Mode Settings',
-                'description' => sprintf(
-                    'Your database is missing important SQL modes: %s. ' .
-                    'These modes prevent silent data truncation and invalid data insertion.',
-                    implode(', ', $missingModes),
-                ),
-                'severity'   => count($missingModes) >= 3 ? 'critical' : 'warning',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'sql_mode',
-                    currentValue: $sqlMode,
-                    recommendedValue: implode(',', self::RECOMMENDED_SQL_MODES),
-                    description: 'Add missing modes to prevent data corruption and ensure data integrity',
-                    fixCommand: $this->getFixCommand($sqlMode, $missingModes),
-                ),
-                'backtrace' => null,
-                'queries'   => [],
-            ]);
-        }
+        return $this->strictModeAnalyzer->analyze();
     }
 
+    /**
+     * Analyze performance configuration (query cache, InnoDB settings, binary logs, buffer pool).
+     */
     public function analyzePerformanceConfig(): iterable
     {
-        // Check 1: Query Cache (deprecated in MySQL 5.7.20+, removed in 8.0+)
-        $queryCacheType = $this->getQueryCacheType();
-
-        if ('OFF' !== $queryCacheType) {
-            yield new DatabaseConfigIssue([
-                'title'       => 'Query Cache enabled (deprecated)',
-                'description' => sprintf(
-                    'Query cache is enabled (query_cache_type = %s). ' .
-                    'This feature is DEPRECATED since MySQL 5.7.20 and REMOVED in MySQL 8.0+. ' .
-                    'Query cache causes severe performance problems:' . "\n" .
-                    '- Global mutex lock contention' . "\n" .
-                    '- Cache invalidation on ANY table write' . "\n" .
-                    '- Modern systems have enough RAM for InnoDB buffer pool' . "\n" .
-                    'Disable query_cache immediately for better performance.',
-                    $queryCacheType,
-                ),
-                'severity'   => 'critical',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'query_cache_type',
-                    currentValue: $queryCacheType,
-                    recommendedValue: 'OFF',
-                    description: 'Disable deprecated query cache for better performance',
-                    fixCommand: $this->getQueryCacheFixCommand(),
-                ),
-                'backtrace' => null,
-                'queries'   => [],
-            ]);
-        }
-
-        // Check 2: InnoDB Flush Log (full ACID = slow in development)
-        $flushLog = $this->getInnoDBFlushLog();
-
-        if (1 === $flushLog) {
-            yield new DatabaseConfigIssue([
-                'title'       => 'InnoDB full ACID durability in development',
-                'description' => 'innodb_flush_log_at_trx_commit is set to 1 (full ACID durability). ' .
-                    'This flushes logs to disk on EVERY transaction commit, which is very slow. ' .
-                    'In development, you can safely use value 2 for 10x faster writes. ' .
-                    'Note: Keep value 1 in production for data safety.',
-                'severity'   => 'info',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'innodb_flush_log_at_trx_commit',
-                    currentValue: '1 (full ACID)',
-                    recommendedValue: '2 (for dev only)',
-                    description: 'Set to 2 in development for faster performance',
-                    fixCommand: $this->getInnoDBFlushLogFixCommand(),
-                ),
-                'backtrace' => null,
-                'queries'   => [],
-            ]);
-        }
-
-        // Check 3: Binary Logs enabled (wastes disk space in development)
-        if ($this->isBinaryLogEnabled()) {
-            yield new DatabaseConfigIssue([
-                'title'       => 'Binary logging enabled in development',
-                'description' => 'Binary logging (binlog) is enabled. ' .
-                    'Binary logs are used for replication and point-in-time recovery, but waste disk space in development. ' .
-                    'Unless you are testing replication, disable binlog in dev environments.',
-                'severity'   => 'info',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'log_bin',
-                    currentValue: 'ON',
-                    recommendedValue: 'OFF (for dev)',
-                    description: 'Disable binary logging in development to save disk space',
-                    fixCommand: $this->getBinaryLogFixCommand(),
-                ),
-                'backtrace' => null,
-                'queries'   => [],
-            ]);
-        }
-
-        // Check 4: InnoDB Buffer Pool Size too small
-        $bufferPoolSize = $this->getInnoDBBufferPoolSize();
-
-        if ($bufferPoolSize < 134217728) { // < 128MB
-            $bufferPoolMB = round($bufferPoolSize / 1024 / 1024);
-
-            yield new DatabaseConfigIssue([
-                'title'       => 'InnoDB buffer pool size too small',
-                'description' => sprintf(
-                    'innodb_buffer_pool_size is %dMB, which is very small. ' .
-                    'The buffer pool caches table and index data in memory. ' .
-                    'A small buffer pool causes excessive disk I/O and poor performance. ' .
-                    'Recommended: 50-70%% of available RAM (minimum 128MB, ideally 512MB+ for dev).',
-                    $bufferPoolMB,
-                ),
-                'severity'   => $bufferPoolSize < 67108864 ? 'warning' : 'info', // < 64MB = warning
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'innodb_buffer_pool_size',
-                    currentValue: sprintf('%dMB', $bufferPoolMB),
-                    recommendedValue: '512MB (for dev) / 50-70% RAM (for prod)',
-                    description: 'Increase buffer pool size for better performance',
-                    fixCommand: $this->getBufferPoolSizeFixCommand(536870912), // 512MB
-                ),
-                'backtrace' => null,
-                'queries'   => [],
-            ]);
-        }
+        return $this->performanceConfigAnalyzer->analyze();
     }
 
     public function supportsFeature(string $feature): bool
@@ -409,688 +156,5 @@ class MySQLAnalysisStrategy implements PlatformAnalysisStrategy
     public function getPlatformName(): string
     {
         return $this->databasePlatformDetector->isMariaDB() ? 'mariadb' : 'mysql';
-    }
-
-    // Private helper methods (migrated from original analyzers)
-
-    private function getDatabaseCharset(string $databaseName): string
-    {
-        $result = $this->connection->executeQuery(
-            'SELECT DEFAULT_CHARACTER_SET_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?',
-            [$databaseName],
-        );
-
-        $row = $this->databasePlatformDetector->fetchAssociative($result);
-
-        return $row['DEFAULT_CHARACTER_SET_NAME'] ?? 'unknown';
-    }
-
-    private function getTablesWithWrongCharset(): array
-    {
-        $databaseName = $this->connection->getDatabase();
-        $result       = $this->connection->executeQuery(
-            "SELECT TABLE_NAME, TABLE_COLLATION
-             FROM information_schema.TABLES
-             WHERE TABLE_SCHEMA = ?
-             AND (TABLE_COLLATION LIKE 'utf8_%' OR TABLE_COLLATION LIKE 'utf8mb3_%')
-             AND TABLE_COLLATION NOT LIKE 'utf8mb4_%'",
-            [$databaseName],
-        );
-
-        $tables = $this->databasePlatformDetector->fetchAllAssociative($result);
-        $tableNames = array_column($tables, 'TABLE_NAME');
-
-        // Filter out system tables
-        return array_filter($tableNames, function (string $tableName): bool {
-            foreach (self::SYSTEM_TABLES as $systemTable) {
-                if (str_contains(strtolower($tableName), strtolower($systemTable))) {
-                    return false;
-                }
-            }
-            return true;
-        });
-    }
-
-    private function getTableConversionCommand(array $tables): string
-    {
-        $commands = [];
-
-        foreach (array_slice($tables, 0, 10) as $table) {
-            $commands[] = sprintf('ALTER TABLE `%s` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;', $table);
-        }
-
-        if (count($tables) > 10) {
-            $commands[] = '-- ... and ' . (count($tables) - 10) . ' more tables';
-        }
-
-        return implode("
-", $commands);
-    }
-
-    private function getDatabaseCollation(string $databaseName): string
-    {
-        $result = $this->connection->executeQuery(
-            'SELECT DEFAULT_COLLATION_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?',
-            [$databaseName],
-        );
-
-        $row = $this->databasePlatformDetector->fetchAssociative($result);
-
-        return $row['DEFAULT_COLLATION_NAME'] ?? 'unknown';
-    }
-
-    private function isSuboptimalCollation(string $collation): bool
-    {
-        return in_array($collation, self::SUBOPTIMAL_COLLATIONS, true);
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    private function getTablesWithDifferentCollation(string $databaseName, string $dbCollation): array
-    {
-        $result = $this->connection->executeQuery(
-            "SELECT TABLE_NAME, TABLE_COLLATION
-             FROM information_schema.TABLES
-             WHERE TABLE_SCHEMA = ?
-             AND TABLE_COLLATION != ?
-             AND TABLE_TYPE = 'BASE TABLE'",
-            [$databaseName, $dbCollation],
-        );
-
-        return $this->databasePlatformDetector->fetchAllAssociative($result);
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    private function getForeignKeyCollationMismatches(string $databaseName): array
-    {
-        $query = <<<SQL
-            SELECT
-                kcu.TABLE_NAME as child_table,
-                kcu.COLUMN_NAME as child_column,
-                col1.COLLATION_NAME as child_collation,
-                kcu.REFERENCED_TABLE_NAME as parent_table,
-                kcu.REFERENCED_COLUMN_NAME as parent_column,
-                col2.COLLATION_NAME as parent_collation
-            FROM information_schema.KEY_COLUMN_USAGE kcu
-            JOIN information_schema.COLUMNS col1
-                ON kcu.TABLE_SCHEMA = col1.TABLE_SCHEMA
-                AND kcu.TABLE_NAME = col1.TABLE_NAME
-                AND kcu.COLUMN_NAME = col1.COLUMN_NAME
-            JOIN information_schema.COLUMNS col2
-                ON kcu.REFERENCED_TABLE_SCHEMA = col2.TABLE_SCHEMA
-                AND kcu.REFERENCED_TABLE_NAME = col2.TABLE_NAME
-                AND kcu.REFERENCED_COLUMN_NAME = col2.COLUMN_NAME
-            WHERE kcu.TABLE_SCHEMA = ?
-            AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
-            AND col1.COLLATION_NAME IS NOT NULL
-            AND col2.COLLATION_NAME IS NOT NULL
-            AND col1.COLLATION_NAME != col2.COLLATION_NAME
-            SQL;
-
-        $result = $this->connection->executeQuery($query, [$databaseName]);
-
-        return $this->databasePlatformDetector->fetchAllAssociative($result);
-    }
-
-    private function createSuboptimalCollationIssue(string $databaseName, string $currentCollation, string $level): DatabaseConfigIssue
-    {
-        $description = sprintf(
-            '%s "%s" is using collation "%s". ' .
-            'This is a valid choice with trade-offs: ' .
-            'utf8mb4_general_ci is **faster** but less accurate for Unicode sorting (e.g., "ä" vs "a"). ' .
-            'utf8mb4_unicode_ci is more accurate for multilingual sorting but slightly slower. ' .
-            'utf8mb4_0900_ai_ci (MySQL 8.0+) offers best of both worlds.',
-            ucfirst($level),
-            $databaseName,
-            $currentCollation,
-        );
-
-        $fixCommand = 'database' === $level
-            ? sprintf('ALTER DATABASE `%s` COLLATE = ', $databaseName) . self::RECOMMENDED_COLLATION . ';'
-            : sprintf('ALTER TABLE `%s` COLLATE = ', $databaseName) . self::RECOMMENDED_COLLATION . ';';
-
-        return new DatabaseConfigIssue([
-            'title'       => sprintf('%s using collation: %s (performance vs accuracy trade-off)', ucfirst($level), $currentCollation),
-            'description' => $description,
-            'severity'    => 'info', // INFO instead of WARNING (it's a valid choice)
-            'suggestion'  => $this->suggestionFactory->createConfiguration(
-                setting: ucfirst($level) . ' collation',
-                currentValue: $currentCollation,
-                recommendedValue: self::RECOMMENDED_COLLATION,
-                description: 'utf8mb4_unicode_ci provides accurate Unicode sorting. Only change if multilingual sorting is important.',
-                fixCommand: $fixCommand,
-            ),
-            'backtrace' => null,
-            'queries'   => [],
-        ]);
-    }
-
-    private function createCollationMismatchIssue(array $tables, string $dbCollation): DatabaseConfigIssue
-    {
-        $tableList     = array_slice($tables, 0, 5);
-        $tableNames    = array_map(fn (array $table): string => sprintf('%s (%s)', $table['TABLE_NAME'], $table['TABLE_COLLATION']), $tableList);
-        $tableNamesStr = implode(', ', $tableNames);
-
-        if (count($tables) > 5) {
-            $tableNamesStr .= sprintf(' (and %d more)', count($tables) - 5);
-        }
-
-        // Check if all tables use the SAME collation (homogeneous but different from DB)
-        $uniqueCollations = array_unique(array_column($tables, 'TABLE_COLLATION'));
-        $isHomogeneous = 1 === count($uniqueCollations);
-        $commonCollation = $isHomogeneous ? reset($uniqueCollations) : null;
-
-        $fixCommands = [];
-
-        foreach (array_slice($tables, 0, 10) as $table) {
-            $fixCommands[] = sprintf(
-                'ALTER TABLE `%s` COLLATE = %s;',
-                $table['TABLE_NAME'],
-                $dbCollation,
-            );
-        }
-
-        if (count($tables) > 10) {
-            $fixCommands[] = '-- ... and ' . (count($tables) - 10) . ' more tables';
-        }
-
-        // Determine severity and description based on homogeneity
-        if ($isHomogeneous) {
-            // All tables use the same collation (intentional)
-            $severity = 'info';
-            $description = sprintf(
-                'Found %d tables ALL using collation "%s" while database default is "%s". ' .
-                'This appears to be intentional (consistent). Only problematic if JOINing with tables using "%s".',
-                count($tables),
-                $commonCollation,
-                $dbCollation,
-                $dbCollation,
-            );
-        } else {
-            // Mixed collations (real problem)
-            $severity = count($tables) > 10 ? 'warning' : 'info';
-            $description = sprintf(
-                'Found %d tables with MIXED collations different from database default (%s): %s. ' .
-                'This can cause performance issues in JOINs and unexpected sorting behavior.',
-                count($tables),
-                $dbCollation,
-                $tableNamesStr,
-            );
-        }
-
-        return new DatabaseConfigIssue([
-            'title'       => sprintf('%d tables with different collation than database', count($tables)),
-            'description' => $description,
-            'severity'   => $severity,
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Table collations',
-                currentValue: $isHomogeneous ? $commonCollation : 'Mixed collations',
-                recommendedValue: $dbCollation,
-                description: $isHomogeneous
-                    ? 'Tables use consistent collation, only different from database default'
-                    : 'Unify table collations to match database default for consistent behavior',
-                fixCommand: implode("
-", $fixCommands),
-            ),
-            'backtrace' => null,
-            'queries'   => [],
-        ]);
-    }
-
-    private function createForeignKeyCollationIssue(array $mismatches): DatabaseConfigIssue
-    {
-        $mismatchList = array_slice($mismatches, 0, 3);
-        $descriptions = array_map(
-            fn (array $mismatch): string => sprintf(
-                '%s.%s (%s) -> %s.%s (%s)',
-                $mismatch['child_table'],
-                $mismatch['child_column'],
-                $mismatch['child_collation'],
-                $mismatch['parent_table'],
-                $mismatch['parent_column'],
-                $mismatch['parent_collation'],
-            ),
-            $mismatchList,
-        );
-        $descriptionStr = implode("
-- ", $descriptions);
-
-        if (count($mismatches) > 3) {
-            $descriptionStr .= sprintf("
-- ... and %d more", count($mismatches) - 3);
-        }
-
-        $fixCommands = [];
-
-        foreach (array_slice($mismatches, 0, 5) as $mismatch) {
-            $fixCommands[] = sprintf(
-                'ALTER TABLE `%s` MODIFY COLUMN `%s` VARCHAR(255) COLLATE %s; -- Match parent table',
-                $mismatch['child_table'],
-                $mismatch['child_column'],
-                $mismatch['parent_collation'],
-            );
-        }
-
-        if (count($mismatches) > 5) {
-            $fixCommands[] = '-- ... and ' . (count($mismatches) - 5) . ' more columns';
-        }
-
-        return new DatabaseConfigIssue([
-            'title'       => sprintf('%d foreign key collation mismatches detected', count($mismatches)),
-            'description' => sprintf(
-                'Found %d foreign key relationships where child and parent columns have different collations. ' .
-                'This prevents index usage in JOINs and causes severe performance degradation:' . "
-- " . $descriptionStr,
-                count($mismatches),
-            ),
-            'severity'   => 'critical',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Foreign key collations',
-                currentValue: 'Mismatched collations',
-                recommendedValue: 'Matching collations',
-                description: 'Foreign key columns MUST have the same collation as their referenced columns for optimal JOIN performance',
-                fixCommand: implode("
-", $fixCommands),
-            ),
-            'backtrace' => null,
-            'queries'   => [],
-        ]);
-    }
-
-    private function getMySQLTimezone(): string
-    {
-        $result = $this->connection->executeQuery(
-            'SELECT @@global.time_zone as global_tz, @@session.time_zone as session_tz',
-        );
-
-        $row = $this->databasePlatformDetector->fetchAssociative($result);
-
-        return $row['session_tz'] ?? $row['global_tz'] ?? 'SYSTEM';
-    }
-
-    private function getSystemTimezone(): string
-    {
-        $result = $this->connection->executeQuery(
-            'SELECT @@system_time_zone as system_tz',
-        );
-
-        $row = $this->databasePlatformDetector->fetchAssociative($result);
-
-        return $row['system_tz'] ?? 'UTC';
-    }
-
-    private function getPHPTimezone(): string
-    {
-        return date_default_timezone_get();
-    }
-
-    private function timezonesAreDifferent(string $tz1, string $tz2): bool
-    {
-        $normalize = function (string $timezone): string {
-            // Pattern: Match numeric values
-            if (1 === preg_match('/^[+-]\d{2}:\d{2}$/', $timezone)) {
-                return $timezone;
-            }
-
-            try {
-                $dateTimeZone = new DateTimeZone($timezone);
-
-                return $dateTimeZone->getName();
-            } catch (\Exception) {
-                return $timezone;
-            }
-        };
-
-        $normalized1 = $normalize($tz1);
-        $normalized2 = $normalize($tz2);
-
-        $utcEquivalents = ['UTC', '+00:00', 'GMT'];
-
-        if (in_array($normalized1, $utcEquivalents, true) && in_array($normalized2, $utcEquivalents, true)) {
-            return false;
-        }
-
-        return $normalized1 !== $normalized2;
-    }
-
-    private function areTimezoneTablesLoaded(): bool
-    {
-        try {
-            $result = $this->connection->executeQuery(
-                'SELECT COUNT(*) as count FROM mysql.time_zone_name',
-            );
-
-            $row = $this->databasePlatformDetector->fetchAssociative($result);
-
-            return ($row['count'] ?? 0) > 0;
-        } catch (\Throwable) {
-            return false;
-        }
-    }
-
-    private function createSystemTimezoneIssue(string $systemTimezone, string $phpTimezone): DatabaseConfigIssue
-    {
-        return new DatabaseConfigIssue([
-            'title'       => 'MySQL using SYSTEM timezone (ambiguous configuration)',
-            'description' => sprintf(
-                'MySQL is configured to use the SYSTEM timezone, which resolves to "%s". ' .
-                'This is ambiguous and can change if the server timezone changes. ' .
-                'PHP is using "%s". ' .
-                'Explicitly set MySQL timezone to ensure consistent datetime handling.',
-                $systemTimezone,
-                $phpTimezone,
-            ),
-            'severity'   => 'warning',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'MySQL time_zone',
-                currentValue: 'SYSTEM',
-                recommendedValue: $phpTimezone,
-                description: 'Set explicit timezone to match PHP application timezone',
-                fixCommand: $this->getTimezoneFixCommand($phpTimezone),
-            ),
-            'backtrace' => null,
-            'queries'   => [],
-        ]);
-    }
-
-    private function createTimezoneMismatchIssue(string $mysqlTz, string $phpTz): DatabaseConfigIssue
-    {
-        return new DatabaseConfigIssue([
-            'title'       => 'Timezone mismatch between MySQL and PHP',
-            'description' => sprintf(
-                'MySQL timezone is "%s" but PHP timezone is "%s". ' .
-                'This mismatch causes subtle bugs:' . "
-" .
-                '- DateTime values saved from PHP are stored with wrong timezone' . "
-" .
-                '- Queries with NOW(), CURDATE() return different times than PHP' . "
-" .
-                '- Date comparisons between PHP and MySQL fail' . "
-" .
-                '- Reports and analytics show incorrect timestamps',
-                $mysqlTz,
-                $phpTz,
-            ),
-            'severity'   => 'critical',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Timezone configuration',
-                currentValue: sprintf('MySQL: %s, PHP: %s', $mysqlTz, $phpTz),
-                recommendedValue: sprintf('Both use: %s', $phpTz),
-                description: 'Synchronize MySQL and PHP timezones to prevent datetime bugs',
-                fixCommand: $this->getTimezoneFixCommand($phpTz),
-            ),
-            'backtrace' => null,
-            'queries'   => [],
-        ]);
-    }
-
-    private function createMissingTimezoneTablesIssue(): DatabaseConfigIssue
-    {
-        return new DatabaseConfigIssue([
-            'title'       => 'MySQL timezone tables not loaded',
-            'description' => 'MySQL timezone tables (mysql.time_zone_name) are empty. ' .
-                'This prevents timezone conversions with CONVERT_TZ() and named timezones. ' .
-                'You can only use offset-based timezones like "+00:00" which is inflexible.',
-            'severity'   => 'warning',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'MySQL timezone tables',
-                currentValue: 'Not loaded',
-                recommendedValue: 'Loaded',
-                description: 'Load timezone tables to enable timezone conversions',
-                fixCommand: $this->getTimezoneTablesLoadCommand(),
-            ),
-            'backtrace' => null,
-            'queries'   => [],
-        ]);
-    }
-
-    private function getTimezoneFixCommand(string $timezone): string
-    {
-        return <<<SQL
-            -- Option 1: Set in MySQL configuration file (my.cnf or my.ini) - RECOMMENDED
-            [mysqld]
-            default-time-zone = '{$timezone}'
-
-            -- Option 2: Set dynamically (session only, temporary)
-            SET time_zone = '{$timezone}';
-
-            -- Option 3: Set globally (requires SUPER privilege, persists until restart)
-            SET GLOBAL time_zone = '{$timezone}';
-
-            -- Option 4: Set in Doctrine DBAL configuration (config/packages/doctrine.yaml)
-            doctrine:
-                dbal:
-                    options:
-                        1002: '{$timezone}'  # MYSQL_INIT_COMMAND equivalent
-                    # OR use connection string
-                    url: 'mysql://user:pass@host/dbname?serverVersion=8.0&charset=utf8mb4&default-time-zone={$timezone}'
-            SQL;
-    }
-
-    private function getTimezoneTablesLoadCommand(): string
-    {
-        return <<<BASH
-            # On Linux/Mac (run on host machine, not Docker container)
-            mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p mysql
-
-            # On Windows, download timezone SQL from:
-            # https://dev.mysql.com/downloads/timezones.html
-            # Then import with:
-            # mysql -u root -p mysql < timezone_2024_*.sql
-
-            # Verify it worked:
-            # mysql -u root -p -e "SELECT COUNT(*) FROM mysql.time_zone_name;"
-            # Should return > 0 (typically 500+)
-
-            # After loading, restart MySQL or run:
-            # FLUSH TABLES;
-            BASH;
-    }
-
-    private function getMaxConnections(): int
-    {
-        $result = $this->connection->executeQuery("SHOW VARIABLES LIKE 'max_connections'");
-        $row    = $this->databasePlatformDetector->fetchAssociative($result);
-
-        return (int) ($row['Value'] ?? 151);
-    }
-
-    private function getMaxUsedConnections(): int
-    {
-        $result = $this->connection->executeQuery("SHOW STATUS LIKE 'Max_used_connections'");
-        $row    = $this->databasePlatformDetector->fetchAssociative($result);
-
-        return (int) ($row['Value'] ?? 0);
-    }
-
-    private function getMaxConnectionsFixCommand(int $recommended): string
-    {
-        return "-- In your MySQL configuration file (my.cnf or my.ini):
-" .
-               "[mysqld]
-" .
-               "max_connections = {$recommended}
-
-" .
-               "-- Or set it globally (requires SUPER privilege and restart):
-" .
-               "SET GLOBAL max_connections = {$recommended};
-
-" .
-               '-- Note: Restart MySQL for persistent changes';
-    }
-
-    private function getSqlMode(): string
-    {
-        $result = $this->connection->executeQuery("SHOW VARIABLES LIKE 'sql_mode'");
-        $row    = $this->databasePlatformDetector->fetchAssociative($result);
-
-        return $row['Value'] ?? '';
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    private function getMissingModes(string $currentMode): array
-    {
-        $activeModes = array_map(function ($mode) {
-            return trim($mode);
-        }, explode(',', strtoupper($currentMode)));
-        $missing     = [];
-
-        foreach (self::RECOMMENDED_SQL_MODES as $mode) {
-            if (!in_array($mode, $activeModes, true)) {
-                $missing[] = $mode;
-            }
-        }
-
-        return $missing;
-    }
-
-    private function getFixCommand(string $currentMode, array $missingModes): string
-    {
-        $allModes = array_merge(
-            array_filter(array_map(function ($mode) {
-                return trim($mode);
-            }, explode(',', $currentMode)), fn (string $mode): bool => '' !== $mode),
-            $missingModes,
-        );
-        $newMode = implode(',', array_unique($allModes));
-
-        return "-- In your MySQL configuration file (my.cnf or my.ini):
-" .
-               "[mysqld]
-" .
-               "sql_mode = '{$newMode}'
-
-" .
-               "-- Or set it dynamically (session only):
-" .
-               "SET SESSION sql_mode = '{$newMode}';
-
-" .
-               "-- Or globally (requires SUPER privilege):
-" .
-               sprintf("SET GLOBAL sql_mode = '%s';", $newMode);
-    }
-
-    private function getQueryCacheType(): string
-    {
-        try {
-            $result = $this->connection->executeQuery("SHOW VARIABLES LIKE 'query_cache_type'");
-            $row    = $this->databasePlatformDetector->fetchAssociative($result);
-
-            return strtoupper($row['Value'] ?? 'OFF');
-        } catch (\Throwable) {
-            // query_cache_type doesn't exist in MySQL 8.0+
-            return 'OFF';
-        }
-    }
-
-    private function getInnoDBFlushLog(): int
-    {
-        $result = $this->connection->executeQuery("SHOW VARIABLES LIKE 'innodb_flush_log_at_trx_commit'");
-        $row    = $this->databasePlatformDetector->fetchAssociative($result);
-
-        return (int) ($row['Value'] ?? 1);
-    }
-
-    private function isBinaryLogEnabled(): bool
-    {
-        try {
-            $result = $this->connection->executeQuery("SHOW VARIABLES LIKE 'log_bin'");
-            $row    = $this->databasePlatformDetector->fetchAssociative($result);
-
-            return 'ON' === strtoupper($row['Value'] ?? 'OFF');
-        } catch (\Throwable) {
-            return false;
-        }
-    }
-
-    private function getInnoDBBufferPoolSize(): int
-    {
-        $result = $this->connection->executeQuery("SHOW VARIABLES LIKE 'innodb_buffer_pool_size'");
-        $row    = $this->databasePlatformDetector->fetchAssociative($result);
-
-        return (int) ($row['Value'] ?? 134217728); // Default 128MB
-    }
-
-    private function getQueryCacheFixCommand(): string
-    {
-        return <<<SQL
-            -- In MySQL configuration file (my.cnf or my.ini):
-            [mysqld]
-            query_cache_type = OFF
-            query_cache_size = 0
-
-            -- Or set globally (MySQL 5.7 only, removed in 8.0+):
-            SET GLOBAL query_cache_type = OFF;
-            SET GLOBAL query_cache_size = 0;
-
-            -- Restart MySQL for changes to take effect
-            SQL;
-    }
-
-    private function getInnoDBFlushLogFixCommand(): string
-    {
-        return <<<SQL
-            -- DEVELOPMENT ONLY (NOT for production!)
-            -- In MySQL configuration file (my.cnf or my.ini):
-            [mysqld]
-            innodb_flush_log_at_trx_commit = 2  # Dev only
-
-            -- Or set globally:
-            SET GLOBAL innodb_flush_log_at_trx_commit = 2;
-
-            -- Values:
-            -- 0 = flush every second (fastest, data loss on crash)
-            -- 1 = flush on every commit (slowest, full ACID - use in PRODUCTION)
-            -- 2 = flush on every commit to OS cache, write to disk every second (balanced for dev)
-
-            -- IMPORTANT: Use value 1 in production for data safety!
-            SQL;
-    }
-
-    private function getBinaryLogFixCommand(): string
-    {
-        return <<<SQL
-            -- DEVELOPMENT ONLY (binlog needed for replication/backups in production)
-            -- In MySQL configuration file (my.cnf or my.ini):
-            [mysqld]
-            # Comment out or remove the following line:
-            # log_bin = mysql-bin
-            skip-log-bin
-
-            -- Or alternatively (MySQL 8.0.21+):
-            disable_log_bin = 1
-
-            -- Restart MySQL for changes to take effect
-
-            -- Note: In production, keep binlog enabled for backups and replication!
-            SQL;
-    }
-
-    private function getBufferPoolSizeFixCommand(int $recommendedBytes): string
-    {
-        $recommendedMB = $recommendedBytes / 1024 / 1024;
-
-        return <<<SQL
-            -- In MySQL configuration file (my.cnf or my.ini):
-            [mysqld]
-            innodb_buffer_pool_size = {$recommendedBytes}  # {$recommendedMB}MB
-
-            -- Or set globally (requires restart):
-            SET GLOBAL innodb_buffer_pool_size = {$recommendedBytes};
-
-            -- Restart MySQL for changes to take effect
-
-            -- Sizing guidelines:
-            -- Development: 256MB - 512MB (minimum)
-            -- Production: 50-70% of available RAM
-            -- Example: 8GB RAM server -> set to 4-5GB (4294967296 - 5368709120 bytes)
-            SQL;
     }
 }
