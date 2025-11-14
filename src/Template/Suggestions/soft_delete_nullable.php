@@ -18,37 +18,29 @@ ob_start();
 ?>
 
 <div class="suggestion-content">
-    <h3>🚨 CRITICAL: Soft Delete Field MUST Be Nullable!</h3>
-    <p>
-        The field <code><?= $fieldName ?></code> is configured as <strong>NOT NULL</strong>, which breaks soft delete functionality:
-    </p>
-    <ul>
-        <li><strong>NULL = Entity is NOT deleted</strong> (active)</li>
-        <li><strong>DateTime = Entity IS deleted</strong> (soft deleted)</li>
-        <li>NOT NULL means the field must always have a value → entity is ALWAYS deleted!</li>
-        <li>This completely breaks the soft delete pattern</li>
-    </ul>
+    <h3>Soft delete field must be nullable</h3>
+    <div class="alert alert-danger">
+        <code><?= $fieldName ?></code> is NOT NULL. This breaks soft delete functionality.
+    </div>
 
-    <h3>Solution: Make Field Nullable</h3>
-    <pre><code class="language-php">
-use Doctrine\ORM\Mapping as ORM;
+    <p>Soft delete works like this: NULL = active entity, DateTime = deleted entity. If the field is NOT NULL, it must always have a value, meaning the entity is always deleted. This completely breaks the pattern.</p>
+
+    <h3>Fix</h3>
+    <pre><code class="language-php">use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
 {
-    // CORRECT: nullable = true
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\\DateTime $<?= $fieldName ?> = null;
+    private ?\DateTime $<?= $fieldName ?> = null;
 
     public function delete(): void
     {
-        // Soft delete: set the timestamp
-        $this-><?= $fieldName ?> = new \\DateTime();
+        $this-><?= $fieldName ?> = new \DateTime();
     }
 
     public function restore(): void
     {
-        // Restore: set to NULL
         $this-><?= $fieldName ?> = null;
     }
 
@@ -56,45 +48,9 @@ class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
     {
         return null !== $this-><?= $fieldName ?>;
     }
-}
-</code></pre>
+}</code></pre>
 
-    <h3>Using Doctrine Extensions</h3>
-
-    <pre><code class="language-php">
-// Gedmo: Automatically nullable
-use Gedmo\Mapping\Annotation as Gedmo;
-
-#[ORM\Entity]
-#[Gedmo\SoftDeleteable(fieldName: '<?= $fieldName ?>', timeAware: false)]
-class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
-{
-    #[ORM\Column(type: 'datetime', nullable: true)]  // ← Must be nullable
-    private ?\\DateTime $<?= $fieldName ?> = null;
-}
-
-// KnpLabs: Automatically nullable
-use Knp\DoctrineBehaviors\Contract\Entity\SoftDeletableInterface;
-use Knp\DoctrineBehaviors\Model\SoftDeletable\SoftDeletableTrait;
-
-#[ORM\Entity]
-class <?= basename(str_replace('\\', '/', $entityClass)) ?> implements SoftDeletableInterface
-{
-    use SoftDeletableTrait;  // Provides nullable deletedAt
-}
-</code></pre>
-
-    <h3>Migration</h3>
-    <pre><code class="language-sql">
--- Make the column nullable and set all values to NULL
-UPDATE <?= strtolower(basename(str_replace('\\', '/', $entityClass))) ?>
-SET <?= strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName)) ?> = NULL;
-
-ALTER TABLE <?= strtolower(basename(str_replace('\\', '/', $entityClass))) ?>
-MODIFY COLUMN <?= strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName)) ?> DATETIME NULL;
-</code></pre>
-
-    <p><strong>Why this is CRITICAL:</strong> Data loss risk • Broken soft delete logic • All entities appear deleted</p>
+    <p>Make the field nullable so it can be NULL when the entity is active and have a timestamp when deleted.</p>
 </div>
 
 <?php

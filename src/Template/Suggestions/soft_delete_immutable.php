@@ -18,41 +18,32 @@ ob_start();
 ?>
 
 <div class="suggestion-content">
-    <h3>Why Use DateTimeImmutable for Soft Delete?</h3>
+    <h3>Use DateTimeImmutable for soft delete</h3>
     <p>
-        The field <code><?= $fieldName ?></code> uses mutable <code>DateTime</code>. Use <code>DateTimeImmutable</code> instead:
+        <code><?= $fieldName ?></code> uses mutable <code>DateTime</code>. Use <code>DateTimeImmutable</code> instead to prevent accidental modifications to the deletion timestamp.
     </p>
-    <ul>
-        <li>Prevents accidental modifications to the deletion timestamp</li>
-        <li>Thread-safe and more predictable</li>
-        <li>Follows PHP best practices (PHP 8.1+)</li>
-        <li>Deletion time should never change after being set</li>
-    </ul>
 
-    <h3>Solution: Use DateTimeImmutable</h3>
-    <pre><code class="language-php">
-use Doctrine\ORM\Mapping as ORM;
+    <h3>Fix</h3>
+    <pre><code class="language-php">use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
 {
-    // GOOD: DateTimeImmutable
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\\DateTimeImmutable $<?= $fieldName ?> = null;
+    private ?\DateTimeImmutable $<?= $fieldName ?> = null;
 
     public function delete(): void
     {
-        $this-><?= $fieldName ?> = new \\DateTimeImmutable();
+        $this-><?= $fieldName ?> = new \DateTimeImmutable();
     }
 
     public function restore(): void
     {
         $this-><?= $fieldName ?> = null;
     }
-}
-</code></pre>
+}</code></pre>
 
-    <p><strong>Benefits:</strong> Immutable • Thread-safe • No accidental modifications • PHP</p>
+    <p>DateTimeImmutable is thread-safe and prevents accidental modifications. Once a deletion time is set, it should never change.</p>
 </div>
 
 <?php

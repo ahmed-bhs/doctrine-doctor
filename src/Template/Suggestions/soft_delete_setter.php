@@ -18,31 +18,25 @@ ob_start();
 ?>
 
 <div class="suggestion-content">
-    <h3>Why is this a problem?</h3>
-    <p>
-        Having a public setter on <code><?= $fieldName ?></code> breaks soft delete integrity:
-    </p>
-    <ul>
-        <li>Soft delete timestamp should be managed by business logic</li>
-        <li>Public setters allow bypassing soft delete controls</li>
-        <li>This enables data manipulation and audit trail tampering</li>
-        <li>Makes it possible to fake deletion/restoration times</li>
-    </ul>
+    <h3>Public setter on soft delete field</h3>
+    <div class="alert alert-warning">
+        <code><?= $fieldName ?></code> has a public setter. This allows bypassing soft delete controls and manipulating audit trails.
+    </div>
 
-    <h3>Solution: Remove Public Setter, Use Methods</h3>
-    <pre><code class="language-php">
-class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
+    <p>Soft delete timestamps should be managed by business logic, not set directly. Public setters allow faking deletion/restoration times.</p>
+
+    <h3>Fix</h3>
+    <pre><code class="language-php">class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
 {
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\\DateTimeImmutable $<?= $fieldName ?> = null;
+    private ?\DateTimeImmutable $<?= $fieldName ?> = null;
 
-    // GOOD: Business logic methods
     public function delete(): void
     {
         if ($this->isDeleted()) {
             throw new \LogicException('Already deleted');
         }
-        $this-><?= $fieldName ?> = new \\DateTimeImmutable();
+        $this-><?= $fieldName ?> = new \DateTimeImmutable();
     }
 
     public function restore(): void
@@ -58,41 +52,13 @@ class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
         return null !== $this-><?= $fieldName ?>;
     }
 
-    public function get<?= ucfirst($fieldName) ?>(): ?\\DateTimeImmutable
+    public function get<?= ucfirst($fieldName) ?>(): ?\DateTimeImmutable
     {
         return $this-><?= $fieldName ?>;
     }
+}</code></pre>
 
-    //  REMOVE THIS:
-    // public function set<?= ucfirst($fieldName) ?>(?\\DateTime $date): void
-    // {
-    //     $this-><?= $fieldName ?> = $date;
-    // }
-}
-</code></pre>
-
-    <h3>Using Doctrine Extensions</h3>
-    <p>Extensions handle this automatically with no public setters:</p>
-
-    <pre><code class="language-php">
-// Gedmo: Automatic soft delete
-use Gedmo\Mapping\Annotation as Gedmo;
-
-#[ORM\Entity]
-#[Gedmo\SoftDeleteable(fieldName: '<?= $fieldName ?>')]
-class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
-{
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\\DateTimeImmutable $<?= $fieldName ?> = null;
-
-    // No setters needed - Gedmo handles it
-}
-
-// Delete: $entityManager->remove($entity); $entityManager->flush();
-// Restore: $entity->restore(); (if you add the method)
-</code></pre>
-
-    <p><strong>Benefits:</strong> Controlled access • Business logic validation • No tampering • Audit integrity</p>
+    <p>Remove the setter and use business logic methods like <code>delete()</code> and <code>restore()</code> instead. This ensures proper validation and audit integrity.</p>
 </div>
 
 <?php

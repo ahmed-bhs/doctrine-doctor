@@ -18,28 +18,21 @@ ob_start();
 ?>
 
 <div class="suggestion-content">
-    <h3>🚨 CRITICAL: CASCADE DELETE vs Soft Delete Conflict!</h3>
-    <p>
-        Your entity uses <strong>soft delete</strong>, but has a relation with <code>onDelete="CASCADE"</code>:
-    </p>
-    <ul>
-        <li><strong>Soft delete</strong> means entities are NEVER physically deleted from database</li>
-        <li><strong>CASCADE DELETE</strong> triggers physical deletion when the parent is removed</li>
-        <li>This creates a conflict: soft deleted parent → CASCADE deletes children physically!</li>
-        <li>This causes <strong>data loss</strong> - children are permanently deleted</li>
-    </ul>
+    <h3>CASCADE DELETE vs Soft Delete conflict</h3>
+    <div class="alert alert-danger">
+        Your entity uses soft delete but has a relation with <code>onDelete="CASCADE"</code>. This causes data loss.
+    </div>
 
-    <h3>The Problem</h3>
-    <pre><code class="language-php">
-//  BAD: Conflict!
-#[ORM\Entity]
+    <p>Soft delete means entities are never physically deleted from the database. CASCADE DELETE triggers physical deletion when the parent is removed. When you soft delete a parent, CASCADE will physically delete children, which defeats the purpose of soft delete.</p>
+
+    <h3>Current code</h3>
+    <pre><code class="language-php">#[ORM\Entity]
 #[Gedmo\SoftDeleteable]
 class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
 {
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\\DateTime $deletedAt = null;
+    private ?\DateTime $deletedAt = null;
 
-    //  onDelete: 'CASCADE' will physically delete related entities!
     #[ORM\ManyToOne(targetEntity: Category::class)]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Category $<?= $fieldName ?>;
@@ -48,86 +41,35 @@ class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
 // What happens:
 // 1. Soft delete Post: deletedAt = now() ← Post stays in DB
 // 2. Hard delete Category: CASCADE triggers ← Related Posts are PHYSICALLY deleted!
-// 3. Result: Data loss! Posts are gone forever, not soft deleted
-</code></pre>
+// 3. Result: Data loss</code></pre>
 
-    <h3>Solution 1: Remove CASCADE DELETE</h3>
-    <pre><code class="language-php">
-#[ORM\Entity]
+    <h3>Option 1: Remove CASCADE DELETE</h3>
+    <pre><code class="language-php">#[ORM\Entity]
 #[Gedmo\SoftDeleteable]
 class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
 {
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\\DateTime $deletedAt = null;
-
-    // GOOD: No CASCADE DELETE
     #[ORM\ManyToOne(targetEntity: Category::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL', nullable: true)]
     private ?Category $<?= $fieldName ?>;
 
     // Or use RESTRICT to prevent deletion
     // #[ORM\JoinColumn(onDelete: 'RESTRICT')]
-}
-</code></pre>
+}</code></pre>
 
-    <h3>Solution 2: Also Soft Delete Children</h3>
-    <p>If children should be deleted when parent is deleted, use ORM cascade, not database cascade:</p>
+    <h3>Option 2: Soft delete children too</h3>
+    <p>Use ORM cascade, not database cascade:</p>
 
-    <pre><code class="language-php">
-#[ORM\Entity]
+    <pre><code class="language-php">#[ORM\Entity]
 #[Gedmo\SoftDeleteable]
 class Category
 {
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\\DateTime $deletedAt = null;
-
-    // ORM cascade: soft deletes children too
     #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'category', cascade: ['remove'])]
     private Collection $posts;
 }
 
-// Now when Category is soft deleted, Posts are also soft deleted
-</code></pre>
+// Now when Category is soft deleted, Posts are also soft deleted</code></pre>
 
-    <h3>Solution 3: No Soft Delete on Parent</h3>
-    <p>If the parent should NOT be soft deleted, remove SoftDeleteable:</p>
-
-    <pre><code class="language-php">
-#[ORM\Entity]
-// No SoftDeleteable = physical delete is fine
-class Category
-{
-    #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'category')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]  // ← Now it's consistent
-    private Collection $posts;
-}
-</code></pre>
-
-    <h3>Decision Matrix</h3>
-    <table>
-        <tr>
-            <th>Scenario</th>
-            <th>Solution</th>
-        </tr>
-        <tr>
-            <td>Parent soft deleted → Children should be orphaned</td>
-            <td>Use <code>onDelete: 'SET NULL'</code></td>
-        </tr>
-        <tr>
-            <td>Parent soft deleted → Children should also soft delete</td>
-            <td>Use ORM <code>cascade: ['remove']</code></td>
-        </tr>
-        <tr>
-            <td>Parent physically deleted → Children should be deleted</td>
-            <td>Remove SoftDeleteable, use <code>onDelete: 'CASCADE'</code></td>
-        </tr>
-        <tr>
-            <td>Prevent parent deletion if children exist</td>
-            <td>Use <code>onDelete: 'RESTRICT'</code></td>
-        </tr>
-    </table>
-
-    <p><strong>Why this is CRITICAL:</strong> Permanent data loss • Broken soft delete pattern • Inconsistent behavior</p>
+    <p>Choose SET NULL if children should be orphaned, or ORM cascade if children should also soft delete. Never mix soft delete with database CASCADE DELETE.</p>
 </div>
 
 <?php

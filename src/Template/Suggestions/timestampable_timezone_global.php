@@ -23,80 +23,39 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>🌍 Timezone Awareness (<?php echo $totalFields; ?> fields)</h4>
+    <h4>Timezone awareness (<?php echo $totalFields; ?> fields)</h4>
 </div>
 
 <div class="suggestion-content">
     <div class="alert alert-info">
-        ℹ️ <strong>Information</strong><br>
-        Your application has <strong><?php echo $totalFields; ?> timestamp fields</strong> using <code>datetime</code> type without timezone information.
+        Found <strong><?php echo $totalFields; ?> timestamp fields</strong> using <code>datetime</code> without timezone information.
     </div>
 
-    <h4>When is this acceptable?</h4>
+    <p>This is fine for most applications. If you store everything in UTC and convert to the user's timezone when displaying, you don't need to change anything.</p>
+
+    <h4>When this is acceptable</h4>
     <div class="query-item">
-        <pre><code>Single timezone applications:
-   - All timestamps stored in UTC
-   - Timezone conversion happens in PHP
-   - No direct SQL reports/BI tools
-
-Common pattern:
-   - Store everything in UTC in database
-   - Convert to user timezone in application layer
-   - Most web applications work this way</code></pre>
+        <pre><code>Most web applications:
+   - Store everything in UTC
+   - Convert to user timezone in PHP
+   - Simple and works well</code></pre>
     </div>
 
-    <h4>When should you use datetimetz?</h4>
+    <h4>When to use datetimetz</h4>
     <div class="query-item">
         <pre><code>Multi-timezone applications:
    - Users in different timezones
-   - Direct SQL reports/analytics
-   - Third-party BI tools accessing database
+   - Direct SQL reports or BI tools
    - Need to preserve original timezone</code></pre>
     </div>
 
-    <h4>Recommendation</h4>
-    <div class="alert alert-success">
-        💡 If your application runs in a single timezone (most common case), <strong>this is acceptable</strong>.<br>
-        You don't need to change anything.
-    </div>
-
-    <h4>If you need multi-timezone support:</h4>
+    <h4>Switching to datetimetz</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Change from:
-#[ORM\Column(type: 'datetime_immutable')]
-private \DateTimeImmutable $createdAt;
-
-// To:
-#[ORM\Column(type: 'datetimetz_immutable')]
+        <pre><code class="language-php">#[ORM\Column(type: 'datetimetz_immutable')]
 private \DateTimeImmutable $createdAt;</code></pre>
     </div>
 
-    <h4>Trade-offs</h4>
-    <table class="comparison-table">
-        <tr>
-            <th>Approach</th>
-            <th>Storage</th>
-            <th>Complexity</th>
-            <th>Best For</th>
-        </tr>
-        <tr>
-            <td><code>datetime</code> (UTC)</td>
-            <td>Smaller</td>
-            <td>Simpler</td>
-            <td>Most applications</td>
-        </tr>
-        <tr>
-            <td><code>datetimetz</code></td>
-            <td>📢 Larger</td>
-            <td>📢 More complex</td>
-            <td>Multi-timezone apps</td>
-        </tr>
-    </table>
-
-    <div class="alert alert-info">
-        💡 <strong>Bottom line:</strong> If you're not sure, keep <code>datetime</code> with UTC.<br>
-        Only use <code>datetimetz</code> if you have a specific need for it.
-    </div>
+    <p>If you're not sure, stick with <code>datetime</code> and UTC. It's simpler and works for most cases. Only switch to <code>datetimetz</code> if you have a specific need to preserve timezones.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz" target="_blank" class="doc-link">
