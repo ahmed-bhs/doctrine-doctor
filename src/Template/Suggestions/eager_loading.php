@@ -63,7 +63,7 @@ $code = ob_get_clean();
 return [
     'code'        => $code,
     'description' => sprintf(
-        'N+1 query detected on %s relation - consider using JOIN FETCH',
+        'N+1 query detected on %s relation - use eager loading with JOIN FETCH',
         $relation,
     ),
 ];

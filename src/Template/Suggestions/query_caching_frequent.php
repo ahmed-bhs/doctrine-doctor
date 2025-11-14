@@ -39,7 +39,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        Query executed <?php echo $count; ?> times (<?php echo number_format($totalTime, 2); ?>ms total). Result cache saves ~<?php echo number_format($improvement, 0); ?>%.
+        Query executed <?php echo $count; ?> times (<?php echo number_format($totalTime, 2); ?>ms total, <?php echo number_format($avgTime, 2); ?>ms avg). Result cache saves ~<?php echo number_format($improvement, 0); ?>%.
     </div>
 
     <h4>Query:</h4>
@@ -63,6 +63,6 @@ return [
     'description' => sprintf(
         'Cache frequently executed query (%d executions, %sms total)',
         $count,
-        number_format($total_time, 2),
+        number_format($totalTime, 2),
     ),
 ];
