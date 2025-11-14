@@ -89,7 +89,7 @@ foreach ($results as $userRevenue) {
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#new-operator-syntax" target="_blank" class="doc-link">
-            Doctrine NEW operator docs
+            📖 Doctrine NEW operator docs
         </a>
     </p>
 </div>

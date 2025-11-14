@@ -85,7 +85,7 @@ class YourEntity
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index" target="_blank" class="doc-link">
-            Doctrine indexing docs
+            📖 Doctrine indexing docs
         </a>
     </p>
 </div>

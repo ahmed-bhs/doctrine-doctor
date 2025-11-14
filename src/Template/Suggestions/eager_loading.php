@@ -94,7 +94,7 @@ private ?RelatedEntity $<?php echo $e($relation); ?> = null;</code></pre>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">
-            Doctrine docs on DQL joins
+            📖 Doctrine docs on DQL joins
         </a>
     </p>
 </div>

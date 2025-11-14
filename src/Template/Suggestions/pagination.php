@@ -99,7 +99,7 @@ foreach ($iterableResult as $entity) {
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/pagination.html" target="_blank" class="doc-link">
-            Doctrine pagination docs
+            📖 Doctrine pagination docs
         </a>
     </p>
 </div>
