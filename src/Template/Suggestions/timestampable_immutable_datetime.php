@@ -13,32 +13,30 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>Mutable DateTime in Timestamp Field</h4>
+    <h4>Mutable DateTime in timestamp field</h4>
 </div>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        🕐 <strong>Mutability Issue</strong><br>
-        Field <code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> uses mutable DateTime.<br>
-        This can cause unexpected bugs when the object is accidentally modified.
+        <code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> uses mutable DateTime. This can cause bugs when the object is accidentally modified.
     </div>
 
-    <h4>The Problem</h4>
+    <p>When you return a DateTime from a getter, external code can modify it without going through your entity's setters. This breaks encapsulation and can lead to hard-to-debug issues.</p>
+
+    <h4>Current code</h4>
     <div class="query-item">
-        <pre><code class="language-php">// CURRENT: Mutable DateTime
-#[ORM\Column(type: 'datetime')]
+        <pre><code class="language-php">#[ORM\Column(type: 'datetime')]
 private \DateTime $<?php echo $e($fieldName); ?>;
 
-// Example of the problem:
+// Problem:
 $date = $entity->get<?php echo ucfirst($fieldName); ?>();
-$date->modify('+1 day'); // 😱 Modifies the entity's timestamp!
-// Now the entity has been changed without using a setter</code></pre>
+$date->modify('+1 day'); // Modifies the entity directly
+</code></pre>
     </div>
 
-    <h4>Solution: Use DateTimeImmutable</h4>
+    <h4>Use DateTimeImmutable</h4>
     <div class="query-item">
-        <pre><code class="language-php">// GOOD: Immutable DateTime
-#[ORM\Column(type: 'datetime_immutable')]
+        <pre><code class="language-php">#[ORM\Column(type: 'datetime_immutable')]
 private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
 
 // With Gedmo
@@ -48,58 +46,24 @@ use Gedmo\Mapping\Annotation as Gedmo;
 #[Gedmo\Timestampable(on: 'create')]
 private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
 
-// With KnpLabs (supports DateTimeImmutable by default)
-use Knp\DoctrineBehaviors\Model\Timestampable\TimestampableEntity;
-
-class <?php echo $e($entityClass); ?>
-{
-    use TimestampableEntity; // Uses DateTimeImmutable
-}
-
 // Manual implementation
-#[ORM\Column(type: 'datetime_immutable', nullable: false)]
-private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
-
 #[ORM\PrePersist]
 public function onCreate(): void
 {
     $this-><?php echo $e($fieldName); ?> = new \DateTimeImmutable();
 }
 
-// Safe usage:
+// Now safe:
 $date = $entity->get<?php echo ucfirst($fieldName); ?>();
-$newDate = $date->modify('+1 day'); // Returns NEW instance
-// $entity-><?php echo $e($fieldName); ?> is unchanged! </code></pre>
+$newDate = $date->modify('+1 day'); // Returns new instance
+// Entity is unchanged</code></pre>
     </div>
 
-    <h4>Why DateTimeImmutable?</h4>
-    <ul>
-        <li><strong>No Side Effects:</strong> Cannot be modified accidentally</li>
-        <li><strong>Thread Safe:</strong> Safe in concurrent contexts</li>
-        <li><strong>Predictable:</strong> Value never changes after creation</li>
-        <li><strong>Best Practice:</strong> Recommended by Doctrine team</li>
-    </ul>
-
-    <h4>Migration</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// No database migration needed!
-// Doctrine handles DateTime and DateTimeImmutable the same way
-
-// Just update your entity:
-- private \DateTime $<?php echo $e($fieldName); ?>;
-+ private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
-
-// Update type hint in getter:
-- public function get<?php echo ucfirst($fieldName); ?>(): \DateTime
-+ public function get<?php echo ucfirst($fieldName); ?>(): \DateTimeImmutable
-{
-    return $this-><?php echo $e($fieldName); ?>;
-}</code></pre>
-    </div>
+    <p>No database migration needed - Doctrine handles both types the same way. Just update the PHP type and you're done.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/working-with-datetime.html" target="_blank" class="doc-link">
-            📖 Doctrine: Working with DateTime →
+            📖 Doctrine datetime docs
         </a>
     </p>
 </div>
@@ -109,5 +73,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Replace mutable DateTime with DateTimeImmutable',
+    'description' => 'Replace DateTime with DateTimeImmutable',
 ];

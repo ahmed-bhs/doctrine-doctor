@@ -10,18 +10,16 @@ $lastBackslashTarget                                                            
 $shortTarget                                                                                                                                                   = false !== $lastBackslashTarget ? substr($lastBackslashTarget, 1) : (string) $targetEntity;
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Cascade Configuration Issue</h4></div>
+<div class="suggestion-header"><h4>Cascade configuration</h4></div>
 <div class="suggestion-content">
-<div class="alert alert-warning"><strong>Cascade issue in <?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></strong><br>
-Issue type: <?php echo $e($issueType); ?></div>
-<h4>Recommendations</h4>
+<div class="alert alert-warning"><strong><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></strong> - <?php echo $e($issueType); ?></div>
+
 <?php if ($isComposition) { ?>
-<p><strong>Composition relationship detected</strong> (parent owns children)<br>
-Recommended cascades: <code>['persist', 'remove']</code> with <code>orphanRemoval: true</code></p>
+<p>This looks like a composition (parent owns children). Use <code>['persist', 'remove']</code> with <code>orphanRemoval: true</code>.</p>
 <?php } else { ?>
-<p><strong>Association relationship</strong> (independent entities)<br>
-Avoid <code>cascade: ['remove']</code> to prevent accidental deletions!</p>
+<p>This looks like an association (independent entities). Avoid <code>cascade: ['remove']</code> to prevent accidental deletions.</p>
 <?php } ?>
+
 <div class="query-item"><pre><code class="language-php">class <?php echo $e($shortClass); ?> {
     #[ORM\OneToMany(
         targetEntity: <?php echo $e($shortTarget); ?>::class,
@@ -35,4 +33,4 @@ Avoid <code>cascade: ['remove']</code> to prevent accidental deletions!</p>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Fix cascaconfiguration for %s::$%s', $shortClass, $fieldName)];
+return ['code' => $code, 'description' => sprintf('Cascade configuration for %s::$%s', $shortClass, $fieldName)];

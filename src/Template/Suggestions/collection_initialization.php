@@ -8,15 +8,19 @@ $lastBackslash                                                                  
 $shortClass                                                                                        = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClass;
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Uninitialized Collection</h4></div>
+<div class="suggestion-header"><h4>Uninitialized collection</h4></div>
 <div class="suggestion-content">
-<div class="alert alert-danger"><strong>CRITICAL: Uninitialized Collection in <?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></strong></div>
-<h4>Problem</h4>
+<div class="alert alert-danger"><strong><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></strong> is not initialized</div>
+
+<p>Collections need to be initialized in the constructor. Without this, calling add/remove methods will throw an error.</p>
+
+<h4>Current code</h4>
 <div class="query-item"><pre><code class="language-php">class <?php echo $e($shortClass); ?> {
     #[ORM\OneToMany(targetEntity: Item::class, mappedBy: 'parent')]
-    private Collection $<?php echo $e($fieldName); ?>;  // Not initialized!
+    private Collection $<?php echo $e($fieldName); ?>;
 }</code></pre></div>
-<h4> Solution</h4>
+
+<h4>Fix</h4>
 <div class="query-item"><pre><code class="language-php">use Doctrine\Common\Collections\ArrayCollection;
 
 class <?php echo $e($shortClass); ?> {
@@ -24,12 +28,11 @@ class <?php echo $e($shortClass); ?> {
     private Collection $<?php echo $e($fieldName); ?>;
 
     public function __construct() {
-        $this-><?php echo $e($fieldName); ?> = new ArrayCollection();  //  Initialize!
+        $this-><?php echo $e($fieldName); ?> = new ArrayCollection();
     }
 }</code></pre></div>
-<p><strong>Why:</strong> Uninitialized collections cause null pointer exceptions when calling add/remove methods.</p>
 </div>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Initialize collection %s::$%s in constructor', $shortClass, $fieldName)];
+return ['code' => $code, 'description' => sprintf('Initialize %s::$%s in constructor', $shortClass, $fieldName)];

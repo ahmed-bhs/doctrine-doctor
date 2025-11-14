@@ -31,19 +31,15 @@ ob_start();
         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
         <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
     </svg>
-    <h4>Add cascade="remove" for Complete Composition</h4>
+    <h4>Incomplete composition setup</h4>
 </div>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong>Incomplete composition configuration detected</strong><br><br>
-        The field <code>$<?php echo $e($fieldName); ?></code> has <code>orphanRemoval=true</code> but no <code>cascade="remove"</code>.
-        This creates inconsistent behavior:
-        <ul>
-            <li> Removing from collection deletes children (orphanRemoval works)</li>
-            <li>Deleting the parent does NOT delete children (no cascade remove)</li>
-        </ul>
+        <code>$<?php echo $e($fieldName); ?></code> has <code>orphanRemoval=true</code> but no <code>cascade="remove"</code>. This creates inconsistent delete behavior.
     </div>
+
+    <p>With orphanRemoval only, removing an item from the collection deletes it, but deleting the parent leaves orphans. Add cascade remove for consistent behavior.</p>
 
     <h4>Current configuration</h4>
     <div class="query-item">
@@ -58,22 +54,20 @@ ob_start();
 }</code></pre>
     </div>
 
-    <h4>Problem: Inconsistent Delete Behavior</h4>
+    <h4>Current behavior</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Scenario 1: Remove from collection
+        <pre><code class="language-php">// Remove from collection → item deleted
 $<?php echo lcfirst($e($entityClass)); ?>->remove<?php echo ucfirst(rtrim($e($fieldName), 's')); ?>($item);
 $em->flush();
-//  Item is DELETED (orphanRemoval works)
 
-// Scenario 2: Delete parent
+// Delete parent → items NOT deleted
 $em->remove($<?php echo lcfirst($e($entityClass)); ?>);
 $em->flush();
-// Items are NOT deleted (no cascade remove)
-// Instead: <?php echo $e($mappedBy); ?>_id is set to NULL or causes FK constraint error
+// FK constraint error or orphaned records
 </code></pre>
     </div>
 
-    <h4> Recommended configuration</h4>
+    <h4>Recommended fix</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
     #[ORM\OneToMany(
@@ -86,42 +80,11 @@ $em->flush();
 }</code></pre>
     </div>
 
-    <h4>Behavior with cascade="remove"</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Scenario 1: Remove from collection
-$<?php echo lcfirst($e($entityClass)); ?>->remove<?php echo ucfirst(rtrim($e($fieldName), 's')); ?>($item);
-$em->flush();
-//  Item is DELETED (orphanRemoval)
-
-// Scenario 2: Delete parent
-$em->remove($<?php echo lcfirst($e($entityClass)); ?>);
-$em->flush();
-//  All items are DELETED too (cascade remove)
-</code></pre>
-    </div>
-
-    <h4>Why this matters</h4>
-    <ul>
-        <li>With orphanRemoval only: removing item from collection deletes it, but deleting parent leaves orphans</li>
-        <li>With cascade remove: both operations delete children consistently</li>
-        <li>Complete composition means: parent owns children, deleting parent should delete children</li>
-    </ul>
-
-    <h4>Complete Composition Configuration</h4>
-    <div class="query-item">
-        <pre><code class="language-php">cascade: ['persist', 'remove'], orphanRemoval: true</code></pre>
-    </div>
-
-    <p>This gives you:</p>
-    <ul>
-        <li><code>cascade="persist"</code>: Auto-save new children</li>
-        <li><code>cascade="remove"</code>: Delete children when parent is deleted</li>
-        <li><code>orphanRemoval=true</code>: Delete children when removed from collection</li>
-    </ul>
+    <p>For complete composition: use <code>cascade: ['persist', 'remove']</code> with <code>orphanRemoval: true</code>. This ensures children are deleted both when removed from the collection and when the parent is deleted.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">
-            📖 Doctrine Orphan Removal Documentation →
+            📖 Doctrine orphan removal docs
         </a>
     </p>
 </div>
@@ -132,7 +95,7 @@ $code = ob_get_clean();
 return [
     'code'        => $code,
     'description' => sprintf(
-        'Add cascade="remove" to %s::$%s for complete composition',
+        'Add cascade remove to %s::$%s for consistent deletion',
         $entityClass,
         $fieldName,
     ),
