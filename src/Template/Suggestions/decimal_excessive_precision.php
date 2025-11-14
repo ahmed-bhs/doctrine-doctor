@@ -43,10 +43,10 @@ ob_start();
         Very high precision uses more storage and may impact performance. Most use cases don't need precision > 20.
     </div>
 
-    <h4>Typical Precision Needs</h4>
+    <p>Most applications work fine with precision between 10-20. Higher values use more storage and can slow things down slightly.</p>
+
     <ul>
-        <?php assert(is_iterable($precisionNeeds), '$precisionNeeds must be iterable');
-foreach ($precisionNeeds as $need) { ?>
+        <?php foreach ($precisionNeeds as $need) { ?>
         <li><?php echo $e($need); ?></li>
         <?php } ?>
     </ul>

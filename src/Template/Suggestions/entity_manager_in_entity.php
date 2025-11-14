@@ -50,26 +50,19 @@ ob_start();
         <pre><code class="language-php"><?php echo $e($goodCode); ?></code></pre>
     </div>
 
-    <h4>Benefits of Separation</h4>
+    <p>Keeping persistence logic out of your entities makes them easier to test and maintains a clean separation of concerns. Entities should represent your business logic, not know about how they're saved to a database.</p>
+
+    <?php if ($benefits && is_iterable($benefits)) { ?>
     <ul>
-        <?php assert(is_iterable($benefits), '$benefits must be iterable');
-foreach ($benefits as $benefit) { ?>
+        <?php foreach ($benefits as $benefit) { ?>
         <li><?php echo $benefit; ?></li>
         <?php } ?>
     </ul>
-
-    <h4>Best Practices</h4>
-    <ul>
-        <li>Keep entities as pure domain models</li>
-        <li>Use services or repositories for persistence</li>
-        <li>Control transaction boundaries at application layer</li>
-        <li>Make entities easily testable without database</li>
-        <li>Follow Single Responsibility Principle</li>
-    </ul>
+    <?php } ?>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/architecture.html" target="_blank" class="doc-link">
-            📖 Doctrine Architecture Documentation →
+            Doctrine architecture docs
         </a>
     </p>
 </div>

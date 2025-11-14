@@ -33,21 +33,17 @@ ob_start();
 <div class="suggestion-content">
     <p><?php echo $e($description); ?></p>
 
-    <h4>Common Currency Scales</h4>
-    <ul>
-        <?php assert(is_iterable($currencyScales), '$currencyScales must be iterable');
-foreach ($currencyScales as $scaleInfo) { ?>
-        <li><?php echo $e($scaleInfo); ?></li>
-        <?php } ?>
-    </ul>
+    <p>Most currencies use 2 decimal places. Some like BTC use more, but an unusual scale might indicate a misconfiguration.</p>
 
+    <?php if ($infoMessage) { ?>
     <div class="alert alert-info">
-        ℹ️ <?php echo $e($infoMessage); ?>
+        <?php echo $e($infoMessage); ?>
     </div>
+    <?php } ?>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal" target="_blank" class="doc-link">
-            📖 Doctrine Decimal Type Documentation →
+            Doctrine decimal type docs
         </a>
     </p>
 </div>

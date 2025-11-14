@@ -53,23 +53,11 @@ ob_start();
         <pre><code class="language-php"><?php echo $e($goodCode); ?></code></pre>
     </div>
 
-    <h4>Why This Matters</h4>
-    <p>
-        The UnitOfWork uses strict comparison (===) to detect changes. When types don't match,
-        Doctrine thinks the value changed even when it hasn't, causing unnecessary UPDATE statements.
-    </p>
-
-    <h4>Performance Impact</h4>
-    <ul>
-        <?php assert(is_iterable($performanceImpact), '$performanceImpact must be iterable');
-foreach ($performanceImpact as $impact) { ?>
-        <li><?php echo $e($impact); ?></li>
-        <?php } ?>
-    </ul>
+    <p>Doctrine's UnitOfWork uses strict comparison (===) to detect changes. When the property type doesn't match the column type, Doctrine thinks the value changed even when it didn't. This triggers unnecessary UPDATE statements.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/basic-mapping.html" target="_blank" class="doc-link">
-            📖 Doctrine Basic Mapping Documentation →
+            Doctrine basic mapping docs
         </a>
     </p>
 </div>

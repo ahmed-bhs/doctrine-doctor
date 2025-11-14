@@ -12,31 +12,30 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>💡 Consider Extracting Embeddable</h4>
+    <h4>Consider extracting an embeddable</h4>
 </div>
 
 <div class="suggestion-content">
     <div class="alert alert-info">
-        Entity <code><?= $e($entityClass) ?></code> has related fields that could be an Embeddable:<br>
-        <code><?= implode(', ', array_map($e, $fields)) ?></code>
+        <code><?= $e($entityClass) ?></code> has related fields that could be grouped into an embeddable: <code><?= implode(', ', array_map($e, $fields)) ?></code>
     </div>
 
-    <h4>Refactoring to Embeddable</h4>
+    <p>When you have several fields that belong together conceptually (like address fields or money amounts), grouping them into an embeddable value object can make your code clearer.</p>
+
+    <h4>Example refactoring</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Before: Scattered fields
+        <pre><code class="language-php">// Before: separate fields
 class <?= $e($entityClass) ?> {
-<?php assert(is_iterable($fields), '$fields must be iterable');
-foreach ($fields as $field): ?>
+<?php foreach ($fields as $field): ?>
     private string $<?= $e($field) ?>;
 <?php endforeach; ?>
 }
 
-// After: Grouped as Value Object
+// After: grouped as value object
 #[ORM\Embeddable]
 readonly class Address {
     public function __construct(
-<?php assert(is_iterable($fields), '$fields must be iterable');
-foreach ($fields as $i => $field): ?>
+<?php foreach ($fields as $i => $field): ?>
         private string $<?= $e($field) ?><?= $i < count($fields) - 1 ? ',' : '' ?>
 
 <?php endforeach; ?>

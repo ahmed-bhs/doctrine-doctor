@@ -49,10 +49,9 @@ ob_start();
 <div class="suggestion-content">
     <p>Always specify precision and scale for decimal columns to ensure consistent behavior across databases.</p>
 
-    <h4>Choose Your Configuration</h4>
+    <h4>Configuration options</h4>
 
-    <?php assert(is_iterable($options), '$options must be iterable');
-foreach ($options as $index => $option) { ?>
+    <?php foreach ($options as $index => $option) { ?>
     <div class="suggestion-option">
         <h4><?php echo $e($option['title'] ?? 'Configuration'); ?></h4>
         <p><?php echo $e($option['description'] ?? ''); ?></p>
@@ -63,21 +62,17 @@ foreach ($options as $index => $option) { ?>
     </div>
     <?php } ?>
 
-    <h4>Understanding Precision and Scale</h4>
-    <ul>
-        <?php assert(is_iterable($understandingPoints), '$understandingPoints must be iterable');
-foreach ($understandingPoints as $point) { ?>
-        <li><?php echo $e($point); ?></li>
-        <?php } ?>
-    </ul>
+    <p><strong>Precision</strong> is the total number of digits, and <strong>scale</strong> is how many go after the decimal point. Without specifying these, different databases may handle your decimals differently.</p>
 
+    <?php if ($infoMessage) { ?>
     <div class="alert alert-info">
-        ℹ️ <?php echo $e($infoMessage); ?>
+        <?php echo $e($infoMessage); ?>
     </div>
+    <?php } ?>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal" target="_blank" class="doc-link">
-            📖 Doctrine Decimal Type Documentation →
+            Doctrine decimal type docs
         </a>
     </p>
 </div>

@@ -19,22 +19,18 @@ ob_start();
 
 <div class="suggestion-compact">
     <div class="suggestion-header">
-        🔴 <strong>flush() in loop</strong> (<?php echo $flushCount; ?> calls)
+        <strong>flush() in loop</strong> (<?php echo $flushCount; ?> calls)
     </div>
 
     <div class="suggestion-content">
-        <pre><code class="language-php">// 📢 Current: <?php echo $flushCount; ?> flush()
-assert(is_iterable($items), '$items must be iterable');
-
+        <pre><code class="language-php">// Current: <?php echo $flushCount; ?> flush()
 foreach ($items as $item) {
     $em->persist($entity);
-    $em->flush(); // Every iteration!
+    $em->flush(); // Every iteration
 }
 
-// Solution: Batch of 20
+// Better: batch of 20
 $batch = 20;
-assert(is_iterable($items), '$items must be iterable');
-
 foreach ($items as $i => $item) {
     $em->persist($entity);
     if ($i % $batch === 0) {
@@ -45,8 +41,8 @@ foreach ($items as $i => $item) {
 $em->flush();</code></pre>
 
         <p>
-            <strong>⚡ Gain:</strong> ~<?php echo round((1 - (ceil($flushCount / 20) / $flushCount)) * 100); ?>% faster
-            • <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank">📖 Doc</a>
+            ~<?php echo round((1 - (ceil($flushCount / 20) / $flushCount)) * 100); ?>% faster
+            • <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank">Docs</a>
         </p>
     </div>
 </div>
@@ -56,5 +52,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('🔴 Batch processing required (%d flush detected)', $flushCount),
+    'description' => sprintf('Batch processing recommended (%d flush calls in loop)', $flushCount),
 ];

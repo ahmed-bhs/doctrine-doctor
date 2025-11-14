@@ -25,26 +25,25 @@ ob_start();
         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
         <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
     </svg>
-    <h4>Suggested Fix: Add Pagination</h4>
+    <h4>Consider adding pagination</h4>
 </div>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong>Missing Pagination</strong><br>
-        Method <code><?php echo $e($method); ?></code> returned <strong><?php echo $resultCount; ?> results</strong> without pagination.
-        Loading large datasets can cause memory issues and slow performance.
+        <strong><?php echo $e($method); ?></strong> returned <strong><?php echo $resultCount; ?> results</strong> without pagination. This can lead to memory issues as your dataset grows.
     </div>
 
-    <h4>Problem: Loading All Results</h4>
+    <p>Loading all <?php echo $resultCount; ?> entities at once means they're all sitting in memory. For smaller datasets this is fine, but it doesn't scale well.</p>
+
+    <h4>Current code</h4>
     <div class="query-item">
-        <pre><code class="language-php">// BAD: Loads all <?php echo $resultCount; ?> results into memory
-$entities = $repository->findAll();
-// Memory usage: Very high with <?php echo $resultCount; ?> entities!</code></pre>
+        <pre><code class="language-php">$entities = $repository->findAll();
+// Loads all <?php echo $resultCount; ?> entities into memory</code></pre>
     </div>
 
-    <h4>Solution: Use Pagination</h4>
+    <h4>Add pagination</h4>
     <div class="query-item">
-        <pre><code class="language-php">//  GOOD: Load data in chunks
+        <pre><code class="language-php">// Load in chunks
 $page = 1;
 $pageSize = 50;
 
@@ -54,12 +53,12 @@ $entities = $repository->createQueryBuilder('e')
     ->getQuery()
     ->getResult();
 
-// Memory usage: Only 50 entities at a time</code></pre>
+// Only 50 entities in memory at once</code></pre>
     </div>
 
-    <h4>Alternative Solutions</h4>
+    <h4>Other approaches</h4>
 
-    <h5>Option 1: Use Doctrine Paginator</h5>
+    <h5>Using Doctrine Paginator</h5>
     <div class="query-item">
         <pre><code class="language-php">use Doctrine\ORM\Tools\Pagination\Paginator;
 
@@ -69,27 +68,21 @@ $query = $entityManager->createQuery('SELECT e FROM Entity e')
 
 $paginator = new Paginator($query);
 
-assert(is_iterable($paginator), '$paginator must be iterable');
-
-
 foreach ($paginator as $entity) {
     // Process entity
 }
 
-// Total count available: $paginator->count()</code></pre>
+// Total count: $paginator->count()</code></pre>
     </div>
 
-    <h5>Option 2: Iterate with Batch Processing</h5>
+    <h5>Batch processing for background jobs</h5>
     <div class="query-item">
-        <pre><code class="language-php">// For processing all entities efficiently
+        <pre><code class="language-php">// When you need to process everything
 $batchSize = 20;
 $i = 0;
 
 $query = $entityManager->createQuery('SELECT e FROM Entity e');
 $iterableResult = $query->toIterable();
-
-assert(is_iterable($iterableResult), '$iterableResult must be iterable');
-
 
 foreach ($iterableResult as $entity) {
     // Process entity
@@ -102,27 +95,11 @@ foreach ($iterableResult as $entity) {
 }</code></pre>
     </div>
 
-    <h4>Best Practices</h4>
-    <ul>
-        <li>Use pagination for lists displayed to users</li>
-        <li>Use batch processing for background tasks</li>
-        <li>Typical page size: 10-50 items for web pages, 100-1000 for API</li>
-        <li>Always set a maximum limit to prevent abuse</li>
-        <li>Consider using cursor-based pagination for large datasets</li>
-    </ul>
-
-    <div class="alert alert-info">
-        ℹ️ <strong>Expected Performance Improvement:</strong><br>
-        <ul>
-            <li>Memory usage: Reduced significantly (only loading 50 instead of <?php echo $resultCount; ?>)</li>
-            <li>Faster initial page load</li>
-            <li>Better user experience with progressive loading</li>
-        </ul>
-    </div>
+    <p>Typical page sizes: 10-50 for web pages, 100-1000 for APIs. Always set a reasonable maximum to prevent abuse.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/pagination.html" target="_blank" class="doc-link">
-            📖 Doctrine Pagination Documentation →
+            Doctrine pagination docs
         </a>
     </p>
 </div>
@@ -133,8 +110,8 @@ $code = ob_get_clean();
 return [
     'code'        => $code,
     'description' => sprintf(
-        'Add pagination to %s to avoid loading %d results at once',
-        $method,
+        'Loading %d results without pagination in %s',
         $resultCount,
+        $method,
     ),
 ];
