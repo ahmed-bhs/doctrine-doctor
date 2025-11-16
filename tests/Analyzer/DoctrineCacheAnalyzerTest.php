@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\DoctrineCacheAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\DoctrineCacheAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\DatabaseTestCase;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
@@ -108,7 +108,7 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $issue = reset($queryIssues);
 
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
-        self::assertSame('warning', $issue->getSeverity()->value, 'Query ArrayCache should be WARNING severity');
+        self::assertSame('warning', $issue->getSeverity()->value, 'Query ArrayCache should be HIGH severity (-40 to -60% perf impact)');
         self::assertStringContainsString('query', strtolower($issue->getDescription()));
     }
 

@@ -11,10 +11,10 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\EmbeddableMutabilityAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\EmbeddableWithoutValueObjectAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\FloatInMoneyEmbeddableAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\MissingEmbeddableOpportunityAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EmbeddableMutabilityAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EmbeddableWithoutValueObjectAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\FloatInMoneyEmbeddableAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MissingEmbeddableOpportunityAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\OrderWithEmbeddables;

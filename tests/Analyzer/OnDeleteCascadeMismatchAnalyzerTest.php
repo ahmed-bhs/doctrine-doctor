@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\OnDeleteCascadeMismatchAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OnDeleteCascadeMismatchAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -41,7 +41,7 @@ final class OnDeleteCascadeMismatchAnalyzerTest extends TestCase
 
         $this->analyzer = new OnDeleteCascadeMismatchAnalyzer(
             $entityManager,
-            PlatformAnalyzerTestHelper::createTemplateRenderer(), // @phpstan-ignore-line argument.type
+            PlatformAnalyzerTestHelper::createSuggestionFactory(),
         );
     }
 

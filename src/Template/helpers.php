@@ -62,6 +62,7 @@ function escapeContext(string $str, string $context = 'html'): string
         'html'     => htmlspecialchars($str, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
         'attr'     => htmlspecialchars($str, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
         'js'       => json_encode($str, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR),
+        // Pattern: Match non-alphanumeric/dash characters
         'css'      => preg_replace('/[^a-zA-Z0-9\-_]/', '', $str) ?? '',
         'url'      => rawurlencode($str),
         default    => htmlspecialchars($str, ENT_QUOTES | ENT_HTML5, 'UTF-8'),

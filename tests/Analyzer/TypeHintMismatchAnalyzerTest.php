@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\TypeHintMismatchAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\TypeHintMismatchAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Invoice;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ProductWithTypeHintIssues;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
@@ -83,7 +83,7 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
 
         self::assertNotNull($priceIssue, 'Should detect decimal/float mismatch');
         self::assertEquals('critical', $priceIssue->getSeverity()->value);
-        self::assertEquals('code_quality', $priceIssue->getCategory());
+        self::assertEquals('integrity', $priceIssue->getCategory());
         self::assertStringContainsString('decimal', $priceIssue->getDescription());
         self::assertStringContainsString('float', $priceIssue->getDescription());
     }
@@ -314,6 +314,6 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
     {
         // Assert
         self::assertEquals('Type Hint Mismatch Detector', $this->analyzer->getName());
-        self::assertEquals('code_quality', $this->analyzer->getCategory());
+        self::assertEquals('integrity', $this->analyzer->getCategory());
     }
 }

@@ -27,6 +27,7 @@ use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\Stopwatch\StopwatchEvent;
+use Webmozart\Assert\Assert;
 
 /**
  * Optimized DataCollector for Doctrine Doctor with Late Collection.
@@ -127,11 +128,11 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         // FAST: Just copy raw query data (no processing)
         $queries = $this->doctrineDataCollector->getQueries();
 
-        assert(is_iterable($queries), '$queries must be iterable');
+        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             if (is_array($query)) {
-                assert(is_iterable($query), '$query must be iterable');
+                Assert::isIterable($query, '$query must be iterable');
 
                 foreach ($query as $connectionQuery) {
                     $this->data['timeline_queries'][] = $connectionQuery;
@@ -360,6 +361,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             'total_issues' => $issueCollection->count(),
             'critical'     => $counts['critical'] ?? 0,
             'warning'      => $counts['warning'] ?? 0,
+            'info'         => $counts['info'] ?? 0,
         ];
 
         return $this->memoizedStats;
@@ -375,7 +377,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $queries = $this->data['timeline_queries'] ?? [];
 
         //  Generator: no memory copies
-        assert(is_iterable($queries), '$queries must be iterable');
+        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             yield $query;
@@ -390,6 +392,79 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     public function getTimelineQueriesArray(): array
     {
         return iterator_to_array($this->getTimelineQueries());
+    }
+
+    /**
+     * Group queries by SQL and calculate statistics (count, total time, avg time).
+     * Returns an array of grouped queries sorted by total execution time (descending).
+     *
+     * @return array<int, array{
+     *     sql: string,
+     *     count: int,
+     *     totalTimeMs: float,
+     *     avgTimeMs: float,
+     *     maxTimeMs: float,
+     *     minTimeMs: float,
+     *     firstQuery: array
+     * }>
+     */
+    public function getGroupedQueriesByTime(): array
+    {
+        // Return empty array if data not collected yet
+        if (!isset($this->data['timeline_queries'])) {
+            return [];
+        }
+
+        /** @var array<string, array{sql: string, count: int, totalTimeMs: float, avgTimeMs: float, maxTimeMs: float, minTimeMs: float, firstQuery: array}> $grouped */
+        $grouped = [];
+
+        foreach ($this->getTimelineQueries() as $query) {
+            Assert::isArray($query, 'Query must be an array');
+
+            $rawSql = $query['sql'] ?? '';
+            $sql = is_string($rawSql) ? $rawSql : '';
+            $executionTime = (float) ($query['executionMS'] ?? 0.0);
+
+            // IMPORTANT: Despite the field name 'executionMS', Symfony's Doctrine middleware
+            // actually stores duration in SECONDS (see Query::getDuration() doc comment).
+            // However, some contexts (tests, legacy code) may already provide milliseconds.
+            // Heuristic: values between 0 and 1 are likely seconds, values >= 1 are likely milliseconds.
+            if ($executionTime > 0 && $executionTime < 1) {
+                // Likely in seconds, convert to milliseconds
+                $executionMs = $executionTime * 1000;
+            } else {
+                // Already in milliseconds
+                $executionMs = $executionTime;
+            }
+
+            if (!isset($grouped[$sql])) {
+                $grouped[$sql] = [
+                    'sql' => $sql,
+                    'count' => 0,
+                    'totalTimeMs' => 0.0,
+                    'avgTimeMs' => 0.0,
+                    'maxTimeMs' => 0.0,
+                    'minTimeMs' => PHP_FLOAT_MAX,
+                    'firstQuery' => $query, // Keep first occurrence for display
+                ];
+            }
+
+            $grouped[$sql]['count']++;
+            $grouped[$sql]['totalTimeMs'] += $executionMs;
+            $grouped[$sql]['maxTimeMs'] = max($grouped[$sql]['maxTimeMs'], $executionMs);
+            $grouped[$sql]['minTimeMs'] = min($grouped[$sql]['minTimeMs'], $executionMs);
+        }
+
+        // Calculate average time for each group
+        foreach ($grouped as $sql => $group) {
+            $grouped[$sql]['avgTimeMs'] = $group['totalTimeMs'] / $group['count'];
+        }
+
+        // Sort by total time descending (slowest total time first)
+        $result = array_values($grouped);
+        usort($result, fn (array $queryA, array $queryB): int => $queryB['totalTimeMs'] <=> $queryA['totalTimeMs']);
+
+        return $result;
     }
 
     /**
@@ -476,10 +551,11 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
         $dataCollectorLogger->logInfoIfEnabled(sprintf('analyzeQueriesLazy() called with %d queries', count($queries)));
 
+        // NOTE: We still run analyzers even with no queries because some analyzers
+        // (like BlameableTraitAnalyzer, MissingEmbeddableOpportunityAnalyzer) analyze
+        // entity metadata, not queries!
         if ([] === $queries) {
-            $dataCollectorLogger->logInfoIfEnabled('No queries to analyze!');
-
-            return [];
+            $dataCollectorLogger->logInfoIfEnabled('No queries found, but still running metadata analyzers!');
         }
 
         // Log first few queries for debugging
@@ -492,7 +568,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         //  OPTIMIZATION: Factory callable to create a fresh generator for each analyzer
         // Each analyzer gets its OWN generator - never reused!
         $createQueryDTOsGenerator = function () use ($queries, $dataCollectorLogger) {
-            assert(is_iterable($queries), '$queries must be iterable');
+            Assert::isIterable($queries, '$queries must be iterable');
 
             foreach ($queries as $query) {
                 try {
@@ -509,7 +585,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         //  OPTIMIZATION: Generator for issues - no array_merge, streams results
         // Each analyzer gets a FRESH QueryDataCollection (not shared!)
         $allIssuesGenerator = function () use ($createQueryDTOsGenerator, $analyzers, $dataCollectorLogger) {
-            assert(is_iterable($analyzers), '$analyzers must be iterable');
+            Assert::isIterable($analyzers, '$analyzers must be iterable');
 
             foreach ($analyzers as $analyzer) {
                 $analyzerName = $analyzer::class;
@@ -527,7 +603,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                     $issueCount = 0;
 
                     // Yield each issue individually
-                    assert(is_iterable($issueCollection), '$issueCollection must be iterable');
+                    Assert::isIterable($issueCollection, '$issueCollection must be iterable');
 
                     foreach ($issueCollection as $issue) {
                         ++$issueCount;

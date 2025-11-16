@@ -14,6 +14,11 @@ namespace AhmedBhs\DoctrineDoctor\ValueObject;
 /**
  * Issue severity levels.
  * PHP 8.1+ native enum for type safety and better IDE support.
+ *
+ * 3-Level Classification:
+ * - CRITICAL: Critical priority, severe performance or security issue
+ * - WARNING: Medium priority, should be addressed
+ * - INFO: Informational, low priority
  */
 enum Severity: string
 {
@@ -77,15 +82,64 @@ enum Severity: string
     }
 
     /**
+     * Get numeric priority (higher = more severe).
+     * Useful for sorting and comparisons.
+     */
+    public function getPriority(): int
+    {
+        return match ($this) {
+            self::CRITICAL => 3,
+            self::WARNING => 2,
+            self::INFO => 1,
+        };
+    }
+
+    /**
+     * Compare severity levels.
+     * Returns: negative if $this < $other, 0 if equal, positive if $this > $other
+     */
+    public function compareTo(self $other): int
+    {
+        return $this->getPriority() <=> $other->getPriority();
+    }
+
+    /**
+     * Check if this severity is higher than another.
+     */
+    public function isHigherThan(self $other): bool
+    {
+        return $this->getPriority() > $other->getPriority();
+    }
+
+    /**
+     * Check if this severity is lower than another.
+     */
+    public function isLowerThan(self $other): bool
+    {
+        return $this->getPriority() < $other->getPriority();
+    }
+
+    /**
      * Get emoji representation for severity.
-     *  Critical,  Warning,  Info
      */
     public function getEmoji(): string
     {
         return match ($this) {
             self::CRITICAL => '🔴',
             self::WARNING => '🟠',
-            self::INFO => '🟡',
+            self::INFO => '🔵',
+        };
+    }
+
+    /**
+     * Get color name for severity (for UI/styling).
+     */
+    public function getColor(): string
+    {
+        return match ($this) {
+            self::CRITICAL => 'red',
+            self::WARNING => 'yellow',
+            self::INFO => 'lightblue',
         };
     }
 }

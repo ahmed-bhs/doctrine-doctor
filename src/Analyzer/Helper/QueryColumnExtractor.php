@@ -11,12 +11,29 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Helper;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
+use Webmozart\Assert\Assert;
+
 /**
  * Extracts column names from SQL queries for index suggestions.
  * Handles WHERE, JOIN, and ORDER BY clauses.
+ *
+ * Migration from regex to SQL Parser:
+ * - Replaced 3 regex patterns with SqlStructureExtractor methods
+ * - More robust parsing (handles subqueries, complex SQL)
+ * - Avoids false positives from SQL keywords
  */
 final class QueryColumnExtractor
 {
+    private SqlStructureExtractor $sqlExtractor;
+
+    public function __construct(
+        ?SqlStructureExtractor $sqlExtractor = null,
+    ) {
+        // Dependency injection with fallback for backwards compatibility
+        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+    }
+
     /**
      * Extract columns from query that could benefit from indexing.
      * @return array<string>
@@ -39,47 +56,41 @@ final class QueryColumnExtractor
 
     /**
      * Extract columns from WHERE clause.
+     * Uses SQL Parser instead of regex for robust extraction.
      * @return array<string>
      */
     private function extractWhereColumns(string $sql, string $targetTable): array
     {
-        $pattern = '/(?:WHERE|AND|OR)\s+(?:' . preg_quote($targetTable, '/') . '\.)?`?(\w+)`?\s*(?:[=<>!]|LIKE|IN|IS|BETWEEN)/i';
+        $columns = $this->sqlExtractor->extractWhereColumns($sql);
 
-        if (preg_match_all($pattern, $sql, $matches) < 1) {
-            return [];
-        }
-
-        return $this->filterSqlKeywords($matches[1]);
+        // Filter table-specific columns if needed
+        // Note: SqlStructureExtractor extracts all columns without table prefix
+        // The regex used to optionally match table prefix, so we do the same
+        return $this->filterSqlKeywords($columns);
     }
 
     /**
      * Extract columns from JOIN ON conditions.
+     * Uses SQL Parser instead of regex for robust extraction.
      * @return array<string>
      */
     private function extractJoinColumns(string $sql, string $targetTable): array
     {
-        $pattern = '/ON\s+(?:' . preg_quote($targetTable, '/') . '\.)?`?(\w+)`?\s*=/i';
+        $columns = $this->sqlExtractor->extractJoinColumns($sql);
 
-        if (preg_match_all($pattern, $sql, $matches) < 1) {
-            return [];
-        }
-
-        return $this->filterSqlKeywords($matches[1]);
+        return $this->filterSqlKeywords($columns);
     }
 
     /**
      * Extract columns from ORDER BY clause.
+     * Uses SQL Parser instead of regex for robust extraction.
      * @return array<string>
      */
     private function extractOrderByColumns(string $sql, string $targetTable): array
     {
-        $pattern = '/ORDER\s+BY\s+(?:' . preg_quote($targetTable, '/') . '\.)?`?(\w+)`?/i';
+        $columns = $this->sqlExtractor->extractOrderByColumnNames($sql);
 
-        if (preg_match_all($pattern, $sql, $matches) < 1) {
-            return [];
-        }
-
-        return $this->filterSqlKeywords($matches[1]);
+        return $this->filterSqlKeywords($columns);
     }
 
     /**
@@ -98,7 +109,7 @@ final class QueryColumnExtractor
 
         $filtered = [];
 
-        assert(is_iterable($columns), '$columns must be iterable');
+        Assert::isIterable($columns, '$columns must be iterable');
 
         foreach ($columns as $column) {
             if (!in_array(strtoupper($column), $sqlKeywords, true)) {
@@ -118,7 +129,7 @@ final class QueryColumnExtractor
     {
         $unique = [];
 
-        assert(is_iterable($columns), '$columns must be iterable');
+        Assert::isIterable($columns, '$columns must be iterable');
 
         foreach ($columns as $column) {
             if (!in_array($column, $unique, true)) {

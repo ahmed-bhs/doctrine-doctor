@@ -20,7 +20,7 @@ enum SuggestionType: string
     case PERFORMANCE = 'performance';
     case SECURITY = 'security';
     case CONFIGURATION = 'configuration';
-    case CODE_QUALITY = 'code_quality';
+    case INTEGRITY = 'integrity';
     case BEST_PRACTICE = 'best_practice';
     case REFACTORING = 'refactoring';
 
@@ -65,11 +65,11 @@ enum SuggestionType: string
     }
 
     /**
-     * Named constructor for code quality type.
+     * Named constructor for integrity type.
      */
-    public static function codeQuality(): self
+    public static function integrity(): self
     {
-        return self::CODE_QUALITY;
+        return self::INTEGRITY;
     }
 
     /**
@@ -115,7 +115,7 @@ enum SuggestionType: string
 
     /**
      * Get emoji representation for suggestion type.
-     *  Performance,  Security,  Configuration,  Code Quality,  Best Practice,  Refactoring
+     *  Performance,  Security,  Configuration,  Integrity,  Best Practice,  Refactoring
      */
     public function getEmoji(): string
     {
@@ -123,7 +123,7 @@ enum SuggestionType: string
             self::PERFORMANCE => '🔴',
             self::SECURITY => '🟢',
             self::CONFIGURATION => '🔵',
-            self::CODE_QUALITY => '🟣',
+            self::INTEGRITY => '🟣',
             self::BEST_PRACTICE => '🟠',
             self::REFACTORING => '🟡',
         };

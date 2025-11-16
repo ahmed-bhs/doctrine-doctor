@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\IneffectiveLikeAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\IneffectiveLikeAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -78,7 +78,9 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         // Assert
         self::assertCount(1, $issues);
         $issue = $issues->toArray()[0];
-        self::assertEquals('Ineffective LIKE Pattern Detected', $issue->getTitle());
+        // Title now adapts based on execution time (100ms = critical threshold)
+        self::assertStringContainsString('LIKE Pattern', $issue->getTitle());
+        self::assertStringContainsString('100.00ms', $issue->getTitle());
         self::assertStringContainsString('leading wildcard', $issue->getDescription());
         self::assertStringContainsString('%John%', $issue->getDescription());
         self::assertStringContainsString('contains search', $issue->getDescription());
@@ -173,9 +175,9 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_sets_severity_to_warning_for_moderate_queries(): void
+    public function it_sets_severity_to_critical_for_queries_at_threshold(): void
     {
-        // Arrange: Query taking 50-200ms
+        // Arrange: Query taking >= 100ms (critical threshold)
         $queries = QueryDataBuilder::create()
             ->addQuery("SELECT * FROM users WHERE name LIKE '%search%'", 100.0)
             ->build();
@@ -186,13 +188,13 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         // Assert
         self::assertCount(1, $issues);
         $issue = $issues->toArray()[0];
-        self::assertEquals('warning', $issue->getSeverity()->value);
+        self::assertEquals('critical', $issue->getSeverity()->value);
     }
 
     #[Test]
-    public function it_sets_severity_to_info_for_fast_queries(): void
+    public function it_sets_severity_to_warning_for_fast_queries(): void
     {
-        // Arrange: Query taking < 50ms
+        // Arrange: Query taking < 100ms - pattern still problematic despite good performance
         $queries = QueryDataBuilder::create()
             ->addQuery("SELECT * FROM users WHERE name LIKE '%search%'", 30.0)
             ->build();
@@ -200,10 +202,10 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         // Act
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert
+        // Assert: Even fast queries get WARNING - the pattern is always problematic
         self::assertCount(1, $issues);
         $issue = $issues->toArray()[0];
-        self::assertEquals('info', $issue->getSeverity()->value);
+        self::assertEquals('warning', $issue->getSeverity()->value);
     }
 
     #[Test]
@@ -282,9 +284,9 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     #[Test]
     public function it_provides_suggestion_with_context(): void
     {
-        // Arrange
+        // Arrange: Use < 100ms to get WARNING severity
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%'", 100.0)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%'", 99.0)
             ->build();
 
         // Act
@@ -298,7 +300,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         /** @var \AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion $suggestion */
 
         // Verify suggestion has the expected context
-        self::assertEquals('ineffective_like', $suggestion->getTemplateName());
+        self::assertEquals('Performance/ineffective_like', $suggestion->getTemplateName());
         $context = $suggestion->getContext();
         self::assertArrayHasKey('pattern', $context);
         self::assertArrayHasKey('like_type', $context);
@@ -398,5 +400,151 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         self::assertEquals('Ineffective LIKE Pattern Analyzer', $name);
         self::assertStringContainsString('leading wildcards', $description);
         self::assertStringContainsString('index usage', $description);
+    }
+
+    #[Test]
+    public function it_assigns_warning_severity_for_fast_queries_under_10ms(): void
+    {
+        // Arrange: Very fast query (< 10ms) - excellent current performance
+        // BUT: pattern is still problematic (prevents index usage)
+        $queries = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%voyage%'", 1.15) // 1.15ms - excellent
+            ->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: WARNING even for fast queries - proactive detection
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        self::assertEquals('warning', $data['severity']);
+        self::assertStringContainsString('LIKE Pattern Prevents Index Usage', $issue->getTitle());
+        self::assertStringContainsString('prevents index usage', $issue->getDescription());
+        self::assertStringContainsString('1.15ms', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_assigns_warning_severity_for_queries_between_10_and_50ms(): void
+    {
+        // Arrange: Acceptable query (10-50ms) - worth monitoring
+        // Pattern is still problematic (prevents index usage)
+        $queries = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM products WHERE name LIKE '%test%'", 35.5) // 35.5ms - acceptable
+            ->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: WARNING - proactive detection before it becomes critical
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        self::assertEquals('warning', $data['severity']);
+        self::assertStringContainsString('LIKE Pattern Prevents Index Usage', $issue->getTitle());
+        self::assertStringContainsString('35.50ms', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_assigns_warning_severity_for_queries_between_50_and_100ms(): void
+    {
+        // Arrange: Concerning query (50-100ms) - still below critical threshold
+        $queries = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM orders WHERE notes LIKE '%urgent%'", 75.0) // 75ms - concerning
+            ->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: WARNING - pattern is problematic, not yet critical
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        self::assertEquals('warning', $data['severity']);
+        self::assertStringContainsString('LIKE Pattern Prevents Index Usage', $issue->getTitle());
+        self::assertStringContainsString('prevents index usage', $issue->getDescription());
+        self::assertStringContainsString('will degrade significantly', $issue->getDescription());
+        self::assertStringContainsString('75.00ms', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_assigns_critical_severity_for_queries_over_100ms(): void
+    {
+        // Arrange: Slow query (>= 100ms) - immediate action required
+        $queries = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM products WHERE description LIKE '%search%'", 250.0) // 250ms - critical
+            ->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: CRITICAL - query is already slow
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        self::assertEquals('critical', $data['severity']);
+        self::assertStringContainsString('LIKE Pattern Causing Slow Query', $issue->getTitle());
+        self::assertStringContainsString('already slow', $issue->getDescription());
+        self::assertStringContainsString('Immediate action required', $issue->getDescription());
+        self::assertStringContainsString('250.00ms', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_adapts_suggestion_title_based_on_execution_time(): void
+    {
+        // Arrange: Two categories - fast (< 100ms) and slow (>= 100ms)
+        $fastQuery = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%fast%'", 5.0)
+            ->build();
+
+        $mediumQuery = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%medium%'", 60.0)
+            ->build();
+
+        $slowQuery = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%slow%'", 150.0)
+            ->build();
+
+        // Act
+        $fastIssues = $this->analyzer->analyze($fastQuery);
+        $mediumIssues = $this->analyzer->analyze($mediumQuery);
+        $slowIssues = $this->analyzer->analyze($slowQuery);
+
+        // Assert: Suggestion titles differ based on severity
+        $fastSuggestion = $fastIssues->toArray()[0]->getSuggestion();
+        $mediumSuggestion = $mediumIssues->toArray()[0]->getSuggestion();
+        $slowSuggestion = $slowIssues->toArray()[0]->getSuggestion();
+
+        // Fast and medium queries: both < 100ms -> same title (prevents index usage)
+        self::assertStringContainsString('prevents index usage', $fastSuggestion->getMetadata()->title);
+        self::assertStringContainsString('prevents index usage', $mediumSuggestion->getMetadata()->title);
+
+        // Slow query: >= 100ms -> different title (urgent performance issue)
+        self::assertStringContainsString('urgent performance issue', $slowSuggestion->getMetadata()->title);
+    }
+
+    #[Test]
+    public function it_handles_zero_execution_time_gracefully(): void
+    {
+        // Arrange: Query with 0ms execution time (edge case)
+        $queries = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%test%'", 0.0)
+            ->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should still detect the issue and assign WARNING severity
+        // Pattern is problematic even if instantaneous (prevents index usage)
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        self::assertEquals('warning', $data['severity']);
+        self::assertStringContainsString('0.00ms', $issue->getDescription());
     }
 }

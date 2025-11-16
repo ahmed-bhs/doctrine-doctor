@@ -19,8 +19,8 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * Test fixture - Order with DANGEROUS cascade="remove" to independent entities.
  *
- * 🚨 CRITICAL DANGER: cascade="remove" on ManyToOne to Customer
- * Deleting the order will DELETE the Customer! 💥
+ * DANGER: cascade="remove" on ManyToOne to Customer
+ * Deleting the order will DELETE the Customer!
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'orders_with_cascade_remove')]
@@ -35,7 +35,7 @@ class OrderWithCascadeRemove
     private string $orderNumber;
 
     /**
-     * 🚨 CRITICAL: ManyToOne with cascade="remove" to independent entity (Customer).
+     * ManyToOne with cascade="remove" to independent entity (Customer).
      * This will DELETE the customer when you delete the order!
      * ALL OTHER ORDERS referencing this customer will lose their reference!
      */

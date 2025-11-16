@@ -6,7 +6,7 @@
 - [2. Analyzer Taxonomy](#2-analyzer-taxonomy)
 - [3. Performance Analyzers](#3-performance-analyzers)
 - [4. Security Analyzers](#4-security-analyzers)
-- [5. Code Quality Analyzers](#5-code-quality-analyzers)
+- [5. Integrity Analyzers](#5-code-quality-analyzers)
 - [6. Configuration Analyzers](#6-configuration-analyzers)
 - [7. Configuration](#7-configuration)
 - [8. Extensibility](#8-extensibility)
@@ -163,7 +163,7 @@ Security analyzers detect vulnerabilities aligned with **OWASP Top 10** and Doct
 
 ---
 
-## 5. Code Quality Analyzers
+## 5. Integrity Analyzers
 
 ### 5.1 Category Overview
 
@@ -315,7 +315,7 @@ doctrine_doctor:
     groups:
         performance: true
         security: true
-        code_quality: true
+        integrity: true
         configuration: true
 ```
 

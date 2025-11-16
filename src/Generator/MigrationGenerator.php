@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Generator;
 
 use AhmedBhs\DoctrineDoctor\Suggestion\IndexSuggestion;
+use Webmozart\Assert\Assert;
 
 class MigrationGenerator
 {
@@ -27,7 +28,7 @@ class MigrationGenerator
         $upStatements   = [];
         $downStatements = [];
 
-        assert(is_iterable($indexSuggestions), '$indexSuggestions must be iterable');
+        Assert::isIterable($indexSuggestions, '$indexSuggestions must be iterable');
 
         foreach ($indexSuggestions as $indexSuggestion) {
             $indexName = 'IDX_' . strtoupper($indexSuggestion->getTable()) . '_' . implode('_', $indexSuggestion->getColumns());

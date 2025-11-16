@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\ValueObject\Helper;
 
+use Webmozart\Assert\Assert;
+
 /**
  * Formats markdown-like content to HTML.
  * Supports **bold**, `code`, lists, and line breaks.
@@ -25,7 +27,7 @@ final class MarkdownFormatter
         $paragraphs = explode("\n\n", $text);
         $html       = '';
 
-        assert(is_iterable($paragraphs), '$paragraphs must be iterable');
+        Assert::isIterable($paragraphs, '$paragraphs must be iterable');
 
         foreach ($paragraphs as $paragraph) {
             $html .= self::formatParagraph(trim($paragraph));
@@ -70,7 +72,7 @@ final class MarkdownFormatter
             return false;
         }
 
-        assert(is_iterable($lines), '$lines must be iterable');
+        Assert::isIterable($lines, '$lines must be iterable');
 
         foreach ($lines as $line) {
             $line = trim($line);
@@ -79,6 +81,7 @@ final class MarkdownFormatter
                 continue;
             }
 
+            // Pattern: Simple pattern match: /^[-•]\s/
             if (1 !== preg_match('/^[-•]\s/', $line)) {
                 return false;
             }
@@ -95,7 +98,7 @@ final class MarkdownFormatter
     {
         $html = '<ul>';
 
-        assert(is_iterable($lines), '$lines must be iterable');
+        Assert::isIterable($lines, '$lines must be iterable');
 
         foreach ($lines as $line) {
             $line = trim($line);
@@ -137,6 +140,7 @@ final class MarkdownFormatter
     private static function applyInlineMarkdown(string $text): string
     {
         $text = (string) preg_replace('/\*\*([^*]+)\*\*/', '<strong>$1</strong>', $text);
+        // Pattern: Extract inline code markdown
         $text = (string) preg_replace('/`([^`]+)`/', '<code>$1</code>', $text);
 
         return $text;

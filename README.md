@@ -24,6 +24,8 @@ Unlike static analysis tools (PHPStan, Psalm) that analyze code without executio
 - **Detects runtime-only issues**: N+1 queries, actual query performance, missing indexes on real database
 - **Analyzes real execution context**: Actual parameter values, data volumes, execution plans
 - **Integrated into your workflow**: Results appear directly in Symfony Web Profiler during development
+  - 📍 **Backtrace**: Points to exact template line
+  - 💡 **Suggestion**: Use `->addSelect(..)` to eager load authors
 
 </td>
 <td width="50%" align="center" valign="top" style="background: url('https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo-thumbnail.png') no-repeat center; background-size: contain;">
@@ -51,21 +53,25 @@ Unlike static analysis tools (PHPStan, Psalm) that analyze code without executio
 - **Configuration** — Validates database charset/collation settings, timezone handling,
   Gedmo trait configurations, MySQL strict mode, and other database-level configurations
 
-### Quick Start
-
-Zero configuration needed — auto-configured via Symfony Flex.
-
 ---
 
-## Installation
+## ⚡ Quick Start (30 seconds)
 
+**Step 1: Install**
 ```bash
 composer require --dev ahmed-bhs/doctrine-doctor
 ```
 
-Auto-configures via Symfony Flex. Check the **Doctrine Doctor** panel in the Symfony Profiler.
+**Step 2: That's it!**
+Auto-configured via [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No YAML, no configuration files needed.
 
-### Configuration (Optional)
+**Step 3: See it in action**
+1. Refresh any page in your Symfony app (in `dev` environment)
+2. Open the **Symfony Web Profiler** (bottom toolbar)
+3. Click the **"Doctrine Doctor"** panel 🩺
+
+
+## Configuration (Optional)
 
 Configure thresholds in `config/packages/dev/doctrine_doctor.yaml`:
 
@@ -76,6 +82,15 @@ doctrine_doctor:
             threshold: 3
         slow_query:
             threshold: 50  # milliseconds
+```
+
+**Enable backtraces** to see WHERE in your code issues originate:
+
+```yaml
+# config/packages/dev/doctrine.yaml
+doctrine:
+    dbal:
+        profiling_collect_backtrace: true
 ```
 
 [Full configuration reference →](docs/CONFIGURATION.md)

@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\YearFunctionOptimizationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\YearFunctionOptimizationAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -378,7 +378,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
 
         // Verify suggestion context
         /** @var \AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion $suggestion */
-        self::assertEquals('date_function_optimization', $suggestion->getTemplateName());
+        self::assertEquals('Performance/date_function_optimization', $suggestion->getTemplateName());
         /** @var \AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion $suggestion */
         $context = $suggestion->getContext();
         self::assertEquals('YEAR', $context['function']);

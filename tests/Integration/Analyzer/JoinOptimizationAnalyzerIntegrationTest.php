@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\JoinOptimizationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\JoinOptimizationAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\BlogPost;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Product;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\User;
@@ -39,6 +39,7 @@ final class JoinOptimizationAnalyzerIntegrationTest extends DatabaseTestCase
         $this->joinOptimizationAnalyzer = new JoinOptimizationAnalyzer(
             $this->entityManager,
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            new \AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor(),
             5,  // maxJoinsRecommended (default)
             8,  // maxJoinsCritical (default)
         );

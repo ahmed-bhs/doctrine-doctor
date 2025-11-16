@@ -36,6 +36,9 @@ abstract class AbstractIssue implements IssueInterface
     /** @var array<mixed> */
     protected array $data;
 
+    /** @var IssueInterface[] Issues that were deduplicated and hidden because they resemble this one */
+    protected array $duplicatedIssues = [];
+
     public function __construct(array $data)
     {
         Assert::keyExists($data, 'type', 'Issue data must contain a "type" key');
@@ -151,19 +154,51 @@ abstract class AbstractIssue implements IssueInterface
     }
 
     /**
+     * Get issues that were deduplicated and hidden because they resemble this one.
+     * @return IssueInterface[]
+     */
+    public function getDuplicatedIssues(): array
+    {
+        return $this->duplicatedIssues;
+    }
+
+    /**
+     * Add an issue that was deduplicated and hidden.
+     */
+    public function addDuplicatedIssue(IssueInterface $issue): void
+    {
+        $this->duplicatedIssues[] = $issue;
+    }
+
+    /**
+     * Set all duplicated issues at once.
+     * @param IssueInterface[] $issues
+     */
+    public function setDuplicatedIssues(array $issues): void
+    {
+        $this->duplicatedIssues = $issues;
+    }
+
+    /**
      * @return array<mixed>
      */
     public function toArray(): array
     {
         return [
-            'class'       => static::class,
-            'type'        => $this->type,
-            'title'       => $this->title,
-            'description' => $this->description,
-            'severity'    => $this->severity->value,
-            'suggestion'  => $this->suggestion instanceof SuggestionInterface ? $this->suggestion->toArray() : null,
-            'backtrace'   => $this->backtrace,
-            'queries'     => $this->queries,
+            'class'             => static::class,
+            'type'              => $this->type,
+            'title'             => $this->title,
+            'description'       => $this->description,
+            'severity'          => $this->severity->value,
+            'suggestion'        => $this->suggestion instanceof SuggestionInterface ? $this->suggestion->toArray() : null,
+            'backtrace'         => $this->backtrace,
+            'queries'           => $this->queries,
+            'duplicatedIssues'  => array_map(fn (IssueInterface $issue) => [
+                'title'       => $issue->getTitle(),
+                'type'        => $issue->getType(),
+                'severity'    => $issue->getSeverity()->value,
+                'description' => substr(html_entity_decode(strip_tags($issue->getDescription()), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 0, 200), // First 200 chars, strip HTML then decode entities
+            ], $this->duplicatedIssues),
         ];
     }
 
@@ -176,14 +211,12 @@ abstract class AbstractIssue implements IssueInterface
             return $severity;
         }
 
-        // Normalize legacy severity values to standard ones
+        // Normalize legacy severity values to standard ones (5-level system)
         $normalized = match ($severity) {
-            'high'   => 'warning',
-            'medium' => 'warning',
-            'low'    => 'info',
-            'error'  => 'warning',
-            'notice' => 'info',
-            default  => $severity,
+            'warning' => 'warning',  // Legacy: warning → medium
+            'error'   => 'warning',    // Legacy: error → high
+            'notice'  => 'info',    // Legacy: notice → info
+            default   => $severity, // Keep new levels as-is: info, low, medium, high, critical
         };
 
         return Severity::from($normalized);

@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Collection;
 
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Webmozart\Assert\Assert;
 
 /**
@@ -22,14 +23,12 @@ use Webmozart\Assert\Assert;
 final class IssueFilter
 {
     /**
-     * Severity levels in order of importance.
+     * Severity levels in order of importance (3-level system).
      */
     private const SEVERITY_ORDER = [
         'critical' => 0,
-        'error'    => 1,
-        'warning'  => 2,
-        'info'     => 3,
-        'notice'   => 4,
+        'warning'  => 1,
+        'info'     => 2,
     ];
 
     public function __construct(
@@ -41,14 +40,24 @@ final class IssueFilter
     }
 
     /**
-     * Filter issues by severity.
+     * Filter issues by severity (type-safe enum version).
+     */
+    public function bySeverityEnum(Severity $severity): IssueCollection
+    {
+        return $this->issueCollection->filter(fn (IssueInterface $issue): bool => $issue->getSeverity() === $severity);
+    }
+
+    /**
+     * Filter issues by severity (backward compatible string version).
+     *
+     * @deprecated Use bySeverityEnum() with Severity enum instead
      */
     public function bySeverity(string $severity): IssueCollection
     {
         Assert::stringNotEmpty($severity, 'Severity cannot be empty');
-        Assert::keyExists(self::SEVERITY_ORDER, $severity, 'Invalid severity "%s". Must be one of: %2$s');
+        Assert::keyExists(self::SEVERITY_ORDER, $severity, 'Invalid severity "%s". Must be one of: ' . implode(', ', array_keys(self::SEVERITY_ORDER)));
 
-        return $this->issueCollection->filter(fn (IssueInterface $issue): bool => $issue->getSeverity()->value === $severity);
+        return $this->bySeverityEnum(Severity::from($severity));
     }
 
     /**
@@ -56,15 +65,7 @@ final class IssueFilter
      */
     public function onlyCritical(): IssueCollection
     {
-        return $this->bySeverity('critical');
-    }
-
-    /**
-     * Get only error issues.
-     */
-    public function onlyErrors(): IssueCollection
-    {
-        return $this->bySeverity('error');
+        return $this->issueCollection->filter(fn (IssueInterface $issue): bool => $issue->getSeverity()->isCritical());
     }
 
     /**
@@ -72,7 +73,7 @@ final class IssueFilter
      */
     public function onlyWarnings(): IssueCollection
     {
-        return $this->bySeverity('warning');
+        return $this->issueCollection->filter(fn (IssueInterface $issue): bool => $issue->getSeverity()->isWarning());
     }
 
     /**
@@ -80,7 +81,7 @@ final class IssueFilter
      */
     public function onlyInfo(): IssueCollection
     {
-        return $this->bySeverity('info');
+        return $this->issueCollection->filter(fn (IssueInterface $issue): bool => $issue->getSeverity()->isInfo());
     }
 
     /**

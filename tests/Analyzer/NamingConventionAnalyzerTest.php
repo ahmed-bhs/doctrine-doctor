@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\NamingConventionAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\NamingConventionAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -43,7 +43,7 @@ final class NamingConventionAnalyzerTest extends TestCase
 
         $this->analyzer = new NamingConventionAnalyzer(
             $entityManager,
-            PlatformAnalyzerTestHelper::createTemplateRenderer(), // @phpstan-ignore-line argument.type
+            PlatformAnalyzerTestHelper::createSuggestionFactory(), // @phpstan-ignore-line argument.type
         );
     }
 

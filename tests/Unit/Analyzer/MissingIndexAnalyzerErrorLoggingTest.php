@@ -11,10 +11,11 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\Config\MissingIndexAnalyzerConfig;
-use AhmedBhs\DoctrineDoctor\Analyzer\MissingIndexAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzerConfig;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\PhpTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
 use Doctrine\DBAL\Connection;
@@ -56,7 +57,7 @@ final class MissingIndexAnalyzerErrorLoggingTest extends TestCase
         $connection->method('getDatabasePlatform')->willReturn(new SQLitePlatform());
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: new MissingIndexAnalyzerConfig(enabled: true),
             logger: $logger,
@@ -87,7 +88,7 @@ final class MissingIndexAnalyzerErrorLoggingTest extends TestCase
         $connection->method('executeQuery')->willThrowException(new \RuntimeException('EXPLAIN query failed'));
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: new MissingIndexAnalyzerConfig(
                 enabled: true,
@@ -121,7 +122,7 @@ final class MissingIndexAnalyzerErrorLoggingTest extends TestCase
         $connection->method('executeQuery')->willThrowException(new \RuntimeException('EXPLAIN failed'));
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: new MissingIndexAnalyzerConfig(enabled: true, slowQueryThreshold: 50),
         );

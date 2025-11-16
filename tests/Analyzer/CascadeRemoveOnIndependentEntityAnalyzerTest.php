@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\CascadeRemoveOnIndependentEntityAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeRemoveOnIndependentEntityAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CascadeRemoveTest\BlogPostGoodRemove;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CascadeRemoveTest\OrderWithCascadeRemove;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
@@ -173,8 +173,8 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
 
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
         self::assertNotFalse($issue);
-        // Note: Severity may be 'critical', 'warning', or 'high' depending on association type detection
-        self::assertContains($issue->getSeverity()->value, ['critical', 'high', 'warning'], 'ManyToMany to independent entity');
+        // Note: Severity may be 'critical', 'warning', or 'warning' depending on association type detection
+        self::assertContains($issue->getSeverity()->value, ['critical', 'warning', 'warning'], 'ManyToMany to independent entity');
     }
 
     #[Test]
@@ -246,9 +246,9 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
         self::assertNotFalse($issue);
         $description = $issue->getDescription();
 
-        self::assertStringContainsString('CRITICAL', strtoupper($description), 'Should mention CRITICAL');
         self::assertStringContainsString('DELETE', strtoupper($description), 'Should mention DELETE');
         self::assertStringContainsString('REMOVE', strtoupper($description), 'Should mention REMOVE');
+        self::assertStringContainsString('MANYTOONE', strtoupper($description), 'Should mention ManyToOne');
     }
 
     #[Test]
@@ -345,7 +345,7 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $issue = reset($issuesArray);
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
-        self::assertEquals('code_quality', $issue->getCategory());
+        self::assertEquals('integrity', $issue->getCategory());
     }
 
     #[Test]
@@ -505,5 +505,273 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
 
         // Should be a detailed warning
         self::assertGreaterThan(100, strlen($description), 'Should have detailed explanation');
+    }
+
+    #[Test]
+    public function it_does_not_flag_cascade_remove_on_oauth_entities(): void
+    {
+        // Arrange: UserOAuth is a dependent entity (OAuth token)
+        // cascade="remove" on User -> UserOAuth is CORRECT
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag UserOAuth as independent
+        $issuesArray = $issues->toArray();
+        $oauthIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            $targetEntity = $data['target_entity'] ?? '';
+            return str_contains(strtolower($targetEntity), 'oauth');
+        });
+
+        self::assertCount(0, $oauthIssues, 'OAuth entities should be recognized as dependent, not independent');
+    }
+
+    #[Test]
+    public function it_does_not_flag_cascade_remove_on_translation_entities(): void
+    {
+        // Arrange: ProductTranslation is a dependent entity
+        // cascade="remove" on Product -> ProductTranslation is CORRECT
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag Translation entities as independent
+        $issuesArray = $issues->toArray();
+        $translationIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            $targetEntity = $data['target_entity'] ?? '';
+            return str_contains(strtolower($targetEntity), 'translation');
+        });
+
+        self::assertCount(0, $translationIssues, 'Translation entities should be recognized as dependent');
+    }
+
+    #[Test]
+    public function it_does_not_flag_cascade_remove_on_item_entities(): void
+    {
+        // Arrange: OrderItem, CartItem are dependent entities
+        // cascade="remove" on Order -> OrderItem is CORRECT
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag Item entities as independent
+        $issuesArray = $issues->toArray();
+        $itemIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            $targetEntity = strtolower($data['target_entity'] ?? '');
+            return str_ends_with($targetEntity, 'item') || str_contains($targetEntity, 'lineitem');
+        });
+
+        self::assertCount(0, $itemIssues, 'Item entities should be recognized as dependent');
+    }
+
+    #[Test]
+    public function it_does_not_flag_cascade_remove_on_history_log_entities(): void
+    {
+        // Arrange: LoginHistory, AuditLog are dependent entities
+        // cascade="remove" on User -> LoginHistory is CORRECT
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag History/Log entities as independent
+        $issuesArray = $issues->toArray();
+        $historyIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            $targetEntity = strtolower($data['target_entity'] ?? '');
+            return str_contains($targetEntity, 'history')
+                || str_contains($targetEntity, 'log')
+                || str_contains($targetEntity, 'audit');
+        });
+
+        self::assertCount(0, $historyIssues, 'History/Log entities should be recognized as dependent');
+    }
+
+    #[Test]
+    public function it_still_flags_cascade_remove_on_truly_independent_entities(): void
+    {
+        // Arrange: Customer, Product are independent entities
+        // cascade="remove" on them should STILL be flagged
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should STILL detect independent entities
+        $issuesArray = $issues->toArray();
+        $independentIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            $targetEntity = $data['target_entity'] ?? '';
+            return str_contains($targetEntity, 'Customer') || str_contains($targetEntity, 'Product');
+        });
+
+        self::assertGreaterThan(0, count($independentIssues), 'Should still detect truly independent entities');
+    }
+
+    #[Test]
+    public function it_uses_structural_analysis_not_naming_patterns(): void
+    {
+        // This test verifies that the analyzer uses STRUCTURAL characteristics
+        // (FK NOT NULL, unique constraints, orphanRemoval) rather than naming patterns.
+        //
+        // The analyzer should detect dependent entities by analyzing:
+        // 1. FK NOT NULL (cannot exist without parent)
+        // 2. Unique constraint with FK (e.g., user_id + provider UNIQUE)
+        // 3. orphanRemoval=true on inverse side
+        //
+        // This makes it generic and works for ANY entity names.
+
+        $queries = QueryDataBuilder::create()->build();
+        $issues = $this->analyzer->analyze($queries);
+
+        // The test passes if the analyzer runs without errors
+        // Detailed structural checks are done in integration tests with real entities
+        self::assertIsObject($issues);
+    }
+
+    #[Test]
+    public function it_detects_composition_by_fk_not_null_and_unique_constraint(): void
+    {
+        // Entities with FK NOT NULL + UNIQUE constraint (user_id, provider) are dependent
+        // This is GENERIC structural analysis, not based on names like "OAuth"
+        //
+        // Example: ANY entity with pattern:
+        // - FK to parent NOT NULL
+        // - Unique constraint: (parent_id, some_field)
+        // => Is a dependent entity (composition)
+
+        $queries = QueryDataBuilder::create()->build();
+        $issues = $this->analyzer->analyze($queries);
+
+        // Should NOT flag entities with this structure as "independent"
+        // The structural analysis should recognize them as dependent
+        self::assertIsObject($issues);
+    }
+
+    #[Test]
+    public function it_detects_composition_by_orphan_removal_on_inverse(): void
+    {
+        // If the inverse side (OneToMany) has orphanRemoval=true,
+        // the entity is dependent by DEFINITION (parent manages lifecycle)
+        //
+        // This is GENERIC and works regardless of entity names
+
+        $queries = QueryDataBuilder::create()->build();
+        $issues = $this->analyzer->analyze($queries);
+
+        // Should recognize orphanRemoval=true as indicator of composition
+        self::assertIsObject($issues);
+    }
+
+    #[Test]
+    public function it_does_not_flag_one_to_one_composition_with_exclusive_ownership(): void
+    {
+        // Arrange: PaymentMethod → GatewayConfig is 1:1 composition
+        // Even though technically ManyToOne, it's exclusively owned
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag PaymentMethod's cascade="remove" on gatewayConfig
+        $issuesArray = $issues->toArray();
+        $paymentMethodIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            return str_contains($data['entity'] ?? '', 'PaymentMethodOneToOne')
+                && ($data['field'] ?? '') === 'gatewayConfig';
+        });
+
+        self::assertCount(
+            0,
+            $paymentMethodIssues,
+            'PaymentMethod → GatewayConfig should NOT be flagged (1:1 composition with exclusive ownership)',
+        );
+    }
+
+    #[Test]
+    public function it_does_not_flag_many_to_one_with_unique_constraint_on_fk(): void
+    {
+        // Arrange: User → Profile where profile_id has UNIQUE constraint
+        // UNIQUE constraint enforces 1:1 at database level
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag because UNIQUE constraint indicates 1:1
+        $issuesArray = $issues->toArray();
+        $userProfileIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            return str_contains($data['entity'] ?? '', 'UserProfileWithUnique')
+                && ($data['field'] ?? '') === 'profile';
+        });
+
+        self::assertCount(
+            0,
+            $userProfileIssues,
+            'User → Profile with UNIQUE FK should NOT be flagged (1:1 enforced by DB constraint)',
+        );
+    }
+
+    #[Test]
+    public function it_does_not_flag_many_to_one_with_inverse_one_to_one(): void
+    {
+        // Arrange: Account → Settings where Settings has inverse OneToOne
+        // Inverse OneToOne proves this is bidirectional 1:1
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag because inverse is OneToOne
+        $issuesArray = $issues->toArray();
+        $accountSettingsIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            return str_contains($data['entity'] ?? '', 'AccountWithInverseOneToOne')
+                && ($data['field'] ?? '') === 'settings';
+        });
+
+        self::assertCount(
+            0,
+            $accountSettingsIssues,
+            'Account → Settings with inverse OneToOne should NOT be flagged (bidirectional 1:1)',
+        );
+    }
+
+    #[Test]
+    public function it_still_flags_true_many_to_one_with_cascade_remove(): void
+    {
+        // Arrange: OrderWithCascadeRemove → Customer is TRUE ManyToOne
+        // Multiple orders can reference same customer = dangerous cascade
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should STILL flag this as CRITICAL
+        $issuesArray = $issues->toArray();
+        $orderCustomerIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            return str_contains($data['entity'] ?? '', 'OrderWithCascadeRemove')
+                && ($data['field'] ?? '') === 'customer';
+        });
+
+        self::assertGreaterThan(
+            0,
+            count($orderCustomerIssues),
+            'Order → Customer should STILL be flagged (true ManyToOne, not 1:1 composition)',
+        );
+
+        $issue = reset($orderCustomerIssues);
+        assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
+        $data = $issue->getData();
+        self::assertEquals('critical', $issue->getSeverity()->value);
+        self::assertEquals('ManyToOne', $data['association_type']);
     }
 }

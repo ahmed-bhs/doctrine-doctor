@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\OrphanRemovalWithoutCascadeRemoveAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OrphanRemovalWithoutCascadeRemoveAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\OrphanRemovalTest\CartWithoutOrphanRemoval;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\OrphanRemovalTest\InvoiceWithCompleteConfiguration;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
@@ -48,7 +48,7 @@ final class OrphanRemovalWithoutCascadeRemoveAnalyzerTest extends TestCase
 
         $this->analyzer = new OrphanRemovalWithoutCascadeRemoveAnalyzer(
             $entityManager,
-            PlatformAnalyzerTestHelper::createTemplateRenderer(), // @phpstan-ignore-line argument.type
+            PlatformAnalyzerTestHelper::createSuggestionFactory(), // @phpstan-ignore-line argument.type
         );
     }
 

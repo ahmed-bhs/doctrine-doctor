@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\JoinTypeConsistencyAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\JoinTypeConsistencyAnalyzer;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\InMemoryTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
@@ -279,9 +279,15 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
 
         $issues = $this->analyzer->analyze($queries);
 
-        // COUNT(DISTINCT) fixes the duplication issue, but our simple pattern still detects it
-        // This is acceptable - it's still worth reviewing
+        // COUNT(DISTINCT) is protected - should be detected with INFO severity
         self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        self::assertEquals('aggregation_with_inner_join', $data['type']);
+        self::assertEquals('COUNT with INNER JOIN - Performance Impact', $issue->getTitle());
+        self::assertEquals('info', $data['severity']);
+        self::assertStringContainsString('results are **correct**', $issue->getDescription());
     }
 
     #[Test]
@@ -352,5 +358,102 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
 
         // Should detect 2 different issues (different tables)
         self::assertCount(2, $issues);
+    }
+
+    #[Test]
+    public function it_detects_doctrine_paginator_count_as_protected(): void
+    {
+        // Realistic Doctrine Paginator query pattern
+        $paginatorQuery = 'SELECT COUNT(*) AS dctrn_count FROM (' .
+            'SELECT DISTINCT id_4 FROM (' .
+                'SELECT s0_.id AS id_4 FROM sylius_product s0_ ' .
+                'INNER JOIN sylius_product_taxon s2_ ON s0_.id = s2_.product_id ' .
+                'INNER JOIN sylius_taxon s4_ ON s2_.taxon_id = s4_.id' .
+            ') dctrn_result' .
+        ') dctrn_table';
+
+        $queries = QueryDataBuilder::create()
+            ->addQuery($paginatorQuery)
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        self::assertEquals('aggregation_with_inner_join', $data['type']);
+        self::assertEquals('COUNT with INNER JOIN - Performance Impact', $issue->getTitle());
+        self::assertEquals('info', $data['severity']);
+        self::assertStringContainsString('results are **correct**', $issue->getDescription());
+        self::assertStringContainsString('Doctrine Paginator', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_detects_select_distinct_with_count_as_protected(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT DISTINCT o.id FROM orders o INNER JOIN order_items oi ON o.id = oi.order_id')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        // SELECT DISTINCT without COUNT/SUM/AVG should not trigger the aggregation check
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_treats_unprotected_count_as_warning(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT COUNT(o.id) FROM orders o INNER JOIN order_items oi ON o.id = oi.order_id')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        self::assertEquals('aggregation_with_inner_join', $data['type']);
+        self::assertEquals('COUNT with INNER JOIN May Cause Incorrect Results', $issue->getTitle());
+        self::assertEquals('warning', $data['severity']);
+        self::assertStringContainsString('incorrect aggregate results', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_detects_sum_with_distinct_as_protected(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT SUM(DISTINCT o.total) FROM orders o INNER JOIN customers c ON o.customer_id = c.id')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        self::assertEquals('aggregation_with_inner_join', $data['type']);
+        self::assertEquals('SUM with INNER JOIN - Performance Impact', $issue->getTitle());
+        self::assertEquals('info', $data['severity']);
+    }
+
+    #[Test]
+    public function it_detects_avg_without_distinct_as_warning(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT AVG(o.total) FROM orders o INNER JOIN order_items oi ON o.id = oi.order_id')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        self::assertEquals('aggregation_with_inner_join', $data['type']);
+        self::assertEquals('AVG with INNER JOIN May Cause Incorrect Results', $issue->getTitle());
+        self::assertEquals('warning', $data['severity']);
     }
 }

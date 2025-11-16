@@ -311,6 +311,59 @@ final class IssueDeduplicatorTest extends TestCase
         self::assertNotContains('Lazy Loading in Loop: 212 queries on BillLine', $titles);
     }
 
+    #[Test]
+    public function it_tracks_duplicated_issues_in_best_issue(): void
+    {
+        // Arrange
+        $queryData = new QueryData(
+            sql: 'SELECT * FROM bill_line WHERE id = ?',
+            executionTime: QueryExecutionTime::fromMilliseconds(50.0),
+        );
+
+        $nPlusOneIssue = $this->createIssue(
+            'N+1 Query detected: 212 queries on BillLine',
+            'N+1 Query pattern detected',
+            Severity::CRITICAL,
+            [$queryData],
+        );
+
+        $lazyLoadingIssue = $this->createIssue(
+            'Lazy Loading in Loop: 212 queries on BillLine',
+            'Lazy loading detected in loop',
+            Severity::WARNING,
+            [$queryData],
+        );
+
+        $frequentQueryIssue = $this->createIssue(
+            'Frequent Query: 212 executions on BillLine',
+            'Frequent query detected',
+            Severity::INFO,
+            [$queryData],
+        );
+
+        $issues = IssueCollection::fromArray([
+            $nPlusOneIssue,
+            $lazyLoadingIssue,
+            $frequentQueryIssue,
+        ]);
+
+        // Act
+        $deduplicated = $this->deduplicator->deduplicate($issues);
+
+        // Assert
+        self::assertCount(1, $deduplicated, 'Should keep only the N+1 issue');
+        $bestIssue = $deduplicated->toArray()[0];
+        self::assertSame('N+1 Query detected: 212 queries on BillLine', $bestIssue->getTitle());
+
+        // Verify duplicated issues are tracked
+        $duplicates = $bestIssue->getDuplicatedIssues();
+        self::assertCount(2, $duplicates, 'Should track 2 duplicated issues');
+
+        $duplicateTitles = array_map(fn (IssueInterface $issue) => $issue->getTitle(), $duplicates);
+        self::assertContains('Lazy Loading in Loop: 212 queries on BillLine', $duplicateTitles);
+        self::assertContains('Frequent Query: 212 executions on BillLine', $duplicateTitles);
+    }
+
     /**
      * Create a mock issue for testing.
      *
@@ -323,6 +376,8 @@ final class IssueDeduplicatorTest extends TestCase
         array $queries,
     ): IssueInterface {
         return new class($title, $description, $severity, $queries) implements IssueInterface {
+            private array $duplicatedIssues = [];
+
             public function __construct(
                 /**
                  * @readonly
@@ -398,6 +453,21 @@ final class IssueDeduplicatorTest extends TestCase
                     'category' => $this->getCategory(),
                     'queries' => $this->queries,
                 ];
+            }
+
+            public function getDuplicatedIssues(): array
+            {
+                return $this->duplicatedIssues;
+            }
+
+            public function addDuplicatedIssue(IssueInterface $issue): void
+            {
+                $this->duplicatedIssues[] = $issue;
+            }
+
+            public function setDuplicatedIssues(array $issues): void
+            {
+                $this->duplicatedIssues = $issues;
             }
         };
     }

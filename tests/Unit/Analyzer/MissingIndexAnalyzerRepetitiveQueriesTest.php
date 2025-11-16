@@ -11,10 +11,11 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\Config\MissingIndexAnalyzerConfig;
-use AhmedBhs\DoctrineDoctor\Analyzer\MissingIndexAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzerConfig;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\PhpTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
 use Doctrine\DBAL\DriverManager;
@@ -62,19 +63,20 @@ final class MissingIndexAnalyzerRepetitiveQueriesTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );
 
         // Create 11 identical queries with 0.27ms execution time
         // These are BELOW the 50ms threshold, but should still be analyzed because repetitive
+        // Use 'name' instead of 'id' because id is PRIMARY KEY (optimally indexed)
         $queries = [];
         for ($i = 1; $i <= 11; $i++) {
             $queries[] = new QueryData(
-                sql: 'SELECT * FROM users WHERE id = ?',
+                sql: 'SELECT * FROM users WHERE name = ?',
                 executionTime: QueryExecutionTime::fromMilliseconds(0.27), // < 50ms!
-                params: [$i],
+                params: ["User {$i}"],
                 backtrace: [['file' => __FILE__, 'line' => __LINE__]],
             );
         }
@@ -83,8 +85,8 @@ final class MissingIndexAnalyzerRepetitiveQueriesTest extends TestCase
         $issues = iterator_to_array($analyzer->analyze(QueryDataCollection::fromArray($queries)));
 
         // Assert: Should detect the repetitive pattern even though queries are fast
-        // Because: $isRepetitive = count >= 3 (line 133 MissingIndexAnalyzer.php)
-        self::assertGreaterThanOrEqual(1, count($issues), 'Should detect repetitive fast queries (11 queries of 0.27ms each)');
+        // Because: $isRepetitive = count >= 3 and 'name' is not indexed
+        self::assertGreaterThanOrEqual(1, count($issues), 'Should detect repetitive fast queries on unindexed column (11 queries of 0.27ms each)');
 
         if (count($issues) > 0) {
             $issue = $issues[0];
@@ -116,7 +118,7 @@ final class MissingIndexAnalyzerRepetitiveQueriesTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );
@@ -166,7 +168,7 @@ final class MissingIndexAnalyzerRepetitiveQueriesTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );
@@ -207,7 +209,7 @@ final class MissingIndexAnalyzerRepetitiveQueriesTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );

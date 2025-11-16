@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\FloatInMoneyEmbeddableAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\FloatInMoneyEmbeddableAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -59,7 +59,7 @@ final class FloatInMoneyEmbeddableAnalyzerTest extends TestCase
         }
 
         self::assertNotNull($moneyWithFloatIssue, 'Should detect float in MoneyWithFloat embeddable');
-        self::assertEquals('code_quality', $moneyWithFloatIssue->getCategory());
+        self::assertEquals('integrity', $moneyWithFloatIssue->getCategory());
         self::assertEquals('critical', $moneyWithFloatIssue->getSeverity()->value);
     }
 

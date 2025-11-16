@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\OrphanRemovalWithoutCascadeRemoveAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OrphanRemovalWithoutCascadeRemoveAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
@@ -135,7 +135,8 @@ final class OrphanRemovalWithoutCascadeRemoveAnalyzerIntegrationTest extends Tes
     {
         $entityManager = $this->entityManager;
         $twigTemplateRenderer = PlatformAnalyzerTestHelper::createTwigTemplateRenderer();
+        $suggestionFactory = new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory($twigTemplateRenderer);
 
-        return new OrphanRemovalWithoutCascadeRemoveAnalyzer($entityManager, $twigTemplateRenderer);
+        return new OrphanRemovalWithoutCascadeRemoveAnalyzer($entityManager, $suggestionFactory);
     }
 }

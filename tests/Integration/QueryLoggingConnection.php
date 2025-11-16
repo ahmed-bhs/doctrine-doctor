@@ -14,6 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Integration;
 use Doctrine\DBAL\Driver\Connection as DriverConnection;
 use Doctrine\DBAL\Driver\Result;
 use Doctrine\DBAL\Driver\Statement;
+use Webmozart\Assert\Assert;
 
 /**
  * Connection wrapper to intercept and log SQL queries.
@@ -77,7 +78,7 @@ class QueryLoggingConnection implements DriverConnection
     public function getNativeConnection(): object
     {
         $connection = $this->driverConnection->getNativeConnection();
-        assert(is_object($connection));
+        Assert::object($connection);
         return $connection;
     }
 

@@ -35,8 +35,8 @@ enum IssueType: string
     case SECURITY = 'security';
     case DQL_INJECTION = 'dql_injection';
 
-    // Code quality issues
-    case CODE_QUALITY = 'code_quality';
+    // Integrity issues
+    case INTEGRITY = 'integrity';
     case PROPERTY_TYPE_MISMATCH = 'property_type_mismatch';
     case FINAL_ENTITY = 'final_entity';
     case ENTITY_STATE = 'entity_state';
