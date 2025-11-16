@@ -63,7 +63,7 @@ composer require --dev ahmed-bhs/doctrine-doctor
 ```
 
 **Step 2: That's it!**
-Auto-configured via Symfony Flex. No YAML, no configuration files needed.
+Auto-configured via [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No YAML, no configuration files needed.
 
 **Step 3: See it in action**
 1. Refresh any page in your Symfony app (in `dev` environment)
