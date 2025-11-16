@@ -27,7 +27,6 @@ use Webmozart\Assert\Assert;
 class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     private const QUERY_COUNT_WARNING_THRESHOLD = 10;
-    private const QUERY_COUNT_CRITICAL_THRESHOLD = 20;
     private const EXECUTION_TIME_WARNING_THRESHOLD = 500.0;
     private const EXECUTION_TIME_CRITICAL_THRESHOLD = 1000.0;
     private const LOW_EXECUTION_TIME_THRESHOLD = 100.0;
@@ -151,41 +150,6 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
 
         // Fallback to just normalized SQL if no pattern detected
         return $normalized;
-    }
-
-    /**
-     * Checks if query loads only a single record (exempted from N+1 detection).
-     *
-     * Inspired by nplusone's single-record exemption logic:
-     * - .one() / .first() → LIMIT 1
-     * - .get(pk=value) → WHERE id = ? LIMIT 1
-     *
-     * These queries are safe even when repeated because they only load one record.
-     *
-     * @return bool True if query is single-record and should be exempted
-     */
-    private function isSingleRecordQuery(string $sql): bool
-    {
-        // Check for LIMIT 1
-        $limitValue = $this->sqlExtractor->getLimitValue($sql);
-        if (1 === $limitValue) {
-            return true; // Explicit LIMIT 1
-        }
-
-        // Check for primary key lookup (WHERE id = ? without LIMIT but implies single record)
-        // This is a heuristic: if it's a lazy load pattern AND has ORDER BY or other indicators
-        // that suggest single record intent
-        $lazyTable = $this->sqlExtractor->detectLazyLoadingPattern($sql);
-        if (null !== $lazyTable) {
-            // Lazy loading pattern (WHERE id = ?) typically loads one record
-            // BUT we need to be careful: some queries might have WHERE id IN (?, ?, ?)
-            // Check if there's no JOIN (single table) and no complex conditions
-            if (!$this->sqlExtractor->hasJoin($sql)) {
-                return true; // Simple WHERE id = ? query → single record
-            }
-        }
-
-        return false;
     }
 
     /**

@@ -77,10 +77,6 @@ Configure thresholds in `config/packages/dev/doctrine_doctor.yaml`:
 
 ```yaml
 doctrine_doctor:
-    # Exclude vendor entities for cleaner reports (recommended)
-    analysis:
-        exclude_third_party_entities: true  # Default: true
-
     analyzers:
         n_plus_one:
             threshold: 3

@@ -42,11 +42,6 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  */
 class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    /**
-     * Minimum query count to trigger analysis.
-     */
-    private const MIN_QUERY_COUNT = 3;
-
     public function __construct(
         /**
          * @readonly

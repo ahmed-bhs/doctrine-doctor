@@ -288,17 +288,6 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     /**
      * @param array<string, mixed>|object $mapping
      */
-    private function isMissingTimezone(array|object $mapping): bool
-    {
-        $type = MappingHelper::getString($mapping, 'type');
-
-        // If using datetime (not datetimetz), timezone is not stored
-        return 'datetime' === $type || 'datetime_immutable' === $type;
-    }
-
-    /**
-     * @param array<string, mixed>|object $mapping
-     */
     private function isCreatedAtNullable(string $fieldName, array|object $mapping): bool
     {
         $fieldLower = strtolower($fieldName);
@@ -564,22 +553,6 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                 severity: Severity::warning(),
                 title: 'Inconsistent Timezone Usage',
                 tags: ['timestampable', 'timezone', 'datetime', 'datetimetz', 'configuration', 'warning'],
-            ),
-        );
-    }
-
-    private function createGlobalTimezoneAwareSuggestion(int $totalFields): SuggestionInterface
-    {
-        return $this->suggestionFactory->createFromTemplate(
-            templateName: 'Integrity/timestampable_timezone_global',
-            context: [
-                'total_fields' => $totalFields,
-            ],
-            suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::configuration(),
-                severity: Severity::info(),
-                title: sprintf('%d Timestamp Fields Without Timezone', $totalFields),
-                tags: ['timestampable', 'timezone', 'datetime', 'configuration', 'info'],
             ),
         );
     }

@@ -43,9 +43,6 @@ use Webmozart\Assert\Assert;
  */
 class NestedRelationshipN1Analyzer implements AnalyzerInterface
 {
-    /** @var int Queries within 100ms are considered sequential */
-    private const SEQUENCE_TIME_WINDOW_MS = 100;
-
     /** @var int At least 2-level nesting to report */
     private const MIN_CHAIN_LENGTH = 2;
 
@@ -222,25 +219,6 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
 
             return null;
         }
-    }
-
-    /**
-     * Heuristic to check if a foreign key suggests it references a table.
-     * Example: "author_id" references "author" or "user" table.
-     */
-    private function foreignKeyReferencesTable(string $foreignKey, string $table): bool
-    {
-        // Remove _id suffix
-        $fkBase = preg_replace('/_id$/', '', $foreignKey);
-
-        // Compare with table name (case-insensitive, handle singular/plural)
-        $normalizedTable = strtolower($table);
-        $normalizedFk = strtolower($fkBase ?? '');
-
-        // Direct match or plural/singular variants
-        return $normalizedFk === $normalizedTable
-            || $normalizedFk === rtrim($normalizedTable, 's')
-            || $normalizedFk . 's' === $normalizedTable;
     }
 
     /**
