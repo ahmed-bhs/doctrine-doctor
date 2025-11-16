@@ -292,7 +292,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         );
 
         $suggestionMetadata = new SuggestionMetadata(
-            type: SuggestionType::codeQuality(),
+            type: SuggestionType::integrity(),
             severity: Severity::warning(),
             title: 'Increase Decimal Precision',
         );
@@ -345,7 +345,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $infoMessage = 'If this is intentional, you can ignore this warning. Otherwise, consider using scale=2 or scale=4.';
 
         $suggestionMetadata = new SuggestionMetadata(
-            type: SuggestionType::codeQuality(),
+            type: SuggestionType::integrity(),
             severity: Severity::info(),
             title: 'Review Decimal Scale',
         );
@@ -393,7 +393,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         ];
 
         $suggestionMetadata = new SuggestionMetadata(
-            type: SuggestionType::codeQuality(),
+            type: SuggestionType::integrity(),
             severity: Severity::info(),
             title: 'Consider Reducing Precision',
         );
@@ -447,7 +447,7 @@ public string \$%s;",
         $infoMessage = 'Database defaults vary: MySQL defaults to (10,0), PostgreSQL to implementation-defined.';
 
         $suggestionMetadata = new SuggestionMetadata(
-            type: SuggestionType::codeQuality(),
+            type: SuggestionType::integrity(),
             severity: Severity::warning(),
             title: 'Add Explicit Precision/Scale',
         );

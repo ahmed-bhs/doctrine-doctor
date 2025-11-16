@@ -414,7 +414,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
                 'association_type' => 'ManyToOne',
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::warning(),
                 title: 'Foreign Key Mapped as Primitive Type',
                 tags: ['code-quality', 'orm', 'anti-pattern'],

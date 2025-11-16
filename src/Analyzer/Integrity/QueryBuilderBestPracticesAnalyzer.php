@@ -167,7 +167,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
             PHP;
 
         $suggestionMetadata = new SuggestionMetadata(
-            type: SuggestionType::codeQuality(),
+            type: SuggestionType::integrity(),
             severity: Severity::warning(),
             title: 'Use IS NULL instead of = NULL',
         );
@@ -252,7 +252,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
         ];
 
         $suggestionMetadata = new SuggestionMetadata(
-            type: SuggestionType::codeQuality(),
+            type: SuggestionType::integrity(),
             severity: Severity::critical(),
             title: 'Check array before using IN()',
         );

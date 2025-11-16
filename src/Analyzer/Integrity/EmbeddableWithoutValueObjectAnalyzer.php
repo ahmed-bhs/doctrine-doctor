@@ -222,7 +222,7 @@ class EmbeddableWithoutValueObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\A
                 'missing_methods' => $missingMethods,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::info(),
                 title: sprintf('Add Value Object Methods to %s', $className),
                 tags: ['embeddable', 'value-object', 'ddd', 'best-practices'],

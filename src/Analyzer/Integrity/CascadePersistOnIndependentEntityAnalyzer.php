@@ -361,7 +361,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
                 'association_type' => $type,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::critical(),
                 title: 'cascade="persist" on Independent Entity (Risk of Duplicates)',
                 tags: ['critical', 'cascade', 'duplicates', 'anti-pattern'],

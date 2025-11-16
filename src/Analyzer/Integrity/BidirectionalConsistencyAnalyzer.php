@@ -462,7 +462,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                     'description' => 'Fix the bidirectional inconsistency.',
                 ],
                 new SuggestionMetadata(
-                    type: SuggestionType::codeQuality(),
+                    type: SuggestionType::integrity(),
                     severity: Severity::warning(),
                     title: 'Fix Bidirectional Inconsistency',
                 ),
@@ -485,7 +485,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 'child_field'  => $childField,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::critical(),
                 title: 'orphanRemoval with nullable FK Inconsistency',
                 tags: ['bidirectional', 'orphan-removal', 'nullable'],
@@ -508,7 +508,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 'child_field'  => $childField,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::warning(),
                 title: 'cascade="remove" with onDelete="SET NULL" Inconsistency',
                 tags: ['bidirectional', 'cascade', 'ondelete'],
@@ -527,7 +527,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 'parent_field' => $parentField,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::warning(),
                 title: 'orphanRemoval without cascade="persist"',
                 tags: ['bidirectional', 'orphan-removal', 'cascade'],
@@ -546,7 +546,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 'parent_field' => $parentField,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::warning(),
                 title: 'onDelete="CASCADE" without cascade="remove"',
                 tags: ['bidirectional', 'cascade', 'ondelete'],

@@ -257,7 +257,7 @@ class MissingEmbeddableOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\A
                 'fields'           => $fields,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::info(),
                 title: sprintf('Refactor to %s Embeddable', $embeddableName),
                 tags: ['embeddable', 'value-object', 'ddd', 'refactoring'],

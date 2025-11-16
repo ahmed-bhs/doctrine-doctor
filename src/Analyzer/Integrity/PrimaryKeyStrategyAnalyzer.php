@@ -338,7 +338,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                 'total_count' => $statistics['total'],
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::info(),
                 title: 'Consider UUID for distributed or security-sensitive entities',
                 tags: ['educational', 'architecture', 'uuid', 'auto-increment'],
@@ -380,7 +380,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                 'uuid_entities' => $statistics['uuidEntities'],
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::info(),
                 title: 'Consider standardizing primary key strategy',
                 tags: ['consistency', 'architecture'],

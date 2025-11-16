@@ -550,7 +550,7 @@ final class SuggestionFactory
                 'file_path'   => $filePath,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::info(),
                 title: 'Code Quality Suggestion',
                 tags: ['code-quality'],
@@ -577,7 +577,7 @@ final class SuggestionFactory
                 'backtrace'       => $backtrace,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::critical(),
                 title: sprintf('Uninitialized Collection: %s::$%s', $entityClass, $fieldName),
                 tags: ['code-quality', 'doctrine', 'collection'],

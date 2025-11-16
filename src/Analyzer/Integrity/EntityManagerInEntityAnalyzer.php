@@ -496,7 +496,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         ];
 
         $suggestionMetadata = new SuggestionMetadata(
-            type: SuggestionType::codeQuality(),
+            type: SuggestionType::integrity(),
             severity: Severity::critical(),
             title: 'Remove EntityManager from Entity',
         );

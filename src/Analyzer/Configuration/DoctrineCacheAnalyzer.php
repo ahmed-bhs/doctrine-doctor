@@ -188,7 +188,7 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                 if (isset($prodOrmConfig['query_cache_driver']['type'])
                     && $prodOrmConfig['query_cache_driver']['type'] === 'array') {
                     $issues[] = $this->createYamlIssue(
-                        'high',
+                        'critical',
                         'Array Cache in Production Config (Query)',
                         'Production configuration (when@prod) uses array cache for queries. ' .
                         'DQL queries will be recompiled on EVERY execution in production!',

@@ -252,7 +252,7 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
                 'field_name'       => $fieldName,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::critical(),
                 title: sprintf('Use Integer for Money: %s::$%s', $className, $fieldName),
                 tags: ['critical', 'money', 'embeddable', 'float', 'precision'],

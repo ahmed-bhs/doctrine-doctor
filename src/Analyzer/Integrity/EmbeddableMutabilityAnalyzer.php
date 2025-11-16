@@ -285,7 +285,7 @@ class EmbeddableMutabilityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
                 'mutability_issues' => $mutabilityIssues,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::warning(),
                 title: sprintf('Make %s Immutable', $className),
                 tags: ['embeddable', 'immutability', 'value-object', 'ddd'],

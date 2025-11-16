@@ -312,7 +312,7 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                 'field_name'   => $fieldName,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::critical(),
                 title: sprintf('Float Used for Money: %s::$%s', $className, $fieldName),
                 tags: ['critical', 'money', 'float', 'precision'],

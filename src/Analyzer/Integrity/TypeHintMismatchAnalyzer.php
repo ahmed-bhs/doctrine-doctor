@@ -464,7 +464,7 @@ final class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
             PHP;
 
         $suggestionMetadata = new SuggestionMetadata(
-            type: SuggestionType::codeQuality(),
+            type: SuggestionType::integrity(),
             severity: Severity::warning(),
             title: 'Fix Decimal/Float Type Mismatch',
         );
@@ -544,7 +544,7 @@ final class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         ];
 
         $suggestionMetadata = new SuggestionMetadata(
-            type: SuggestionType::codeQuality(),
+            type: SuggestionType::integrity(),
             severity: Severity::warning(),
             title: 'Synchronize Property Type with Column Type',
         );

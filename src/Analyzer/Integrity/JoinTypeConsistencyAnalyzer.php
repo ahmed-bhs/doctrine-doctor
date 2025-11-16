@@ -306,7 +306,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                 'original_query' => $sql,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::info(),
                 title: 'Replace LEFT JOIN with INNER JOIN',
                 tags: ['code-quality', 'join', 'optimization'],

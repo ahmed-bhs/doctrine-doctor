@@ -317,7 +317,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements \AhmedBhs\DoctrineDoc
         }
 
         $suggestionMetadata = new SuggestionMetadata(
-            type: SuggestionType::codeQuality(),
+            type: SuggestionType::integrity(),
             severity: $severity,
             title: $title,
         );

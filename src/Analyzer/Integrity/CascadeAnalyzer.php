@@ -334,7 +334,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                 'association_type' => $type,
             ],
             new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::critical(),
                 title: sprintf('Remove cascade="all" from %s::$%s', $shortClassName, $fieldName),
                 tags: ['cascade', 'critical', 'data-integrity'],
@@ -353,7 +353,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                 'reference_count' => $refCount,
             ],
             new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::critical(),
                 title: sprintf('Remove cascade="remove" from %s::$%s', $this->getShortClassName($entityClass), $fieldName),
                 tags: ['cascade', 'critical', 'data-loss'],
@@ -371,7 +371,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                 'target_entity' => $targetEntity,
             ],
             new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::warning(),
                 title: sprintf('Remove cascade="remove" from %s::$%s', $this->getShortClassName($entityClass), $fieldName),
                 tags: ['cascade', 'independent-entity'],
@@ -389,7 +389,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                 'target_entity' => $targetEntity,
             ],
             new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::warning(),
                 title: sprintf('Remove cascade="persist" from %s::$%s', $this->getShortClassName($entityClass), $fieldName),
                 tags: ['cascade', 'independent-entity', 'duplicates'],

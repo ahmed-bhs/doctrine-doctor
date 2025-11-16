@@ -472,7 +472,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                 'field_name'   => $fieldName,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::warning(),
                 title: sprintf('Use DateTimeImmutable: %s::$%s', $className, $fieldName),
                 tags: ['soft-delete', 'datetime', 'immutable'],
@@ -489,7 +489,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                 'field_name'   => $fieldName,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::warning(),
                 title: sprintf('Remove Public Setter: %s::$%s', $className, $fieldName),
                 tags: ['soft-delete', 'encapsulation'],

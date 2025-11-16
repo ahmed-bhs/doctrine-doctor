@@ -192,7 +192,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                 'operator'  => $operator,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::critical(),
                 title: 'Use IS NULL / IS NOT NULL for NULL comparisons',
                 tags: ['sql', 'null', 'comparison', 'logic-error'],

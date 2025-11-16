@@ -541,7 +541,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                 'field_name'   => $fieldName,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::warning(),
                 title: sprintf('Use DateTimeImmutable: %s::$%s', $className, $fieldName),
                 tags: ['timestampable', 'datetime', 'immutable', 'best-practice'],
@@ -593,7 +593,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                 'field_name'   => $fieldName,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::warning(),
                 title: sprintf('Make CreatedAt NOT NULL: %s::$%s', $className, $fieldName),
                 tags: ['timestampable', 'not-null', 'database', 'constraint'],
@@ -610,7 +610,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                 'field_name'   => $fieldName,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::info(),
                 title: sprintf('Remove Public Setter: %s::$%s', $className, $fieldName),
                 tags: ['timestampable', 'encapsulation', 'lifecycle-callback'],

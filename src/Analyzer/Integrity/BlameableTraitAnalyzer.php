@@ -530,7 +530,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                 'field_name'   => $fieldName,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::warning(),
                 title: sprintf('Make CreatedBy NOT NULL: %s::$%s', $className, $fieldName),
                 tags: ['blameable', 'not-null', 'audit', 'data-integrity'],
@@ -547,7 +547,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                 'field_name'   => $fieldName,
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::info(),
                 title: sprintf('Remove Public Setter: %s::$%s', $className, $fieldName),
                 tags: ['blameable', 'encapsulation', 'audit-trail'],
@@ -585,7 +585,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                 'timestamp_fields' => array_keys($timestampFields),
             ],
             suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::info(),
                 title: sprintf('Add Blameable Trait: %s', $className),
                 tags: ['blameable', 'trait', 'audit', 'timestampable'],

@@ -293,7 +293,7 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                 'recommendations'  => implode("\n", $suggestions),
             ],
             new SuggestionMetadata(
-                type: SuggestionType::codeQuality(),
+                type: SuggestionType::integrity(),
                 severity: Severity::critical(),
                 title: sprintf('Remove cascade="all" from %s::$%s', $shortClassName, $fieldName),
                 tags: ['cascade', 'critical', 'data-integrity'],
