@@ -15,6 +15,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\CharsetAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -68,7 +69,7 @@ final class MySQLCharsetAnalyzer implements CharsetAnalyzerInterface
                     $databaseName,
                     $dbCharset,
                 ),
-                'severity'   => 'warning',
+                'severity' => Severity::warning(),
                 'suggestion' => $this->suggestionFactory->createConfiguration(
                     setting: 'Database charset',
                     currentValue: $dbCharset,
@@ -97,7 +98,7 @@ final class MySQLCharsetAnalyzer implements CharsetAnalyzerInterface
                     count($problematicTables),
                     $tableList,
                 ),
-                'severity'   => count($problematicTables) > 10 ? 'critical' : 'warning',
+                'severity'   => count($problematicTables) > 10 ? Severity::critical() : Severity::warning(),
                 'suggestion' => $this->suggestionFactory->createConfiguration(
                     setting: 'Table charset',
                     currentValue: 'utf8/utf8mb3',

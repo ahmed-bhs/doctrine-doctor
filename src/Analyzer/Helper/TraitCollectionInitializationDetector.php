@@ -14,7 +14,6 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Helper;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
-use ReflectionMethod;
 
 /**
  * Detects collection initialization in traits following the Single Responsibility Principle.
@@ -113,5 +112,4 @@ final class TraitCollectionInitializationDetector
             return false;
         }
     }
-
 }

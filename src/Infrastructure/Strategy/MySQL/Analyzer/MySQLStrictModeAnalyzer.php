@@ -15,6 +15,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\StrictModeAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -51,7 +52,7 @@ final class MySQLStrictModeAnalyzer implements StrictModeAnalyzerInterface
                     'These modes prevent silent data truncation and invalid data insertion.',
                     implode(', ', $missingModes),
                 ),
-                'severity'   => count($missingModes) >= 3 ? 'critical' : 'warning',
+                'severity'   => count($missingModes) >= 3 ? Severity::critical() : Severity::warning(),
                 'suggestion' => $this->suggestionFactory->createConfiguration(
                     setting: 'sql_mode',
                     currentValue: $sqlMode,

@@ -45,7 +45,7 @@ ob_start();
     <div class="query-item">
         <pre><code class="language-php">// BAD: Each collection access triggers a separate query
 $entities = $repository->findAll();
-assert(is_iterable($entities), '$entities must be iterable');
+Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
     <?php if ($hasLimit): ?>
@@ -71,7 +71,7 @@ private Collection $<?php echo $e($relation); ?>;
 
 // Now these operations are optimized:
 $entities = $repository->findAll();
-assert(is_iterable($entities), '$entities must be iterable');
+Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
     // COUNT query instead of loading all items!
@@ -113,7 +113,7 @@ $entities = $entityManager
     ')
     ->getResult();
 
-assert(is_iterable($entities), '$entities must be iterable');
+Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
     foreach ($entity->get<?php echo ucfirst($relation); ?>() as $item) { // Already loaded!

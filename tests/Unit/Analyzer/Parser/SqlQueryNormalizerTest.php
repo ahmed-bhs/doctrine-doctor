@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer\Parser;
@@ -26,7 +33,7 @@ final class SqlQueryNormalizerTest extends TestCase
     // SELECT Statement Tests
     // ========================================================================
 
-    public function testNormalizesSimpleSelectWithIntegerLiteral(): void
+    public function test_normalizes_simple_select_with_integer_literal(): void
     {
         // Given: SELECT with integer literal in WHERE
         $sql = "SELECT * FROM users WHERE id = 123";
@@ -35,12 +42,12 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: Integer should be replaced with placeholder
-        $this->assertStringContainsString('WHERE', $result);
-        $this->assertStringContainsString('ID = ?', $result);
-        $this->assertStringNotContainsString('123', $result);
+        self::assertStringContainsString('WHERE', $result);
+        self::assertStringContainsString('ID = ?', $result);
+        self::assertStringNotContainsString('123', $result);
     }
 
-    public function testNormalizesSelectWithStringLiteral(): void
+    public function test_normalizes_select_with_string_literal(): void
     {
         // Given: SELECT with string literal
         $sql = "SELECT * FROM users WHERE name = 'John'";
@@ -49,12 +56,12 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: String should be replaced with placeholder
-        $this->assertStringContainsString('WHERE', $result);
-        $this->assertStringContainsString('= ?', $result);
-        $this->assertStringNotContainsString('John', $result);
+        self::assertStringContainsString('WHERE', $result);
+        self::assertStringContainsString('= ?', $result);
+        self::assertStringNotContainsString('John', $result);
     }
 
-    public function testNormalizesSelectWithDoubleQuotedString(): void
+    public function test_normalizes_select_with_double_quoted_string(): void
     {
         // Given: SELECT with double-quoted string
         $sql = 'SELECT * FROM users WHERE name = "Jane"';
@@ -63,11 +70,11 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: String should be replaced with placeholder
-        $this->assertStringContainsString('= ?', $result);
-        $this->assertStringNotContainsString('Jane', $result);
+        self::assertStringContainsString('= ?', $result);
+        self::assertStringNotContainsString('Jane', $result);
     }
 
-    public function testNormalizesSelectWithInClause(): void
+    public function test_normalizes_select_with_in_clause(): void
     {
         // Given: SELECT with IN clause
         $sql = "SELECT * FROM users WHERE id IN (1, 2, 3, 4, 5)";
@@ -76,11 +83,11 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: IN clause should be normalized
-        $this->assertStringContainsString('IN (?)', $result);
-        $this->assertStringNotContainsString('1, 2, 3', $result);
+        self::assertStringContainsString('IN (?)', $result);
+        self::assertStringNotContainsString('1, 2, 3', $result);
     }
 
-    public function testNormalizesSelectWithFloatLiteral(): void
+    public function test_normalizes_select_with_float_literal(): void
     {
         // Given: SELECT with float literal
         $sql = "SELECT * FROM products WHERE price = 19.99";
@@ -89,11 +96,11 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: Float should be replaced with placeholder
-        $this->assertStringContainsString('= ?', $result);
-        $this->assertStringNotContainsString('19.99', $result);
+        self::assertStringContainsString('= ?', $result);
+        self::assertStringNotContainsString('19.99', $result);
     }
 
-    public function testNormalizesSelectWithMultipleConditions(): void
+    public function test_normalizes_select_with_multiple_conditions(): void
     {
         // Given: SELECT with multiple WHERE conditions
         $sql = "SELECT * FROM users WHERE id = 123 AND name = 'John' AND age > 25";
@@ -102,16 +109,16 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: All literals should be replaced
-        $this->assertStringContainsString('WHERE', $result);
-        $this->assertStringNotContainsString('123', $result);
-        $this->assertStringNotContainsString('John', $result);
-        $this->assertStringNotContainsString('25', $result);
+        self::assertStringContainsString('WHERE', $result);
+        self::assertStringNotContainsString('123', $result);
+        self::assertStringNotContainsString('John', $result);
+        self::assertStringNotContainsString('25', $result);
         // Should have placeholders
         $expected = 'ID = ?';
-        $this->assertStringContainsString($expected, $result);
+        self::assertStringContainsString($expected, $result);
     }
 
-    public function testNormalizesSelectWithJoin(): void
+    public function test_normalizes_select_with_join(): void
     {
         // Given: SELECT with JOIN and ON conditions
         $sql = "SELECT * FROM users u INNER JOIN orders o ON u.id = o.user_id WHERE u.id = 5";
@@ -120,12 +127,12 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: Should preserve JOIN structure but normalize values
-        $this->assertStringContainsString('INNER JOIN', $result);
-        $this->assertStringContainsString('ON', $result);
-        $this->assertStringNotContainsString(' 5', $result);
+        self::assertStringContainsString('INNER JOIN', $result);
+        self::assertStringContainsString('ON', $result);
+        self::assertStringNotContainsString(' 5', $result);
     }
 
-    public function testNormalizesSelectWithLimit(): void
+    public function test_normalizes_select_with_limit(): void
     {
         // Given: SELECT with LIMIT
         $sql = "SELECT * FROM users LIMIT 10";
@@ -134,11 +141,11 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: LIMIT should be normalized
-        $this->assertStringContainsString('LIMIT ?', $result);
-        $this->assertStringNotContainsString('10', $result);
+        self::assertStringContainsString('LIMIT ?', $result);
+        self::assertStringNotContainsString('10', $result);
     }
 
-    public function testNormalizesSelectWithOrderBy(): void
+    public function test_normalizes_select_with_order_by(): void
     {
         // Given: SELECT with ORDER BY
         $sql = "SELECT * FROM users ORDER BY created_at DESC";
@@ -147,10 +154,10 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: ORDER BY should be preserved
-        $this->assertStringContainsString('ORDER BY', $result);
+        self::assertStringContainsString('ORDER BY', $result);
     }
 
-    public function testNormalizesSelectWithGroupBy(): void
+    public function test_normalizes_select_with_group_by(): void
     {
         // Given: SELECT with GROUP BY
         $sql = "SELECT category, COUNT(*) FROM products GROUP BY category";
@@ -159,14 +166,14 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: GROUP BY should be preserved
-        $this->assertStringContainsString('GROUP BY', $result);
+        self::assertStringContainsString('GROUP BY', $result);
     }
 
     // ========================================================================
     // UPDATE Statement Tests
     // ========================================================================
 
-    public function testNormalizesUpdateStatement(): void
+    public function test_normalizes_update_statement(): void
     {
         // Given: UPDATE statement with literal values
         $sql = "UPDATE users SET name = 'NewName', age = 30 WHERE id = 5";
@@ -175,15 +182,15 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: All literals should be replaced
-        $this->assertStringContainsString('UPDATE', $result);
-        $this->assertStringContainsString('SET', $result);
-        $this->assertStringContainsString('WHERE', $result);
-        $this->assertStringNotContainsString('NewName', $result);
-        $this->assertStringNotContainsString('30', $result);
-        $this->assertStringNotContainsString(' 5', $result);
+        self::assertStringContainsString('UPDATE', $result);
+        self::assertStringContainsString('SET', $result);
+        self::assertStringContainsString('WHERE', $result);
+        self::assertStringNotContainsString('NewName', $result);
+        self::assertStringNotContainsString('30', $result);
+        self::assertStringNotContainsString(' 5', $result);
     }
 
-    public function testNormalizesUpdateWithMultipleSets(): void
+    public function test_normalizes_update_with_multiple_sets(): void
     {
         // Given: UPDATE with multiple SET clauses
         $sql = "UPDATE users SET name = 'John', email = 'john@example.com', age = 25 WHERE id = 1";
@@ -192,16 +199,16 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: All SET values should be normalized
-        $this->assertStringContainsString('= ?', $result);
-        $this->assertStringNotContainsString('John', $result);
-        $this->assertStringNotContainsString('john@example.com', $result);
+        self::assertStringContainsString('= ?', $result);
+        self::assertStringNotContainsString('John', $result);
+        self::assertStringNotContainsString('john@example.com', $result);
     }
 
     // ========================================================================
     // DELETE Statement Tests
     // ========================================================================
 
-    public function testNormalizesDeleteStatement(): void
+    public function test_normalizes_delete_statement(): void
     {
         // Given: DELETE statement
         $sql = "DELETE FROM users WHERE id = 42";
@@ -210,12 +217,12 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: Literal should be replaced
-        $this->assertStringContainsString('DELETE FROM', $result);
-        $this->assertStringContainsString('WHERE', $result);
-        $this->assertStringNotContainsString('42', $result);
+        self::assertStringContainsString('DELETE FROM', $result);
+        self::assertStringContainsString('WHERE', $result);
+        self::assertStringNotContainsString('42', $result);
     }
 
-    public function testNormalizesDeleteWithMultipleConditions(): void
+    public function test_normalizes_delete_with_multiple_conditions(): void
     {
         // Given: DELETE with multiple conditions
         $sql = "DELETE FROM users WHERE status = 'inactive' AND last_login < '2020-01-01'";
@@ -224,15 +231,15 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: All literals should be replaced
-        $this->assertStringNotContainsString('inactive', $result);
-        $this->assertStringNotContainsString('2020-01-01', $result);
+        self::assertStringNotContainsString('inactive', $result);
+        self::assertStringNotContainsString('2020-01-01', $result);
     }
 
     // ========================================================================
     // Edge Cases & Special Scenarios
     // ========================================================================
 
-    public function testPreservesColumnNames(): void
+    public function test_preserves_column_names(): void
     {
         // Given: Query with column names that shouldn't be replaced
         $sql = "SELECT id, name, email FROM users WHERE active = 1";
@@ -241,12 +248,12 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: Column names should be preserved, only literal replaced
-        $this->assertStringNotContainsString(' 1', $result);
+        self::assertStringNotContainsString(' 1', $result);
         // Table name should be preserved
-        $this->assertStringContainsString('USERS', $result);
+        self::assertStringContainsString('USERS', $result);
     }
 
-    public function testHandlesEscapedQuotes(): void
+    public function test_handles_escaped_quotes(): void
     {
         // Given: String with escaped quotes
         $sql = "SELECT * FROM users WHERE name = 'O\\'Brien'";
@@ -255,11 +262,11 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: Should handle escaped quotes correctly
-        $this->assertStringNotContainsString("O'Brien", $result);
-        $this->assertStringContainsString('?', $result);
+        self::assertStringNotContainsString("O'Brien", $result);
+        self::assertStringContainsString('?', $result);
     }
 
-    public function testNormalizesSameQueryToSamePattern(): void
+    public function test_normalizes_same_query_to_same_pattern(): void
     {
         // Given: Two queries with different values but same structure
         $sql1 = "SELECT * FROM users WHERE id = 1";
@@ -270,10 +277,10 @@ final class SqlQueryNormalizerTest extends TestCase
         $result2 = $this->normalizer->normalizeQuery($sql2);
 
         // Then: They should produce identical normalized queries
-        $this->assertSame($result1, $result2, 'Same structure should normalize to same pattern');
+        self::assertSame($result1, $result2, 'Same structure should normalize to same pattern');
     }
 
-    public function testNormalizesQueryWithParamPlaceholders(): void
+    public function test_normalizes_query_with_param_placeholders(): void
     {
         // Given: Query already using placeholders (parameterized query)
         $sql = "SELECT * FROM users WHERE id = ?";
@@ -282,10 +289,10 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: Should preserve placeholders
-        $this->assertStringContainsString('?', $result);
+        self::assertStringContainsString('?', $result);
     }
 
-    public function testHandlesComplexRealWorldQuery(): void
+    public function test_handles_complex_real_world_query(): void
     {
         // Given: Complex real-world query from N+1 detection
         $sql = "SELECT t0.id AS id_1, t0.name AS name_2, t0.email AS email_3 " .
@@ -298,15 +305,15 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: Should preserve structure but normalize values
-        $this->assertStringContainsString('INNER JOIN', $result);
-        $this->assertStringContainsString('WHERE', $result);
-        $this->assertStringContainsString('ORDER BY', $result);
-        $this->assertStringContainsString('LIMIT ?', $result);
-        $this->assertStringNotContainsString('active', $result);
-        $this->assertStringNotContainsString('2024-01-01', $result);
+        self::assertStringContainsString('INNER JOIN', $result);
+        self::assertStringContainsString('WHERE', $result);
+        self::assertStringContainsString('ORDER BY', $result);
+        self::assertStringContainsString('LIMIT ?', $result);
+        self::assertStringNotContainsString('active', $result);
+        self::assertStringNotContainsString('2024-01-01', $result);
     }
 
-    public function testHandlesCaseSensitivity(): void
+    public function test_handles_case_sensitivity(): void
     {
         // Given: Queries with different case
         $sql1 = "select * from users where id = 5";
@@ -317,11 +324,11 @@ final class SqlQueryNormalizerTest extends TestCase
         $result2 = $this->normalizer->normalizeQuery($sql2);
 
         // Then: Should be case-insensitive (both uppercase)
-        $this->assertStringContainsString('SELECT', $result1);
-        $this->assertStringContainsString('SELECT', $result2);
+        self::assertStringContainsString('SELECT', $result1);
+        self::assertStringContainsString('SELECT', $result2);
     }
 
-    public function testFallbackToRegexForInvalidSQL(): void
+    public function test_fallback_to_regex_for_invalid_sql(): void
     {
         // Given: Invalid SQL that parser can't handle
         $sql = "SOME INVALID SQL WITH = 'value' AND id = 123";
@@ -330,15 +337,15 @@ final class SqlQueryNormalizerTest extends TestCase
         $result = $this->normalizer->normalizeQuery($sql);
 
         // Then: Should still replace literals using regex fallback
-        $this->assertStringNotContainsString('value', $result);
-        $this->assertStringNotContainsString('123', $result);
+        self::assertStringNotContainsString('value', $result);
+        self::assertStringNotContainsString('123', $result);
     }
 
     // ========================================================================
     // N+1 Detection Specific Tests
     // ========================================================================
 
-    public function testDetectsIdenticalPatternsForNPlusOne(): void
+    public function test_detects_identical_patterns_for_n_plus_one(): void
     {
         // Given: Typical N+1 scenario - same query with different IDs
         $queries = [
@@ -350,14 +357,14 @@ final class SqlQueryNormalizerTest extends TestCase
         ];
 
         // When: We normalize all queries
-        $normalized = array_map(fn($q) => $this->normalizer->normalizeQuery($q), $queries);
+        $normalized = array_map(fn ($q) => $this->normalizer->normalizeQuery($q), $queries);
 
         // Then: All should produce the same pattern
         $uniquePatterns = array_unique($normalized);
-        $this->assertCount(1, $uniquePatterns, 'N+1 queries should normalize to same pattern');
+        self::assertCount(1, $uniquePatterns, 'N+1 queries should normalize to same pattern');
     }
 
-    public function testDistinguishesDifferentQueryStructures(): void
+    public function test_distinguishes_different_query_structures(): void
     {
         // Given: Queries with different structures
         $sql1 = "SELECT * FROM users WHERE id = 1";
@@ -370,7 +377,7 @@ final class SqlQueryNormalizerTest extends TestCase
         // Then: They should produce different patterns (different columns)
         // Note: The current implementation may normalize these the same way
         // This test documents the expected behavior
-        $this->assertIsString($result1);
-        $this->assertIsString($result2);
+        self::assertIsString($result1);
+        self::assertIsString($result2);
     }
 }

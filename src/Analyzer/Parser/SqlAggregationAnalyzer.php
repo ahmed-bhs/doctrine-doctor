@@ -24,9 +24,6 @@ use PhpMyAdmin\SqlParser\Statements\SelectStatement;
  */
 final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
 {
-    /**
-     * {@inheritDoc}
-     */
     public function extractAggregationFunctions(string $sql): array
     {
         $parser = new Parser($sql);
@@ -51,9 +48,6 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
         return array_unique($aggregations);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function extractGroupByColumns(string $sql): array
     {
         $parser = new Parser($sql);
@@ -80,9 +74,6 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
         return array_unique($columns);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function extractOrderBy(string $sql): ?string
     {
         $parser = new Parser($sql);
@@ -108,16 +99,13 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
             }
 
             if ('' !== $expr) {
-                $orderParts[] = '' !== $type ? "$expr $type" : $expr;
+                $orderParts[] = '' !== $type ? "{$expr} {$type}" : $expr;
             }
         }
 
         return [] !== $orderParts ? implode(', ', $orderParts) : null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function extractOrderByColumnNames(string $sql): array
     {
         $parser = new Parser($sql);
@@ -144,9 +132,6 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
         return array_values(array_unique($columns));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function extractSelectClause(string $sql): ?string
     {
         $parser = new Parser($sql);
@@ -169,9 +154,6 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
         return implode(', ', $selectParts);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function extractTableAliasesFromSelect(string $sql): array
     {
         $selectClause = $this->extractSelectClause($sql);

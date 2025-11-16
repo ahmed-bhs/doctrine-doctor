@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -26,6 +24,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use ReflectionClass;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects bad practices in Timestampable implementations.
@@ -410,8 +409,8 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function createTimezoneInconsistencyIssue(int $datetimeCount, int $datetimetzCount, array $allFields): IssueInterface
     {
         // Filter to show samples of each type
-        $datetimeFields = array_filter($allFields, fn($f) => in_array($f['type'], ['datetime', 'datetime_immutable'], true));
-        $datetimetzFields = array_filter($allFields, fn($f) => in_array($f['type'], ['datetimetz', 'datetimetz_immutable'], true));
+        $datetimeFields = array_filter($allFields, fn (array $field): bool => in_array($field['type'], ['datetime', 'datetime_immutable'], true));
+        $datetimetzFields = array_filter($allFields, fn (array $field): bool => in_array($field['type'], ['datetimetz', 'datetimetz_immutable'], true));
 
         $datetimeSamples = array_slice(array_values($datetimeFields), 0, 3);
         $datetimetzSamples = array_slice(array_values($datetimetzFields), 0, 3);

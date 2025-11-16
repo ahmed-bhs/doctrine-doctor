@@ -15,6 +15,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\CharsetAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -119,7 +120,7 @@ final class PostgreSQLCharsetAnalyzer implements CharsetAnalyzerInterface
         return new DatabaseConfigIssue([
             'title'       => sprintf('Database using problematic encoding: %s', $encoding),
             'description' => $description,
-            'severity'    => 'SQL_ASCII' === $encoding ? 'critical' : 'warning',
+            'severity'    => 'SQL_ASCII' === $encoding ? Severity::critical() : Severity::warning(),
             'suggestion'  => $this->suggestionFactory->createConfiguration(
                 setting: 'Database encoding',
                 currentValue: $encoding,

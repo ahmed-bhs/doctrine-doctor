@@ -46,6 +46,7 @@ final class SetMaxResultsWithCollectionJoinAnalyzerIntegrationTest extends Datab
         $this->setMaxResultsWithCollectionJoinAnalyzer = new SetMaxResultsWithCollectionJoinAnalyzer(
             new IssueFactory(),
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            new \AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor(),
         );
     }
 

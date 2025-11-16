@@ -153,7 +153,7 @@ class <?php echo $e($entities[1]); ?>
 
 // Now queries are batched at each level:
 // 100 <?php echo lcfirst($entities[0]); ?>s → ~10 queries for level 1, ~10 for level 2
-// Total: ~<?php echo (int)ceil($queryCount / 10) * $depth; ?> queries instead of <?php echo $queryCount * $depth; ?>!</code></pre>
+// Total: ~<?php echo (int) ceil($queryCount / 10) * $depth; ?> queries instead of <?php echo $queryCount * $depth; ?>!</code></pre>
     </div>
 
     <h4>Solution 4: Use DTOs for Deep Chains</h4>
@@ -237,7 +237,7 @@ LEFT JOIN <?php echo strtolower($entities[$i][0]); ?>.<?php echo lcfirst($entity
         ℹ️ <strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Current:</strong> <?php echo $queryCount * $depth; ?> queries (<?php echo $depth; ?> levels × <?php echo $queryCount; ?> per level)</li>
-            <li><strong>With solution:</strong> 1 query (multi-level JOIN) or ~<?php echo (int)ceil($queryCount / 10) * $depth; ?> queries (batch)</li>
+            <li><strong>With solution:</strong> 1 query (multi-level JOIN) or ~<?php echo (int) ceil($queryCount / 10) * $depth; ?> queries (batch)</li>
             <li><strong>Time saved:</strong> ~<?php echo number_format((($queryCount * $depth) - 1) * 2, 0); ?>ms (assuming 2ms/query)</li>
             <li><strong>Scalability:</strong> O(1) vs O(n×m) where n=entities, m=depth</li>
         </ul>

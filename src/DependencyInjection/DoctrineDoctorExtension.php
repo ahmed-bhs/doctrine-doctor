@@ -51,6 +51,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+use Webmozart\Assert\Assert;
 
 class DoctrineDoctorExtension extends Extension implements PrependExtensionInterface
 {
@@ -202,7 +203,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
             'blameable_trait' => BlameableTraitAnalyzer::class,
         ];
 
-        assert(is_iterable($analyzerMap), '$analyzerMap must be iterable');
+        Assert::isIterable($analyzerMap, '$analyzerMap must be iterable');
 
         foreach ($analyzerMap as $configKey => $analyzerClass) {
             if (isset($config['analyzers'][$configKey])

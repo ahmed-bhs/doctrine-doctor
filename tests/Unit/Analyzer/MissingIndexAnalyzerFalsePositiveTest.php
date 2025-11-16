@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\Config\MissingIndexAnalyzerConfig;
-use AhmedBhs\DoctrineDoctor\Analyzer\MissingIndexAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzerConfig;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
@@ -76,7 +76,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );
@@ -99,7 +99,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         self::assertCount(
             0,
             $issues,
-            'Should not suggest index when one is already effectively used (type=ref with key)'
+            'Should not suggest index when one is already effectively used (type=ref with key)',
         );
     }
 
@@ -148,7 +148,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );
@@ -169,7 +169,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         self::assertCount(
             0,
             $issues,
-            'Should ignore filesort when result set is small (5 rows <= 10 threshold)'
+            'Should ignore filesort when result set is small (5 rows <= 10 threshold)',
         );
     }
 
@@ -208,7 +208,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );
@@ -228,7 +228,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         self::assertCount(
             0,
             $issues,
-            'Should not suggest index when minRowsScanned threshold > EXPLAIN row estimate'
+            'Should not suggest index when minRowsScanned threshold > EXPLAIN row estimate',
         );
     }
 
@@ -265,7 +265,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );
@@ -285,7 +285,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         self::assertGreaterThanOrEqual(
             1,
             count($issues),
-            'Should suggest index for full table scan with rows above threshold (2000 >= 1000)'
+            'Should suggest index for full table scan with rows above threshold (2000 >= 1000)',
         );
 
         if (count($issues) > 0) {
@@ -332,7 +332,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );
@@ -389,7 +389,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );
@@ -409,7 +409,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         self::assertCount(
             0,
             $issues,
-            'Should use custom maxRowsForAcceptableFilesort (25 <= 30)'
+            'Should use custom maxRowsForAcceptableFilesort (25 <= 30)',
         );
     }
 
@@ -456,7 +456,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );
@@ -476,7 +476,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         self::assertCount(
             0,
             $issues,
-            'Should not suggest index when MySQL uses eq_ref (optimal index usage)'
+            'Should not suggest index when MySQL uses eq_ref (optimal index usage)',
         );
     }
 
@@ -511,7 +511,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );
@@ -531,7 +531,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         self::assertCount(
             0,
             $issues,
-            'Should not suggest index when MySQL uses const (primary key access)'
+            'Should not suggest index when MySQL uses const (primary key access)',
         );
     }
 
@@ -569,7 +569,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions'),
+            suggestionFactory: new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
             connection: $connection,
             missingIndexAnalyzerConfig: $config,
         );
@@ -589,7 +589,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         self::assertCount(
             0,
             $issues,
-            'Should not suggest index when MySQL uses range (index for range scan)'
+            'Should not suggest index when MySQL uses range (index for range scan)',
         );
     }
 }

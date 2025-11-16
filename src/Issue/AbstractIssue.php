@@ -193,7 +193,7 @@ abstract class AbstractIssue implements IssueInterface
             'suggestion'        => $this->suggestion instanceof SuggestionInterface ? $this->suggestion->toArray() : null,
             'backtrace'         => $this->backtrace,
             'queries'           => $this->queries,
-            'duplicatedIssues'  => array_map(fn(IssueInterface $issue) => [
+            'duplicatedIssues'  => array_map(fn (IssueInterface $issue) => [
                 'title'       => $issue->getTitle(),
                 'type'        => $issue->getType(),
                 'severity'    => $issue->getSeverity()->value,

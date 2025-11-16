@@ -27,6 +27,7 @@ use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\Stopwatch\StopwatchEvent;
+use Webmozart\Assert\Assert;
 
 /**
  * Optimized DataCollector for Doctrine Doctor with Late Collection.
@@ -127,11 +128,11 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         // FAST: Just copy raw query data (no processing)
         $queries = $this->doctrineDataCollector->getQueries();
 
-        assert(is_iterable($queries), '$queries must be iterable');
+        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             if (is_array($query)) {
-                assert(is_iterable($query), '$query must be iterable');
+                Assert::isIterable($query, '$query must be iterable');
 
                 foreach ($query as $connectionQuery) {
                     $this->data['timeline_queries'][] = $connectionQuery;
@@ -376,7 +377,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $queries = $this->data['timeline_queries'] ?? [];
 
         //  Generator: no memory copies
-        assert(is_iterable($queries), '$queries must be iterable');
+        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             yield $query;
@@ -418,7 +419,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $grouped = [];
 
         foreach ($this->getTimelineQueries() as $query) {
-            assert(is_array($query), 'Query must be an array');
+            Assert::isArray($query, 'Query must be an array');
 
             $rawSql = $query['sql'] ?? '';
             $sql = is_string($rawSql) ? $rawSql : '';
@@ -461,7 +462,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
         // Sort by total time descending (slowest total time first)
         $result = array_values($grouped);
-        usort($result, fn ($a, $b) => $b['totalTimeMs'] <=> $a['totalTimeMs']);
+        usort($result, fn (array $queryA, array $queryB): int => $queryB['totalTimeMs'] <=> $queryA['totalTimeMs']);
 
         return $result;
     }
@@ -567,7 +568,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         //  OPTIMIZATION: Factory callable to create a fresh generator for each analyzer
         // Each analyzer gets its OWN generator - never reused!
         $createQueryDTOsGenerator = function () use ($queries, $dataCollectorLogger) {
-            assert(is_iterable($queries), '$queries must be iterable');
+            Assert::isIterable($queries, '$queries must be iterable');
 
             foreach ($queries as $query) {
                 try {
@@ -584,7 +585,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         //  OPTIMIZATION: Generator for issues - no array_merge, streams results
         // Each analyzer gets a FRESH QueryDataCollection (not shared!)
         $allIssuesGenerator = function () use ($createQueryDTOsGenerator, $analyzers, $dataCollectorLogger) {
-            assert(is_iterable($analyzers), '$analyzers must be iterable');
+            Assert::isIterable($analyzers, '$analyzers must be iterable');
 
             foreach ($analyzers as $analyzer) {
                 $analyzerName = $analyzer::class;
@@ -602,7 +603,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                     $issueCount = 0;
 
                     // Yield each issue individually
-                    assert(is_iterable($issueCollection), '$issueCollection must be iterable');
+                    Assert::isIterable($issueCollection, '$issueCollection must be iterable');
 
                     foreach ($issueCollection as $issue) {
                         ++$issueCount;

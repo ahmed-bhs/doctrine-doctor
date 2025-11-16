@@ -54,22 +54,20 @@ class EmbeddableWithoutValueObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\A
         /**
          * @readonly
          */
-        private IssueFactoryInterface  $issueFactory,
+        private IssueFactoryInterface $issueFactory,
         /**
          * @readonly
          */
-        private SuggestionFactory      $suggestionFactory,
-    )
-    {
+        private SuggestionFactory $suggestionFactory,
+    ) {
     }
 
-    public function analyze(QueryDataCollection $queryDataCollection)
-    : IssueCollection
+    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
         return IssueCollection::fromGenerator(
-        /**
-         * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
-         */
+            /**
+             * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
+             */
             function () {
                 $classMetadataFactory = $this->entityManager->getMetadataFactory();
 
@@ -95,8 +93,7 @@ class EmbeddableWithoutValueObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\A
      * @param ClassMetadata<object> $classMetadata
      * @return array<\AhmedBhs\DoctrineDoctor\Issue\IssueInterface>
      */
-    private function analyzeEmbeddable(ClassMetadata $classMetadata)
-    : array
+    private function analyzeEmbeddable(ClassMetadata $classMetadata): array
     {
         $issues    = [];
         $className = $classMetadata->getName();
@@ -143,8 +140,7 @@ class EmbeddableWithoutValueObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\A
         return $issues;
     }
 
-    private function getMethodSource(\ReflectionMethod $reflectionMethod)
-    : string
+    private function getMethodSource(\ReflectionMethod $reflectionMethod): string
     {
         $filename = $reflectionMethod->getFileName();
 
@@ -175,10 +171,8 @@ class EmbeddableWithoutValueObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\A
      */
     private function createMissingMethodsIssue(
         ClassMetadata $classMetadata,
-        array         $missingMethods,
-    )
-    : IssueInterface
-    {
+        array $missingMethods,
+    ): IssueInterface {
         $className        = $classMetadata->getName();
         $lastBackslashPos = strrpos($className, '\\');
         $shortClassName   = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
@@ -211,10 +205,8 @@ class EmbeddableWithoutValueObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\A
      */
     private function createValueObjectSuggestion(
         string $className,
-        array  $missingMethods,
-    )
-    : SuggestionInterface
-    {
+        array $missingMethods,
+    ): SuggestionInterface {
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Integrity/embeddable_value_object_methods',
             context: [

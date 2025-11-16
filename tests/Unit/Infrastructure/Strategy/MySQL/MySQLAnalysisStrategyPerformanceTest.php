@@ -35,7 +35,7 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
 
         // Mock: query_cache_type = ON
         $result = $this->createMock(Result::class);
-        $connection->expects($this->any())
+        $connection->expects(self::any())
             ->method('executeQuery')
             ->willReturnCallback(function ($sql) use ($result) {
                 if (str_contains($sql, 'query_cache_type')) {
@@ -44,7 +44,7 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
                 return $this->createDefaultResult();
             });
 
-        $detector->expects($this->any())
+        $detector->expects(self::any())
             ->method('fetchAssociative')
             ->willReturnCallback(function ($res) use ($result) {
                 if ($res === $result) {
@@ -56,14 +56,16 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new MySQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
 
         // Should detect query cache enabled
-        $queryCacheIssues = array_filter($issues, fn($issue) =>
-            str_contains($issue->getTitle(), 'Query Cache')
+        $queryCacheIssues = array_filter(
+            $issues,
+            fn ($issue) =>
+            str_contains($issue->getTitle(), 'Query Cache'),
         );
 
         self::assertCount(1, $queryCacheIssues, 'Should detect query cache enabled');
@@ -88,14 +90,16 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new MySQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
 
         // Should NOT detect query cache issue
-        $queryCacheIssues = array_filter($issues, fn($issue) =>
-            str_contains($issue->getTitle(), 'Query Cache')
+        $queryCacheIssues = array_filter(
+            $issues,
+            fn ($issue) =>
+            str_contains($issue->getTitle(), 'Query Cache'),
         );
 
         self::assertCount(0, $queryCacheIssues, 'Should not detect query cache when OFF');
@@ -117,13 +121,15 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new MySQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
 
-        $flushLogIssues = array_filter($issues, fn($issue) =>
-            str_contains($issue->getTitle(), 'InnoDB full ACID')
+        $flushLogIssues = array_filter(
+            $issues,
+            fn ($issue) =>
+            str_contains($issue->getTitle(), 'InnoDB full ACID'),
         );
 
         self::assertCount(1, $flushLogIssues, 'Should detect innodb_flush_log_at_trx_commit = 1');
@@ -147,13 +153,15 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new MySQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
 
-        $binlogIssues = array_filter($issues, fn($issue) =>
-            str_contains($issue->getTitle(), 'Binary logging')
+        $binlogIssues = array_filter(
+            $issues,
+            fn ($issue) =>
+            str_contains($issue->getTitle(), 'Binary logging'),
         );
 
         self::assertCount(1, $binlogIssues, 'Should detect binary logging enabled');
@@ -177,13 +185,15 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new MySQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
 
-        $bufferPoolIssues = array_filter($issues, fn($issue) =>
-            str_contains($issue->getTitle(), 'buffer pool')
+        $bufferPoolIssues = array_filter(
+            $issues,
+            fn ($issue) =>
+            str_contains($issue->getTitle(), 'buffer pool'),
         );
 
         self::assertCount(1, $bufferPoolIssues, 'Should detect buffer pool < 128MB');
@@ -207,13 +217,15 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new MySQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
 
-        $bufferPoolIssues = array_filter($issues, fn($issue) =>
-            str_contains($issue->getTitle(), 'buffer pool')
+        $bufferPoolIssues = array_filter(
+            $issues,
+            fn ($issue) =>
+            str_contains($issue->getTitle(), 'buffer pool'),
         );
 
         self::assertCount(1, $bufferPoolIssues, 'Should detect buffer pool < 128MB');
@@ -237,7 +249,7 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new MySQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
@@ -247,14 +259,14 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
 
     private function mockShowVariables(Connection $connection, DatabasePlatformDetector $detector, array $values): void
     {
-        $connection->expects($this->any())
+        $connection->expects(self::any())
             ->method('executeQuery')
             ->willReturnCallback(function ($sql) use ($values) {
                 $result = $this->createMock(Result::class);
                 return $result;
             });
 
-        $detector->expects($this->any())
+        $detector->expects(self::any())
             ->method('fetchAssociative')
             ->willReturnCallback(function () use ($values) {
                 static $callCount = 0;

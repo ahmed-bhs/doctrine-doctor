@@ -912,7 +912,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         for ($i = 1; $i <= 10; ++$i) {
             $queries->addQuery(
                 "INSERT INTO orders (id, status, total, created_at, user_id, customer_id) VALUES ({$i}, 'pending', 100.0, '2025-01-01', 1, 1)",
-                5.0
+                5.0,
             );
         }
 
@@ -932,7 +932,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         for ($i = 1; $i <= 10; ++$i) {
             $queries->addQuery(
                 "UPDATE orders SET status = 'processed' WHERE id = {$i}",
-                5.0
+                5.0,
             );
         }
 
@@ -952,7 +952,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         for ($i = 1; $i <= 10; ++$i) {
             $queries->addQuery(
                 "DELETE FROM orders WHERE id = {$i}",
-                5.0
+                5.0,
             );
         }
 

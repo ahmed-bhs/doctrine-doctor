@@ -40,14 +40,14 @@ use PhpParser\NodeVisitorAbstract;
 final class InsecureRandomVisitor extends NodeVisitorAbstract
 {
     /**
-     * @var array<array{type: string, function: string, line: int}>
-     */
-    private array $insecureCalls = [];
-
-    /**
      * Weak hash functions that shouldn't be used with weak randomness.
      */
     private const WEAK_HASH_FUNCTIONS = ['md5', 'sha1'];
+
+    /**
+     * @var array<array{type: string, function: string, line: int}>
+     */
+    private array $insecureCalls = [];
 
     /**
      * @param array<string> $insecureFunctions Functions to detect (rand, mt_rand, etc.)
@@ -78,6 +78,16 @@ final class InsecureRandomVisitor extends NodeVisitorAbstract
         }
 
         return null;
+    }
+
+    /**
+     * Get all detected insecure calls.
+     *
+     * @return array<array{type: string, function: string, line: int}>
+     */
+    public function getInsecureCalls(): array
+    {
+        return $this->insecureCalls;
     }
 
     /**
@@ -142,15 +152,5 @@ final class InsecureRandomVisitor extends NodeVisitorAbstract
         }
 
         return null;
-    }
-
-    /**
-     * Get all detected insecure calls.
-     *
-     * @return array<array{type: string, function: string, line: int}>
-     */
-    public function getInsecureCalls(): array
-    {
-        return $this->insecureCalls;
     }
 }

@@ -71,7 +71,7 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         $queries = $queryDataCollection->toArray();
 
         // Sort by execution time to analyze temporal sequences
-        usort($queries, function (QueryData $a, QueryData $b) {
+        usort($queries, function (QueryData $queryA, QueryData $queryB): int {
             return 0; // If no timing available, keep original order
         });
 
@@ -160,8 +160,8 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         if (\count($tablesArray) >= 2) {
             // Build chain from all repeated tables
             // Sort by query count (ascending) to get the likely execution order
-            usort($tablesArray, function ($a, $b) use ($repeatedTables) {
-                return \count($repeatedTables[$a]) <=> \count($repeatedTables[$b]);
+            usort($tablesArray, function (string $tableA, string $tableB) use ($repeatedTables): int {
+                return \count($repeatedTables[$tableA]) <=> \count($repeatedTables[$tableB]);
             });
 
             // Reverse to get parent -> child order (more queries first)

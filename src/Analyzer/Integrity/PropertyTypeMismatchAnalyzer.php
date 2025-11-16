@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -24,6 +22,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use ReflectionClass;
 use ReflectionEnum;
 use ReflectionNamedType;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects type mismatches between entity properties and their database values.

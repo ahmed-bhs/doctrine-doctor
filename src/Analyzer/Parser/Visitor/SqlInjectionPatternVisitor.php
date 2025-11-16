@@ -47,11 +47,6 @@ use PhpParser\NodeVisitorAbstract;
  */
 final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
 {
-    private bool $hasConcatenation = false;
-    private bool $hasInterpolation = false;
-    private bool $hasMissingParameters = false;
-    private bool $hasSprintfWithUserInput = false;
-
     /** @var array<string> SQL keywords to detect SQL queries */
     private const SQL_KEYWORDS = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'FROM', 'WHERE'];
 
@@ -61,10 +56,18 @@ final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
     /** @var array<string> User input sources */
     private const USER_INPUT_SOURCES = ['_GET', '_POST', '_REQUEST', '_COOKIE', '_SERVER'];
 
+    private bool $hasConcatenation = false;
+
+    private bool $hasInterpolation = false;
+
+    private bool $hasMissingParameters = false;
+
+    private bool $hasSprintfWithUserInput = false;
+
     /** @var array<string> Variables that might contain SQL (built with concatenation/interpolation) */
     private array $sqlVariables = [];
 
-    /** @var array<string> Variables that contain user input ($_GET, $_POST, etc.) */
+    /** @var array<string> Variables that contain user input ($_GET,, etc.) */
     private array $userInputVariables = [];
 
     /**
@@ -122,6 +125,26 @@ final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
         }
 
         return null;
+    }
+
+    public function hasConcatenationPattern(): bool
+    {
+        return $this->hasConcatenation;
+    }
+
+    public function hasInterpolationPattern(): bool
+    {
+        return $this->hasInterpolation;
+    }
+
+    public function hasMissingParametersPattern(): bool
+    {
+        return $this->hasMissingParameters;
+    }
+
+    public function hasSprintfPattern(): bool
+    {
+        return $this->hasSprintfWithUserInput;
     }
 
     /**
@@ -345,7 +368,7 @@ final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
         }
 
         // Check if called with only one argument (missing parameters)
-        if (count($node->args) !== 1) {
+        if (1 !== count($node->args)) {
             return false;
         }
 
@@ -443,25 +466,5 @@ final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
         }
 
         return false;
-    }
-
-    public function hasConcatenationPattern(): bool
-    {
-        return $this->hasConcatenation;
-    }
-
-    public function hasInterpolationPattern(): bool
-    {
-        return $this->hasInterpolation;
-    }
-
-    public function hasMissingParametersPattern(): bool
-    {
-        return $this->hasMissingParameters;
-    }
-
-    public function hasSprintfPattern(): bool
-    {
-        return $this->hasSprintfWithUserInput;
     }
 }

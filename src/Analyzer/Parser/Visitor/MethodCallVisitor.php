@@ -70,6 +70,11 @@ final class MethodCallVisitor extends NodeVisitorAbstract
         return null;
     }
 
+    public function hasMethodCall(): bool
+    {
+        return $this->hasMethodCall;
+    }
+
     /**
      * Check if method name matches the pattern.
      *
@@ -95,10 +100,5 @@ final class MethodCallVisitor extends NodeVisitorAbstract
         }
 
         return false;
-    }
-
-    public function hasMethodCall(): bool
-    {
-        return $this->hasMethodCall;
     }
 }

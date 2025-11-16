@@ -24,9 +24,6 @@ use PhpMyAdmin\SqlParser\Statements\SelectStatement;
  */
 final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
 {
-    /**
-     * {@inheritDoc}
-     */
     public function hasOrderBy(string $sql): bool
     {
         $parser = new Parser($sql);
@@ -39,9 +36,6 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         return null !== $statement->order && [] !== $statement->order;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasLimit(string $sql): bool
     {
         $parser = new Parser($sql);
@@ -54,9 +48,6 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         return null !== $statement->limit;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasOffset(string $sql): bool
     {
         $parser = new Parser($sql);
@@ -79,9 +70,6 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         return 1 === preg_match('/\bOFFSET\b/i', $sql);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasSubquery(string $sql): bool
     {
         $parser = new Parser($sql);
@@ -131,9 +119,6 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasGroupBy(string $sql): bool
     {
         $parser = new Parser($sql);
@@ -146,9 +131,6 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         return null !== $statement->group && [] !== $statement->group;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasLeadingWildcardLike(string $sql): bool
     {
         // Parser doesn't expose LIKE parameters clearly, use lightweight regex
@@ -156,9 +138,6 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         return 1 === preg_match('/LIKE\s+[\'"]%/i', $sql);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasDistinct(string $sql): bool
     {
         $parser = new Parser($sql);
@@ -199,9 +178,6 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getLimitValue(string $sql): ?int
     {
         $parser = new Parser($sql);

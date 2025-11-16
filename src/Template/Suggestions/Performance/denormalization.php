@@ -46,7 +46,7 @@ ob_start();
     <div class="query-item">
         <pre><code class="language-php">// BAD: Even with EXTRA_LAZY, <?php echo $queryCount; ?> COUNT queries
 $entities = $repository->findAll();
-assert(is_iterable($entities), '$entities must be iterable');
+Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
     echo $entity->get<?php echo ucfirst($relation); ?>()->count(); // COUNT query!

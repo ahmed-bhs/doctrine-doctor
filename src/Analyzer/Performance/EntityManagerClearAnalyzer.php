@@ -12,14 +12,13 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use Webmozart\Assert\Assert;
 
 class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {

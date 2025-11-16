@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer\Helper;
@@ -18,6 +25,7 @@ use PHPUnit\Framework\TestCase;
 final class CompositionRelationshipDetectorTest extends TestCase
 {
     private CompositionRelationshipDetector $detector;
+
     private EntityManagerInterface $entityManager;
 
     protected function setUp(): void
@@ -30,7 +38,7 @@ final class CompositionRelationshipDetectorTest extends TestCase
     // OneToOne Tests
     // ========================================================================
 
-    public function testDetectsOneToOneCompositionWithOrphanRemoval(): void
+    public function test_detects_one_to_one_composition_with_orphan_removal(): void
     {
         // Given: A OneToOne mapping with orphanRemoval=true
         $mapping = [
@@ -43,10 +51,10 @@ final class CompositionRelationshipDetectorTest extends TestCase
         $result = $this->detector->isOneToOneComposition($mapping);
 
         // Then: It should be detected as composition
-        $this->assertTrue($result, 'OneToOne with orphanRemoval should be composition');
+        self::assertTrue($result, 'OneToOne with orphanRemoval should be composition');
     }
 
-    public function testDetectsOneToOneCompositionWithCascadeRemove(): void
+    public function test_detects_one_to_one_composition_with_cascade_remove(): void
     {
         // Given: A OneToOne mapping with cascade remove
         $mapping = [
@@ -59,10 +67,10 @@ final class CompositionRelationshipDetectorTest extends TestCase
         $result = $this->detector->isOneToOneComposition($mapping);
 
         // Then: It should be detected as composition
-        $this->assertTrue($result, 'OneToOne with cascade remove should be composition');
+        self::assertTrue($result, 'OneToOne with cascade remove should be composition');
     }
 
-    public function testRejectsOneToOneWithoutCompositionIndicators(): void
+    public function test_rejects_one_to_one_without_composition_indicators(): void
     {
         // Given: A OneToOne mapping without composition indicators
         $mapping = [
@@ -74,14 +82,14 @@ final class CompositionRelationshipDetectorTest extends TestCase
         $result = $this->detector->isOneToOneComposition($mapping);
 
         // Then: It should NOT be detected as composition
-        $this->assertFalse($result, 'OneToOne without indicators should not be composition');
+        self::assertFalse($result, 'OneToOne without indicators should not be composition');
     }
 
     // ========================================================================
     // OneToMany Tests
     // ========================================================================
 
-    public function testDetectsOneToManyCompositionWithOrphanRemoval(): void
+    public function test_detects_one_to_many_composition_with_orphan_removal(): void
     {
         // Given: A OneToMany mapping with orphanRemoval
         $metadata = $this->createMock(ClassMetadata::class);
@@ -95,10 +103,10 @@ final class CompositionRelationshipDetectorTest extends TestCase
         $result = $this->detector->isOneToManyComposition($metadata, $mapping);
 
         // Then: It should be detected as composition
-        $this->assertTrue($result, 'OneToMany with orphanRemoval should be composition');
+        self::assertTrue($result, 'OneToMany with orphanRemoval should be composition');
     }
 
-    public function testDetectsOneToManyCompositionByChildName(): void
+    public function test_detects_one_to_many_composition_by_child_name(): void
     {
         // Given: A OneToMany with cascade remove and suggestive child name
         $metadata = $this->createMock(ClassMetadata::class);
@@ -114,10 +122,10 @@ final class CompositionRelationshipDetectorTest extends TestCase
         $result = $this->detector->isOneToManyComposition($metadata, $mapping);
 
         // Then: It should be detected as composition
-        $this->assertTrue($result, 'OneToMany with suggestive child name should be composition');
+        self::assertTrue($result, 'OneToMany with suggestive child name should be composition');
     }
 
-    public function testRejectsOneToManyWithoutCascadeRemove(): void
+    public function test_rejects_one_to_many_without_cascade_remove(): void
     {
         // Given: A OneToMany without cascade remove
         $metadata = $this->createMock(ClassMetadata::class);
@@ -130,14 +138,14 @@ final class CompositionRelationshipDetectorTest extends TestCase
         $result = $this->detector->isOneToManyComposition($metadata, $mapping);
 
         // Then: It should NOT be detected as composition
-        $this->assertFalse($result, 'OneToMany without cascade remove should not be composition');
+        self::assertFalse($result, 'OneToMany without cascade remove should not be composition');
     }
 
     // ========================================================================
     // ManyToOne Tests (Edge Cases)
     // ========================================================================
 
-    public function testDetectsManyToOneWithUniqueConstraintAsComposition(): void
+    public function test_detects_many_to_one_with_unique_constraint_as_composition(): void
     {
         // Given: A ManyToOne with unique constraint on FK (effectively 1:1)
         $metadata = new ClassMetadata('PaymentMethod');
@@ -159,7 +167,7 @@ final class CompositionRelationshipDetectorTest extends TestCase
         $result = $this->detector->isManyToOneActuallyOneToOneComposition($metadata, $association);
 
         // Then: It should be detected as composition
-        $this->assertTrue($result, 'ManyToOne with unique FK should be 1:1 composition');
+        self::assertTrue($result, 'ManyToOne with unique FK should be 1:1 composition');
     }
 
     // ========================================================================
@@ -169,7 +177,7 @@ final class CompositionRelationshipDetectorTest extends TestCase
     /**
      * @dataProvider compositionChildNameProvider
      */
-    public function testDetectsCompositionChildNames(string $entityName, bool $expectedResult): void
+    public function test_detects_composition_child_names(string $entityName, bool $expectedResult): void
     {
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata->method('getName')->willReturn('Parent');
@@ -182,10 +190,10 @@ final class CompositionRelationshipDetectorTest extends TestCase
 
         $result = $this->detector->isOneToManyComposition($metadata, $mapping);
 
-        $this->assertSame(
+        self::assertSame(
             $expectedResult,
             $result,
-            sprintf('Entity "%s" should %s be detected as composition', $entityName, $expectedResult ? '' : 'NOT')
+            sprintf('Entity "%s" should %s be detected as composition', $entityName, $expectedResult ? '' : 'NOT'),
         );
     }
 

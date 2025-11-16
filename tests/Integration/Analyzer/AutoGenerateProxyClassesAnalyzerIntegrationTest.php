@@ -83,12 +83,12 @@ final class AutoGenerateProxyClassesAnalyzerIntegrationTest extends TestCase
     }
 
     #[Test]
-    public function it_does_not_warn_in_development_environment(): void
+    public function it_warns_in_all_environments_when_auto_generate_enabled(): void
     {
         $twigTemplateRenderer = $this->createTwigRenderer();
         $suggestionFactory = new SuggestionFactory($twigTemplateRenderer);
 
-        // Test with development environment (should not warn)
+        // Test with development environment - analyzer now triggers in ALL environments
         $autoGenerateProxyClassesAnalyzer = new AutoGenerateProxyClassesAnalyzer(
             $this->entityManager,
             $suggestionFactory,
@@ -97,8 +97,8 @@ final class AutoGenerateProxyClassesAnalyzerIntegrationTest extends TestCase
 
         $issueCollection = $autoGenerateProxyClassesAnalyzer->analyze(QueryDataCollection::empty());
 
-        // Should NOT detect issues in development
-        self::assertCount(0, $issueCollection);
+        // Should detect issues in ALL environments (including dev)
+        self::assertGreaterThanOrEqual(1, count($issueCollection));
     }
 
     #[Test]
@@ -179,7 +179,7 @@ final class AutoGenerateProxyClassesAnalyzerIntegrationTest extends TestCase
 
         $entityManager = new EntityManager($connection, $configuration);
 
-        // Test with dev environment - should NOT warn even though auto_generate is true
+        // Test with dev environment - analyzer now warns in ALL environments
         $autoGenerateProxyClassesAnalyzer = new AutoGenerateProxyClassesAnalyzer(
             $entityManager,
             $suggestionFactory,
@@ -188,8 +188,8 @@ final class AutoGenerateProxyClassesAnalyzerIntegrationTest extends TestCase
 
         $issueCollection = $autoGenerateProxyClassesAnalyzer->analyze(QueryDataCollection::empty());
 
-        // Should NOT detect issues in development
-        self::assertCount(0, $issueCollection, 'Analyzer should not warn about auto_generate in dev environment');
+        // Should detect issues in ALL environments (including dev)
+        self::assertGreaterThanOrEqual(1, count($issueCollection), 'Analyzer should warn about auto_generate in all environments');
     }
 
     #[Test]

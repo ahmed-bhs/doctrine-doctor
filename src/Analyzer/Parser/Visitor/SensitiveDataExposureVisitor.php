@@ -40,12 +40,12 @@ use PhpParser\NodeVisitorAbstract;
  */
 final class SensitiveDataExposureVisitor extends NodeVisitorAbstract
 {
-    private bool $exposesEntireObject = false;
-
     /**
      * Serialization functions that expose entire object.
      */
     private const SERIALIZATION_FUNCTIONS = ['json_encode', 'serialize'];
+
+    private bool $exposesEntireObject = false;
 
     public function enterNode(Node $node): ?Node
     {
@@ -55,6 +55,14 @@ final class SensitiveDataExposureVisitor extends NodeVisitorAbstract
         }
 
         return null;
+    }
+
+    /**
+     * Check if entire object is exposed through serialization.
+     */
+    public function exposesEntireObject(): bool
+    {
+        return $this->exposesEntireObject;
     }
 
     /**
@@ -92,13 +100,5 @@ final class SensitiveDataExposureVisitor extends NodeVisitorAbstract
         }
 
         return null;
-    }
-
-    /**
-     * Check if entire object is exposed through serialization.
-     */
-    public function exposesEntireObject(): bool
-    {
-        return $this->exposesEntireObject;
     }
 }

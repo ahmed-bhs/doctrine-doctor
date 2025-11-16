@@ -15,6 +15,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionContent;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
+use Webmozart\Assert\Assert;
 
 /**
  * A suggestion with structured content (text, code blocks, links, etc.).
@@ -79,7 +80,7 @@ final class StructuredSuggestion implements SuggestionInterface
         foreach ($this->suggestionContent->getBlocks() as $suggestionContentBlock) {
             if ('text' === $suggestionContentBlock->getType()) {
                 $content = $suggestionContentBlock->getContent();
-                assert(is_string($content), 'Text block content must be string');
+                Assert::string($content, 'Text block content must be string');
                 return $content;
             }
         }

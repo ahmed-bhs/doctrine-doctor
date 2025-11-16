@@ -43,7 +43,7 @@ final class DescriptionHighlighter
 
         $description = $template;
 
-        assert(is_iterable($values), '$values must be iterable');
+        Assert::isIterable($values, '$values must be iterable');
 
         foreach ($values as $key => $value) {
             $highlighted = self::highlightValue($value);

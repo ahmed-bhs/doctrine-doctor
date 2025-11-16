@@ -60,7 +60,7 @@ class EntityMetadataProvider
 
         // Filter vendor entities and cache result
         $this->cachedFilteredMetadata = array_values(
-            array_filter($allMetadata, fn ($metadata) => !$this->isVendorEntity($metadata))
+            array_filter($allMetadata, fn ($metadata) => !$this->isVendorEntity($metadata)),
         );
 
         return $this->cachedFilteredMetadata;
@@ -72,6 +72,14 @@ class EntityMetadataProvider
     public function getMetadataFor(string $className): ClassMetadata
     {
         return $this->entityManager->getMetadataFactory()->getMetadataFor($className);
+    }
+
+    /**
+     * Clear cache - useful for tests.
+     */
+    public function clearCache(): void
+    {
+        $this->cachedFilteredMetadata = null;
     }
 
     /**
@@ -102,13 +110,5 @@ class EntityMetadataProvider
             // If we can't determine, include it (safe default)
             return false;
         }
-    }
-
-    /**
-     * Clear cache - useful for tests.
-     */
-    public function clearCache(): void
-    {
-        $this->cachedFilteredMetadata = null;
     }
 }

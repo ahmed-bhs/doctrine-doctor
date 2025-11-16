@@ -15,6 +15,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\ConnectionPoolingAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -49,7 +50,7 @@ final class MySQLConnectionPoolingAnalyzer implements ConnectionPoolingAnalyzerI
                     $maxConnections,
                     self::RECOMMENDED_MIN_CONNECTIONS,
                 ),
-                'severity'   => 'warning',
+                'severity' => Severity::warning(),
                 'suggestion' => $this->suggestionFactory->createConfiguration(
                     setting: 'max_connections',
                     currentValue: (string) $maxConnections,
@@ -75,7 +76,7 @@ final class MySQLConnectionPoolingAnalyzer implements ConnectionPoolingAnalyzerI
                     $maxUsedConnections,
                     $maxConnections,
                 ),
-                'severity'   => $utilizationPercent > 90 ? 'critical' : 'warning',
+                'severity'   => $utilizationPercent > 90 ? Severity::critical() : Severity::warning(),
                 'suggestion' => $this->suggestionFactory->createConfiguration(
                     setting: 'max_connections',
                     currentValue: (string) $maxConnections,

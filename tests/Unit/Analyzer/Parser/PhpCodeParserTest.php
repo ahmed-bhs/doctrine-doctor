@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer\Parser;
@@ -28,7 +35,7 @@ final class PhpCodeParserTest extends TestCase
     // Direct Collection Initialization Tests
     // ========================================================================
 
-    public function testDetectsArrayCollectionInitialization(): void
+    public function test_detects_array_collection_initialization(): void
     {
         // Given: A method that initializes with ArrayCollection
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithArrayCollection');
@@ -37,10 +44,10 @@ final class PhpCodeParserTest extends TestCase
         $result = $this->parser->hasCollectionInitialization($method, 'items');
 
         // Then: It should be detected
-        $this->assertTrue($result, 'Should detect ArrayCollection initialization');
+        self::assertTrue($result, 'Should detect ArrayCollection initialization');
     }
 
-    public function testDetectsArrayInitialization(): void
+    public function test_detects_array_initialization(): void
     {
         // Given: A method that initializes with []
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithArray');
@@ -49,10 +56,10 @@ final class PhpCodeParserTest extends TestCase
         $result = $this->parser->hasCollectionInitialization($method, 'items');
 
         // Then: It should be detected
-        $this->assertTrue($result, 'Should detect array [] initialization');
+        self::assertTrue($result, 'Should detect array [] initialization');
     }
 
-    public function testDetectsFQNArrayCollection(): void
+    public function test_detects_fqn_array_collection(): void
     {
         // Given: A method with fully qualified class name
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithFQN');
@@ -61,14 +68,14 @@ final class PhpCodeParserTest extends TestCase
         $result = $this->parser->hasCollectionInitialization($method, 'items');
 
         // Then: It should be detected
-        $this->assertTrue($result, 'Should detect FQN ArrayCollection initialization');
+        self::assertTrue($result, 'Should detect FQN ArrayCollection initialization');
     }
 
     // ========================================================================
     // Method Call Tests
     // ========================================================================
 
-    public function testDetectsInitializationMethodCall(): void
+    public function test_detects_initialization_method_call(): void
     {
         // Given: A method that calls initializeItemsCollection()
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithMethodCall');
@@ -77,10 +84,10 @@ final class PhpCodeParserTest extends TestCase
         $result = $this->parser->hasMethodCall($method, 'initializeItemsCollection');
 
         // Then: It should be detected
-        $this->assertTrue($result, 'Should detect initialization method call');
+        self::assertTrue($result, 'Should detect initialization method call');
     }
 
-    public function testDetectsWildcardMethodCall(): void
+    public function test_detects_wildcard_method_call(): void
     {
         // Given: A method that calls various init methods
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithMethodCall');
@@ -89,14 +96,14 @@ final class PhpCodeParserTest extends TestCase
         $result = $this->parser->hasMethodCall($method, 'initialize*Collection');
 
         // Then: It should match
-        $this->assertTrue($result, 'Should match wildcard pattern');
+        self::assertTrue($result, 'Should match wildcard pattern');
     }
 
     // ========================================================================
     // Negative Tests (Should NOT Detect)
     // ========================================================================
 
-    public function testIgnoresCommentedInitialization(): void
+    public function test_ignores_commented_initialization(): void
     {
         // Given: A method with initialization only in comments
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithCommentedInit');
@@ -105,10 +112,10 @@ final class PhpCodeParserTest extends TestCase
         $result = $this->parser->hasCollectionInitialization($method, 'items');
 
         // Then: It should NOT be detected
-        $this->assertFalse($result, 'Should ignore commented-out initialization');
+        self::assertFalse($result, 'Should ignore commented-out initialization');
     }
 
-    public function testIgnoresStringLiterals(): void
+    public function test_ignores_string_literals(): void
     {
         // Given: A method with initialization in string
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithStringLiteral');
@@ -117,10 +124,10 @@ final class PhpCodeParserTest extends TestCase
         $result = $this->parser->hasCollectionInitialization($method, 'items');
 
         // Then: It should NOT be detected
-        $this->assertFalse($result, 'Should ignore initialization in string literals');
+        self::assertFalse($result, 'Should ignore initialization in string literals');
     }
 
-    public function testIgnoresOtherFields(): void
+    public function test_ignores_other_fields(): void
     {
         // Given: A method that initializes 'otherField' not 'items'
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithOtherField');
@@ -129,10 +136,10 @@ final class PhpCodeParserTest extends TestCase
         $result = $this->parser->hasCollectionInitialization($method, 'items');
 
         // Then: It should NOT be detected
-        $this->assertFalse($result, 'Should only detect the specific field');
+        self::assertFalse($result, 'Should only detect the specific field');
     }
 
-    public function testReturnsFalseForNonExistentField(): void
+    public function test_returns_false_for_non_existent_field(): void
     {
         // Given: A valid method
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithArrayCollection');
@@ -141,14 +148,14 @@ final class PhpCodeParserTest extends TestCase
         $result = $this->parser->hasCollectionInitialization($method, 'nonExistentField');
 
         // Then: It should return false
-        $this->assertFalse($result, 'Should return false for non-existent field');
+        self::assertFalse($result, 'Should return false for non-existent field');
     }
 
     // ========================================================================
     // Edge Cases & Variations
     // ========================================================================
 
-    public function testHandlesVariousSpacing(): void
+    public function test_handles_various_spacing(): void
     {
         // Given: A method with unusual spacing
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithWeirdSpacing');
@@ -157,10 +164,10 @@ final class PhpCodeParserTest extends TestCase
         $result = $this->parser->hasCollectionInitialization($method, 'items');
 
         // Then: It should still be detected (PHP Parser handles this)
-        $this->assertTrue($result, 'Should handle various spacing');
+        self::assertTrue($result, 'Should handle various spacing');
     }
 
-    public function testHandlesMultilineAssignment(): void
+    public function test_handles_multiline_assignment(): void
     {
         // Given: A method with multiline assignment
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithMultiline');
@@ -169,14 +176,14 @@ final class PhpCodeParserTest extends TestCase
         $result = $this->parser->hasCollectionInitialization($method, 'items');
 
         // Then: It should be detected
-        $this->assertTrue($result, 'Should handle multiline assignments');
+        self::assertTrue($result, 'Should handle multiline assignments');
     }
 
     // ========================================================================
     // Cache Tests
     // ========================================================================
 
-    public function testCachesAST(): void
+    public function test_caches_ast(): void
     {
         // Given: A method
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithArrayCollection');
@@ -189,23 +196,23 @@ final class PhpCodeParserTest extends TestCase
         $stats2 = $this->parser->getCacheStats();
 
         // Then: Cache should have one entry and not grow
-        $this->assertGreaterThan(0, $stats1['entries']);
-        $this->assertSame($stats1['entries'], $stats2['entries'], 'Cache should reuse AST');
+        self::assertGreaterThan(0, $stats1['ast_entries']);
+        self::assertSame($stats1['ast_entries'], $stats2['ast_entries'], 'Cache should reuse AST');
     }
 
-    public function testClearCache(): void
+    public function test_clear_cache(): void
     {
         // Given: Parser with cached AST
         $method = new ReflectionMethod(TestEntity::class, 'constructorWithArrayCollection');
         $this->parser->hasCollectionInitialization($method, 'items');
 
-        $this->assertGreaterThan(0, $this->parser->getCacheStats()['entries']);
+        self::assertGreaterThan(0, $this->parser->getCacheStats()['ast_entries']);
 
         // When: We clear the cache
         $this->parser->clearCache();
 
         // Then: Cache should be empty
-        $this->assertSame(0, $this->parser->getCacheStats()['entries']);
+        self::assertSame(0, $this->parser->getCacheStats()['ast_entries']);
     }
 }
 
@@ -216,6 +223,7 @@ final class PhpCodeParserTest extends TestCase
 class TestEntity
 {
     private $items;
+
     private $otherField;
 
     public function constructorWithArrayCollection(): void
@@ -257,7 +265,7 @@ class TestEntity
 
     public function constructorWithWeirdSpacing(): void
     {
-        $this->items   =   new   ArrayCollection  (  )  ;
+        $this->items   =   new ArrayCollection();
     }
 
     public function constructorWithMultiline(): void

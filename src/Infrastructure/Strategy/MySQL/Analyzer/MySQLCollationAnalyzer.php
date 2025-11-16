@@ -15,6 +15,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\CollationAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -156,7 +157,7 @@ final class MySQLCollationAnalyzer implements CollationAnalyzerInterface
         return new DatabaseConfigIssue([
             'title'       => sprintf('%s using collation: %s (performance vs accuracy trade-off)', ucfirst($level), $currentCollation),
             'description' => $description,
-            'severity'    => 'info', // INFO instead of WARNING (it's a valid choice)
+            'severity' => Severity::info(), // INFO instead of WARNING (it's a valid choice)
             'suggestion'  => $this->suggestionFactory->createConfiguration(
                 setting: ucfirst($level) . ' collation',
                 currentValue: $currentCollation,
@@ -215,7 +216,7 @@ final class MySQLCollationAnalyzer implements CollationAnalyzerInterface
             );
         } else {
             // Mixed collations (real problem)
-            $severity = count($tables) > 10 ? 'warning' : 'info';
+            $severity = count($tables) > 10 ? Severity::warning() : Severity::info();
             $description = sprintf(
                 'Found %d tables with MIXED collations different from database default (%s): %s. ' .
                 'This can cause performance issues in JOINs and unexpected sorting behavior.',
@@ -289,7 +290,7 @@ final class MySQLCollationAnalyzer implements CollationAnalyzerInterface
                 'This prevents index usage in JOINs and causes severe performance degradation:' . "\n- " . $descriptionStr,
                 count($mismatches),
             ),
-            'severity'   => 'critical',
+            'severity' => Severity::critical(),
             'suggestion' => $this->suggestionFactory->createConfiguration(
                 setting: 'Foreign key collations',
                 currentValue: 'Mismatched collations',

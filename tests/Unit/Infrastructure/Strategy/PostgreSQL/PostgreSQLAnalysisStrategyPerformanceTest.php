@@ -42,13 +42,15 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new PostgreSQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
 
-        $sharedBuffersIssues = array_filter($issues, fn($issue) =>
-            str_contains($issue->getTitle(), 'shared_buffers')
+        $sharedBuffersIssues = array_filter(
+            $issues,
+            fn ($issue) =>
+            str_contains($issue->getTitle(), 'shared_buffers'),
         );
 
         self::assertCount(1, $sharedBuffersIssues, 'Should detect shared_buffers < 128MB');
@@ -71,13 +73,15 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new PostgreSQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
 
-        $sharedBuffersIssues = array_filter($issues, fn($issue) =>
-            str_contains($issue->getTitle(), 'shared_buffers')
+        $sharedBuffersIssues = array_filter(
+            $issues,
+            fn ($issue) =>
+            str_contains($issue->getTitle(), 'shared_buffers'),
         );
 
         self::assertCount(1, $sharedBuffersIssues);
@@ -100,13 +104,15 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new PostgreSQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
 
-        $workMemIssues = array_filter($issues, fn($issue) =>
-            str_contains($issue->getTitle(), 'work_mem')
+        $workMemIssues = array_filter(
+            $issues,
+            fn ($issue) =>
+            str_contains($issue->getTitle(), 'work_mem'),
         );
 
         self::assertCount(1, $workMemIssues, 'Should detect work_mem < 4MB');
@@ -129,13 +135,15 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new PostgreSQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
 
-        $syncCommitIssues = array_filter($issues, fn($issue) =>
-            str_contains($issue->getTitle(), 'synchronous commit')
+        $syncCommitIssues = array_filter(
+            $issues,
+            fn ($issue) =>
+            str_contains($issue->getTitle(), 'synchronous commit'),
         );
 
         self::assertCount(1, $syncCommitIssues, 'Should detect synchronous_commit = on');
@@ -158,13 +166,15 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new PostgreSQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
 
-        $syncCommitIssues = array_filter($issues, fn($issue) =>
-            str_contains($issue->getTitle(), 'synchronous commit')
+        $syncCommitIssues = array_filter(
+            $issues,
+            fn ($issue) =>
+            str_contains($issue->getTitle(), 'synchronous commit'),
         );
 
         self::assertCount(0, $syncCommitIssues, 'Should not detect issue when synchronous_commit = off');
@@ -185,7 +195,7 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new PostgreSQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
@@ -209,13 +219,15 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new PostgreSQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
 
-        $sharedBuffersIssues = array_filter($issues, fn($issue) =>
-            str_contains($issue->getTitle(), 'shared_buffers')
+        $sharedBuffersIssues = array_filter(
+            $issues,
+            fn ($issue) =>
+            str_contains($issue->getTitle(), 'shared_buffers'),
         );
 
         self::assertCount(1, $sharedBuffersIssues, 'Should correctly parse kB format');
@@ -237,7 +249,7 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
         $strategy = new PostgreSQLAnalysisStrategy(
             $connection,
             $this->createSuggestionFactory(),
-            $detector
+            $detector,
         );
 
         $issues = iterator_to_array($strategy->analyzePerformanceConfig());
@@ -248,13 +260,13 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
 
     private function mockShowVariables(Connection $connection, DatabasePlatformDetector $detector, array $values): void
     {
-        $connection->expects($this->any())
+        $connection->expects(self::any())
             ->method('executeQuery')
             ->willReturnCallback(function () {
                 return $this->createMock(Result::class);
             });
 
-        $detector->expects($this->any())
+        $detector->expects(self::any())
             ->method('fetchAssociative')
             ->willReturnCallback(function () use ($values) {
                 static $callCount = 0;

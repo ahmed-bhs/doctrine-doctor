@@ -564,12 +564,14 @@ final class BidirectionalConsistencyAnalyzerTest extends TestCase
             $data = $issue->getData();
             $inconsistencyType = $data['inconsistency_type'] ?? '';
 
-            if ($inconsistencyType === 'orphan_removal_nullable_fk') {
+            if ('orphan_removal_nullable_fk' === $inconsistencyType) {
                 // This should only trigger if nullable is EXPLICITLY true
                 // If we get here, check that the description mentions nullable
                 $description = $issue->getDescription();
-                self::assertStringContainsString('nullable', strtolower($description),
-                    'orphan_removal_nullable_fk should only trigger when nullable is explicitly true'
+                self::assertStringContainsString(
+                    'nullable',
+                    strtolower($description),
+                    'orphan_removal_nullable_fk should only trigger when nullable is explicitly true',
                 );
             }
         }

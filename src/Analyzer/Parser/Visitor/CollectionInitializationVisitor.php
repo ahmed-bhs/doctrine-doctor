@@ -50,8 +50,6 @@ use PhpParser\NodeVisitorAbstract;
  */
 final class CollectionInitializationVisitor extends NodeVisitorAbstract
 {
-    private bool $hasInitialization = false;
-
     /**
      * Collection class names that we consider valid.
      */
@@ -61,6 +59,8 @@ final class CollectionInitializationVisitor extends NodeVisitorAbstract
         'Doctrine\Common\Collections\ArrayCollection',
         'Doctrine\Common\Collections\Collection',
     ];
+
+    private bool $hasInitialization = false;
 
     public function __construct(
         private readonly string $fieldName,
@@ -83,6 +83,11 @@ final class CollectionInitializationVisitor extends NodeVisitorAbstract
         }
 
         return null;
+    }
+
+    public function hasInitialization(): bool
+    {
+        return $this->hasInitialization;
     }
 
     /**
@@ -183,10 +188,5 @@ final class CollectionInitializationVisitor extends NodeVisitorAbstract
         }
 
         return false;
-    }
-
-    public function hasInitialization(): bool
-    {
-        return $this->hasInitialization;
     }
 }

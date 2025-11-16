@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use Psr\Log\LoggerInterface;
+use Webmozart\Assert\Assert;
 
 class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
@@ -54,7 +55,7 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $queryData) {
                     // Detect SELECT * FROM table without WHERE or LIMIT

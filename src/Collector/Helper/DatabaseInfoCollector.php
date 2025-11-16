@@ -22,6 +22,7 @@ use Doctrine\DBAL\Platforms\SQLServerPlatform;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
+use Webmozart\Assert\Assert;
 
 /**
  * Helper for collecting database information.
@@ -107,7 +108,7 @@ final class DatabaseInfoCollector
                 dirname(__DIR__, 6) . '/composer.lock', // Project root
             ];
 
-            assert(is_iterable($possiblePaths), '$possiblePaths must be iterable');
+            Assert::isIterable($possiblePaths, '$possiblePaths must be iterable');
 
             foreach ($possiblePaths as $possiblePath) {
                 if (file_exists($possiblePath)) {

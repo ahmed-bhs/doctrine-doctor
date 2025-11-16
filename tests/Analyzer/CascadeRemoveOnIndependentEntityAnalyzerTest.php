@@ -690,7 +690,7 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
         self::assertCount(
             0,
             $paymentMethodIssues,
-            'PaymentMethod → GatewayConfig should NOT be flagged (1:1 composition with exclusive ownership)'
+            'PaymentMethod → GatewayConfig should NOT be flagged (1:1 composition with exclusive ownership)',
         );
     }
 
@@ -715,7 +715,7 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
         self::assertCount(
             0,
             $userProfileIssues,
-            'User → Profile with UNIQUE FK should NOT be flagged (1:1 enforced by DB constraint)'
+            'User → Profile with UNIQUE FK should NOT be flagged (1:1 enforced by DB constraint)',
         );
     }
 
@@ -740,7 +740,7 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
         self::assertCount(
             0,
             $accountSettingsIssues,
-            'Account → Settings with inverse OneToOne should NOT be flagged (bidirectional 1:1)'
+            'Account → Settings with inverse OneToOne should NOT be flagged (bidirectional 1:1)',
         );
     }
 
@@ -765,7 +765,7 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
         self::assertGreaterThan(
             0,
             count($orderCustomerIssues),
-            'Order → Customer should STILL be flagged (true ManyToOne, not 1:1 composition)'
+            'Order → Customer should STILL be flagged (true ManyToOne, not 1:1 composition)',
         );
 
         $issue = reset($orderCustomerIssues);

@@ -25,9 +25,6 @@ use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
  */
 final class SqlQueryNormalizer implements QueryNormalizerInterface
 {
-    /**
-     * {@inheritDoc}
-     */
     public function normalizeQuery(string $sql): string
     {
         $parser = new Parser($sql);

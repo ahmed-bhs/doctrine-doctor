@@ -33,6 +33,7 @@ final class QueryColumnExtractor
         // Dependency injection with fallback for backwards compatibility
         $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
+
     /**
      * Extract columns from query that could benefit from indexing.
      * @return array<string>

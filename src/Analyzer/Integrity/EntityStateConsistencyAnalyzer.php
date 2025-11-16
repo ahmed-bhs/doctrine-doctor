@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -22,6 +20,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\UnitOfWork;
 use ReflectionClass;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects entity state inconsistencies and improper entity lifecycle management.

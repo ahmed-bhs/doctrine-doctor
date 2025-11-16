@@ -11,11 +11,11 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\DQLValidationAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\Performance\NPlusOneAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -26,40 +26,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class RegexAnalyzersIntegrationTest extends TestCase
 {
-    #[Test]
-    public function dql_validation_analyzer_handles_namespaced_entities(): void
-    {
-        if (!class_exists(\Doctrine\ORM\EntityManager::class)) {
-            self::markTestSkipped('Doctrine ORM not available');
-        }
-
-        $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager();
-        $issueFactory = PlatformAnalyzerTestHelper::createIssueFactory();
-        $analyzer = new DQLValidationAnalyzer($entityManager, $issueFactory);
-
-        // Test with namespaced entity class
-        $queryDataCollection = QueryDataCollection::fromArray([
-            new QueryData(
-                sql: 'SELECT u FROM App\\Entity\\User u WHERE u.email = ?',
-                executionTime: QueryExecutionTime::fromMilliseconds(10),
-                params: ['test@example.com'],
-                backtrace: [],
-            ),
-            // With multiple backslashes (escaped in DQL)
-            new QueryData(
-                sql: 'SELECT p FROM App\\\\Entity\\\\Product p',
-                executionTime: QueryExecutionTime::fromMilliseconds(10),
-                params: [],
-                backtrace: [],
-            ),
-        ]);
-
-        // Should not throw regex compilation errors
-        $issues = $analyzer->analyze($queryDataCollection);
-
-        // The analyzer should execute without errors
-        self::assertIsIterable($issues);
-    }
+    // NOTE: DQLValidationAnalyzer test removed - analyzer class was deleted as it cannot work at runtime
 
     #[Test]
     public function missing_index_analyzer_handles_special_characters_in_sql(): void
@@ -217,39 +184,7 @@ final class RegexAnalyzersIntegrationTest extends TestCase
         self::assertIsIterable($issues);
     }
 
-    #[Test]
-    public function analyzers_handle_complex_join_queries(): void
-    {
-        if (!class_exists(\Doctrine\ORM\EntityManager::class)) {
-            self::markTestSkipped('Doctrine ORM not available');
-        }
-
-        $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager();
-        $issueFactory = PlatformAnalyzerTestHelper::createIssueFactory();
-        $analyzer = new DQLValidationAnalyzer($entityManager, $issueFactory);
-
-        $queryDataCollection = QueryDataCollection::fromArray([
-            // Complex JOIN with namespaced entities
-            new QueryData(
-                sql: 'SELECT u, p FROM App\\Entity\\User u JOIN App\\Entity\\Profile p WHERE u.id = p.userId',
-                executionTime: QueryExecutionTime::fromMilliseconds(10),
-                params: [],
-                backtrace: [],
-            ),
-            // Multiple JOINs
-            new QueryData(
-                sql: 'SELECT o FROM App\\Entity\\Order o JOIN App\\Entity\\Customer c JOIN App\\Entity\\Product p',
-                executionTime: QueryExecutionTime::fromMilliseconds(10),
-                params: [],
-                backtrace: [],
-            ),
-        ]);
-
-        // Should not throw regex compilation errors
-        $issues = $analyzer->analyze($queryDataCollection);
-
-        self::assertIsIterable($issues);
-    }
+    // NOTE: DQLValidationAnalyzer test removed - analyzer class was deleted as it cannot work at runtime
 
     #[Test]
     public function analyzers_handle_queries_with_numeric_literals(): void

@@ -33,7 +33,7 @@ ob_start();
     <div class="alert alert-warning">
         <strong>Unused Eager Load Detected</strong><br>
         Found <strong><?php echo $count; ?> unused JOIN(s)</strong> loading data that is never accessed.
-        <?php if ($count === 1): ?>
+        <?php if (1 === $count): ?>
         Table: <code><?php echo $e($unusedTables[0]); ?></code> (alias: <code><?php echo $e($unusedAliases[0]); ?></code>)
         <?php else: ?>
         Tables: <code><?php echo implode('</code>, <code>', array_map($e(...), $unusedTables)); ?></code>

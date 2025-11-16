@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer\Parser\Visitor;
@@ -28,7 +35,7 @@ final class MethodCallVisitorTest extends TestCase
     // Exact Method Name Tests
     // ========================================================================
 
-    public function testDetectsExactMethodName(): void
+    public function test_detects_exact_method_name(): void
     {
         // Given: Code with exact method call
         $code = <<<'PHP'
@@ -45,10 +52,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should detect the method call
-        $this->assertTrue($visitor->hasMethodCall());
+        self::assertTrue($visitor->hasMethodCall());
     }
 
-    public function testReturnsFalseForDifferentMethodName(): void
+    public function test_returns_false_for_different_method_name(): void
     {
         // Given: Code calling one method
         $code = <<<'PHP'
@@ -65,14 +72,14 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT detect
-        $this->assertFalse($visitor->hasMethodCall());
+        self::assertFalse($visitor->hasMethodCall());
     }
 
     // ========================================================================
     // Wildcard Pattern Tests
     // ========================================================================
 
-    public function testDetectsWildcardPrefixPattern(): void
+    public function test_detects_wildcard_prefix_pattern(): void
     {
         // Given: Code with method call
         $code = <<<'PHP'
@@ -89,10 +96,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should match the pattern
-        $this->assertTrue($visitor->hasMethodCall());
+        self::assertTrue($visitor->hasMethodCall());
     }
 
-    public function testDetectsWildcardSuffixPattern(): void
+    public function test_detects_wildcard_suffix_pattern(): void
     {
         // Given: Code with method call
         $code = <<<'PHP'
@@ -109,10 +116,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should match
-        $this->assertTrue($visitor->hasMethodCall());
+        self::assertTrue($visitor->hasMethodCall());
     }
 
-    public function testDetectsWildcardMiddlePattern(): void
+    public function test_detects_wildcard_middle_pattern(): void
     {
         // Given: Code with method call
         $code = <<<'PHP'
@@ -129,13 +136,13 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should match
-        $this->assertTrue($visitor->hasMethodCall());
+        self::assertTrue($visitor->hasMethodCall());
     }
 
     /**
      * @dataProvider wildcardPatternsProvider
      */
-    public function testVariousWildcardPatterns(string $pattern, string $methodCall, bool $shouldMatch): void
+    public function test_various_wildcard_patterns(string $pattern, string $methodCall, bool $shouldMatch): void
     {
         // Given: Code with specific method call
         $code = <<<PHP
@@ -152,8 +159,11 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should match or not based on expectation
-        $this->assertSame($shouldMatch, $visitor->hasMethodCall(),
-            "Pattern '{$pattern}' should " . ($shouldMatch ? '' : 'NOT ') . "match '{$methodCall}'");
+        self::assertSame(
+            $shouldMatch,
+            $visitor->hasMethodCall(),
+            "Pattern '{$pattern}' should " . ($shouldMatch ? '' : 'NOT ') . "match '{$methodCall}'",
+        );
     }
 
     public static function wildcardPatternsProvider(): array
@@ -174,7 +184,7 @@ final class MethodCallVisitorTest extends TestCase
     // Negative Tests (Should NOT Detect)
     // ========================================================================
 
-    public function testIgnoresOtherMethods(): void
+    public function test_ignores_other_methods(): void
     {
         // Given: Code calling unrelated method
         $code = <<<'PHP'
@@ -191,10 +201,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT detect
-        $this->assertFalse($visitor->hasMethodCall());
+        self::assertFalse($visitor->hasMethodCall());
     }
 
-    public function testIgnoresStaticMethodCalls(): void
+    public function test_ignores_static_method_calls(): void
     {
         // Given: Code with static method call
         $code = <<<'PHP'
@@ -211,10 +221,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT detect (not $this->)
-        $this->assertFalse($visitor->hasMethodCall());
+        self::assertFalse($visitor->hasMethodCall());
     }
 
-    public function testIgnoresFunctionCalls(): void
+    public function test_ignores_function_calls(): void
     {
         // Given: Code with function call (not method)
         $code = <<<'PHP'
@@ -231,10 +241,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT detect (function, not method)
-        $this->assertFalse($visitor->hasMethodCall());
+        self::assertFalse($visitor->hasMethodCall());
     }
 
-    public function testIgnoresOtherObjectMethodCalls(): void
+    public function test_ignores_other_object_method_calls(): void
     {
         // Given: Code calling method on different object
         $code = <<<'PHP'
@@ -251,10 +261,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT detect (not $this)
-        $this->assertFalse($visitor->hasMethodCall());
+        self::assertFalse($visitor->hasMethodCall());
     }
 
-    public function testIgnoresCommentedMethodCall(): void
+    public function test_ignores_commented_method_call(): void
     {
         // Given: Code with method call in comments
         $code = <<<'PHP'
@@ -272,10 +282,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT detect (PHP Parser ignores comments)
-        $this->assertFalse($visitor->hasMethodCall());
+        self::assertFalse($visitor->hasMethodCall());
     }
 
-    public function testIgnoresStringLiterals(): void
+    public function test_ignores_string_literals(): void
     {
         // Given: Code with method call in string
         $code = <<<'PHP'
@@ -292,14 +302,14 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT detect (it's in a string)
-        $this->assertFalse($visitor->hasMethodCall());
+        self::assertFalse($visitor->hasMethodCall());
     }
 
     // ========================================================================
     // Complex Scenarios
     // ========================================================================
 
-    public function testDetectsMethodCallInNestedScope(): void
+    public function test_detects_method_call_in_nested_scope(): void
     {
         // Given: Code with method call in nested scope
         $code = <<<'PHP'
@@ -318,10 +328,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should detect even in nested scope
-        $this->assertTrue($visitor->hasMethodCall());
+        self::assertTrue($visitor->hasMethodCall());
     }
 
-    public function testDetectsMethodCallAmongMultipleCalls(): void
+    public function test_detects_method_call_among_multiple_calls(): void
     {
         // Given: Code with multiple method calls
         $code = <<<'PHP'
@@ -340,10 +350,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should detect the correct one
-        $this->assertTrue($visitor->hasMethodCall());
+        self::assertTrue($visitor->hasMethodCall());
     }
 
-    public function testWildcardMatchesMultipleMethods(): void
+    public function test_wildcard_matches_multiple_methods(): void
     {
         // Given: Code with multiple initialization methods
         $code = <<<'PHP'
@@ -362,10 +372,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should detect at least one match
-        $this->assertTrue($visitor->hasMethodCall());
+        self::assertTrue($visitor->hasMethodCall());
     }
 
-    public function testHandlesDeeplyNestedScopes(): void
+    public function test_handles_deeply_nested_scopes(): void
     {
         // Given: Code with deeply nested method call
         $code = <<<'PHP'
@@ -390,14 +400,14 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should detect in deeply nested scope
-        $this->assertTrue($visitor->hasMethodCall());
+        self::assertTrue($visitor->hasMethodCall());
     }
 
     // ========================================================================
     // Sylius-Style Pattern Tests
     // ========================================================================
 
-    public function testDetectsSyliusStyleConstructorAliasing(): void
+    public function test_detects_sylius_style_constructor_aliasing(): void
     {
         // Given: Sylius-style code with constructor aliasing
         $code = <<<'PHP'
@@ -418,10 +428,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should detect the call
-        $this->assertTrue($visitor->hasMethodCall());
+        self::assertTrue($visitor->hasMethodCall());
     }
 
-    public function testDetectsSyliusPatternWithWildcard(): void
+    public function test_detects_sylius_pattern_with_wildcard(): void
     {
         // Given: Sylius-style code
         $code = <<<'PHP'
@@ -438,14 +448,14 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should match
-        $this->assertTrue($visitor->hasMethodCall());
+        self::assertTrue($visitor->hasMethodCall());
     }
 
     // ========================================================================
     // Edge Cases
     // ========================================================================
 
-    public function testHandlesMethodNameWithNumbers(): void
+    public function test_handles_method_name_with_numbers(): void
     {
         // Given: Method name with numbers
         $code = <<<'PHP'
@@ -462,10 +472,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should match
-        $this->assertTrue($visitor->hasMethodCall());
+        self::assertTrue($visitor->hasMethodCall());
     }
 
-    public function testHandlesMethodNameWithUnderscores(): void
+    public function test_handles_method_name_with_underscores(): void
     {
         // Given: Method name with underscores
         $code = <<<'PHP'
@@ -482,10 +492,10 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should match
-        $this->assertTrue($visitor->hasMethodCall());
+        self::assertTrue($visitor->hasMethodCall());
     }
 
-    public function testHandlesCaseSensitivity(): void
+    public function test_handles_case_sensitivity(): void
     {
         // Given: Method with specific case
         $code = <<<'PHP'
@@ -502,7 +512,7 @@ final class MethodCallVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT match (case-sensitive)
-        $this->assertFalse($visitor->hasMethodCall());
+        self::assertFalse($visitor->hasMethodCall());
     }
 
     // ========================================================================

@@ -27,8 +27,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(
     name: 'user_profile_with_unique',
     uniqueConstraints: [
-        new ORM\UniqueConstraint(name: 'uniq_profile_id', columns: ['profile_id'])
-    ]
+        new ORM\UniqueConstraint(name: 'uniq_profile_id', columns: ['profile_id']),
+    ],
 )]
 class UserProfileWithUnique
 {

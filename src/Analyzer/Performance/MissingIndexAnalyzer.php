@@ -115,7 +115,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     {
         $queryPatterns = [];
 
-        assert(is_iterable($queriesArray), '$queriesArray must be iterable');
+        Assert::isIterable($queriesArray, '$queriesArray must be iterable');
 
         foreach ($queriesArray as $queryArray) {
             $pattern = $this->normalizeQuery($queryArray->sql);
@@ -144,7 +144,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     {
         $queriesToExplain = [];
 
-        assert(is_iterable($queriesArray), '$queriesArray must be iterable');
+        Assert::isIterable($queriesArray, '$queriesArray must be iterable');
 
         foreach ($queriesArray as $queryArray) {
             $executionTime = $queryArray->executionTime->inMilliseconds();
@@ -183,7 +183,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
      */
     private function analyzeSelectedQueries(array $queriesToExplain, array &$debugStats): \Generator
     {
-        assert(is_iterable($queriesToExplain), '$queriesToExplain must be iterable');
+        Assert::isIterable($queriesToExplain, '$queriesToExplain must be iterable');
 
         foreach ($queriesToExplain as $pattern => $queryData) {
             try {
@@ -225,7 +225,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
      */
     private function processExplainRows(array $explain, QueryData $queryData, array &$debugStats): \Generator
     {
-        assert(is_iterable($explain), '$explain must be iterable');
+        Assert::isIterable($explain, '$explain must be iterable');
 
         foreach ($explain as $row) {
             Assert::isArray($row);

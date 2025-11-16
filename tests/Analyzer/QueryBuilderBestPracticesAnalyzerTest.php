@@ -254,7 +254,7 @@ final class QueryBuilderBestPracticesAnalyzerTest extends TestCase
 
         // Verify template and context
         /** @var \AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion $suggestion */
-        self::assertEquals('incorrect_null_comparison', $suggestion->getTemplateName());
+        self::assertEquals('Integrity/incorrect_null_comparison', $suggestion->getTemplateName());
         /** @var \AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion $suggestion */
         $context = $suggestion->getContext();
         self::assertArrayHasKey('bad_code', $context);
@@ -281,7 +281,7 @@ final class QueryBuilderBestPracticesAnalyzerTest extends TestCase
 
         // Verify template
         /** @var \AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion $suggestion */
-        self::assertEquals('empty_in_clause', $suggestion->getTemplateName());
+        self::assertEquals('Integrity/empty_in_clause', $suggestion->getTemplateName());
 
         // Verify context has multiple solution options
         /** @var \AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion $suggestion */

@@ -94,6 +94,24 @@ final class SensitiveFieldExposureVisitor extends NodeVisitorAbstract
     }
 
     /**
+     * Get list of exposed sensitive fields detected.
+     *
+     * @return array<string>
+     */
+    public function getExposedFields(): array
+    {
+        return $this->exposedFields;
+    }
+
+    /**
+     * Check if any sensitive fields were exposed.
+     */
+    public function hasExposedFields(): bool
+    {
+        return [] !== $this->exposedFields;
+    }
+
+    /**
      * Check if node is an array item with a sensitive field name as key.
      *
      * Example: 'password' => $this->password
@@ -232,23 +250,5 @@ final class SensitiveFieldExposureVisitor extends NodeVisitorAbstract
         }
 
         return $node->name->toString();
-    }
-
-    /**
-     * Get list of exposed sensitive fields detected.
-     *
-     * @return array<string>
-     */
-    public function getExposedFields(): array
-    {
-        return $this->exposedFields;
-    }
-
-    /**
-     * Check if any sensitive fields were exposed.
-     */
-    public function hasExposedFields(): bool
-    {
-        return [] !== $this->exposedFields;
     }
 }

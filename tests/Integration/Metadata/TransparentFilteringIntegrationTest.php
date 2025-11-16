@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
  */
 class TransparentFilteringIntegrationTest extends TestCase
 {
-    public function testEntityManagerDecoratorFiltersMetadataTransparently(): void
+    public function test_entity_manager_decorator_filters_metadata_transparently(): void
     {
         // Create original EntityManager
         $originalEM = PlatformAnalyzerTestHelper::createTestEntityManager([
@@ -41,22 +41,22 @@ class TransparentFilteringIntegrationTest extends TestCase
         $filteredMetadata = $decoratedEM->getMetadataFactory()->getAllMetadata();
 
         // Should have metadata (not empty)
-        $this->assertNotEmpty($filteredMetadata);
+        self::assertNotEmpty($filteredMetadata);
 
         // All metadata should be from non-vendor paths
         foreach ($filteredMetadata as $metadata) {
             $filename = $metadata->getReflectionClass()->getFileName();
             $normalizedPath = str_replace('\\', '/', $filename);
 
-            $this->assertStringNotContainsString(
+            self::assertStringNotContainsString(
                 '/vendor/',
                 $normalizedPath,
-                sprintf('Entity %s is from vendor directory', $metadata->getName())
+                sprintf('Entity %s is from vendor directory', $metadata->getName()),
             );
         }
     }
 
-    public function testDecoratorPassesThroughOtherMethodsToOriginalEM(): void
+    public function test_decorator_passes_through_other_methods_to_original_em(): void
     {
         $originalEM = PlatformAnalyzerTestHelper::createTestEntityManager([
             __DIR__ . '/../../Fixtures/Entity/BidirectionalConsistencyTest',
@@ -66,12 +66,12 @@ class TransparentFilteringIntegrationTest extends TestCase
         $decoratedEM = new EntityManagerMetadataDecorator($originalEM, $metadataProvider);
 
         // Test that other methods are passed through
-        $this->assertSame($originalEM->getConnection(), $decoratedEM->getConnection());
-        $this->assertSame($originalEM->getConfiguration(), $decoratedEM->getConfiguration());
-        $this->assertSame($originalEM->isOpen(), $decoratedEM->isOpen());
+        self::assertSame($originalEM->getConnection(), $decoratedEM->getConnection());
+        self::assertSame($originalEM->getConfiguration(), $decoratedEM->getConfiguration());
+        self::assertSame($originalEM->isOpen(), $decoratedEM->isOpen());
     }
 
-    public function testAnalyzerReceivesFilteredMetadataAutomatically(): void
+    public function test_analyzer_receives_filtered_metadata_automatically(): void
     {
         // Create original EntityManager with test entities
         $originalEM = PlatformAnalyzerTestHelper::createTestEntityManager([
@@ -88,12 +88,12 @@ class TransparentFilteringIntegrationTest extends TestCase
         $metadata = $decoratedEM->getMetadataFactory()->getAllMetadata();
 
         // Should receive filtered metadata automatically
-        $this->assertNotEmpty($metadata);
+        self::assertNotEmpty($metadata);
 
         // Verify no vendor entities
         foreach ($metadata as $meta) {
             $filename = $meta->getReflectionClass()->getFileName();
-            $this->assertStringNotContainsString('/vendor/', $filename);
+            self::assertStringNotContainsString('/vendor/', $filename);
         }
     }
 }

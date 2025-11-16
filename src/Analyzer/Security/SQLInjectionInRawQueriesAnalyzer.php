@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Security;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -23,6 +21,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects potential SQL injection vulnerabilities in raw SQL queries.

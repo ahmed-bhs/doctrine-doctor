@@ -27,8 +27,11 @@ use Webmozart\Assert\Assert;
 class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     private const QUERY_COUNT_WARNING_THRESHOLD = 10;
+
     private const EXECUTION_TIME_WARNING_THRESHOLD = 500.0;
+
     private const EXECUTION_TIME_CRITICAL_THRESHOLD = 1000.0;
+
     private const LOW_EXECUTION_TIME_THRESHOLD = 100.0;
 
     private SqlStructureExtractor $sqlExtractor;
@@ -61,7 +64,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         // Filter to only SELECT queries - N+1 is specifically about lazy loading
         // INSERT/UPDATE/DELETE queries in loops are handled by other analyzers
         $selectQueries = $queryDataCollection->filter(
-            fn (QueryData $queryData): bool => $this->sqlExtractor->isSelectQuery($queryData->sql)
+            fn (QueryData $queryData): bool => $this->sqlExtractor->isSelectQuery($queryData->sql),
         );
 
         //  Use collection's groupByPattern method with improved aggregation key
@@ -141,10 +144,11 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         $pattern = $this->sqlExtractor->detectNPlusOnePattern($sql);
         if (null !== $pattern) {
             // Composite key: "pattern|table|foreignKey"
-            return sprintf('%s|%s|%s',
+            return sprintf(
+                '%s|%s|%s',
                 $normalized,
                 $pattern['table'],
-                $pattern['foreignKey']
+                $pattern['foreignKey'],
             );
         }
 

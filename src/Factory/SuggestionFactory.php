@@ -764,7 +764,7 @@ final class SuggestionFactory
             SuggestionContentBlock::heading('Available Solutions', 4),
         ];
 
-        assert(is_iterable($options), '$options must be iterable');
+        Assert::isIterable($options, '$options must be iterable');
 
         foreach ($options as $i => $option) {
             $optionNumber = (int) $i + 1;
@@ -820,7 +820,7 @@ final class SuggestionFactory
         if ([] !== $docLinks) {
             $blocks[] = SuggestionContentBlock::heading('Documentation', 4);
 
-            assert(is_iterable($docLinks), '$docLinks must be iterable');
+            Assert::isIterable($docLinks, '$docLinks must be iterable');
 
             foreach ($docLinks as $docLink) {
                 $blocks[] = SuggestionContentBlock::link($docLink['url'], $docLink['text']);

@@ -11,15 +11,16 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
+use ReflectionClass;
+use Webmozart\Assert\Assert;
 
 /**
  * Analyzes Doctrine column types for best practices.
@@ -209,7 +210,8 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 
         if ($isVendor) {
             // Downgrade severity for vendor code
-            $severity = 'critical' === $severity ? 'warning' : 'info';
+            $severityEnum = Severity::from($severity);
+            $severity = $severityEnum->isCritical() ? 'warning' : 'info';
 
             $description .= sprintf(
                 "\n\nWARNING: This entity is from a vendor dependency. " .
@@ -226,7 +228,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                 $type,
                 $shortClassName,
                 $fieldName,
-                $isVendor ? ' (vendor dependency)' : ''
+                $isVendor ? ' (vendor dependency)' : '',
             ),
             'description' => $description,
             'severity'    => $severity,
@@ -575,7 +577,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
     private function isVendorEntity(string $entityClass): bool
     {
         try {
-            $reflectionClass = new \ReflectionClass($entityClass);
+            $reflectionClass = new ReflectionClass($entityClass);
             $filename = $reflectionClass->getFileName();
 
             if (false === $filename) {
@@ -596,7 +598,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         string $vendorEntityClass,
         string $fieldName,
         string $oldType,
-        string $newType
+        string $newType,
     ): string {
         $vendorShortName = $this->getShortClassName($vendorEntityClass);
 

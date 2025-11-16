@@ -19,6 +19,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use Webmozart\Assert\Assert;
 
 class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
@@ -52,7 +53,7 @@ class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                assert(is_iterable($queryDataCollection), '$queryDataCollection must be iterable');
+                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $queryData) {
                     $joinCount = $this->countJoins($queryData->sql);

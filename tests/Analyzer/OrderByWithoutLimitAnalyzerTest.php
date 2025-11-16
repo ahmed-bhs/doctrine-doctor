@@ -476,7 +476,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_detects_getSingleResult_as_single_result_context(): void
+    public function it_detects_get_single_result_as_single_result_context(): void
     {
         // getSingleResult should also be detected as single_result context
         $backtrace = [
@@ -555,7 +555,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_detects_findBy_as_array_result_context(): void
+    public function it_detects_find_by_as_array_result_context(): void
     {
         // Repository findBy method should be detected as array_result
         $backtrace = [

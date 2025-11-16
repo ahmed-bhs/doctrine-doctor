@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -25,6 +23,7 @@ use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects queries using LIMIT (from setMaxResults) with collection joins.
@@ -225,6 +224,6 @@ Problem: If the main entity has multiple related items, only some will be loaded
         $allTables = $this->sqlExtractor->extractAllTables($sql);
 
         // Extract just the table names
-        return array_map(fn($table) => $table['table'], $allTables);
+        return array_map(fn ($table) => $table['table'], $allTables);
     }
 }

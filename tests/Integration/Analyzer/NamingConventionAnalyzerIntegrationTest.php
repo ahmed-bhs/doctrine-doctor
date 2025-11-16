@@ -60,7 +60,8 @@ final class NamingConventionAnalyzerIntegrationTest extends TestCase
     public function it_analyzes_naming_conventions(): void
     {
         $twigTemplateRenderer = $this->createTwigRenderer();
-        $namingConventionAnalyzer = new NamingConventionAnalyzer($this->entityManager, $twigTemplateRenderer);
+        $suggestionFactory = new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory($twigTemplateRenderer);
+        $namingConventionAnalyzer = new NamingConventionAnalyzer($this->entityManager, $suggestionFactory);
 
         $issueCollection = $namingConventionAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -75,7 +76,8 @@ final class NamingConventionAnalyzerIntegrationTest extends TestCase
     public function it_checks_multiple_naming_aspects(): void
     {
         $twigTemplateRenderer = $this->createTwigRenderer();
-        $namingConventionAnalyzer = new NamingConventionAnalyzer($this->entityManager, $twigTemplateRenderer);
+        $suggestionFactory = new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory($twigTemplateRenderer);
+        $namingConventionAnalyzer = new NamingConventionAnalyzer($this->entityManager, $suggestionFactory);
 
         $issueCollection = $namingConventionAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -151,7 +153,9 @@ final class NamingConventionAnalyzerIntegrationTest extends TestCase
 
     private function createAnalyzer(): NamingConventionAnalyzer
     {
-        return new NamingConventionAnalyzer($this->entityManager, $this->createTwigRenderer());
+        $twigRenderer = $this->createTwigRenderer();
+        $suggestionFactory = new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory($twigRenderer);
+        return new NamingConventionAnalyzer($this->entityManager, $suggestionFactory);
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer

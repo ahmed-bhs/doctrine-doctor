@@ -23,9 +23,6 @@ use PhpMyAdmin\SqlParser\Statements\SelectStatement;
  */
 final class SqlJoinExtractor implements JoinExtractorInterface
 {
-    /**
-     * {@inheritDoc}
-     */
     public function extractJoins(string $sql): array
     {
         $parser = new Parser($sql);
@@ -67,9 +64,6 @@ final class SqlJoinExtractor implements JoinExtractorInterface
         return $joins;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function extractMainTable(string $sql): ?array
     {
         $parser = new Parser($sql);
@@ -96,9 +90,6 @@ final class SqlJoinExtractor implements JoinExtractorInterface
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function extractAllTables(string $sql): array
     {
         $tables = [];
@@ -126,9 +117,6 @@ final class SqlJoinExtractor implements JoinExtractorInterface
         return $tables;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getAllTableNames(string $sql): array
     {
         $allTables = $this->extractAllTables($sql);
@@ -143,9 +131,6 @@ final class SqlJoinExtractor implements JoinExtractorInterface
         return array_values(array_unique($tableNames));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasTable(string $sql, string $tableName): bool
     {
         $tableNames = $this->getAllTableNames($sql);
@@ -154,33 +139,21 @@ final class SqlJoinExtractor implements JoinExtractorInterface
         return in_array($searchTable, $tableNames, true);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasJoin(string $sql): bool
     {
         return [] !== $this->extractJoins($sql);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasJoins(string $sql): bool
     {
         return [] !== $this->extractJoins($sql);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function countJoins(string $sql): int
     {
         return count($this->extractJoins($sql));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function extractJoinOnClause(string $sql, string $joinExpression): ?string
     {
         $parser = new Parser($sql);
@@ -219,9 +192,6 @@ final class SqlJoinExtractor implements JoinExtractorInterface
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function extractTableNameWithAlias(string $sql, string $targetAlias): ?array
     {
         $parser = new Parser($sql);

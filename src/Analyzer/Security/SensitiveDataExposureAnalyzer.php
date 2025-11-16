@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Security;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -22,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects sensitive data that might be exposed through serialization,

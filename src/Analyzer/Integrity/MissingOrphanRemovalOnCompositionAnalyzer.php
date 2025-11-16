@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -26,6 +24,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use ReflectionClass;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects composition relationships without orphanRemoval=true.
@@ -344,7 +343,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements \AhmedBhs\DoctrineDoc
     private function isVendorEntity(string $entityClass): bool
     {
         try {
-            $reflectionClass = new \ReflectionClass($entityClass);
+            $reflectionClass = new ReflectionClass($entityClass);
             $filename = $reflectionClass->getFileName();
 
             if (false === $filename) {

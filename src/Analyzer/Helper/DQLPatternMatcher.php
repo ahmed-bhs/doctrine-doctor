@@ -293,4 +293,3 @@ class DQLPatternMatcher
         return $map;
     }
 }
-

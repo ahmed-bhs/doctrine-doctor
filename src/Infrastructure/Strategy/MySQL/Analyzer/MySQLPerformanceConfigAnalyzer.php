@@ -15,6 +15,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\PerformanceConfigAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -48,7 +49,7 @@ final class MySQLPerformanceConfigAnalyzer implements PerformanceConfigAnalyzerI
                     'Disable query_cache immediately for better performance.',
                     $queryCacheType,
                 ),
-                'severity'   => 'critical',
+                'severity' => Severity::critical(),
                 'suggestion' => $this->suggestionFactory->createConfiguration(
                     setting: 'query_cache_type',
                     currentValue: $queryCacheType,
@@ -71,7 +72,7 @@ final class MySQLPerformanceConfigAnalyzer implements PerformanceConfigAnalyzerI
                     'This flushes logs to disk on EVERY transaction commit, which is very slow. ' .
                     'In development, you can safely use value 2 for 10x faster writes. ' .
                     'Note: Keep value 1 in production for data safety.',
-                'severity'   => 'info',
+                'severity' => Severity::info(),
                 'suggestion' => $this->suggestionFactory->createConfiguration(
                     setting: 'innodb_flush_log_at_trx_commit',
                     currentValue: '1 (full ACID)',
@@ -91,7 +92,7 @@ final class MySQLPerformanceConfigAnalyzer implements PerformanceConfigAnalyzerI
                 'description' => 'Binary logging (binlog) is enabled. ' .
                     'Binary logs are used for replication and point-in-time recovery, but waste disk space in development. ' .
                     'Unless you are testing replication, disable binlog in dev environments.',
-                'severity'   => 'info',
+                'severity' => Severity::info(),
                 'suggestion' => $this->suggestionFactory->createConfiguration(
                     setting: 'log_bin',
                     currentValue: 'ON',
@@ -119,7 +120,7 @@ final class MySQLPerformanceConfigAnalyzer implements PerformanceConfigAnalyzerI
                     'Recommended: 50-70%% of available RAM (minimum 128MB, ideally 512MB+ for dev).',
                     $bufferPoolMB,
                 ),
-                'severity'   => $bufferPoolSize < 67108864 ? 'warning' : 'info', // < 64MB = warning
+                'severity'   => $bufferPoolSize < 67108864 ? Severity::warning() : Severity::info(), // < 64MB = warning
                 'suggestion' => $this->suggestionFactory->createConfiguration(
                     setting: 'innodb_buffer_pool_size',
                     currentValue: sprintf('%dMB', $bufferPoolMB),

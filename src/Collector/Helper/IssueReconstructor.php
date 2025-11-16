@@ -60,8 +60,8 @@ final class IssueReconstructor
         // Reconstruct and attach duplicated issues if any
         if (count($duplicatedIssuesData) > 0) {
             $duplicatedIssues = array_map(
-                fn(array $dupData) => $this->reconstructSimplifiedIssue($dupData),
-                $duplicatedIssuesData
+                fn (array $dupData) => $this->reconstructSimplifiedIssue($dupData),
+                $duplicatedIssuesData,
             );
             $issue->setDuplicatedIssues($duplicatedIssues);
         }

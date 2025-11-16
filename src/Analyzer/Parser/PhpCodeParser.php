@@ -41,11 +41,6 @@ use ReflectionMethod;
  */
 final class PhpCodeParser
 {
-    private readonly Parser $parser;
-
-    /** @var array<string, array<Stmt>|null> */
-    private array $astCache = [];
-
     /**
      * Maximum number of AST entries to cache.
      * Prevents memory exhaustion on large codebases.
@@ -58,6 +53,19 @@ final class PhpCodeParser
      * This reduces cache churn while keeping memory bounded.
      */
     private const CACHE_EVICTION_RATIO = 0.2;
+
+    private readonly Parser $parser;
+
+    /** @var array<string, array<Stmt>|null> */
+    private array $astCache = [];
+
+    /**
+     * Cache for analysis results with file modification time tracking.
+     * Format: [cache_key => [result, mtime]]
+     *
+     * @var array<string, array{result: mixed, mtime: int|false}>
+     */
+    private array $analysisCache = [];
 
     public function __construct(
         private readonly ?LoggerInterface $logger = null,
@@ -98,24 +106,6 @@ final class PhpCodeParser
             $this->astCache[$cacheKey] = null;
             return null;
         }
-    }
-
-    /**
-     * Evict oldest cache entries when limit is reached.
-     * Removes 20% of entries to reduce cache churn.
-     */
-    private function evictOldestEntries(): void
-    {
-        $entriesToRemove = (int) (self::MAX_CACHE_ENTRIES * self::CACHE_EVICTION_RATIO);
-
-        // Remove first N entries (oldest in insertion order)
-        // PHP arrays maintain insertion order, so this works as simple FIFO
-        $this->astCache = array_slice($this->astCache, $entriesToRemove, null, true);
-
-        $this->logger?->debug('PhpCodeParser: Evicted cache entries', [
-            'removed' => $entriesToRemove,
-            'remaining' => count($this->astCache),
-        ]);
     }
 
     /**
@@ -295,6 +285,109 @@ final class PhpCodeParser
     }
 
     /**
+     * Detect SQL injection patterns in a method.
+     *
+     * This replaces fragile regex with robust AST analysis.
+     * Detects patterns like:
+     * - String concatenation: $sql = "SELECT..." . $var
+     * - Variable interpolation: $sql = "SELECT...$var"
+     * - Missing parameters: $conn->executeQuery($sql) without params
+     * - sprintf with user input: sprintf("SELECT...", $_GET['id'])
+     *
+     * Benefits over regex:
+     * - Ignores comments automatically (no false positives)
+     * - Ignores string literals in irrelevant contexts
+     * - Type-safe detection of actual code patterns
+     * - Proper scope and variable tracking
+     *
+     * @param ReflectionMethod $method The method to analyze
+     * @return array{concatenation: bool, interpolation: bool, missing_parameters: bool, sprintf: bool}
+     */
+    public function detectSqlInjectionPatterns(ReflectionMethod $method): array
+    {
+        return $this->getCachedAnalysis($method, 'sql_injection', function () use ($method) {
+            $code = $this->extractMethodCode($method);
+            if (null === $code) {
+                return [
+                    'concatenation' => false,
+                    'interpolation' => false,
+                    'missing_parameters' => false,
+                    'sprintf' => false,
+                ];
+            }
+
+            $ast = $this->parse($code);
+            if (null === $ast) {
+                return [
+                    'concatenation' => false,
+                    'interpolation' => false,
+                    'missing_parameters' => false,
+                    'sprintf' => false,
+                ];
+            }
+
+            $visitor = new Visitor\SqlInjectionPatternVisitor();
+            $traverser = new NodeTraverser();
+            $traverser->addVisitor($visitor);
+            $traverser->traverse($ast);
+
+            return [
+                'concatenation' => $visitor->hasConcatenationPattern(),
+                'interpolation' => $visitor->hasInterpolationPattern(),
+                'missing_parameters' => $visitor->hasMissingParametersPattern(),
+                'sprintf' => $visitor->hasSprintfPattern(),
+            ];
+        });
+    }
+
+    /**
+     * Clear the AST cache.
+     * Useful for long-running processes to free memory.
+     */
+    public function clearCache(): void
+    {
+        $this->astCache = [];
+        $this->analysisCache = [];
+
+        $this->logger?->debug('PhpCodeParser: All caches cleared');
+    }
+
+    /**
+     * Get cache statistics.
+     *
+     * @return array{ast_entries: int, analysis_entries: int, memory_bytes: int}
+     */
+    public function getCacheStats(): array
+    {
+        $memoryBytes = strlen(serialize($this->astCache)) + strlen(serialize($this->analysisCache));
+
+        return [
+            'ast_entries' => count($this->astCache),
+            'analysis_entries' => count($this->analysisCache),
+            'memory_bytes' => $memoryBytes,
+            'memory_mb' => round($memoryBytes / 1024 / 1024, 2),
+        ];
+    }
+
+    /**
+     * Evict oldest cache entries when limit is reached.
+     * Removes 20% of entries to reduce cache churn.
+     */
+    private function evictOldestEntries(): void
+    {
+        $entriesToRemove = (int) (self::MAX_CACHE_ENTRIES * self::CACHE_EVICTION_RATIO);
+
+        // Remove first N entries (oldest in insertion order)
+        // PHP arrays maintain insertion order, so this works as simple FIFO
+        $this->astCache = array_slice($this->astCache, $entriesToRemove, null, true);
+
+        $this->logger?->debug('PhpCodeParser: Evicted cache entries', [
+            'removed' => $entriesToRemove,
+            'remaining' => count($this->astCache),
+        ]);
+    }
+
+    /**
      * Extract source code from a ReflectionMethod.
      *
      * @param ReflectionMethod $method The method to extract
@@ -358,78 +451,63 @@ final class PhpCodeParser
     }
 
     /**
-     * Detect SQL injection patterns in a method.
+     * Get cached analysis result with automatic invalidation on file changes.
      *
-     * This replaces fragile regex with robust AST analysis.
-     * Detects patterns like:
-     * - String concatenation: $sql = "SELECT..." . $var
-     * - Variable interpolation: $sql = "SELECT...$var"
-     * - Missing parameters: $conn->executeQuery($sql) without params
-     * - sprintf with user input: sprintf("SELECT...", $_GET['id'])
-     *
-     * Benefits over regex:
-     * - Ignores comments automatically (no false positives)
-     * - Ignores string literals in irrelevant contexts
-     * - Type-safe detection of actual code patterns
-     * - Proper scope and variable tracking
-     *
-     * @param ReflectionMethod $method The method to analyze
-     * @return array{concatenation: bool, interpolation: bool, missing_parameters: bool, sprintf: bool}
+     * @template T
+     * @param ReflectionMethod $method The method being analyzed
+     * @param string $analysisType Unique identifier for this analysis type
+     * @param callable(): T $callback Function to compute the result if cache miss
+     * @return T
      */
-    public function detectSqlInjectionPatterns(ReflectionMethod $method): array
+    private function getCachedAnalysis(ReflectionMethod $method, string $analysisType, callable $callback): mixed
     {
-        $code = $this->extractMethodCode($method);
-        if (null === $code) {
-            return [
-                'concatenation' => false,
-                'interpolation' => false,
-                'missing_parameters' => false,
-                'sprintf' => false,
-            ];
+        $filename = $method->getFileName();
+        if (false === $filename) {
+            // Method from internal class or eval(), can't cache
+            return $callback();
         }
 
-        $ast = $this->parse($code);
-        if (null === $ast) {
-            return [
-                'concatenation' => false,
-                'interpolation' => false,
-                'missing_parameters' => false,
-                'sprintf' => false,
-            ];
+        $mtime = filemtime($filename);
+        $cacheKey = sprintf(
+            '%s:%s::%s:%d',
+            $analysisType,
+            $method->getDeclaringClass()->getName(),
+            $method->getName(),
+            $mtime ?: 0, // mtime for auto-invalidation
+        );
+
+        // Check cache
+        if (isset($this->analysisCache[$cacheKey])) {
+            $cached = $this->analysisCache[$cacheKey];
+
+            // Verify file hasn't changed (double-check)
+            if ($cached['mtime'] === $mtime) {
+                $this->logger?->debug('PhpCodeParser: Analysis cache HIT', [
+                    'type' => $analysisType,
+                    'method' => $method->getName(),
+                ]);
+
+                return $cached['result'];
+            }
+
+            // File changed, invalidate
+            unset($this->analysisCache[$cacheKey]);
         }
 
-        $visitor = new Visitor\SqlInjectionPatternVisitor();
-        $traverser = new NodeTraverser();
-        $traverser->addVisitor($visitor);
-        $traverser->traverse($ast);
+        // Cache miss or invalidated - compute result
+        $this->logger?->debug('PhpCodeParser: Analysis cache MISS', [
+            'type' => $analysisType,
+            'method' => $method->getName(),
+        ]);
 
-        return [
-            'concatenation' => $visitor->hasConcatenationPattern(),
-            'interpolation' => $visitor->hasInterpolationPattern(),
-            'missing_parameters' => $visitor->hasMissingParametersPattern(),
-            'sprintf' => $visitor->hasSprintfPattern(),
+        $result = $callback();
+
+        // Store in cache
+        $this->analysisCache[$cacheKey] = [
+            'result' => $result,
+            'mtime' => $mtime,
         ];
-    }
 
-    /**
-     * Clear the AST cache.
-     * Useful for long-running processes to free memory.
-     */
-    public function clearCache(): void
-    {
-        $this->astCache = [];
-    }
-
-    /**
-     * Get cache statistics.
-     *
-     * @return array{entries: int, memory_bytes: int}
-     */
-    public function getCacheStats(): array
-    {
-        return [
-            'entries' => count($this->astCache),
-            'memory_bytes' => strlen(serialize($this->astCache)),
-        ];
+        return $result;
     }
 }

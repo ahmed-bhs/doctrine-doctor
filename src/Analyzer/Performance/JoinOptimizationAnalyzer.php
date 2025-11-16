@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -24,6 +22,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects suboptimal JOIN usage that impacts performance.

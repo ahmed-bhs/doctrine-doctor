@@ -65,13 +65,10 @@ class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                     $config       = $this->entityManager->getConfiguration();
                     $autoGenerate = $config->getAutoGenerateProxyClasses();
 
-                    // Check if we're in production-like environment
-                    $isProduction = in_array($this->environment, ['prod', 'production', 'staging'], true);
-
                     // In Doctrine ORM:
-                    // - 0 or false = Never auto-generate (GOOD for production)
-                    // - 1 or true = Always auto-generate (BAD for production)
-                    // - 2 = Auto-generate on file change (BAD for production)
+                    // - 0 or false = Never auto-generate (RECOMMENDED)
+                    // - 1 or true = Always auto-generate (NOT RECOMMENDED - performance impact)
+                    // - 2 = Auto-generate on file change (NOT RECOMMENDED - file system checks)
                     //
                     // Constants (Doctrine\Common\Proxy\AbstractProxyFactory):
                     // - AUTOGENERATE_NEVER = 0
@@ -79,7 +76,7 @@ class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                     // - AUTOGENERATE_FILE_NOT_EXISTS = 2
                     // - AUTOGENERATE_EVAL = 3 (deprecated)
 
-                    if ($isProduction && $this->isAutoGenerateEnabled($autoGenerate)) {
+                    if ($this->isAutoGenerateEnabled($autoGenerate)) {
                         yield $this->createAutoGenerateIssue($autoGenerate);
                     }
                 } catch (\Throwable $throwable) {

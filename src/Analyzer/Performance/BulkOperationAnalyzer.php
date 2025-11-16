@@ -19,8 +19,8 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
-use Webmozart\Assert\Assert;
 use Psr\Log\LoggerInterface;
+use Webmozart\Assert\Assert;
 
 class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {

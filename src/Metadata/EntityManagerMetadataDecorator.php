@@ -46,7 +46,7 @@ class EntityManagerMetadataDecorator extends EntityManagerDecorator
             $originalFactory = $this->wrapped->getMetadataFactory();
             $this->filteredFactory = new FilteredClassMetadataFactory(
                 $originalFactory,
-                $this->metadataProvider
+                $this->metadataProvider,
             );
         }
 

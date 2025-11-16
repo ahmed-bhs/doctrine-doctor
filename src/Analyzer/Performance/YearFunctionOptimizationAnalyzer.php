@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -22,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects date/time functions used on indexed columns that prevent index usage.

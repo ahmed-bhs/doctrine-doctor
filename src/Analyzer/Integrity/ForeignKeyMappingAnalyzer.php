@@ -169,7 +169,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         // Check common FK suffixes first (strongest indicator)
         // This takes priority over non-FK patterns to avoid "countryId" vs "count" issues
         foreach (self::FK_SUFFIXES as $suffix) {
-            if (str_ends_with($lowerFieldName, strtolower($suffix)) && $lowerFieldName !== 'id') {
+            if (str_ends_with($lowerFieldName, strtolower($suffix)) && 'id' !== $lowerFieldName) {
                 return true;
             }
         }
@@ -229,12 +229,12 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
 
         // Check if pattern appears in the middle with word boundaries
         $pos = strpos($fieldName, $pattern);
-        if ($pos === false) {
+        if (false === $pos) {
             return false;
         }
 
         // Must have word boundaries before and after
-        $before = ($pos === 0) || !ctype_alpha($fieldName[$pos - 1]);
+        $before = (0 === $pos) || !ctype_alpha($fieldName[$pos - 1]);
         $after = ($pos + $patternLength === $fieldLength) || !ctype_alpha($fieldName[$pos + $patternLength]);
 
         return $before && $after;

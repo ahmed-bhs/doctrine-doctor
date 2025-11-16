@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer\Parser\Visitor;
@@ -17,20 +24,20 @@ final class SqlInjectionPatternVisitorTest extends TestCase
         $this->parser = new PhpCodeParser();
     }
 
-    public function testDetectsInterpolationWithCurlyBraces(): void
+    public function test_detects_interpolation_with_curly_braces(): void
     {
         $method = new ReflectionMethod(TestClass::class, 'methodWithCurlyBraceInterpolation');
         $patterns = $this->parser->detectSqlInjectionPatterns($method);
 
-        $this->assertTrue($patterns['interpolation'], 'Should detect {$var} interpolation');
+        self::assertTrue($patterns['interpolation'], 'Should detect {$var} interpolation');
     }
 
-    public function testDetectsSprintfWithGetParameter(): void
+    public function test_detects_sprintf_with_get_parameter(): void
     {
         $method = new ReflectionMethod(TestClass::class, 'methodWithSprintfAndGet');
         $patterns = $this->parser->detectSqlInjectionPatterns($method);
 
-        $this->assertTrue($patterns['sprintf'], 'Should detect sprintf with $_GET');
+        self::assertTrue($patterns['sprintf'], 'Should detect sprintf with $_GET');
     }
 }
 

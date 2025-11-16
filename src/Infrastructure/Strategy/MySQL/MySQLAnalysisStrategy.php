@@ -38,10 +38,15 @@ use Doctrine\DBAL\Connection;
 class MySQLAnalysisStrategy implements PlatformAnalysisStrategy
 {
     private readonly CharsetAnalyzerInterface $charsetAnalyzer;
+
     private readonly CollationAnalyzerInterface $collationAnalyzer;
+
     private readonly TimezoneAnalyzerInterface $timezoneAnalyzer;
+
     private readonly ConnectionPoolingAnalyzerInterface $connectionPoolingAnalyzer;
+
     private readonly StrictModeAnalyzerInterface $strictModeAnalyzer;
+
     private readonly PerformanceConfigAnalyzerInterface $performanceConfigAnalyzer;
 
     public function __construct(

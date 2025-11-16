@@ -593,7 +593,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
         $objectTypeIssues = array_filter(
             $issuesArray,
             fn ($issue) => str_contains($issue->getTitle(), 'object') &&
-                          str_contains($issue->getTitle(), 'EntityWithObjectType')
+                          str_contains($issue->getTitle(), 'EntityWithObjectType'),
         );
 
         self::assertGreaterThan(0, count($objectTypeIssues), 'Should have object type issues');
@@ -617,7 +617,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $objectTypeIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'object')
+            fn ($issue) => str_contains($issue->getTitle(), 'object'),
         );
 
         foreach ($objectTypeIssues as $issue) {
@@ -625,7 +625,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
             self::assertStringNotContainsString(
                 'vendor dependency',
                 $issue->getDescription(),
-                'App entities should not have vendor warnings'
+                'App entities should not have vendor warnings',
             );
         }
     }
@@ -635,6 +635,9 @@ final class ColumnTypeAnalyzerTest extends TestCase
         $arrayLoader = new ArrayLoader([
             'default' => 'Suggestion: {{ message }}',
             'code_suggestion' => '{{ description }}
+
+{{ code }}',
+            'Integrity/code_suggestion' => '{{ description }}
 
 {{ code }}',
         ]);

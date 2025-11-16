@@ -507,7 +507,7 @@ final class MissingOrphanRemovalOnCompositionAnalyzerTest extends TestCase
         // Find issues with NOT NULL FK (should be CRITICAL for app code)
         $criticalIssues = array_filter(
             $issuesArray,
-            fn ($issue) => $issue->getData()['nullable_fk'] === false
+            fn ($issue) => false === $issue->getData()['nullable_fk'],
         );
 
         foreach ($criticalIssues as $issue) {
@@ -531,12 +531,12 @@ final class MissingOrphanRemovalOnCompositionAnalyzerTest extends TestCase
             self::assertStringNotContainsString(
                 'vendor dependency',
                 $issue->getDescription(),
-                'App entities should not have vendor warnings'
+                'App entities should not have vendor warnings',
             );
             self::assertStringNotContainsString(
                 'intentional design choice',
                 $issue->getDescription(),
-                'App entities should not reference vendor design choices'
+                'App entities should not reference vendor design choices',
             );
         }
     }

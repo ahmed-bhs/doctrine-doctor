@@ -268,7 +268,7 @@ final class SuggestionContentBlock
 ", $text);
         $html       = '';
 
-        assert(is_iterable($paragraphs), '$paragraphs must be iterable');
+        Assert::isIterable($paragraphs, '$paragraphs must be iterable');
 
         foreach ($paragraphs as $paragraph) {
             $paragraph = trim($paragraph);
@@ -287,7 +287,7 @@ final class SuggestionContentBlock
 ", $paragraph);
                 $html .= '<ul>';
 
-                assert(is_iterable($items), '$items must be iterable');
+                Assert::isIterable($items, '$items must be iterable');
 
                 foreach ($items as $item) {
                     // Pattern: Simple pattern match: /^[-•]\s+/
@@ -409,7 +409,7 @@ final class SuggestionContentBlock
         $items   = [];
         $content = $this->getArrayContent();
 
-        assert(is_iterable($content), '$content must be iterable');
+        Assert::isIterable($content, '$content must be iterable');
 
         foreach ($content as $i => $item) {
             $itemStr = is_string($item) ? $item : (string) $item;

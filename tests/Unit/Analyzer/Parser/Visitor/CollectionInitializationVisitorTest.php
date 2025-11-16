@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer\Parser\Visitor;
@@ -28,7 +35,7 @@ final class CollectionInitializationVisitorTest extends TestCase
     // ArrayCollection Tests
     // ========================================================================
 
-    public function testDetectsSimpleArrayCollectionInit(): void
+    public function test_detects_simple_array_collection_init(): void
     {
         // Given: Code with simple ArrayCollection initialization
         $code = <<<'PHP'
@@ -45,10 +52,10 @@ final class CollectionInitializationVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Initialization should be detected
-        $this->assertTrue($visitor->hasInitialization());
+        self::assertTrue($visitor->hasInitialization());
     }
 
-    public function testDetectsFQNArrayCollection(): void
+    public function test_detects_fqn_array_collection(): void
     {
         // Given: Code with fully qualified class name
         $code = <<<'PHP'
@@ -65,14 +72,14 @@ final class CollectionInitializationVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Initialization should be detected
-        $this->assertTrue($visitor->hasInitialization());
+        self::assertTrue($visitor->hasInitialization());
     }
 
     // ========================================================================
     // Array Literal Tests
     // ========================================================================
 
-    public function testDetectsEmptyArrayInit(): void
+    public function test_detects_empty_array_init(): void
     {
         // Given: Code with empty array initialization
         $code = <<<'PHP'
@@ -89,10 +96,10 @@ final class CollectionInitializationVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Initialization should be detected
-        $this->assertTrue($visitor->hasInitialization());
+        self::assertTrue($visitor->hasInitialization());
     }
 
-    public function testIgnoresNonEmptyArray(): void
+    public function test_ignores_non_empty_array(): void
     {
         // Given: Code with non-empty array (not a collection init)
         $code = <<<'PHP'
@@ -109,14 +116,14 @@ final class CollectionInitializationVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT be detected (not empty array)
-        $this->assertFalse($visitor->hasInitialization());
+        self::assertFalse($visitor->hasInitialization());
     }
 
     // ========================================================================
     // Field Specificity Tests
     // ========================================================================
 
-    public function testOnlyDetectsSpecificField(): void
+    public function test_only_detects_specific_field(): void
     {
         // Given: Code initializing multiple fields
         $code = <<<'PHP'
@@ -135,10 +142,10 @@ final class CollectionInitializationVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should detect only 'users'
-        $this->assertTrue($visitor->hasInitialization());
+        self::assertTrue($visitor->hasInitialization());
     }
 
-    public function testReturnsFalseForDifferentField(): void
+    public function test_returns_false_for_different_field(): void
     {
         // Given: Code initializing 'items' but not 'users'
         $code = <<<'PHP'
@@ -155,14 +162,14 @@ final class CollectionInitializationVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT detect
-        $this->assertFalse($visitor->hasInitialization());
+        self::assertFalse($visitor->hasInitialization());
     }
 
     // ========================================================================
     // Negative Tests
     // ========================================================================
 
-    public function testIgnoresCommentsAutomatically(): void
+    public function test_ignores_comments_automatically(): void
     {
         // Given: Code with initialization only in comments
         $code = <<<'PHP'
@@ -180,10 +187,10 @@ final class CollectionInitializationVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT detect
-        $this->assertFalse($visitor->hasInitialization());
+        self::assertFalse($visitor->hasInitialization());
     }
 
-    public function testIgnoresStringLiterals(): void
+    public function test_ignores_string_literals(): void
     {
         // Given: Code with initialization in string
         $code = <<<'PHP'
@@ -200,10 +207,10 @@ final class CollectionInitializationVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT detect (it's in a string)
-        $this->assertFalse($visitor->hasInitialization());
+        self::assertFalse($visitor->hasInitialization());
     }
 
-    public function testIgnoresStaticPropertyAccess(): void
+    public function test_ignores_static_property_access(): void
     {
         // Given: Code with static property (not $this->)
         $code = <<<'PHP'
@@ -220,10 +227,10 @@ final class CollectionInitializationVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT detect (not $this->items)
-        $this->assertFalse($visitor->hasInitialization());
+        self::assertFalse($visitor->hasInitialization());
     }
 
-    public function testIgnoresOtherVariables(): void
+    public function test_ignores_other_variables(): void
     {
         // Given: Code initializing local variable, not property
         $code = <<<'PHP'
@@ -240,14 +247,14 @@ final class CollectionInitializationVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should NOT detect (local variable, not $this->items)
-        $this->assertFalse($visitor->hasInitialization());
+        self::assertFalse($visitor->hasInitialization());
     }
 
     // ========================================================================
     // Complex Scenarios
     // ========================================================================
 
-    public function testHandlesMultipleStatementsCorrectly(): void
+    public function test_handles_multiple_statements_correctly(): void
     {
         // Given: Code with multiple statements
         $code = <<<'PHP'
@@ -267,10 +274,10 @@ final class CollectionInitializationVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should detect even inside if statement
-        $this->assertTrue($visitor->hasInitialization());
+        self::assertTrue($visitor->hasInitialization());
     }
 
-    public function testHandlesNestedScopes(): void
+    public function test_handles_nested_scopes(): void
     {
         // Given: Code with nested scopes
         $code = <<<'PHP'
@@ -291,7 +298,7 @@ final class CollectionInitializationVisitorTest extends TestCase
         $this->traverseCode($code, $visitor);
 
         // Then: Should detect in nested scope
-        $this->assertTrue($visitor->hasInitialization());
+        self::assertTrue($visitor->hasInitialization());
     }
 
     // ========================================================================

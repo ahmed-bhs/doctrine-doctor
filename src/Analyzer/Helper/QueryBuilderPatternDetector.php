@@ -68,20 +68,6 @@ class QueryBuilderPatternDetector
     }
 
     /**
-     * Checks if a specific condition uses literal values instead of parameters.
-     */
-    private function hasLiteralValueInCondition(string $sql, string $column, string $operator): bool
-    {
-        $escapedColumn = preg_quote($column, '/');
-        $escapedOperator = preg_quote($operator, '/');
-
-        // Pattern: column operator "value" or column operator 'value'
-        $pattern = sprintf('/%s\s*%s\s*["\'][^"\']*["\']/', $escapedColumn, $escapedOperator);
-
-        return 1 === preg_match($pattern, $sql);
-    }
-
-    /**
      * Detects WHERE/AND/OR with quoted literals (comprehensive check).
      *
      * Fallback method for cases where parser doesn't catch everything.
@@ -141,20 +127,6 @@ class QueryBuilderPatternDetector
             'detected' => [] !== $incorrectFields,
             'fields' => $incorrectFields,
         ];
-    }
-
-    /**
-     * Checks if a column has NULL comparison with wrong operator.
-     */
-    private function hasNullComparisonWithOperator(string $sql, string $column, string $operator): bool
-    {
-        $escapedColumn = preg_quote($column, '/');
-        $escapedOperator = preg_quote($operator, '/');
-
-        // Pattern: column operator NULL
-        $pattern = sprintf('/%s\s*%s\s*NULL/i', $escapedColumn, $escapedOperator);
-
-        return 1 === preg_match($pattern, $sql);
     }
 
     /**
@@ -261,5 +233,33 @@ class QueryBuilderPatternDetector
             'missing_params' => 'Add missing ->setParameter() calls for all placeholders',
             default => 'Review the query and fix the issue',
         };
+    }
+
+    /**
+     * Checks if a specific condition uses literal values instead of parameters.
+     */
+    private function hasLiteralValueInCondition(string $sql, string $column, string $operator): bool
+    {
+        $escapedColumn = preg_quote($column, '/');
+        $escapedOperator = preg_quote($operator, '/');
+
+        // Pattern: column operator "value" or column operator 'value'
+        $pattern = sprintf('/%s\s*%s\s*["\'][^"\']*["\']/', $escapedColumn, $escapedOperator);
+
+        return 1 === preg_match($pattern, $sql);
+    }
+
+    /**
+     * Checks if a column has NULL comparison with wrong operator.
+     */
+    private function hasNullComparisonWithOperator(string $sql, string $column, string $operator): bool
+    {
+        $escapedColumn = preg_quote($column, '/');
+        $escapedOperator = preg_quote($operator, '/');
+
+        // Pattern: column operator NULL
+        $pattern = sprintf('/%s\s*%s\s*NULL/i', $escapedColumn, $escapedOperator);
+
+        return 1 === preg_match($pattern, $sql);
     }
 }

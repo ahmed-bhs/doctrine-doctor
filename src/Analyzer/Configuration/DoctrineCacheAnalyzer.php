@@ -171,7 +171,7 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
 
                 // Check metadata_cache_driver
                 if (isset($prodOrmConfig['metadata_cache_driver']['type'])
-                    && $prodOrmConfig['metadata_cache_driver']['type'] === 'array') {
+                    && 'array' === $prodOrmConfig['metadata_cache_driver']['type']) {
                     $issues[] = $this->createYamlIssue(
                         'critical',
                         'Array Cache in Production Config (Metadata)',
@@ -180,13 +180,13 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                         'metadata',
                         'array (in when@prod)',
                         '-50 to -80%',
-                        $configFile
+                        $configFile,
                     );
                 }
 
                 // Check query_cache_driver
                 if (isset($prodOrmConfig['query_cache_driver']['type'])
-                    && $prodOrmConfig['query_cache_driver']['type'] === 'array') {
+                    && 'array' === $prodOrmConfig['query_cache_driver']['type']) {
                     $issues[] = $this->createYamlIssue(
                         'critical',
                         'Array Cache in Production Config (Query)',
@@ -195,13 +195,13 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                         'query',
                         'array (in when@prod)',
                         '-30 to -50%',
-                        $configFile
+                        $configFile,
                     );
                 }
 
                 // Check result_cache_driver
                 if (isset($prodOrmConfig['result_cache_driver']['type'])
-                    && $prodOrmConfig['result_cache_driver']['type'] === 'array') {
+                    && 'array' === $prodOrmConfig['result_cache_driver']['type']) {
                     $issues[] = $this->createYamlIssue(
                         'warning',
                         'Array Cache in Production Config (Result)',
@@ -210,7 +210,7 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                         'result',
                         'array (in when@prod)',
                         'Varies (0-50%)',
-                        $configFile
+                        $configFile,
                     );
                 }
             }
@@ -246,7 +246,7 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         $configurationIssue->setMessage(
             $message . "\n\n" .
             "📁 Configuration file: " . basename($configFile) . "\n" .
-            "⚠️  Performance impact: " . $performanceImpact
+            "⚠️  Performance impact: " . $performanceImpact,
         );
 
         $suggestion = $this->suggestionFactory->createConfiguration(

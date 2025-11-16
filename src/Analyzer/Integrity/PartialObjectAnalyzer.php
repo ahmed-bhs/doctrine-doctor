@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -24,6 +22,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionContent;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionContentBlock;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects queries that load entire entities when only a few fields are needed.

@@ -34,9 +34,6 @@ final class SqlPatternDetector implements PatternDetectorInterface
         $this->joinExtractor = $joinExtractor ?? new SqlJoinExtractor();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function detectNPlusOnePattern(string $sql): ?array
     {
         $parser = new Parser($sql);
@@ -79,9 +76,6 @@ final class SqlPatternDetector implements PatternDetectorInterface
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function detectNPlusOneFromJoin(string $sql): ?array
     {
         $joins = $this->joinExtractor->extractJoins($sql);
@@ -122,9 +116,6 @@ final class SqlPatternDetector implements PatternDetectorInterface
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function detectLazyLoadingPattern(string $sql): ?string
     {
         $parser = new Parser($sql);
@@ -164,9 +155,6 @@ final class SqlPatternDetector implements PatternDetectorInterface
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function detectUpdateQuery(string $sql): ?string
     {
         $parser = new Parser($sql);
@@ -186,9 +174,6 @@ final class SqlPatternDetector implements PatternDetectorInterface
         return $table->table ?? null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function detectDeleteQuery(string $sql): ?string
     {
         $parser = new Parser($sql);
@@ -208,9 +193,6 @@ final class SqlPatternDetector implements PatternDetectorInterface
         return $table->table ?? null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function detectInsertQuery(string $sql): ?string
     {
         $parser = new Parser($sql);
@@ -228,9 +210,6 @@ final class SqlPatternDetector implements PatternDetectorInterface
         return $statement->into->dest->table ?? null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function isSelectQuery(string $sql): bool
     {
         $parser = new Parser($sql);
@@ -239,9 +218,6 @@ final class SqlPatternDetector implements PatternDetectorInterface
         return $statement instanceof SelectStatement;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function detectPartialCollectionLoad(string $sql): bool
     {
         $parser = new Parser($sql);

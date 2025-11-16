@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CompositionRelationshipDetector;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -21,6 +19,7 @@ use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects cascade="remove" on associations to independent entities.
@@ -245,7 +244,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
                 $type = $this->getAssociationTypeConstant($association);
 
                 // Only check ManyToOne (the "many" side that points to parent)
-                if ($type !== ClassMetadata::MANY_TO_ONE) {
+                if (ClassMetadata::MANY_TO_ONE !== $type) {
                     continue;
                 }
 
@@ -423,7 +422,6 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
 
         return $codeQualityIssue;
     }
-
 
     private function getShortClassName(string $fullClassName): string
     {

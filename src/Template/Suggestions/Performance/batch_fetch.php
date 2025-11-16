@@ -40,7 +40,7 @@ ob_start();
     <div class="query-item">
         <pre><code class="language-php">// BAD: Each proxy initialization triggers a separate query
 $entities = $repository->findAll();
-assert(is_iterable($entities), '$entities must be iterable');
+Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
     echo $entity->get<?php echo ucfirst($relation); ?>()->getName(); // Proxy initialized here!
@@ -60,12 +60,12 @@ private ?RelatedEntity $<?php echo $e($relation); ?> = null;
 
 // Now when you access proxies in a loop:
 $entities = $repository->findAll();
-assert(is_iterable($entities), '$entities must be iterable');
+Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
     echo $entity->get<?php echo ucfirst($relation); ?>()->getName(); // Batched!
 }
-// Result: Approx <?php echo (int)ceil($queryCount / 10); ?> queries (10 proxies per query)</code></pre>
+// Result: Approx <?php echo (int) ceil($queryCount / 10); ?> queries (10 proxies per query)</code></pre>
     </div>
 
     <h4>Solution 2: JOIN FETCH</h4>
@@ -79,7 +79,7 @@ $entities = $entityManager
     ')
     ->getResult();
 
-assert(is_iterable($entities), '$entities must be iterable');
+Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
     echo $entity->get<?php echo ucfirst($relation); ?>()->getName(); // Already loaded!
@@ -140,7 +140,7 @@ public function findAllWith<?php echo ucfirst($relation); ?>(): array
         ℹ️ <strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Current:</strong> <?php echo $queryCount; ?> queries (one per entity)</li>
-            <li><strong>With Batch Fetch (size=10):</strong> ~<?php echo (int)ceil($queryCount / 10); ?> queries</li>
+            <li><strong>With Batch Fetch (size=10):</strong> ~<?php echo (int) ceil($queryCount / 10); ?> queries</li>
             <li><strong>With JOIN FETCH:</strong> 1 query</li>
         </ul>
     </div>

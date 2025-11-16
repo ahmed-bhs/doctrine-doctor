@@ -14,6 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Service;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use Webmozart\Assert\Assert;
 
 /**
  * Deduplicates issues to avoid showing the same problem multiple times.
@@ -35,7 +36,7 @@ final class IssueDeduplicator
 
         // Step 2: Apply deduplication rules within each group
         $deduplicatedIssues = [];
-        assert(is_iterable($groupedIssues), '$groupedIssues must be iterable');
+        Assert::isIterable($groupedIssues, '$groupedIssues must be iterable');
 
         foreach ($groupedIssues as $group) {
             $result = $this->selectBestIssueWithDuplicates($group);
@@ -55,7 +56,7 @@ final class IssueDeduplicator
     {
         $groups = [];
 
-        assert(is_iterable($issues), '$issues must be iterable');
+        Assert::isIterable($issues, '$issues must be iterable');
 
         foreach ($issues as $issue) {
             $signature = $this->getIssueSignature($issue);
@@ -301,7 +302,7 @@ final class IssueDeduplicator
         $bestSeverity = -1;
         $duplicates = [];
 
-        assert(is_iterable($issues), '$issues must be iterable');
+        Assert::isIterable($issues, '$issues must be iterable');
 
         foreach ($issues as $issue) {
             $title = $issue->getTitle();
@@ -309,7 +310,7 @@ final class IssueDeduplicator
 
             // Find matching priority
             $priority = 0;
-            assert(is_iterable($priorities), '$priorities must be iterable');
+            Assert::isIterable($priorities, '$priorities must be iterable');
 
             foreach ($priorities as $keyword => $weight) {
                 if (str_contains($title, $keyword)) {

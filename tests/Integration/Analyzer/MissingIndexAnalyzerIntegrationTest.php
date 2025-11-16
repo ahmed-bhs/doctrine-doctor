@@ -50,8 +50,11 @@ final class MissingIndexAnalyzerIntegrationTest extends DatabaseTestCase
             enabled: true,
         );
 
+        $templateRenderer = PlatformAnalyzerTestHelper::createTemplateRenderer();
+        $suggestionFactory = new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory($templateRenderer);
+
         $this->missingIndexAnalyzer = new MissingIndexAnalyzer(
-            templateRenderer: PlatformAnalyzerTestHelper::createTemplateRenderer(), // @phpstan-ignore-line argument.type
+            suggestionFactory: $suggestionFactory,
             connection: $this->connection,
             missingIndexAnalyzerConfig: $missingIndexAnalyzerConfig,
         );
@@ -486,8 +489,11 @@ final class MissingIndexAnalyzerIntegrationTest extends DatabaseTestCase
             enabled: false, // DISABLED
         );
 
+        $templateRenderer = PlatformAnalyzerTestHelper::createTemplateRenderer();
+        $suggestionFactory = new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory($templateRenderer);
+
         $missingIndexAnalyzer = new MissingIndexAnalyzer(
-            templateRenderer: PlatformAnalyzerTestHelper::createTemplateRenderer(), // @phpstan-ignore-line argument.type
+            suggestionFactory: $suggestionFactory,
             connection: $this->connection,
             missingIndexAnalyzerConfig: $missingIndexAnalyzerConfig,
         );

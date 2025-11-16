@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\TraitCollectionInitializationDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -23,6 +21,7 @@ use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
+use Webmozart\Assert\Assert;
 
 /**
  * Detects entity collections that are not properly initialized in constructors.
@@ -32,6 +31,7 @@ use Psr\Log\LoggerInterface;
 class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     private readonly TraitCollectionInitializationDetector $traitDetector;
+
     private readonly PhpCodeParser $phpCodeParser;
 
     public function __construct(
@@ -51,8 +51,8 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         ?PhpCodeParser $phpCodeParser = null,
     ) {
         // Dependency Injection with fallback for backwards compatibility
-        $this->traitDetector = $traitDetector ?? new TraitCollectionInitializationDetector($logger);
         $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
+        $this->traitDetector = $traitDetector ?? new TraitCollectionInitializationDetector($this->phpCodeParser, $logger);
     }
 
     /**

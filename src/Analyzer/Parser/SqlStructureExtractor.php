@@ -44,10 +44,15 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Parser\Interface\QueryNormalizerInterface;
 class SqlStructureExtractor
 {
     private JoinExtractorInterface $joinExtractor;
+
     private QueryNormalizerInterface $queryNormalizer;
+
     private PatternDetectorInterface $patternDetector;
+
     private ConditionAnalyzerInterface $conditionAnalyzer;
+
     private PerformanceAnalyzerInterface $performanceAnalyzer;
+
     private AggregationAnalyzerInterface $aggregationAnalyzer;
 
     public function __construct(

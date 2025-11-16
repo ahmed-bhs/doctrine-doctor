@@ -18,13 +18,13 @@ use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\ConnectionPoolingA
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\PerformanceConfigAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\StrictModeAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\TimezoneAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\PlatformAnalysisStrategy;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\PostgreSQL\Analyzer\PostgreSQLCharsetAnalyzer;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\PostgreSQL\Analyzer\PostgreSQLCollationAnalyzer;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\PostgreSQL\Analyzer\PostgreSQLConnectionPoolingAnalyzer;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\PostgreSQL\Analyzer\PostgreSQLPerformanceConfigAnalyzer;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\PostgreSQL\Analyzer\PostgreSQLStrictModeAnalyzer;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\PostgreSQL\Analyzer\PostgreSQLTimezoneAnalyzer;
-use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\PlatformAnalysisStrategy;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use Doctrine\DBAL\Connection;
 
@@ -38,10 +38,15 @@ use Doctrine\DBAL\Connection;
 class PostgreSQLAnalysisStrategy implements PlatformAnalysisStrategy
 {
     private readonly CharsetAnalyzerInterface $charsetAnalyzer;
+
     private readonly CollationAnalyzerInterface $collationAnalyzer;
+
     private readonly TimezoneAnalyzerInterface $timezoneAnalyzer;
+
     private readonly ConnectionPoolingAnalyzerInterface $connectionPoolingAnalyzer;
+
     private readonly StrictModeAnalyzerInterface $strictModeAnalyzer;
+
     private readonly PerformanceConfigAnalyzerInterface $performanceConfigAnalyzer;
 
     public function __construct(

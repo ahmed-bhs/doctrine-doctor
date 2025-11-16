@@ -15,6 +15,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\TimezoneAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
 
@@ -143,7 +144,7 @@ final class MySQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
                 $systemTimezone,
                 $phpTimezone,
             ),
-            'severity'   => 'warning',
+            'severity'   => Severity::warning(),
             'suggestion' => $this->suggestionFactory->createConfiguration(
                 setting: 'MySQL time_zone',
                 currentValue: 'SYSTEM',
@@ -170,7 +171,7 @@ final class MySQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
                 $mysqlTz,
                 $phpTz,
             ),
-            'severity'   => 'critical',
+            'severity'   => Severity::critical(),
             'suggestion' => $this->suggestionFactory->createConfiguration(
                 setting: 'Timezone configuration',
                 currentValue: sprintf('MySQL: %s, PHP: %s', $mysqlTz, $phpTz),
@@ -190,7 +191,7 @@ final class MySQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
             'description' => 'MySQL timezone tables (mysql.time_zone_name) are empty. ' .
                 'This prevents timezone conversions with CONVERT_TZ() and named timezones. ' .
                 'You can only use offset-based timezones like "+00:00" which is inflexible.',
-            'severity'   => 'warning',
+            'severity'   => Severity::warning(),
             'suggestion' => $this->suggestionFactory->createConfiguration(
                 setting: 'MySQL timezone tables',
                 currentValue: 'Not loaded',

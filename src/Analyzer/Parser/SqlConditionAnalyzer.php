@@ -24,10 +24,6 @@ use PhpMyAdmin\SqlParser\Statements\SelectStatement;
  */
 final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
 {
-
-    /**
-     * {@inheritDoc}
-     */
     public function extractWhereColumns(string $sql): array
     {
         $parser = new Parser($sql);
@@ -61,9 +57,6 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         return array_values(array_unique($columns));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function extractWhereConditions(string $sql): array
     {
         $parser = new Parser($sql);
@@ -90,7 +83,7 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
             // Pattern: alias.column = ? or column = ?
             if (preg_match('/(?:(\w+)\.)?(\w+)\s*(=|!=|<>|>|<|>=|<=|IN|LIKE|IS)/i', $expr, $matches) > 0) {
                 $conditions[] = [
-                    'alias' => $matches[1] !== '' ? $matches[1] : null,
+                    'alias' => '' !== $matches[1] ? $matches[1] : null,
                     'column' => $matches[2],
                     'operator' => strtoupper($matches[3]),
                 ];
@@ -100,9 +93,6 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         return $conditions;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function extractJoinColumns(string $sql): array
     {
         $parser = new Parser($sql);
@@ -141,9 +131,6 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         return array_values(array_unique($columns));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function extractFunctionsInWhere(string $sql): array
     {
         $parser = new Parser($sql);
@@ -176,9 +163,6 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         return $functions;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function findIsNotNullFieldOnAlias(string $sql, string $alias): ?string
     {
         $parser = new Parser($sql);
@@ -205,9 +189,6 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasComplexWhereConditions(string $sql): bool
     {
         $parser = new Parser($sql);
@@ -234,9 +215,6 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         return $conditionCount > 1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasLocaleConstraintInJoin(string $sql): bool
     {
         $sqlUpper = strtoupper($sql);
@@ -277,9 +255,6 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasUniqueJoinConstraint(string $sql): bool
     {
         $parser = new Parser($sql);
@@ -303,7 +278,7 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
             $conditionCount = count($join->on);
 
             // Simple case: exactly one condition
-            if ($conditionCount === 1) {
+            if (1 === $conditionCount) {
                 $conditionStr = strtoupper((string) $join->on[0]);
 
                 // Check if it's an ID = ID pattern (potential one-to-one)
@@ -319,9 +294,6 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function isAliasUsedInQuery(string $sql, string $alias, ?string $joinExpression = null): bool
     {
         $parser = new Parser($sql);
@@ -392,12 +364,6 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
                 // Skip the JOIN definition we're checking
                 if (null !== $joinExpression) {
                     $thisJoinTable = $join->expr->table ?? '';
-                    $thisJoinAlias = $join->expr->alias ?? '';
-
-                    // Build this JOIN's full expression to compare
-                    if ('' !== $thisJoinAlias) {
-                        $thisJoinExpr .= ' ' . $thisJoinAlias;
-                    }
 
                     // Skip if this is the same JOIN we're checking
                     // Use more precise matching: check if table AND potential alias match

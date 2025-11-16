@@ -41,7 +41,8 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         $renderer = new InMemoryTemplateRenderer();
         $suggestionFactory = new SuggestionFactory($renderer);
         $issueFactory = new IssueFactory();
-        $this->analyzer = new SetMaxResultsWithCollectionJoinAnalyzer($issueFactory, $suggestionFactory);
+        $sqlExtractor = new \AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor();
+        $this->analyzer = new SetMaxResultsWithCollectionJoinAnalyzer($issueFactory, $suggestionFactory, $sqlExtractor);
     }
 
     #[Test]

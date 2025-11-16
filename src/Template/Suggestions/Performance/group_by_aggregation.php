@@ -40,7 +40,7 @@ ob_start();
     <div class="query-item">
         <pre><code class="language-php">// BAD: Loading all data then counting
 $entities = $repository->findAll();
-assert(is_iterable($entities), '$entities must be iterable');
+Assert::isIterable($entities, '$entities must be iterable');
 
 $response = [];
 foreach ($entities as $entity) {
@@ -63,7 +63,7 @@ $query = $entityManager->createQuery('
 ');
 
 $results = $query->getResult();
-assert(is_iterable($results), '$results must be iterable');
+Assert::isIterable($results, '$results must be iterable');
 
 $response = [];
 foreach ($results as $row) {
@@ -107,7 +107,7 @@ $query = $entityManager->createQuery('
 ');
 
 $results = $query->getResult();
-assert(is_iterable($results), '$results must be iterable');
+Assert::isIterable($results, '$results must be iterable');
 
 foreach ($results as $row) {
     $entity = $row[0]; // Full <?php echo $e($entity); ?> object

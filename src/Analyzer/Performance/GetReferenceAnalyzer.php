@@ -12,8 +12,6 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
-use Webmozart\Assert\Assert;
-
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -21,7 +19,11 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Psr\Log\LoggerInterface;
+use Webmozart\Assert\Assert;
 
 class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
@@ -126,7 +128,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
                     // Create representative sample: take first query from each unique pattern
                     $representativeQueries = [];
-                    foreach ($groupedQueries as $pattern => $queries) {
+                    foreach ($groupedQueries as $queries) {
                         $representativeQueries[] = $queries[0]; // Only show one example per pattern
                     }
 
@@ -147,9 +149,9 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                                 'relation' => 'relation',
                                 'query_count' => $totalCount,
                             ],
-                            suggestionMetadata: new \AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata(
-                                type: \AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType::performance(),
-                                severity: \AhmedBhs\DoctrineDoctor\ValueObject\Severity::info(),
+                            suggestionMetadata: new SuggestionMetadata(
+                                type: SuggestionType::performance(),
+                                severity: Severity::info(),
                                 title: 'Use eager loading to avoid lazy loading queries',
                                 tags: ['performance', 'lazy-loading', 'eager-loading', 'n+1'],
                             ),

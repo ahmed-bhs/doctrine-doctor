@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer\Parser\Visitor;
@@ -11,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 
 final class SensitiveDataExposureVisitorTest extends TestCase
 {
-    public function testDetectsJsonEncodeOfThis(): void
+    public function test_detects_json_encode_of_this(): void
     {
         $code = 'public function __toString(): string {
             return json_encode($this);
@@ -19,10 +26,10 @@ final class SensitiveDataExposureVisitorTest extends TestCase
 
         $exposesObject = $this->detectSensitiveExposure($code);
 
-        $this->assertTrue($exposesObject, 'Should detect json_encode($this)');
+        self::assertTrue($exposesObject, 'Should detect json_encode($this)');
     }
 
-    public function testDetectsSerializeOfThis(): void
+    public function test_detects_serialize_of_this(): void
     {
         $code = '
         public function __toString(): string {
@@ -31,10 +38,10 @@ final class SensitiveDataExposureVisitorTest extends TestCase
 
         $exposesObject = $this->detectSensitiveExposure($code);
 
-        $this->assertTrue($exposesObject, 'Should detect serialize($this)');
+        self::assertTrue($exposesObject, 'Should detect serialize($this)');
     }
 
-    public function testIgnoresJsonEncodeWithDifferentVariable(): void
+    public function test_ignores_json_encode_with_different_variable(): void
     {
         $code = '
         public function __toString(): string {
@@ -44,10 +51,10 @@ final class SensitiveDataExposureVisitorTest extends TestCase
 
         $exposesObject = $this->detectSensitiveExposure($code);
 
-        $this->assertFalse($exposesObject, 'Should NOT flag json_encode($data)');
+        self::assertFalse($exposesObject, 'Should NOT flag json_encode($data)');
     }
 
-    public function testIgnoresComments(): void
+    public function test_ignores_comments(): void
     {
         $code = '
         public function __toString(): string {
@@ -58,10 +65,10 @@ final class SensitiveDataExposureVisitorTest extends TestCase
 
         $exposesObject = $this->detectSensitiveExposure($code);
 
-        $this->assertFalse($exposesObject, 'Should ignore comments');
+        self::assertFalse($exposesObject, 'Should ignore comments');
     }
 
-    public function testIgnoresStringLiterals(): void
+    public function test_ignores_string_literals(): void
     {
         $code = '
         public function logWarning(): void {
@@ -71,10 +78,10 @@ final class SensitiveDataExposureVisitorTest extends TestCase
 
         $exposesObject = $this->detectSensitiveExposure($code);
 
-        $this->assertFalse($exposesObject, 'Should ignore string literals');
+        self::assertFalse($exposesObject, 'Should ignore string literals');
     }
 
-    public function testIgnoresSafeToString(): void
+    public function test_ignores_safe_to_string(): void
     {
         $code = '
         public function __toString(): string {
@@ -83,10 +90,10 @@ final class SensitiveDataExposureVisitorTest extends TestCase
 
         $exposesObject = $this->detectSensitiveExposure($code);
 
-        $this->assertFalse($exposesObject, 'Should not flag safe __toString()');
+        self::assertFalse($exposesObject, 'Should not flag safe __toString()');
     }
 
-    public function testDetectsJsonEncodeWithSpacing(): void
+    public function test_detects_json_encode_with_spacing(): void
     {
         $code = '
         public function __toString(): string {
@@ -95,10 +102,10 @@ final class SensitiveDataExposureVisitorTest extends TestCase
 
         $exposesObject = $this->detectSensitiveExposure($code);
 
-        $this->assertTrue($exposesObject, 'Should handle various spacing');
+        self::assertTrue($exposesObject, 'Should handle various spacing');
     }
 
-    public function testIgnoresJsonEncodeOfOtherObject(): void
+    public function test_ignores_json_encode_of_other_object(): void
     {
         $code = '
         public function toJson(): string {
@@ -108,10 +115,10 @@ final class SensitiveDataExposureVisitorTest extends TestCase
 
         $exposesObject = $this->detectSensitiveExposure($code);
 
-        $this->assertFalse($exposesObject, 'Should not flag DTO serialization');
+        self::assertFalse($exposesObject, 'Should not flag DTO serialization');
     }
 
-    public function testIgnoresSerializeOfArray(): void
+    public function test_ignores_serialize_of_array(): void
     {
         $code = '
         public function export(): string {
@@ -121,7 +128,7 @@ final class SensitiveDataExposureVisitorTest extends TestCase
 
         $exposesObject = $this->detectSensitiveExposure($code);
 
-        $this->assertFalse($exposesObject, 'Should not flag array serialization');
+        self::assertFalse($exposesObject, 'Should not flag array serialization');
     }
 
     /**

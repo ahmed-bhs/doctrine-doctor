@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer\Helper;
@@ -24,7 +31,7 @@ final class TraitCollectionInitializationDetectorTest extends TestCase
         $this->detector = new TraitCollectionInitializationDetector();
     }
 
-    public function testDetectsDirectCollectionInitializationInTrait(): void
+    public function test_detects_direct_collection_initialization_in_trait(): void
     {
         // Given: A class using a trait that initializes a collection
         $reflection = new ReflectionClass(ClassUsingTraitWithInitialization::class);
@@ -33,10 +40,10 @@ final class TraitCollectionInitializationDetectorTest extends TestCase
         $result = $this->detector->isCollectionInitializedInTraits($reflection, 'items');
 
         // Then: It should be detected
-        $this->assertTrue($result, 'Should detect collection initialization in trait');
+        self::assertTrue($result, 'Should detect collection initialization in trait');
     }
 
-    public function testDetectsSyliusStyleConstructorAliasing(): void
+    public function test_detects_sylius_style_constructor_aliasing(): void
     {
         // Given: A class using Sylius-style constructor aliasing
         $reflection = new ReflectionClass(SyliusStyleClass::class);
@@ -45,10 +52,10 @@ final class TraitCollectionInitializationDetectorTest extends TestCase
         $result = $this->detector->isCollectionInitializedInTraits($reflection, 'translations');
 
         // Then: It should be detected even though it's called via alias
-        $this->assertTrue($result, 'Should detect Sylius-style initialization via alias');
+        self::assertTrue($result, 'Should detect Sylius-style initialization via alias');
     }
 
-    public function testDetectsNestedTraits(): void
+    public function test_detects_nested_traits(): void
     {
         // Given: A class using a trait that itself uses another trait
         $reflection = new ReflectionClass(ClassWithNestedTraits::class);
@@ -57,10 +64,10 @@ final class TraitCollectionInitializationDetectorTest extends TestCase
         $result = $this->detector->isCollectionInitializedInTraits($reflection, 'nestedItems');
 
         // Then: It should be detected in the nested trait
-        $this->assertTrue($result, 'Should detect initialization in nested traits');
+        self::assertTrue($result, 'Should detect initialization in nested traits');
     }
 
-    public function testReturnsFalseWhenNotInitialized(): void
+    public function test_returns_false_when_not_initialized(): void
     {
         // Given: A class using a trait that doesn't initialize the collection
         $reflection = new ReflectionClass(ClassWithUninitializedCollection::class);
@@ -69,10 +76,10 @@ final class TraitCollectionInitializationDetectorTest extends TestCase
         $result = $this->detector->isCollectionInitializedInTraits($reflection, 'items');
 
         // Then: It should return false
-        $this->assertFalse($result, 'Should return false when collection is not initialized');
+        self::assertFalse($result, 'Should return false when collection is not initialized');
     }
 
-    public function testReturnsFalseForNonExistentField(): void
+    public function test_returns_false_for_non_existent_field(): void
     {
         // Given: A class using a trait
         $reflection = new ReflectionClass(ClassUsingTraitWithInitialization::class);
@@ -81,10 +88,10 @@ final class TraitCollectionInitializationDetectorTest extends TestCase
         $result = $this->detector->isCollectionInitializedInTraits($reflection, 'nonExistentField');
 
         // Then: It should return false
-        $this->assertFalse($result, 'Should return false for non-existent field');
+        self::assertFalse($result, 'Should return false for non-existent field');
     }
 
-    public function testIgnoresCommentsInTraitCode(): void
+    public function test_ignores_comments_in_trait_code(): void
     {
         // Given: A trait with initialization in comments
         $reflection = new ReflectionClass(ClassWithCommentedInitialization::class);
@@ -93,7 +100,7 @@ final class TraitCollectionInitializationDetectorTest extends TestCase
         $result = $this->detector->isCollectionInitializedInTraits($reflection, 'items');
 
         // Then: It should return false (comments are ignored)
-        $this->assertFalse($result, 'Should ignore commented-out initializations');
+        self::assertFalse($result, 'Should ignore commented-out initializations');
     }
 }
 

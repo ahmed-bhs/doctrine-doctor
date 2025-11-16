@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer\Parser;
@@ -16,19 +23,19 @@ class SqlStructureExtractorTest extends TestCase
         $this->extractor = new SqlStructureExtractor();
     }
 
-    public function testExtractsSimpleLeftJoin(): void
+    public function test_extracts_simple_left_join(): void
     {
         $sql = 'SELECT * FROM users u LEFT JOIN orders o ON u.id = o.user_id';
 
         $joins = $this->extractor->extractJoins($sql);
 
-        $this->assertCount(1, $joins);
-        $this->assertSame('LEFT', $joins[0]['type']);
-        $this->assertSame('orders', $joins[0]['table']);
-        $this->assertSame('o', $joins[0]['alias']);
+        self::assertCount(1, $joins);
+        self::assertSame('LEFT', $joins[0]['type']);
+        self::assertSame('orders', $joins[0]['table']);
+        self::assertSame('o', $joins[0]['alias']);
     }
 
-    public function testExtractsMultipleJoins(): void
+    public function test_extracts_multiple_joins(): void
     {
         $sql = 'SELECT * FROM users u
                 LEFT JOIN orders o ON u.id = o.user_id
@@ -36,85 +43,85 @@ class SqlStructureExtractorTest extends TestCase
 
         $joins = $this->extractor->extractJoins($sql);
 
-        $this->assertCount(2, $joins);
+        self::assertCount(2, $joins);
 
         // First JOIN
-        $this->assertSame('LEFT', $joins[0]['type']);
-        $this->assertSame('orders', $joins[0]['table']);
-        $this->assertSame('o', $joins[0]['alias']);
+        self::assertSame('LEFT', $joins[0]['type']);
+        self::assertSame('orders', $joins[0]['table']);
+        self::assertSame('o', $joins[0]['alias']);
 
         // Second JOIN
-        $this->assertSame('INNER', $joins[1]['type']);
-        $this->assertSame('products', $joins[1]['table']);
-        $this->assertSame('p', $joins[1]['alias']);
+        self::assertSame('INNER', $joins[1]['type']);
+        self::assertSame('products', $joins[1]['table']);
+        self::assertSame('p', $joins[1]['alias']);
     }
 
-    public function testNormalizesLeftOuterJoin(): void
+    public function test_normalizes_left_outer_join(): void
     {
         $sql = 'SELECT * FROM users u LEFT OUTER JOIN orders o ON u.id = o.user_id';
 
         $joins = $this->extractor->extractJoins($sql);
 
-        $this->assertCount(1, $joins);
-        $this->assertSame('LEFT', $joins[0]['type']); // Normalized
+        self::assertCount(1, $joins);
+        self::assertSame('LEFT', $joins[0]['type']); // Normalized
     }
 
-    public function testJoinWithoutAlias(): void
+    public function test_join_without_alias(): void
     {
         $sql = 'SELECT * FROM users u JOIN orders ON u.id = orders.user_id';
 
         $joins = $this->extractor->extractJoins($sql);
 
-        $this->assertCount(1, $joins);
-        $this->assertSame('INNER', $joins[0]['type']);
-        $this->assertSame('orders', $joins[0]['table']);
-        $this->assertNull($joins[0]['alias']);
+        self::assertCount(1, $joins);
+        self::assertSame('INNER', $joins[0]['type']);
+        self::assertSame('orders', $joins[0]['table']);
+        self::assertNull($joins[0]['alias']);
     }
 
-    public function testJoinWithAsKeyword(): void
+    public function test_join_with_as_keyword(): void
     {
         $sql = 'SELECT * FROM users u LEFT JOIN orders AS o ON u.id = o.user_id';
 
         $joins = $this->extractor->extractJoins($sql);
 
-        $this->assertCount(1, $joins);
-        $this->assertSame('o', $joins[0]['alias']);
+        self::assertCount(1, $joins);
+        self::assertSame('o', $joins[0]['alias']);
     }
 
-    public function testDoesNotCaptureOnAsAlias(): void
+    public function test_does_not_capture_on_as_alias(): void
     {
         // This was a bug with regex: capturing 'ON' as alias
         $sql = 'SELECT * FROM users u LEFT JOIN orders ON u.id = orders.user_id';
 
         $joins = $this->extractor->extractJoins($sql);
 
-        $this->assertCount(1, $joins);
-        $this->assertNull($joins[0]['alias']); // NOT 'ON'
+        self::assertCount(1, $joins);
+        self::assertNull($joins[0]['alias']); // NOT 'ON'
     }
 
-    public function testExtractsMainTable(): void
+    public function test_extracts_main_table(): void
     {
         $sql = 'SELECT * FROM users u WHERE u.id = 1';
 
         $mainTable = $this->extractor->extractMainTable($sql);
 
-        $this->assertNotNull($mainTable);
-        $this->assertSame('users', $mainTable['table']);
-        $this->assertSame('u', $mainTable['alias']);
+        self::assertNotNull($mainTable);
+        self::assertSame('users', $mainTable['table']);
+        self::assertSame('u', $mainTable['alias']);
     }
 
-    public function testExtractsMainTableWithoutAlias(): void
+    public function test_extracts_main_table_without_alias(): void
     {
         $sql = 'SELECT * FROM users WHERE id = 1';
 
         $mainTable = $this->extractor->extractMainTable($sql);
 
-        $this->assertNotNull($mainTable);
-        $this->assertSame('users', $mainTable['table']);
-        $this->assertNull($mainTable['alias']);
+        self::assertNotNull($mainTable);
+        self::assertSame('users', $mainTable['table']);
+        self::assertNull($mainTable['alias']);
     }
 
-    public function testExtractsAllTables(): void
+    public function test_extracts_all_tables(): void
     {
         $sql = 'SELECT * FROM users u
                 LEFT JOIN orders o ON u.id = o.user_id
@@ -122,49 +129,49 @@ class SqlStructureExtractorTest extends TestCase
 
         $tables = $this->extractor->extractAllTables($sql);
 
-        $this->assertCount(3, $tables);
+        self::assertCount(3, $tables);
 
         // FROM table
-        $this->assertSame('users', $tables[0]['table']);
-        $this->assertSame('u', $tables[0]['alias']);
-        $this->assertSame('from', $tables[0]['source']);
+        self::assertSame('users', $tables[0]['table']);
+        self::assertSame('u', $tables[0]['alias']);
+        self::assertSame('from', $tables[0]['source']);
 
         // First JOIN
-        $this->assertSame('orders', $tables[1]['table']);
-        $this->assertSame('o', $tables[1]['alias']);
-        $this->assertSame('join', $tables[1]['source']);
+        self::assertSame('orders', $tables[1]['table']);
+        self::assertSame('o', $tables[1]['alias']);
+        self::assertSame('join', $tables[1]['source']);
 
         // Second JOIN
-        $this->assertSame('products', $tables[2]['table']);
-        $this->assertSame('p', $tables[2]['alias']);
-        $this->assertSame('join', $tables[2]['source']);
+        self::assertSame('products', $tables[2]['table']);
+        self::assertSame('p', $tables[2]['alias']);
+        self::assertSame('join', $tables[2]['source']);
     }
 
-    public function testHasJoinReturnsTrueWhenJoinPresent(): void
+    public function test_has_join_returns_true_when_join_present(): void
     {
         $sql = 'SELECT * FROM users u LEFT JOIN orders o ON u.id = o.user_id';
 
-        $this->assertTrue($this->extractor->hasJoin($sql));
+        self::assertTrue($this->extractor->hasJoin($sql));
     }
 
-    public function testHasJoinReturnsFalseWhenNoJoin(): void
+    public function test_has_join_returns_false_when_no_join(): void
     {
         $sql = 'SELECT * FROM users u WHERE u.id = 1';
 
-        $this->assertFalse($this->extractor->hasJoin($sql));
+        self::assertFalse($this->extractor->hasJoin($sql));
     }
 
-    public function testCountJoins(): void
+    public function test_count_joins(): void
     {
         $sql = 'SELECT * FROM users u
                 LEFT JOIN orders o ON u.id = o.user_id
                 INNER JOIN products p ON o.product_id = p.id
                 LEFT JOIN categories c ON p.category_id = c.id';
 
-        $this->assertSame(3, $this->extractor->countJoins($sql));
+        self::assertSame(3, $this->extractor->countJoins($sql));
     }
 
-    public function testHandlesComplexRealWorldQuery(): void
+    public function test_handles_complex_real_world_query(): void
     {
         // Real Sylius query
         $sql = "SELECT t0.id AS id_1, t0.code AS code_2, t0.enabled AS enabled_3
@@ -175,42 +182,42 @@ class SqlStructureExtractorTest extends TestCase
 
         $joins = $this->extractor->extractJoins($sql);
 
-        $this->assertCount(2, $joins);
+        self::assertCount(2, $joins);
 
         // First JOIN
-        $this->assertSame('LEFT', $joins[0]['type']);
-        $this->assertSame('sylius_channel_locales', $joins[0]['table']);
-        $this->assertSame('t1_', $joins[0]['alias']);
+        self::assertSame('LEFT', $joins[0]['type']);
+        self::assertSame('sylius_channel_locales', $joins[0]['table']);
+        self::assertSame('t1_', $joins[0]['alias']);
 
         // Second JOIN
-        $this->assertSame('INNER', $joins[1]['type']);
-        $this->assertSame('sylius_locale', $joins[1]['table']);
-        $this->assertSame('t2_', $joins[1]['alias']);
+        self::assertSame('INNER', $joins[1]['type']);
+        self::assertSame('sylius_locale', $joins[1]['table']);
+        self::assertSame('t2_', $joins[1]['alias']);
     }
 
-    public function testReturnsEmptyArrayForNonSelectQuery(): void
+    public function test_returns_empty_array_for_non_select_query(): void
     {
         $sql = 'UPDATE users SET name = ? WHERE id = ?';
 
         $joins = $this->extractor->extractJoins($sql);
 
-        $this->assertSame([], $joins);
+        self::assertSame([], $joins);
     }
 
-    public function testReturnsEmptyArrayForInvalidSql(): void
+    public function test_returns_empty_array_for_invalid_sql(): void
     {
         $sql = 'NOT A VALID SQL QUERY';
 
         $joins = $this->extractor->extractJoins($sql);
 
-        $this->assertSame([], $joins);
+        self::assertSame([], $joins);
     }
 
     // ========================================================================
     // normalizeQuery() Tests - Critical method used by 7 analyzers
     // ========================================================================
 
-    public function testNormalizeQueryReplacesStringLiterals(): void
+    public function test_normalize_query_replaces_string_literals(): void
     {
         // Given: Query with string literals
         $sql = "SELECT * FROM users WHERE name = 'John' AND email = 'john@example.com'";
@@ -219,13 +226,13 @@ class SqlStructureExtractorTest extends TestCase
         $normalized = $this->extractor->normalizeQuery($sql);
 
         // Then: String literals should be replaced with ? (output is UPPERCASE)
-        $this->assertStringContainsString('NAME = ?', $normalized);
-        $this->assertStringContainsString('EMAIL = ?', $normalized);
-        $this->assertStringNotContainsString('John', $normalized);
-        $this->assertStringNotContainsString('john@example.com', $normalized);
+        self::assertStringContainsString('NAME = ?', $normalized);
+        self::assertStringContainsString('EMAIL = ?', $normalized);
+        self::assertStringNotContainsString('John', $normalized);
+        self::assertStringNotContainsString('john@example.com', $normalized);
     }
 
-    public function testNormalizeQueryReplacesNumericLiterals(): void
+    public function test_normalize_query_replaces_numeric_literals(): void
     {
         // Given: Query with numeric literals
         $sql = 'SELECT * FROM users WHERE id = 123 AND age > 25 AND score = 98.5';
@@ -234,15 +241,15 @@ class SqlStructureExtractorTest extends TestCase
         $normalized = $this->extractor->normalizeQuery($sql);
 
         // Then: Numeric literals should be replaced with ? (output is UPPERCASE)
-        $this->assertStringContainsString('ID = ?', $normalized);
-        $this->assertStringContainsString('AGE > ?', $normalized);
-        $this->assertStringContainsString('SCORE = ?', $normalized);
-        $this->assertStringNotContainsString('123', $normalized);
-        $this->assertStringNotContainsString('25', $normalized);
-        $this->assertStringNotContainsString('98.5', $normalized);
+        self::assertStringContainsString('ID = ?', $normalized);
+        self::assertStringContainsString('AGE > ?', $normalized);
+        self::assertStringContainsString('SCORE = ?', $normalized);
+        self::assertStringNotContainsString('123', $normalized);
+        self::assertStringNotContainsString('25', $normalized);
+        self::assertStringNotContainsString('98.5', $normalized);
     }
 
-    public function testNormalizeQueryHandlesInClause(): void
+    public function test_normalize_query_handles_in_clause(): void
     {
         // Given: Query with IN clause
         $sql = "SELECT * FROM users WHERE id IN (1, 2, 3, 4, 5)";
@@ -251,11 +258,11 @@ class SqlStructureExtractorTest extends TestCase
         $normalized = $this->extractor->normalizeQuery($sql);
 
         // Then: IN clause should be normalized to IN (?)
-        $this->assertStringContainsString('IN (?)', $normalized);
-        $this->assertStringNotContainsString('1, 2, 3, 4, 5', $normalized);
+        self::assertStringContainsString('IN (?)', $normalized);
+        self::assertStringNotContainsString('1, 2, 3, 4, 5', $normalized);
     }
 
-    public function testNormalizeQueryNormalizesWhitespace(): void
+    public function test_normalize_query_normalizes_whitespace(): void
     {
         // Given: Query with irregular whitespace
         $sql = "SELECT  *  FROM   users    WHERE  id   =   ?";
@@ -264,11 +271,11 @@ class SqlStructureExtractorTest extends TestCase
         $normalized = $this->extractor->normalizeQuery($sql);
 
         // Then: Whitespace should be normalized (single spaces, UPPERCASE)
-        $this->assertStringNotContainsString('  ', $normalized); // No double spaces
-        $this->assertSame('SELECT * FROM USERS WHERE ID = ?', $normalized);
+        self::assertStringNotContainsString('  ', $normalized); // No double spaces
+        self::assertSame('SELECT * FROM USERS WHERE ID = ?', $normalized);
     }
 
-    public function testNormalizeQueryHandlesUpdateStatements(): void
+    public function test_normalize_query_handles_update_statements(): void
     {
         // Given: UPDATE query with literals
         $sql = "UPDATE users SET name = 'John', age = 30 WHERE id = 5";
@@ -277,15 +284,15 @@ class SqlStructureExtractorTest extends TestCase
         $normalized = $this->extractor->normalizeQuery($sql);
 
         // Then: All values should be normalized (output is UPPERCASE)
-        $this->assertStringContainsString('UPDATE USERS SET', $normalized);
-        $this->assertStringContainsString('NAME = ?', $normalized);
-        $this->assertStringContainsString('AGE = ?', $normalized);
-        $this->assertStringContainsString('WHERE ID = ?', $normalized);
-        $this->assertStringNotContainsString('John', $normalized);
-        $this->assertStringNotContainsString('30', $normalized);
+        self::assertStringContainsString('UPDATE USERS SET', $normalized);
+        self::assertStringContainsString('NAME = ?', $normalized);
+        self::assertStringContainsString('AGE = ?', $normalized);
+        self::assertStringContainsString('WHERE ID = ?', $normalized);
+        self::assertStringNotContainsString('John', $normalized);
+        self::assertStringNotContainsString('30', $normalized);
     }
 
-    public function testNormalizeQueryHandlesDeleteStatements(): void
+    public function test_normalize_query_handles_delete_statements(): void
     {
         // Given: DELETE query with literals
         $sql = "DELETE FROM users WHERE age > 100 AND status = 'inactive'";
@@ -294,14 +301,14 @@ class SqlStructureExtractorTest extends TestCase
         $normalized = $this->extractor->normalizeQuery($sql);
 
         // Then: All values should be normalized (output is UPPERCASE)
-        $this->assertStringContainsString('DELETE FROM USERS WHERE', $normalized);
-        $this->assertStringContainsString('AGE > ?', $normalized);
-        $this->assertStringContainsString('STATUS = ?', $normalized);
-        $this->assertStringNotContainsString('100', $normalized);
-        $this->assertStringNotContainsString('inactive', $normalized);
+        self::assertStringContainsString('DELETE FROM USERS WHERE', $normalized);
+        self::assertStringContainsString('AGE > ?', $normalized);
+        self::assertStringContainsString('STATUS = ?', $normalized);
+        self::assertStringNotContainsString('100', $normalized);
+        self::assertStringNotContainsString('inactive', $normalized);
     }
 
-    public function testNormalizeQueryHandlesComplexSelectWithJoins(): void
+    public function test_normalize_query_handles_complex_select_with_joins(): void
     {
         // Given: Complex query with JOINs and multiple conditions
         $sql = "SELECT u.*, o.total FROM users u
@@ -313,17 +320,17 @@ class SqlStructureExtractorTest extends TestCase
         $normalized = $this->extractor->normalizeQuery($sql);
 
         // Then: Structure preserved, values normalized (output is UPPERCASE)
-        $this->assertStringContainsString('LEFT JOIN ORDERS', $normalized);
-        $this->assertStringContainsString('U.ID = ?', $normalized); // JOIN conditions also normalized
-        $this->assertStringContainsString('CREATED_AT > ?', $normalized);
-        $this->assertStringContainsString('STATUS = ?', $normalized);
-        $this->assertStringContainsString('TOTAL > ?', $normalized);
-        $this->assertStringNotContainsString('2024-01-01', $normalized);
-        $this->assertStringNotContainsString('completed', $normalized);
-        $this->assertStringNotContainsString('100', $normalized);
+        self::assertStringContainsString('LEFT JOIN ORDERS', $normalized);
+        self::assertStringContainsString('U.ID = ?', $normalized); // JOIN conditions also normalized
+        self::assertStringContainsString('CREATED_AT > ?', $normalized);
+        self::assertStringContainsString('STATUS = ?', $normalized);
+        self::assertStringContainsString('TOTAL > ?', $normalized);
+        self::assertStringNotContainsString('2024-01-01', $normalized);
+        self::assertStringNotContainsString('completed', $normalized);
+        self::assertStringNotContainsString('100', $normalized);
     }
 
-    public function testNormalizeQueryPreservesParameterizedQueries(): void
+    public function test_normalize_query_preserves_parameterized_queries(): void
     {
         // Given: Already parameterized query
         $sql = 'SELECT * FROM users WHERE id = ? AND name = ?';
@@ -332,11 +339,11 @@ class SqlStructureExtractorTest extends TestCase
         $normalized = $this->extractor->normalizeQuery($sql);
 
         // Then: Placeholders should be preserved (output is UPPERCASE)
-        $this->assertStringContainsString('ID = ?', $normalized);
-        $this->assertStringContainsString('NAME = ?', $normalized);
+        self::assertStringContainsString('ID = ?', $normalized);
+        self::assertStringContainsString('NAME = ?', $normalized);
     }
 
-    public function testNormalizeQueryHandlesMultipleInClauses(): void
+    public function test_normalize_query_handles_multiple_in_clauses(): void
     {
         // Given: Query with multiple IN clauses
         $sql = "SELECT * FROM orders WHERE status IN ('pending', 'processing')
@@ -348,12 +355,12 @@ class SqlStructureExtractorTest extends TestCase
         // Then: Both IN clauses normalized
         // Count occurrences of "IN (?)"
         $count = substr_count($normalized, 'IN (?)');
-        $this->assertGreaterThanOrEqual(2, $count);
-        $this->assertStringNotContainsString('pending', $normalized);
-        $this->assertStringNotContainsString('1, 2, 3', $normalized);
+        self::assertGreaterThanOrEqual(2, $count);
+        self::assertStringNotContainsString('pending', $normalized);
+        self::assertStringNotContainsString('1, 2, 3', $normalized);
     }
 
-    public function testNormalizeQueryHandlesStringWithEscapedQuotes(): void
+    public function test_normalize_query_handles_string_with_escaped_quotes(): void
     {
         // Given: Query with escaped quotes in string
         $sql = "SELECT * FROM users WHERE bio = 'It\\'s a beautiful day'";
@@ -362,11 +369,11 @@ class SqlStructureExtractorTest extends TestCase
         $normalized = $this->extractor->normalizeQuery($sql);
 
         // Then: String should be replaced with ? (output is UPPERCASE)
-        $this->assertStringContainsString('BIO = ?', $normalized);
-        $this->assertStringNotContainsString("It\\'s", $normalized);
+        self::assertStringContainsString('BIO = ?', $normalized);
+        self::assertStringNotContainsString("It\\'s", $normalized);
     }
 
-    public function testNormalizeQueryHandlesCaseInsensitivity(): void
+    public function test_normalize_query_handles_case_insensitivity(): void
     {
         // Given: Query with mixed case keywords
         $sql = "select * from users where id = 123";
@@ -375,13 +382,13 @@ class SqlStructureExtractorTest extends TestCase
         $normalized = $this->extractor->normalizeQuery($sql);
 
         // Then: Should normalize regardless of case (output is UPPERCASE)
-        $this->assertStringContainsString('SELECT', $normalized);
-        $this->assertStringContainsString('FROM', $normalized);
-        $this->assertStringContainsString('WHERE', $normalized);
-        $this->assertStringContainsString('ID = ?', $normalized);
+        self::assertStringContainsString('SELECT', $normalized);
+        self::assertStringContainsString('FROM', $normalized);
+        self::assertStringContainsString('WHERE', $normalized);
+        self::assertStringContainsString('ID = ?', $normalized);
     }
 
-    public function testNormalizeQueryGroupsIdenticalPatterns(): void
+    public function test_normalize_query_groups_identical_patterns(): void
     {
         // Given: Two queries that should normalize to same pattern
         $sql1 = "SELECT * FROM users WHERE id = 123";
@@ -392,10 +399,10 @@ class SqlStructureExtractorTest extends TestCase
         $normalized2 = $this->extractor->normalizeQuery($sql2);
 
         // Then: Should produce identical normalized patterns
-        $this->assertSame($normalized1, $normalized2);
+        self::assertSame($normalized1, $normalized2);
     }
 
-    public function testNormalizeQueryFallsBackToRegexForInvalidSql(): void
+    public function test_normalize_query_falls_back_to_regex_for_invalid_sql(): void
     {
         // Given: Invalid SQL that parser can't handle
         $sql = "SOME WEIRD QUERY THAT LOOKS LIKE SQL WITH 123 AND 'string'";
@@ -405,11 +412,11 @@ class SqlStructureExtractorTest extends TestCase
 
         // Then: Should still normalize using regex fallback
         // At minimum, whitespace should be normalized
-        $this->assertIsString($normalized);
-        $this->assertNotEmpty($normalized);
+        self::assertIsString($normalized);
+        self::assertNotEmpty($normalized);
     }
 
-    public function testNormalizeQueryHandlesSubqueries(): void
+    public function test_normalize_query_handles_subqueries(): void
     {
         // Given: Query with subquery
         $sql = "SELECT * FROM users WHERE id IN (SELECT user_id FROM orders WHERE total > 100)";
@@ -418,122 +425,122 @@ class SqlStructureExtractorTest extends TestCase
         $normalized = $this->extractor->normalizeQuery($sql);
 
         // Then: Subquery is normalized to IN (?) - subqueries are collapsed
-        $this->assertStringContainsString('SELECT', $normalized);
-        $this->assertStringContainsString('IN (?)', $normalized);
-        $this->assertStringNotContainsString('100', $normalized);
+        self::assertStringContainsString('SELECT', $normalized);
+        self::assertStringContainsString('IN (?)', $normalized);
+        self::assertStringNotContainsString('100', $normalized);
     }
 
     // ========================================================================
     // extractAggregationFunctions() Tests
     // ========================================================================
 
-    public function testExtractsCountFunction(): void
+    public function test_extracts_count_function(): void
     {
         $sql = 'SELECT COUNT(id) FROM orders';
 
         $aggregations = $this->extractor->extractAggregationFunctions($sql);
 
-        $this->assertContains('COUNT', $aggregations);
-        $this->assertCount(1, $aggregations);
+        self::assertContains('COUNT', $aggregations);
+        self::assertCount(1, $aggregations);
     }
 
-    public function testExtractsMultipleAggregationFunctions(): void
+    public function test_extracts_multiple_aggregation_functions(): void
     {
         $sql = 'SELECT COUNT(id), SUM(total), AVG(price) FROM orders';
 
         $aggregations = $this->extractor->extractAggregationFunctions($sql);
 
-        $this->assertContains('COUNT', $aggregations);
-        $this->assertContains('SUM', $aggregations);
-        $this->assertContains('AVG', $aggregations);
-        $this->assertCount(3, $aggregations);
+        self::assertContains('COUNT', $aggregations);
+        self::assertContains('SUM', $aggregations);
+        self::assertContains('AVG', $aggregations);
+        self::assertCount(3, $aggregations);
     }
 
-    public function testExtractsMinMaxFunctions(): void
+    public function test_extracts_min_max_functions(): void
     {
         $sql = 'SELECT MIN(price), MAX(price) FROM products';
 
         $aggregations = $this->extractor->extractAggregationFunctions($sql);
 
-        $this->assertContains('MIN', $aggregations);
-        $this->assertContains('MAX', $aggregations);
-        $this->assertCount(2, $aggregations);
+        self::assertContains('MIN', $aggregations);
+        self::assertContains('MAX', $aggregations);
+        self::assertCount(2, $aggregations);
     }
 
-    public function testReturnsEmptyArrayWhenNoAggregations(): void
+    public function test_returns_empty_array_when_no_aggregations(): void
     {
         $sql = 'SELECT id, name FROM users';
 
         $aggregations = $this->extractor->extractAggregationFunctions($sql);
 
-        $this->assertSame([], $aggregations);
+        self::assertSame([], $aggregations);
     }
 
-    public function testAggregationReturnsEmptyArrayForNonSelectQuery(): void
+    public function test_aggregation_returns_empty_array_for_non_select_query(): void
     {
         $sql = 'UPDATE orders SET status = ? WHERE id = ?';
 
         $aggregations = $this->extractor->extractAggregationFunctions($sql);
 
-        $this->assertSame([], $aggregations);
+        self::assertSame([], $aggregations);
     }
 
     // ========================================================================
     // findIsNotNullFieldOnAlias() Tests
     // ========================================================================
 
-    public function testFindsIsNotNullFieldOnAlias(): void
+    public function test_finds_is_not_null_field_on_alias(): void
     {
         $sql = 'SELECT * FROM users u LEFT JOIN orders o ON u.id = o.user_id WHERE o.status IS NOT NULL';
 
         $fieldName = $this->extractor->findIsNotNullFieldOnAlias($sql, 'o');
 
-        $this->assertSame('status', $fieldName);
+        self::assertSame('status', $fieldName);
     }
 
-    public function testReturnsNullWhenNoIsNotNullCondition(): void
+    public function test_returns_null_when_no_is_not_null_condition(): void
     {
         $sql = 'SELECT * FROM users u LEFT JOIN orders o ON u.id = o.user_id WHERE o.status = ?';
 
         $fieldName = $this->extractor->findIsNotNullFieldOnAlias($sql, 'o');
 
-        $this->assertNull($fieldName);
+        self::assertNull($fieldName);
     }
 
-    public function testReturnsNullWhenAliasNotFound(): void
+    public function test_returns_null_when_alias_not_found(): void
     {
         $sql = 'SELECT * FROM users u LEFT JOIN orders o ON u.id = o.user_id WHERE o.status IS NOT NULL';
 
         $fieldName = $this->extractor->findIsNotNullFieldOnAlias($sql, 'x');
 
-        $this->assertNull($fieldName);
+        self::assertNull($fieldName);
     }
 
-    public function testFindsIsNotNullWithoutJoin(): void
+    public function test_finds_is_not_null_without_join(): void
     {
         $sql = 'SELECT * FROM users u WHERE u.email IS NOT NULL';
 
         $fieldName = $this->extractor->findIsNotNullFieldOnAlias($sql, 'u');
 
-        $this->assertSame('email', $fieldName);
+        self::assertSame('email', $fieldName);
     }
 
-    public function testFindsFirstIsNotNullFieldWhenMultiple(): void
+    public function test_finds_first_is_not_null_field_when_multiple(): void
     {
         $sql = 'SELECT * FROM users u WHERE u.email IS NOT NULL AND u.name IS NOT NULL';
 
         $fieldName = $this->extractor->findIsNotNullFieldOnAlias($sql, 'u');
 
         // Should return first match
-        $this->assertSame('email', $fieldName);
+        self::assertSame('email', $fieldName);
     }
 
-    public function testHandlesCaseInsensitiveIsNotNull(): void
+    public function test_handles_case_insensitive_is_not_null(): void
     {
         $sql = 'SELECT * FROM users u WHERE u.email is not null';
 
         $fieldName = $this->extractor->findIsNotNullFieldOnAlias($sql, 'u');
 
-        $this->assertSame('email', $fieldName);
+        self::assertSame('email', $fieldName);
     }
 }

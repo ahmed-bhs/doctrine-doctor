@@ -216,9 +216,8 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             'Benefits: automatic tracking of who created/updated records, standardized audit across entities.',
             $shortClassName,
             implode(', ', array_keys($timestampFields)),
-            count($missingFields) > 0 ? implode(', ', $missingFields) . ', createdBy, updatedBy' : 'createdBy, updatedBy'
+            count($missingFields) > 0 ? implode(', ', $missingFields) . ', createdBy, updatedBy' : 'createdBy, updatedBy',
         );
-
 
         return $this->issueFactory->createFromArray([
             'type'        => 'missing_blameable_trait_opportunity',

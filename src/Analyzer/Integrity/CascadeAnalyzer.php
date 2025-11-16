@@ -85,7 +85,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                         'line' => $throwable->getLine(),
                     ]);
                 }
-            }
+            },
         );
     }
 
@@ -130,7 +130,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         string $entityClass,
         string $fieldName,
         array|object $mapping,
-        array $referenceCountMap
+        array $referenceCountMap,
     ): ?IntegrityIssue {
         $cascade = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? null;
@@ -193,7 +193,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                 'field' => $fieldName,
                 'class' => $entityClass,
                 'cascade' => '"all"',
-            ]
+            ],
         );
         $issue->setMessage($message);
         $issue->setSuggestion($this->buildCascadeAllSuggestion($entityClass, $fieldName, $mapping));
@@ -205,7 +205,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         string $entityClass,
         string $fieldName,
         array|object $mapping,
-        array $referenceCountMap
+        array $referenceCountMap,
     ): IntegrityIssue {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $shortTargetName = $this->getShortClassName($targetEntity);
@@ -227,7 +227,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             "Deleting a %s will also delete the {target}, which may be referenced by other entities.\n\n" .
             "{target} is referenced by %d entities.",
             $this->getShortClassName($entityClass),
-            $refCount
+            $refCount,
         );
 
         $issue->setMessage(DescriptionHighlighter::highlight($message, [
@@ -245,7 +245,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         string $entityClass,
         string $fieldName,
         array|object $mapping,
-        array $referenceCountMap
+        array $referenceCountMap,
     ): IntegrityIssue {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $shortClassName = $this->getShortClassName($entityClass);
@@ -270,7 +270,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             $fieldName,
             $shortTargetName,
             $shortClassName,
-            $shortTargetName
+            $shortTargetName,
         );
 
         $issue->setMessage($message);
@@ -283,7 +283,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         string $entityClass,
         string $fieldName,
         array|object $mapping,
-        array $referenceCountMap
+        array $referenceCountMap,
     ): IntegrityIssue {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $shortClassName = $this->getShortClassName($entityClass);
@@ -306,7 +306,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                 'field' => $fieldName,
                 'class' => $shortClassName,
                 'target' => $shortTargetName,
-            ]
+            ],
         );
 
         $issue->setMessage($message);
@@ -320,7 +320,6 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $type = $this->getAssociationType($mapping);
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $shortClassName = $this->getShortClassName($entityClass);
-        $shortTargetName = $this->getShortClassName($targetEntity);
         $isIndependent = $this->isIndependentEntity($targetEntity, []);
 
         return $this->suggestionFactory->createFromTemplate(
@@ -338,7 +337,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                 severity: Severity::critical(),
                 title: sprintf('Remove cascade="all" from %s::$%s', $shortClassName, $fieldName),
                 tags: ['cascade', 'critical', 'data-integrity'],
-            )
+            ),
         );
     }
 
@@ -357,7 +356,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                 severity: Severity::critical(),
                 title: sprintf('Remove cascade="remove" from %s::$%s', $this->getShortClassName($entityClass), $fieldName),
                 tags: ['cascade', 'critical', 'data-loss'],
-            )
+            ),
         );
     }
 
@@ -375,7 +374,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                 severity: Severity::warning(),
                 title: sprintf('Remove cascade="remove" from %s::$%s', $this->getShortClassName($entityClass), $fieldName),
                 tags: ['cascade', 'independent-entity'],
-            )
+            ),
         );
     }
 
@@ -393,7 +392,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                 severity: Severity::warning(),
                 title: sprintf('Remove cascade="persist" from %s::$%s', $this->getShortClassName($entityClass), $fieldName),
                 tags: ['cascade', 'independent-entity', 'duplicates'],
-            )
+            ),
         );
     }
 

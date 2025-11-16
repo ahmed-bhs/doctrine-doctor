@@ -300,7 +300,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         /** @var \AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion $suggestion */
 
         // Verify suggestion has the expected context
-        self::assertEquals('ineffective_like', $suggestion->getTemplateName());
+        self::assertEquals('Performance/ineffective_like', $suggestion->getTemplateName());
         $context = $suggestion->getContext();
         self::assertArrayHasKey('pattern', $context);
         self::assertArrayHasKey('like_type', $context);

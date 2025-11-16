@@ -55,7 +55,7 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                     $flushCount = $flushPattern['flush_count'] ?? 0;
                     $operationsBetweenFlush = $flushPattern['operations_between_flush'] ?? 0;
                     Assert::integer($flushCount);
-                    assert(is_float($operationsBetweenFlush) || is_int($operationsBetweenFlush));
+                    Assert::numeric($operationsBetweenFlush);
 
                     if ($flushCount >= $this->flushCountThreshold) {
                         // Use factory to create suggestion (new architecture)

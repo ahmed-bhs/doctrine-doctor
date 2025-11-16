@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 class EntityMetadataProviderTest extends TestCase
 {
-    public function testGetAllMetadataWhenFilteringDisabled(): void
+    public function test_get_all_metadata_when_filtering_disabled(): void
     {
         $em = PlatformAnalyzerTestHelper::createTestEntityManager([
             __DIR__ . '/../../Fixtures/Entity/BidirectionalConsistencyTest',
@@ -27,10 +27,10 @@ class EntityMetadataProviderTest extends TestCase
         $allMetadata = $provider->getAllMetadata();
 
         // Should return all metadata
-        $this->assertNotEmpty($allMetadata);
+        self::assertNotEmpty($allMetadata);
     }
 
-    public function testGetAllMetadataCachesResult(): void
+    public function test_get_all_metadata_caches_result(): void
     {
         $em = PlatformAnalyzerTestHelper::createTestEntityManager([
             __DIR__ . '/../../Fixtures/Entity/BidirectionalConsistencyTest',
@@ -43,10 +43,10 @@ class EntityMetadataProviderTest extends TestCase
         // Second call (should use cache - same reference)
         $result2 = $provider->getAllMetadata();
 
-        $this->assertSame($result1, $result2);
+        self::assertSame($result1, $result2);
     }
 
-    public function testClearCacheResetsMetadata(): void
+    public function test_clear_cache_resets_metadata(): void
     {
         $em = PlatformAnalyzerTestHelper::createTestEntityManager([
             __DIR__ . '/../../Fixtures/Entity/BidirectionalConsistencyTest',
@@ -59,7 +59,7 @@ class EntityMetadataProviderTest extends TestCase
 
         // Without clearing cache, second call returns same reference
         $result2 = $provider->getAllMetadata();
-        $this->assertSame($result1, $result2, 'Cache should return same reference');
+        self::assertSame($result1, $result2, 'Cache should return same reference');
 
         // Clear cache
         $provider->clearCache();
@@ -68,13 +68,13 @@ class EntityMetadataProviderTest extends TestCase
         $result3 = $provider->getAllMetadata();
 
         // Results should have equal content
-        $this->assertEquals($result1, $result3, 'Content should be equal');
+        self::assertEquals($result1, $result3, 'Content should be equal');
         // But after clear, we've re-filtered so it's technically a new array
         // (though PHP might optimize this - the important thing is cache was cleared)
-        $this->assertNotEmpty($result3);
+        self::assertNotEmpty($result3);
     }
 
-    public function testGetMetadataForSpecificEntity(): void
+    public function test_get_metadata_for_specific_entity(): void
     {
         $em = PlatformAnalyzerTestHelper::createTestEntityManager([
             __DIR__ . '/../../Fixtures/Entity/BidirectionalConsistencyTest',
@@ -83,7 +83,7 @@ class EntityMetadataProviderTest extends TestCase
         $provider = new EntityMetadataProvider($em, excludeVendorEntities: true);
 
         $allMetadata = $provider->getAllMetadata();
-        $this->assertNotEmpty($allMetadata);
+        self::assertNotEmpty($allMetadata);
 
         // Get metadata for the first entity
         $firstEntity = reset($allMetadata);
@@ -91,6 +91,6 @@ class EntityMetadataProviderTest extends TestCase
 
         $specificMetadata = $provider->getMetadataFor($entityClass);
 
-        $this->assertSame($entityClass, $specificMetadata->getName());
+        self::assertSame($entityClass, $specificMetadata->getName());
     }
 }
