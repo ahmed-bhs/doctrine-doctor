@@ -233,7 +233,7 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
             'title'       => sprintf('Float in Money Embeddable: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'critical',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $this->createIntegerMoneySuggestion($shortClassName, $fieldName),
             'backtrace'   => [
                 'entity'       => $className,

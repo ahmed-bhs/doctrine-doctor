@@ -17,7 +17,7 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -127,12 +127,12 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements \AhmedBhs\DoctrineDoc
         return $issues;
     }
 
-    private function createIssue(string $entityClass, string $fieldName, array|object $mapping): CodeQualityIssue
+    private function createIssue(string $entityClass, string $fieldName, array|object $mapping): IntegrityIssue
     {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $cascade      = MappingHelper::getArray($mapping, 'cascade') ?? [];
 
-        $codeQualityIssue = new CodeQualityIssue([
+        $codeQualityIssue = new IntegrityIssue([
             'entity'         => $entityClass,
             'field'          => $fieldName,
             'target_entity'  => $targetEntity,

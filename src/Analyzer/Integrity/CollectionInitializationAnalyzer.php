@@ -19,7 +19,7 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
@@ -57,7 +57,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 
     /**
      * @param QueryDataCollection $queryDataCollection - Not heavily used, this analyzer focuses on entity metadata
-     * @return IssueCollection<CodeQualityIssue>
+     * @return IssueCollection<IntegrityIssue>
      */
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
@@ -104,7 +104,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     }
 
     /**
-     * @return array<CodeQualityIssue>
+     * @return array<IntegrityIssue>
      */
     private function analyzeEntity(ClassMetadata $classMetadata): array
     {
@@ -181,12 +181,12 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         return false;
     }
 
-    private function createMissingConstructorIssue(string $entityClass, string $fieldName, array|object $mapping): CodeQualityIssue
+    private function createMissingConstructorIssue(string $entityClass, string $fieldName, array|object $mapping): IntegrityIssue
     {
         $shortClassName = $this->getShortClassName($entityClass);
         $targetEntity   = $this->getShortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
-        return new CodeQualityIssue([
+        return new IntegrityIssue([
             'title'       => 'Missing constructor for collection initialization in ' . $shortClassName,
             'description' => sprintf(
                 'Entity "%s" has a collection property "$%s" (relation to %s) but no constructor. ' .
@@ -212,11 +212,11 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $fieldName,
         array|object $mapping,
         \ReflectionMethod $reflectionMethod,
-    ): CodeQualityIssue {
+    ): IntegrityIssue {
         $shortClassName = $this->getShortClassName($entityClass);
         $targetEntity   = $this->getShortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
-        return new CodeQualityIssue([
+        return new IntegrityIssue([
             'title'       => sprintf('Uninitialized collection in %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Entity "%s" has a collection property "$%s" (relation to %s) that is not initialized in the constructor. ' .

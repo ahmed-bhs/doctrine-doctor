@@ -16,7 +16,7 @@ use Webmozart\Assert\Assert;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -221,7 +221,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     /**
      * Create educational issue about auto-increment.
      */
-    private function createAutoIncrementEducationalIssue(ClassMetadata $classMetadata, array $statistics): CodeQualityIssue
+    private function createAutoIncrementEducationalIssue(ClassMetadata $classMetadata, array $statistics): IntegrityIssue
     {
         $entityName = $classMetadata->getName();
         $shortName = $classMetadata->getReflectionClass()->getShortName();
@@ -244,13 +244,13 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             backtrace: $this->createEntityBacktrace($classMetadata),
         );
 
-        return new CodeQualityIssue($issueData->toArray());
+        return new IntegrityIssue($issueData->toArray());
     }
 
     /**
      * Create issue for UUID v4 usage (suggest v7).
      */
-    private function createUuidV4PerformanceIssue(ClassMetadata $classMetadata): CodeQualityIssue
+    private function createUuidV4PerformanceIssue(ClassMetadata $classMetadata): IntegrityIssue
     {
         $entityName = $classMetadata->getName();
         $shortName = $classMetadata->getReflectionClass()->getShortName();
@@ -270,13 +270,13 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             backtrace: $this->createEntityBacktrace($classMetadata),
         );
 
-        return new CodeQualityIssue($issueData->toArray());
+        return new IntegrityIssue($issueData->toArray());
     }
 
     /**
      * Create issue for mixed strategies.
      */
-    private function createMixedStrategiesIssue(array $statistics): CodeQualityIssue
+    private function createMixedStrategiesIssue(array $statistics): IntegrityIssue
     {
         $issueData = new IssueData(
             type: 'mixed_id_strategies',
@@ -293,7 +293,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             queries: [],
         );
 
-        return new CodeQualityIssue($issueData->toArray());
+        return new IntegrityIssue($issueData->toArray());
     }
 
     /**

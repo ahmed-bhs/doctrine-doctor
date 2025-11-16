@@ -71,7 +71,7 @@ doctrine_doctor:
     groups:
         performance: true|false
         security: true|false
-        code_quality: true|false
+        integrity: true|false
         configuration: true|false
 ```
 
@@ -627,7 +627,7 @@ doctrine_doctor:
     groups:
         performance: true
         security: true
-        code_quality: true
+        integrity: true
         configuration: true
 ```
 
@@ -637,7 +637,7 @@ doctrine_doctor:
 |-------|-------------------|-------|
 | `performance` | N+1, slow query, hydration, flush in loop, etc. | 25 |
 | `security` | DQL injection, SQL injection, sensitive data, etc. | 4 |
-| `code_quality` | Cascade, bidirectional, type safety, etc. | 29 |
+| `integrity` | Cascade, bidirectional, type safety, etc. | 29 |
 | `configuration` | Charset, collation, timezone, Gedmo traits, etc. | 8 |
 
 **Use Case**: Focus on critical issues only
@@ -647,7 +647,7 @@ doctrine_doctor:
     groups:
         performance: true
         security: true
-        code_quality: false  # Temporarily disable
+        integrity: false  # Temporarily disable
         configuration: false
 ```
 
@@ -847,7 +847,7 @@ doctrine_doctor:
     groups:
         performance: true
         security: false
-        code_quality: false
+        integrity: false
         configuration: false
 
     analyzers:
@@ -869,7 +869,7 @@ doctrine_doctor:
     groups:
         performance: false
         security: true
-        code_quality: false
+        integrity: false
         configuration: false
 ```
 

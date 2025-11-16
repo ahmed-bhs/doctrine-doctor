@@ -17,7 +17,7 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -258,10 +258,10 @@ class OnDeleteCascadeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         string $entityClass,
         string $fieldName,
         array $mismatch,
-    ): CodeQualityIssue {
+    ): IntegrityIssue {
         $severity = $this->determineSeverity($mismatch['type']);
 
-        $codeQualityIssue = new CodeQualityIssue([
+        $codeQualityIssue = new IntegrityIssue([
             'entity'        => $entityClass,
             'field'         => $fieldName,
             'mismatch_type' => $mismatch['type'],

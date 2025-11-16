@@ -17,7 +17,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Helper\NamingConventionHelper;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -456,8 +456,8 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $violationType,
         string $suggestedName,
         string $severity = 'warning',
-    ): CodeQualityIssue {
-        $codeQualityIssue = new CodeQualityIssue([
+    ): IntegrityIssue {
+        $codeQualityIssue = new IntegrityIssue([
             'entity' => $entityClass,
             'table_name' => $tableName,
             'violation_type' => $violationType,
@@ -479,8 +479,8 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $violationType,
         string $suggestedName,
         string $severity = 'warning',
-    ): CodeQualityIssue {
-        $codeQualityIssue = new CodeQualityIssue([
+    ): IntegrityIssue {
+        $codeQualityIssue = new IntegrityIssue([
             'entity' => $entityClass,
             'column_name' => $columnName,
             'field_name' => $fieldName,
@@ -502,8 +502,8 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $assocName,
         string $violationType,
         string $suggestedName,
-    ): CodeQualityIssue {
-        $codeQualityIssue = new CodeQualityIssue([
+    ): IntegrityIssue {
+        $codeQualityIssue = new IntegrityIssue([
             'entity' => $entityClass,
             'fk_column' => $columnName,
             'association' => $assocName,
@@ -526,8 +526,8 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $violationType,
         string $suggestedName,
         string $severity = 'info',
-    ): CodeQualityIssue {
-        $codeQualityIssue = new CodeQualityIssue([
+    ): IntegrityIssue {
+        $codeQualityIssue = new IntegrityIssue([
             'entity' => $entityClass,
             'table_name' => $tableName,
             'index_name' => $indexName,

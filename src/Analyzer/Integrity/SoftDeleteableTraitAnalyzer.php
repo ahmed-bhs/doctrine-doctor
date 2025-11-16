@@ -346,7 +346,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             'title'       => sprintf('Mutable DateTime in SoftDelete: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $this->createImmutableDateTimeSuggestion($shortClassName, $fieldName),
             'backtrace'   => [
                 'entity' => $className,
@@ -376,7 +376,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             'title'       => sprintf('Public Setter on SoftDelete: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $this->createRemoveSetterSuggestion($shortClassName, $fieldName),
             'backtrace'   => [
                 'entity' => $className,

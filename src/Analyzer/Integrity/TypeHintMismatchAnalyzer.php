@@ -132,7 +132,7 @@ final class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
 
     public function getCategory(): string
     {
-        return 'code_quality';
+        return 'integrity';
     }
 
     /**
@@ -386,7 +386,7 @@ final class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
             'title'       => sprintf('Type Mismatch: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => $severity,
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $suggestion,
             'backtrace'   => [
                 'entity'        => $className,

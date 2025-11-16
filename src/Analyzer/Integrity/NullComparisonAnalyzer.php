@@ -17,7 +17,7 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -126,7 +126,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         string $operator,
         string $fullMatch,
         array|object $query,
-    ): CodeQualityIssue {
+    ): IntegrityIssue {
         $backtrace     = $this->extractBacktrace($query);
         $correctSyntax = $this->getCorrectSyntax($field, $operator);
 
@@ -146,7 +146,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             backtrace: $backtrace,
         );
 
-        return new CodeQualityIssue($issueData->toArray());
+        return new IntegrityIssue($issueData->toArray());
     }
 
     /**

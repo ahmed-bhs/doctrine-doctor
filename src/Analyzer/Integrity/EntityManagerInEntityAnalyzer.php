@@ -16,7 +16,7 @@ use Webmozart\Assert\Assert;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
@@ -63,7 +63,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
     /**
      * @param QueryDataCollection $queryDataCollection - Not used, this analyzer focuses on entity metadata
-     * @return IssueCollection<CodeQualityIssue>
+     * @return IssueCollection<IntegrityIssue>
      */
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
@@ -100,7 +100,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
     }
 
     /**
-     * @return array<CodeQualityIssue>
+     * @return array<IntegrityIssue>
      */
     private function analyzeEntity(ClassMetadata $classMetadata): array
     {
@@ -126,7 +126,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
         foreach ($emProperties as $emProperty) {
             $issue = $this->createEntityManagerPropertyIssue($entityClass, $emProperty);
-            if ($issue instanceof CodeQualityIssue) {
+            if ($issue instanceof IntegrityIssue) {
                 $issues[] = $issue;
             }
         }
@@ -138,7 +138,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
         foreach ($methodsUsingEM as $methodUsing) {
             $issue = $this->createEntityManagerUsageIssue($entityClass, $methodUsing);
-            if ($issue instanceof CodeQualityIssue) {
+            if ($issue instanceof IntegrityIssue) {
                 $issues[] = $issue;
             }
         }
@@ -294,11 +294,11 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         return in_array($propertyName, $emPropertyNames, true);
     }
 
-    private function createEntityManagerInConstructorIssue(string $entityClass, \ReflectionMethod $reflectionMethod): CodeQualityIssue
+    private function createEntityManagerInConstructorIssue(string $entityClass, \ReflectionMethod $reflectionMethod): IntegrityIssue
     {
         $shortClassName = $this->getShortClassName($entityClass);
 
-        return new CodeQualityIssue([
+        return new IntegrityIssue([
             'title'       => 'EntityManager injected in entity constructor: ' . $shortClassName,
             'description' => sprintf(
                 'Entity "%s" has EntityManager injected in constructor.' . "
@@ -328,12 +328,12 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         ]);
     }
 
-    private function createEntityManagerPropertyIssue(string $entityClass, \ReflectionProperty $reflectionProperty): CodeQualityIssue
+    private function createEntityManagerPropertyIssue(string $entityClass, \ReflectionProperty $reflectionProperty): IntegrityIssue
     {
         $shortClassName = $this->getShortClassName($entityClass);
         $propertyName   = $reflectionProperty->getName();
 
-        return new CodeQualityIssue([
+        return new IntegrityIssue([
             'title'       => sprintf('EntityManager property in entity: %s::$%s', $shortClassName, $propertyName),
             'description' => sprintf(
                 'Entity "%s" has EntityManager as property "$%s".' . "
@@ -362,12 +362,12 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         ]);
     }
 
-    private function createEntityManagerUsageIssue(string $entityClass, \ReflectionMethod $reflectionMethod): CodeQualityIssue
+    private function createEntityManagerUsageIssue(string $entityClass, \ReflectionMethod $reflectionMethod): IntegrityIssue
     {
         $shortClassName = $this->getShortClassName($entityClass);
         $methodName     = $reflectionMethod->getName();
 
-        return new CodeQualityIssue([
+        return new IntegrityIssue([
             'title'       => sprintf('EntityManager usage in entity method: %s::%s()', $shortClassName, $methodName),
             'description' => sprintf(
                 'Entity "%s" uses EntityManager in method "%s()".' . "

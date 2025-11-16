@@ -102,7 +102,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
 
     public function getCategory(): string
     {
-        return 'code_quality';
+        return 'integrity';
     }
 
     private function hasPotentialSqlInjection(string $sql): bool
@@ -177,7 +177,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
             'title'       => 'Incorrect NULL Comparison',
             'description' => 'Using = NULL or != NULL does not work in SQL. Use IS NULL or IS NOT NULL instead, or use $expr->isNull() / $expr->isNotNull() in QueryBuilder.',
             'severity'    => 'warning',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'queries'     => [$queryData],
             'suggestion'  => $this->suggestionFactory->createFromTemplate(
                 'incorrect_null_comparison',
@@ -262,7 +262,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
             'title'       => 'Empty IN() Clause',
             'description' => 'The query contains an empty IN() clause which will cause a SQL syntax error. Always check if the array is empty before using IN().',
             'severity'    => 'critical',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'queries'     => [$queryData],
             'suggestion'  => $this->suggestionFactory->createFromTemplate(
                 'empty_in_clause',
@@ -311,7 +311,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
             'title'       => 'Missing Query Parameters',
             'description' => 'The query contains parameter placeholders (:param) but some parameters are not set with setParameter(). This will cause a runtime error.',
             'severity'    => 'critical',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'queries'     => [$queryData],
             'suggestion'  => $this->suggestionFactory->createCodeSuggestion(
                 description: 'Set all query parameters',

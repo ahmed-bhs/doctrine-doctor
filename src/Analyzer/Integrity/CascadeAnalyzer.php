@@ -15,7 +15,7 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -102,7 +102,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
     /**
      * @param ClassMetadata<object> $classMetadata
      * @param array<string, int> $referenceCountMap
-     * @return array<CodeQualityIssue>
+     * @return array<IntegrityIssue>
      */
     private function analyzeEntity(ClassMetadata $classMetadata, array $referenceCountMap): array
     {
@@ -131,7 +131,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         string $fieldName,
         array|object $mapping,
         array $referenceCountMap
-    ): ?CodeQualityIssue {
+    ): ?IntegrityIssue {
         $cascade = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? null;
 
@@ -170,13 +170,13 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         return null; // No cascade issue detected
     }
 
-    private function createCascadeAllIssue(string $entityClass, string $fieldName, array|object $mapping): CodeQualityIssue
+    private function createCascadeAllIssue(string $entityClass, string $fieldName, array|object $mapping): IntegrityIssue
     {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $cascade = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $severity = $this->determineSeverityForAll($mapping);
 
-        $issue = new CodeQualityIssue([
+        $issue = new IntegrityIssue([
             'entity' => $entityClass,
             'field' => $fieldName,
             'association_type' => $this->getAssociationType($mapping),
@@ -206,11 +206,11 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         string $fieldName,
         array|object $mapping,
         array $referenceCountMap
-    ): CodeQualityIssue {
+    ): IntegrityIssue {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $shortTargetName = $this->getShortClassName($targetEntity);
 
-        $issue = new CodeQualityIssue([
+        $issue = new IntegrityIssue([
             'entity' => $entityClass,
             'field' => $fieldName,
             'target_entity' => $targetEntity,
@@ -246,12 +246,12 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         string $fieldName,
         array|object $mapping,
         array $referenceCountMap
-    ): CodeQualityIssue {
+    ): IntegrityIssue {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $shortClassName = $this->getShortClassName($entityClass);
         $shortTargetName = $this->getShortClassName($targetEntity);
 
-        $issue = new CodeQualityIssue([
+        $issue = new IntegrityIssue([
             'entity' => $entityClass,
             'field' => $fieldName,
             'target_entity' => $targetEntity,
@@ -284,12 +284,12 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         string $fieldName,
         array|object $mapping,
         array $referenceCountMap
-    ): CodeQualityIssue {
+    ): IntegrityIssue {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $shortClassName = $this->getShortClassName($entityClass);
         $shortTargetName = $this->getShortClassName($targetEntity);
 
-        $issue = new CodeQualityIssue([
+        $issue = new IntegrityIssue([
             'entity' => $entityClass,
             'field' => $fieldName,
             'target_entity' => $targetEntity,

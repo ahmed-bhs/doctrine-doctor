@@ -59,7 +59,7 @@ final class FloatForMoneyAnalyzerIntegrationTest extends DatabaseTestCase
         self::assertGreaterThan(0, count($issuesArray), 'Should detect float for money');
 
         $issue = $issuesArray[0];
-        self::assertEquals('code_quality', $issue->getCategory());
+        self::assertEquals('integrity', $issue->getCategory());
         self::assertStringContainsString('float', strtolower((string) $issue->getTitle()));
         self::assertStringContainsString('price', strtolower((string) $issue->getDescription()));
     }

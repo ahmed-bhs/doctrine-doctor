@@ -15,7 +15,7 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -225,7 +225,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
         string $fieldName,
         array|object $mapping,
         array $referenceCountMap,
-    ): CodeQualityIssue {
+    ): IntegrityIssue {
         $targetEntity   = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $cascade        = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $type           = $this->getAssociationType($mapping);
@@ -234,7 +234,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
         // Create synthetic backtrace from entity reflection
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-        $codeQualityIssue = new CodeQualityIssue([
+        $codeQualityIssue = new IntegrityIssue([
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => $type,

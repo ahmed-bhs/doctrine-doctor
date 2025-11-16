@@ -348,7 +348,7 @@ final class CascadePersistOnIndependentEntityAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $issue = reset($issuesArray);
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
-        self::assertEquals('code_quality', $issue->getCategory());
+        self::assertEquals('integrity', $issue->getCategory());
     }
 
     #[Test]

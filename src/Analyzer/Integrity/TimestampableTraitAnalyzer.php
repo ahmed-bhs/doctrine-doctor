@@ -405,7 +405,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             'title'       => sprintf('Mutable DateTime in Timestamp: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $this->createImmutableDateTimeSuggestion($shortClassName, $fieldName),
             'backtrace'   => [
                 'entity' => $className,
@@ -492,7 +492,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             'title'       => sprintf('Nullable Creation Timestamp: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $this->createNonNullableCreatedAtSuggestion($shortClassName, $fieldName),
             'backtrace'   => [
                 'entity' => $className,
@@ -523,7 +523,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             'title'       => sprintf('Public Setter on Timestamp: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'info',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $this->createRemovePublicSetterSuggestion($shortClassName, $fieldName),
             'backtrace'   => [
                 'entity' => $className,

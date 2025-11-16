@@ -63,7 +63,7 @@ final class FloatForMoneyAnalyzerTest extends TestCase
         }
 
         self::assertNotNull($priceIssue, 'Should detect float used for Product::$price');
-        self::assertEquals('code_quality', $priceIssue->getCategory());
+        self::assertEquals('integrity', $priceIssue->getCategory());
         self::assertEquals('critical', $priceIssue->getSeverity()->value);
         self::assertStringContainsString('float', strtolower($priceIssue->getDescription()));
         self::assertStringContainsString('monetary', strtolower($priceIssue->getDescription()));

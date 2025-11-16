@@ -328,6 +328,6 @@ final class QueryBuilderBestPracticesAnalyzerTest extends TestCase
 
         // Assert
         self::assertEquals('QueryBuilder Best Practices', $name);
-        self::assertEquals('code_quality', $category);
+        self::assertEquals('integrity', $category);
     }
 }

@@ -17,7 +17,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CompositionRelationshipDetector;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -351,12 +351,12 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         string $fieldName,
         array|object $mapping,
         array $referenceCountMap,
-    ): CodeQualityIssue {
+    ): IntegrityIssue {
         $targetEntity   = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $cascade        = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
-        $codeQualityIssue = new CodeQualityIssue([
+        $codeQualityIssue = new IntegrityIssue([
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToOne',
@@ -390,12 +390,12 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         string $fieldName,
         array|object $mapping,
         array $referenceCountMap,
-    ): CodeQualityIssue {
+    ): IntegrityIssue {
         $targetEntity   = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $cascade        = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
-        $codeQualityIssue = new CodeQualityIssue([
+        $codeQualityIssue = new IntegrityIssue([
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToMany',

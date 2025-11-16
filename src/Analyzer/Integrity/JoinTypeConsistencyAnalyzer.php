@@ -18,7 +18,7 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
@@ -203,7 +203,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         string $field,
         string $sql,
         array|object $query,
-    ): CodeQualityIssue {
+    ): IntegrityIssue {
         $backtrace = $this->extractBacktrace($query);
 
         $issueData = new IssueData(
@@ -223,7 +223,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             backtrace: $backtrace,
         );
 
-        return new CodeQualityIssue($issueData->toArray());
+        return new IntegrityIssue($issueData->toArray());
     }
 
     /**

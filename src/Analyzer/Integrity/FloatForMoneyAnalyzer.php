@@ -293,7 +293,7 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
             'title'       => sprintf('Float Used for Money: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'critical',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $this->createMoneyHandlingSuggestion($shortClassName, $fieldName),
             'backtrace'   => [
                 'entity'       => $className,

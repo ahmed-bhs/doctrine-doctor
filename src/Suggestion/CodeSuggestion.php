@@ -56,7 +56,7 @@ final class CodeSuggestion implements SuggestionInterface
     public function getMetadata(): SuggestionMetadata
     {
         return new SuggestionMetadata(
-            type: SuggestionType::CODE_QUALITY,
+            type: SuggestionType::INTEGRITY,
             severity: Severity::WARNING,
             title: 'Code Quality Improvement',
             tags: ['code-quality'],

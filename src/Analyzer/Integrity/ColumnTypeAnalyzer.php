@@ -16,7 +16,7 @@ use Webmozart\Assert\Assert;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
@@ -67,7 +67,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 
     /**
      * @param QueryDataCollection $queryDataCollection - Not used, entity metadata analyzer
-     * @return IssueCollection<CodeQualityIssue>
+     * @return IssueCollection<IntegrityIssue>
      */
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
@@ -104,7 +104,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
     }
 
     /**
-     * @return array<CodeQualityIssue>
+     * @return array<IntegrityIssue>
      */
     private function analyzeEntity(ClassMetadata $classMetadata): array
     {
@@ -131,7 +131,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             if ('simple_array' === $type) {
                 $issue = $this->checkSimpleArrayUsage($entityClass, $fieldName, $mappingArray);
 
-                if ($issue instanceof CodeQualityIssue) {
+                if ($issue instanceof IntegrityIssue) {
                     $issues[] = $issue;
                 }
             }
@@ -139,7 +139,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             // Check for missing enum type (PHP 8.1+)
             $issue = $this->checkForEnumOpportunity($entityClass, $fieldName, $mappingArray);
 
-            if ($issue instanceof CodeQualityIssue) {
+            if ($issue instanceof IntegrityIssue) {
                 $issues[] = $issue;
             }
         }
@@ -191,7 +191,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         string $fieldName,
         string $type,
         array $typeInfo,
-    ): CodeQualityIssue {
+    ): IntegrityIssue {
         $shortClassName = $this->getShortClassName($entityClass);
         $isVendor = $this->isVendorEntity($entityClass);
 
@@ -220,7 +220,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             );
         }
 
-        return new CodeQualityIssue([
+        return new IntegrityIssue([
             'title'       => sprintf(
                 'Problematic column type "%s" in %s::$%s%s',
                 $type,
@@ -248,7 +248,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         string $entityClass,
         string $fieldName,
         array $mapping,
-    ): ?CodeQualityIssue {
+    ): ?IntegrityIssue {
         $shortClassName = $this->getShortClassName($entityClass);
 
         // simple_array stores as comma-separated string
@@ -261,7 +261,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         $length = $mapping['length'] ?? 255;
 
         if ($length <= self::SIMPLE_ARRAY_MAX_LENGTH) {
-            return new CodeQualityIssue([
+            return new IntegrityIssue([
                 'title'       => sprintf('simple_array type with limited length in %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Field "%s::$%s" uses "simple_array" type with length=%d. ' .
@@ -289,14 +289,14 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         string $entityClass,
         string $fieldName,
         array $mapping,
-    ): ?CodeQualityIssue {
+    ): ?IntegrityIssue {
         $type = $mapping['type'] ?? null;
 
         // Check if field is string with limited values (potential enum)
         if ('string' === $type && $this->looksLikeEnum($fieldName)) {
             $shortClassName = $this->getShortClassName($entityClass);
 
-            return new CodeQualityIssue([
+            return new IntegrityIssue([
                 'title'       => sprintf('Consider using native enum for %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Field "%s::$%s" appears to store enum-like values (e.g., status, type, role). ' .

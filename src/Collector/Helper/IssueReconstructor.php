@@ -138,7 +138,7 @@ final class IssueReconstructor
             'performance'   => SuggestionType::performance(),
             'security'      => SuggestionType::security(),
             'configuration' => SuggestionType::configuration(),
-            'code_quality'  => SuggestionType::codeQuality(),
+            'integrity'     => SuggestionType::integrity(),
             'best_practice' => SuggestionType::bestPractice(),
             'refactoring'   => SuggestionType::refactoring(),
             default         => SuggestionType::performance(),

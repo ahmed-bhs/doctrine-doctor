@@ -417,7 +417,7 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
 
         foreach ($softDeleteIssues as $issue) {
             $category = $issue->getCategory();
-            self::assertContains($category, ['configuration', 'code_quality'], 'Category should be valid');
+            self::assertContains($category, ['configuration', 'integrity'], 'Category should be valid');
         }
     }
 }

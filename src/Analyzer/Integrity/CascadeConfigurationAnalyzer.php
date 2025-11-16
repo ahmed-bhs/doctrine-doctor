@@ -15,7 +15,7 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -59,7 +59,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
     }
 
     /**
-     * @return IssueCollection<CodeQualityIssue>
+     * @return IssueCollection<IntegrityIssue>
      */
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
@@ -106,7 +106,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
     }
 
     /**
-     * @return array<CodeQualityIssue>
+     * @return array<IntegrityIssue>
      */
     private function analyzeEntity(ClassMetadata $classMetadata): array
     {
@@ -125,7 +125,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             if ($this->hasCascadeRemove($associationMapping)) {
                 $issue = $this->checkDangerousCascadeRemove($entityClass, $fieldName, $associationMapping);
 
-                if ($issue instanceof CodeQualityIssue) {
+                if ($issue instanceof IntegrityIssue) {
                     $issues[] = $issue;
                 }
             }
@@ -134,7 +134,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             if ($this->isCompositionRelationship($associationMapping)) {
                 $issue = $this->checkMissingCascade($entityClass, $fieldName, $associationMapping);
 
-                if ($issue instanceof CodeQualityIssue) {
+                if ($issue instanceof IntegrityIssue) {
                     $issues[] = $issue;
                 }
             }
@@ -188,7 +188,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         return false;
     }
 
-    private function checkCascadeAll(string $entityClass, string $fieldName, array|object $mapping): CodeQualityIssue
+    private function checkCascadeAll(string $entityClass, string $fieldName, array|object $mapping): IntegrityIssue
     {
         $shortClassName = $this->getShortClassName($entityClass);
         $targetEntity   = $this->getShortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
@@ -198,7 +198,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
         // Check if target is an independent entity
         if ($this->isIndependentEntity(MappingHelper::getString($mapping, 'targetEntity') ?? '')) {
-            return new CodeQualityIssue([
+            return new IntegrityIssue([
                 'title'       => sprintf('Dangerous cascade="all" in %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Entity "%s" has cascade="all" on property "$%s" (relation to %s). ' .
@@ -218,7 +218,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             ]);
         }
 
-        return new CodeQualityIssue([
+        return new IntegrityIssue([
             'title'       => sprintf('Overuse of cascade="all" in %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Entity "%s" uses cascade="all" on property "$%s" (relation to %s). ' .
@@ -236,7 +236,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         ]);
     }
 
-    private function checkDangerousCascadeRemove(string $entityClass, string $fieldName, array|object $mapping): ?CodeQualityIssue
+    private function checkDangerousCascadeRemove(string $entityClass, string $fieldName, array|object $mapping): ?IntegrityIssue
     {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? '';
 
@@ -251,7 +251,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         // Create synthetic backtrace
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-        return new CodeQualityIssue([
+        return new IntegrityIssue([
             'title'       => 'Dangerous cascade remove on independent entity ' . $targetShortName,
             'description' => sprintf(
                 'Entity "%s" has cascade remove on property "$%s" pointing to independent entity "%s". ' .
@@ -271,7 +271,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         ]);
     }
 
-    private function checkMissingCascade(string $entityClass, string $fieldName, array|object $mapping): ?CodeQualityIssue
+    private function checkMissingCascade(string $entityClass, string $fieldName, array|object $mapping): ?IntegrityIssue
     {
         $cascade = MappingHelper::getArray($mapping, 'cascade') ?? [];
 
@@ -283,7 +283,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             // Create synthetic backtrace
             $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-            return new CodeQualityIssue([
+            return new IntegrityIssue([
                 'title'       => sprintf('Missing cascade on composition relationship %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Entity "%s" has a composition relationship with "%s" (property "$%s") but no cascaconfiguration. ' .

@@ -59,7 +59,7 @@ final class FloatInMoneyEmbeddableAnalyzerTest extends TestCase
         }
 
         self::assertNotNull($moneyWithFloatIssue, 'Should detect float in MoneyWithFloat embeddable');
-        self::assertEquals('code_quality', $moneyWithFloatIssue->getCategory());
+        self::assertEquals('integrity', $moneyWithFloatIssue->getCategory());
         self::assertEquals('critical', $moneyWithFloatIssue->getSeverity()->value);
     }
 

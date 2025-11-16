@@ -29,7 +29,7 @@ interface IssueInterface
      * Must return one of the IssueCategory constants:
      * - IssueCategory::PERFORMANCE
      * - IssueCategory::SECURITY
-     * - IssueCategory::CODE_QUALITY
+     * - IssueCategory::INTEGRITY
      * - IssueCategory::CONFIGURATION
      * @return string One of the IssueCategory constants
      */

@@ -15,7 +15,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeAllAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\TwigTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\DBAL\DriverManager;
@@ -166,7 +166,7 @@ final class CascadeAllAnalyzerIntegrationTest extends TestCase
             }
         }
 
-        self::assertInstanceOf(CodeQualityIssue::class, $userIssue, 'Should detect cascade="all" on user field');
+        self::assertInstanceOf(IntegrityIssue::class, $userIssue, 'Should detect cascade="all" on user field');
         self::assertSame('Dangerous cascade="all" Detected', $userIssue->getTitle());
         self::assertEquals('critical', $userIssue->getSeverity()->value, 'ManyToOne with cascade="all" to User should be critical');
     }

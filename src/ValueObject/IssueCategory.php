@@ -32,9 +32,9 @@ enum IssueCategory: string
     case SECURITY = 'security';
 
     /**
-     * Code quality issues (bad practices, type mismatches, etc.).
+     * Data integrity issues (bad practices, type mismatches, cascade config, etc.).
      */
-    case CODE_QUALITY = 'code_quality';
+    case INTEGRITY = 'integrity';
 
     /**
      * Database configuration issues (charset, collation, strict mode, etc.).
@@ -105,11 +105,11 @@ enum IssueCategory: string
     }
 
     /**
-     * Named constructor for code quality category.
+     * Named constructor for integrity category.
      */
-    public static function codeQuality(): self
+    public static function integrity(): self
     {
-        return self::CODE_QUALITY;
+        return self::INTEGRITY;
     }
 
     /**

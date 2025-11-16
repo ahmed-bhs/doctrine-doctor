@@ -197,7 +197,7 @@ class EmbeddableWithoutValueObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\A
             'title' => sprintf('Incomplete Value Object: %s', $shortClassName),
             'description' => $description,
             'severity' => 'info',
-            'category' => 'code_quality',
+            'category' => 'integrity',
             'suggestion' => $this->createValueObjectSuggestion($shortClassName, $missingMethods),
             'backtrace' => [
                 'embeddable' => $className,

@@ -225,7 +225,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             'title'       => sprintf('Missing Blameable Trait: %s', $shortClassName),
             'description' => $description,
             'severity'    => 'info',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $this->createBlameableTraitSuggestion($shortClassName, $timestampFields),
             'backtrace'   => [
                 'entity'           => $className,
@@ -444,7 +444,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             'title'       => sprintf('Nullable Creator Field: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $this->createNonNullableCreatedBySuggestion($shortClassName, $fieldName),
             'backtrace'   => [
                 'entity' => $className,
@@ -475,7 +475,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             'title'       => sprintf('Public Setter on Blameable: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'info',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $this->createRemovePublicSetterSuggestion($shortClassName, $fieldName),
             'backtrace'   => [
                 'entity' => $className,

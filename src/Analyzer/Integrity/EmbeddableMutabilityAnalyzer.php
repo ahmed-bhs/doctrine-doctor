@@ -262,7 +262,7 @@ class EmbeddableMutabilityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             'title'       => sprintf('Mutable Embeddable: %s', $shortClassName),
             'description' => $description,
             'severity'    => 'warning',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $this->createImmutabilitySuggestion($shortClassName, $mutabilityIssues),
             'backtrace'   => [
                 'embeddable'        => $className,

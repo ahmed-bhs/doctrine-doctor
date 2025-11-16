@@ -18,7 +18,7 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -106,7 +106,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     /**
      * @param ClassMetadata<object>                $classMetadata
      * @param array<string, ClassMetadata<object>> $metadataMap
-     * @return array<CodeQualityIssue>
+     * @return array<IntegrityIssue>
      */
     private function analyzeEntity(ClassMetadata $classMetadata, array $metadataMap): array
     {
@@ -323,14 +323,14 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $fieldName,
         array|object $mapping,
         array $inconsistency,
-    ): CodeQualityIssue {
+    ): IntegrityIssue {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $inverseField = $inconsistency['inverse_field'] ?? 'unknown';
 
         // Create synthetic backtrace
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-        $codeQualityIssue = new CodeQualityIssue([
+        $codeQualityIssue = new IntegrityIssue([
             'entity'             => $entityClass,
             'field'              => $fieldName,
             'target_entity'      => $targetEntity,

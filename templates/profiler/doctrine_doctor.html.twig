@@ -340,18 +340,18 @@
             </div>
         </div>
 
-        <div class="tab {{ collector.getIssueCountByCategory('code_quality') == 0 ? 'disabled' }}">
-            <h3 class="tab-title">🔧 Code Quality ({{ collector.getIssueCountByCategory('code_quality') }})</h3>
+        <div class="tab {{ collector.getIssueCountByCategory('integrity') == 0 ? 'disabled' }}">
+            <h3 class="tab-title">🔧 Integrity ({{ collector.getIssueCountByCategory('integrity') }})</h3>
             <div class="tab-content">
-                {% set codeQualityIssues = collector.getIssuesByCategory('code_quality') %}
-                {% if codeQualityIssues is empty %}
+                {% set integrityIssues = collector.getIssuesByCategory('integrity') %}
+                {% if integrityIssues is empty %}
                     <div class="empty">
-                        <p>No code quality issues detected.</p>
+                        <p>No integrity issues detected.</p>
                     </div>
                 {% else %}
                     {% import _self as macros %}
-                    {% for issue in codeQualityIssues %}
-                        {{ macros.render_issue(issue, loop.index, 'quality') }}
+                    {% for issue in integrityIssues %}
+                        {{ macros.render_issue(issue, loop.index, 'integrity') }}
                     {% endfor %}
                 {% endif %}
             </div>

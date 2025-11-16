@@ -374,7 +374,7 @@ deptrac:
   # ============================================================
   #
   # 1. ANALYZERS (Application Layer)
-  #    DO: Create Issues and Suggestions directly (new CodeQualityIssue(...))
+  #    DO: Create Issues and Suggestions directly (new IntegrityIssue(...))
   #    DO: Use Helper classes for common mapping operations
   #    DO: Inject PlatformAnalysisStrategyFactory for platform-specific logic
   #    📢 DON'T: Inject IssueFactory or SuggestionFactory

@@ -15,30 +15,33 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 
 /**
- * Represents a code quality issue detected by Doctrine Doctor.
- * Code quality issues are anti-patterns, violations of best practices,
+ * Represents a data integrity issue detected by Doctrine Doctor.
+ * Integrity issues are anti-patterns, violations of best practices,
  * or architectural problems in entity code that don't necessarily cause
  * immediate bugs but lead to maintainability, testability, or performance issues.
  */
-class CodeQualityIssue extends AbstractIssue
+class IntegrityIssue extends AbstractIssue
 {
     public function __construct(array $data)
     {
         parent::__construct(array_merge([
-            'type'        => IssueType::CODE_QUALITY,
-            'title'       => 'Code Quality Issue',
-            'description' => 'Code quality needs improvement.',
+            'type'        => IssueType::INTEGRITY,
+            'title'       => 'Integrity Issue',
+            'description' => 'Data integrity needs improvement.',
             'severity'    => $data['severity'] ?? 'warning',
         ], $data));
     }
 
     public function getType(): string
     {
-        return 'Code Quality';
+        return 'Integrity';
     }
 
     public function getCategory(): string
     {
-        return IssueCategory::CODE_QUALITY->value;
+        return IssueCategory::INTEGRITY->value;
     }
 }
+
+// Backward compatibility alias for serialized data in profiler
+class_alias(IntegrityIssue::class, 'AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue');

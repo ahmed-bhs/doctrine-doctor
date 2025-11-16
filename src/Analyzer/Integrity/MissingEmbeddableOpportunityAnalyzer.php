@@ -231,7 +231,7 @@ class MissingEmbeddableOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\A
             'title'       => sprintf('Missing %s Embeddable: %s', $embeddableName, $shortClassName),
             'description' => $description,
             'severity'    => 'info',
-            'category'    => 'code_quality',
+            'category'    => 'integrity',
             'suggestion'  => $this->createEmbeddableSuggestion($shortClassName, $embeddableName, $fields),
             'backtrace'   => [
                 'entity'           => $className,
