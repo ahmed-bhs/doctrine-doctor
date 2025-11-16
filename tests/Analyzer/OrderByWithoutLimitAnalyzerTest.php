@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\OrderByWithoutLimitAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\OrderByWithoutLimitAnalyzer;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\InMemoryTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\PhpTemplateRenderer;
@@ -388,5 +388,195 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
             ->build();
         $issues3 = $this->analyzer->analyze($queries3);
         self::assertEquals('warning', $issues3->toArray()[0]->getData()['severity']);
+    }
+
+    #[Test]
+    public function it_skips_single_result_queries_with_good_performance(): void
+    {
+        // Fast query (< 10ms) with getOneOrNullResult should be skipped (false positive)
+        $backtrace = [
+            ['file' => 'Query.php', 'line' => 296, 'class' => 'Doctrine\\ORM\\Query', 'function' => '_doExecute'],
+            ['file' => 'AbstractQuery.php', 'line' => 886, 'class' => 'Doctrine\\ORM\\AbstractQuery', 'function' => 'execute'],
+            ['file' => 'AbstractQuery.php', 'line' => 737, 'class' => 'Doctrine\\ORM\\AbstractQuery', 'function' => 'getOneOrNullResult'],
+            ['file' => 'TaxonRepository.php', 'line' => 85, 'class' => 'TaxonRepository', 'function' => 'findOneBySlug'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace(
+                'SELECT s0_.id AS id_0 FROM sylius_taxon s0_ INNER JOIN sylius_taxon_translation s1_ ON s0_.id = s1_.translatable_id WHERE s0_.enabled = ? AND s1_.slug = ? AND s1_.locale = ? ORDER BY s0_.id ASC',
+                $backtrace,
+                5.0, // Fast query < 10ms - should be skipped
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        // Should be skipped (no issue) because it's single_result + fast
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_detects_single_result_queries_with_poor_performance(): void
+    {
+        // Slow query (>= 10ms) with getOneOrNullResult should still be detected
+        $backtrace = [
+            ['file' => 'AbstractQuery.php', 'line' => 737, 'class' => 'Doctrine\\ORM\\AbstractQuery', 'function' => 'getOneOrNullResult'],
+            ['file' => 'UserRepository.php', 'line' => 50, 'class' => 'UserRepository', 'function' => 'findOneByEmail'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace(
+                'SELECT * FROM users ORDER BY id ASC',
+                $backtrace,
+                15.0, // Slow enough to be flagged
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        // Should be INFO severity for single_result context
+        self::assertEquals('info', $data['severity']);
+        self::assertStringContainsString('Single-Result Query', $issue->getTitle());
+        self::assertStringContainsString('setMaxResults(1)', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_detects_array_result_queries_without_limit(): void
+    {
+        // Array result methods (getResult, findBy) should be flagged more severely
+        $backtrace = [
+            ['file' => 'AbstractQuery.php', 'line' => 886, 'class' => 'Doctrine\\ORM\\AbstractQuery', 'function' => 'execute'],
+            ['file' => 'Query.php', 'line' => 737, 'class' => 'Doctrine\\ORM\\Query', 'function' => 'getResult'],
+            ['file' => 'OrderRepository.php', 'line' => 42, 'class' => 'OrderRepository', 'function' => 'findAllOrdered'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace(
+                'SELECT * FROM orders ORDER BY created_at DESC',
+                $backtrace,
+                50.0, // Moderate speed
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        // Should be WARNING severity for array_result context (always warn)
+        self::assertEquals('warning', $data['severity']);
+        self::assertStringContainsString('Array Query', $issue->getTitle());
+        self::assertStringContainsString('array of results', $issue->getDescription());
+        self::assertStringContainsString('Add LIMIT', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_detects_getSingleResult_as_single_result_context(): void
+    {
+        // getSingleResult should also be detected as single_result context
+        $backtrace = [
+            ['file' => 'AbstractQuery.php', 'line' => 737, 'class' => 'Doctrine\\ORM\\AbstractQuery', 'function' => 'getSingleResult'],
+            ['file' => 'UserRepository.php', 'line' => 60, 'class' => 'UserRepository', 'function' => 'getByUsername'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace(
+                'SELECT * FROM users WHERE username = ? ORDER BY id',
+                $backtrace,
+                5.0, // Fast - should be skipped
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        // Should be skipped (fast single_result query)
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_handles_very_slow_single_result_query(): void
+    {
+        // Very slow (> 100ms) single_result should get WARNING severity
+        $backtrace = [
+            ['file' => 'AbstractQuery.php', 'line' => 737, 'class' => 'Doctrine\\ORM\\AbstractQuery', 'function' => 'getOneOrNullResult'],
+            ['file' => 'ProductRepository.php', 'line' => 90, 'class' => 'ProductRepository', 'function' => 'findOneBySlug'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace(
+                'SELECT * FROM products ORDER BY name',
+                $backtrace,
+                120.0, // Very slow
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        // Should be WARNING severity (> 100ms threshold)
+        self::assertEquals('warning', $data['severity']);
+        self::assertStringContainsString('120.00ms', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_handles_very_slow_array_result_query(): void
+    {
+        // Very slow (> 500ms) array_result should get CRITICAL severity
+        $backtrace = [
+            ['file' => 'Query.php', 'line' => 737, 'class' => 'Doctrine\\ORM\\Query', 'function' => 'getResult'],
+            ['file' => 'OrderRepository.php', 'line' => 100, 'class' => 'OrderRepository', 'function' => 'findAll'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace(
+                'SELECT * FROM orders ORDER BY created_at DESC',
+                $backtrace,
+                550.0, // Very slow
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+        $data = $issue->getData();
+
+        // Should be CRITICAL severity (> 500ms threshold for array results)
+        self::assertEquals('critical', $data['severity']);
+        self::assertStringContainsString('550.00ms', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_detects_findBy_as_array_result_context(): void
+    {
+        // Repository findBy method should be detected as array_result
+        $backtrace = [
+            ['file' => 'EntityRepository.php', 'line' => 200, 'class' => 'Doctrine\\ORM\\EntityRepository', 'function' => 'findBy'],
+            ['file' => 'UserController.php', 'line' => 42, 'class' => 'UserController', 'function' => 'listUsers'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace(
+                'SELECT * FROM users ORDER BY created_at DESC',
+                $backtrace,
+                80.0,
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+
+        // Should be detected as array_result context
+        self::assertStringContainsString('Array Query', $issue->getTitle());
     }
 }

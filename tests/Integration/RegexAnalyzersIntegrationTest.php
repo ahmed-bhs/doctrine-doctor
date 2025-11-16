@@ -12,8 +12,8 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\DQLValidationAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\MissingIndexAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\NPlusOneAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\NPlusOneAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
@@ -72,7 +72,7 @@ final class RegexAnalyzersIntegrationTest extends TestCase
         $templateRenderer = PlatformAnalyzerTestHelper::createTemplateRenderer();
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: $templateRenderer, // @phpstan-ignore-line argument.type
+            suggestionFactory: new SuggestionFactory($templateRenderer), // @phpstan-ignore-line argument.type
             connection: $connection,
         );
 
@@ -190,7 +190,7 @@ final class RegexAnalyzersIntegrationTest extends TestCase
         $templateRenderer = PlatformAnalyzerTestHelper::createTemplateRenderer();
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: $templateRenderer, // @phpstan-ignore-line argument.type
+            suggestionFactory: new SuggestionFactory($templateRenderer), // @phpstan-ignore-line argument.type
             connection: $connection,
         );
 
@@ -262,7 +262,7 @@ final class RegexAnalyzersIntegrationTest extends TestCase
         $templateRenderer = PlatformAnalyzerTestHelper::createTemplateRenderer();
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: $templateRenderer, // @phpstan-ignore-line argument.type
+            suggestionFactory: new SuggestionFactory($templateRenderer), // @phpstan-ignore-line argument.type
             connection: $connection,
         );
 
@@ -299,7 +299,7 @@ final class RegexAnalyzersIntegrationTest extends TestCase
         $templateRenderer = PlatformAnalyzerTestHelper::createTemplateRenderer();
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: $templateRenderer, // @phpstan-ignore-line argument.type
+            suggestionFactory: new SuggestionFactory($templateRenderer), // @phpstan-ignore-line argument.type
             connection: $connection,
         );
 

@@ -1,0 +1,342 @@
+<?php
+
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace AhmedBhs\DoctrineDoctor\Analyzer\Parser;
+
+use PhpParser\Error;
+use PhpParser\Node\Stmt;
+use PhpParser\NodeTraverser;
+use PhpParser\Parser;
+use PhpParser\ParserFactory;
+use Psr\Log\LoggerInterface;
+use ReflectionMethod;
+
+/**
+ * PHP Code Parser using nikic/php-parser instead of fragile regex.
+ *
+ * This class provides a robust, maintainable way to analyze PHP code by:
+ * - Parsing code into an Abstract Syntax Tree (AST)
+ * - Using the Visitor Pattern to find specific patterns
+ * - Caching parsed results for performance
+ * - Providing type-safe, testable APIs
+ *
+ * Why this is better than regex:
+ * ✅ Robust: Parses actual PHP syntax
+ * ✅ Maintainable: Clear, object-oriented code
+ * ✅ Type-safe: Full IDE support and PHPStan validation
+ * ✅ Testable: Easy to write unit tests
+ * ✅ Accurate: No false positives from comments/strings
+ * ✅ Performant: AST caching
+ * ✅ Debuggable: Clear error messages
+ *
+ * @see https://github.com/nikic/PHP-Parser
+ */
+final class PhpCodeParser
+{
+    private readonly Parser $parser;
+
+    /** @var array<string, array<Stmt>|null> */
+    private array $astCache = [];
+
+    /**
+     * Maximum number of AST entries to cache.
+     * Prevents memory exhaustion on large codebases.
+     * With 1000 entries, memory usage ~20-30MB (acceptable).
+     */
+    private const MAX_CACHE_ENTRIES = 1000;
+
+    /**
+     * When cache is full, remove oldest 20% of entries.
+     * This reduces cache churn while keeping memory bounded.
+     */
+    private const CACHE_EVICTION_RATIO = 0.2;
+
+    public function __construct(
+        private readonly ?LoggerInterface $logger = null,
+    ) {
+        $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
+    }
+
+    /**
+     * Parse PHP code into AST (Abstract Syntax Tree).
+     *
+     * @param string $code The PHP code to parse
+     * @return array<Stmt>|null Array of statements, or null if parsing fails
+     */
+    public function parse(string $code): ?array
+    {
+        // Use xxh128 for better performance and lower collision rate than md5
+        // xxh128 is ~10x faster than md5 and has better distribution
+        $cacheKey = hash('xxh128', $code);
+
+        if (isset($this->astCache[$cacheKey])) {
+            return $this->astCache[$cacheKey];
+        }
+
+        // Evict old entries if cache is full (simple LRU-like strategy)
+        if (count($this->astCache) >= self::MAX_CACHE_ENTRIES) {
+            $this->evictOldestEntries();
+        }
+
+        try {
+            $ast = $this->parser->parse($code);
+            $this->astCache[$cacheKey] = $ast;
+            return $ast;
+        } catch (Error $error) {
+            $this->logger?->warning('PhpCodeParser: Failed to parse PHP code', [
+                'error' => $error->getMessage(),
+                'line' => $error->getStartLine(),
+            ]);
+            $this->astCache[$cacheKey] = null;
+            return null;
+        }
+    }
+
+    /**
+     * Evict oldest cache entries when limit is reached.
+     * Removes 20% of entries to reduce cache churn.
+     */
+    private function evictOldestEntries(): void
+    {
+        $entriesToRemove = (int) (self::MAX_CACHE_ENTRIES * self::CACHE_EVICTION_RATIO);
+
+        // Remove first N entries (oldest in insertion order)
+        // PHP arrays maintain insertion order, so this works as simple FIFO
+        $this->astCache = array_slice($this->astCache, $entriesToRemove, null, true);
+
+        $this->logger?->debug('PhpCodeParser: Evicted cache entries', [
+            'removed' => $entriesToRemove,
+            'remaining' => count($this->astCache),
+        ]);
+    }
+
+    /**
+     * Check if a collection field is initialized in a method.
+     *
+     * This replaces complex regex patterns with clean AST traversal.
+     * Detects patterns like:
+     * - $this->field = new ArrayCollection()
+     * - $this->field = []
+     * - $this->initializeFieldCollection()
+     *
+     * @param ReflectionMethod $method The method to analyze
+     * @param string $fieldName The field name to check
+     * @return bool True if field is initialized
+     */
+    public function hasCollectionInitialization(ReflectionMethod $method, string $fieldName): bool
+    {
+        $code = $this->extractMethodCode($method);
+        if (null === $code) {
+            return false;
+        }
+
+        $ast = $this->parse($code);
+        if (null === $ast) {
+            return false;
+        }
+
+        $visitor = new Visitor\CollectionInitializationVisitor($fieldName);
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor($visitor);
+        $traverser->traverse($ast);
+
+        return $visitor->hasInitialization();
+    }
+
+    /**
+     * Check if a method calls initialization methods.
+     *
+     * Detects patterns like:
+     * - $this->initializeTranslationsCollection()
+     * - $this->init*Collection()
+     *
+     * @param ReflectionMethod $method The method to analyze
+     * @param string $methodNamePattern The method name pattern (supports wildcards)
+     * @return bool True if method call is found
+     */
+    public function hasMethodCall(ReflectionMethod $method, string $methodNamePattern): bool
+    {
+        $code = $this->extractMethodCode($method);
+        if (null === $code) {
+            return false;
+        }
+
+        $ast = $this->parse($code);
+        if (null === $ast) {
+            return false;
+        }
+
+        $visitor = new Visitor\MethodCallVisitor($methodNamePattern);
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor($visitor);
+        $traverser->traverse($ast);
+
+        return $visitor->hasMethodCall();
+    }
+
+    /**
+     * Detect insecure random number generator usage in a method.
+     *
+     * This replaces fragile regex with robust AST analysis.
+     * Detects patterns like:
+     * - rand(), mt_rand(), uniqid()
+     * - md5(rand()), sha1(mt_rand())
+     *
+     * Benefits over regex:
+     * - Ignores comments automatically (no false positives)
+     * - Ignores string literals
+     * - Detects nested patterns (md5(rand()))
+     *
+     * @param ReflectionMethod $method The method to analyze
+     * @param array<string> $insecureFunctions List of insecure functions to detect
+     * @return array<array{type: string, function: string, line: int}> Detected insecure calls
+     */
+    public function detectInsecureRandom(ReflectionMethod $method, array $insecureFunctions): array
+    {
+        $code = $this->extractMethodCode($method);
+        if (null === $code) {
+            return [];
+        }
+
+        $ast = $this->parse($code);
+        if (null === $ast) {
+            return [];
+        }
+
+        $visitor = new Visitor\InsecureRandomVisitor($insecureFunctions);
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor($visitor);
+        $traverser->traverse($ast);
+
+        return $visitor->getInsecureCalls();
+    }
+
+    /**
+     * Detect if a method exposes the entire object through serialization.
+     *
+     * This replaces fragile regex with robust AST analysis.
+     * Detects patterns like:
+     * - json_encode($this)
+     * - serialize($this)
+     *
+     * Benefits over regex:
+     * - Ignores comments automatically (no false positives)
+     * - Ignores string literals
+     * - Only detects actual function calls with $this argument
+     *
+     * @param ReflectionMethod $method The method to analyze
+     * @return bool True if method exposes entire object
+     */
+    public function detectSensitiveExposure(ReflectionMethod $method): bool
+    {
+        $code = $this->extractMethodCode($method);
+        if (null === $code) {
+            return false;
+        }
+
+        $ast = $this->parse($code);
+        if (null === $ast) {
+            return false;
+        }
+
+        $visitor = new Visitor\SensitiveDataExposureVisitor();
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor($visitor);
+        $traverser->traverse($ast);
+
+        return $visitor->exposesEntireObject();
+    }
+
+    /**
+     * Extract source code from a ReflectionMethod.
+     *
+     * @param ReflectionMethod $method The method to extract
+     * @return string|null The method source code, or null if unavailable
+     */
+    private function extractMethodCode(ReflectionMethod $method): ?string
+    {
+        try {
+            $filename = $method->getFileName();
+            if (false === $filename || !file_exists($filename)) {
+                return null;
+            }
+
+            $startLine = $method->getStartLine();
+            $endLine = $method->getEndLine();
+
+            if (false === $startLine || false === $endLine) {
+                return null;
+            }
+
+            $source = file($filename);
+            if (false === $source) {
+                return null;
+            }
+
+            $lineCount = $endLine - $startLine + 1;
+
+            // Safety check: skip very large methods
+            if ($lineCount > 500) {
+                $this->logger?->debug('PhpCodeParser: Method too large', [
+                    'method' => $method->getName(),
+                    'lines' => $lineCount,
+                ]);
+                return null;
+            }
+
+            $methodCode = implode('', array_slice($source, $startLine - 1, $lineCount));
+
+            // Safety check: skip very large code blocks
+            if (strlen($methodCode) > 50000) {
+                $this->logger?->debug('PhpCodeParser: Method code too large', [
+                    'method' => $method->getName(),
+                    'bytes' => strlen($methodCode),
+                ]);
+                return null;
+            }
+
+            // IMPORTANT: Wrap in valid PHP context
+            // The parser needs complete PHP code, not just a method signature
+            // We wrap it in a dummy class so it can be parsed properly
+            $wrappedCode = "<?php\nclass DummyClass {\n" . $methodCode . "\n}\n";
+
+            return $wrappedCode;
+        } catch (\Throwable $throwable) {
+            $this->logger?->debug('PhpCodeParser: Error extracting code', [
+                'exception' => $throwable::class,
+                'method' => $method->getName(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Clear the AST cache.
+     * Useful for long-running processes to free memory.
+     */
+    public function clearCache(): void
+    {
+        $this->astCache = [];
+    }
+
+    /**
+     * Get cache statistics.
+     *
+     * @return array{entries: int, memory_bytes: int}
+     */
+    public function getCacheStats(): array
+    {
+        return [
+            'entries' => count($this->astCache),
+            'memory_bytes' => strlen(serialize($this->astCache)),
+        ];
+    }
+}

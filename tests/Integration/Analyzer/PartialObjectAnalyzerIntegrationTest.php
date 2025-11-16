@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\PartialObjectAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\PartialObjectAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Product;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\User;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\DatabaseTestCase;

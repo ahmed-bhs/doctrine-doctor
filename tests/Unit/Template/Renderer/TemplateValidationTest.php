@@ -456,7 +456,7 @@ final class TemplateValidationTest extends TestCase
             'dql_injection' => [
                 'query'                  => 'SELECT u FROM User u WHERE u.name = ' . "'" . '$name' . "'",
                 'vulnerable_parameters'  => ['name'],
-                'risk_level'             => 'high',
+                'risk_level'             => 'warning',
             ],
             'eager_loading' => [
                 'entity'      => 'App\\Entity\\Product',

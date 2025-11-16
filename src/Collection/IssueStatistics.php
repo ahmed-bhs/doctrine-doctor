@@ -24,10 +24,8 @@ final class IssueStatistics
      */
     private const SEVERITY_ORDER = [
         'critical' => 0,
-        'error'    => 1,
-        'warning'  => 2,
-        'info'     => 3,
-        'notice'   => 4,
+        'warning'  => 1,
+        'info'     => 2,
     ];
 
     public function __construct(
@@ -64,10 +62,8 @@ final class IssueStatistics
     {
         $counts = [
             'critical' => 0,
-            'error'    => 0,
             'warning'  => 0,
             'info'     => 0,
-            'notice'   => 0,
         ];
 
         foreach ($this->issueCollection as $issue) {
@@ -120,14 +116,6 @@ final class IssueStatistics
     public function hasCritical(): bool
     {
         return $this->issueCollection->any(fn (IssueInterface $issue): bool => 'critical' === $issue->getSeverity()->value);
-    }
-
-    /**
-     * Check if collection has errors.
-     */
-    public function hasErrors(): bool
-    {
-        return $this->issueCollection->any(fn (IssueInterface $issue): bool => 'error' === $issue->getSeverity()->value);
     }
 
     /**

@@ -121,7 +121,11 @@ final class PhpTemplateRenderer implements TemplateRendererInterface, Suggestion
     private function getTemplatePath(string $templateName): string
     {
         // Sanitize template name to prevent path traversal
-        $templateName = str_replace(['..', '/', '\\'], '', $templateName);
+        // Allow forward slashes for category subdirectories (e.g., Performance/flush_in_loop)
+        // but remove ../ to prevent directory traversal attacks
+        $templateName = str_replace(['..'], '', $templateName);
+        // Normalize backslashes to forward slashes
+        $templateName = str_replace('\\', '/', $templateName);
 
         return $this->templateDirectory . '/' . $templateName . '.php';
     }

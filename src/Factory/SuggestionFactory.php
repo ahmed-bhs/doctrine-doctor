@@ -54,7 +54,7 @@ final class SuggestionFactory
         Assert::greaterThan($operationsBetweenFlush, 0, 'Operations between flush must be positive, got %s');
 
         return new ModernSuggestion(
-            templateName: 'flush_in_loop',
+            templateName: 'Performance/flush_in_loop',
             context: [
                 'flush_count'              => $flushCount,
                 'operations_between_flush' => $operationsBetweenFlush,
@@ -82,7 +82,7 @@ final class SuggestionFactory
         Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
 
         return new ModernSuggestion(
-            templateName: 'eager_loading',
+            templateName: 'Performance/eager_loading',
             context: [
                 'entity'      => $entity,
                 'relation'    => $relation,
@@ -108,7 +108,7 @@ final class SuggestionFactory
         int $threshold,
     ): SuggestionInterface {
         return new ModernSuggestion(
-            templateName: 'query_optimization',
+            templateName: 'Performance/query_optimization',
             context: [
                 'code'           => $code,
                 'optimization'   => $optimization,
@@ -126,6 +126,33 @@ final class SuggestionFactory
     }
 
     /**
+     * Create a "Hydration Optimization" suggestion.
+     */
+    public function createHydrationOptimization(
+        string $code,
+        string $optimization,
+        int $rowCount,
+        int $threshold,
+    ): SuggestionInterface {
+        return new ModernSuggestion(
+            templateName: 'query_optimization',
+            context: [
+                'code'           => $code,
+                'optimization'   => $optimization,
+                'execution_time' => 0.0,
+                'threshold'      => $threshold,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $rowCount > $threshold * 10 ? Severity::critical() : Severity::warning(),
+                title: sprintf('Hydration Optimization: %d rows', $rowCount),
+                tags: ['performance', 'hydration', 'optimization'],
+            ),
+            suggestionRenderer: $this->suggestionRenderer,
+        );
+    }
+
+    /**
      * Create an "Index" suggestion.
      */
     public function createIndex(
@@ -136,7 +163,7 @@ final class SuggestionFactory
         $migrationCode ??= $this->generateMigrationCode($table, $columns);
 
         return new ModernSuggestion(
-            templateName: 'index',
+            templateName: 'Performance/index',
             context: [
                 'table'          => $table,
                 'columns'        => $columns,
@@ -160,7 +187,7 @@ final class SuggestionFactory
         int $operationCount,
     ): SuggestionInterface {
         return new ModernSuggestion(
-            templateName: 'batch_operation',
+            templateName: 'Performance/batch_operation',
             context: [
                 'table'           => $table,
                 'operation_count' => $operationCount,
@@ -181,10 +208,10 @@ final class SuggestionFactory
     public function createDQLInjection(
         string $query,
         array $vulnerableParameters,
-        string $riskLevel = 'high',
+        string $riskLevel = 'warning',
     ): SuggestionInterface {
         return new ModernSuggestion(
-            templateName: 'dql_injection',
+            templateName: 'Security/dql_injection',
             context: [
                 'query'                 => $query,
                 'vulnerable_parameters' => $vulnerableParameters,
@@ -211,7 +238,7 @@ final class SuggestionFactory
         ?string $fixCommand = null,
     ): SuggestionInterface {
         return new ModernSuggestion(
-            templateName: 'configuration',
+            templateName: 'Configuration/configuration',
             context: [
                 'setting'           => $setting,
                 'current_value'     => $currentValue,
@@ -237,7 +264,7 @@ final class SuggestionFactory
         int $occurrences,
     ): SuggestionInterface {
         return new ModernSuggestion(
-            templateName: 'get_reference',
+            templateName: 'Performance/get_reference',
             context: [
                 'entity'      => $entity,
                 'occurrences' => $occurrences,
@@ -260,7 +287,7 @@ final class SuggestionFactory
         int $resultCount,
     ): SuggestionInterface {
         return new ModernSuggestion(
-            templateName: 'pagination',
+            templateName: 'Performance/pagination',
             context: [
                 'method'       => $method,
                 'result_count' => $resultCount,
@@ -276,107 +303,235 @@ final class SuggestionFactory
     }
 
     /**
+     * Create a "Batch Fetch" suggestion for proxy N+1 queries.
+     * Recommended for ManyToOne/OneToOne relations accessed in loops.
+     */
+    public function createBatchFetch(
+        string $entity,
+        string $relation,
+        int $queryCount,
+    ): SuggestionInterface {
+        Assert::stringNotEmpty($entity, 'Entity name cannot be empty');
+        Assert::stringNotEmpty($relation, 'Relation name cannot be empty');
+        Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
+
+        return new ModernSuggestion(
+            templateName: 'batch_fetch',
+            context: [
+                'entity'      => $entity,
+                'relation'    => $relation,
+                'query_count' => $queryCount,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $this->calculateEagerLoadingSeverity($queryCount),
+                title: sprintf('Proxy N+1 Query: %d queries for %s.%s', $queryCount, $entity, $relation),
+                tags: ['performance', 'doctrine', 'batch-fetch', 'n+1', 'proxy'],
+            ),
+            suggestionRenderer: $this->suggestionRenderer,
+        );
+    }
+
+    /**
+     * Create an "Extra Lazy" suggestion for collection N+1 queries.
+     * Recommended for OneToMany/ManyToMany collections with partial access.
+     */
+    public function createExtraLazy(
+        string $entity,
+        string $relation,
+        int $queryCount,
+        bool $hasLimit = false,
+    ): SuggestionInterface {
+        Assert::stringNotEmpty($entity, 'Entity name cannot be empty');
+        Assert::stringNotEmpty($relation, 'Relation name cannot be empty');
+        Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
+
+        return new ModernSuggestion(
+            templateName: 'extra_lazy',
+            context: [
+                'entity'      => $entity,
+                'relation'    => $relation,
+                'query_count' => $queryCount,
+                'has_limit'   => $hasLimit,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $this->calculateEagerLoadingSeverity($queryCount),
+                title: sprintf('Collection N+1 Query: %d queries for %s.%s', $queryCount, $entity, $relation),
+                tags: ['performance', 'doctrine', 'extra-lazy', 'n+1', 'collection'],
+            ),
+            suggestionRenderer: $this->suggestionRenderer,
+        );
+    }
+
+    /**
+     * Create a "Denormalization" suggestion for counter fields.
+     * Recommended when count() is called frequently on collections.
+     */
+    public function createDenormalization(
+        string $entity,
+        string $relation,
+        int $queryCount,
+        ?string $counterField = null,
+    ): SuggestionInterface {
+        Assert::stringNotEmpty($entity, 'Entity name cannot be empty');
+        Assert::stringNotEmpty($relation, 'Relation name cannot be empty');
+        Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
+
+        // Generate counter field name if not provided
+        $counterField = $counterField ?? $relation . 'Count';
+
+        return new ModernSuggestion(
+            templateName: 'denormalization',
+            context: [
+                'entity'        => $entity,
+                'relation'      => $relation,
+                'query_count'   => $queryCount,
+                'counter_field' => $counterField,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $this->calculateEagerLoadingSeverity($queryCount),
+                title: sprintf('Denormalization Opportunity: %d count() queries for %s.%s', $queryCount, $entity, $relation),
+                tags: ['performance', 'doctrine', 'denormalization', 'counter', 'aggregation'],
+            ),
+            suggestionRenderer: $this->suggestionRenderer,
+        );
+    }
+
+    /**
+     * Create a "GROUP BY Aggregation" suggestion.
+     * Recommended when loading relations just for aggregation (count, sum, etc.).
+     */
+    public function createGroupByAggregation(
+        string $entity,
+        string $relation,
+        int $queryCount,
+    ): SuggestionInterface {
+        Assert::stringNotEmpty($entity, 'Entity name cannot be empty');
+        Assert::stringNotEmpty($relation, 'Relation name cannot be empty');
+        Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
+
+        return new ModernSuggestion(
+            templateName: 'group_by_aggregation',
+            context: [
+                'entity'      => $entity,
+                'relation'    => $relation,
+                'query_count' => $queryCount,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $this->calculateEagerLoadingSeverity($queryCount),
+                title: sprintf('GROUP BY Opportunity: %d queries for %s.%s aggregation', $queryCount, $entity, $relation),
+                tags: ['performance', 'doctrine', 'group-by', 'aggregation', 'n+1'],
+            ),
+            suggestionRenderer: $this->suggestionRenderer,
+        );
+    }
+
+    /**
+     * Create an "Unused Eager Load" suggestion.
+     * Recommended when JOINs are fetching data that is never accessed.
+     *
+     * @param array<string> $unusedTables
+     * @param array<string> $unusedAliases
+     */
+    public function createUnusedEagerLoad(
+        array $unusedTables,
+        array $unusedAliases,
+    ): SuggestionInterface {
+        Assert::allStringNotEmpty($unusedTables, 'Unused table names cannot be empty');
+        Assert::allStringNotEmpty($unusedAliases, 'Unused aliases cannot be empty');
+
+        return new ModernSuggestion(
+            templateName: 'unused_eager_load',
+            context: [
+                'unused_tables'  => $unusedTables,
+                'unused_aliases' => $unusedAliases,
+                'count'          => \count($unusedTables),
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $this->calculateUnusedEagerLoadSeverity(\count($unusedTables)),
+                title: sprintf('Remove %d Unused Eager Load(s)', \count($unusedTables)),
+                tags: ['performance', 'doctrine', 'eager-loading', 'memory', 'waste'],
+            ),
+            suggestionRenderer: $this->suggestionRenderer,
+        );
+    }
+
+    /**
+     * Create an "Over-Eager Loading" suggestion.
+     * Recommended when too many JOINs cause data duplication.
+     */
+    public function createOverEagerLoading(
+        int $joinCount,
+    ): SuggestionInterface {
+        Assert::greaterThan($joinCount, 2, 'Join count must be greater than 2 for over-eager loading, got %s');
+
+        return new ModernSuggestion(
+            templateName: 'over_eager_loading',
+            context: [
+                'join_count' => $joinCount,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $this->calculateOverEagerSeverity($joinCount),
+                title: sprintf('Over-Eager Loading: %d JOINs Cause Data Duplication', $joinCount),
+                tags: ['performance', 'doctrine', 'eager-loading', 'data-duplication', 'memory'],
+            ),
+            suggestionRenderer: $this->suggestionRenderer,
+        );
+    }
+
+    /**
+     * Create a "Nested Eager Loading" suggestion.
+     * Recommended when nested relationships cause multi-level N+1 queries.
+     *
+     * @param array<string> $entities - Chain of entities (e.g., ['Article', 'User', 'Country'])
+     */
+    public function createNestedEagerLoading(
+        array $entities,
+        int $depth,
+        int $queryCount,
+    ): SuggestionInterface {
+        Assert::allStringNotEmpty($entities, 'Entity names cannot be empty');
+        Assert::greaterThanEq($depth, 2, 'Depth must be at least 2 for nested N+1, got %s');
+        Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
+
+        return new ModernSuggestion(
+            templateName: 'nested_eager_loading',
+            context: [
+                'entities'    => $entities,
+                'depth'       => $depth,
+                'query_count' => $queryCount,
+                'chain'       => implode(' → ', $entities),
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $this->calculateNestedSeverity($depth, $queryCount),
+                title: sprintf('Nested N+1: %d Queries Across %d-Level Chain', $queryCount, $depth),
+                tags: ['performance', 'doctrine', 'n+1', 'nested', 'eager-loading'],
+            ),
+            suggestionRenderer: $this->suggestionRenderer,
+        );
+    }
+
+    /**
      * Create a "Join Fetch" suggestion.
+     * @deprecated Use createEagerLoading() instead. This method is an alias for createEagerLoading().
      */
     public function createJoinFetch(
         string $entity,
         string $relation,
         int $queryCount,
     ): SuggestionInterface {
-        $badCode = <<<'PHP'
-            // N+1 Problem: Multiple queries
-            $users = $em->getRepository(User::class)->findAll();
-            assert(is_iterable($users), '$users must be iterable');
-
-            foreach ($users as $user) {
-                // This triggers a separate query for EACH user!
-                echo $user->getProfile()->getName();
-            }
-            PHP;
-
-        $goodCode = <<<'PHP'
-            //  Solution: JOIN FETCH loads all at once
-            $users = $em->createQueryBuilder()
-                ->select('u, p')
-                ->from(User::class, 'u')
-                ->leftJoin('u.profile', 'p')  // Eager loading
-                ->getQuery()
-                ->getResult();
-
-            assert(is_iterable($users), '$users must be iterable');
-
-
-            foreach ($users as $user) {
-                // No additional query! Data already loaded
-                echo $user->getProfile()->getName();
-            }
-            PHP;
-
-        $repositoryMethod = <<<'PHP'
-            // In your Repository class
-            /**
-
-             * @return array<mixed>
-
-             */
-
-            public function findAllWithRelation(): array
-            {
-                return $this->createQueryBuilder('e')
-                    ->select('e, r')
-                    ->leftJoin('e.{$relation}', 'r')
-                    ->getQuery()
-                    ->getResult();
-            }
-            PHP;
-
-        return $this->createStructured(
-            title: sprintf('N+1 Query Problem: %s.%s', $entity, $relation),
-            blocks: [
-                SuggestionContentBlock::warning(
-                    "**N+1 Query Problem Detected**
-
-Detected {$queryCount} repetitive " . ($queryCount > 1 ? 'queries' : 'query') . " loading `{$relation}` relationship.
-
-**Impact:**
-- {$queryCount} separate database queries instead of 1
-- Exponential slowdown with data growth
-- Increased server load and memory usage",
-                ),
-
-                SuggestionContentBlock::heading('The Problem', 4),
-                SuggestionContentBlock::comparison($badCode, $goodCode, 'php'),
-
-                SuggestionContentBlock::heading('Recommended Solution', 4),
-                SuggestionContentBlock::text(
-                    'Create a dedicated repository method that eager loads the relationship:',
-                ),
-                SuggestionContentBlock::code($repositoryMethod, 'php'),
-
-                SuggestionContentBlock::heading('Best Practices', 4),
-                SuggestionContentBlock::unorderedList([
-                    'Use `leftJoin()` for optional relationships (may be null)',
-                    'Use `innerJoin()` for required relationships (never null)',
-                    "Always SELECT both entities: `select('e, r')`",
-                    'Consider using DTOs for read-only operations',
-                    'Profile with Doctrine query logger to verify',
-                ]),
-
-                SuggestionContentBlock::info(
-                    "**Performance Impact:**
-
-- Queries reduced from {$queryCount} to 1 (" . round((1 - 1 / $queryCount) * 100, 1) . '% reduction)
-- Response time can improve by 50-90%
-- Critical for collections with >100 items',
-                ),
-
-                SuggestionContentBlock::link(
-                    'https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins',
-                    'Doctrine DQL Joins Documentation',
-                ),
-            ],
-            summary: sprintf('Use JOIN FETCH to eliminate N+1 queries for %s.%s', $entity, $relation),
+        trigger_error(
+            'createJoinFetch() is deprecated. Use createEagerLoading() instead.',
+            E_USER_DEPRECATED,
         );
+
+        return $this->createEagerLoading($entity, $relation, $queryCount);
     }
 
     /**
@@ -414,7 +569,7 @@ Detected {$queryCount} repetitive " . ($queryCount > 1 ? 'queries' : 'query') . 
         ?string $backtrace = null,
     ): SuggestionInterface {
         return new ModernSuggestion(
-            templateName: 'collection_initialization',
+            templateName: 'Integrity/collection_initialization',
             context: [
                 'entity_class'    => $entityClass,
                 'field_name'      => $fieldName,
@@ -441,7 +596,7 @@ Detected {$queryCount} repetitive " . ($queryCount > 1 ? 'queries' : 'query') . 
         string $exposureType = 'serialization',
     ): SuggestionInterface {
         return new ModernSuggestion(
-            templateName: 'sensitive_data_exposure',
+            templateName: 'Security/sensitive_data_exposure',
             context: [
                 'entity_class'   => $entityClass,
                 'method_name'    => $methodName,
@@ -467,7 +622,7 @@ Detected {$queryCount} repetitive " . ($queryCount > 1 ? 'queries' : 'query') . 
         string $insecureFunction,
     ): SuggestionInterface {
         return new ModernSuggestion(
-            templateName: 'insecure_random',
+            templateName: 'Security/insecure_random',
             context: [
                 'entity_class'      => $entityClass,
                 'method_name'       => $methodName,
@@ -492,7 +647,7 @@ Detected {$queryCount} repetitive " . ($queryCount > 1 ? 'queries' : 'query') . 
         string $vulnerabilityType = 'concatenation',
     ): SuggestionInterface {
         return new ModernSuggestion(
-            templateName: 'sql_injection',
+            templateName: 'Security/sql_injection',
             context: [
                 'class_name'         => $className,
                 'method_name'        => $methodName,
@@ -544,11 +699,10 @@ Detected {$queryCount} repetitive " . ($queryCount > 1 ? 'queries' : 'query') . 
         array $blocks,
         ?string $summary = null,
     ): SuggestionInterface {
-        // TODO: Migrate remaining usages to createFromTemplate() with dedicated templates
-        // trigger_error(
-        //     'createStructured() is deprecated. Create a template in src/Template/Suggestions/ and use createFromTemplate() instead.',
-        //     E_USER_DEPRECATED,
-        // );
+        trigger_error(
+            'createStructured() is deprecated. Create a template in src/Template/Suggestions/ and use createFromTemplate() instead.',
+            E_USER_DEPRECATED,
+        );
 
         return new StructuredSuggestion(
             title: $title,
@@ -689,10 +843,27 @@ Detected {$queryCount} repetitive " . ($queryCount > 1 ? 'queries' : 'query') . 
         SuggestionMetadata $suggestionMetadata,
     ): SuggestionInterface {
         // Validate that template exists
+        // First try direct path (for backward compatibility or when full path is provided)
         $templatePath = __DIR__ . '/../Template/Suggestions/' . $templateName . '.php';
 
+        // If not found, search in category subdirectories
         if (!file_exists($templatePath)) {
-            throw new RuntimeException(sprintf('Template file "%s.php" does not exist. Create it in src/Template/Suggestions/', $templateName));
+            $categories = ['Performance', 'Security', 'Integrity', 'Configuration'];
+            $found = false;
+
+            foreach ($categories as $category) {
+                $categoryPath = __DIR__ . '/../Template/Suggestions/' . $category . '/' . $templateName . '.php';
+                if (file_exists($categoryPath)) {
+                    $templatePath = $categoryPath;
+                    $templateName = $category . '/' . $templateName;
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                throw new RuntimeException(sprintf('Template file "%s.php" does not exist. Create it in src/Template/Suggestions/ or in a category subdirectory (Performance, Security, CodeQuality, Configuration)', $templateName));
+            }
         }
 
         return new ModernSuggestion(
@@ -716,7 +887,7 @@ Detected {$queryCount} repetitive " . ($queryCount > 1 ? 'queries' : 'query') . 
         $severity = ('dangerous_remove' === $issueType) ? Severity::critical() : Severity::warning();
 
         return new ModernSuggestion(
-            templateName: 'cascade_configuration',
+            templateName: 'Integrity/cascade_configuration',
             context: [
                 'entity_class'   => $entityClass,
                 'field_name'     => $fieldName,
@@ -769,6 +940,50 @@ Detected {$queryCount} repetitive " . ($queryCount > 1 ? 'queries' : 'query') . 
         }
 
         if ($executionTime > 500) { // > 500ms
+            return Severity::warning();
+        }
+
+        return Severity::info();
+    }
+
+    private function calculateUnusedEagerLoadSeverity(int $unusedJoinCount): Severity
+    {
+        // More unused JOINs = more wasted resources
+        if ($unusedJoinCount >= 3) {
+            return Severity::critical();
+        }
+
+        if ($unusedJoinCount >= 2) {
+            return Severity::warning();
+        }
+
+        return Severity::info();
+    }
+
+    private function calculateOverEagerSeverity(int $joinCount): Severity
+    {
+        // Many JOINs can cause exponential data duplication
+        if ($joinCount >= 5) {
+            return Severity::critical();
+        }
+
+        if ($joinCount >= 4) {
+            return Severity::warning();
+        }
+
+        return Severity::info();
+    }
+
+    private function calculateNestedSeverity(int $depth, int $queryCount): Severity
+    {
+        // Nested N+1 is more severe because it multiplies queries
+        $totalImpact = $depth * $queryCount;
+
+        if ($totalImpact >= 50 || $depth >= 4) {
+            return Severity::critical();
+        }
+
+        if ($totalImpact >= 20 || $depth >= 2) {
             return Severity::warning();
         }
 

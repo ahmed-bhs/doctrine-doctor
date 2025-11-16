@@ -64,11 +64,19 @@ class QueryData
      */
     public static function fromArray(array $data): self
     {
-        $executionMs = $data['executionMS'] ?? 0.0;
+        $rawExecutionTime = $data['executionMS'] ?? 0.0;
+        $executionTime = is_numeric($rawExecutionTime) ? (float) $rawExecutionTime : 0.0;
 
-        // Handle Doctrine's time format (sometimes in seconds)
-        if ($executionMs > 0 && $executionMs < 1) {
-            $executionMs *= 1000;
+        // IMPORTANT: Despite the field name 'executionMS', Symfony's Doctrine middleware
+        // actually stores duration in SECONDS (see Symfony\Bridge\Doctrine\Middleware\Debug\Query::getDuration()).
+        // However, some contexts (tests, legacy code) may already provide milliseconds.
+        // Heuristic: values between 0 and 1 are likely seconds, values >= 1 are likely milliseconds.
+        if ($executionTime > 0 && $executionTime < 1) {
+            // Likely in seconds, convert to milliseconds
+            $executionMs = $executionTime * 1000;
+        } else {
+            // Already in milliseconds
+            $executionMs = $executionTime;
         }
 
         // Handle both 'rowCount' and 'row_count' (Doctrine inconsistency)
@@ -85,12 +93,18 @@ class QueryData
             $params = [];
         }
 
+        $sql = $data['sql'] ?? '';
+        $backtrace = $data['backtrace'] ?? null;
+
+        /** @var array<int, array<string, mixed>>|null $validBacktrace */
+        $validBacktrace = null !== $backtrace && is_array($backtrace) ? $backtrace : null;
+
         return new self(
-            sql: $data['sql'] ?? '',
-            executionTime: QueryExecutionTime::fromMilliseconds((float) $executionMs),
+            sql: is_string($sql) ? $sql : '',
+            executionTime: QueryExecutionTime::fromMilliseconds($executionMs),
             params: $params,
-            backtrace: $data['backtrace'] ?? null,
-            rowCount: null !== $rowCount ? (int) $rowCount : null,
+            backtrace: $validBacktrace,
+            rowCount: null !== $rowCount && is_numeric($rowCount) ? (int) $rowCount : null,
         );
     }
 

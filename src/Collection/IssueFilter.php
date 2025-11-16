@@ -22,14 +22,12 @@ use Webmozart\Assert\Assert;
 final class IssueFilter
 {
     /**
-     * Severity levels in order of importance.
+     * Severity levels in order of importance (3-level system).
      */
     private const SEVERITY_ORDER = [
         'critical' => 0,
-        'error'    => 1,
-        'warning'  => 2,
-        'info'     => 3,
-        'notice'   => 4,
+        'warning'  => 1,
+        'info'     => 2,
     ];
 
     public function __construct(
@@ -46,7 +44,7 @@ final class IssueFilter
     public function bySeverity(string $severity): IssueCollection
     {
         Assert::stringNotEmpty($severity, 'Severity cannot be empty');
-        Assert::keyExists(self::SEVERITY_ORDER, $severity, 'Invalid severity "%s". Must be one of: %2$s');
+        Assert::keyExists(self::SEVERITY_ORDER, $severity, 'Invalid severity "%s". Must be one of: ' . implode(', ', array_keys(self::SEVERITY_ORDER)));
 
         return $this->issueCollection->filter(fn (IssueInterface $issue): bool => $issue->getSeverity()->value === $severity);
     }
@@ -57,14 +55,6 @@ final class IssueFilter
     public function onlyCritical(): IssueCollection
     {
         return $this->bySeverity('critical');
-    }
-
-    /**
-     * Get only error issues.
-     */
-    public function onlyErrors(): IssueCollection
-    {
-        return $this->bySeverity('error');
     }
 
     /**

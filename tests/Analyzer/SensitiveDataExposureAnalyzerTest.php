@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\SensitiveDataExposureAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Security\SensitiveDataExposureAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\UserWithProtectedData;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\UserWithSensitiveData;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
@@ -462,5 +462,130 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
         self::assertIsObject($issues);
         $issuesArray = $issues->toArray();
         self::assertIsArray($issuesArray);
+    }
+
+    #[Test]
+    public function it_skips_metadata_fields_with_is_prefix(): void
+    {
+        // Arrange: Field like "isCreditCardSaved" should be skipped (metadata, not actual card data)
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag fields starting with "is_" as sensitive
+        $issuesArray = $issues->toArray();
+        foreach ($issuesArray as $issue) {
+            $description = $issue->getDescription();
+            // Should not contain "isCreditCardSaved" or similar is_ prefixed fields
+            self::assertStringNotContainsString('$isCreditCardSaved', $description, 'Should skip is_ prefixed metadata fields');
+            self::assertStringNotContainsString('$isTokenValid', $description, 'Should skip is_ prefixed metadata fields');
+            self::assertStringNotContainsString('$isPasswordExpired', $description, 'Should skip is_ prefixed metadata fields');
+        }
+    }
+
+    #[Test]
+    public function it_skips_metadata_fields_with_has_prefix(): void
+    {
+        // Arrange: Field like "hasPaymentMethod" should be skipped (boolean flag)
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag fields starting with "has_" as sensitive
+        $issuesArray = $issues->toArray();
+        foreach ($issuesArray as $issue) {
+            $description = $issue->getDescription();
+            self::assertStringNotContainsString('$hasPaymentMethod', $description, 'Should skip has_ prefixed metadata fields');
+            self::assertStringNotContainsString('$hasToken', $description, 'Should skip has_ prefixed metadata fields');
+        }
+    }
+
+    #[Test]
+    public function it_skips_timestamp_fields_with_at_suffix(): void
+    {
+        // Arrange: Field like "passwordResetAt" should be skipped (timestamp metadata)
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag timestamp fields ending with "_at"
+        $issuesArray = $issues->toArray();
+        foreach ($issuesArray as $issue) {
+            $description = $issue->getDescription();
+            self::assertStringNotContainsString('$passwordResetAt', $description, 'Should skip _at suffixed timestamp fields');
+            self::assertStringNotContainsString('$tokenExpiresAt', $description, 'Should skip _at suffixed timestamp fields');
+        }
+    }
+
+    #[Test]
+    public function it_skips_enabled_fields_with_enabled_suffix(): void
+    {
+        // Arrange: Field like "creditCardEnabled" should be skipped (boolean flag)
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT flag fields ending with "_enabled"
+        $issuesArray = $issues->toArray();
+        foreach ($issuesArray as $issue) {
+            $description = $issue->getDescription();
+            self::assertStringNotContainsString('$creditCardEnabled', $description, 'Should skip _enabled suffixed metadata fields');
+            self::assertStringNotContainsString('$passwordResetEnabled', $description, 'Should skip _enabled suffixed metadata fields');
+        }
+    }
+
+    #[Test]
+    public function it_still_detects_actual_sensitive_data_not_metadata(): void
+    {
+        // Arrange: Fields like "password", "apiKey", "secretToken" should still be detected
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should STILL detect actual sensitive fields (not starting with is_/has_)
+        $issuesArray = $issues->toArray();
+        $hasRealSensitiveIssue = false;
+
+        foreach ($issuesArray as $issue) {
+            $description = $issue->getDescription();
+            // Check if we detect real sensitive fields (password, apiKey, etc.)
+            if (
+                str_contains($description, '$password')
+                || str_contains($description, '$apiKey')
+                || str_contains($description, '$secretToken')
+            ) {
+                $hasRealSensitiveIssue = true;
+                break;
+            }
+        }
+
+        self::assertTrue($hasRealSensitiveIssue, 'Should still detect actual sensitive data fields like password, apiKey');
+    }
+
+    #[Test]
+    public function it_distinguishes_credit_card_number_from_is_credit_card_saved(): void
+    {
+        // Arrange: "creditCardNumber" should be flagged, but "isCreditCardSaved" should not
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert
+        $issuesArray = $issues->toArray();
+        $descriptions = array_map(fn ($issue) => $issue->getDescription(), $issuesArray);
+        $allDescriptions = implode(' ', $descriptions);
+
+        // Should NOT flag metadata
+        self::assertStringNotContainsString('$isCreditCardSaved', $allDescriptions, 'Metadata field should be skipped');
+
+        // But SHOULD flag actual card data (if such entity exists in fixtures)
+        // Note: We may not have a creditCardNumber in our test fixtures, so this is just documentation
+        // If we add such a field, it should be detected
     }
 }

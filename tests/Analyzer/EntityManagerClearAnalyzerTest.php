@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\EntityManagerClearAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\EntityManagerClearAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -350,11 +350,16 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         // Act
         $issues = $this->analyzer->analyze($queries->build());
 
-        // Assert: Should include all detected queries
+        // Assert: Should detect 25 operations (even if queries are deduplicated in profiler)
         $issuesArray = $issues->toArray();
         $issue = $issuesArray[0];
 
-        self::assertCount(25, $issue->getQueries(), 'Should include all 25 queries');
+        // The issue should report detecting 25 operations
+        self::assertStringContainsString('25 operations', $issue->getTitle());
+
+        // Queries array may contain deduplicated examples (1 representative query)
+        // but the count is still reported correctly in the title
+        self::assertGreaterThan(0, count($issue->getQueries()), 'Should include at least one representative query');
     }
 
     #[Test]

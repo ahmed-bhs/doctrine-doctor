@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\TransactionBoundaryAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\TransactionBoundaryAnalyzer;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Product;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\DatabaseTestCase;

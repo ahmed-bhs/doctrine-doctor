@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\AutoGenerateProxyClassesAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\AutoGenerateProxyClassesAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -155,6 +155,78 @@ final class AutoGenerateProxyClassesAnalyzerIntegrationTest extends TestCase
             $severityValue = $issue->getSeverity()->value;
             self::assertContains($severityValue, $validSeverities, "Issue severity must be one of: " . implode(', ', $validSeverities));
         }
+    }
+
+    #[Test]
+    public function it_handles_symfony_when_prod_override_correctly(): void
+    {
+        $twigTemplateRenderer = $this->createTwigRenderer();
+        $suggestionFactory = new SuggestionFactory($twigTemplateRenderer);
+
+        // Simulate Symfony's when@prod behavior:
+        // In dev mode, auto_generate is true (the global config value)
+        // But the analyzer receives environment='dev', so it should NOT warn
+        $configuration = ORMSetup::createAttributeMetadataConfiguration(
+            paths: [__DIR__ . '/../../Fixtures/Entity'],
+            isDevMode: true,
+        );
+        $configuration->setAutoGenerateProxyClasses(true); // Simulates global config
+
+        $connection = DriverManager::getConnection([
+            'driver' => 'pdo_sqlite',
+            'memory' => true,
+        ]);
+
+        $entityManager = new EntityManager($connection, $configuration);
+
+        // Test with dev environment - should NOT warn even though auto_generate is true
+        $autoGenerateProxyClassesAnalyzer = new AutoGenerateProxyClassesAnalyzer(
+            $entityManager,
+            $suggestionFactory,
+            environment: 'dev', // Simulates Symfony running in dev mode
+        );
+
+        $issueCollection = $autoGenerateProxyClassesAnalyzer->analyze(QueryDataCollection::empty());
+
+        // Should NOT detect issues in development
+        self::assertCount(0, $issueCollection, 'Analyzer should not warn about auto_generate in dev environment');
+    }
+
+    #[Test]
+    public function it_detects_when_prod_override_is_missing(): void
+    {
+        $twigTemplateRenderer = $this->createTwigRenderer();
+        $suggestionFactory = new SuggestionFactory($twigTemplateRenderer);
+
+        // Simulate a misconfigured project:
+        // Running in prod mode with auto_generate still enabled
+        // Use isDevMode=true to avoid Redis connection issues, but set environment to 'prod'
+        $configuration = ORMSetup::createAttributeMetadataConfiguration(
+            paths: [__DIR__ . '/../../Fixtures/Entity'],
+            isDevMode: true, // Avoid cache setup issues
+        );
+        $configuration->setAutoGenerateProxyClasses(true); // BAD: Still enabled in prod!
+
+        $connection = DriverManager::getConnection([
+            'driver' => 'pdo_sqlite',
+            'memory' => true,
+        ]);
+
+        $entityManager = new EntityManager($connection, $configuration);
+
+        // Test with prod environment - SHOULD warn
+        // The key is the environment parameter, not the isDevMode
+        $autoGenerateProxyClassesAnalyzer = new AutoGenerateProxyClassesAnalyzer(
+            $entityManager,
+            $suggestionFactory,
+            environment: 'prod', // This triggers the warning
+        );
+
+        $issueCollection = $autoGenerateProxyClassesAnalyzer->analyze(QueryDataCollection::empty());
+
+        // Should detect the issue
+        self::assertGreaterThan(0, count($issueCollection), 'Analyzer should warn about auto_generate enabled in prod');
+        self::assertStringContainsString('Production', $issueCollection->first()->getTitle());
     }
 
     private function createAnalyzer(string $environment = 'prod'): AutoGenerateProxyClassesAnalyzer

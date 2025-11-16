@@ -20,14 +20,12 @@ use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 final class IssueSorter
 {
     /**
-     * Severity levels in order of importance.
+     * Severity levels in order of importance (3-level system).
      */
     private const SEVERITY_ORDER = [
         'critical' => 0,
-        'error'    => 1,
-        'warning'  => 2,
-        'info'     => 3,
-        'notice'   => 4,
+        'warning'  => 1,
+        'info'     => 2,
     ];
 
     public function __construct(

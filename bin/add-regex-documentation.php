@@ -185,7 +185,7 @@ class RegexDocumentationGenerator
         $report .= "Undocumented patterns found: " . count($this->changes) . "\n\n";
 
         if (empty($this->changes)) {
-            $report .= "✅ All patterns are documented!\n";
+            $report .= "All patterns are documented!\n";
             return $report;
         }
 
@@ -267,7 +267,7 @@ class RegexDocumentationGenerator
                 // Write modified content
                 file_put_contents($file, implode("\n", $lines) . "\n");
 
-                echo "✅ Documented " . count($changes) . " patterns in " .
+                echo "Documented " . count($changes) . " patterns in " .
                      str_replace(dirname(dirname($file)) . '/', '', $file) . "\n";
             } else {
                 echo "🔍 Would document " . count($changes) . " patterns in " .
@@ -337,7 +337,7 @@ if ($totalPatterns > 0) {
         echo "\n✨ Applied $applied documentation comments\n";
 
         if (!$dryRun) {
-            echo "⚠️  Backups created with .doc-backup extension\n";
+            echo "Backups created with .doc-backup extension\n";
             echo "To restore: find src -name '*.doc-backup' -exec bash -c 'mv \"\$0\" \"\${0%.doc-backup}\"' {} \\;\n";
         }
     } else {
@@ -346,5 +346,5 @@ if ($totalPatterns > 0) {
         echo "   (use --dry-run to preview changes)\n";
     }
 } else {
-    echo "✅ All regex patterns are already documented!\n";
+    echo "All regex patterns are already documented!\n";
 }

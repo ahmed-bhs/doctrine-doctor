@@ -127,15 +127,21 @@ class IssueFactory implements IssueFactoryInterface
         // Performance issues
         'setMaxResults_with_collection_join' => PerformanceIssue::class,
         'setMaxResults with Collection Join' => PerformanceIssue::class,
+        'unused_eager_load'                  => PerformanceIssue::class,
+        'Unused Eager Load'                  => PerformanceIssue::class,
+        'nested_n_plus_one'                  => NPlusOneIssue::class,
+        'Nested N+1'                         => NPlusOneIssue::class,
         // Embeddable issues
         'missing_embeddable_opportunity'              => CodeQualityIssue::class,
         'embeddable_mutability'                       => CodeQualityIssue::class,
         'embeddable_without_value_object_methods'     => CodeQualityIssue::class,
         'float_in_money_embeddable'                   => CodeQualityIssue::class,
         // Doctrine Extensions issues (Timestampable, Blameable, SoftDeleteable, etc.)
+        'missing_blameable_trait_opportunity'         => CodeQualityIssue::class,
         'timestampable_mutable_datetime'              => CodeQualityIssue::class,
         'timestampable_missing_timezone'              => ConfigurationIssue::class,
         'timestampable_missing_timezone_global'       => ConfigurationIssue::class,
+        'timestampable_timezone_inconsistency'        => ConfigurationIssue::class,
         'timestampable_nullable_created_at'           => CodeQualityIssue::class,
         'timestampable_public_setter'                 => CodeQualityIssue::class,
         'blameable_nullable_created_by'               => CodeQualityIssue::class,
@@ -158,7 +164,8 @@ class IssueFactory implements IssueFactoryInterface
      */
     public function createFromArray(array $data): IssueInterface
     {
-        $type = $data['type'] ?? 'unknown';
+        $rawType = $data['type'] ?? 'unknown';
+        $type = is_string($rawType) ? $rawType : 'unknown';
 
         // Find the concrete class for this issue type
         $issueClass = self::TYPE_MAP[$type] ?? null;

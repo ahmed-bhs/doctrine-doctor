@@ -47,13 +47,50 @@ final class IssueReconstructor
             $suggestion = $this->reconstructSuggestion($issueData['suggestion']);
         }
 
-        // Remove 'class' and 'suggestion' from issueData before passing to constructor
-        unset($issueData['class'], $issueData['suggestion']);
+        // Extract duplicated issues before passing to constructor
+        $duplicatedIssuesData = $issueData['duplicatedIssues'] ?? [];
+
+        // Remove 'class', 'suggestion', and 'duplicatedIssues' from issueData before passing to constructor
+        unset($issueData['class'], $issueData['suggestion'], $issueData['duplicatedIssues']);
 
         // Reconstruct the issue object
         $issue = new $issueClass(array_merge($issueData, ['suggestion' => $suggestion]));
         assert($issue instanceof IssueInterface, 'Issue class must implement IssueInterface');
+
+        // Reconstruct and attach duplicated issues if any
+        if (count($duplicatedIssuesData) > 0) {
+            $duplicatedIssues = array_map(
+                fn(array $dupData) => $this->reconstructSimplifiedIssue($dupData),
+                $duplicatedIssuesData
+            );
+            $issue->setDuplicatedIssues($duplicatedIssues);
+        }
+
         return $issue;
+    }
+
+    /**
+     * Reconstruct a simplified issue from minimal data (for duplicated issues).
+     * Duplicated issues are stored with minimal data: title, type, severity, description excerpt.
+     */
+    private function reconstructSimplifiedIssue(array $data): IssueInterface
+    {
+        // Use a simple PerformanceIssue for reconstructed duplicates
+        // We only need title, type, severity, and description excerpt for display
+        $issueClass = \AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue::class;
+
+        $title = $data['title'] ?? 'Unknown Issue';
+
+        // Use the stored description excerpt if available, otherwise generate one
+        $description = $data['description'] ?? ('Duplicate issue: ' . $title);
+
+        return new $issueClass([
+            'type'        => $data['type'] ?? 'unknown',
+            'title'       => $title,
+            'description' => $description,
+            'severity'    => $data['severity'] ?? 'info',
+            'queries'     => [],
+        ]);
     }
 
     /**

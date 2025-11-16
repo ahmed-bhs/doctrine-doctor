@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\CascadePersistOnIndependentEntityAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadePersistOnIndependentEntityAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CascadePersistTest\BlogPostGoodCascade;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CascadePersistTest\OrderWithCascadePersist;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
@@ -174,7 +174,7 @@ final class CascadePersistOnIndependentEntityAnalyzerTest extends TestCase
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
         self::assertNotFalse($issue);
         // Product severity depends on reference count (info/warning/high)
-        self::assertContains($issue->getSeverity()->value, ['info', 'warning', 'high', 'critical']);
+        self::assertContains($issue->getSeverity()->value, ['info', 'warning', 'warning', 'critical']);
     }
 
     #[Test]

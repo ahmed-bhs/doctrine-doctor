@@ -38,9 +38,9 @@ final class IssueDeduplicator
         assert(is_iterable($groupedIssues), '$groupedIssues must be iterable');
 
         foreach ($groupedIssues as $group) {
-            $bestIssue = $this->selectBestIssue($group);
-            if (null !== $bestIssue) {
-                $deduplicatedIssues[] = $bestIssue;
+            $result = $this->selectBestIssueWithDuplicates($group);
+            if (null !== $result) {
+                $deduplicatedIssues[] = $result;
             }
         }
 
@@ -123,6 +123,7 @@ final class IssueDeduplicator
 
         // Handle array format
         if (is_array($firstQuery) && isset($firstQuery['sql'])) {
+            assert(is_string($firstQuery['sql']), 'SQL must be a string');
             return $firstQuery['sql'];
         }
 
@@ -134,7 +135,11 @@ final class IssueDeduplicator
      */
     private function getRepeatedQuerySignature(string $title, ?string $entityOrTable): ?string
     {
-        if (false === preg_match('/(\d+)\s+(?:queries?|executions?)/i', $title, $matches)) {
+        // Match patterns like:
+        // - "N+1 Query Detected: 35 queries"
+        // - "Frequent Query Executed 35 Times"
+        // - "Lazy Loading in Loop: 35 queries"
+        if (false === preg_match('/(\d+)\s+(?:queries?|executions?|times?|rows?)/i', $title, $matches)) {
             return null;
         }
 
@@ -142,7 +147,11 @@ final class IssueDeduplicator
             return null;
         }
 
-        return "repeated_query:{$entityOrTable}:{$matches[1]}";
+        // Normalize entity/table name to lowercase and remove underscores for consistent grouping
+        // Examples: "BillLine" -> "billline", "bill_line" -> "billline"
+        $normalizedEntity = str_replace('_', '', strtolower($entityOrTable));
+
+        return "repeated_query:{$normalizedEntity}:{$matches[1]}";
     }
 
     /**
@@ -154,12 +163,15 @@ final class IssueDeduplicator
             return null;
         }
 
+        // Normalize entity/table name to lowercase and remove underscores for consistent grouping
+        $normalizedEntity = str_replace('_', '', strtolower($entityOrTable));
+
         if (str_contains($title, 'Index') || str_contains($title, 'index')) {
-            return "table_performance:{$entityOrTable}";
+            return "table_performance:{$normalizedEntity}";
         }
 
         if (str_contains($title, 'ORDER BY') || str_contains($title, 'findAll')) {
-            return "table_query:{$entityOrTable}";
+            return "table_query:{$normalizedEntity}";
         }
 
         return null;
@@ -191,24 +203,40 @@ final class IssueDeduplicator
             }
         }
 
-        // Pattern: Complex structure extraction (consider using parser)
         if (false !== preg_match('/(?:entity|class|Entity)\s+["\']?([A-Z]\w+)["\']?/i', $description, $matches)) {
             if (isset($matches[1])) {
                 return $matches[1];
             }
         }
 
-        // Try table name (e.g., "bill_line", "time_entry")
-        if (false !== preg_match('/(?:table|FROM|JOIN)\s+["`]?(\w+)["`]?/i', $title, $matches)) {
-            if (isset($matches[1])) {
+        // Try table name in title (e.g., "table 'categories'", "on categories")
+        if (false !== preg_match('/(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $title, $matches)) {
+            if (isset($matches[1]) && !in_array(strtolower($matches[1]), ['table', 'from', 'join', 'on', 'static'], true)) {
                 return $matches[1];
             }
         }
 
-        // Pattern: SQL query structure extraction
-        if ('' !== $sql && false !== preg_match('/FROM\s+(\w+)/i', $sql, $matches)) {
-            if (isset($matches[1])) {
+        // Try table name in description
+        if (false !== preg_match('/(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $description, $matches)) {
+            if (isset($matches[1]) && !in_array(strtolower($matches[1]), ['table', 'from', 'join', 'on', 'static'], true)) {
                 return $matches[1];
+            }
+        }
+
+        // Extract from SQL - try to get the main table
+        if ('' !== $sql) {
+            // Try FROM clause first
+            if (false !== preg_match('/FROM\s+(\w+)/i', $sql, $matches)) {
+                if (isset($matches[1])) {
+                    return $matches[1];
+                }
+            }
+
+            // Try WHERE clause for table reference (e.g., "WHERE T0.ID = ?")
+            if (false !== preg_match('/WHERE\s+T\d+\.ID\s*=.*?FROM\s+(\w+)/is', $sql, $matches)) {
+                if (isset($matches[1])) {
+                    return $matches[1];
+                }
             }
         }
 
@@ -237,7 +265,7 @@ final class IssueDeduplicator
     }
 
     /**
-     * Select the best issue to keep from a group of similar issues.
+     * Select the best issue to keep from a group of similar issues and attach duplicates.
      * Priority order (highest to lowest):
      * 1. N+1 Query (root cause of performance issue)
      * 2. Missing Index (infrastructure issue)
@@ -247,7 +275,7 @@ final class IssueDeduplicator
      * 6. Query Caching Opportunity (optimization suggestion)
      * @param IssueInterface[] $issues
      */
-    private function selectBestIssue(array $issues): ?IssueInterface
+    private function selectBestIssueWithDuplicates(array $issues): ?IssueInterface
     {
         if (1 === count($issues)) {
             return $issues[0];
@@ -258,6 +286,8 @@ final class IssueDeduplicator
             'N+1 Query' => 100,
             'Missing Index' => 90,
             'Lazy Loading' => 80,
+            'Too Many JOINs' => 75,  // JoinOptimizationAnalyzer - technical SQL optimization
+            'Excessive Eager Loading' => 72,  // EagerLoadingAnalyzer - performance/cartesian product risk
             'Slow Query' => 70,
             'Unused JOIN' => 60,
             'Frequent Query' => 50,
@@ -269,6 +299,7 @@ final class IssueDeduplicator
         $bestIssue = null;
         $bestPriority = -1;
         $bestSeverity = -1;
+        $duplicates = [];
 
         assert(is_iterable($issues), '$issues must be iterable');
 
@@ -290,10 +321,22 @@ final class IssueDeduplicator
             // Select issue with highest priority, then severity
             if ($priority > $bestPriority ||
                 ($priority === $bestPriority && $severity > $bestSeverity)) {
+                // Current best becomes a duplicate if it exists
+                if (null !== $bestIssue) {
+                    $duplicates[] = $bestIssue;
+                }
                 $bestPriority = $priority;
                 $bestSeverity = $severity;
                 $bestIssue = $issue;
+            } else {
+                // This issue is lower priority, mark it as duplicate
+                $duplicates[] = $issue;
             }
+        }
+
+        // Attach duplicates to the best issue
+        if (null !== $bestIssue && count($duplicates) > 0) {
+            $bestIssue->setDuplicatedIssues($duplicates);
         }
 
         return $bestIssue;

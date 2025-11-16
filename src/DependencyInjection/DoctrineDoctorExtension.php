@@ -11,37 +11,40 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\DependencyInjection;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\AutoGenerateProxyClassesAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\BidirectionalConsistencyAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\BulkOperationAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\CascadeAllAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\CascadeConfigurationAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\CascadePersistOnIndependentEntityAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\CascadeRemoveOnIndependentEntityAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\CharsetAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\CollectionEmptyAccessAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\CollectionInitializationAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\ConnectionPoolingAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\DQLInjectionAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\EagerLoadingAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\EntityManagerClearAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\EntityManagerInEntityAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\EntityStateConsistencyAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\FinalEntityAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\FlushInLoopAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\GetReferenceAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\HydrationAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\InnoDBEngineAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\JoinOptimizationAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\LazyLoadingAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\MissingIndexAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\MissingOrphanRemovalOnCompositionAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\NPlusOneAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\OnDeleteCascadeMismatchAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\OrphanRemovalWithoutCascadeRemoveAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\SlowQueryAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\StrictModeAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\TransactionBoundaryAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\AutoGenerateProxyClassesAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\CharsetAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\ConnectionPoolingAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\InnoDBEngineAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\StrictModeAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\BidirectionalConsistencyAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\BlameableTraitAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeAllAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeConfigurationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadePersistOnIndependentEntityAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeRemoveOnIndependentEntityAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CollectionEmptyAccessAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CollectionInitializationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EntityManagerInEntityAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EntityStateConsistencyAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\FinalEntityAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MissingEmbeddableOpportunityAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MissingOrphanRemovalOnCompositionAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OnDeleteCascadeMismatchAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OrphanRemovalWithoutCascadeRemoveAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\TransactionBoundaryAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\BulkOperationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\EagerLoadingAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\EntityManagerClearAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\FindAllAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\GetReferenceAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\HydrationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\JoinOptimizationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\LazyLoadingAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\NPlusOneAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\SlowQueryAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Security\DQLInjectionAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -110,6 +113,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
     {
         $containerBuilder->setParameter('doctrine_doctor.enabled', $config['enabled']);
         $containerBuilder->setParameter('doctrine_doctor.profiler.show_debug_info', $config['profiler']['show_debug_info']);
+        $containerBuilder->setParameter('doctrine_doctor.analysis.exclude_third_party_entities', $config['analysis']['exclude_third_party_entities']);
     }
 
     /**
@@ -168,6 +172,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
             'hydration' => HydrationAnalyzer::class,
             'eager_loading' => EagerLoadingAnalyzer::class,
             'entity_manager_clear' => EntityManagerClearAnalyzer::class,
+            'find_all' => FindAllAnalyzer::class,
             'get_reference' => GetReferenceAnalyzer::class,
             'flush_in_loop' => FlushInLoopAnalyzer::class,
             'lazy_loading' => LazyLoadingAnalyzer::class,
@@ -193,6 +198,8 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
             'auto_generate_proxy_classes' => AutoGenerateProxyClassesAnalyzer::class,
             'join_optimization' => JoinOptimizationAnalyzer::class,
             'collection_empty_access' => CollectionEmptyAccessAnalyzer::class,
+            'missing_embeddable_opportunity' => MissingEmbeddableOpportunityAnalyzer::class,
+            'blameable_trait' => BlameableTraitAnalyzer::class,
         ];
 
         assert(is_iterable($analyzerMap), '$analyzerMap must be iterable');
