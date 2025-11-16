@@ -114,36 +114,21 @@ class HydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInt
 
     private function generateSuggestion(int $rowCount): SuggestionInterface
     {
-        $suggestions = [];
+        $suggestionMetadata = new \AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata(
+            type: \AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType::performance(),
+            severity: $rowCount > $this->criticalThreshold ? \AhmedBhs\DoctrineDoctor\ValueObject\Severity::critical() : \AhmedBhs\DoctrineDoctor\ValueObject\Severity::warning(),
+            title: sprintf('Excessive Hydration: %d rows', $rowCount),
+            tags: ['performance', 'hydration', 'optimization'],
+        );
 
-        if ($rowCount > $this->criticalThreshold) {
-            $suggestions[] = sprintf('// CRITICAL: %d rows is excessive!', $rowCount);
-            $suggestions[] = '// Use pagination or filtering to limit result set';
-            $suggestions[] = '// Example: ->setMaxResults(100) or add WHERE conditions';
-        }
-
-        $suggestions[] = '// Option 1: Array hydration (faster for read-only)';
-        $suggestions[] = '$result = $query->getResult(Query::HYDRATE_ARRAY);';
-        $suggestions[] = '';
-        $suggestions[] = '// Option 2: DTO hydration (best performance + type-safe)';
-        $suggestions[] = 'SELECT NEW App\DTO\MyDTO(e.id, e.name) FROM Entity e';
-        $suggestions[] = '';
-        $suggestions[] = '// Option 3: PARTIAL objects (select only needed fields)';
-        $suggestions[] = 'SELECT PARTIAL e.{id, name} FROM Entity e';
-        $suggestions[] = '';
-        $suggestions[] = '// Option 4: Pagination (limit results)';
-        $suggestions[] = '$query->setFirstResult($offset)->setMaxResults($limit);';
-
-        return $this->suggestionFactory->createHydrationOptimization(
-            code: implode("
-", $suggestions),
-            optimization: sprintf(
-                'Query returned %d rows which may cause significant hydration overhead in PHP. ' .
-                'Consider limiting results or using lighter hydration modes.',
-                $rowCount,
-            ),
-            rowCount: $rowCount,
-            threshold: $this->rowThreshold,
+        return $this->suggestionFactory->createFromTemplate(
+            'Performance/excessive_hydration',
+            [
+                'row_count' => $rowCount,
+                'threshold' => $this->rowThreshold,
+                'critical_threshold' => $this->criticalThreshold,
+            ],
+            $suggestionMetadata,
         );
     }
 }
