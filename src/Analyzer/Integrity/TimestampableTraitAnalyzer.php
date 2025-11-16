@@ -535,7 +535,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function createImmutableDateTimeSuggestion(string $className, string $fieldName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'timestampable_immutable_datetime',
+            templateName: 'Integrity/timestampable_immutable_datetime',
             context: [
                 'entity_class' => $className,
                 'field_name'   => $fieldName,
@@ -554,7 +554,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function createTimezoneInconsistencySuggestion(int $datetimeCount, int $datetimetzCount): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'timestampable_timezone_inconsistency',
+            templateName: 'Integrity/timestampable_timezone_inconsistency',
             context: [
                 'datetime_count' => $datetimeCount,
                 'datetimetz_count' => $datetimetzCount,
@@ -571,7 +571,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function createGlobalTimezoneAwareSuggestion(int $totalFields): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'timestampable_timezone_global',
+            templateName: 'Integrity/timestampable_timezone_global',
             context: [
                 'total_fields' => $totalFields,
             ],
@@ -587,7 +587,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function createNonNullableCreatedAtSuggestion(string $className, string $fieldName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'timestampable_non_nullable_created_at',
+            templateName: 'Integrity/timestampable_non_nullable_created_at',
             context: [
                 'entity_class' => $className,
                 'field_name'   => $fieldName,
@@ -604,7 +604,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function createRemovePublicSetterSuggestion(string $className, string $fieldName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'timestampable_public_setter',
+            templateName: 'Integrity/timestampable_public_setter',
             context: [
                 'entity_class' => $className,
                 'field_name'   => $fieldName,

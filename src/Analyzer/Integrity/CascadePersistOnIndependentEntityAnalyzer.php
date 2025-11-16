@@ -352,7 +352,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
         $type            = $this->getAssociationType($mapping);
 
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'cascade_persist_independent',
+            templateName: 'Integrity/cascade_persist_independent',
             context: [
                 'entity_class'     => $shortClassName,
                 'field_name'       => $fieldName,

@@ -524,7 +524,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     private function createNonNullableCreatedBySuggestion(string $className, string $fieldName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'blameable_non_nullable_created_by',
+            templateName: 'Integrity/blameable_non_nullable_created_by',
             context: [
                 'entity_class' => $className,
                 'field_name'   => $fieldName,
@@ -541,7 +541,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     private function createRemovePublicSetterSuggestion(string $className, string $fieldName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'blameable_public_setter',
+            templateName: 'Integrity/blameable_public_setter',
             context: [
                 'entity_class' => $className,
                 'field_name'   => $fieldName,
@@ -558,7 +558,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     private function createCorrectTargetSuggestion(string $className, string $fieldName, ?string $currentTarget): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'blameable_target_entity',
+            templateName: 'Integrity/blameable_target_entity',
             context: [
                 'entity_class'   => $className,
                 'field_name'     => $fieldName,
@@ -579,7 +579,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     private function createBlameableTraitSuggestion(string $className, array $timestampFields): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'missing_blameable_trait',
+            templateName: 'Integrity/missing_blameable_trait',
             context: [
                 'entity_class'     => $className,
                 'timestamp_fields' => array_keys($timestampFields),

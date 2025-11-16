@@ -141,7 +141,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                     if ('lazy_loading' === $context) {
                         // Lazy loading detected - recommend eager loading
                         $suggestion = $this->suggestionFactory->createFromTemplate(
-                            templateName: 'eager_loading',
+                            templateName: 'Performance/eager_loading',
                             context: [
                                 'entity' => 'Entity',
                                 'relation' => 'relation',

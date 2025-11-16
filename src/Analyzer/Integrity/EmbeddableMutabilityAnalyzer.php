@@ -279,7 +279,7 @@ class EmbeddableMutabilityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         array $mutabilityIssues,
     ): SuggestionInterface {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'embeddable_mutability',
+            templateName: 'Integrity/embeddable_mutability',
             context: [
                 'embeddable_class'  => $className,
                 'mutability_issues' => $mutabilityIssues,

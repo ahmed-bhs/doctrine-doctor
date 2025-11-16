@@ -329,7 +329,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function createAutoIncrementSuggestion(string $entityName, string $shortName, array $statistics): mixed
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'primary_key_auto_increment',
+            templateName: 'Integrity/primary_key_auto_increment',
             context: [
                 'entity_name' => $entityName,
                 'short_name' => $shortName,
@@ -352,7 +352,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function createUuidV7Suggestion(string $entityName, string $shortName): mixed
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'primary_key_uuid_v7',
+            templateName: 'Integrity/primary_key_uuid_v7',
             context: [
                 'entity_name' => $entityName,
                 'short_name' => $shortName,
@@ -372,7 +372,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function createMixedStrategiesSuggestion(array $statistics): mixed
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'primary_key_mixed',
+            templateName: 'Integrity/primary_key_mixed',
             context: [
                 'auto_increment_count' => $statistics['autoIncrement'],
                 'uuid_count' => $statistics['uuid'],

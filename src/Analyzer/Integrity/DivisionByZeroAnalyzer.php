@@ -207,7 +207,7 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         $safeDivision = sprintf('%s / NULLIF(%s, 0)', $dividend, $divisor);
 
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'division_by_zero',
+            templateName: 'Integrity/division_by_zero',
             context: [
                 'unsafe_division' => $fullMatch,
                 'safe_division'   => $safeDivision,

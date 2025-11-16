@@ -346,7 +346,7 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         };
 
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'order_by_without_limit',
+            templateName: 'Performance/order_by_without_limit',
             context: [
                 'order_by_clause' => $orderByClause,
                 'original_query' => $sql,

@@ -306,7 +306,7 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     private function createMoneyHandlingSuggestion(string $className, string $fieldName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'float_for_money',
+            templateName: 'Integrity/float_for_money',
             context: [
                 'entity_class' => $className,
                 'field_name'   => $fieldName,

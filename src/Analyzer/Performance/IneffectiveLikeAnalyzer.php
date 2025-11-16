@@ -269,7 +269,7 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
             : 'Replace LIKE with full-text search (prevents index usage)';
 
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'ineffective_like',
+            templateName: 'Performance/ineffective_like',
             context: [
                 'pattern' => $pattern,
                 'like_type' => $likeType,

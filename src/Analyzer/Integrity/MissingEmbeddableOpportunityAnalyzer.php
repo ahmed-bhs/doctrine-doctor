@@ -250,7 +250,7 @@ class MissingEmbeddableOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\A
         array $fields,
     ): SuggestionInterface {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'missing_embeddable_opportunity',
+            templateName: 'Integrity/missing_embeddable_opportunity',
             context: [
                 'entity_class'     => $className,
                 'embeddable_name'  => $embeddableName,

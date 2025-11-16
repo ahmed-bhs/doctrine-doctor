@@ -477,7 +477,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $childField,
     ): SuggestionInterface {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'bidirectional_orphan_nullable',
+            templateName: 'Integrity/bidirectional_orphan_nullable',
             context: [
                 'parent_class' => $parentClass,
                 'parent_field' => $parentField,
@@ -500,7 +500,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $childField,
     ): SuggestionInterface {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'bidirectional_cascade_set_null',
+            templateName: 'Integrity/bidirectional_cascade_set_null',
             context: [
                 'parent_class' => $parentClass,
                 'parent_field' => $parentField,
@@ -521,7 +521,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $parentField,
     ): SuggestionInterface {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'bidirectional_orphan_no_persist',
+            templateName: 'Integrity/bidirectional_orphan_no_persist',
             context: [
                 'parent_class' => $parentClass,
                 'parent_field' => $parentField,
@@ -540,7 +540,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $parentField,
     ): SuggestionInterface {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'bidirectional_ondelete_no_orm',
+            templateName: 'Integrity/bidirectional_ondelete_no_orm',
             context: [
                 'parent_class' => $parentClass,
                 'parent_field' => $parentField,

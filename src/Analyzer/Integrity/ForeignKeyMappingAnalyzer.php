@@ -406,7 +406,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         }
 
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'foreign_key_primitive',
+            templateName: 'Integrity/foreign_key_primitive',
             context: [
                 'entity_class'     => $this->getShortClassName($entityClass),
                 'field_name'       => $fieldName,

@@ -286,7 +286,7 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     private function createDTOSuggestion(array $aggregations, bool $hasGroupBy): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'dto_hydration',
+            templateName: 'Performance/dto_hydration',
             context: [
                 'query_count'  => [] !== $aggregations ? 1 : 0,
                 'aggregations' => $aggregations,

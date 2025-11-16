@@ -253,7 +253,7 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $originalClause = sprintf('%s(%s) %s %s', $function, $field, $operator, $value);
 
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'date_function_optimization',
+            templateName: 'Performance/date_function_optimization',
             context: [
                 'function'         => $function,
                 'field'            => $field,

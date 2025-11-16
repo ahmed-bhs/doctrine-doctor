@@ -449,7 +449,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function createMakeNullableSuggestion(string $className, string $fieldName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'soft_delete_nullable',
+            templateName: 'Integrity/soft_delete_nullable',
             context: [
                 'entity_class' => $className,
                 'field_name'   => $fieldName,
@@ -466,7 +466,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function createImmutableDateTimeSuggestion(string $className, string $fieldName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'soft_delete_immutable',
+            templateName: 'Integrity/soft_delete_immutable',
             context: [
                 'entity_class' => $className,
                 'field_name'   => $fieldName,
@@ -483,7 +483,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function createRemoveSetterSuggestion(string $className, string $fieldName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'soft_delete_setter',
+            templateName: 'Integrity/soft_delete_setter',
             context: [
                 'entity_class' => $className,
                 'field_name'   => $fieldName,
@@ -500,7 +500,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function createTimezoneSuggestion(string $className, string $fieldName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'soft_delete_timezone',
+            templateName: 'Integrity/soft_delete_timezone',
             context: [
                 'entity_class' => $className,
                 'field_name'   => $fieldName,
@@ -517,7 +517,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function createCascadeConflictSuggestion(string $className, string $fieldName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'soft_delete_cascade_conflict',
+            templateName: 'Integrity/soft_delete_cascade_conflict',
             context: [
                 'entity_class' => $className,
                 'field_name'   => $fieldName,

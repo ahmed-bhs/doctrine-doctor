@@ -216,7 +216,7 @@ class EmbeddableWithoutValueObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\A
     : SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'embeddable_value_object_methods',
+            templateName: 'Integrity/embeddable_value_object_methods',
             context: [
                 'embeddable_class' => $className,
                 'missing_methods' => $missingMethods,

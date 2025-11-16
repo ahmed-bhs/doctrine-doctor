@@ -184,7 +184,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         string $correctSyntax,
     ): mixed {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'null_comparison',
+            templateName: 'Integrity/null_comparison',
             context: [
                 'incorrect' => $fullMatch,
                 'correct'   => $correctSyntax,

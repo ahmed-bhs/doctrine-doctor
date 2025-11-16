@@ -135,7 +135,7 @@ final class SuggestionFactory
         int $threshold,
     ): SuggestionInterface {
         return new ModernSuggestion(
-            templateName: 'query_optimization',
+            templateName: 'Performance/query_optimization',
             context: [
                 'code'           => $code,
                 'optimization'   => $optimization,
@@ -316,7 +316,7 @@ final class SuggestionFactory
         Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
 
         return new ModernSuggestion(
-            templateName: 'batch_fetch',
+            templateName: 'Performance/batch_fetch',
             context: [
                 'entity'      => $entity,
                 'relation'    => $relation,
@@ -347,7 +347,7 @@ final class SuggestionFactory
         Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
 
         return new ModernSuggestion(
-            templateName: 'extra_lazy',
+            templateName: 'Performance/extra_lazy',
             context: [
                 'entity'      => $entity,
                 'relation'    => $relation,
@@ -382,7 +382,7 @@ final class SuggestionFactory
         $counterField = $counterField ?? $relation . 'Count';
 
         return new ModernSuggestion(
-            templateName: 'denormalization',
+            templateName: 'Performance/denormalization',
             context: [
                 'entity'        => $entity,
                 'relation'      => $relation,
@@ -413,7 +413,7 @@ final class SuggestionFactory
         Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
 
         return new ModernSuggestion(
-            templateName: 'group_by_aggregation',
+            templateName: 'Performance/group_by_aggregation',
             context: [
                 'entity'      => $entity,
                 'relation'    => $relation,
@@ -444,7 +444,7 @@ final class SuggestionFactory
         Assert::allStringNotEmpty($unusedAliases, 'Unused aliases cannot be empty');
 
         return new ModernSuggestion(
-            templateName: 'unused_eager_load',
+            templateName: 'Performance/unused_eager_load',
             context: [
                 'unused_tables'  => $unusedTables,
                 'unused_aliases' => $unusedAliases,
@@ -470,7 +470,7 @@ final class SuggestionFactory
         Assert::greaterThan($joinCount, 2, 'Join count must be greater than 2 for over-eager loading, got %s');
 
         return new ModernSuggestion(
-            templateName: 'over_eager_loading',
+            templateName: 'Performance/over_eager_loading',
             context: [
                 'join_count' => $joinCount,
             ],
@@ -500,7 +500,7 @@ final class SuggestionFactory
         Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
 
         return new ModernSuggestion(
-            templateName: 'nested_eager_loading',
+            templateName: 'Performance/nested_eager_loading',
             context: [
                 'entities'    => $entities,
                 'depth'       => $depth,
@@ -543,7 +543,7 @@ final class SuggestionFactory
         ?string $filePath = null,
     ): SuggestionInterface {
         return new ModernSuggestion(
-            templateName: 'code_suggestion',
+            templateName: 'Integrity/code_suggestion',
             context: [
                 'description' => $description,
                 'code'        => $code,

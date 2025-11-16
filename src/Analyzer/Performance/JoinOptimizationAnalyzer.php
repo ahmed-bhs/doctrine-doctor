@@ -484,7 +484,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     private function createTooManyJoinsSuggestion(int $joinCount, string $sql): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'join_too_many',
+            templateName: 'Performance/join_too_many',
             context: [
                 'join_count' => $joinCount,
                 'sql'        => $this->truncateQuery($sql),
@@ -501,7 +501,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     private function createLeftJoinSuggestion(array $join, string $entityClass, string $tableName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'join_left_on_not_null',
+            templateName: 'Performance/join_left_on_not_null',
             context: [
                 'table'  => $tableName,
                 'alias'  => $join['alias'],
@@ -519,7 +519,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     private function createUnusedJoinSuggestion(array $join): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'join_unused',
+            templateName: 'Performance/join_unused',
             context: [
                 'type'  => $join['type'],
                 'table' => $join['table'],

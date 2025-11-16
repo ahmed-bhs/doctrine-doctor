@@ -298,7 +298,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         string $sql,
     ): mixed {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'left_join_with_not_null',
+            templateName: 'Performance/left_join_with_not_null',
             context: [
                 'table_name' => $tableName,
                 'alias' => $alias,
@@ -333,7 +333,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             : sprintf('Fix %s with INNER JOIN row duplication', $aggregation);
 
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'aggregation_with_inner_join',
+            templateName: 'Performance/aggregation_with_inner_join',
             context: [
                 'aggregation' => $aggregation,
                 'original_query' => $sql,

@@ -437,7 +437,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         float $totalTime,
     ): mixed {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'query_caching_frequent',
+            templateName: 'Performance/query_caching_frequent',
             context: [
                 'sql' => $sql,
                 'count' => $count,
@@ -461,7 +461,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         string $tableName,
     ): mixed {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'query_caching_static',
+            templateName: 'Performance/query_caching_static',
             context: [
                 'sql' => $sql,
                 'table_name' => $tableName,

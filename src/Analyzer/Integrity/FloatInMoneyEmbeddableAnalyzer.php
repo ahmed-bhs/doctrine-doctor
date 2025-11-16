@@ -246,7 +246,7 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
     private function createIntegerMoneySuggestion(string $className, string $fieldName): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'float_in_money_embeddable',
+            templateName: 'Integrity/float_in_money_embeddable',
             context: [
                 'embeddable_class' => $className,
                 'field_name'       => $fieldName,

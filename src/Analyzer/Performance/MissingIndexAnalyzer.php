@@ -605,7 +605,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             ],
             new SuggestionMetadata(
                 type: SuggestionType::performance(),
-                severity: Severity::high(),
+                severity: Severity::critical(),
                 title: sprintf('Missing Index on %s', $tableDisplay),
                 tags: ['performance', 'index', 'database'],
             ),

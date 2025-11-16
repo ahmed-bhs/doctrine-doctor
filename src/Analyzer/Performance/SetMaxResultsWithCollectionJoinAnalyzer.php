@@ -202,7 +202,7 @@ Problem: If the main entity has multiple related items, only some will be loaded
     private function createSuggestion(string $entityHint): SuggestionInterface
     {
         return $this->suggestionFactory->createFromTemplate(
-            templateName: 'setMaxResults_with_collection_join',
+            templateName: 'Performance/setMaxResults_with_collection_join',
             context: [
                 'entity_hint' => $entityHint,
             ],

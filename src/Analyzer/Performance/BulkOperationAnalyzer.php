@@ -50,13 +50,9 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
-        // DEBUG: Write to file
-        file_put_contents('/tmp/bulk_analyzer_debug.txt', date('Y-m-d H:i:s') . ' - Starting analysis...' . PHP_EOL, FILE_APPEND);
-
         $this->logger?->info('[BulkOperationAnalyzer] Starting analysis...');
         $bulkOperations = $this->detectBulkOperations($queryDataCollection);
 
-        file_put_contents('/tmp/bulk_analyzer_debug.txt', 'Detected ' . count($bulkOperations) . ' bulk operations' . PHP_EOL, FILE_APPEND);
         $this->logger?->info('[BulkOperationAnalyzer] Detected ' . count($bulkOperations) . ' bulk operations');
 
         //  Use generator for memory efficiency
@@ -161,9 +157,6 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
             }
         }
 
-        file_put_contents('/tmp/bulk_analyzer_debug.txt', 'Examined ' . $queryCount . ' queries total' . PHP_EOL, FILE_APPEND);
-        file_put_contents('/tmp/bulk_analyzer_debug.txt', 'Found ' . count($updateDeleteQueries) . ' unique UPDATE/DELETE patterns' . PHP_EOL, FILE_APPEND);
-
         $this->logger?->info('[BulkOperationAnalyzer] Examined ' . $queryCount . ' queries total');
         $this->logger?->info('[BulkOperationAnalyzer] Found ' . count($updateDeleteQueries) . ' unique UPDATE/DELETE patterns');
 
@@ -173,22 +166,15 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         foreach ($updateDeleteQueries as $updateDeleteQuery) {
             $count = count($updateDeleteQuery['queries']);
 
-            file_put_contents('/tmp/bulk_analyzer_debug.txt', 'Checking ' . $updateDeleteQuery['type'] . ' on ' . $updateDeleteQuery['table'] . ': ' . $count . ' queries (threshold: ' . $this->threshold . ')' . PHP_EOL, FILE_APPEND);
-
             $this->logger?->info('[BulkOperationAnalyzer] Checking ' . $updateDeleteQuery['type'] . ' on ' . $updateDeleteQuery['table'] . ': ' . $count . ' queries (threshold: ' . $this->threshold . ')');
 
             if ($count >= $this->threshold) {
-                file_put_contents('/tmp/bulk_analyzer_debug.txt', 'Threshold reached! Checking if bulk operation...' . PHP_EOL, FILE_APPEND);
-
                 // Check if similar operations (likely in a loop)
                 $isBulkOperation = $this->isBulkOperation($updateDeleteQuery['queries']);
-
-                file_put_contents('/tmp/bulk_analyzer_debug.txt', 'isBulkOperation() returned: ' . ($isBulkOperation ? 'TRUE' : 'FALSE') . PHP_EOL, FILE_APPEND);
 
                 $this->logger?->info('[BulkOperationAnalyzer] isBulkOperation() returned: ' . ($isBulkOperation ? 'TRUE' : 'FALSE'));
 
                 if ($isBulkOperation) {
-                    file_put_contents('/tmp/bulk_analyzer_debug.txt', 'Creating bulk operation issue!' . PHP_EOL, FILE_APPEND);
                     $totalTime = array_sum(
                         array_map(fn (QueryData $queryData): float => $queryData->executionTime->inMilliseconds(), $updateDeleteQuery['queries']),
                     );

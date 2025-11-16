@@ -203,7 +203,7 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                 if (isset($prodOrmConfig['result_cache_driver']['type'])
                     && $prodOrmConfig['result_cache_driver']['type'] === 'array') {
                     $issues[] = $this->createYamlIssue(
-                        'medium',
+                        'warning',
                         'Array Cache in Production Config (Result)',
                         'Production configuration (when@prod) uses array cache for results. ' .
                         'Query results cannot be cached across requests in production.',
