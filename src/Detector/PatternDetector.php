@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Detector;
 
+use Webmozart\Assert\Assert;
+
 class PatternDetector implements DetectorInterface
 {
     public function __construct(
@@ -29,10 +31,11 @@ class PatternDetector implements DetectorInterface
     {
         $detected = [];
 
-        assert(is_iterable($queries), '$queries must be iterable');
+        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
-            assert(is_array($query) && isset($query['sql']), 'query must be array with sql key');
+            Assert::isArray($query, 'query must be array with sql key');
+            Assert::keyExists($query, 'sql', 'query must be array with sql key');
             if (1 === preg_match($this->pattern, $query['sql'])) {
                 $detected[] = $query;
             }

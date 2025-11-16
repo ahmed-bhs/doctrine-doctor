@@ -27,24 +27,25 @@ final class DataCollectorLogger
         /**
          * @readonly
          */
-        private ?DataCollectorConfig $dataCollectorConfig = null
+        private ?DataCollectorConfig $dataCollectorConfig = null,
     ) {
         $this->dataCollectorConfig = $dataCollectorConfig ?? new DataCollectorConfig();
     }
 
     /**
-     * Log error if debug mode is enabled.
+     * Log error - ALWAYS logged (critical for debugging analyzer failures).
+     * Errors indicate analyzer failures that prevent issue detection.
      */
     public function logErrorIfDebugEnabled(string $message, \Throwable $throwable): void
     {
-        if ($this->dataCollectorConfig->debugMode ?? false) {
-            $this->logger->error('DoctrineDoctor: ' . $message, [
-                'exception' => $throwable::class,
-                'message'   => $throwable->getMessage(),
-                'file'      => $throwable->getFile(),
-                'line'      => $throwable->getLine(),
-            ]);
-        }
+        // CRITICAL: Always log errors, not just in debug mode
+        // Analyzer failures are critical and must be visible to developers
+        $this->logger->error('DoctrineDoctor: ' . $message, [
+            'exception' => $throwable::class,
+            'message'   => $throwable->getMessage(),
+            'file'      => $throwable->getFile(),
+            'line'      => $throwable->getLine(),
+        ]);
     }
 
     /**

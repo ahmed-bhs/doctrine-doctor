@@ -30,11 +30,6 @@ class NPlusOneIssue extends AbstractIssue
         ], $data));
     }
 
-    public function getType(): string
-    {
-        return 'N+1 Query';
-    }
-
     public function getCategory(): string
     {
         return IssueCategory::PERFORMANCE->value;

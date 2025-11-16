@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\NullComparisonAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\NullComparisonAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -79,8 +79,8 @@ final class NullComparisonAnalyzerTest extends TestCase
         // Assert
         self::assertCount(1, $issues);
         $issue = $issues->toArray()[0];
-        self::assertEquals('Code Quality', $issue->getType());
-        self::assertEquals('code_quality', $issue->getCategory());
+        self::assertEquals('Integrity', $issue->getType());
+        self::assertEquals('integrity', $issue->getCategory());
         self::assertEquals('critical', $issue->getSeverity()->value);
         self::assertStringContainsString('bonus = NULL', $issue->getDescription());
         self::assertStringContainsString('IS NULL', $issue->getDescription());

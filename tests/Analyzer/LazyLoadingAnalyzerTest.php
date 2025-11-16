@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\LazyLoadingAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\LazyLoadingAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -455,5 +455,25 @@ final class LazyLoadingAnalyzerTest extends TestCase
         // Assert: Should detect despite table alias
         $issuesArray = $issues->toArray();
         self::assertCount(1, $issuesArray);
+    }
+
+    #[Test]
+    public function it_does_not_match_foreign_key_columns(): void
+    {
+        // Arrange: Foreign key columns (user_id, product_id, etc.) should NOT be detected
+        $queries = QueryDataBuilder::create();
+
+        // These are NOT lazy loading - they're queries filtering by foreign keys
+        for ($i = 1; $i <= 15; $i++) {
+            $queries->addQuery("SELECT * FROM orders WHERE user_id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM posts WHERE author_id = ?", 5.0);
+            $queries->addQuery("SELECT t0.* FROM product_variant t0 WHERE t0.product_id = ?", 5.0);
+        }
+
+        // Act
+        $issues = $this->analyzer->analyze($queries->build());
+
+        // Assert: Should NOT detect (foreign keys are not lazy loading)
+        self::assertCount(0, $issues, 'Should not match foreign key columns like user_id, product_id');
     }
 }

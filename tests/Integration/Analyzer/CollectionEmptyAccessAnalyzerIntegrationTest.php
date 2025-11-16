@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\CollectionEmptyAccessAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CollectionEmptyAccessAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;

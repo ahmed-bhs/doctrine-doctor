@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\GetReferenceAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\GetReferenceAnalyzer;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\InMemoryTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
@@ -393,5 +393,203 @@ final class GetReferenceAnalyzerTest extends TestCase
 
         self::assertNotNull($severity);
         self::assertContains($severity->value, ['info', 'warning', 'critical']);
+    }
+
+    #[Test]
+    public function it_does_not_flag_queries_with_additional_where_conditions(): void
+    {
+        // Real-world example from Sylius: queries with business logic filters
+        // These CANNOT be replaced by getReference() as it only handles id = ?
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT s0_.id FROM sylius_order s0_ WHERE s0_.id = ? AND s0_.state = ?')
+            ->addQuery('SELECT s0_.id FROM sylius_order s0_ WHERE s0_.id = ? AND s0_.state = ? AND s0_.channel_id = ?')
+            ->addQuery('SELECT u0_.id FROM users u0_ WHERE u0_.id = ? OR u0_.email = ?')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        // Should NOT detect these as candidates for getReference()
+        // because getReference() cannot handle additional WHERE conditions
+        self::assertCount(0, $issues, 'Should not flag queries with additional WHERE conditions (AND/OR)');
+    }
+
+    #[Test]
+    public function it_detects_simple_select_by_id_without_additional_conditions(): void
+    {
+        // These are valid candidates for getReference()
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM users WHERE id = ?')
+            ->addQuery('SELECT * FROM users u0_ WHERE u0_.id = ?')
+            ->addQuery('SELECT * FROM products WHERE id = 123')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues, 'Should detect simple SELECT by ID as candidates for getReference()');
+    }
+
+    #[Test]
+    public function it_groups_identical_queries_in_profiler_output(): void
+    {
+        // Simulate 31 identical queries (like in real Sylius scenario)
+        $builder = QueryDataBuilder::create();
+
+        // Add same query 31 times
+        for ($i = 0; $i < 31; $i++) {
+            $builder->addQuery('SELECT * FROM sylius_product_variant WHERE id = ?');
+        }
+
+        $queries = $builder->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+
+        // Should report 31 queries detected
+        self::assertStringContainsString('31 find() queries detected', $issue->getTitle());
+
+        // But queries array should contain only 1 unique example (not 31 duplicates)
+        $issueData = $issue->getData();
+        self::assertArrayHasKey('queries', $issueData);
+        self::assertCount(1, $issueData['queries'], 'Should only show one unique query example, not all 31 duplicates');
+    }
+
+    #[Test]
+    public function it_shows_all_unique_query_patterns_when_different(): void
+    {
+        // Different queries should all be shown
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM users WHERE id = ?')
+            ->addQuery('SELECT * FROM users WHERE id = ?')  // duplicate
+            ->addQuery('SELECT * FROM products WHERE id = ?')  // different
+            ->addQuery('SELECT * FROM orders WHERE id = ?')    // different
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+
+        // Should report 4 total queries
+        self::assertStringContainsString('4 find() queries detected', $issue->getTitle());
+
+        // But should show 3 unique patterns (users appears twice but counted once)
+        $issueData = $issue->getData();
+        self::assertCount(3, $issueData['queries'], 'Should show 3 unique query patterns');
+    }
+
+    #[Test]
+    public function it_detects_lazy_loading_from_backtrace(): void
+    {
+        $backtrace = [
+            ['class' => 'Doctrine\ORM\Persisters\Entity\BasicEntityPersister', 'function' => 'executeQuery'],
+            ['class' => 'Doctrine\ORM\Persisters\Entity\BasicEntityPersister', 'function' => 'loadOneToManyCollection'],
+            ['class' => 'Doctrine\ORM\UnitOfWork', 'function' => 'loadCollection'],
+            ['class' => 'Doctrine\ORM\PersistentCollection', 'function' => 'initialize'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace('SELECT * FROM sylius_product_image WHERE id = ?', $backtrace)
+            ->addQueryWithBacktrace('SELECT * FROM sylius_channel_pricing WHERE id = ?', $backtrace)
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+
+        // Should detect lazy loading
+        $data = $issue->getData();
+        self::assertEquals('lazy_loading', $data['type']);
+        self::assertStringContainsString('Lazy Loading Detected', $issue->getTitle());
+        self::assertStringContainsString('eager loading', $issue->getDescription());
+        self::assertStringNotContainsString('getReference()', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_detects_explicit_find_without_lazy_loading_backtrace(): void
+    {
+        $backtrace = [
+            ['class' => 'App\Repository\UserRepository', 'function' => 'find'],
+            ['class' => 'App\Controller\UserController', 'function' => 'showAction'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace('SELECT * FROM users WHERE id = ?', $backtrace)
+            ->addQueryWithBacktrace('SELECT * FROM users WHERE id = ?', $backtrace)
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+
+        // Should detect explicit find()
+        self::assertEquals('get_reference', $issue->getType());
+        self::assertStringContainsString('find() queries detected', $issue->getTitle());
+        self::assertStringContainsString('getReference()', $issue->getDescription());
+        self::assertStringNotContainsString('eager loading', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_handles_queries_without_backtrace_as_explicit_find(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM users WHERE id = ?')
+            ->addQuery('SELECT * FROM products WHERE id = ?')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+
+        // Without backtrace, should default to explicit find()
+        self::assertEquals('get_reference', $issue->getType());
+    }
+
+    #[Test]
+    public function it_detects_lazy_loading_with_persistent_collection(): void
+    {
+        $backtrace = [
+            ['class' => 'Doctrine\ORM\PersistentCollection', 'function' => 'initialize'],
+            ['class' => 'Doctrine\Common\Collections\AbstractLazyCollection', 'function' => 'containsKey'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace('SELECT * FROM product_images WHERE id = ?', $backtrace)
+            ->addQueryWithBacktrace('SELECT * FROM product_variants WHERE id = ?', $backtrace)
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+
+        $data = $issue->getData();
+        self::assertEquals('lazy_loading', $data['type']);
+        self::assertStringContainsString('Lazy Loading Detected', $issue->getTitle());
+    }
+
+    #[Test]
+    public function it_provides_appropriate_severity_for_lazy_loading(): void
+    {
+        $backtrace = [
+            ['class' => 'Doctrine\ORM\UnitOfWork', 'function' => 'loadCollection'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace('SELECT * FROM images WHERE id = ?', $backtrace)
+            ->addQueryWithBacktrace('SELECT * FROM images WHERE id = ?', $backtrace)
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        $issue = $issues->toArray()[0];
+
+        // Lazy loading should be INFO severity (less critical than explicit misuse)
+        self::assertEquals('info', $issue->getData()['severity']);
     }
 }

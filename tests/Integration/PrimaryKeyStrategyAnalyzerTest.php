@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\PrimaryKeyStrategyAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\PrimaryKeyStrategyAnalyzer;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\InMemoryTemplateRenderer;

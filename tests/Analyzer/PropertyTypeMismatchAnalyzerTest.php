@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\PropertyTypeMismatchAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\PropertyTypeMismatchAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ProductWithTypeMismatch;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;

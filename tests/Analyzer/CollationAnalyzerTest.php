@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\CollationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\CollationAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;

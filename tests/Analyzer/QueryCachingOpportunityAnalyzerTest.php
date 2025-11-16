@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\QueryCachingOpportunityAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\QueryCachingOpportunityAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -590,5 +590,154 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
 
         // Assert: Should NOT suggest caching
         self::assertCount(0, $issues, 'Should not suggest caching for INSERT on static tables');
+    }
+
+    #[Test]
+    public function it_distinguishes_queries_with_different_parameters(): void
+    {
+        // Arrange: Same SQL structure but DIFFERENT parameters (not true duplicates)
+        // This tests the Sylius case: 4 findOneBySlug() with different slugs
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace(
+                'SELECT * FROM taxon WHERE slug = ? AND locale = ?',
+                [],
+                0.3,
+            )
+            ->addQueryWithBacktrace(
+                'SELECT * FROM taxon WHERE slug = ? AND locale = ?',
+                [],
+                0.35,
+            )
+            ->addQueryWithBacktrace(
+                'SELECT * FROM taxon WHERE slug = ? AND locale = ?',
+                [],
+                0.32,
+            )
+            ->addQueryWithBacktrace(
+                'SELECT * FROM taxon WHERE slug = ? AND locale = ?',
+                [],
+                0.4,
+            )
+            ->build();
+
+        // Without params in QueryData, the analyzer falls back to SQL-only comparison
+        // This is the old behavior and should still detect 4 "duplicates"
+        $issues = $this->analyzer->analyze($queries);
+
+        // Old behavior: detects as duplicates because params not available
+        self::assertCount(1, $issues, 'Without params, should detect based on SQL only');
+        self::assertStringContainsString('4 Times', $issues->toArray()[0]->getTitle());
+    }
+
+    #[Test]
+    public function it_detects_true_duplicates_with_same_parameters(): void
+    {
+        // Arrange: Same SQL + SAME parameters = TRUE duplicate
+        $builder = QueryDataBuilder::create();
+
+        // Execute same query with same params 4 times
+        for ($i = 0; $i < 4; $i++) {
+            // Note: QueryDataBuilder needs support for params
+            // For now, we create raw array data
+            $builder->addQuery('SELECT * FROM taxon WHERE slug = ? AND locale = ?', 0.3);
+        }
+
+        $queries = $builder->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should detect as frequent (true duplicate)
+        self::assertCount(1, $issues, 'Should detect true duplicates with same params');
+        self::assertStringContainsString('4 Times', $issues->toArray()[0]->getTitle());
+    }
+
+    #[Test]
+    public function it_ignores_false_positives_with_different_parameters(): void
+    {
+        // This test requires QueryData with params support
+        // We'll use fromArray to create proper QueryData objects with params
+        $rawQueries = [
+            ['sql' => 'SELECT * FROM taxon WHERE slug = ? AND locale = ?', 'executionMS' => 0.3, 'params' => ['voyage', 'fr']],
+            ['sql' => 'SELECT * FROM taxon WHERE slug = ? AND locale = ?', 'executionMS' => 0.35, 'params' => ['hotel', 'fr']],
+            ['sql' => 'SELECT * FROM taxon WHERE slug = ? AND locale = ?', 'executionMS' => 0.32, 'params' => ['restaurant', 'fr']],
+            ['sql' => 'SELECT * FROM taxon WHERE slug = ? AND locale = ?', 'executionMS' => 0.4, 'params' => ['transport', 'fr']],
+        ];
+
+        $queryDataObjects = array_map(
+            fn ($q) => \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray($q),
+            $rawQueries,
+        );
+
+        $queries = \AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection::fromArray($queryDataObjects);
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should NOT detect as duplicates (different params = different queries)
+        self::assertCount(0, $issues, 'Should NOT flag queries with different parameters as duplicates');
+    }
+
+    #[Test]
+    public function it_detects_true_duplicates_with_params(): void
+    {
+        // Arrange: Same SQL + SAME params = TRUE duplicate
+        $rawQueries = [
+            ['sql' => 'SELECT * FROM taxon WHERE slug = ? AND locale = ?', 'executionMS' => 0.3, 'params' => ['voyage', 'fr']],
+            ['sql' => 'SELECT * FROM taxon WHERE slug = ? AND locale = ?', 'executionMS' => 0.3, 'params' => ['voyage', 'fr']],
+            ['sql' => 'SELECT * FROM taxon WHERE slug = ? AND locale = ?', 'executionMS' => 0.3, 'params' => ['voyage', 'fr']],
+            ['sql' => 'SELECT * FROM taxon WHERE slug = ? AND locale = ?', 'executionMS' => 0.3, 'params' => ['voyage', 'fr']],
+        ];
+
+        $queryDataObjects = array_map(
+            fn ($q) => \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray($q),
+            $rawQueries,
+        );
+
+        $queries = \AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection::fromArray($queryDataObjects);
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should detect as frequent (true duplicate with same params)
+        self::assertCount(1, $issues, 'Should detect true duplicates with same params');
+        $issue = $issues->toArray()[0];
+        self::assertStringContainsString('4 Times', $issue->getTitle());
+        self::assertStringContainsString('4 times', $issue->getDescription());
+    }
+
+    #[Test]
+    public function it_handles_mixed_duplicates_correctly(): void
+    {
+        // Arrange: Mix of true duplicates and different queries
+        $rawQueries = [
+            // TRUE duplicate: 3x same query with params ["voyage", "fr"]
+            ['sql' => 'SELECT * FROM taxon WHERE slug = ? AND locale = ?', 'executionMS' => 0.3, 'params' => ['voyage', 'fr']],
+            ['sql' => 'SELECT * FROM taxon WHERE slug = ? AND locale = ?', 'executionMS' => 0.3, 'params' => ['voyage', 'fr']],
+            ['sql' => 'SELECT * FROM taxon WHERE slug = ? AND locale = ?', 'executionMS' => 0.3, 'params' => ['voyage', 'fr']],
+            // Different query (different params)
+            ['sql' => 'SELECT * FROM taxon WHERE slug = ? AND locale = ?', 'executionMS' => 0.3, 'params' => ['hotel', 'fr']],
+            // Another TRUE duplicate: 3x same query with params [123]
+            ['sql' => 'SELECT * FROM product WHERE id = ?', 'executionMS' => 0.5, 'params' => [123]],
+            ['sql' => 'SELECT * FROM product WHERE id = ?', 'executionMS' => 0.5, 'params' => [123]],
+            ['sql' => 'SELECT * FROM product WHERE id = ?', 'executionMS' => 0.5, 'params' => [123]],
+        ];
+
+        $queryDataObjects = array_map(
+            fn ($q) => \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray($q),
+            $rawQueries,
+        );
+
+        $queries = \AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection::fromArray($queryDataObjects);
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should detect 2 separate duplicate groups
+        self::assertCount(2, $issues, 'Should detect 2 separate duplicate groups');
+
+        $titles = array_map(fn ($i) => $i->getTitle(), $issues->toArray());
+        self::assertContains('Frequent Query Executed 3 Times', $titles, 'Should detect taxon duplicate (3 times)');
+        self::assertContains('Frequent Query Executed 3 Times', $titles, 'Should detect product duplicate (3 times)');
     }
 }

@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\CascadeConfigurationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeConfigurationAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CascadeConfigTest\InvoiceWithMissingCascade;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CascadeConfigTest\OrderWithCascadeAll;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CascadeConfigTest\OrderWithGoodCascade;
@@ -281,7 +281,7 @@ final class CascadeConfigurationAnalyzerTest extends TestCase
         $issue = reset($issuesArray);
 
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
-        self::assertEquals('code_quality', $issue->getCategory());
+        self::assertEquals('integrity', $issue->getCategory());
     }
 
     #[Test]

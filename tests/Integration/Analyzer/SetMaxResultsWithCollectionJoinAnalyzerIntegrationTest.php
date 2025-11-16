@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\SetMaxResultsWithCollectionJoinAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\SetMaxResultsWithCollectionJoinAnalyzer;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\BlogPost;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Comment;
@@ -46,6 +46,7 @@ final class SetMaxResultsWithCollectionJoinAnalyzerIntegrationTest extends Datab
         $this->setMaxResultsWithCollectionJoinAnalyzer = new SetMaxResultsWithCollectionJoinAnalyzer(
             new IssueFactory(),
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            new \AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor(),
         );
     }
 

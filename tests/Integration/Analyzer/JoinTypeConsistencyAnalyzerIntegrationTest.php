@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\JoinTypeConsistencyAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\JoinTypeConsistencyAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;

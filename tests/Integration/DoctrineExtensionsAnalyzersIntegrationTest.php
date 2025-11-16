@@ -11,9 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\BlameableTraitAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\SoftDeleteableTraitAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\TimestampableTraitAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\BlameableTraitAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\SoftDeleteableTraitAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\TimestampableTraitAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ArticleWithBadBlameable;

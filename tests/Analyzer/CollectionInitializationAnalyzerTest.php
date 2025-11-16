@@ -11,12 +11,15 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\CollectionInitializationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CollectionInitializationAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ArticleWithArrayInit;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ArticleWithConstructorButNoInit;
+use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\BaseOrderWithInit;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\BlogPost;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\BlogPostWithoutCollectionInit;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Category;
+use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ChildOrderNoConstructor;
+use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ChildOrderWithParentInit;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Comment;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CommentWithoutInit;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CourseWithMultipleCollections;
@@ -73,6 +76,8 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
             Category::class,
             Tag::class,
             OrderItem::class,
+            ChildOrderWithParentInit::class,
+            ChildOrderNoConstructor::class,
         ]);
 
         $this->analyzer = new CollectionInitializationAnalyzer(
@@ -383,6 +388,87 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
             2,
             count($orderIssues),
             'Should detect both OneToMany and ManyToMany collections',
+        );
+    }
+
+    #[Test]
+    public function it_does_not_flag_child_with_parent_constructor_init(): void
+    {
+        // Arrange - ChildOrderWithParentInit extends BaseOrderWithInit
+        // Parent initializes items, child calls parent::__construct()
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert - Should NOT flag items (initialized in parent)
+        $issuesArray = $issues->toArray();
+        $childOrderIssues = array_filter(
+            $issuesArray,
+            fn ($issue) => str_contains($issue->getTitle(), 'ChildOrderWithParentInit'),
+        );
+
+        // Filter to check only items (not comments which is initialized in child)
+        $parentCollectionIssues = array_filter(
+            $childOrderIssues,
+            fn ($issue) => str_contains($issue->getTitle(), '::$items'),
+        );
+
+        self::assertCount(
+            0,
+            $parentCollectionIssues,
+            'Should NOT flag collections initialized in parent constructor (items)',
+        );
+    }
+
+    #[Test]
+    public function it_does_not_flag_child_without_constructor_when_parent_initializes(): void
+    {
+        // Arrange - ChildOrderNoConstructor has NO constructor
+        // But extends BaseOrderWithInit which initializes collections
+        // PHP automatically calls parent::__construct()
+        //
+        // This is the EXACT scenario of Sylius Order:
+        // App\Entity\Order extends Core\Model\Order extends Order\Model\Order
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert - Should NOT flag items
+        $issuesArray = $issues->toArray();
+        $childOrderIssues = array_filter(
+            $issuesArray,
+            fn ($issue) => str_contains($issue->getTitle(), 'ChildOrderNoConstructor'),
+        );
+
+        self::assertCount(
+            0,
+            $childOrderIssues,
+            'Should NOT flag collections when parent constructor initializes them (Sylius scenario)',
+        );
+    }
+
+    #[Test]
+    public function it_still_flags_uninitialized_collections_in_hierarchy(): void
+    {
+        // Arrange - BlogPostWithoutCollectionInit has constructor but doesn't initialize
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert - Should STILL flag uninit collections even with hierarchy check
+        $issuesArray = $issues->toArray();
+        $blogPostIssues = array_filter(
+            $issuesArray,
+            fn ($issue) => str_contains($issue->getTitle(), 'BlogPostWithoutCollectionInit'),
+        );
+
+        self::assertGreaterThan(
+            0,
+            count($blogPostIssues),
+            'Should still flag truly uninitialized collections',
         );
     }
 }

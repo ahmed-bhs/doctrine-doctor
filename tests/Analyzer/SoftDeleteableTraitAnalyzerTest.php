@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\SoftDeleteableTraitAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\SoftDeleteableTraitAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ArticleWithMutableDateTime;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Category;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CommentWithPublicSetter;
@@ -417,7 +417,7 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
 
         foreach ($softDeleteIssues as $issue) {
             $category = $issue->getCategory();
-            self::assertContains($category, ['configuration', 'code_quality'], 'Category should be valid');
+            self::assertContains($category, ['configuration', 'integrity'], 'Category should be valid');
         }
     }
 }

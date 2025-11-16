@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\NPlusOneAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\NPlusOneAnalyzer;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Data\BlogFixture;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Data\UserFixture;

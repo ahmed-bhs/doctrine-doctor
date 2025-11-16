@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\IneffectiveLikeAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\IneffectiveLikeAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -45,7 +45,9 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         self::assertCount(1, $issueCollection);
         $issue = $issueCollection->first();
         self::assertInstanceOf(IssueInterface::class, $issue);
-        self::assertSame('Ineffective LIKE Pattern Detected', $issue->getTitle());
+        // Title is now dynamic based on execution time
+        self::assertStringContainsString('LIKE Pattern', $issue->getTitle());
+        self::assertStringContainsString('100.00ms', $issue->getTitle());
         self::assertStringContainsString('leading wildcard', $issue->getDescription());
         self::assertStringContainsString('%John%', $issue->getDescription());
     }
@@ -131,7 +133,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         $queryData = new QueryData(
             sql: "SELECT * FROM users WHERE name LIKE '%search%'",
-            executionTime: QueryExecutionTime::fromMilliseconds(100.0),
+            executionTime: QueryExecutionTime::fromMilliseconds(99.0), // < 100ms = warning
             params: [],
         );
 
@@ -144,8 +146,9 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         self::assertSame('warning', $issue->getSeverity()->value);
     }
 
-    public function test_sets_info_severity_for_fast_queries(): void
+    public function test_sets_warning_severity_for_fast_queries(): void
     {
+        // Even fast queries get WARNING - pattern is always problematic (prevents index usage)
         $queryData = new QueryData(
             sql: "SELECT * FROM users WHERE name LIKE '%search%'",
             executionTime: QueryExecutionTime::fromMilliseconds(30.0),
@@ -158,7 +161,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         self::assertCount(1, $issueCollection);
         $issue = $issueCollection->first();
         self::assertInstanceOf(IssueInterface::class, $issue);
-        self::assertSame('info', $issue->getSeverity()->value);
+        self::assertSame('warning', $issue->getSeverity()->value);
     }
 
     public function test_deduplicates_same_pattern(): void

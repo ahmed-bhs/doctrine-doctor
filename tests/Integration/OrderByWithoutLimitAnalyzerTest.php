@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\OrderByWithoutLimitAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\OrderByWithoutLimitAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;

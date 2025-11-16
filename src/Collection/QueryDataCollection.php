@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Collection;
 
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
+use Webmozart\Assert\Assert;
 
 /**
  * Type-safe collection for QueryData objects.
@@ -127,7 +128,7 @@ final class QueryDataCollection extends AbstractCollection
     {
         $total = 0.0;
 
-        assert(is_iterable($this), '$this must be iterable');
+        Assert::isIterable($this, '$this must be iterable');
 
         foreach ($this as $query) {
             $total += $query->executionTime->inMilliseconds();
@@ -158,7 +159,7 @@ final class QueryDataCollection extends AbstractCollection
         $slowest = null;
         $maxTime = 0.0;
 
-        assert(is_iterable($this), '$this must be iterable');
+        Assert::isIterable($this, '$this must be iterable');
 
         foreach ($this as $query) {
             $time = $query->executionTime->inMilliseconds();
@@ -180,7 +181,7 @@ final class QueryDataCollection extends AbstractCollection
         $fastest = null;
         $minTime = PHP_FLOAT_MAX;
 
-        assert(is_iterable($this), '$this must be iterable');
+        Assert::isIterable($this, '$this must be iterable');
 
         foreach ($this as $query) {
             $time = $query->executionTime->inMilliseconds();
@@ -247,7 +248,7 @@ final class QueryDataCollection extends AbstractCollection
             'OTHER'  => 0,
         ];
 
-        assert(is_iterable($this), '$this must be iterable');
+        Assert::isIterable($this, '$this must be iterable');
 
         foreach ($this as $query) {
             $type          = $query->getQueryType();

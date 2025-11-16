@@ -14,7 +14,6 @@ namespace AhmedBhs\DoctrineDoctor\Factory;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Issue\AbstractIssue;
 use AhmedBhs\DoctrineDoctor\Issue\BulkOperationIssue;
-use AhmedBhs\DoctrineDoctor\Issue\CodeQualityIssue;
 use AhmedBhs\DoctrineDoctor\Issue\CollectionEmptyAccessIssue;
 use AhmedBhs\DoctrineDoctor\Issue\CollectionUninitializedIssue;
 use AhmedBhs\DoctrineDoctor\Issue\ConfigurationIssue;
@@ -29,6 +28,7 @@ use AhmedBhs\DoctrineDoctor\Issue\FindAllIssue;
 use AhmedBhs\DoctrineDoctor\Issue\FlushInLoopIssue;
 use AhmedBhs\DoctrineDoctor\Issue\GetReferenceIssue;
 use AhmedBhs\DoctrineDoctor\Issue\HydrationIssue;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Issue\LazyLoadingIssue;
 use AhmedBhs\DoctrineDoctor\Issue\MissingIndexIssue;
@@ -106,18 +106,18 @@ class IssueFactory implements IssueFactoryInterface
         'entity_detached_in_association'   => EntityStateIssue::class,
         'Entity State Issue'               => EntityStateIssue::class,
         // Code quality issues
-        'float_for_money'                => CodeQualityIssue::class,
-        'Float for Money'                => CodeQualityIssue::class,
-        'type_hint_mismatch'             => CodeQualityIssue::class,
-        'Type Hint Mismatch'             => CodeQualityIssue::class,
+        'float_for_money'                => IntegrityIssue::class,
+        'Float for Money'                => IntegrityIssue::class,
+        'type_hint_mismatch'             => IntegrityIssue::class,
+        'Type Hint Mismatch'             => IntegrityIssue::class,
         'decimal_missing_precision'      => ConfigurationIssue::class,
         'decimal_insufficient_precision' => ConfigurationIssue::class,
         'decimal_excessive_precision'    => ConfigurationIssue::class,
         'decimal_unusual_scale'          => ConfigurationIssue::class,
-        'cascade_remove_set_null'        => CodeQualityIssue::class,
-        'ondelete_cascade_no_orm'        => CodeQualityIssue::class,
-        'orphan_removal_no_persist'      => CodeQualityIssue::class,
-        'orphan_removal_nullable_fk'     => CodeQualityIssue::class,
+        'cascade_remove_set_null'        => IntegrityIssue::class,
+        'ondelete_cascade_no_orm'        => IntegrityIssue::class,
+        'orphan_removal_no_persist'      => IntegrityIssue::class,
+        'orphan_removal_nullable_fk'     => IntegrityIssue::class,
         // Security issues
         'query_builder_sql_injection' => DQLInjectionIssue::class,
         'unescaped_like'              => DQLInjectionIssue::class,
@@ -127,23 +127,29 @@ class IssueFactory implements IssueFactoryInterface
         // Performance issues
         'setMaxResults_with_collection_join' => PerformanceIssue::class,
         'setMaxResults with Collection Join' => PerformanceIssue::class,
+        'unused_eager_load'                  => PerformanceIssue::class,
+        'Unused Eager Load'                  => PerformanceIssue::class,
+        'nested_n_plus_one'                  => NPlusOneIssue::class,
+        'Nested N+1'                         => NPlusOneIssue::class,
         // Embeddable issues
-        'missing_embeddable_opportunity'              => CodeQualityIssue::class,
-        'embeddable_mutability'                       => CodeQualityIssue::class,
-        'embeddable_without_value_object_methods'     => CodeQualityIssue::class,
-        'float_in_money_embeddable'                   => CodeQualityIssue::class,
+        'missing_embeddable_opportunity'              => IntegrityIssue::class,
+        'embeddable_mutability'                       => IntegrityIssue::class,
+        'embeddable_without_value_object_methods'     => IntegrityIssue::class,
+        'float_in_money_embeddable'                   => IntegrityIssue::class,
         // Doctrine Extensions issues (Timestampable, Blameable, SoftDeleteable, etc.)
-        'timestampable_mutable_datetime'              => CodeQualityIssue::class,
+        'missing_blameable_trait_opportunity'         => IntegrityIssue::class,
+        'timestampable_mutable_datetime'              => IntegrityIssue::class,
         'timestampable_missing_timezone'              => ConfigurationIssue::class,
         'timestampable_missing_timezone_global'       => ConfigurationIssue::class,
-        'timestampable_nullable_created_at'           => CodeQualityIssue::class,
-        'timestampable_public_setter'                 => CodeQualityIssue::class,
-        'blameable_nullable_created_by'               => CodeQualityIssue::class,
-        'blameable_public_setter'                     => CodeQualityIssue::class,
+        'timestampable_timezone_inconsistency'        => ConfigurationIssue::class,
+        'timestampable_nullable_created_at'           => IntegrityIssue::class,
+        'timestampable_public_setter'                 => IntegrityIssue::class,
+        'blameable_nullable_created_by'               => IntegrityIssue::class,
+        'blameable_public_setter'                     => IntegrityIssue::class,
         'blameable_wrong_target'                      => ConfigurationIssue::class,
         'soft_delete_not_nullable'                    => ConfigurationIssue::class,
-        'soft_delete_mutable_datetime'                => CodeQualityIssue::class,
-        'soft_delete_public_setter'                   => CodeQualityIssue::class,
+        'soft_delete_mutable_datetime'                => IntegrityIssue::class,
+        'soft_delete_public_setter'                   => IntegrityIssue::class,
         'soft_delete_missing_timezone'                => ConfigurationIssue::class,
         'soft_delete_cascade_conflict'                => ConfigurationIssue::class,
     ];
@@ -158,7 +164,8 @@ class IssueFactory implements IssueFactoryInterface
      */
     public function createFromArray(array $data): IssueInterface
     {
-        $type = $data['type'] ?? 'unknown';
+        $rawType = $data['type'] ?? 'unknown';
+        $type = is_string($rawType) ? $rawType : 'unknown';
 
         // Find the concrete class for this issue type
         $issueClass = self::TYPE_MAP[$type] ?? null;

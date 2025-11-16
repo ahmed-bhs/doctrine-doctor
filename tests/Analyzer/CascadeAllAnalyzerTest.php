@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\CascadeAllAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeAllAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CascadeAllTest\BlogPostWithGoodCascade;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CascadeAllTest\OrderWithCascadeAll;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
@@ -319,7 +319,7 @@ final class CascadeAllAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $issue = reset($issuesArray);
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
-        self::assertEquals('code_quality', $issue->getCategory());
+        self::assertEquals('integrity', $issue->getCategory());
     }
 
     #[Test]

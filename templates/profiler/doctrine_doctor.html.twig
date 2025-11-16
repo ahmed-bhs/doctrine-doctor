@@ -4,13 +4,50 @@
 
 {% macro render_issue(issue, loop_index, prefix) %}
     <div class="issue-card">
-        <div class="issue-header {% if issue.getSeverity().value == 'critical' %}severity-critical{% elseif issue.getSeverity().value == 'warning' %}severity-warning{% elseif issue.getSeverity().value == 'info' %}severity-info{% endif %}">
+        <div class="issue-header {% if issue.getSeverity().isCritical() %}severity-critical{% elseif issue.getSeverity().isWarning() %}severity-warning{% else %}severity-info{% endif %}">
             <div class="issue-header-content">
-                <span class="issue-badge {% if issue.getSeverity().value == 'critical' %}badge-critical{% elseif issue.getSeverity().value == 'warning' %}badge-warning{% elseif issue.getSeverity().value == 'info' %}badge-info{% endif %}">
-                    {% if issue.getSeverity().value == 'critical' %}🔴{% elseif issue.getSeverity().value == 'warning' %}🟠{% elseif issue.getSeverity().value == 'info' %}🔵{% endif %} {{ issue.getType() }}
+                <span class="issue-badge {% if issue.getSeverity().isCritical() %}badge-critical{% elseif issue.getSeverity().isWarning() %}badge-warning{% else %}badge-info{% endif %}">
+                    {{ issue.getSeverity().getEmoji() }} {{ issue.getType() }}
                 </span>
                 <h3 class="issue-title">
                     {{ issue.getTitle() }}
+                    {% if issue.getDuplicatedIssues()|length > 0 %}
+                        <span class="dd-tooltip-wrapper">
+                            <span class="dd-duplicate-badge" title="">
+                                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                    <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+                                </svg>
+                                {{ issue.getDuplicatedIssues()|length }}
+                            </span>
+                            <div class="dd-tooltip">
+                                <div class="dd-tooltip-header">
+                                    <strong>{{ issue.getDuplicatedIssues()|length }} similar issue{{ issue.getDuplicatedIssues()|length > 1 ? 's' : '' }} hidden</strong>
+                                </div>
+                                <div class="dd-tooltip-content">
+                                    {% for duplicatedIssue in issue.getDuplicatedIssues() %}
+                                        <div class="dd-tooltip-item">
+                                            <span class="dd-tooltip-severity {% if duplicatedIssue.getSeverity().isCritical() %}severity-critical{% elseif duplicatedIssue.getSeverity().isWarning() %}severity-warning{% else %}severity-info{% endif %}">
+                                                {{ duplicatedIssue.getSeverity().getEmoji() }}
+                                                <span class="dd-tooltip-type">{{ duplicatedIssue.getType() }}</span>
+                                            </span>
+{#                                            <div class="dd-tooltip-title">{{ duplicatedIssue.getTitle() }}</div>#}
+                                            {% set cleanDescription = duplicatedIssue.getDescription() %}
+                                            {% if cleanDescription|length > 100 %}
+                                                <div class="dd-tooltip-description dd-expandable-desc">
+                                                    <span class="dd-desc-short">{{ cleanDescription|slice(0, 100) }}</span>
+                                                    <span class="dd-desc-full" style="display: none;">{{ cleanDescription }}</span>
+                                                    <a href="#" class="dd-desc-toggle" onclick="event.preventDefault(); var item = this.closest('.dd-expandable-desc'); var short = item.querySelector('.dd-desc-short'); var full = item.querySelector('.dd-desc-full'); if (full.style.display === 'none') { short.style.display = 'none'; full.style.display = 'inline'; this.textContent = '...voir moins'; } else { short.style.display = 'inline'; full.style.display = 'none'; this.textContent = '...voir plus'; }">...voir plus</a>
+                                                </div>
+                                            {% else %}
+                                                <div class="dd-tooltip-description">{{ cleanDescription }}</div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </span>
+                    {% endif %}
                 </h3>
             </div>
         </div>
@@ -137,6 +174,10 @@
                 <span class="sf-toolbar-status {{ collector.getStats.warning > 0 ? 'sf-toolbar-status-yellow' : '' }}">{{ collector.getStats.warning }}</span>
             </div>
             <div class="sf-toolbar-info-piece">
+                <b>Info</b>
+                <span>{{ collector.getStats.info }}</span>
+            </div>
+            <div class="sf-toolbar-info-piece">
                 <b>Queries Analyzed</b>
                 <span>{{ collector.timelineQueries|length }}</span>
             </div>
@@ -245,6 +286,11 @@
             </div>
 
             <div class="metric">
+                <span class="value">{{ collector.getStats.info }}</span>
+                <span class="label">Info</span>
+            </div>
+
+            <div class="metric">
                 <span class="value">{{ collector.timelineQueries|length }}</span>
                 <span class="label">Queries Analyzed</span>
             </div>
@@ -252,7 +298,7 @@
             {% set overhead = collector.getProfilerOverhead %}
             {% if overhead.total_time_ms > 0 %}
             <div class="metric">
-                <span class="value" style="color: #888; font-size: 0.9em;" title="Time spent by Doctrine Doctor analysis (excluded from app performance)">{{ overhead.total_time_ms|number_format(2) }} ms</span>
+                <span class="value" style="color: #E0E0E0;" title="Time spent by Doctrine Doctor analysis (excluded from app performance)">{{ overhead.total_time_ms|number_format(2) }} ms</span>
                 <span class="label">Profiler Overhead</span>
             </div>
             {% endif %}
@@ -294,18 +340,18 @@
             </div>
         </div>
 
-        <div class="tab {{ collector.getIssueCountByCategory('code_quality') == 0 ? 'disabled' }}">
-            <h3 class="tab-title">🔧 Code Quality ({{ collector.getIssueCountByCategory('code_quality') }})</h3>
+        <div class="tab {{ collector.getIssueCountByCategory('integrity') == 0 ? 'disabled' }}">
+            <h3 class="tab-title">🔧 Integrity ({{ collector.getIssueCountByCategory('integrity') }})</h3>
             <div class="tab-content">
-                {% set codeQualityIssues = collector.getIssuesByCategory('code_quality') %}
-                {% if codeQualityIssues is empty %}
+                {% set integrityIssues = collector.getIssuesByCategory('integrity') %}
+                {% if integrityIssues is empty %}
                     <div class="empty">
-                        <p>No code quality issues detected.</p>
+                        <p>No integrity issues detected.</p>
                     </div>
                 {% else %}
                     {% import _self as macros %}
-                    {% for issue in codeQualityIssues %}
-                        {{ macros.render_issue(issue, loop.index, 'quality') }}
+                    {% for issue in integrityIssues %}
+                        {{ macros.render_issue(issue, loop.index, 'integrity') }}
                     {% endfor %}
                 {% endif %}
             </div>
@@ -336,24 +382,44 @@
                         <p>No queries recorded.</p>
                     </div>
                 {% else %}
-                    {% set sortedQueries = collector.timelineQueries|sort((a, b) => b.executionMS <=> a.executionMS)|slice(0, 10) %}
+                    {% set groupedQueries = collector.groupedQueriesByTime|slice(0, 10) %}
                     <table class="alt queries-table">
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Time</th>
+                                <th>Count</th>
+                                <th>Total Time</th>
+                                <th>Avg Time</th>
+                                <th>Min/Max</th>
                                 <th style="width: 100%;">Query</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for i, query in sortedQueries %}
-                                {% set timeMs = query.executionMS > 0 and query.executionMS < 1 ? (query.executionMS * 1000)|round(4) : query.executionMS|round(4) %}
+                            {% for i, queryGroup in groupedQueries %}
+                                {# Use higher precision for small values to avoid displaying 0 #}
+                                {% set totalTimeMs = queryGroup.totalTimeMs < 0.01 ? queryGroup.totalTimeMs|round(4) : queryGroup.totalTimeMs|round(2) %}
+                                {% set avgTimeMs = queryGroup.avgTimeMs < 0.01 ? queryGroup.avgTimeMs|round(4) : queryGroup.avgTimeMs|round(2) %}
+                                {% set maxTimeMs = queryGroup.maxTimeMs < 0.01 ? queryGroup.maxTimeMs|round(4) : queryGroup.maxTimeMs|round(2) %}
+                                {% set minTimeMs = queryGroup.minTimeMs < 0.01 ? queryGroup.minTimeMs|round(4) : queryGroup.minTimeMs|round(2) %}
                                 <tr>
                                     <td><strong>{{ i + 1 }}</strong></td>
-                                    <td class="time-container">
-                                        <span class="{{ timeMs > 50 ? 'label status-error' : (timeMs > 20 ? 'label status-warning' : '') }}">
-                                            {{ timeMs }} ms
+                                    <td>
+                                        <span class="label {{ queryGroup.count > 1 ? 'status-warning' : '' }}">
+                                            {{ queryGroup.count }}x
                                         </span>
+                                    </td>
+                                    <td class="time-container">
+                                        <span class="{{ totalTimeMs > 50 ? 'label status-error' : (totalTimeMs > 20 ? 'label status-warning' : '') }}">
+                                            {{ totalTimeMs }} ms
+                                        </span>
+                                    </td>
+                                    <td class="time-container">
+                                        <span class="{{ avgTimeMs > 50 ? 'label status-error' : (avgTimeMs > 20 ? 'label status-warning' : '') }}">
+                                            {{ avgTimeMs }} ms
+                                        </span>
+                                    </td>
+                                    <td class="text-small">
+                                        {{ minTimeMs }} / {{ maxTimeMs }} ms
                                     </td>
                                     <td>
                                         <div class="text-small">
@@ -363,7 +429,7 @@
                                         </div>
                                         <div id="query-{{ loop.index }}" class="hidden" style="margin-top: 5px;">
                                             <div style="font-size: 11px;">
-                                                {{ query.sql|doctrine_format_sql(highlight = true)|raw }}
+                                                {{ queryGroup.sql|doctrine_format_sql(highlight = true)|raw }}
                                             </div>
                                         </div>
                                     </td>
@@ -372,10 +438,10 @@
                         </tbody>
                     </table>
 
-                    {% if collector.timelineQueries|length > 10 %}
+                    {% if collector.groupedQueriesByTime|length > 10 %}
                         <div class="text-small font-normal" style="margin-top: 20px;">
                             <a href="#" class="sf-toggle link-inverse" data-toggle-selector="#all-queries" data-toggle-alt-content="Hide all queries">
-                                Show all queries ({{ collector.timelineQueries|length }} total)
+                                Show all grouped queries ({{ collector.groupedQueriesByTime|length }} unique)
                             </a>
                         </div>
                         <div id="all-queries" class="hidden" style="margin-top: 10px;">
@@ -383,19 +449,25 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Time</th>
+                                        <th>Count</th>
+                                        <th>Total Time</th>
+                                        <th>Avg Time</th>
                                         <th style="width: 100%;">Query</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for i, query in collector.timelineQueries %}
-                                        {% set timeMs = query.executionMS > 0 and query.executionMS < 1 ? (query.executionMS * 1000)|round(4) : query.executionMS|round(4) %}
+                                    {% for i, queryGroup in collector.groupedQueriesByTime %}
+                                        {# Use higher precision for small values to avoid displaying 0 #}
+                                        {% set totalTimeMs = queryGroup.totalTimeMs < 0.01 ? queryGroup.totalTimeMs|round(4) : queryGroup.totalTimeMs|round(2) %}
+                                        {% set avgTimeMs = queryGroup.avgTimeMs < 0.01 ? queryGroup.avgTimeMs|round(4) : queryGroup.avgTimeMs|round(2) %}
                                         <tr>
                                             <td>{{ i + 1 }}</td>
-                                            <td>{{ timeMs }} ms</td>
+                                            <td>{{ queryGroup.count }}x</td>
+                                            <td>{{ totalTimeMs }} ms</td>
+                                            <td>{{ avgTimeMs }} ms</td>
                                             <td>
                                                 <div style="font-size: 10px;">
-                                                    {{ query.sql|doctrine_prettify_sql|raw }}
+                                                    {{ queryGroup.sql|doctrine_prettify_sql|raw }}
                                                 </div>
                                             </td>
                                         </tr>
@@ -545,9 +617,10 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             margin-bottom: 20px;
-            overflow: hidden;
+            overflow: visible; /* Changed from hidden to visible to allow tooltips */
             border: 1px solid #e0e0e0;
             transition: box-shadow 0.2s;
+            position: relative; /* Ensure proper stacking context */
         }
 
         .issue-card:hover {
@@ -557,6 +630,9 @@
         .issue-header {
             padding: 16px 20px;
             border-bottom: 1px solid #e9ecef;
+            border-radius: 8px 8px 0 0; /* Maintain rounded corners on header */
+            overflow: visible; /* Allow tooltips to overflow */
+            position: relative; /* Stacking context */
         }
 
         .issue-header.severity-critical {
@@ -566,12 +642,12 @@
 
         .issue-header.severity-warning {
             background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-            border-left: 4px solid #f59e0b;
+            border-left: 4px solid #eab308;
         }
 
         .issue-header.severity-info {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border-left: 4px solid #3b82f6;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border-left: 4px solid #0ea5e9;
         }
 
         .issue-header-content {
@@ -598,12 +674,12 @@
         }
 
         .issue-badge.badge-warning {
-            background: #f59e0b;
+            background: #eab308;
             color: #ffffff;
         }
 
         .issue-badge.badge-info {
-            background: #3b82f6;
+            background: #0ea5e9;
             color: #ffffff;
         }
 
@@ -618,6 +694,8 @@
 
         .issue-body {
             padding: 20px;
+            border-radius: 0 0 8px 8px; /* Rounded corners on bottom */
+            overflow: hidden; /* Clip to rounded corners */
         }
 
         .issue-description {
@@ -754,7 +832,6 @@
             border-left: 3px solid #667eea;
             border-radius: 6px;
             overflow: hidden;
-            padding-left: 16px;
         }
 
         .query-item:first-child {
@@ -951,7 +1028,7 @@
         }
 
         .queries-table td {
-            vertical-align: top;
+            vertical-align: middle;
             padding: 10px;
         }
 
@@ -1439,12 +1516,12 @@
 
         .theme-dark .issue-header.severity-warning {
             background: linear-gradient(135deg, #3d3420 0%, #4d4225 100%);
-            border-left-color: #ffc107;
+            border-left-color: #fbbf24;
         }
 
         .theme-dark .issue-header.severity-info {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%);
-            border-left-color: #60a5fa;
+            background: linear-gradient(135deg, #1e3a3f 0%, #2d4a51 100%);
+            border-left-color: #0ea5e9;
         }
 
         .theme-dark .issue-title {
@@ -1817,6 +1894,250 @@
             background-color: #3d1a1a;
             border-left-color: #ff5c5c;
             color: #ffc0c0;
+        }
+
+        /* ============================================
+           Duplicate Issues Tooltip
+           ============================================ */
+
+        .dd-tooltip-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-left: 8px;
+            z-index: 1001; /* Higher than other elements */
+        }
+
+        .dd-duplicate-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            color: white;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: help;
+            transition: all 0.2s ease;
+            vertical-align: middle;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dd-duplicate-badge:hover {
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .dd-duplicate-badge svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        .dd-tooltip {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 8px);
+            transform: translateX(-50%);
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            padding: 0;
+            min-width: 300px;
+            max-width: 400px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 10000; /* Very high z-index to ensure it's on top */
+            transform: translateX(-50%) translateY(4px);
+            white-space: normal; /* Allow text wrapping */
+        }
+
+        .dd-tooltip::before {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: white;
+            filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.05));
+        }
+
+        .dd-tooltip-wrapper:hover .dd-tooltip {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .dd-tooltip-header {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            font-size: 13px;
+        }
+
+        .dd-tooltip-header strong {
+            font-weight: 600;
+        }
+
+        .dd-tooltip-content {
+            padding: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .dd-tooltip-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .dd-tooltip-item:last-child {
+            border-bottom: none;
+        }
+
+        .dd-tooltip-item:hover {
+            background: #f9fafb;
+        }
+
+        .dd-tooltip-severity {
+            display: inline-block;
+            font-size: 14px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .dd-tooltip-type {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            vertical-align: middle;
+        }
+
+        .dd-tooltip-title {
+            font-size: 13px;
+            color: #374151;
+            margin-top: 4px;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        .dd-tooltip-description {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+            line-height: 1.3;
+            padding-left: 8px;
+            border-left: 2px solid #e5e7eb;
+        }
+
+        .dd-desc-toggle {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-left: 2px;
+        }
+
+        .dd-desc-toggle:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+
+        /* Dark mode styles for tooltip */
+        .theme-dark .dd-duplicate-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+        }
+
+        .theme-dark .dd-duplicate-badge:hover {
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .theme-dark .dd-tooltip {
+            background: #1e1e1e;
+            border-color: #3f3f3f;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-dark .dd-tooltip::before {
+            border-top-color: #1e1e1e;
+            filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.3));
+        }
+
+        .theme-dark .dd-tooltip-header {
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+        }
+
+        .theme-dark .dd-tooltip-item {
+            border-bottom-color: #2a2a2a;
+        }
+
+        .theme-dark .dd-tooltip-item:hover {
+            background: #252525;
+        }
+
+        .theme-dark .dd-tooltip-type {
+            color: #9ca3af;
+        }
+
+        .theme-dark .dd-tooltip-title {
+            color: #e5e7eb;
+        }
+
+        .theme-dark .dd-tooltip-description {
+            color: #9ca3af;
+            border-left-color: #3f3f3f;
+        }
+
+        .theme-dark .dd-desc-toggle {
+            color: #60a5fa;
+        }
+
+        .theme-dark .dd-desc-toggle:hover {
+            color: #93c5fd;
+        }
+
+        /* Scrollbar styling for tooltip content */
+        .dd-tooltip-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .dd-tooltip-content::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 0 0 8px 0;
+        }
+
+        .dd-tooltip-content::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+
+        .dd-tooltip-content::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        .theme-dark .dd-tooltip-content::-webkit-scrollbar-track {
+            background: #2a2a2a;
+        }
+
+        .theme-dark .dd-tooltip-content::-webkit-scrollbar-thumb {
+            background: #4a4a4a;
+        }
+
+        .theme-dark .dd-tooltip-content::-webkit-scrollbar-thumb:hover {
+            background: #5a5a5a;
         }
     </style>
 

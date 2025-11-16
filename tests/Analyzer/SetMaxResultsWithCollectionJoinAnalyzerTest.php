@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\SetMaxResultsWithCollectionJoinAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\SetMaxResultsWithCollectionJoinAnalyzer;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\InMemoryTemplateRenderer;
@@ -41,7 +41,8 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         $renderer = new InMemoryTemplateRenderer();
         $suggestionFactory = new SuggestionFactory($renderer);
         $issueFactory = new IssueFactory();
-        $this->analyzer = new SetMaxResultsWithCollectionJoinAnalyzer($issueFactory, $suggestionFactory);
+        $sqlExtractor = new \AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor();
+        $this->analyzer = new SetMaxResultsWithCollectionJoinAnalyzer($issueFactory, $suggestionFactory, $sqlExtractor);
     }
 
     #[Test]

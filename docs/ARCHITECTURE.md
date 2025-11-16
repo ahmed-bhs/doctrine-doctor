@@ -133,7 +133,7 @@ graph TB
         F --> G[analyzeQueriesLazy]
         G --> H1[Performance Analyzers]
         G --> H2[Security Analyzers]
-        G --> H3[Code Quality Analyzers]
+        G --> H3[Integrity Analyzers]
         G --> H4[Configuration Analyzers]
 
         H1 --> I[Issues]

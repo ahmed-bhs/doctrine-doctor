@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\CollectionEmptyAccessAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CollectionEmptyAccessAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\BlogPost;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\BlogPostWithoutCollectionInit;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Comment;

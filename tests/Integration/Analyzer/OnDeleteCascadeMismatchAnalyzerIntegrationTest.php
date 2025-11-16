@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\OnDeleteCascadeMismatchAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OnDeleteCascadeMismatchAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\TwigTemplateRenderer;
@@ -134,8 +134,9 @@ final class OnDeleteCascadeMismatchAnalyzerIntegrationTest extends TestCase
     {
         $entityManager = $this->entityManager;
         $twigTemplateRenderer = $this->createTwigRenderer();
+        $suggestionFactory = new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory($twigTemplateRenderer);
 
-        return new OnDeleteCascadeMismatchAnalyzer($entityManager, $twigTemplateRenderer);
+        return new OnDeleteCascadeMismatchAnalyzer($entityManager, $suggestionFactory);
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer

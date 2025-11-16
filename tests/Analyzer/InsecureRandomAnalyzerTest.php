@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\InsecureRandomAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Security\InsecureRandomAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\EntityWithInsecureRandom;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;

@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\HydrationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\HydrationAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;

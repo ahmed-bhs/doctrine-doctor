@@ -31,6 +31,6 @@ class CollectionUninitializedIssue extends AbstractIssue
 
     public function getCategory(): string
     {
-        return IssueCategory::CODE_QUALITY->value;
+        return IssueCategory::INTEGRITY->value;
     }
 }

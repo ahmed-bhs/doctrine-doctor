@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\Config\MissingIndexAnalyzerConfig;
-use AhmedBhs\DoctrineDoctor\Analyzer\MissingIndexAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzerConfig;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -37,7 +37,7 @@ final class MissingIndexAnalyzerTest extends TestCase
         );
 
         $this->analyzer = new MissingIndexAnalyzer(
-            templateRenderer: PlatformAnalyzerTestHelper::createTemplateRenderer(), // @phpstan-ignore-line argument.type
+            suggestionFactory: PlatformAnalyzerTestHelper::createSuggestionFactory(), // @phpstan-ignore-line argument.type
             connection: PlatformAnalyzerTestHelper::createTestConnection(),
             missingIndexAnalyzerConfig: $config,
         );
@@ -50,7 +50,7 @@ final class MissingIndexAnalyzerTest extends TestCase
         $config = new MissingIndexAnalyzerConfig(enabled: false);
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: PlatformAnalyzerTestHelper::createTemplateRenderer(), // @phpstan-ignore-line argument.type
+            suggestionFactory: PlatformAnalyzerTestHelper::createSuggestionFactory(), // @phpstan-ignore-line argument.type
             connection: PlatformAnalyzerTestHelper::createTestConnection(),
             missingIndexAnalyzerConfig: $config,
         );
@@ -186,7 +186,7 @@ final class MissingIndexAnalyzerTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: PlatformAnalyzerTestHelper::createTemplateRenderer(), // @phpstan-ignore-line argument.type
+            suggestionFactory: PlatformAnalyzerTestHelper::createSuggestionFactory(), // @phpstan-ignore-line argument.type
             connection: PlatformAnalyzerTestHelper::createTestConnection(),
             missingIndexAnalyzerConfig: $config,
         );
@@ -212,7 +212,7 @@ final class MissingIndexAnalyzerTest extends TestCase
         );
 
         $analyzer = new MissingIndexAnalyzer(
-            templateRenderer: PlatformAnalyzerTestHelper::createTemplateRenderer(), // @phpstan-ignore-line argument.type
+            suggestionFactory: PlatformAnalyzerTestHelper::createSuggestionFactory(), // @phpstan-ignore-line argument.type
             connection: PlatformAnalyzerTestHelper::createTestConnection(),
             missingIndexAnalyzerConfig: $config,
         );
