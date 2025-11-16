@@ -4,10 +4,10 @@
 
 {% macro render_issue(issue, loop_index, prefix) %}
     <div class="issue-card">
-        <div class="issue-header {% if issue.getSeverity().value == 'critical' %}severity-critical{% elseif issue.getSeverity().value == 'warning' %}severity-warning{% else %}severity-info{% endif %}">
+        <div class="issue-header {% if issue.getSeverity().isCritical() %}severity-critical{% elseif issue.getSeverity().isWarning() %}severity-warning{% else %}severity-info{% endif %}">
             <div class="issue-header-content">
-                <span class="issue-badge {% if issue.getSeverity().value == 'critical' %}badge-critical{% elseif issue.getSeverity().value == 'warning' %}badge-warning{% else %}badge-info{% endif %}">
-                    {% if issue.getSeverity().value == 'critical' %}🔴{% elseif issue.getSeverity().value == 'warning' %}🟡{% else %}💡{% endif %} {{ issue.getType() }}
+                <span class="issue-badge {% if issue.getSeverity().isCritical() %}badge-critical{% elseif issue.getSeverity().isWarning() %}badge-warning{% else %}badge-info{% endif %}">
+                    {{ issue.getSeverity().getEmoji() }} {{ issue.getType() }}
                 </span>
                 <h3 class="issue-title">
                     {{ issue.getTitle() }}
@@ -27,8 +27,8 @@
                                 <div class="dd-tooltip-content">
                                     {% for duplicatedIssue in issue.getDuplicatedIssues() %}
                                         <div class="dd-tooltip-item">
-                                            <span class="dd-tooltip-severity {% if duplicatedIssue.getSeverity().value == 'critical' %}severity-critical{% elseif duplicatedIssue.getSeverity().value == 'warning' %}severity-warning{% else %}severity-info{% endif %}">
-                                                {% if duplicatedIssue.getSeverity().value == 'critical' %}🔴{% elseif duplicatedIssue.getSeverity().value == 'warning' %}🟠{% else %}🔵{% endif %}
+                                            <span class="dd-tooltip-severity {% if duplicatedIssue.getSeverity().isCritical() %}severity-critical{% elseif duplicatedIssue.getSeverity().isWarning() %}severity-warning{% else %}severity-info{% endif %}">
+                                                {{ duplicatedIssue.getSeverity().getEmoji() }}
                                                 <span class="dd-tooltip-type">{{ duplicatedIssue.getType() }}</span>
                                             </span>
 {#                                            <div class="dd-tooltip-title">{{ duplicatedIssue.getTitle() }}</div>#}

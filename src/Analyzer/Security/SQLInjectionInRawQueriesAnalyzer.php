@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Security;
 
 use Webmozart\Assert\Assert;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -43,6 +44,8 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         'createNativeQuery',
     ];
 
+    private PhpCodeParser $phpCodeParser;
+
     public function __construct(
         /**
          * @readonly
@@ -56,7 +59,9 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
          * @readonly
          */
         private ?LoggerInterface $logger = null,
+        ?PhpCodeParser $phpCodeParser = null,
     ) {
+        $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
     }
 
     /**
@@ -273,7 +278,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     }
 
     /**
-     * Detect all SQL injection patterns.
+     * Detect all SQL injection patterns using PhpCodeParser.
      * @return array<SecurityIssue>
      */
     private function detectAllInjectionPatterns(
@@ -283,10 +288,33 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     ): array {
         $issues = [];
 
-        $this->detectConcatenationPattern($source, $className, $reflectionMethod, $issues);
-        $this->detectInterpolationPattern($source, $className, $reflectionMethod, $issues);
-        $this->detectMissingParametersPattern($source, $className, $reflectionMethod, $issues);
-        $this->detectSprintfPattern($source, $className, $reflectionMethod, $issues);
+        // Use PhpCodeParser instead of fragile regex
+        // This provides robust AST-based detection that handles:
+        // - String concatenation: $sql = "SELECT..." . $var
+        // - Variable interpolation: $sql = "SELECT...$var"
+        // - Missing parameters: $conn->executeQuery($sql) without params
+        // - sprintf with user input: sprintf("SELECT...", $_GET['id'])
+        // - Ignores comments automatically (no false positives)
+        // - Type-safe detection with proper scope analysis
+        $patterns = $this->phpCodeParser->detectSqlInjectionPatterns($reflectionMethod);
+
+        if ($patterns['concatenation']) {
+            $issues[] = $this->createConcatenationIssue($className, $reflectionMethod->getName(), $reflectionMethod);
+        }
+
+        if ($patterns['interpolation']) {
+            $issues[] = $this->createInterpolationIssue($className, $reflectionMethod->getName(), $reflectionMethod);
+        }
+
+        if ($patterns['missing_parameters']) {
+            // Determine which SQL method was used (for better error message)
+            $sqlMethod = 'executeQuery'; // Default, will be detected by visitor
+            $issues[] = $this->createMissingParametersIssue($className, $reflectionMethod->getName(), $sqlMethod, $reflectionMethod);
+        }
+
+        if ($patterns['sprintf']) {
+            $issues[] = $this->createSprintfIssue($className, $reflectionMethod->getName(), $reflectionMethod);
+        }
 
         return $issues;
     }
@@ -303,92 +331,6 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         }
 
         return false;
-    }
-
-    /**
-     * Detect string concatenation pattern in SQL queries.
-     * @param array<SecurityIssue> $issues
-     */
-    private function detectConcatenationPattern(
-        string $source,
-        string $className,
-        \ReflectionMethod $reflectionMethod,
-        array &$issues,
-    ): void {
-        if (
-            // Pattern: Simple pattern match: /[\
-            1 === preg_match('/[\'"].*?[\'"][\s]*\.[\s]*\$\w+/s', $source)
-            // Pattern: Variable/interpolation detection
-            || 1 === preg_match('/\$\w+[\s]*\.[\s]*[\'"].*?[\'"]/s', $source)
-        ) {
-            $issues[] = $this->createConcatenationIssue($className, $reflectionMethod->getName(), $reflectionMethod);
-        }
-    }
-
-    /**
-     * Detect variable interpolation pattern in SQL strings.
-     * @param array<SecurityIssue> $issues
-     */
-    private function detectInterpolationPattern(
-        string $source,
-        string $className,
-        \ReflectionMethod $reflectionMethod,
-        array &$issues,
-    ): void {
-        if (
-            // Pattern: Character validation/sanitization
-            1 === preg_match('/"[^"]*\$\w+[^"]*"/s', $source)
-            // Pattern: Detect WHERE clause in SQL
-            && 1 === preg_match('/SELECT|INSERT|UPDATE|DELETE|FROM|WHERE/i', $source)
-        ) {
-            $issues[] = $this->createInterpolationIssue($className, $reflectionMethod->getName(), $reflectionMethod);
-        }
-    }
-
-    /**
-     * Detect missing parameters pattern in SQL execution.
-     * @param array<SecurityIssue> $issues
-     */
-    private function detectMissingParametersPattern(
-        string $source,
-        string $className,
-        \ReflectionMethod $reflectionMethod,
-        array &$issues,
-    ): void {
-        foreach (self::SQL_EXECUTION_METHODS as $sqlMethod) {
-            $pattern = '/->' . $sqlMethod . '\s*\(\s*\$\w+\s*\)[\s]*;/';
-
-            if (
-                1 === preg_match($pattern, $source)
-                // Pattern: Variable/interpolation detection
-                // Pattern: Variable/interpolation detection
-                && (1 === preg_match('/\$\w+\s*=.*?\..*?;/s', $source) || 1 === preg_match('/\$\w+\s*\.=.*?;/s', $source))
-            ) {
-                $issues[] = $this->createMissingParametersIssue($className, $reflectionMethod->getName(), $sqlMethod, $reflectionMethod);
-            }
-        }
-    }
-
-    /**
-     * Detect sprintf pattern with SQL and external input.
-     * @param array<SecurityIssue> $issues
-     */
-    private function detectSprintfPattern(
-        string $source,
-        string $className,
-        \ReflectionMethod $reflectionMethod,
-        array &$issues,
-    ): void {
-        if (
-            // Pattern: Complex structure extraction (consider using parser)
-            1 === preg_match('/sprintf\s*\(\s*[\'"].*?(SELECT|INSERT|UPDATE|DELETE).*?[\'"]/is', $source)
-            // Pattern: Variable/interpolation detection
-            && (1 === preg_match('/\$_(GET|POST|REQUEST|COOKIE|SERVER)/i', $source)
-             // Pattern: Variable/interpolation detection
-             || 1 === preg_match('/\$request->get/i', $source))
-        ) {
-            $issues[] = $this->createSprintfIssue($className, $reflectionMethod->getName(), $reflectionMethod);
-        }
     }
 
     private function createConcatenationIssue(

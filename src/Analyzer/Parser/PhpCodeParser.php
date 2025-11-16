@@ -256,6 +256,45 @@ final class PhpCodeParser
     }
 
     /**
+     * Detect which sensitive fields are exposed in a method.
+     *
+     * This replaces fragile regex with robust AST analysis.
+     * Detects patterns like:
+     * - 'password' => $this->password (array key)
+     * - $this->getPassword() (getter method call)
+     * - $this->password (direct property access)
+     *
+     * Benefits over regex:
+     * - Ignores comments automatically (no false positives)
+     * - Ignores string literals in irrelevant contexts
+     * - Type-safe detection of actual field exposure
+     * - No false positives from field names in error messages
+     *
+     * @param ReflectionMethod $method The method to analyze
+     * @param array<string> $sensitiveFields List of sensitive field names
+     * @return array<string> List of exposed sensitive fields
+     */
+    public function detectExposedSensitiveFields(ReflectionMethod $method, array $sensitiveFields): array
+    {
+        $code = $this->extractMethodCode($method);
+        if (null === $code) {
+            return [];
+        }
+
+        $ast = $this->parse($code);
+        if (null === $ast) {
+            return [];
+        }
+
+        $visitor = new Visitor\SensitiveFieldExposureVisitor($sensitiveFields);
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor($visitor);
+        $traverser->traverse($ast);
+
+        return $visitor->getExposedFields();
+    }
+
+    /**
      * Extract source code from a ReflectionMethod.
      *
      * @param ReflectionMethod $method The method to extract
@@ -316,6 +355,60 @@ final class PhpCodeParser
             ]);
             return null;
         }
+    }
+
+    /**
+     * Detect SQL injection patterns in a method.
+     *
+     * This replaces fragile regex with robust AST analysis.
+     * Detects patterns like:
+     * - String concatenation: $sql = "SELECT..." . $var
+     * - Variable interpolation: $sql = "SELECT...$var"
+     * - Missing parameters: $conn->executeQuery($sql) without params
+     * - sprintf with user input: sprintf("SELECT...", $_GET['id'])
+     *
+     * Benefits over regex:
+     * - Ignores comments automatically (no false positives)
+     * - Ignores string literals in irrelevant contexts
+     * - Type-safe detection of actual code patterns
+     * - Proper scope and variable tracking
+     *
+     * @param ReflectionMethod $method The method to analyze
+     * @return array{concatenation: bool, interpolation: bool, missing_parameters: bool, sprintf: bool}
+     */
+    public function detectSqlInjectionPatterns(ReflectionMethod $method): array
+    {
+        $code = $this->extractMethodCode($method);
+        if (null === $code) {
+            return [
+                'concatenation' => false,
+                'interpolation' => false,
+                'missing_parameters' => false,
+                'sprintf' => false,
+            ];
+        }
+
+        $ast = $this->parse($code);
+        if (null === $ast) {
+            return [
+                'concatenation' => false,
+                'interpolation' => false,
+                'missing_parameters' => false,
+                'sprintf' => false,
+            ];
+        }
+
+        $visitor = new Visitor\SqlInjectionPatternVisitor();
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor($visitor);
+        $traverser->traverse($ast);
+
+        return [
+            'concatenation' => $visitor->hasConcatenationPattern(),
+            'interpolation' => $visitor->hasInterpolationPattern(),
+            'missing_parameters' => $visitor->hasMissingParametersPattern(),
+            'sprintf' => $visitor->hasSprintfPattern(),
+        ];
     }
 
     /**

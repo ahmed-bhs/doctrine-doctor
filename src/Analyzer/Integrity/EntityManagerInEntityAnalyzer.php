@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use Webmozart\Assert\Assert;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -45,6 +46,8 @@ use Psr\Log\LoggerInterface;
  */
 class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    private PhpCodeParser $phpCodeParser;
+
     public function __construct(
         /**
          * @readonly
@@ -58,7 +61,9 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
          * @readonly
          */
         private ?LoggerInterface $logger = null,
+        ?PhpCodeParser $phpCodeParser = null,
     ) {
+        $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
     }
 
     /**
@@ -234,30 +239,22 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                 continue;
             }
 
-            $source = file($filename);
+            // Use PhpCodeParser instead of fragile regex
+            // This provides robust AST-based detection that handles:
+            // - $this->em->flush()
+            // - $this->entityManager->persist()
+            // - $em->remove()
+            // - Ignores comments automatically (no false positives)
+            // - Type-safe detection with proper scope analysis
 
-            if (false === $source) {
-                continue;
-            }
-
-            $methodCode = implode('', array_slice($source, $startLine - 1, $endLine - $startLine + 1));
-
-            // Check for EntityManager method calls
-            $emPatterns = [
-                '/\$this->em->flush\(\)/',
-                '/\$this->em->persist\(/',
-                '/\$this->em->remove\(/',
-                '/\$this->entityManager->flush\(\)/',
-                '/\$this->entityManager->persist\(/',
-                '/\$this->entityManager->remove\(/',
-                '/\$em->flush\(\)/',
-                '/\$em->persist\(/',
+            $emMethods = [
+                '$*->flush',       // Matches: $em->flush(), $this->em->flush(), etc.
+                '$*->persist',     // Matches: $em->persist(), $this->entityManager->persist(), etc.
+                '$*->remove',      // Matches: $em->remove(), $this->em->remove(), etc.
             ];
 
-            Assert::isIterable($emPatterns, '$emPatterns must be iterable');
-
-            foreach ($emPatterns as $emPattern) {
-                if (1 === preg_match($emPattern, $methodCode)) {
+            foreach ($emMethods as $pattern) {
+                if ($this->phpCodeParser->hasMethodCall($reflectionMethod, $pattern)) {
                     $methodsUsingEM[] = $reflectionMethod;
                     break;
                 }

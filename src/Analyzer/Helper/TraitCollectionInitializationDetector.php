@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Helper;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionMethod;
@@ -28,9 +29,13 @@ use ReflectionMethod;
  */
 final class TraitCollectionInitializationDetector
 {
+    private readonly PhpCodeParser $phpCodeParser;
+
     public function __construct(
+        ?PhpCodeParser $phpCodeParser = null,
         private readonly ?LoggerInterface $logger = null,
     ) {
+        $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
     }
 
     /**
@@ -91,17 +96,10 @@ final class TraitCollectionInitializationDetector
             }
 
             $traitConstructor = $trait->getMethod('__construct');
-            $constructorCode = $this->extractMethodCode($traitConstructor);
 
-            if (null === $constructorCode) {
-                return false;
-            }
-
-            // Remove comments to avoid false positives
-            $constructorCode = $this->removeComments($constructorCode);
-
-            // Check if this field is initialized in the constructor
-            if ($this->isFieldInitializedInCode($constructorCode, $fieldName)) {
+            // Use PhpCodeParser for robust AST-based detection
+            // This replaces fragile regex with proper PHP parsing
+            if ($this->phpCodeParser->hasCollectionInitialization($traitConstructor, $fieldName)) {
                 return true;
             }
 
@@ -116,125 +114,4 @@ final class TraitCollectionInitializationDetector
         }
     }
 
-    /**
-     * Check if a field is initialized in the given code snippet.
-     *
-     * Detects patterns like:
-     * - $this->fieldName = new ArrayCollection()
-     * - $this->fieldName = []
-     * - $this->fieldName = new \Doctrine\Common\Collections\ArrayCollection()
-     *
-     * @param string $code The code to analyze
-     * @param string $fieldName The field name to look for
-     * @return bool True if initialization pattern is found
-     */
-    private function isFieldInitializedInCode(string $code, string $fieldName): bool
-    {
-        $escapedFieldName = preg_quote($fieldName, '/');
-
-        if ('' === $escapedFieldName) {
-            return false;
-        }
-
-        // Patterns for collection initialization
-        $patterns = [
-            // Direct assignment with ArrayCollection
-            '/\$this->' . $escapedFieldName . '\s*=\s*new\s+(?:\\\\?Doctrine\\\\Common\\\\Collections\\\\)?ArrayCollection\s*\(/',
-            // PHP array initialization
-            '/\$this->' . $escapedFieldName . '\s*=\s*\[\s*\]/',
-            // ArrayCollection with use statement
-            '/\$this->' . $escapedFieldName . '\s*=\s*new\s+ArrayCollection\s*\(/',
-        ];
-
-        foreach ($patterns as $pattern) {
-            try {
-                if (preg_match($pattern, $code)) {
-                    return true;
-                }
-            } catch (\Throwable $e) {
-                $this->logger?->debug('TraitCollectionInitializationDetector: Regex error', [
-                    'exception' => $e::class,
-                    'pattern' => $pattern,
-                ]);
-                continue;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Extract the source code of a method.
-     *
-     * @param ReflectionMethod $method The method to extract
-     * @return string|null The method source code, or null if unavailable
-     */
-    private function extractMethodCode(ReflectionMethod $method): ?string
-    {
-        try {
-            $filename = $method->getFileName();
-            if (false === $filename || !file_exists($filename)) {
-                return null;
-            }
-
-            $startLine = $method->getStartLine();
-            $endLine = $method->getEndLine();
-
-            if (false === $startLine || false === $endLine) {
-                return null;
-            }
-
-            $source = file($filename);
-            if (false === $source) {
-                return null;
-            }
-
-            $lineCount = $endLine - $startLine + 1;
-
-            // Safety check: skip very large methods (potential memory issues)
-            if ($lineCount > 500) {
-                $this->logger?->debug('TraitCollectionInitializationDetector: Method too large', [
-                    'method' => $method->getName(),
-                    'lines' => $lineCount,
-                ]);
-                return null;
-            }
-
-            $methodCode = implode('', array_slice($source, $startLine - 1, $lineCount));
-
-            // Safety check: skip very large code blocks
-            if (strlen($methodCode) > 50000) {
-                $this->logger?->debug('TraitCollectionInitializationDetector: Method code too large', [
-                    'method' => $method->getName(),
-                    'bytes' => strlen($methodCode),
-                ]);
-                return null;
-            }
-
-            return $methodCode;
-        } catch (\Throwable $e) {
-            $this->logger?->debug('TraitCollectionInitializationDetector: Error extracting code', [
-                'exception' => $e::class,
-                'method' => $method->getName(),
-            ]);
-            return null;
-        }
-    }
-
-    /**
-     * Remove comments from code to avoid false positives.
-     *
-     * @param string $code The code to clean
-     * @return string Code without comments
-     */
-    private function removeComments(string $code): string
-    {
-        // Remove single-line comments (// ...)
-        $code = preg_replace('/\/\/.*$/m', '', $code) ?? $code;
-
-        // Remove multi-line comments (/* ... */)
-        $code = preg_replace('/\/\*.*?\*\//s', '', $code) ?? $code;
-
-        return $code;
-    }
 }

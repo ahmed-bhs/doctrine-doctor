@@ -77,6 +77,8 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         '_time',         // last_password_change_time
     ];
 
+    private PhpCodeParser $phpCodeParser;
+
     public function __construct(
         /**
          * @readonly
@@ -90,10 +92,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
          * @readonly
          */
         private ?LoggerInterface $logger = null,
-        /**
-         * @readonly
-         */
-        private ?PhpCodeParser $phpCodeParser = null,
+        ?PhpCodeParser $phpCodeParser = null,
     ) {
         // Dependency injection with fallback for backwards compatibility
         $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
@@ -281,23 +280,21 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         array $sensitiveFields,
     ): ?SecurityIssue {
         $reflectionMethod = $reflectionClass->getMethod('jsonSerialize');
-        $source           = $this->getMethodSource($reflectionMethod);
 
-        if (null === $source) {
-            return null;
-        }
-
-        // Check if any sensitive field is exposed
-        $exposedFields = [];
-
+        // Use PhpCodeParser instead of fragile regex
+        // This provides robust AST-based detection that handles:
+        // - Array keys: 'password' => ...
+        // - Getter calls: $this->getPassword()
+        // - Direct access: $this->password
+        // - Ignores comments automatically (no false positives)
+        // - Ignores strings in error messages
         Assert::isIterable($sensitiveFields, '$sensitiveFields must be iterable');
-
-        foreach ($sensitiveFields as $sensitiveField) {
-            // Pattern: Simple pattern match: /[\
-            if (1 === preg_match('/[\'"]' . $sensitiveField . '[\'"]|->get' . ucfirst((string) $sensitiveField) . '/i', $source)) {
-                $exposedFields[] = $sensitiveField;
-            }
-        }
+        Assert::allString($sensitiveFields, '$sensitiveFields must contain only strings');
+        /** @var array<string> $sensitiveFields */
+        $exposedFields = $this->phpCodeParser->detectExposedSensitiveFields(
+            $reflectionMethod,
+            $sensitiveFields,
+        );
 
         if ([] !== $exposedFields) {
             return new SecurityIssue([
@@ -328,23 +325,21 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         array $sensitiveFields,
     ): ?SecurityIssue {
         $reflectionMethod = $reflectionClass->getMethod('toArray');
-        $source           = $this->getMethodSource($reflectionMethod);
 
-        if (null === $source) {
-            return null;
-        }
-
-        // Check if any sensitive field is exposed
-        $exposedFields = [];
-
+        // Use PhpCodeParser instead of fragile regex
+        // This provides robust AST-based detection that handles:
+        // - Array keys: 'password' => ...
+        // - Getter calls: $this->getPassword()
+        // - Direct access: $this->password
+        // - Ignores comments automatically (no false positives)
+        // - Ignores strings in error messages
         Assert::isIterable($sensitiveFields, '$sensitiveFields must be iterable');
-
-        foreach ($sensitiveFields as $sensitiveField) {
-            // Pattern: Simple pattern match: /[\
-            if (1 === preg_match('/[\'"]' . $sensitiveField . '[\'"]|->get' . ucfirst((string) $sensitiveField) . '/i', $source)) {
-                $exposedFields[] = $sensitiveField;
-            }
-        }
+        Assert::allString($sensitiveFields, '$sensitiveFields must contain only strings');
+        /** @var array<string> $sensitiveFields */
+        $exposedFields = $this->phpCodeParser->detectExposedSensitiveFields(
+            $reflectionMethod,
+            $sensitiveFields,
+        );
 
         if ([] !== $exposedFields) {
             return new SecurityIssue([
@@ -432,30 +427,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         }
 
         return null;
-    }
-
-    private function getMethodSource(\ReflectionMethod $reflectionMethod): ?string
-    {
-        $filename = $reflectionMethod->getFileName();
-
-        if (false === $filename) {
-            return null;
-        }
-
-        $startLine = $reflectionMethod->getStartLine();
-        $endLine   = $reflectionMethod->getEndLine();
-
-        if (false === $startLine || false === $endLine) {
-            return null;
-        }
-
-        $source = file($filename);
-
-        if (false === $source) {
-            return null;
-        }
-
-        return implode('', array_slice($source, $startLine - 1, $endLine - $startLine + 1));
     }
 
     private function createToStringSuggestion(string $entityClass, \ReflectionMethod $reflectionMethod): SuggestionInterface
