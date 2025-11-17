@@ -94,7 +94,7 @@ final class AnalyzerOverheadBenchmark extends TestCase
             . "  Memory usage:             %.2f MB\n\n",
             $stats['ast_entries'],
             $stats['analysis_entries'],
-            $stats['memory_mb'],
+            $stats['memory_bytes'] / 1024 / 1024,
         );
     }
 
@@ -202,8 +202,8 @@ final class AnalyzerOverheadBenchmark extends TestCase
             . "  Memory usage:             %.2f MB\n"
             . "  Avg memory per entry:     %.2f KB\n\n",
             $stats['analysis_entries'] + $stats['ast_entries'],
-            $stats['memory_mb'],
-            ($stats['memory_mb'] * 1024) / max($stats['analysis_entries'] + $stats['ast_entries'], 1),
+            $stats['memory_bytes'] / 1024 / 1024,
+            ($stats['memory_bytes'] / 1024) / max($stats['analysis_entries'] + $stats['ast_entries'], 1),
         );
 
         // Should complete in reasonable time

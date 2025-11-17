@@ -308,6 +308,7 @@ final class CollectionInitializationVisitorTest extends TestCase
     private function traverseCode(string $code, CollectionInitializationVisitor $visitor): void
     {
         $ast = $this->parser->parse($code);
+        self::assertIsArray($ast, 'Parser should return an array');
 
         $traverser = new NodeTraverser();
         $traverser->addVisitor($visitor);

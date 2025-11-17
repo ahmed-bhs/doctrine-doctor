@@ -125,6 +125,9 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
      * @param ClassMetadata<object>    $classMetadata
      * @param array<string, float|int> $referenceCountMap
      * @return array<\AhmedBhs\DoctrineDoctor\Issue\IssueInterface>
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     private function analyzeEntity(ClassMetadata $classMetadata, array $referenceCountMap): array
     {
@@ -236,6 +239,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
     private function isDependentEntity(string $entityClass): bool
     {
         try {
+            /** @var class-string $entityClass */
             $classMetadataFactory = $this->entityManager->getMetadataFactory();
             $metadata = $classMetadataFactory->getMetadataFor($entityClass);
 
@@ -294,6 +298,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
 
         if (null !== $targetEntity && null !== $mappedBy) {
             try {
+                /** @var class-string $targetEntity */
                 $targetMetadata = $this->entityManager->getMetadataFactory()->getMetadataFor($targetEntity);
                 $inverseMappings = $targetMetadata->getAssociationMappings();
                 $inverseMapping = $inverseMappings[$mappedBy] ?? null;

@@ -140,10 +140,8 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
 
             // Build JOIN expression to exclude from alias usage check
             // This prevents counting the alias usage in its own ON clause
-            $joinExpression = $join['type'] . ' JOIN ' . $join['table'];
-            if (null !== $alias) {
-                $joinExpression .= ' ' . $alias;
-            }
+            // Note: $alias is guaranteed to be non-null here due to the check above
+            $joinExpression = $join['type'] . ' JOIN ' . $join['table'] . ' ' . $alias;
 
             // Check if alias is used in SELECT, WHERE, ORDER BY, GROUP BY, or HAVING
             // Pass joinExpression so isAliasUsedInQuery ignores this JOIN's ON clause

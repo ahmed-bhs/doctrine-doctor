@@ -522,6 +522,7 @@ final class MethodCallVisitorTest extends TestCase
     private function traverseCode(string $code, MethodCallVisitor $visitor): void
     {
         $ast = $this->parser->parse($code);
+        self::assertIsArray($ast, 'Parser should return an array');
 
         $traverser = new NodeTraverser();
         $traverser->addVisitor($visitor);

@@ -15,6 +15,8 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
  * Configuration object for MissingIndexAnalyzer.
  * Encapsulates all configuration parameters to reduce constructor complexity
  * and eliminate boolean flag anti-pattern.
+ *
+ * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
  */
 final class MissingIndexAnalyzerConfig
 {

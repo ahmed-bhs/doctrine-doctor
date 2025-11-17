@@ -141,6 +141,7 @@ final class SensitiveDataExposureVisitorTest extends TestCase
         // Wrap in class context for parser
         $wrappedCode = "<?php\nclass Test {\n" . $code . "\n}\n";
         $ast = $parser->parse($wrappedCode);
+        self::assertIsArray($ast, 'Parser should return an array');
 
         $visitor = new SensitiveDataExposureVisitor();
         $traverser = new NodeTraverser();

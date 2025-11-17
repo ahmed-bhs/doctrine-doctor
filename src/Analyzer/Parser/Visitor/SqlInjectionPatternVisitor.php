@@ -44,6 +44,8 @@ use PhpParser\NodeVisitorAbstract;
  * ✅ Proper scope analysis
  *
  * @see https://owasp.org/www-community/attacks/SQL_Injection
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
 {
@@ -72,6 +74,9 @@ final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
 
     /**
      * Called when entering each node in the AST.
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function enterNode(Node $node): ?Node
     {
@@ -150,6 +155,9 @@ final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
     /**
      * Track assignments from user input sources.
      * Example: $email = $_GET['email']
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     private function trackUserInputAssignment(Node $node): void
     {
@@ -302,6 +310,8 @@ final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
      *
      * Example: "SELECT * FROM users WHERE id = $userId"
      * Example: "SELECT * FROM users WHERE id = {$userId}" (curly brace syntax)
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     private function isStringInterpolationWithSqlKeywords(Node $node): bool
     {
@@ -393,6 +403,9 @@ final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
      * Check if node is sprintf with SQL and user input.
      *
      * Example: sprintf("SELECT * FROM users WHERE id = %s", $_GET['id'])
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     private function isSprintfWithSqlAndUserInput(Node $node): bool
     {
@@ -433,7 +446,8 @@ final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
         }
 
         // Check if any argument is user input ($_GET, $_POST, etc. or tracked variable)
-        for ($i = 1; $i < count($node->args); $i++) {
+        $argsCount = count($node->args);
+        for ($i = 1; $i < $argsCount; $i++) {
             $argNode = $node->args[$i];
             if (!$argNode instanceof Node\Arg) {
                 continue;

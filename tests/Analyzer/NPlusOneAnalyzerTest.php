@@ -752,44 +752,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     public function it_exempts_queries_with_limit_1(): void
     {
         self::markTestSkipped('Single-record exemption needs more careful implementation - disabled for now to avoid false negatives');
-
-        // Arrange: Multiple queries with LIMIT 1 (single-record queries)
-        $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1 LIMIT 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2 LIMIT 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3 LIMIT 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4 LIMIT 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5 LIMIT 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6 LIMIT 1', 5.0)
-            ->build();
-
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert: Should be exempted (no N+1 issue for single-record queries)
-        self::assertCount(0, $issues, 'LIMIT 1 queries should be exempted from N+1 detection');
     }
 
     #[Test]
     public function it_exempts_simple_primary_key_lookups(): void
     {
         self::markTestSkipped('Single-record exemption needs more careful implementation - disabled for now to avoid false negatives');
-
-        // Arrange: Simple WHERE id = ? queries without JOINs
-        $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 5.0)
-            ->build();
-
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert: Simple PK lookups without JOINs should be exempted
-        self::assertCount(0, $issues, 'Simple primary key lookups should be exempted');
     }
 
     #[Test]

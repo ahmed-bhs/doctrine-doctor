@@ -194,6 +194,9 @@ final class IssueDeduplicator
 
     /**
      * Extract entity or table name from issue information.
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     private function extractEntityOrTable(string $title, string $description, string $sql): ?string
     {

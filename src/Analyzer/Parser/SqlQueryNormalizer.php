@@ -56,6 +56,9 @@ final class SqlQueryNormalizer implements QueryNormalizerInterface
 
     /**
      * Normalizes SELECT statement for N+1 detection.
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     private function normalizeSelectForNPlusOne(SelectStatement $statement, string $originalSql): string
     {

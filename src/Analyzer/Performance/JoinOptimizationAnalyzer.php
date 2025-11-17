@@ -293,7 +293,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                 'type'       => $join['type'],
                 'table'      => $tableName,
                 'alias'      => $alias,  // Can be null
-                'full_match' => $join['type'] . ' JOIN ' . $tableName . ($join['alias'] ? ' ' . $join['alias'] : ''),
+                'full_match' => $join['type'] . ' JOIN ' . $tableName . (null !== $join['alias'] ? ' ' . $join['alias'] : ''),
             ];
         }
 

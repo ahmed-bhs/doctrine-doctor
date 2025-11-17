@@ -26,8 +26,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
 
     protected function setUp(): void
     {
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $issueFactory = new IssueFactory($entityManager);
+        $issueFactory = new IssueFactory();
         $suggestionFactory = new SuggestionFactory(new PhpTemplateRenderer());
 
         $this->analyzer = new UnusedEagerLoadAnalyzer($issueFactory, $suggestionFactory);

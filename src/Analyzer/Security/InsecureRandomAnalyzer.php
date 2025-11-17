@@ -162,6 +162,10 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
 
         // Use PHP Parser instead of regex for robust detection
         // This eliminates false positives from comments and strings
+        if (null === $this->phpCodeParser) {
+            return [];
+        }
+
         $insecureCalls = $this->phpCodeParser->detectInsecureRandom($reflectionMethod, self::INSECURE_FUNCTIONS);
 
         // Track which functions we've already reported to avoid duplicates

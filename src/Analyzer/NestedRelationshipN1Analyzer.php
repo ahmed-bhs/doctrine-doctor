@@ -213,7 +213,7 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
 
         } catch (\Throwable $e) {
             // Fallback to regex if parser fails (malformed SQL)
-            if (preg_match('/WHERE\s+(\w+)\s*(?:=|IN)\s*[?:\d(]/i', $sql, $matches)) {
+            if (1 === preg_match('/WHERE\s+(\w+)\s*(?:=|IN)\s*[?:\d(]/i', $sql, $matches)) {
                 return strtolower($matches[1]);
             }
 

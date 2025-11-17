@@ -75,6 +75,10 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
 
                     // Use SQL Parser instead of regex for robust detection
                     // This properly handles complex SQL queries and edge cases
+                    if (null === $this->sqlExtractor) {
+                        continue;
+                    }
+
                     $hasLimit = $this->sqlExtractor->hasLimit($sql) || $this->sqlExtractor->hasOffset($sql);
                     $hasOrderBy = $this->sqlExtractor->hasOrderBy($sql);
 

@@ -147,12 +147,14 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
      * even when running in dev/test environments.
      *
      * @return array<ConfigurationIssue>
+     *
+     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     private function checkYamlConfiguration(): array
     {
         $issues = [];
 
-        if (!$this->projectDir) {
+        if (null === $this->projectDir || '' === $this->projectDir) {
             return $issues;
         }
 

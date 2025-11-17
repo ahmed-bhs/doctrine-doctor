@@ -112,7 +112,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $associationMapping) {
             $issue = $this->detectCascadeIssue($entityClass, $fieldName, $associationMapping, $referenceCountMap);
 
-            if ($issue) {
+            if (null !== $issue) {
                 $issues[] = $issue;
             }
         }
@@ -141,7 +141,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         }
 
         // Priority 2: cascade="remove" on independent entity
-        if (in_array('remove', $cascade, true) && $targetEntity) {
+        if (in_array('remove', $cascade, true) && null !== $targetEntity) {
             $type = $this->getAssociationTypeConstant($mapping);
 
             // CRITICAL: cascade="remove" on ManyToOne
@@ -156,7 +156,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         }
 
         // Priority 3: cascade="persist" on independent entity
-        if (in_array('persist', $cascade, true) && $targetEntity) {
+        if (in_array('persist', $cascade, true) && null !== $targetEntity) {
             $type = $this->getAssociationTypeConstant($mapping);
 
             // Only check ManyToOne and ManyToMany (associations to independent entities)
@@ -499,7 +499,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             foreach ($metadata->getAssociationMappings() as $associationMapping) {
                 $targetEntity = MappingHelper::getString($associationMapping, 'targetEntity') ?? null;
 
-                if ($targetEntity) {
+                if (null !== $targetEntity) {
                     if (!isset($map[$targetEntity])) {
                         $map[$targetEntity] = 0;
                     }

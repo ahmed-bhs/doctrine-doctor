@@ -58,12 +58,12 @@ final class MethodCallVisitor extends NodeVisitorAbstract
             && $node->var instanceof Variable
             && 'this' === $node->var->name
         ) {
-            $methodName = $node->name instanceof Node\Identifier
-                ? $node->name->toString()
-                : (string) $node->name;
-
-            if ($this->matchesPattern($methodName)) {
-                $this->hasMethodCall = true;
+            // Only handle static method names (Identifier), skip dynamic calls
+            if ($node->name instanceof Node\Identifier) {
+                $methodName = $node->name->toString();
+                if ($this->matchesPattern($methodName)) {
+                    $this->hasMethodCall = true;
+                }
             }
         }
 

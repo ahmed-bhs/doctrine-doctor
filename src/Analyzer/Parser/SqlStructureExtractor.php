@@ -40,6 +40,9 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Parser\Interface\QueryNormalizerInterface;
  * For analyzers needing only specific functionality, you may inject individual
  * interfaces (ConditionAnalyzerInterface, PerformanceAnalyzerInterface, etc.)
  * instead of this façade. However, the façade is preferred for simplicity.
+ *
+ * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 class SqlStructureExtractor
 {
@@ -66,7 +69,7 @@ class SqlStructureExtractor
         $this->joinExtractor = $joinExtractor ?? new SqlJoinExtractor();
         $this->queryNormalizer = $queryNormalizer ?? new SqlQueryNormalizer();
         $this->patternDetector = $patternDetector ?? new SqlPatternDetector($this->joinExtractor instanceof SqlJoinExtractor ? $this->joinExtractor : null);
-        $this->conditionAnalyzer = $conditionAnalyzer ?? new SqlConditionAnalyzer($this->joinExtractor instanceof SqlJoinExtractor ? $this->joinExtractor : null);
+        $this->conditionAnalyzer = $conditionAnalyzer ?? new SqlConditionAnalyzer();
         $this->performanceAnalyzer = $performanceAnalyzer ?? new SqlPerformanceAnalyzer();
         $this->aggregationAnalyzer = $aggregationAnalyzer ?? new SqlAggregationAnalyzer();
     }

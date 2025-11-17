@@ -59,7 +59,9 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         // Should detect query cache enabled
         $queryCacheIssues = array_filter(
@@ -93,7 +95,9 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         // Should NOT detect query cache issue
         $queryCacheIssues = array_filter(
@@ -124,7 +128,9 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         $flushLogIssues = array_filter(
             $issues,
@@ -156,7 +162,9 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         $binlogIssues = array_filter(
             $issues,
@@ -188,7 +196,9 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         $bufferPoolIssues = array_filter(
             $issues,
@@ -220,7 +230,9 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         $bufferPoolIssues = array_filter(
             $issues,
@@ -252,20 +264,24 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         self::assertCount(0, $issues, 'Should return no issues when all configs are optimal');
     }
 
     private function mockShowVariables(Connection $connection, DatabasePlatformDetector $detector, array $values): void
     {
+        /** @phpstan-ignore-next-line Mock object has expects() method */
         $connection->expects(self::any())
             ->method('executeQuery')
-            ->willReturnCallback(function ($sql) use ($values) {
+            ->willReturnCallback(function () {
                 $result = $this->createMock(Result::class);
                 return $result;
             });
 
+        /** @phpstan-ignore-next-line Mock object has expects() method */
         $detector->expects(self::any())
             ->method('fetchAssociative')
             ->willReturnCallback(function () use ($values) {
