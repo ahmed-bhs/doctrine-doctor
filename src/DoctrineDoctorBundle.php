@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor;
 
+use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\ConditionalLoggerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use function dirname;
@@ -43,5 +44,10 @@ class DoctrineDoctorBundle extends Bundle
     public function build(ContainerBuilder $container): void
     {
         parent::build($container);
+
+        // Register compiler pass to conditionally disable logging for performance
+        // When debug.internal_logging is false (default), all loggers become NullLogger
+        // This saves ~133ms overhead from Monolog calls
+        $container->addCompilerPass(new ConditionalLoggerPass());
     }
 }
