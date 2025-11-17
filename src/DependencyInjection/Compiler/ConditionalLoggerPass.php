@@ -45,15 +45,15 @@ final class ConditionalLoggerPass implements CompilerPassInterface
             $definition = $container->getDefinition($id);
             $arguments = $definition->getArguments();
 
-            // Replace $logger argument with NullLogger
+            // Replace $logger argument with NullLogger (check both positional and named)
             foreach ($arguments as $key => $value) {
                 if ($value instanceof Reference && 'logger' === (string) $value) {
                     $definition->setArgument($key, $nullLoggerRef);
                 }
             }
 
-            // Also check named arguments
-            if ($definition->hasArgument('$logger')) {
+            // Also check named arguments using array_key_exists
+            if (array_key_exists('$logger', $arguments)) {
                 $definition->setArgument('$logger', $nullLoggerRef);
             }
         }
@@ -68,7 +68,8 @@ final class ConditionalLoggerPass implements CompilerPassInterface
         foreach ($helperServices as $serviceId) {
             if ($container->hasDefinition($serviceId)) {
                 $definition = $container->getDefinition($serviceId);
-                if ($definition->hasArgument('$logger')) {
+                $arguments = $definition->getArguments();
+                if (array_key_exists('$logger', $arguments)) {
                     $definition->setArgument('$logger', $nullLoggerRef);
                 }
             }
