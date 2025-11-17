@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
+use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -211,7 +212,7 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         foreach ($queries as $query) {
             // Use SQL parser to normalize query pattern
             // Use universal normalization method shared across all analyzers
-            $normalized = $this->sqlExtractor->normalizeQuery($query->sql);
+            $normalized = SqlNormalizationCache::normalize($query->sql);
             $patterns[] = $normalized;
         }
 

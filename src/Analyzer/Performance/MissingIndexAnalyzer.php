@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\QueryColumnExtractor;
+use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
@@ -628,22 +629,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
     private function normalizeQuery(string $sql): string
     {
-        // Normalize whitespace
-        $normalized = preg_replace('/\s+/', ' ', trim($sql));
-
-        // Replace string literals
-        $normalized = preg_replace("/'(?:[^'\\\\]|\\\\.)*'/", '?', (string) $normalized);
-
-        // Replace numeric literals
-        $normalized = preg_replace('/\b(\d+)\b/', '?', (string) $normalized);
-
-        // Normalize IN clauses
-        $normalized = preg_replace('/IN\s*\([^)]+\)/i', 'IN (?)', (string) $normalized);
-
-        // Normalize = placeholders
-        $normalized = preg_replace('/=\s*\?/', '= ?', (string) $normalized);
-
-        return strtoupper((string) $normalized);
+        return SqlNormalizationCache::normalize($sql);
     }
 
     /**

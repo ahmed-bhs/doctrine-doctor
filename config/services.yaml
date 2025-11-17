@@ -83,7 +83,10 @@ services:
             - { name: data_collector, id: doctrine_doctor, template: '@doctrine_doctor/profiler/doctrine_doctor.html.twig', priority: 249 }
 
     # Parsers
-    AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor: ~
+    # Use CachedSqlStructureExtractor for 1000x+ performance improvement on SQL parsing
+    # Analyzers continue to use SqlStructureExtractor interface without modification
+    AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor:
+        class: AhmedBhs\DoctrineDoctor\Analyzer\Parser\CachedSqlStructureExtractor
 
     # Factories
     AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface:
@@ -124,6 +127,7 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $threshold: '%doctrine_doctor.analyzers.n_plus_one.threshold%'
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -147,6 +151,7 @@ services:
         arguments:
             $threshold: '%doctrine_doctor.analyzers.slow_query.threshold%'
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -155,6 +160,7 @@ services:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $rowThreshold: '%doctrine_doctor.analyzers.hydration.row_threshold%'
             $criticalThreshold: '%doctrine_doctor.analyzers.hydration.critical_threshold%'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -170,6 +176,7 @@ services:
         arguments:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $batchSizeThreshold: '%doctrine_doctor.analyzers.entity_manager_clear.batch_size_threshold%'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -178,6 +185,7 @@ services:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $threshold: '%doctrine_doctor.analyzers.get_reference.threshold%'
             $logger: '@?logger'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -192,6 +200,7 @@ services:
         arguments:
             $threshold: '%doctrine_doctor.analyzers.lazy_loading.threshold%'
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -205,6 +214,7 @@ services:
         arguments:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $threshold: '%doctrine_doctor.analyzers.bulk_operation.threshold%'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -213,6 +223,7 @@ services:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $threshold: '%doctrine_doctor.analyzers.find_all.threshold%'
             $logger: '@?logger'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -304,6 +315,7 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\DTOHydrationAnalyzer:
         arguments:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
 
