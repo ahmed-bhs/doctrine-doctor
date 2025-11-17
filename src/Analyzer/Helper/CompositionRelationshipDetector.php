@@ -231,6 +231,7 @@ final class CompositionRelationshipDetector
                 return false;
             }
 
+            /** @var class-string $targetEntity */
             $targetMetadata = $this->entityManager->getMetadataFactory()->getMetadataFor($targetEntity);
             $inverseMappings = $targetMetadata->getAssociationMappings();
             $inverseMapping = $inverseMappings[$inversedBy] ?? null;

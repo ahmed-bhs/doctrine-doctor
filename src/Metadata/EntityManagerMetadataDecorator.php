@@ -39,6 +39,8 @@ class EntityManagerMetadataDecorator extends EntityManagerDecorator
     /**
      * Override to return filtered metadata factory.
      * This is the ONLY method we override - everything else is delegated.
+     *
+     * @phpstan-ignore-next-line Return type intentionally more specific than interface
      */
     public function getMetadataFactory(): \Doctrine\ORM\Mapping\ClassMetadataFactory
     {

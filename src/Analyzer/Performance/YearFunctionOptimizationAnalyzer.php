@@ -75,6 +75,10 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 
                     // Use SQL Parser instead of regex for robust detection
                     // This properly handles complex WHERE clauses and nested conditions
+                    if (null === $this->sqlExtractor) {
+                        continue;
+                    }
+
                     $functionCalls = $this->sqlExtractor->extractFunctionsInWhere($sql);
 
                     Assert::isIterable($functionCalls, '$functionCalls must be iterable');

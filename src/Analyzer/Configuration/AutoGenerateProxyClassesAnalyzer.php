@@ -104,9 +104,9 @@ class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $mode = $this->getAutoGenerateModeName($autoGenerate);
 
         return new DatabaseConfigIssue([
-            'title'       => 'Proxy Auto-Generation Enabled in Production',
+            'title'       => sprintf('Proxy Auto-Generation Enabled (%s)', $this->environment),
             'description' => sprintf(
-                'Doctrine is configured to auto-generate proxy classes in production (mode: %s). ' .
+                'Doctrine is configured to auto-generate proxy classes (mode: %s). ' .
                 'This causes Doctrine to check filesystem on EVERY request to see if proxies need regeneration. ' .
                 'Performance impact:' . "
 " .

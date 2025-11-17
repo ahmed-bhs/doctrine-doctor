@@ -577,6 +577,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
     private function isVendorEntity(string $entityClass): bool
     {
         try {
+            /** @var class-string $entityClass */
             $reflectionClass = new ReflectionClass($entityClass);
             $filename = $reflectionClass->getFileName();
 

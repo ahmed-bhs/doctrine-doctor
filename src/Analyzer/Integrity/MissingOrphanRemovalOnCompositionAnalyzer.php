@@ -290,6 +290,9 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements \AhmedBhs\DoctrineDoc
         return $codeQualityIssue;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
+     */
     private function buildSuggestion(
         string $entityClass,
         string $fieldName,
@@ -343,6 +346,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements \AhmedBhs\DoctrineDoc
     private function isVendorEntity(string $entityClass): bool
     {
         try {
+            /** @var class-string $entityClass */
             $reflectionClass = new ReflectionClass($entityClass);
             $filename = $reflectionClass->getFileName();
 

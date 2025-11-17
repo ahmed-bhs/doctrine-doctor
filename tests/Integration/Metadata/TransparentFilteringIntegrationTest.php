@@ -46,6 +46,7 @@ class TransparentFilteringIntegrationTest extends TestCase
         // All metadata should be from non-vendor paths
         foreach ($filteredMetadata as $metadata) {
             $filename = $metadata->getReflectionClass()->getFileName();
+            self::assertIsString($filename, 'Filename should be a string');
             $normalizedPath = str_replace('\\', '/', $filename);
 
             self::assertStringNotContainsString(
@@ -93,6 +94,7 @@ class TransparentFilteringIntegrationTest extends TestCase
         // Verify no vendor entities
         foreach ($metadata as $meta) {
             $filename = $meta->getReflectionClass()->getFileName();
+            self::assertIsString($filename, 'Filename should be a string');
             self::assertStringNotContainsString('/vendor/', $filename);
         }
     }

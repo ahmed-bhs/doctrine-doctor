@@ -192,6 +192,10 @@ final class SqlJoinExtractor implements JoinExtractorInterface
         return null;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     public function extractTableNameWithAlias(string $sql, string $targetAlias): ?array
     {
         $parser = new Parser($sql);

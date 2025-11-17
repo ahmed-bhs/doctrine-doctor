@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -20,9 +21,11 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Webmozart\Assert\Assert;
 
-class HydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
+class HydrationAnalyzer implements AnalyzerInterface
 {
     private SqlStructureExtractor $sqlExtractor;
 
@@ -114,9 +117,9 @@ class HydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInt
 
     private function generateSuggestion(int $rowCount): SuggestionInterface
     {
-        $suggestionMetadata = new \AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata(
-            type: \AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType::performance(),
-            severity: $rowCount > $this->criticalThreshold ? \AhmedBhs\DoctrineDoctor\ValueObject\Severity::critical() : \AhmedBhs\DoctrineDoctor\ValueObject\Severity::warning(),
+        $suggestionMetadata = new SuggestionMetadata(
+            type: SuggestionType::performance(),
+            severity: $rowCount > $this->criticalThreshold ? Severity::critical() : Severity::warning(),
             title: sprintf('Excessive Hydration: %d rows', $rowCount),
             tags: ['performance', 'hydration', 'optimization'],
         );

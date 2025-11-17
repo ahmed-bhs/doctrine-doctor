@@ -532,7 +532,21 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             return false;
         }
 
-        // Type "ALL" = full table scan (very bad)
+        // Don't suggest if using optimal index access types
+        // const = PRIMARY KEY or UNIQUE index lookup with constant (best possible)
+        // eq_ref = UNIQUE index lookup in JOIN (best for joins)
+        if (in_array($type, ['CONST', 'EQ_REF'], true) && null !== $key) {
+            return false; // Optimal index usage, no suggestion needed
+        }
+
+        // ref = Non-unique index lookup (good)
+        // range = Index range scan (acceptable)
+        // If these types are using an index, only suggest if many rows scanned
+        if (in_array($type, ['REF', 'RANGE'], true) && null !== $key) {
+            return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
+        }
+
+        // Type "ALL" = full table scan (bad, but check threshold)
         $isFullTableScan = 'ALL' === $type;
 
         // Type "index" = full index scan (bad, not using WHERE conditions)
@@ -542,13 +556,13 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $hasPossibleKeysButNotUsed = null === $key && null !== $possibleKeys;
 
         // Suggest if:
-        // 1. Full table scan (ALL) regardless of rows
+        // 1. Full table scan (ALL) with rows >= threshold
         // 2. Full index scan (INDEX) with no possible_keys (missing selective index)
         // 3. Has possible keys but MySQL chose not to use any (needs better index)
         // 4. Many rows scanned (>= threshold)
 
         if ($isFullTableScan) {
-            return true; // Always suggest for full table scans
+            return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
         }
 
         if ($isFullIndexScan && null === $possibleKeys) {

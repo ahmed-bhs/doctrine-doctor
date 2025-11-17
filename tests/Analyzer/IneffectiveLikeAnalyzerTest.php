@@ -520,11 +520,21 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         $slowSuggestion = $slowIssues->toArray()[0]->getSuggestion();
 
         // Fast and medium queries: both < 100ms -> same title (prevents index usage)
-        self::assertStringContainsString('prevents index usage', $fastSuggestion->getMetadata()->title);
-        self::assertStringContainsString('prevents index usage', $mediumSuggestion->getMetadata()->title);
+        self::assertNotNull($fastSuggestion);
+        $fastMetadata = $fastSuggestion->getMetadata();
+        self::assertNotNull($fastMetadata);
+        self::assertStringContainsString('prevents index usage', $fastMetadata->title);
+
+        self::assertNotNull($mediumSuggestion);
+        $mediumMetadata = $mediumSuggestion->getMetadata();
+        self::assertNotNull($mediumMetadata);
+        self::assertStringContainsString('prevents index usage', $mediumMetadata->title);
 
         // Slow query: >= 100ms -> different title (urgent performance issue)
-        self::assertStringContainsString('urgent performance issue', $slowSuggestion->getMetadata()->title);
+        self::assertNotNull($slowSuggestion);
+        $slowMetadata = $slowSuggestion->getMetadata();
+        self::assertNotNull($slowMetadata);
+        self::assertStringContainsString('urgent performance issue', $slowMetadata->title);
     }
 
     #[Test]

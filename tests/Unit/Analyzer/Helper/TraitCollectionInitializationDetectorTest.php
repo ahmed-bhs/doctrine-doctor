@@ -113,6 +113,7 @@ final class TraitCollectionInitializationDetectorTest extends TestCase
  */
 trait TraitWithDirectInitialization
 {
+    /** @var mixed */
     protected $items;
 
     public function __construct()
@@ -131,6 +132,7 @@ class ClassUsingTraitWithInitialization
  */
 trait TranslatableTrait
 {
+    /** @var mixed */
     protected $translations;
 
     public function __construct()
@@ -157,6 +159,7 @@ class SyliusStyleClass
  */
 trait BaseCollectionTrait
 {
+    /** @var mixed */
     protected $nestedItems;
 
     public function __construct()
@@ -180,6 +183,7 @@ class ClassWithNestedTraits
  */
 trait TraitWithoutInitialization
 {
+    /** @var mixed */
     protected $items;
 
     public function __construct()
@@ -198,6 +202,7 @@ class ClassWithUninitializedCollection
  */
 trait TraitWithCommentedCode
 {
+    /** @var mixed */
     protected $items;
 
     public function __construct()

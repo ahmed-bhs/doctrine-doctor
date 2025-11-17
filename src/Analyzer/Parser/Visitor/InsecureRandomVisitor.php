@@ -60,21 +60,27 @@ final class InsecureRandomVisitor extends NodeVisitorAbstract
     public function enterNode(Node $node): ?Node
     {
         // Pattern 1: Direct insecure function calls (rand(), mt_rand(), etc.)
-        if ($this->isInsecureFunctionCall($node)) {
-            $this->insecureCalls[] = [
-                'type' => 'direct_call',
-                'function' => $this->getFunctionName($node),
-                'line' => $node->getStartLine(),
-            ];
+        if ($this->isInsecureFunctionCall($node) && $node instanceof FuncCall) {
+            $functionName = $this->getFunctionName($node);
+            if (null !== $functionName) {
+                $this->insecureCalls[] = [
+                    'type' => 'direct_call',
+                    'function' => $functionName,
+                    'line' => $node->getStartLine(),
+                ];
+            }
         }
 
         // Pattern 2: Weak hash with insecure random (md5(rand()), sha1(mt_rand()))
-        if ($this->isWeakHashWithInsecureRandom($node)) {
-            $this->insecureCalls[] = [
-                'type' => 'weak_hash',
-                'function' => $this->getFunctionName($node),
-                'line' => $node->getStartLine(),
-            ];
+        if ($this->isWeakHashWithInsecureRandom($node) && $node instanceof FuncCall) {
+            $functionName = $this->getFunctionName($node);
+            if (null !== $functionName) {
+                $this->insecureCalls[] = [
+                    'type' => 'weak_hash',
+                    'function' => $functionName,
+                    'line' => $node->getStartLine(),
+                ];
+            }
         }
 
         return null;

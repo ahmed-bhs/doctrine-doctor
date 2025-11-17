@@ -56,7 +56,7 @@ class BatchOperationSuggestion implements SuggestionInterface
     public function getMetadata(): SuggestionMetadata
     {
         return new SuggestionMetadata(
-            type: SuggestionType::CODE_QUALITY,
+            type: SuggestionType::PERFORMANCE,
             severity: Severity::WARNING,
             title: 'Batch Operation Memory Management',
             tags: ['performance', 'memory', 'batch'],

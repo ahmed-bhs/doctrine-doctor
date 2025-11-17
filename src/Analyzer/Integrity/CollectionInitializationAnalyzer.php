@@ -255,7 +255,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     {
         $current = $reflectionClass;
 
-        while ($current) {
+        while ($current instanceof \ReflectionClass) {
             if ($current->hasMethod('__construct')) {
                 return true;
             }
@@ -276,7 +276,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     {
         $current = $reflectionClass;
 
-        while ($current) {
+        while ($current instanceof \ReflectionClass) {
             if ($current->hasMethod('__construct')) {
                 return $current->getMethod('__construct');
             }
@@ -298,7 +298,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     {
         $current = $reflectionClass;
 
-        while ($current) {
+        while ($current instanceof \ReflectionClass) {
             // Check if current class has a constructor
             if ($current->hasMethod('__construct')) {
                 $constructor = $current->getMethod('__construct');
@@ -311,7 +311,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 // Check if constructor calls parent::__construct()
                 // If it does, we need to continue checking parent constructors
                 $constructorCode = $this->extractConstructorCode($constructor);
-                if (null !== $constructorCode && preg_match('/parent\s*::\s*__construct\s*\(/', $constructorCode)) {
+                if (null !== $constructorCode && 1 === preg_match('/parent\s*::\s*__construct\s*\(/', $constructorCode)) {
                     // Continue to parent class
                     $current = $current->getParentClass();
                     if (false === $current) {

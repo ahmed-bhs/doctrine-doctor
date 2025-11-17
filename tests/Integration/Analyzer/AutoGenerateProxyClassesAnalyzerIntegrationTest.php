@@ -226,7 +226,9 @@ final class AutoGenerateProxyClassesAnalyzerIntegrationTest extends TestCase
 
         // Should detect the issue
         self::assertGreaterThan(0, count($issueCollection), 'Analyzer should warn about auto_generate enabled in prod');
-        self::assertStringContainsString('Production', $issueCollection->first()->getTitle());
+        $firstIssue = $issueCollection->first();
+        self::assertNotNull($firstIssue);
+        self::assertStringContainsString('Production', $firstIssue->getTitle());
     }
 
     private function createAnalyzer(string $environment = 'prod'): AutoGenerateProxyClassesAnalyzer
