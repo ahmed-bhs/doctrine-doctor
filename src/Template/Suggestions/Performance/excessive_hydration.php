@@ -41,6 +41,6 @@ return [
     'code'        => $code,
     'description' => sprintf(
         'Query returned %d rows which may cause significant hydration overhead. Consider limiting results or using lighter hydration modes.',
-        $rowCount
+        $rowCount,
     ),
 ];
