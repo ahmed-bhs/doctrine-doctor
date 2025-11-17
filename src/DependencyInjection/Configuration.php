@@ -456,6 +456,20 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+                ->arrayNode('debug')
+                    ->addDefaultsIfNotSet()
+                    ->info('Debug settings for contributors and advanced users')
+                    ->children()
+                        ->booleanNode('enabled')
+                            ->defaultFalse()
+                            ->info('Enable debug mode (verbose logging, detailed error messages). Keep disabled for production.')
+                        ->end()
+                        ->booleanNode('internal_logging')
+                            ->defaultFalse()
+                            ->info('Enable internal logging for Doctrine Doctor analyzers. Can add ~133ms overhead. Enable only for debugging.')
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
 
         return $treeBuilder;

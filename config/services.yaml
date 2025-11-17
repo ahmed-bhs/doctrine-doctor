@@ -4,6 +4,12 @@ services:
         autoconfigure: true
         public: false
 
+    # Conditional logger for Doctrine Doctor
+    # Uses NullLogger by default (saves ~133ms overhead), enable via doctrine_doctor.debug.internal_logging
+    # This eliminates logging overhead when not debugging
+    doctrine_doctor.null_logger:
+        class: Psr\Log\NullLogger
+
     # Create a dedicated EntityManager service for Doctrine Doctor analyzers
     # This allows us to decorate it without affecting the global EntityManager
     doctrine_doctor.entity_manager:

@@ -115,6 +115,10 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $containerBuilder->setParameter('doctrine_doctor.enabled', $config['enabled']);
         $containerBuilder->setParameter('doctrine_doctor.profiler.show_debug_info', $config['profiler']['show_debug_info']);
         $containerBuilder->setParameter('doctrine_doctor.analysis.exclude_third_party_entities', $config['analysis']['exclude_third_party_entities']);
+
+        // Debug parameters (defaults to false for performance)
+        $containerBuilder->setParameter('doctrine_doctor.debug.enabled', $config['debug']['enabled'] ?? false);
+        $containerBuilder->setParameter('doctrine_doctor.debug.internal_logging', $config['debug']['internal_logging'] ?? false);
     }
 
     /**
