@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 /**
- * Template for SQL Injection security suggestions.
- * Context variables:
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $className
+ * @var mixed $methodName
+ * @var mixed $vulnType
+ * @var mixed $context
  */
 ['class_name' => $className, 'method_name' => $methodName, 'vulnerability_type' => $vulnType] = $context;
 $e                                                                                            = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');

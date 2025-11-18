@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 /**
- * Template for Timestampable Missing Timezone.
- * Context variables:
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $entityClass
+ * @var mixed $fieldName
+ * @var mixed $context
  */
 ['entity_class' => $entityClass, 'field_name' => $fieldName] = $context;
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');

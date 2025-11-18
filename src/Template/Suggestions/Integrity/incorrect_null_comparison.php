@@ -3,14 +3,11 @@
 declare(strict_types=1);
 
 /**
- * Template for Incorrect NULL Comparison suggestion.
- * Context variables:
- * @var string $bad_code - Example of incorrect code
- * @var string $good_code - Example of correct code
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $badCode
+ * @var mixed $goodCode
+ * @var mixed $context
  */
-
-/** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context
 ['bad_code' => $badCode, 'good_code' => $goodCode] = $context;
 
 // Helper function for safe HTML escaping

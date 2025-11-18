@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 /**
- * Template for Unused JOIN.
- * Context variables:
- * @var string $type - JOIN type (LEFT, INNER, etc.)
- * @var string $table - Table name
- * @var string $alias - Join alias
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $type
+ * @var mixed $table
+ * @var mixed $alias
+ * @var mixed $context
  */
 ['type' => $type, 'table' => $table, 'alias' => $alias] = $context;
 $e                                                      = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');

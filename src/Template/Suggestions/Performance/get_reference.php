@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 /**
- * Template for getReference() best practice suggestions.
- * Context variables:
- * @var string $entity - Entity class name
- * @var int    $occurrences - Number of times this pattern was found
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $entity
+ * @var mixed $occurrences
+ * @var mixed $context
  */
 ['entity' => $entity, 'occurrences' => $occurrences] = $context;
 $e                                                   = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');

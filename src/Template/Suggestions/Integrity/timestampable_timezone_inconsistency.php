@@ -10,10 +10,10 @@
 declare(strict_types=1);
 
 /**
- * Template for Timezone Inconsistency Warning.
- * Context variables:
- * @var int $datetime_count
- * @var int $datetimetz_count
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $datetimeCount
+ * @var mixed $datetimetzCount
+ * @var mixed $context
  */
 ['datetime_count' => $datetimeCount, 'datetimetz_count' => $datetimetzCount] = $context;
 

@@ -10,10 +10,10 @@
 declare(strict_types=1);
 
 /**
- * Template for Missing Blameable Trait suggestion.
- * Context variables:
- * @var string $entity_class
- * @var array<string> $timestamp_fields
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $entityClass
+ * @var mixed $timestampFields
+ * @var mixed $context
  */
 ['entity_class' => $entityClass, 'timestamp_fields' => $timestampFields] = $context;
 

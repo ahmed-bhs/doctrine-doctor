@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/**
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $entityClass
+ * @var mixed $fieldName
+ * @var mixed $issueType
+ * @var mixed $targetEntity
+ * @var mixed $isComposition
+ * @var mixed $context
+ */
 ['entity_class' => $entityClass, 'field_name' => $fieldName, 'issue_type' => $issueType, 'target_entity' => $targetEntity, 'is_composition' => $isComposition] = $context;
 $e                                                                                                                                                             = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 $lastBackslash                                                                                                                                                 = strrchr($entityClass, '\\');

@@ -3,15 +3,12 @@
 declare(strict_types=1);
 
 /**
- * Template for Unused Eager Load suggestions.
- * Context variables:
- * @var array<string> $unused_tables - Table names that are joined but never used
- * @var array<string> $unused_aliases - Aliases that are never referenced
- * @var int          $count - Number of unused JOINs
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $unusedTables
+ * @var mixed $unusedAliases
+ * @var mixed $count
+ * @var mixed $context
  */
-
-/** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context for clarity
 ['unused_tables' => $unusedTables, 'unused_aliases' => $unusedAliases, 'count' => $count] = $context;
 
 // Helper function for safe HTML escaping

@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 /**
- * Template for Missing Embeddable Opportunity.
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $entityClass
+ * @var mixed $fields
+ * @var mixed $context
  */
 ['entity_class' => $entityClass, 'fields' => $fields] = $context;
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');

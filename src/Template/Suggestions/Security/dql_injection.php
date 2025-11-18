@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 /**
- * Template for DQL Injection security suggestions.
- * Context variables:
- * @var string       $query - The vulnerable query
- * @var array<mixed> $vulnerable_parameters - List of vulnerable parameters
- * @var string       $risk_level - Risk level (high, critical, etc.)
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $query
+ * @var mixed $vulnerableParams
+ * @var mixed $riskLevel
+ * @var mixed $context
  */
 ['query' => $query, 'vulnerable_parameters' => $vulnerableParams, 'risk_level' => $riskLevel] = $context;
 $e                                                                                            = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');

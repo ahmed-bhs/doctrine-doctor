@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 /**
- * Template for Embeddable Mutability.
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $embeddableClass
+ * @var mixed $context
  */
 ['embeddable_class' => $embeddableClass] = $context;
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');

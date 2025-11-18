@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 /**
- * Template for LEFT JOIN on NOT NULL relation.
- * Context variables:
- * @var string $table - Table name
- * @var string $alias - Join alias
- * @var string $entity - Entity class
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $table
+ * @var mixed $alias
+ * @var mixed $entity
+ * @var mixed $context
  */
 ['table' => $table, 'alias' => $alias, 'entity' => $entity] = $context;
 $e                                                          = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');

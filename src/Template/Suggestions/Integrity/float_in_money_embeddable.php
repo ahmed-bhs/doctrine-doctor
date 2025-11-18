@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 /**
- * Template for Float in Money Embeddable.
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $embeddableClass
+ * @var mixed $fieldName
+ * @var mixed $context
  */
 ['embeddable_class' => $embeddableClass, 'field_name' => $fieldName] = $context;
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
