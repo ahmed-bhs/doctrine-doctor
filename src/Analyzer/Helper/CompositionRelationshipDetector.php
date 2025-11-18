@@ -54,42 +54,6 @@ final class CompositionRelationshipDetector
     }
 
     /**
-     * Pre-warm the exclusive ownership cache to avoid O(n²) scans.
-     * This builds a complete map of which entities reference which targets.
-     */
-    private function warmUpExclusiveOwnershipCache(): void
-    {
-        if (null !== $this->exclusiveOwnershipCache) {
-            return; // Already cached
-        }
-
-        $this->exclusiveOwnershipCache = [];
-
-        try {
-            $metadataFactory = $this->entityManager->getMetadataFactory();
-            $allMetadata = $metadataFactory->getAllMetadata();
-
-            // Build complete mapping in single pass: O(n*m) instead of O(n²*m)
-            foreach ($allMetadata as $metadata) {
-                $entityClass = $metadata->getName();
-
-                foreach ($metadata->getAssociationMappings() as $association) {
-                    $assocTarget = MappingHelper::getString($association, 'targetEntity');
-
-                    if (null !== $assocTarget) {
-                        if (!isset($this->exclusiveOwnershipCache[$assocTarget])) {
-                            $this->exclusiveOwnershipCache[$assocTarget] = [];
-                        }
-                        $this->exclusiveOwnershipCache[$assocTarget][$entityClass] = true;
-                    }
-                }
-            }
-        } catch (\Throwable) {
-            // On failure, cache will be empty and lookups will be conservative
-        }
-    }
-
-    /**
      * Check if a OneToOne association is a composition relationship.
      *
      * OneToOne with orphanRemoval is typically a composition.
@@ -206,6 +170,42 @@ final class CompositionRelationshipDetector
         }
 
         return false;
+    }
+
+    /**
+     * Pre-warm the exclusive ownership cache to avoid O(n²) scans.
+     * This builds a complete map of which entities reference which targets.
+     */
+    private function warmUpExclusiveOwnershipCache(): void
+    {
+        if (null !== $this->exclusiveOwnershipCache) {
+            return; // Already cached
+        }
+
+        $this->exclusiveOwnershipCache = [];
+
+        try {
+            $metadataFactory = $this->entityManager->getMetadataFactory();
+            $allMetadata = $metadataFactory->getAllMetadata();
+
+            // Build complete mapping in single pass: O(n*m) instead of O(n²*m)
+            foreach ($allMetadata as $metadata) {
+                $entityClass = $metadata->getName();
+
+                foreach ($metadata->getAssociationMappings() as $association) {
+                    $assocTarget = MappingHelper::getString($association, 'targetEntity');
+
+                    if (null !== $assocTarget) {
+                        if (!isset($this->exclusiveOwnershipCache[$assocTarget])) {
+                            $this->exclusiveOwnershipCache[$assocTarget] = [];
+                        }
+                        $this->exclusiveOwnershipCache[$assocTarget][$entityClass] = true;
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            // On failure, cache will be empty and lookups will be conservative
+        }
     }
 
     /**

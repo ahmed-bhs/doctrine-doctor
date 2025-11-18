@@ -131,8 +131,12 @@ class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
     private function hasUnpersistedChanges(object $entity): bool
     {
         try {
-            $reflectionClass = new ReflectionClass($entity::class);
             $metadata        = $this->entityManager->getClassMetadata($entity::class);
+            $reflectionClass = $metadata->reflClass;
+
+            if (null === $reflectionClass) {
+                return false;
+            }
 
             // Compare current values with original values (if any)
             // This is a simplified check - in reality, we'd need the original snapshot
@@ -159,7 +163,11 @@ class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
     {
         try {
             $metadata        = $this->entityManager->getClassMetadata($entity::class);
-            $reflectionClass = new ReflectionClass($entity::class);
+            $reflectionClass = $metadata->reflClass;
+
+            if (null === $reflectionClass) {
+                return null;
+            }
 
             $fieldIssue = $this->checkRequiredFields($entity, $metadata, $reflectionClass);
             if (null !== $fieldIssue) {
@@ -295,7 +303,11 @@ class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
     {
         try {
             $metadata        = $this->entityManager->getClassMetadata($entity::class);
-            $reflectionClass = new ReflectionClass($entity::class);
+            $reflectionClass = $metadata->reflClass;
+
+            if (null === $reflectionClass) {
+                return null;
+            }
 
             foreach ($metadata->getAssociationNames() as $assocName) {
                 if (!$metadata->isSingleValuedAssociation($assocName)) {
