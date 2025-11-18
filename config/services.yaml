@@ -386,9 +386,8 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Configuration\AutoGenerateProxyClassesAnalyzer:
         arguments:
-            $entityManager: '@doctrine_doctor.entity_manager'
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
-            $environment: '%kernel.environment%'
+            $projectDir: '%kernel.project_dir%'
             $logger: '@?logger'
         tags:
             - { name: doctrine_doctor.analyzer }

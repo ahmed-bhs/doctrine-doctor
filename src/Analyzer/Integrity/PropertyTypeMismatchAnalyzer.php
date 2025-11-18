@@ -108,8 +108,12 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
         $issues = [];
 
-        // Passing an object to ReflectionClass never throws
-        $reflectionClass = new ReflectionClass($entity::class);
+        // Use cached ReflectionClass from Doctrine's ClassMetadata
+        $reflectionClass = $classMetadata->reflClass;
+
+        if (null === $reflectionClass) {
+            return [];
+        }
 
         // Check each mapped field
         foreach ($classMetadata->getFieldNames() as $fieldName) {
@@ -221,8 +225,9 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             return null;
         }
 
-        $reflectionClass = new ReflectionClass($entity);
-        $reflectionProperty = $reflectionClass->getProperty($fieldName);
+        // Use cached ReflectionClass from Doctrine's ClassMetadata
+        $metadata = $this->entityManager->getClassMetadata($entity::class);
+        $reflectionProperty = $metadata->reflClass->getProperty($fieldName);
 
         if ($this->isPropertyNullable($reflectionProperty)) {
             return null;
