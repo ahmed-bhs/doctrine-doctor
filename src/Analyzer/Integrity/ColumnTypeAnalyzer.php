@@ -298,6 +298,11 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             return null;
         }
 
+        // Pre-filter on field name to avoid unnecessary DB queries
+        if (!$this->matchesEnumPattern($fieldName)) {
+            return null;
+        }
+
         $analysis = $this->analyzeDistinctValues($entityClass, $fieldName, $mapping);
 
         // Not enough data to conclude
@@ -369,6 +374,27 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         } catch (\Throwable) {
             return ['distinct' => 0, 'total' => 0, 'ratio' => 1.0];
         }
+    }
+
+    /**
+     * Check if field name matches common enum-like patterns.
+     */
+    private function matchesEnumPattern(string $fieldName): bool
+    {
+        $enumPatterns = [
+            'status', 'state', 'type', 'kind', 'role', 'level',
+            'priority', 'category', 'mode', 'phase', 'stage',
+        ];
+
+        $lowerFieldName = strtolower($fieldName);
+
+        foreach ($enumPatterns as $pattern) {
+            if (str_contains($lowerFieldName, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function generateTypeReplacementCode(
