@@ -384,6 +384,10 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         $enumPatterns = [
             'status', 'state', 'type', 'kind', 'role', 'level',
             'priority', 'category', 'mode', 'phase', 'stage',
+            'gender', 'sex', 'country', 'language', 'currency',
+            'color', 'colour', 'size', 'visibility', 'access',
+            'tier', 'grade', 'rank', 'frequency', 'direction',
+            'action', 'method', 'source', 'origin', 'format', 'unit',
         ];
 
         $lowerFieldName = strtolower($fieldName);
