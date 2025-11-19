@@ -294,51 +294,81 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
     ): ?IntegrityIssue {
         $type = $mapping['type'] ?? null;
 
-        // Check if field is string with limited values (potential enum)
-        if ('string' === $type && $this->looksLikeEnum($fieldName)) {
-            $shortClassName = $this->getShortClassName($entityClass);
-
-            return new IntegrityIssue([
-                'title'       => sprintf('Consider using native enum for %s::$%s', $shortClassName, $fieldName),
-                'description' => sprintf(
-                    'Field "%s::$%s" appears to store enum-like values (e.g., status, type, role). ' .
-                    'PHP 8.1+ supports native enums with Doctrine integration. ' .
-                    'This provides type safety, IDE autocomplete, and prevents invalid values.',
-                    $shortClassName,
-                    $fieldName,
-                ),
-                'severity'   => 'info',
-                'suggestion' => $this->suggestionFactory->createCodeSuggestion(
-                    description: 'Migrate to PHP 8.1+ native enum',
-                    code: $this->generateEnumMigrationCode($entityClass, $fieldName),
-                    filePath: $entityClass,
-                ),
-                'backtrace' => null,
-                'queries'   => [],
-            ]);
+        if ('string' !== $type) {
+            return null;
         }
 
-        return null;
+        $analysis = $this->analyzeDistinctValues($entityClass, $fieldName, $mapping);
+
+        // Not enough data to conclude
+        if ($analysis['total'] < 10) {
+            return null;
+        }
+
+        // Not an enum: too many distinct values or ratio too high
+        if ($analysis['distinct'] > 15 || $analysis['ratio'] > 0.03) {
+            return null;
+        }
+
+        $shortClassName = $this->getShortClassName($entityClass);
+
+        return new IntegrityIssue([
+            'title'       => sprintf('Consider using native enum for %s::$%s', $shortClassName, $fieldName),
+            'description' => sprintf(
+                'Field "%s::$%s" has only %d distinct values across %d rows (%.1f%% uniqueness). ' .
+                'This suggests a fixed set of values that would benefit from a PHP 8.1+ native enum. ' .
+                'This provides type safety, IDE autocomplete, and prevents invalid values.',
+                $shortClassName,
+                $fieldName,
+                $analysis['distinct'],
+                $analysis['total'],
+                $analysis['ratio'] * 100,
+            ),
+            'severity'   => 'info',
+            'suggestion' => $this->suggestionFactory->createCodeSuggestion(
+                description: 'Migrate to PHP 8.1+ native enum',
+                code: $this->generateEnumMigrationCode($entityClass, $fieldName),
+                filePath: $entityClass,
+            ),
+            'backtrace' => null,
+            'queries'   => [],
+        ]);
     }
 
-    private function looksLikeEnum(string $fieldName): bool
+    /**
+     * Analyze distinct values in the database to determine if field looks like an enum.
+     *
+     * @return array{distinct: int, total: int, ratio: float}
+     */
+    private function analyzeDistinctValues(string $entityClass, string $fieldName, array $mapping): array
     {
-        $enumPatterns = [
-            'status', 'state', 'type', 'kind', 'role', 'level',
-            'priority', 'category', 'mode', 'phase', 'stage',
-        ];
+        try {
+            $metadata = $this->entityManager->getClassMetadata($entityClass);
+            $tableName = $metadata->getTableName();
+            $columnName = $mapping['columnName'] ?? $fieldName;
 
-        $lowerFieldName = strtolower($fieldName);
+            $sql = sprintf(
+                'SELECT COUNT(DISTINCT `%s`) as d, COUNT(*) as t FROM `%s`',
+                $columnName,
+                $tableName,
+            );
+            $result = $this->entityManager->getConnection()->executeQuery($sql)->fetchAssociative();
 
-        Assert::isIterable($enumPatterns, '$enumPatterns must be iterable');
-
-        foreach ($enumPatterns as $enumPattern) {
-            if (str_contains($lowerFieldName, $enumPattern)) {
-                return true;
+            if (!$result || 0 === (int) $result['t']) {
+                return ['distinct' => 0, 'total' => 0, 'ratio' => 1.0];
             }
-        }
 
-        return false;
+            $distinct = (int) $result['d'];
+            $total = (int) $result['t'];
+
+            return [
+                'distinct' => $distinct,
+                'total' => $total,
+                'ratio' => $total > 0 ? $distinct / $total : 1.0,
+            ];
+        } catch (\Throwable) {
+            return ['distinct' => 0, 'total' => 0, 'ratio' => 1.0];
+        }
     }
 
     private function generateTypeReplacementCode(
