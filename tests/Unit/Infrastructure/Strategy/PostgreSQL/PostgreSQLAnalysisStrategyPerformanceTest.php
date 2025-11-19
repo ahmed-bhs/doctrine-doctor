@@ -45,7 +45,9 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         $sharedBuffersIssues = array_filter(
             $issues,
@@ -76,7 +78,9 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         $sharedBuffersIssues = array_filter(
             $issues,
@@ -107,7 +111,9 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         $workMemIssues = array_filter(
             $issues,
@@ -138,7 +144,9 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         $syncCommitIssues = array_filter(
             $issues,
@@ -169,7 +177,9 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         $syncCommitIssues = array_filter(
             $issues,
@@ -198,7 +208,9 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         self::assertCount(0, $issues, 'Should return no issues when all configs are optimal');
     }
@@ -222,7 +234,9 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         $sharedBuffersIssues = array_filter(
             $issues,
@@ -252,7 +266,9 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
             $detector,
         );
 
-        $issues = iterator_to_array($strategy->analyzePerformanceConfig());
+        /** @var \Traversable<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface> $result */
+        $result = $strategy->analyzePerformanceConfig();
+        $issues = iterator_to_array($result);
 
         // Should detect all 3 issues
         self::assertCount(3, $issues, 'Should detect all 3 performance issues');
@@ -260,12 +276,14 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
 
     private function mockShowVariables(Connection $connection, DatabasePlatformDetector $detector, array $values): void
     {
+        /** @phpstan-ignore-next-line Mock object has expects() method */
         $connection->expects(self::any())
             ->method('executeQuery')
             ->willReturnCallback(function () {
                 return $this->createMock(Result::class);
             });
 
+        /** @phpstan-ignore-next-line Mock object has expects() method */
         $detector->expects(self::any())
             ->method('fetchAssociative')
             ->willReturnCallback(function () use ($values) {

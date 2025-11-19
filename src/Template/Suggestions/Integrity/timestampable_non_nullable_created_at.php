@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 /**
- * Template for Timestampable Non-Nullable createdAt.
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $entityClass
+ * @var mixed $fieldName
+ * @var mixed $context
  */
 ['entity_class' => $entityClass, 'field_name' => $fieldName] = $context;
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');

@@ -15,18 +15,22 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Yaml\Yaml;
 
 /**
- * Analyzes Doctrine proxy class auto-generation configuration.
- * Detects when auto_generate_proxy_classes is enabled in production,
- * which causes Doctrine to check filesystem on every request.
- * Performance impact:
+ * Analyzes Doctrine proxy class auto-generation configuration in PRODUCTION.
+ *
+ * This analyzer runs in development mode (via Symfony profiler) but specifically
+ * checks the PRODUCTION configuration files (config/packages/prod/doctrine.yaml
+ * or when@prod blocks) to detect if auto_generate_proxy_classes is enabled.
+ *
+ * When enabled in production, Doctrine performs filesystem checks on every request:
  * - Filesystem stat() calls on every entity load
  * - 10-30% slower entity initialization
  * - Increased I/O load
  * - Should ALWAYS be disabled in production
+ *
  * This is a critical production configuration issue that many developers miss.
  */
 class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
@@ -35,15 +39,11 @@ class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         /**
          * @readonly
          */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
         private SuggestionFactory $suggestionFactory,
         /**
          * @readonly
          */
-        private string $environment = 'prod',
+        private string $projectDir,
         /**
          * @readonly
          */
@@ -62,8 +62,22 @@ class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
              */
             function () {
                 try {
-                    $config       = $this->entityManager->getConfiguration();
-                    $autoGenerate = $config->getAutoGenerateProxyClasses();
+                    // Read production configuration from YAML files
+                    // Doctrine Doctor runs in dev mode, but checks prod configuration
+                    $prodAutoGenerate = $this->readProductionAutoGenerateConfig();
+
+                    // Always log at warning level to ensure visibility during debugging
+                    $this->logger?->warning('AutoGenerateProxyClassesAnalyzer: read prod config', [
+                        'prodAutoGenerate' => $prodAutoGenerate,
+                        'projectDir' => $this->projectDir,
+                    ]);
+
+                    // If we couldn't read the config file, skip analysis
+                    // We only check production config, not runtime dev config
+                    if (null === $prodAutoGenerate) {
+                        $this->logger?->warning('AutoGenerateProxyClassesAnalyzer: production config not found, skipping analysis');
+                        return;
+                    }
 
                     // In Doctrine ORM:
                     // - 0 or false = Never auto-generate (RECOMMENDED)
@@ -76,8 +90,8 @@ class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                     // - AUTOGENERATE_FILE_NOT_EXISTS = 2
                     // - AUTOGENERATE_EVAL = 3 (deprecated)
 
-                    if ($this->isAutoGenerateEnabled($autoGenerate)) {
-                        yield $this->createAutoGenerateIssue($autoGenerate);
+                    if ($this->isAutoGenerateEnabled($prodAutoGenerate)) {
+                        yield $this->createAutoGenerateIssue($prodAutoGenerate);
                     }
                 } catch (\Throwable $throwable) {
                     $this->logger?->error('AutoGenerateProxyClassesAnalyzer failed', [
@@ -89,6 +103,157 @@ class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 }
             },
         );
+    }
+
+    /**
+     * Reads the auto_generate_proxy_classes configuration from production YAML files.
+     * Checks multiple possible locations:
+     * - config/packages/prod/doctrine.yaml (dedicated prod file)
+     * - config/packages/doctrine.yaml (when@prod override OR global fallback)
+     *
+     * If when@prod doesn't override the setting, returns the global value
+     * (since that's what Symfony will use in production).
+     *
+     * @return int|null The auto_generate value from prod config, or null if not found
+     */
+    private function readProductionAutoGenerateConfig(): ?int
+    {
+        $configPaths = [
+            $this->projectDir . '/config/packages/prod/doctrine.yaml',
+            $this->projectDir . '/config/packages/doctrine.yaml',
+        ];
+
+        $this->logger?->warning('AutoGenerateProxyClassesAnalyzer: checking config paths', [
+            'paths' => $configPaths,
+        ]);
+
+        foreach ($configPaths as $configPath) {
+            if (!file_exists($configPath)) {
+                $this->logger?->warning('AutoGenerateProxyClassesAnalyzer: config file not found', [
+                    'path' => $configPath,
+                ]);
+                continue;
+            }
+
+            $this->logger?->warning('AutoGenerateProxyClassesAnalyzer: parsing config file', [
+                'path' => $configPath,
+            ]);
+
+            try {
+                $config = Yaml::parseFile($configPath);
+
+                if (!is_array($config)) {
+                    $this->logger?->warning('AutoGenerateProxyClassesAnalyzer: config is not array', [
+                        'path' => $configPath,
+                        'type' => get_debug_type($config),
+                    ]);
+                    continue;
+                }
+
+                // Priority 1: Check for when@prod syntax first (explicit production override)
+                if (isset($config['when@prod'])
+                    && is_array($config['when@prod'])
+                    && isset($config['when@prod']['doctrine'])
+                    && is_array($config['when@prod']['doctrine'])
+                    && isset($config['when@prod']['doctrine']['orm'])
+                    && is_array($config['when@prod']['doctrine']['orm'])
+                    && isset($config['when@prod']['doctrine']['orm']['auto_generate_proxy_classes'])) {
+                    $value = $this->normalizeAutoGenerateValue(
+                        $config['when@prod']['doctrine']['orm']['auto_generate_proxy_classes'],
+                    );
+                    $this->logger?->warning('AutoGenerateProxyClassesAnalyzer: found when@prod config', [
+                        'path'  => $configPath,
+                        'value' => $value,
+                        'raw_value' => $config['when@prod']['doctrine']['orm']['auto_generate_proxy_classes'],
+                    ]);
+
+                    return $value;
+                }
+
+                // Priority 2: For prod/doctrine.yaml, check direct config
+                if (str_contains($configPath, '/prod/')
+                    && isset($config['doctrine'])
+                    && is_array($config['doctrine'])
+                    && isset($config['doctrine']['orm'])
+                    && is_array($config['doctrine']['orm'])
+                    && isset($config['doctrine']['orm']['auto_generate_proxy_classes'])) {
+                    $value = $this->normalizeAutoGenerateValue(
+                        $config['doctrine']['orm']['auto_generate_proxy_classes'],
+                    );
+                    $this->logger?->warning('AutoGenerateProxyClassesAnalyzer: found prod/doctrine.yaml config', [
+                        'path'  => $configPath,
+                        'value' => $value,
+                        'raw_value' => $config['doctrine']['orm']['auto_generate_proxy_classes'],
+                    ]);
+
+                    return $value;
+                }
+
+                // Priority 3: Fallback to global config (what Symfony uses when when@prod doesn't override)
+                // This is important! If when@prod exists but doesn't override auto_generate_proxy_classes,
+                // Symfony will use the global value in production
+                if (isset($config['doctrine'])
+                    && is_array($config['doctrine'])
+                    && isset($config['doctrine']['orm'])
+                    && is_array($config['doctrine']['orm'])
+                    && isset($config['doctrine']['orm']['auto_generate_proxy_classes'])) {
+                    $value = $this->normalizeAutoGenerateValue(
+                        $config['doctrine']['orm']['auto_generate_proxy_classes'],
+                    );
+                    $this->logger?->warning('AutoGenerateProxyClassesAnalyzer: found global config (will be used in prod)', [
+                        'path'  => $configPath,
+                        'value' => $value,
+                        'raw_value' => $config['doctrine']['orm']['auto_generate_proxy_classes'],
+                        'note' => 'No when@prod override found, global config applies to production',
+                    ]);
+
+                    return $value;
+                }
+
+                $this->logger?->warning('AutoGenerateProxyClassesAnalyzer: auto_generate_proxy_classes not found in config', [
+                    'path'        => $configPath,
+                    'has_when_prod' => isset($config['when@prod']),
+                    'has_doctrine' => isset($config['doctrine']),
+                ]);
+            } catch (\Throwable $throwable) {
+                $this->logger?->warning('Failed to parse config file', [
+                    'file'      => $configPath,
+                    'exception' => $throwable::class,
+                    'message'   => $throwable->getMessage(),
+                ]);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Normalizes the auto_generate_proxy_classes value to an integer.
+     * Handles: true/false, 0/1/2/3, string values.
+     */
+    private function normalizeAutoGenerateValue(mixed $value): int
+    {
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+
+        if (is_int($value)) {
+            return $value;
+        }
+
+        // Handle string values like "0", "1", "true", "false"
+        if (is_string($value)) {
+            if (in_array(strtolower($value), ['true', 'yes', 'on'], true)) {
+                return 1;
+            }
+            if (in_array(strtolower($value), ['false', 'no', 'off'], true)) {
+                return 0;
+            }
+
+            return (int) $value;
+        }
+
+        return 0;
     }
 
     private function isAutoGenerateEnabled(int $autoGenerate): bool
@@ -106,9 +271,9 @@ class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         return new DatabaseConfigIssue([
             'title'       => 'Proxy Auto-Generation Enabled in Production',
             'description' => sprintf(
-                'Doctrine is configured to auto-generate proxy classes in production (mode: %s). ' .
+                'Your PRODUCTION Doctrine configuration has auto_generate_proxy_classes enabled (mode: %s). ' .
                 'This causes Doctrine to check filesystem on EVERY request to see if proxies need regeneration. ' .
-                'Performance impact:' . "
+                'Performance impact in production:' . "
 " .
                 '- Filesystem stat() calls on every entity load' . "
 " .
@@ -124,7 +289,7 @@ class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             ),
             'severity'   => 'critical',
             'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'auto_generate_proxy_classes',
+                setting: 'auto_generate_proxy_classes (PRODUCTION)',
                 currentValue: $mode,
                 recommendedValue: 'false (AUTOGENERATE_NEVER)',
                 description: 'Disable proxy auto-generation in production for better performance',

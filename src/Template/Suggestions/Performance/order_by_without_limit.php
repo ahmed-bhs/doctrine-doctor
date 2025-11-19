@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 /**
- * Template for ORDER BY without LIMIT.
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $orderByClause
+ * @var mixed $originalQuery
+ * @var mixed $context
  */
 ['order_by_clause' => $orderByClause, 'original_query' => $originalQuery] = $context;
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');

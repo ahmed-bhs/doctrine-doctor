@@ -148,8 +148,11 @@ final class CompositionRelationshipDetectorTest extends TestCase
     public function test_detects_many_to_one_with_unique_constraint_as_composition(): void
     {
         // Given: A ManyToOne with unique constraint on FK (effectively 1:1)
-        $metadata = new ClassMetadata('PaymentMethod');
+        $className = 'PaymentMethod';
+        /** @phpstan-ignore-next-line Test uses string literal for simplicity */
+        $metadata = new ClassMetadata($className);
         $metadata->table = [
+            'name' => 'payment_method',
             'uniqueConstraints' => [
                 ['columns' => ['gateway_config_id']], // Unique FK = 1:1
             ],

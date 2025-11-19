@@ -147,11 +147,12 @@ final class CollectionInitializationVisitor extends NodeVisitorAbstract
         }
 
         // Check field name matches
-        $propertyName = $node->name instanceof Node\Identifier
-            ? $node->name->toString()
-            : (string) $node->name;
+        // Only handle static property names (Identifier), skip dynamic accesses
+        if (!$node->name instanceof Node\Identifier) {
+            return false;
+        }
 
-        return $propertyName === $this->fieldName;
+        return $node->name->toString() === $this->fieldName;
     }
 
     /**

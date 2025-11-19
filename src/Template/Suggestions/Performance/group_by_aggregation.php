@@ -3,15 +3,12 @@
 declare(strict_types=1);
 
 /**
- * Template for GROUP BY Aggregation suggestions.
- * Context variables:
- * @var string $entity - Entity name (e.g., "Article")
- * @var string $relation - Relation name (e.g., "comments")
- * @var int    $query_count - Number of queries detected
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $entity
+ * @var mixed $relation
+ * @var mixed $queryCount
+ * @var mixed $context
  */
-
-/** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context for clarity
 ['entity' => $entity, 'relation' => $relation, 'query_count' => $queryCount] = $context;
 
 // Helper function for safe HTML escaping

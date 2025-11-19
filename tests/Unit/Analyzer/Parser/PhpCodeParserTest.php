@@ -222,8 +222,16 @@ final class PhpCodeParserTest extends TestCase
 
 class TestEntity
 {
+    /**
+     * @var mixed
+     * @phpstan-ignore-next-line Test fixture - property only written for testing AST detection
+     */
     private $items;
 
+    /**
+     * @var mixed
+     * @phpstan-ignore-next-line Test fixture - property only written for testing AST detection
+     */
     private $otherField;
 
     public function constructorWithArrayCollection(): void

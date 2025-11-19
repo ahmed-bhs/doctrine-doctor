@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 /**
- * Template for LEFT JOIN with NOT NULL constraint.
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $field
+ * @var mixed $entity
+ * @var mixed $context
  */
 ['field' => $field, 'entity' => $entity] = $context;
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');

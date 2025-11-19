@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+/**
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $description
+ * @var mixed $code
+ * @var mixed $filePath
+ * @var mixed $context
+ */
 ['description' => $description, 'code' => $code, 'file_path' => $filePath] = $context;
 $e                                                                         = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();

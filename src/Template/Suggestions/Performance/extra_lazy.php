@@ -3,16 +3,13 @@
 declare(strict_types=1);
 
 /**
- * Template for Extra Lazy Collection suggestions.
- * Context variables:
- * @var string $entity - Entity name
- * @var string $relation - Relation name (collection)
- * @var int    $query_count - Number of queries detected
- * @var bool   $has_limit - Whether queries have LIMIT (partial access detected)
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $entity
+ * @var mixed $relation
+ * @var mixed $queryCount
+ * @var mixed $hasLimit
+ * @var mixed $context
  */
-
-/** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context for clarity
 ['entity' => $entity, 'relation' => $relation, 'query_count' => $queryCount, 'has_limit' => $hasLimit] = $context;
 
 // Helper function for safe HTML escaping

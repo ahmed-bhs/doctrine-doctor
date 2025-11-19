@@ -26,8 +26,8 @@ ob_start();
     <div class="key-statistics">
         <p><strong>Your codebase uses:</strong></p>
         <ul>
-            <li><strong><?= htmlspecialchars($auto_increment_count) ?> entities</strong> with auto-increment (INT)</li>
-            <li><strong><?= htmlspecialchars($uuid_count) ?> entities</strong> with UUIDs</li>
+            <li><strong><?= htmlspecialchars((string) $auto_increment_count) ?> entities</strong> with auto-increment (INT)</li>
+            <li><strong><?= htmlspecialchars((string) $uuid_count) ?> entities</strong> with UUIDs</li>
         </ul>
     </div>
 

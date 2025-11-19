@@ -179,7 +179,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
             'category'    => 'integrity',
             'queries'     => [$queryData],
             'suggestion'  => $this->suggestionFactory->createFromTemplate(
-                'incorrect_null_comparison',
+                'Integrity/incorrect_null_comparison',
                 [
                     'bad_code'  => $badCode,
                     'good_code' => $goodCode,
@@ -264,7 +264,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
             'category'    => 'integrity',
             'queries'     => [$queryData],
             'suggestion'  => $this->suggestionFactory->createFromTemplate(
-                'empty_in_clause',
+                'Integrity/empty_in_clause',
                 ['options' => $options],
                 $suggestionMetadata,
             ),

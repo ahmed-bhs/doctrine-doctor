@@ -12,31 +12,48 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\AutoGenerateProxyClassesAnalyzer;
-use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Template\Renderer\TwigTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Twig\Environment;
+use Twig\Loader\ArrayLoader;
 
 /**
  * Test for AutoGenerateProxyClassesAnalyzer.
  *
- * This analyzer detects database auto generate proxy classes configuration issues.
+ * This analyzer detects auto_generate_proxy_classes configuration issues
+ * by reading YAML files.
  *
  * Note: Full integration tests exist in AutoGenerateProxyClassesAnalyzerIntegrationTest.
- * These unit tests verify basic analyzer behavior and metadata.
+ * These unit tests verify basic analyzer behavior.
  */
 final class AutoGenerateProxyClassesAnalyzerTest extends TestCase
 {
     private AutoGenerateProxyClassesAnalyzer $analyzer;
+    private string $tempDir;
 
     protected function setUp(): void
     {
-        $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager();
+        // Create temporary directory for test configs
+        $this->tempDir = sys_get_temp_dir() . '/doctrine-doctor-test-' . uniqid();
+        mkdir($this->tempDir);
+        mkdir($this->tempDir . '/config');
+        mkdir($this->tempDir . '/config/packages');
+
+        $twigTemplateRenderer = $this->createTwigRenderer();
+        $suggestionFactory = new SuggestionFactory($twigTemplateRenderer);
 
         $this->analyzer = new AutoGenerateProxyClassesAnalyzer(
-            $entityManager,
-            PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            $suggestionFactory,
+            $this->tempDir,
         );
+    }
+
+    protected function tearDown(): void
+    {
+        $this->removeDirectory($this->tempDir);
     }
 
     #[Test]
@@ -104,15 +121,63 @@ final class AutoGenerateProxyClassesAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_works_with_sqlite_connection(): void
+    public function it_returns_empty_collection_when_no_config_exists(): void
     {
-        // Arrange: SQLite behavior may differ
+        // Arrange: No doctrine.yaml file
         $queries = QueryDataBuilder::create()->build();
 
         // Act
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert: Should return collection (may be empty for SQLite)
-        self::assertGreaterThanOrEqual(0, count($issues->toArray()));
+        // Assert: Should return empty collection
+        self::assertCount(0, $issues->toArray());
+    }
+
+    #[Test]
+    public function it_detects_issue_when_config_file_has_auto_generate_enabled(): void
+    {
+        // Arrange: Create config with auto_generate enabled
+        $configContent = <<<YAML
+doctrine:
+    orm:
+        auto_generate_proxy_classes: true
+YAML;
+        file_put_contents($this->tempDir . '/config/packages/doctrine.yaml', $configContent);
+
+        $queries = QueryDataBuilder::create()->build();
+
+        // Act
+        $issues = $this->analyzer->analyze($queries);
+
+        // Assert: Should detect the issue
+        self::assertGreaterThan(0, count($issues->toArray()));
+    }
+
+    private function createTwigRenderer(): TwigTemplateRenderer
+    {
+        $arrayLoader = new ArrayLoader([
+            'configuration' => 'Config: {{ setting }} = {{ current_value }} → {{ recommended_value }}',
+        ]);
+        $twigEnvironment = new Environment($arrayLoader);
+
+        return new TwigTemplateRenderer($twigEnvironment);
+    }
+
+    private function removeDirectory(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+
+        $files = array_diff(scandir($dir), ['.', '..']);
+        foreach ($files as $file) {
+            $path = $dir . '/' . $file;
+            if (is_dir($path)) {
+                $this->removeDirectory($path);
+            } else {
+                unlink($path);
+            }
+        }
+        rmdir($dir);
     }
 }

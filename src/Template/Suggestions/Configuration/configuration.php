@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/**
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $setting
+ * @var mixed $currentValue
+ * @var mixed $recommendedValue
+ * @var mixed $description
+ * @var mixed $fixCommand
+ * @var mixed $context
+ */
 ['setting' => $setting, 'current_value' => $currentValue, 'recommended_value' => $recommendedValue, 'description' => $description, 'fix_command' => $fixCommand] = $context;
 $e                                                                                                                                                               = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();

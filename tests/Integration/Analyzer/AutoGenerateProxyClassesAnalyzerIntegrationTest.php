@@ -12,15 +12,11 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\AutoGenerateProxyClassesAnalyzer;
-use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\TwigTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
-use Doctrine\DBAL\DriverManager;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMSetup;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Twig\Environment;
@@ -29,49 +25,47 @@ use Twig\Loader\ArrayLoader;
 /**
  * Integration test for AutoGenerateProxyClassesAnalyzer.
  *
- * Tests detection of auto_generate_proxy_classes enabled in production,
- * which causes significant performance degradation.
+ * Tests detection of auto_generate_proxy_classes enabled in production
+ * by reading YAML configuration files.
  */
 final class AutoGenerateProxyClassesAnalyzerIntegrationTest extends TestCase
 {
-    private EntityManager $entityManager;
+    private string $tempDir;
 
     protected function setUp(): void
     {
-        if (!extension_loaded('pdo_sqlite')) {
-            self::markTestSkipped('PDO SQLite extension is not available');
-        }
+        // Create temporary directory for test configs
+        $this->tempDir = sys_get_temp_dir() . '/doctrine-doctor-test-' . uniqid();
+        mkdir($this->tempDir);
+        mkdir($this->tempDir . '/config');
+        mkdir($this->tempDir . '/config/packages');
+    }
 
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [__DIR__ . '/../../Fixtures/Entity'],
-            isDevMode: true,
-        );
-
-        // Enable auto-generate for testing
-        $configuration->setAutoGenerateProxyClasses(true);
-
-        $connection = DriverManager::getConnection([
-            'driver' => 'pdo_sqlite',
-            'memory' => true,
-        ]);
-
-        $this->entityManager = new EntityManager($connection, $configuration);
+    protected function tearDown(): void
+    {
+        // Clean up temp directory
+        $this->removeDirectory($this->tempDir);
     }
 
     #[Test]
-    public function it_detects_auto_generate_enabled_in_production(): void
+    public function it_detects_auto_generate_enabled_in_when_prod_block(): void
     {
-        $twigTemplateRenderer = $this->createTwigRenderer();
-        $suggestionFactory = new SuggestionFactory($twigTemplateRenderer);
+        // Create config file with when@prod block having auto_generate enabled
+        $configContent = <<<YAML
+doctrine:
+    orm:
+        auto_generate_proxy_classes: false  # Global (dev)
 
-        // Test with production environment
-        $autoGenerateProxyClassesAnalyzer = new AutoGenerateProxyClassesAnalyzer(
-            $this->entityManager,
-            $suggestionFactory,
-            environment: 'prod',
-        );
+when@prod:
+    doctrine:
+        orm:
+            auto_generate_proxy_classes: true  # BAD: Enabled in prod!
+YAML;
 
-        $issueCollection = $autoGenerateProxyClassesAnalyzer->analyze(QueryDataCollection::empty());
+        file_put_contents($this->tempDir . '/config/packages/doctrine.yaml', $configContent);
+
+        $analyzer = $this->createAnalyzer($this->tempDir);
+        $issueCollection = $analyzer->analyze(QueryDataCollection::empty());
 
         // Should detect that auto-generate is enabled in production
         self::assertGreaterThan(0, count($issueCollection));
@@ -83,161 +77,229 @@ final class AutoGenerateProxyClassesAnalyzerIntegrationTest extends TestCase
     }
 
     #[Test]
-    public function it_warns_in_all_environments_when_auto_generate_enabled(): void
+    public function it_does_not_warn_when_auto_generate_disabled_in_when_prod(): void
     {
-        $twigTemplateRenderer = $this->createTwigRenderer();
-        $suggestionFactory = new SuggestionFactory($twigTemplateRenderer);
+        // Create config file with when@prod block having auto_generate disabled
+        $configContent = <<<YAML
+doctrine:
+    orm:
+        auto_generate_proxy_classes: true  # Global (dev) - OK
 
-        // Test with development environment - analyzer now triggers in ALL environments
-        $autoGenerateProxyClassesAnalyzer = new AutoGenerateProxyClassesAnalyzer(
-            $this->entityManager,
-            $suggestionFactory,
-            environment: 'dev',
-        );
+when@prod:
+    doctrine:
+        orm:
+            auto_generate_proxy_classes: false  # GOOD: Disabled in prod!
+YAML;
 
-        $issueCollection = $autoGenerateProxyClassesAnalyzer->analyze(QueryDataCollection::empty());
+        file_put_contents($this->tempDir . '/config/packages/doctrine.yaml', $configContent);
 
-        // Should detect issues in ALL environments (including dev)
-        self::assertGreaterThanOrEqual(1, count($issueCollection));
+        $analyzer = $this->createAnalyzer($this->tempDir);
+        $issueCollection = $analyzer->analyze(QueryDataCollection::empty());
+
+        // Should NOT detect issues - config is correct
+        self::assertCount(0, $issueCollection);
     }
 
     #[Test]
-    public function it_analyzes_all_entities_without_errors(): void
+    public function it_detects_missing_when_prod_override_with_global_true(): void
     {
-        $autoGenerateProxyClassesAnalyzer = $this->createAnalyzer('prod');
-        $issueCollection = $autoGenerateProxyClassesAnalyzer->analyze(QueryDataCollection::empty());
+        // Create config file with NO when@prod override - global true applies to prod
+        $configContent = <<<YAML
+doctrine:
+    orm:
+        auto_generate_proxy_classes: true  # BAD: No prod override, so true in prod!
 
-        self::assertInstanceOf(IssueCollection::class, $issueCollection);
+when@prod:
+    doctrine:
+        orm:
+            proxy_dir: '%kernel.build_dir%/doctrine/orm/Proxies'
+            # Missing: auto_generate_proxy_classes override
+YAML;
 
-        // Iterate through all issues to ensure they're valid
-        $issueCount = 0;
+        file_put_contents($this->tempDir . '/config/packages/doctrine.yaml', $configContent);
+
+        $analyzer = $this->createAnalyzer($this->tempDir);
+        $issueCollection = $analyzer->analyze(QueryDataCollection::empty());
+
+        // Should detect the issue - global config will be used in prod
+        self::assertGreaterThan(0, count($issueCollection));
+        $firstIssue = $issueCollection->first();
+        self::assertNotNull($firstIssue);
+        self::assertStringContainsString('Production', $firstIssue->getTitle());
+    }
+
+    #[Test]
+    public function it_detects_auto_generate_enabled_in_prod_directory(): void
+    {
+        // Create dedicated prod config file
+        mkdir($this->tempDir . '/config/packages/prod');
+
+        $configContent = <<<YAML
+doctrine:
+    orm:
+        auto_generate_proxy_classes: true  # BAD: Enabled in prod!
+YAML;
+
+        file_put_contents($this->tempDir . '/config/packages/prod/doctrine.yaml', $configContent);
+
+        $analyzer = $this->createAnalyzer($this->tempDir);
+        $issueCollection = $analyzer->analyze(QueryDataCollection::empty());
+
+        // Should detect the issue
+        self::assertGreaterThan(0, count($issueCollection));
+        $firstIssue = $issueCollection->first();
+        self::assertInstanceOf(IssueInterface::class, $firstIssue);
+        self::assertSame('critical', $firstIssue->getSeverity()->value);
+    }
+
+    #[Test]
+    public function it_does_not_warn_when_auto_generate_disabled_in_prod_directory(): void
+    {
+        // Create dedicated prod config file with auto_generate disabled
+        mkdir($this->tempDir . '/config/packages/prod');
+
+        $configContent = <<<YAML
+doctrine:
+    orm:
+        auto_generate_proxy_classes: false  # GOOD!
+YAML;
+
+        file_put_contents($this->tempDir . '/config/packages/prod/doctrine.yaml', $configContent);
+
+        $analyzer = $this->createAnalyzer($this->tempDir);
+        $issueCollection = $analyzer->analyze(QueryDataCollection::empty());
+
+        // Should NOT detect issues
+        self::assertCount(0, $issueCollection);
+    }
+
+    #[Test]
+    public function it_handles_numeric_values(): void
+    {
+        // Test with numeric value (0 = disabled, 1 = enabled)
+        $configContent = <<<YAML
+when@prod:
+    doctrine:
+        orm:
+            auto_generate_proxy_classes: 1  # BAD: 1 = enabled
+YAML;
+
+        file_put_contents($this->tempDir . '/config/packages/doctrine.yaml', $configContent);
+
+        $analyzer = $this->createAnalyzer($this->tempDir);
+        $issueCollection = $analyzer->analyze(QueryDataCollection::empty());
+
+        self::assertGreaterThan(0, count($issueCollection));
+    }
+
+    #[Test]
+    public function it_handles_numeric_zero_as_disabled(): void
+    {
+        // Test with numeric 0 (disabled)
+        $configContent = <<<YAML
+when@prod:
+    doctrine:
+        orm:
+            auto_generate_proxy_classes: 0  # GOOD: 0 = disabled
+YAML;
+
+        file_put_contents($this->tempDir . '/config/packages/doctrine.yaml', $configContent);
+
+        $analyzer = $this->createAnalyzer($this->tempDir);
+        $issueCollection = $analyzer->analyze(QueryDataCollection::empty());
+
+        self::assertCount(0, $issueCollection);
+    }
+
+    #[Test]
+    public function it_skips_analysis_when_no_config_found(): void
+    {
+        // No doctrine.yaml file at all
+        $analyzer = $this->createAnalyzer($this->tempDir);
+        $issueCollection = $analyzer->analyze(QueryDataCollection::empty());
+
+        // Should skip analysis and return empty collection
+        self::assertCount(0, $issueCollection);
+    }
+
+    #[Test]
+    public function it_validates_issue_severity_is_critical(): void
+    {
+        $configContent = <<<YAML
+when@prod:
+    doctrine:
+        orm:
+            auto_generate_proxy_classes: true
+YAML;
+
+        file_put_contents($this->tempDir . '/config/packages/doctrine.yaml', $configContent);
+
+        $analyzer = $this->createAnalyzer($this->tempDir);
+        $issueCollection = $analyzer->analyze(QueryDataCollection::empty());
+
         foreach ($issueCollection as $issue) {
-            $issueCount++;
-
-            // Every issue must have these properties
-            self::assertNotNull($issue->getTitle(), 'Issue must have a title');
-            self::assertIsString($issue->getTitle());
-            self::assertNotEmpty($issue->getTitle());
-
-            self::assertNotNull($issue->getDescription(), 'Issue must have a description');
-            self::assertIsString($issue->getDescription());
-
-            self::assertNotNull($issue->getSeverity(), 'Issue must have severity');
-            self::assertInstanceOf(Severity::class, $issue->getSeverity());
+            self::assertSame('critical', $issue->getSeverity()->value);
         }
-
-        // Should analyze without throwing exceptions
-        self::assertGreaterThanOrEqual(0, $issueCount);
     }
 
     #[Test]
     public function it_returns_consistent_results(): void
     {
-        $autoGenerateProxyClassesAnalyzer = $this->createAnalyzer('prod');
+        $configContent = <<<YAML
+when@prod:
+    doctrine:
+        orm:
+            auto_generate_proxy_classes: true
+YAML;
+
+        file_put_contents($this->tempDir . '/config/packages/doctrine.yaml', $configContent);
+
+        $analyzer = $this->createAnalyzer($this->tempDir);
 
         // Run analysis twice
-        $issueCollection = $autoGenerateProxyClassesAnalyzer->analyze(QueryDataCollection::empty());
-        $issues2 = $autoGenerateProxyClassesAnalyzer->analyze(QueryDataCollection::empty());
+        $issues1 = $analyzer->analyze(QueryDataCollection::empty());
+        $issues2 = $analyzer->analyze(QueryDataCollection::empty());
 
         // Should return same number of issues
-        self::assertCount(count($issueCollection), $issues2, 'Analyzer should return consistent results on repeated analysis');
+        self::assertCount(count($issues1), $issues2);
     }
 
     #[Test]
-    public function it_validates_issue_severity_is_appropriate(): void
+    public function it_provides_detailed_issue_information(): void
     {
-        $autoGenerateProxyClassesAnalyzer = $this->createAnalyzer('prod');
-        $issueCollection = $autoGenerateProxyClassesAnalyzer->analyze(QueryDataCollection::empty());
+        $configContent = <<<YAML
+when@prod:
+    doctrine:
+        orm:
+            auto_generate_proxy_classes: true
+YAML;
 
-        $validSeverities = ['critical', 'warning', 'info'];
+        file_put_contents($this->tempDir . '/config/packages/doctrine.yaml', $configContent);
 
-        foreach ($issueCollection as $issue) {
-            $severityValue = $issue->getSeverity()->value;
-            self::assertContains($severityValue, $validSeverities, "Issue severity must be one of: " . implode(', ', $validSeverities));
-        }
+        $analyzer = $this->createAnalyzer($this->tempDir);
+        $issueCollection = $analyzer->analyze(QueryDataCollection::empty());
+
+        $firstIssue = $issueCollection->first();
+        self::assertNotNull($firstIssue);
+
+        // Verify issue has all required information
+        self::assertNotEmpty($firstIssue->getTitle());
+        self::assertNotEmpty($firstIssue->getDescription());
+        self::assertNotNull($firstIssue->getSuggestion());
+        self::assertInstanceOf(Severity::class, $firstIssue->getSeverity());
+
+        // Verify description mentions performance impact
+        self::assertStringContainsString('filesystem', strtolower($firstIssue->getDescription()));
     }
 
-    #[Test]
-    public function it_handles_symfony_when_prod_override_correctly(): void
-    {
-        $twigTemplateRenderer = $this->createTwigRenderer();
-        $suggestionFactory = new SuggestionFactory($twigTemplateRenderer);
-
-        // Simulate Symfony's when@prod behavior:
-        // In dev mode, auto_generate is true (the global config value)
-        // But the analyzer receives environment='dev', so it should NOT warn
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [__DIR__ . '/../../Fixtures/Entity'],
-            isDevMode: true,
-        );
-        $configuration->setAutoGenerateProxyClasses(true); // Simulates global config
-
-        $connection = DriverManager::getConnection([
-            'driver' => 'pdo_sqlite',
-            'memory' => true,
-        ]);
-
-        $entityManager = new EntityManager($connection, $configuration);
-
-        // Test with dev environment - analyzer now warns in ALL environments
-        $autoGenerateProxyClassesAnalyzer = new AutoGenerateProxyClassesAnalyzer(
-            $entityManager,
-            $suggestionFactory,
-            environment: 'dev', // Simulates Symfony running in dev mode
-        );
-
-        $issueCollection = $autoGenerateProxyClassesAnalyzer->analyze(QueryDataCollection::empty());
-
-        // Should detect issues in ALL environments (including dev)
-        self::assertGreaterThanOrEqual(1, count($issueCollection), 'Analyzer should warn about auto_generate in all environments');
-    }
-
-    #[Test]
-    public function it_detects_when_prod_override_is_missing(): void
-    {
-        $twigTemplateRenderer = $this->createTwigRenderer();
-        $suggestionFactory = new SuggestionFactory($twigTemplateRenderer);
-
-        // Simulate a misconfigured project:
-        // Running in prod mode with auto_generate still enabled
-        // Use isDevMode=true to avoid Redis connection issues, but set environment to 'prod'
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [__DIR__ . '/../../Fixtures/Entity'],
-            isDevMode: true, // Avoid cache setup issues
-        );
-        $configuration->setAutoGenerateProxyClasses(true); // BAD: Still enabled in prod!
-
-        $connection = DriverManager::getConnection([
-            'driver' => 'pdo_sqlite',
-            'memory' => true,
-        ]);
-
-        $entityManager = new EntityManager($connection, $configuration);
-
-        // Test with prod environment - SHOULD warn
-        // The key is the environment parameter, not the isDevMode
-        $autoGenerateProxyClassesAnalyzer = new AutoGenerateProxyClassesAnalyzer(
-            $entityManager,
-            $suggestionFactory,
-            environment: 'prod', // This triggers the warning
-        );
-
-        $issueCollection = $autoGenerateProxyClassesAnalyzer->analyze(QueryDataCollection::empty());
-
-        // Should detect the issue
-        self::assertGreaterThan(0, count($issueCollection), 'Analyzer should warn about auto_generate enabled in prod');
-        self::assertStringContainsString('Production', $issueCollection->first()->getTitle());
-    }
-
-    private function createAnalyzer(string $environment = 'prod'): AutoGenerateProxyClassesAnalyzer
+    private function createAnalyzer(string $projectDir): AutoGenerateProxyClassesAnalyzer
     {
         $twigTemplateRenderer = $this->createTwigRenderer();
         $suggestionFactory = new SuggestionFactory($twigTemplateRenderer);
 
         return new AutoGenerateProxyClassesAnalyzer(
-            $this->entityManager,
             $suggestionFactory,
-            $environment,
+            $projectDir,
         );
     }
 
@@ -249,5 +311,23 @@ final class AutoGenerateProxyClassesAnalyzerIntegrationTest extends TestCase
         $twigEnvironment = new Environment($arrayLoader);
 
         return new TwigTemplateRenderer($twigEnvironment);
+    }
+
+    private function removeDirectory(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+
+        $files = array_diff(scandir($dir), ['.', '..']);
+        foreach ($files as $file) {
+            $path = $dir . '/' . $file;
+            if (is_dir($path)) {
+                $this->removeDirectory($path);
+            } else {
+                unlink($path);
+            }
+        }
+        rmdir($dir);
     }
 }

@@ -42,6 +42,12 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  */
 final class CompositionRelationshipDetector
 {
+    /**
+     * @var array<string, array<string, bool>>|null Cache of target entity -> referencing entities
+     * OPTIMIZATION: Builds this once instead of O(n²) scans
+     */
+    private ?array $exclusiveOwnershipCache = null;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
     ) {
@@ -167,6 +173,42 @@ final class CompositionRelationshipDetector
     }
 
     /**
+     * Pre-warm the exclusive ownership cache to avoid O(n²) scans.
+     * This builds a complete map of which entities reference which targets.
+     */
+    private function warmUpExclusiveOwnershipCache(): void
+    {
+        if (null !== $this->exclusiveOwnershipCache) {
+            return; // Already cached
+        }
+
+        $this->exclusiveOwnershipCache = [];
+
+        try {
+            $metadataFactory = $this->entityManager->getMetadataFactory();
+            $allMetadata = $metadataFactory->getAllMetadata();
+
+            // Build complete mapping in single pass: O(n*m) instead of O(n²*m)
+            foreach ($allMetadata as $metadata) {
+                $entityClass = $metadata->getName();
+
+                foreach ($metadata->getAssociationMappings() as $association) {
+                    $assocTarget = MappingHelper::getString($association, 'targetEntity');
+
+                    if (null !== $assocTarget) {
+                        if (!isset($this->exclusiveOwnershipCache[$assocTarget])) {
+                            $this->exclusiveOwnershipCache[$assocTarget] = [];
+                        }
+                        $this->exclusiveOwnershipCache[$assocTarget][$entityClass] = true;
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            // On failure, cache will be empty and lookups will be conservative
+        }
+    }
+
+    /**
      * Check if FK column has UNIQUE constraint, making it effectively 1:1.
      *
      * @param ClassMetadata<object> $metadata The entity metadata
@@ -231,6 +273,7 @@ final class CompositionRelationshipDetector
                 return false;
             }
 
+            /** @var class-string $targetEntity */
             $targetMetadata = $this->entityManager->getMetadataFactory()->getMetadataFor($targetEntity);
             $inverseMappings = $targetMetadata->getAssociationMappings();
             $inverseMapping = $inverseMappings[$inversedBy] ?? null;
@@ -303,42 +346,23 @@ final class CompositionRelationshipDetector
      *
      * If only ONE entity type references this target, it's exclusively owned.
      *
+     * OPTIMIZED: Uses cached mapping instead of O(n²) scan.
+     * Cache is built once in warmUpExclusiveOwnershipCache() and reused.
+     *
      * @param string $targetEntity The target entity class
      * @param string $excludeParent The parent entity to exclude from count
      * @return bool True if target is exclusively owned
      */
     private function isExclusivelyOwned(string $targetEntity, string $excludeParent): bool
     {
-        try {
-            $metadataFactory = $this->entityManager->getMetadataFactory();
-            $allMetadata = $metadataFactory->getAllMetadata();
+        // OPTIMIZED: Build cache once, then O(1) lookups
+        $this->warmUpExclusiveOwnershipCache();
 
-            // Count how many different entity types reference this target
-            $referencingEntities = [];
+        // Fast O(1) lookup in cached mapping
+        $referencingEntities = $this->exclusiveOwnershipCache[$targetEntity] ?? [];
 
-            foreach ($allMetadata as $metadata) {
-                $entityClass = $metadata->getName();
-
-                // Skip the target entity itself
-                if ($entityClass === $targetEntity) {
-                    continue;
-                }
-
-                foreach ($metadata->getAssociationMappings() as $association) {
-                    $assocTarget = MappingHelper::getString($association, 'targetEntity');
-
-                    if ($assocTarget === $targetEntity) {
-                        $referencingEntities[$entityClass] = true;
-                        break;
-                    }
-                }
-            }
-
-            // If target is referenced by exactly ONE entity type (the parent), it's exclusively owned
-            return 1 === count($referencingEntities) && isset($referencingEntities[$excludeParent]);
-        } catch (\Throwable) {
-            return false;
-        }
+        // If target is referenced by exactly ONE entity type (the parent), it's exclusively owned
+        return 1 === count($referencingEntities) && isset($referencingEntities[$excludeParent]);
     }
 
     /**

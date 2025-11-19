@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 /**
  * Template for Global Timezone Warning.
- * Context variables:
- * @var int $total_fields
+ * Context variables provided by PhpTemplateRenderer::extract($context):
+ * @var mixed $totalFields Number of timestamp fields found
  */
 ['total_fields' => $totalFields] = $context;
 

@@ -31,6 +31,10 @@ use Webmozart\Assert\Assert;
  * - Type-safe methods (no magic arrays)
  * - Encapsulates complexity of severity calculation
  * - Easy to extend with new suggestion types
+ *
+ * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ * @SuppressWarnings(PHPMD.TooManyMethods)
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 final class SuggestionFactory
 {
@@ -335,6 +339,8 @@ final class SuggestionFactory
     /**
      * Create an "Extra Lazy" suggestion for collection N+1 queries.
      * Recommended for OneToMany/ManyToMany collections with partial access.
+     *
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
      */
     public function createExtraLazy(
         string $entity,

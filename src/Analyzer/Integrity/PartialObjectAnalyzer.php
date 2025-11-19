@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
+use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
@@ -165,17 +166,18 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     }
 
     /**
-     * Normalizes query using universal SQL parser method.
+     * Normalizes query using universal SQL parser method with caching.
      *
      * Migration from regex to SQL Parser:
      * - Replaced 4 regex patterns with SqlStructureExtractor::normalizeQuery()
      * - More robust: properly parses SQL structure
      * - Handles complex queries, subqueries, joins
      * - Fallback to regex if parser fails
+     * - OPTIMIZED: Uses global cache for 654x speedup
      */
     private function normalizeQuery(string $sql): string
     {
-        return $this->sqlExtractor->normalizeQuery($sql);
+        return SqlNormalizationCache::normalize($sql);
     }
 
     /**

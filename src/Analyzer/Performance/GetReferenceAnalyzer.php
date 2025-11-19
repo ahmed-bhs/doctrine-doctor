@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
+use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -329,7 +330,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     private function normalizeQueryForGrouping(string $sql): string
     {
         // Use universal normalization
-        $normalized = $this->sqlExtractor->normalizeQuery($sql);
+        $normalized = SqlNormalizationCache::normalize($sql);
 
         // Replace all ? placeholders with standard placeholder for grouping
         $normalized = str_replace('?', 'PARAM', $normalized);

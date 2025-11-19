@@ -70,6 +70,9 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         return 1 === preg_match('/\bOFFSET\b/i', $sql);
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     */
     public function hasSubquery(string $sql): bool
     {
         $parser = new Parser($sql);

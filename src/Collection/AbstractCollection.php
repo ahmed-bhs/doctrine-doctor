@@ -29,6 +29,9 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
     /** @var int|null Cached count */
     private ?int $count = null;
 
+    /** @var bool Whether the generator has been consumed */
+    private bool $generatorConsumed = false;
+
     /**
      *  Article pattern: Use iterable instead of array.
      * @param iterable<int, T> $items
@@ -79,7 +82,8 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
 
     /**
      *  Article pattern: Use 'yield from' for memory efficiency
-     *  Uses cached array if available (prevents generator reuse errors).
+     *  OPTIMIZED: Lazy iteration - yields items as they're produced
+     *  Caches progressively to support multiple iterations.
      * @return \Generator<int, T>
      */
     public function getIterator(): \Generator
@@ -99,9 +103,24 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
             return;
         }
 
-        // Generator: consume once and cache
-        $this->cachedArray = iterator_to_array($this->items, false);
-        yield from $this->cachedArray;
+        // OPTIMIZED: For generators, yield items lazily while caching progressively
+        // This allows lazy evaluation while still supporting multiple iterations
+        if ($this->generatorConsumed) {
+            // Generator already consumed, use cached array
+            if (null !== $this->cachedArray) {
+                yield from $this->cachedArray;
+            }
+
+            return;
+        }
+
+        // Progressive caching: yield items as they come, cache for reuse
+        $this->cachedArray = [];
+        foreach ($this->items as $item) {
+            $this->cachedArray[] = $item;
+            yield $item;
+        }
+        $this->generatorConsumed = true;
     }
 
     /**
@@ -123,10 +142,13 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
             return $this->cachedArray;
         }
 
-        // Convert generator to array and cache
-        $this->cachedArray = iterator_to_array($this->getIterator(), false);
+        // OPTIMIZED: Use progressive caching via getIterator()
+        // This ensures consistent caching behavior
+        foreach ($this->getIterator() as $item) {
+            // getIterator() handles caching, just consume it
+        }
 
-        return $this->cachedArray;
+        return $this->cachedArray ?? [];
     }
 
     /**

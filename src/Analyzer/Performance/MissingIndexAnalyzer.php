@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\QueryColumnExtractor;
+use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
@@ -532,7 +533,21 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             return false;
         }
 
-        // Type "ALL" = full table scan (very bad)
+        // Don't suggest if using optimal index access types
+        // const = PRIMARY KEY or UNIQUE index lookup with constant (best possible)
+        // eq_ref = UNIQUE index lookup in JOIN (best for joins)
+        if (in_array($type, ['CONST', 'EQ_REF'], true) && null !== $key) {
+            return false; // Optimal index usage, no suggestion needed
+        }
+
+        // ref = Non-unique index lookup (good)
+        // range = Index range scan (acceptable)
+        // If these types are using an index, only suggest if many rows scanned
+        if (in_array($type, ['REF', 'RANGE'], true) && null !== $key) {
+            return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
+        }
+
+        // Type "ALL" = full table scan (bad, but check threshold)
         $isFullTableScan = 'ALL' === $type;
 
         // Type "index" = full index scan (bad, not using WHERE conditions)
@@ -542,13 +557,13 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $hasPossibleKeysButNotUsed = null === $key && null !== $possibleKeys;
 
         // Suggest if:
-        // 1. Full table scan (ALL) regardless of rows
+        // 1. Full table scan (ALL) with rows >= threshold
         // 2. Full index scan (INDEX) with no possible_keys (missing selective index)
         // 3. Has possible keys but MySQL chose not to use any (needs better index)
         // 4. Many rows scanned (>= threshold)
 
         if ($isFullTableScan) {
-            return true; // Always suggest for full table scans
+            return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
         }
 
         if ($isFullIndexScan && null === $possibleKeys) {
@@ -614,22 +629,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
     private function normalizeQuery(string $sql): string
     {
-        // Normalize whitespace
-        $normalized = preg_replace('/\s+/', ' ', trim($sql));
-
-        // Replace string literals
-        $normalized = preg_replace("/'(?:[^'\\\\]|\\\\.)*'/", '?', (string) $normalized);
-
-        // Replace numeric literals
-        $normalized = preg_replace('/\b(\d+)\b/', '?', (string) $normalized);
-
-        // Normalize IN clauses
-        $normalized = preg_replace('/IN\s*\([^)]+\)/i', 'IN (?)', (string) $normalized);
-
-        // Normalize = placeholders
-        $normalized = preg_replace('/=\s*\?/', '= ?', (string) $normalized);
-
-        return strtoupper((string) $normalized);
+        return SqlNormalizationCache::normalize($sql);
     }
 
     /**

@@ -3,14 +3,11 @@
 declare(strict_types=1);
 
 /**
- * Template for Pagination suggestions.
- * Context variables:
- * @var string $method - Method name (e.g., "findAll")
- * @var int    $result_count - Number of results returned
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $method
+ * @var mixed $resultCount
+ * @var mixed $context
  */
-
-/** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context for clarity
 ['method' => $method, 'result_count' => $resultCount] = $context;
 
 // Helper function for safe HTML escaping

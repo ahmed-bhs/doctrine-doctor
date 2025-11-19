@@ -154,7 +154,8 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                     // If all are datetimetz → multi-timezone app (OK)
                     // If mixed → inconsistent (BAD)
                     if ($datetimeCount > 0 && $datetimetzCount > 0) {
-                        yield $this->createTimezoneInconsistencyIssue($datetimeCount, $datetimetzCount, $allTimestampFields);
+                        // Re-index array to have sequential integer keys for strict type checking
+                        yield $this->createTimezoneInconsistencyIssue($datetimeCount, $datetimetzCount, array_values($allTimestampFields));
                     }
                 }
             },
@@ -190,11 +191,13 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
             $type = MappingHelper::getString($mapping, 'type');
 
-            $allTimestampFields[] = [
-                'entity' => $shortClassName,
-                'field' => $fieldName,
-                'type' => $type,
-            ];
+            if (null !== $type) {
+                $allTimestampFields[count($allTimestampFields)] = [
+                    'entity' => $shortClassName,
+                    'field' => $fieldName,
+                    'type' => $type,
+                ];
+            }
 
             // Check for nullable createdAt
             if ($this->isCreatedAtNullable($fieldName, $mapping)) {

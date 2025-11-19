@@ -21,6 +21,8 @@ use PhpMyAdmin\SqlParser\Statements\SelectStatement;
  *
  * This class focuses solely on condition analysis,
  * following the Single Responsibility Principle.
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
 {
@@ -215,6 +217,9 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         return $conditionCount > 1;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     */
     public function hasLocaleConstraintInJoin(string $sql): bool
     {
         $sqlUpper = strtoupper($sql);
@@ -294,6 +299,10 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         return false;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     public function isAliasUsedInQuery(string $sql, string $alias, ?string $joinExpression = null): bool
     {
         $parser = new Parser($sql);

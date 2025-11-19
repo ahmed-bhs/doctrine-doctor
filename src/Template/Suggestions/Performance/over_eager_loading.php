@@ -3,13 +3,10 @@
 declare(strict_types=1);
 
 /**
- * Template for Over-Eager Loading suggestions.
- * Context variables:
- * @var int $join_count - Number of JOINs in the query
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $joinCount
+ * @var mixed $context
  */
-
-/** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context for clarity
 ['join_count' => $joinCount] = $context;
 
 // Helper function for safe HTML escaping

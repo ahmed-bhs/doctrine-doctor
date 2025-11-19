@@ -24,6 +24,8 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  * ```php
  * $allMetadata = $this->metadataProvider->getAllMetadata(); // Already filtered!
  * ```
+ *
+ * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
  */
 class EntityMetadataProvider
 {
@@ -71,6 +73,7 @@ class EntityMetadataProvider
      */
     public function getMetadataFor(string $className): ClassMetadata
     {
+        /** @var class-string $className */
         return $this->entityManager->getMetadataFactory()->getMetadataFor($className);
     }
 

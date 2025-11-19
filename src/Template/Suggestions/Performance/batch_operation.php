@@ -2,6 +2,12 @@
 
 declare(strict_types=1);
 
+/**
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $table
+ * @var mixed $operationCount
+ * @var mixed $context
+ */
 ['table' => $table, 'operation_count' => $operationCount] = $context;
 $e                                                        = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();

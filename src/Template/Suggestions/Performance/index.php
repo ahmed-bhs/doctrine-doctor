@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 /**
- * Template for generic Index suggestions (used by SuggestionFactory::createIndex)
- * Different from missing_index.php which is more detailed.
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $table
+ * @var mixed $columns
+ * @var mixed $migrationCode
+ * @var mixed $context
  */
 ['table' => $table, 'columns' => $columns, 'migration_code' => $migrationCode] = $context;
 $e                                                                             = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');

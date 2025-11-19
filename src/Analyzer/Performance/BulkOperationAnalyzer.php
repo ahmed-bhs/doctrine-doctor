@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
+use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -113,30 +114,47 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         $queryCount = 0;
         foreach ($queryDataCollection as $index => $queryData) {
             $queryCount++;
+
+            // OPTIMIZATION: Fast string check before expensive SQL parsing
+            // This reduces parsing from O(n) to O(m) where m << n (only UPDATE/DELETE queries)
+            $sqlUpper = strtoupper(substr($queryData->sql, 0, 10));
+            $isUpdateQuery = str_starts_with($sqlUpper, 'UPDATE ');
+            $isDeleteQuery = str_starts_with($sqlUpper, 'DELETE ');
+
+            // Skip queries that are neither UPDATE nor DELETE (majority of queries)
+            if (!$isUpdateQuery && !$isDeleteQuery) {
+                continue;
+            }
+
             // Detect UPDATE queries using SQL parser
-            $updateTable = $this->sqlExtractor->detectUpdateQuery($queryData->sql);
-            if (null !== $updateTable) {
-                $this->logger?->info('[BulkOperationAnalyzer] Found UPDATE on table: ' . $updateTable);
-                $table = $updateTable;
-                $type  = 'UPDATE';
+            if ($isUpdateQuery) {
+                $updateTable = $this->sqlExtractor->detectUpdateQuery($queryData->sql);
+                if (null !== $updateTable) {
+                    $this->logger?->info('[BulkOperationAnalyzer] Found UPDATE on table: ' . $updateTable);
+                    $table = $updateTable;
+                    $type  = 'UPDATE';
 
-                $key = $type . '_' . $table;
+                    $key = $type . '_' . $table;
 
-                if (!isset($updateDeleteQueries[$key])) {
-                    $updateDeleteQueries[$key] = [
-                        'type'    => $type,
-                        'table'   => $table,
-                        'queries' => [],
-                        'indices' => [],
-                    ];
+                    if (!isset($updateDeleteQueries[$key])) {
+                        $updateDeleteQueries[$key] = [
+                            'type'    => $type,
+                            'table'   => $table,
+                            'queries' => [],
+                            'indices' => [],
+                        ];
+                    }
+
+                    $updateDeleteQueries[$key]['queries'][] = $queryData;
+                    $updateDeleteQueries[$key]['indices'][] = $index;
                 }
-
-                $updateDeleteQueries[$key]['queries'][] = $queryData;
-                $updateDeleteQueries[$key]['indices'][] = $index;
             }
 
             // Detect DELETE queries using SQL parser
-            $deleteTable = $this->sqlExtractor->detectDeleteQuery($queryData->sql);
+            $deleteTable = null;
+            if ($isDeleteQuery) {
+                $deleteTable = $this->sqlExtractor->detectDeleteQuery($queryData->sql);
+            }
             if (null !== $deleteTable) {
                 $table = $deleteTable;
                 $type  = 'DELETE';
@@ -211,7 +229,7 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         foreach ($queries as $query) {
             // Use SQL parser to normalize query pattern
             // Use universal normalization method shared across all analyzers
-            $normalized = $this->sqlExtractor->normalizeQuery($query->sql);
+            $normalized = SqlNormalizationCache::normalize($query->sql);
             $patterns[] = $normalized;
         }
 

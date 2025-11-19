@@ -20,7 +20,6 @@ use AhmedBhs\DoctrineDoctor\Suggestion\CodeSuggestion;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use ReflectionClass;
 use Webmozart\Assert\Assert;
 
 /**
@@ -119,8 +118,12 @@ class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
         $issues = [];
 
-        // Passing an object to ReflectionClass never throws
-        $reflectionClass = new ReflectionClass($entity::class);
+        // Use cached ReflectionClass from Doctrine's ClassMetadata
+        $reflectionClass = $classMetadata->reflClass;
+
+        if (null === $reflectionClass) {
+            return [];
+        }
 
         // Check each collection-valued association
         foreach ($classMetadata->getAssociationNames() as $assocName) {

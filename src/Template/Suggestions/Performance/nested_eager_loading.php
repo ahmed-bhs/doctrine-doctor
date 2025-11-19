@@ -3,16 +3,13 @@
 declare(strict_types=1);
 
 /**
- * Template for Nested Eager Loading suggestions.
- * Context variables:
- * @var array<string> $entities - Chain of entities (e.g., ['Article', 'User', 'Country'])
- * @var int          $depth - Nesting depth (2 = two-level, 3 = three-level, etc.)
- * @var int          $query_count - Number of queries per level
- * @var string       $chain - Human-readable chain (e.g., "Article → User → Country")
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $entities
+ * @var mixed $depth
+ * @var mixed $queryCount
+ * @var mixed $chain
+ * @var mixed $context
  */
-
-/** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context for clarity
 ['entities' => $entities, 'depth' => $depth, 'query_count' => $queryCount, 'chain' => $chain] = $context;
 
 // Helper function for safe HTML escaping

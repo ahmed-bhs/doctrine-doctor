@@ -81,7 +81,19 @@ final class PhpTemplateRenderer implements TemplateRendererInterface, Suggestion
                 // with existing templates that use $variableName directly
                 extract($__context, EXTR_SKIP);
 
-                return require $__templatePath;
+                // Track output buffer level before template execution
+                $bufferLevelBefore = ob_get_level();
+
+                try {
+                    return require $__templatePath;
+                } finally {
+                    // CRITICAL: Clean any orphaned output buffers created by the template
+                    // This prevents HTML buffer leaks when template errors occur between
+                    // ob_start() and ob_get_clean()
+                    while (ob_get_level() > $bufferLevelBefore) {
+                        ob_end_clean();
+                    }
+                }
             };
 
             $result = $render($templatePath, $context);

@@ -205,6 +205,7 @@ final class InsecureRandomVisitorTest extends TestCase
     {
         $parser = (new ParserFactory())->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
+        self::assertIsArray($ast, 'Parser should return an array');
 
         $visitor = new InsecureRandomVisitor(self::INSECURE_FUNCTIONS);
         $traverser = new NodeTraverser();

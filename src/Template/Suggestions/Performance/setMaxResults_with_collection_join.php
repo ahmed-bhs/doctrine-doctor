@@ -3,13 +3,10 @@
 declare(strict_types=1);
 
 /**
- * Template for setMaxResults() with Collection Join suggestions.
- * Context variables:
- * @var string $entity_hint - Entity name hint from SQL analysis
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $entityHint
+ * @var mixed $context
  */
-
-/** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context for clarity
 ['entity_hint' => $entityHint] = $context;
 
 // Helper function for safe HTML escaping

@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 /**
- * Template for Embeddable Missing Value Object Methods.
+ * Variables provided by PhpTemplateRenderer::extract($context)
+ * @var mixed $embeddableClass
+ * @var mixed $missingMethods
+ * @var mixed $context
  */
 ['embeddable_class' => $embeddableClass, 'missing_methods' => $missingMethods] = $context;
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
