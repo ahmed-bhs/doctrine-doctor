@@ -187,10 +187,11 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
         $fromTable = $this->extractFromTable($sql, $metadataMap);
 
         if (null === $fromTable) {
-            // Can't analyze without knowing the main table - fallback to total count
+            // Can't analyze without knowing the main table - use higher threshold
+            // since we can't determine if these are collection JOINs
             $joinCount = $this->sqlExtractor->countJoins($sql);
 
-            if ($joinCount < self::MULTIPLE_COLLECTION_JOINS_THRESHOLD) {
+            if ($joinCount < 3) {
                 return null;
             }
 
