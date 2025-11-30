@@ -58,7 +58,6 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
          */
         private float $minExecutionTimeThreshold = self::MIN_EXECUTION_TIME_THRESHOLD,
     ) {
-        // Dependency injection with fallback for backwards compatibility
         $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
@@ -84,14 +83,10 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                         continue;
                     }
 
-                    // Skip fast queries - they likely don't need optimization
-                    // or the column is not indexed anyway
                     if ($executionTime < $this->minExecutionTimeThreshold) {
                         continue;
                     }
 
-                    // Use SQL Parser instead of regex for robust detection
-                    // This properly handles complex WHERE clauses and nested conditions
                     if (null === $this->sqlExtractor) {
                         continue;
                     }
@@ -106,7 +101,6 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                         $operator = $call['operator'];
                         $value    = $call['value'];
 
-                        // Deduplicate
                         $key = $function . '(' . $field . ')' . $operator . $value;
                         if (isset($seenIssues[$key])) {
                             continue;
@@ -181,7 +175,7 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             ),
             severity: $executionTime > 100 ? Severity::critical() : Severity::warning(),
             suggestion: $this->createDateFunctionSuggestion($function, $field, $operator, $value, $optimizedClause),
-            queries: [$query],
+            queries: [$query], // @phpstan-ignore argument.type (query is QueryData from collection)
             backtrace: $backtrace,
         );
 
@@ -193,7 +187,6 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
      */
     private function generateOptimizedClause(string $function, string $field, string $operator, string $value): string
     {
-        // Remove quotes from value if present
         $value = trim($value, "'\"");
 
         return match ($function) {
@@ -231,7 +224,6 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
      */
     private function optimizeMonthClause(string $field, string $value): string
     {
-        // For simplicity, suggest BETWEEN pattern
         return sprintf("%s BETWEEN 'YYYY-%02d-01' AND 'YYYY-%02d-31'", $field, (int) $value, (int) $value);
     }
 

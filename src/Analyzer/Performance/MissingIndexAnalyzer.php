@@ -333,7 +333,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $debugStats['min_rows_scanned'] = $this->missingIndexAnalyzerConfig?->minRowsScanned;
         $debugStats['explain_enabled']  = $this->missingIndexAnalyzerConfig?->enabled;
 
-        // Log errors if any EXPLAIN queries failed
         if (isset($debugStats['explain_errors']) && is_array($debugStats['explain_errors']) && count($debugStats['explain_errors']) > 0) {
             $this->logger?->error('MissingIndexAnalyzer encountered EXPLAIN errors', [
                 'explain_errors' => $debugStats['explain_errors'],
@@ -343,7 +342,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             ]);
         }
 
-        // Log debug statistics
         $this->logger?->debug('MissingIndexAnalyzer Stats', $debugStats);
     }
 
@@ -352,12 +350,10 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $sql    = $queryData->sql;
         $params = $queryData->params;
 
-        // Skip non-SELECT queries
         if (1 !== preg_match('/^\s*SELECT/i', $sql)) {
             return [];
         }
 
-        // Convert VarDumper Data objects to arrays (from Doctrine profiler)
         if (is_object($params) && method_exists($params, 'getValue')) {
             $params = $params->getValue(true);
         }
@@ -369,7 +365,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         try {
             $detector = $this->databasePlatformDetector ?? new DatabasePlatformDetector($this->connection);
 
-            // Get platform-specific EXPLAIN query
             $explainQuery = $detector->getExplainQuery($sql);
 
             $result = $this->connection->executeQuery(
@@ -377,10 +372,8 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                 $params,
             );
 
-            // DBAL 2.x/3.x compatibility
             $rows = $detector->fetchAllAssociative($result);
 
-            // Normalize output format between MySQL and PostgreSQL
             return $this->normalizeExplainOutput($rows, $detector);
         } catch (\Exception) {
             return [];
@@ -393,9 +386,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     private function normalizeExplainOutput(array $rows, DatabasePlatformDetector $databasePlatformDetector): array
     {
         if ($databasePlatformDetector->isPostgreSQL()) {
-            // PostgreSQL EXPLAIN output is text-based, needs parsing
             return array_map(function (array $row): array {
-                // PostgreSQL EXPLAIN returns QUERY PLAN column
                 $plan = $row['QUERY PLAN'] ?? '';
 
                 return [
@@ -410,7 +401,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         }
 
         if ($databasePlatformDetector->isSQLite()) {
-            // SQLite EXPLAIN QUERY PLAN format: detail="SCAN tablename" or "SEARCH tablename USING INDEX"
             return array_map(function (array $row): array {
                 $detail = $row['detail'] ?? '';
 
@@ -425,13 +415,11 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             }, $rows);
         }
 
-        // MySQL/MariaDB - return as is
         return $rows;
     }
 
     private function extractTableFromPostgreSQLPlan(string $plan): ?string
     {
-        // Extract table name from plan like "Seq Scan on users" or "Index Scan using idx_name on users"
         if (1 === preg_match('/\s+on\s+(\w+)/i', $plan, $matches)) {
             return $matches[1];
         }
@@ -441,7 +429,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
     private function extractTypeFromPostgreSQLPlan(string $plan): string
     {
-        // Map PostgreSQL scan types to MySQL-like types
         if (false !== stripos($plan, 'Seq Scan')) {
             return 'ALL'; // Sequential scan = full table scan
         }
@@ -463,7 +450,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
     private function extractRowsFromPostgreSQLPlan(string $plan): int
     {
-        // Extract rows from plan like "rows=1000"
         if (1 === preg_match('/rows=(\d+)/i', $plan, $matches)) {
             return (int) $matches[1];
         }
@@ -473,7 +459,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
     private function extractTableFromSQLitePlan(string $detail): ?string
     {
-        // Extract table name from "SCAN users" or "SEARCH users USING INDEX idx_name"
         if (1 === preg_match('/(?:SCAN|SEARCH)\s+(\w+)/i', $detail, $matches)) {
             return $matches[1];
         }
@@ -483,7 +468,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
     private function extractTypeFromSQLitePlan(string $detail): string
     {
-        // Map SQLite scan types to MySQL-like types
         if (false !== stripos($detail, 'SCAN ')) {
             return 'ALL'; // SCAN = full table scan
         }
@@ -501,7 +485,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
     private function extractKeyFromSQLitePlan(string $detail): ?string
     {
-        // Extract index name from "SEARCH users USING INDEX idx_name"
         if (1 === preg_match('/USING INDEX\s+(\w+)/i', $detail, $matches)) {
             return $matches[1];
         }
@@ -511,8 +494,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
     private function extractRowsFromSQLitePlan(string $detail): int
     {
-        // SQLite EXPLAIN QUERY PLAN doesn't provide row estimates
-        // Return a high value for SCAN to trigger index suggestion
         if (false !== stripos($detail, 'SCAN ')) {
             return 1000; // Assume full table scan = many rows
         }
@@ -528,57 +509,37 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $type         = strtoupper($explainRow['type'] ?? '');
         $possibleKeys = $explainRow['possible_keys'] ?? null;
 
-        // Skip if no table
         if (null === $table) {
             return false;
         }
 
-        // Don't suggest if using optimal index access types
-        // const = PRIMARY KEY or UNIQUE index lookup with constant (best possible)
-        // eq_ref = UNIQUE index lookup in JOIN (best for joins)
         if (in_array($type, ['CONST', 'EQ_REF'], true) && null !== $key) {
             return false; // Optimal index usage, no suggestion needed
         }
 
-        // ref = Non-unique index lookup (good)
-        // range = Index range scan (acceptable)
-        // If these types are using an index, only suggest if many rows scanned
         if (in_array($type, ['REF', 'RANGE'], true) && null !== $key) {
             return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
         }
 
-        // Type "ALL" = full table scan (bad, but check threshold)
         $isFullTableScan = 'ALL' === $type;
 
-        // Type "index" = full index scan (bad, not using WHERE conditions)
         $isFullIndexScan = 'INDEX' === $type;
 
-        // No key used but possible keys exist = MySQL couldn't find an appropriate index
         $hasPossibleKeysButNotUsed = null === $key && null !== $possibleKeys;
 
-        // Suggest if:
-        // 1. Full table scan (ALL) with rows >= threshold
-        // 2. Full index scan (INDEX) with no possible_keys (missing selective index)
-        // 3. Has possible keys but MySQL chose not to use any (needs better index)
-        // 4. Many rows scanned (>= threshold)
 
         if ($isFullTableScan) {
             return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
         }
 
         if ($isFullIndexScan && null === $possibleKeys) {
-            // Full index scan without selective index available
-            // But still respect the minimum rows threshold for small tables
             return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
         }
 
         if ($hasPossibleKeysButNotUsed) {
-            // MySQL has indexes but chose not to use them
-            // But still respect the minimum rows threshold for small tables
             return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
         }
 
-        // For other cases, only suggest if many rows scanned
         return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
     }
 
@@ -600,9 +561,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
     private function suggestIndex(string $sql, array $explainRow): ?SuggestionInterface
     {
-        $columns = $this->extractColumnsFromQuery($sql, $explainRow['table']);
-
-        if ([] === $columns || ($explainRow['table'] ?? null) === null) {
+        if (($explainRow['table'] ?? null) === null) {
             return null;
         }
 
@@ -610,6 +569,26 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $tableInfo     = $this->extractTableNameWithAlias($sql, $tableAlias);
         $realTableName = $tableInfo['realName'];
         $tableDisplay  = $tableInfo['display'];
+
+        $columns = $this->extractColumnsFromQuery($sql, $explainRow['table']);
+
+        if ([] === $columns) {
+            return $this->suggestionFactory->createFromTemplate(
+                'missing_index_generic',
+                [
+                    'table_display'   => $tableDisplay,
+                    'real_table_name' => $realTableName,
+                    'query'           => $sql,
+                    'rows_scanned'    => $explainRow['rows'] ?? 0,
+                ],
+                new SuggestionMetadata(
+                    type: SuggestionType::performance(),
+                    severity: Severity::critical(),
+                    title: sprintf('Missing Index on %s', $tableDisplay),
+                    tags: ['performance', 'index', 'database'],
+                ),
+            );
+        }
 
         $columnsList = implode(', ', $columns);
         $indexName   = 'IDX_' . strtoupper((string) $realTableName) . '_' . strtoupper(implode('_', $columns));
@@ -643,8 +622,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
      */
     private function extractTableNameWithAlias(string $sql, string $alias): array
     {
-        // Pattern to match: FROM table_name alias or FROM table_name AS alias
-        // Also handles JOINs: JOIN table_name alias or JOIN table_name AS alias
         $pattern = '/(?:FROM|JOIN)\s+([`\w]+)\s+(?:AS\s+)?' . preg_quote($alias, '/') . '\b/i';
 
         if (1 === preg_match($pattern, $sql, $matches)) {
@@ -656,7 +633,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             ];
         }
 
-        // If no alias found (table name is the same as alias), return just the table name
         return [
             'realName' => $alias,
             'display'  => $alias,

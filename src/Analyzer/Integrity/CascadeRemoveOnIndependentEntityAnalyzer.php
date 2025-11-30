@@ -126,8 +126,8 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
      * @param array<string, float|int> $referenceCountMap
      * @return array<\AhmedBhs\DoctrineDoctor\Issue\IssueInterface>
      *
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings("PHPMD.CyclomaticComplexity")
+     * @SuppressWarnings("PHPMD.NPathComplexity")
      */
     private function analyzeEntity(ClassMetadata $classMetadata, array $referenceCountMap): array
     {

@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\InMemoryTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
 final class JoinTypeConsistencyAnalyzerTest extends TestCase
@@ -26,9 +27,10 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
 
     protected function setUp(): void
     {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         $inMemoryTemplateRenderer = new InMemoryTemplateRenderer();
         $suggestionFactory = new SuggestionFactory($inMemoryTemplateRenderer);
-        $this->joinTypeConsistencyAnalyzer = new JoinTypeConsistencyAnalyzer($suggestionFactory);
+        $this->joinTypeConsistencyAnalyzer = new JoinTypeConsistencyAnalyzer($entityManager, $suggestionFactory);
     }
 
     public function test_detects_left_join_with_is_not_null(): void

@@ -291,7 +291,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements \AhmedBhs\DoctrineDoc
     }
 
     /**
-     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
+     * @SuppressWarnings("PHPMD.BooleanArgumentFlag")
      */
     private function buildSuggestion(
         string $entityClass,

@@ -186,7 +186,7 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             description: $description,
             severity: $severity,
             suggestion: $this->createOrderByWithoutLimitSuggestion($orderByClause, $sql, $context),
-            queries: [$query],
+            queries: [$query], // @phpstan-ignore argument.type (query is QueryData from collection)
             backtrace: $backtrace,
         );
 

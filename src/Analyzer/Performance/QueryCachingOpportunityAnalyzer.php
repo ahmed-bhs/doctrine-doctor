@@ -75,7 +75,6 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         private SuggestionFactory $suggestionFactory,
         ?SqlStructureExtractor $sqlExtractor = null,
     ) {
-        // Dependency injection with fallback for backwards compatibility
         $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
@@ -86,13 +85,10 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                // First pass: collect and normalize queries
                 [$queryFrequencies, $queryDetails] = $this->collectQueryFrequencies($queryDataCollection);
 
-                // Second pass: generate issues for frequent queries
                 yield from $this->generateFrequentQueryIssues($queryFrequencies, $queryDetails);
 
-                // Third pass: detect static table queries (only report once per table)
                 yield from $this->generateStaticTableIssues($queryDataCollection);
             },
         );
@@ -131,13 +127,8 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
                 continue;
             }
 
-            // Normalize query (replace values with placeholders)
             $normalized = $this->normalizeQuery($sql);
 
-            // Create a unique key combining normalized SQL + parameters
-            // This ensures we only count TRUE duplicates (same query + same params)
-            // For queries with LIMIT/OFFSET in SQL (pagination), use the original SQL
-            // to distinguish different pages
             $queryKey = $this->createQueryKey($sql, $normalized, $params);
 
             if (!isset($queryFrequencies[$queryKey])) {
@@ -177,8 +168,6 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
 
             $details = $queryDetails[$normalized];
 
-            // Only suggest caching for SELECT queries
-            // INSERT/UPDATE/DELETE queries cannot be cached
             if ($this->isSelectQuery($details['originalSql'])) {
                 yield $this->createFrequentQueryIssue(
                     $details['originalSql'],
@@ -208,7 +197,6 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
                 continue;
             }
 
-            // Only suggest caching for SELECT queries on static tables
             if (!$this->isSelectQuery($sql)) {
                 continue;
             }
@@ -299,20 +287,15 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
      */
     private function createQueryKey(string $originalSql, string $normalizedSql, array $params): string
     {
-        // For queries with LIMIT/OFFSET in SQL (pagination), use original SQL
-        // to distinguish different pages (LIMIT 5 OFFSET 0 vs LIMIT 5 OFFSET 5)
         $upperSql = strtoupper($originalSql);
         if (str_contains($upperSql, 'LIMIT') || str_contains($upperSql, 'OFFSET')) {
             return md5($originalSql);
         }
 
-        // If no params available (old data or native queries), fall back to normalized SQL key
         if (empty($params)) {
             return $normalizedSql;
         }
 
-        // Create a deterministic hash of parameters
-        // We use json_encode for simplicity, but could use serialize() for more precision
         $paramsHash = md5(json_encode($params, JSON_THROW_ON_ERROR));
 
         return $normalizedSql . '::' . $paramsHash;
@@ -359,10 +342,8 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
      */
     private function getStaticTableFromQuery(string $sql): ?string
     {
-        // Use SQL parser to extract all table names from query
         $tableNames = $this->sqlExtractor->getAllTableNames($sql);
 
-        // Check if any of the tables in the query is a known static table
         foreach (self::STATIC_TABLES as $staticTable) {
             if (in_array(strtolower($staticTable), $tableNames, true)) {
                 return $staticTable;
@@ -382,14 +363,12 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         ?array $backtrace,
         array $queries,
     ): PerformanceIssue {
-        // Determine severity based on frequency
         $severity = match (true) {
             $count >= self::FREQUENCY_THRESHOLD_CRITICAL => Severity::critical(),
             $count >= self::FREQUENCY_THRESHOLD_WARNING => Severity::warning(),
             default => Severity::info(),
         };
 
-        // Calculate cache performance improvement
         $avgTime = $totalTime / $count;
         $cacheAccessTime = $avgTime / 100; // Cache is ~100x faster
         $timeWithCache = $avgTime + ($cacheAccessTime * ($count - 1));
@@ -437,7 +416,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
             ),
             severity: Severity::info(),
             suggestion: $this->createStaticTableSuggestion($sql, $tableName),
-            queries: [$query],
+            queries: [$query], // @phpstan-ignore argument.type (query is QueryData from collection)
             backtrace: $backtrace,
         );
 

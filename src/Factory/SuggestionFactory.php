@@ -32,9 +32,9 @@ use Webmozart\Assert\Assert;
  * - Encapsulates complexity of severity calculation
  * - Easy to extend with new suggestion types
  *
- * @SuppressWarnings(PHPMD.ExcessivePublicCount)
- * @SuppressWarnings(PHPMD.TooManyMethods)
- * @SuppressWarnings(PHPMD.TooManyPublicMethods)
+ * @SuppressWarnings("PHPMD.ExcessivePublicCount")
+ * @SuppressWarnings("PHPMD.TooManyMethods")
+ * @SuppressWarnings("PHPMD.TooManyPublicMethods")
  */
 final class SuggestionFactory
 {
@@ -340,7 +340,7 @@ final class SuggestionFactory
      * Create an "Extra Lazy" suggestion for collection N+1 queries.
      * Recommended for OneToMany/ManyToMany collections with partial access.
      *
-     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
+     * @SuppressWarnings("PHPMD.BooleanArgumentFlag")
      */
     public function createExtraLazy(
         string $entity,
@@ -384,7 +384,6 @@ final class SuggestionFactory
         Assert::stringNotEmpty($relation, 'Relation name cannot be empty');
         Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
 
-        // Generate counter field name if not provided
         $counterField = $counterField ?? $relation . 'Count';
 
         return new ModernSuggestion(
@@ -848,11 +847,8 @@ final class SuggestionFactory
         array $context,
         SuggestionMetadata $suggestionMetadata,
     ): SuggestionInterface {
-        // Validate that template exists
-        // First try direct path (for backward compatibility or when full path is provided)
         $templatePath = __DIR__ . '/../Template/Suggestions/' . $templateName . '.php';
 
-        // If not found, search in category subdirectories
         if (!file_exists($templatePath)) {
             $categories = ['Performance', 'Security', 'Integrity', 'Configuration'];
             $found = false;
@@ -911,7 +907,6 @@ final class SuggestionFactory
         );
     }
 
-    // ========== Private Helper Methods ==========
 
     private function calculateFlushInLoopSeverity(int $flushCount): Severity
     {
@@ -954,7 +949,6 @@ final class SuggestionFactory
 
     private function calculateUnusedEagerLoadSeverity(int $unusedJoinCount): Severity
     {
-        // More unused JOINs = more wasted resources
         if ($unusedJoinCount >= 3) {
             return Severity::critical();
         }
@@ -968,7 +962,6 @@ final class SuggestionFactory
 
     private function calculateOverEagerSeverity(int $joinCount): Severity
     {
-        // Many JOINs can cause exponential data duplication
         if ($joinCount >= 5) {
             return Severity::critical();
         }
@@ -1032,7 +1025,6 @@ final class SuggestionFactory
 
     private function calculateNestedSeverity(int $depth, int $queryCount): Severity
     {
-        // Nested N+1 is more severe because it multiplies queries
         $totalImpact = $depth * $queryCount;
 
         if ($totalImpact >= 50 || $depth >= 4) {

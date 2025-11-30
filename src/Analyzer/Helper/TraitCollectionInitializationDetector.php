@@ -200,7 +200,7 @@ final class TraitCollectionInitializationDetector
 
         $pattern = '/' . preg_quote($traitName, '/') . '\s*::\s*__construct\s+as\s+(?:private\s+|protected\s+|public\s+)?(\w+)/i';
 
-        if (preg_match_all($pattern, $source, $matches)) {
+        if (preg_match_all($pattern, $source, $matches) > 0) {
             $aliases = $matches[1];
         }
 

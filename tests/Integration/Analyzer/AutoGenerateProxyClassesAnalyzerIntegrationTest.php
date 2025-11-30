@@ -319,7 +319,12 @@ YAML;
             return;
         }
 
-        $files = array_diff(scandir($dir), ['.', '..']);
+        $scanResult = scandir($dir);
+        if (false === $scanResult) {
+            return;
+        }
+
+        $files = array_diff($scanResult, ['.', '..']);
         foreach ($files as $file) {
             $path = $dir . '/' . $file;
             if (is_dir($path)) {

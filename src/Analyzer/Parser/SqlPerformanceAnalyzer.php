@@ -71,7 +71,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
     }
 
     /**
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings("PHPMD.CyclomaticComplexity")
      */
     public function hasSubquery(string $sql): bool
     {

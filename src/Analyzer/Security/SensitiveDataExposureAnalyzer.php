@@ -32,7 +32,6 @@ use Webmozart\Assert\Assert;
  */
 class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    // Sensitive field patterns
     private const SENSITIVE_PATTERNS = [
         'password',
         'passwd',
@@ -53,8 +52,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         'bank_account',
     ];
 
-    // Patterns that indicate metadata/flags rather than actual sensitive data
-    // These are boolean-like fields that indicate preferences or states
     private const METADATA_PREFIXES = [
         'is_',           // is_credit_card_saved, is_verified
         'has_',          // has_payment_method, has_token
@@ -65,7 +62,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         'require_',      // require_token
     ];
 
-    // Patterns that indicate metadata suffixes
     private const METADATA_SUFFIXES = [
         '_enabled',      // credit_card_enabled
         '_allowed',      // password_reset_allowed
@@ -106,7 +102,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         private ?LoggerInterface $logger = null,
         ?PhpCodeParser $phpCodeParser = null,
     ) {
-        // Dependency injection with fallback for backwards compatibility
         $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
     }
 
@@ -157,14 +152,12 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         $entityClass     = $classMetadata->getName();
         $reflectionClass = $classMetadata->getReflectionClass();
 
-        // Get all sensitive fields
         $sensitiveFields = $this->getSensitiveFields($classMetadata);
 
         if ([] === $sensitiveFields) {
             return [];
         }
 
-        // Check __toString() method
         if ($reflectionClass->hasMethod('__toString')) {
             $issue = $this->checkToStringMethod($entityClass, $reflectionClass, $sensitiveFields);
 
@@ -173,7 +166,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             }
         }
 
-        // Check jsonSerialize() method
         if ($reflectionClass->hasMethod('jsonSerialize')) {
             $issue = $this->checkJsonSerializeMethod($entityClass, $reflectionClass, $sensitiveFields);
 
@@ -182,7 +174,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             }
         }
 
-        // Check toArray() method
         if ($reflectionClass->hasMethod('toArray')) {
             $issue = $this->checkToArrayMethod($entityClass, $reflectionClass, $sensitiveFields);
 
@@ -191,7 +182,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             }
         }
 
-        // Check for missing serialization protection
         Assert::isIterable($sensitiveFields, '$sensitiveFields must be iterable');
 
         foreach ($sensitiveFields as $sensitiveField) {
@@ -216,7 +206,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         foreach ($classMetadata->getFieldNames() as $fieldName) {
             $lowerField = strtolower($fieldName);
 
-            // Skip metadata/flag fields
             if ($this->isMetadataField($lowerField)) {
                 continue;
             }
@@ -237,14 +226,12 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
      */
     private function isMetadataField(string $lowerFieldName): bool
     {
-        // Check prefixes (is_, has_, etc.)
         foreach (self::METADATA_PREFIXES as $prefix) {
             if (str_starts_with($lowerFieldName, $prefix)) {
                 return true;
             }
         }
 
-        // Check suffixes (_enabled, _allowed, etc.)
         foreach (self::METADATA_SUFFIXES as $suffix) {
             if (str_ends_with($lowerFieldName, $suffix)) {
                 return true;
@@ -261,8 +248,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
     ): ?SecurityIssue {
         $reflectionMethod = $reflectionClass->getMethod('__toString');
 
-        // Use PHP Parser instead of regex for robust detection
-        // This eliminates false positives from comments and strings
         if ($this->phpCodeParser->detectSensitiveExposure($reflectionMethod)) {
             return new SecurityIssue([
                 'title'       => 'Sensitive data exposure in __toString() method',
@@ -293,13 +278,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
     ): ?SecurityIssue {
         $reflectionMethod = $reflectionClass->getMethod('jsonSerialize');
 
-        // Use PhpCodeParser instead of fragile regex
-        // This provides robust AST-based detection that handles:
-        // - Array keys: 'password' => ...
-        // - Getter calls: $this->getPassword()
-        // - Direct access: $this->password
-        // - Ignores comments automatically (no false positives)
-        // - Ignores strings in error messages
         Assert::isIterable($sensitiveFields, '$sensitiveFields must be iterable');
         Assert::allString($sensitiveFields, '$sensitiveFields must contain only strings');
         /** @var array<string> $sensitiveFields */
@@ -338,13 +316,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
     ): ?SecurityIssue {
         $reflectionMethod = $reflectionClass->getMethod('toArray');
 
-        // Use PhpCodeParser instead of fragile regex
-        // This provides robust AST-based detection that handles:
-        // - Array keys: 'password' => ...
-        // - Getter calls: $this->getPassword()
-        // - Direct access: $this->password
-        // - Ignores comments automatically (no false positives)
-        // - Ignores strings in error messages
         Assert::isIterable($sensitiveFields, '$sensitiveFields must be iterable');
         Assert::allString($sensitiveFields, '$sensitiveFields must contain only strings');
         /** @var array<string> $sensitiveFields */
@@ -385,10 +356,8 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             $property   = $reflectionClass->getProperty($fieldName);
             $docComment = $property->getDocComment();
 
-            // Check for JsonIgnore or similar annotations
             $hasProtection = false;
 
-            // Check annotations
             if (
                 false !== $docComment && (
                     str_contains($docComment, '@Ignore')
@@ -399,7 +368,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                 $hasProtection = true;
             }
 
-            // Check PHP 8 attributes
             $attributes = $property->getAttributes();
 
             Assert::isIterable($attributes, '$attributes must be iterable');
@@ -435,7 +403,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                 ]);
             }
         } catch (\ReflectionException) {
-            // Property doesn't exist
         }
 
         return null;

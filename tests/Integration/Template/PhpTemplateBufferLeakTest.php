@@ -39,8 +39,7 @@ final class PhpTemplateBufferLeakTest extends TestCase
     {
         // Cleanup
         if (is_dir($this->templateDirectory)) {
-            array_map('unlink', glob($this->templateDirectory . '/*'));
-            rmdir($this->templateDirectory);
+            $this->removeDirectory($this->templateDirectory);
         }
 
         // Clean any remaining output buffers
@@ -49,6 +48,32 @@ final class PhpTemplateBufferLeakTest extends TestCase
         }
 
         parent::tearDown();
+    }
+
+    private function removeDirectory(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+
+        $items = glob($dir . '/{,.}*', GLOB_MARK | GLOB_BRACE);
+        if (false === $items) {
+            return;
+        }
+
+        foreach ($items as $item) {
+            if (basename($item) === '.' || basename($item) === '..') {
+                continue;
+            }
+
+            if (is_dir($item)) {
+                $this->removeDirectory($item);
+            } else {
+                unlink($item);
+            }
+        }
+
+        rmdir($dir);
     }
 
     /**

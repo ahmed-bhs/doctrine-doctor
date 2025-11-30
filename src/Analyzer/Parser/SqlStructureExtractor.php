@@ -41,8 +41,8 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Parser\Interface\QueryNormalizerInterface;
  * interfaces (ConditionAnalyzerInterface, PerformanceAnalyzerInterface, etc.)
  * instead of this façade. However, the façade is preferred for simplicity.
  *
- * @SuppressWarnings(PHPMD.ExcessivePublicCount)
- * @SuppressWarnings(PHPMD.TooManyPublicMethods)
+ * @SuppressWarnings("PHPMD.ExcessivePublicCount")
+ * @SuppressWarnings("PHPMD.TooManyPublicMethods")
  */
 class SqlStructureExtractor
 {

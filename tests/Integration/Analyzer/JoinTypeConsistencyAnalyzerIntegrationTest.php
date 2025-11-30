@@ -17,6 +17,7 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\TwigTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Twig\Environment;
@@ -121,9 +122,10 @@ final class JoinTypeConsistencyAnalyzerIntegrationTest extends TestCase
 
     private function createAnalyzer(): JoinTypeConsistencyAnalyzer
     {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         $suggestionFactory = new SuggestionFactory($this->createTwigRenderer());
 
-        return new JoinTypeConsistencyAnalyzer($suggestionFactory);
+        return new JoinTypeConsistencyAnalyzer($entityManager, $suggestionFactory);
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer

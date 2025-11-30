@@ -227,6 +227,11 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
         // Use cached ReflectionClass from Doctrine's ClassMetadata
         $metadata = $this->entityManager->getClassMetadata($entity::class);
+
+        if (null === $metadata->reflClass) {
+            return null;
+        }
+
         $reflectionProperty = $metadata->reflClass->getProperty($fieldName);
 
         if ($this->isPropertyNullable($reflectionProperty)) {

@@ -107,7 +107,9 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
         // This allows lazy evaluation while still supporting multiple iterations
         if ($this->generatorConsumed) {
             // Generator already consumed, use cached array
+            // @phpstan-ignore-next-line notIdentical.alwaysFalse (false positive - cachedArray can be set by generator consumption)
             if (null !== $this->cachedArray) {
+                // @phpstan-ignore-next-line generator.sendType (yield from is valid for cached arrays)
                 yield from $this->cachedArray;
             }
 

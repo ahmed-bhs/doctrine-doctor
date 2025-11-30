@@ -47,7 +47,6 @@ use Webmozart\Assert\Assert;
  */
 class DoctrineDoctorDataCollector extends DataCollector implements LateDataCollectorInterface
 {
-    // Memoization caches
     private ?array $memoizedIssues = null;
 
     private ?array $memoizedDatabaseInfo = null;
@@ -105,7 +104,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function collect(Request $_request, Response $_response, ?\Throwable $_exception = null): void
     {
-        // Generate unique token for this request
         $token = uniqid('doctrine_doctor_', true);
 
         $this->data = [
@@ -132,7 +130,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             return;
         }
 
-        // FAST: Just copy raw query data (no processing)
         $queries = $this->doctrineDataCollector->getQueries();
 
         Assert::isIterable($queries, '$queries must be iterable');
@@ -147,7 +144,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             }
         }
 
-        // Store services in static holder for lateCollect() to access
         ServiceHolder::store(
             $token,
             new ServiceHolderData(
@@ -162,7 +158,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             ),
         );
 
-        // Store basic debug info if enabled (very fast)
         if ($this->showDebugInfo) {
             $analyzersList = [];
 
@@ -196,14 +191,12 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function lateCollect(): void
     {
-        // Get the token stored in collect()
         $token = $this->data['token'] ?? null;
 
         if (!$token) {
             return;
         }
 
-        // Retrieve services from holder
         $services = ServiceHolder::get($token);
 
         if (!$services instanceof ServiceHolderData) {
@@ -218,17 +211,12 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $dataCollectorLogger   = $services->dataCollectorLogger;
         $issueDeduplicator     = $services->issueDeduplicator;
 
-        // Start measuring (this time is NOT counted in request metrics)
         $stopwatch?->start('doctrine_doctor.late_total', 'doctrine_doctor_profiling');
 
-        // OPTIMIZATION: Warm up SQL caches for massive speedup (654x-1333x improvement)
-        // This pre-parses unique query patterns once, shared across all analyzers
         SqlNormalizationCache::warmUp($this->data['timeline_queries']);
 
-        // NEW: Warm up CachedSqlStructureExtractor for 1000x+ speedup on SQL parsing
         CachedSqlStructureExtractor::warmUp($this->data['timeline_queries']);
 
-        // Run heavy analysis
         $stopwatch?->start('doctrine_doctor.late_analysis', 'doctrine_doctor_profiling');
         $this->data['issues'] = $this->analyzeQueriesLazy($analyzers, $dataCollectorLogger, $issueDeduplicator);
         $analysisEvent        = $stopwatch?->stop('doctrine_doctor.late_analysis');
@@ -237,7 +225,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $this->data['profiler_overhead']['analysis_time_ms'] = $analysisEvent->getDuration();
         }
 
-        // Collect database info
         $stopwatch?->start('doctrine_doctor.late_db_info', 'doctrine_doctor_profiling');
         $this->data['database_info'] = $databaseInfoCollector->collectDatabaseInfo($entityManager);
         $dbInfoEvent                 = $stopwatch?->stop('doctrine_doctor.late_db_info');
@@ -246,23 +233,19 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $this->data['profiler_overhead']['db_info_time_ms'] = $dbInfoEvent->getDuration();
         }
 
-        // Stop total measurement
         $totalEvent = $stopwatch?->stop('doctrine_doctor.late_total');
 
         if ($totalEvent instanceof StopwatchEvent) {
             $this->data['profiler_overhead']['total_time_ms'] = $totalEvent->getDuration();
         }
 
-        // Update debug data if enabled
         if (($this->data['show_debug_info'] ?? false) && isset($this->data['debug_data'])) {
             $this->data['debug_data']['query_time_stats']     = $queryStatsCalculator->calculateStats($this->data['timeline_queries']);
             $this->data['debug_data']['profiler_overhead_ms'] = $this->data['profiler_overhead']['total_time_ms'];
         }
 
-        // Clean up: remove services from static holder
         ServiceHolder::clear($token);
 
-        // Remove token from data (not needed anymore)
         unset($this->data['token']);
     }
 
@@ -276,12 +259,10 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function reset(): void
     {
-        // Clean up services from holder if token exists
         if (isset($this->data['token'])) {
             ServiceHolder::clear($this->data['token']);
         }
 
-        // Clear SQL caches
         SqlNormalizationCache::clear();
         CachedSqlStructureExtractor::clearCache();
 
@@ -300,7 +281,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function getIssues(): array
     {
-        //  Return cached result if available
         if (null !== $this->memoizedIssues) {
             return $this->memoizedIssues;
         }
@@ -311,12 +291,8 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             return [];
         }
 
-        //  Reconstruct issue objects from stored data (fast, no re-analysis)
         $issuesData = $this->data['issues'] ?? [];
 
-        // Reconstruct issues using a new IssueReconstructor
-        // Note: templateRenderer is null here (lost after serialization)
-        // But issues are already serialized with rendered content, so null is fine
         $issueReconstructor = new IssueReconstructor();
 
         $this->memoizedIssues = array_map(
@@ -336,12 +312,9 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function getIssuesByCategory(string $category): array
     {
-        //  Use IssueCollection for efficient filtering
         $issueCollection = IssueCollection::fromArray($this->getIssues());
 
-        // Filter by category using the issue's getCategory() method
         $filtered = $issueCollection->filter(function (IssueInterface $issue) use ($category): bool {
-            // All issues should implement getCategory(), but check to be safe
             if (!method_exists($issue, 'getCategory')) {
                 return false;
             }
@@ -366,12 +339,10 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function getStats(): array
     {
-        //  Return cached result if available
         if (null !== $this->memoizedStats) {
             return $this->memoizedStats;
         }
 
-        //  Use IssueCollection for efficient counting (single pass)
         $issueCollection = IssueCollection::fromArray($this->getIssues());
         $counts          = $issueCollection->statistics()->countBySeverity();
 
@@ -394,7 +365,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     {
         $queries = $this->data['timeline_queries'] ?? [];
 
-        //  Generator: no memory copies
         Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
@@ -428,7 +398,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function getGroupedQueriesByTime(): array
     {
-        // Return empty array if data not collected yet
         if (!isset($this->data['timeline_queries'])) {
             return [];
         }
@@ -443,15 +412,9 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $sql = is_string($rawSql) ? $rawSql : '';
             $executionTime = (float) ($query['executionMS'] ?? 0.0);
 
-            // IMPORTANT: Despite the field name 'executionMS', Symfony's Doctrine middleware
-            // actually stores duration in SECONDS (see Query::getDuration() doc comment).
-            // However, some contexts (tests, legacy code) may already provide milliseconds.
-            // Heuristic: values between 0 and 1 are likely seconds, values >= 1 are likely milliseconds.
             if ($executionTime > 0 && $executionTime < 1) {
-                // Likely in seconds, convert to milliseconds
                 $executionMs = $executionTime * 1000;
             } else {
-                // Already in milliseconds
                 $executionMs = $executionTime;
             }
 
@@ -473,12 +436,10 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $grouped[$sql]['minTimeMs'] = min($grouped[$sql]['minTimeMs'], $executionMs);
         }
 
-        // Calculate average time for each group
         foreach ($grouped as $sql => $group) {
             $grouped[$sql]['avgTimeMs'] = $group['totalTimeMs'] / $group['count'];
         }
 
-        // Sort by total time descending (slowest total time first)
         $result = array_values($grouped);
         usort($result, fn (array $queryA, array $queryB): int => $queryB['totalTimeMs'] <=> $queryA['totalTimeMs']);
 
@@ -495,12 +456,10 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             return [];
         }
 
-        //  Return cached result if available
         if (null !== $this->memoizedDebugData) {
             return $this->memoizedDebugData;
         }
 
-        //  Return stored data (already collected during collect())
         $this->memoizedDebugData = $this->data['debug_data'] ?? [];
 
         return $this->memoizedDebugData;
@@ -517,12 +476,10 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function getDatabaseInfo(): array
     {
-        //  Return cached result if available
         if (null !== $this->memoizedDatabaseInfo) {
             return $this->memoizedDatabaseInfo;
         }
 
-        //  Return stored data (already collected during lateCollect())
         $this->memoizedDatabaseInfo = $this->data['database_info'] ?? [
             'driver'              => 'N/A',
             'database_version'    => 'N/A',
@@ -569,22 +526,16 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
         $dataCollectorLogger->logInfoIfEnabled(sprintf('analyzeQueriesLazy() called with %d queries', count($queries)));
 
-        // NOTE: We still run analyzers even with no queries because some analyzers
-        // (like BlameableTraitAnalyzer, MissingEmbeddableOpportunityAnalyzer) analyze
-        // entity metadata, not queries!
         if ([] === $queries) {
             $dataCollectorLogger->logInfoIfEnabled('No queries found, but still running metadata analyzers!');
         }
 
-        // Log first few queries for debugging
         $sampleSize = min(3, count($queries));
         for ($i = 0; $i < $sampleSize; ++$i) {
             $sql = $queries[$i]['sql'] ?? 'N/A';
             $dataCollectorLogger->logInfoIfEnabled(sprintf('Query #%d: %s', $i + 1, substr($sql, 0, 100)));
         }
 
-        // ⚡ OPTIMIZATION: Filter queries ONCE before creating the generator (not N times in the loop!)
-        // This avoids iterating through all backtraces N times (once per analyzer)
         $filteredQueries = $queries;
         if ([] !== $this->excludePaths) {
             $filteredQueries = $this->filterQueriesByPaths($queries, $this->excludePaths);
@@ -597,9 +548,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             ));
         }
 
-        //  OPTIMIZATION: Factory callable to create a fresh generator for each analyzer
-        // Each analyzer gets its OWN generator - never reused!
-        // Uses FILTERED queries (vendor/ already excluded)
         $createQueryDTOsGenerator = function () use ($filteredQueries, $dataCollectorLogger) {
             Assert::isIterable($filteredQueries, '$filteredQueries must be iterable');
 
@@ -607,16 +555,12 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                 try {
                     yield QueryData::fromArray($query);
                 } catch (\Throwable $e) {
-                    // Log conversion errors but continue
                     $dataCollectorLogger->logWarningIfDebugEnabled('Failed to convert query to DTO', $e);
 
-                    // Skip this query
                 }
             }
         };
 
-        //  OPTIMIZATION: Generator for issues - no array_merge, streams results
-        // Each analyzer gets a FRESH QueryDataCollection (not shared!)
         $allIssuesGenerator = function () use ($createQueryDTOsGenerator, $analyzers, $dataCollectorLogger) {
             Assert::isIterable($analyzers, '$analyzers must be iterable');
 
@@ -625,9 +569,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                 $dataCollectorLogger->logInfoIfEnabled(sprintf('Running analyzer: %s', $analyzerName));
 
                 try {
-                    //  Create FRESH collection for THIS analyzer only
-                    // Pass the CALLABLE, not the generator result!
-                    // Queries are already filtered (no need to call excludePaths again!)
                     $queryCollection = QueryDataCollection::fromGenerator($createQueryDTOsGenerator);
 
                     $dataCollectorLogger->logInfoIfEnabled(sprintf('Created QueryCollection for %s', $analyzerName));
@@ -636,7 +577,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
                     $issueCount = 0;
 
-                    // Yield each issue individually
                     Assert::isIterable($issueCollection, '$issueCollection must be iterable');
 
                     foreach ($issueCollection as $issue) {
@@ -647,25 +587,19 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
                     $dataCollectorLogger->logInfoIfEnabled(sprintf('Analyzer %s produced %d issues', $analyzerName, $issueCount));
                 } catch (\Throwable $e) {
-                    // Log analyzer errors - these are critical as they prevent issue detection!
                     $dataCollectorLogger->logErrorIfDebugEnabled('Analyzer failed to execute: ' . $analyzer::class, $e);
 
-                    // Continue with next analyzer - don't let one broken analyzer stop all analysis
                 }
             }
         };
 
-        //  OPTIMIZATION: Use IssueCollection with built-in sorting
         $issuesCollection = IssueCollection::fromGenerator($allIssuesGenerator);
 
-        // Log issue count before deduplication
         $beforeCount = $issuesCollection->count();
         $dataCollectorLogger->logInfoIfEnabled(sprintf('Total issues before deduplication: %d', $beforeCount));
 
-        //  DEDUPLICATION: Remove redundant issues (N+1 vs Lazy Loading vs Frequent Query)
         $deduplicatedCollection = $issueDeduplicator->deduplicate($issuesCollection);
 
-        // Log deduplication results
         $afterCount = $deduplicatedCollection->count();
         $removed = $beforeCount - $afterCount;
         $dataCollectorLogger->logInfoIfEnabled(sprintf(
@@ -674,10 +608,8 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $afterCount,
         ));
 
-        // Sort by severity after deduplication
         $deduplicatedCollection = $deduplicatedCollection->sorting()->bySeverityDescending();
 
-        //  Final conversion to array (required for serialization)
         return $deduplicatedCollection->toArrayOfArrays();
     }
 
@@ -702,7 +634,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         foreach ($queries as $query) {
             Assert::isArray($query, 'Query must be an array');
 
-            // Check if this query should be excluded based on backtrace
             if (!$this->isQueryFromExcludedPaths($query, $excludedPaths)) {
                 $filtered[] = $query;
             }
@@ -734,15 +665,12 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     {
         $backtrace = $queryArray['backtrace'] ?? null;
 
-        // No backtrace = include by default (conservative approach)
         if (null === $backtrace || !is_array($backtrace) || [] === $backtrace) {
             return false;
         }
 
         Assert::isIterable($backtrace, '$backtrace must be iterable');
 
-        // Find the FIRST frame that is NOT from an excluded path
-        // This represents the "originating" application code
         $firstAppFrame = null;
         $hasValidFrames = false; // Track if we found at least one valid frame
 
@@ -757,13 +685,10 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                 continue;
             }
 
-            // We found a valid frame with a file path
             $hasValidFrames = true;
 
-            // Normalize path separators for cross-platform compatibility
             $normalizedPath = str_replace('\\', '/', $file);
 
-            // Check if this frame is from an excluded path
             $isExcluded = false;
             foreach ($excludedPaths as $excludedPath) {
                 $normalizedExcludedPath = str_replace('\\', '/', $excludedPath);
@@ -774,26 +699,20 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                 }
             }
 
-            // If this frame is NOT excluded, it's our first application frame!
             if (!$isExcluded) {
                 $firstAppFrame = $normalizedPath;
                 break;
             }
         }
 
-        // If we found an application frame, INCLUDE the query (return false to NOT exclude)
         if (null !== $firstAppFrame) {
             return false; // Query originates from application code
         }
 
-        // CONSERVATIVE APPROACH:
-        // If we found NO valid frames at all, include the query (don't risk false positives)
         if (!$hasValidFrames) {
             return false;
         }
 
-        // If we found valid frames but ALL are from excluded paths, EXCLUDE the query
-        // This means the entire call stack is vendor/cache code
         return true;
     }
 }

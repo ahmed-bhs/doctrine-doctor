@@ -40,7 +40,6 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
-        //  Article pattern: Use generator instead of array
         return IssueCollection::fromGenerator(
             /**
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
@@ -58,7 +57,6 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                     Assert::numeric($operationsBetweenFlush);
 
                     if ($flushCount >= $this->flushCountThreshold) {
-                        // Use factory to create suggestion (new architecture)
                         $suggestion = $this->suggestionFactory->createFlushInLoop(
                             flushCount: $flushCount,
                             operationsBetweenFlush: (float) $operationsBetweenFlush,
@@ -163,7 +161,6 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         $avgOperationsBetweenFlush = array_sum(array_column($flushGroups, 'operations_between_flush'))
                                     / count($flushGroups);
 
-        // If operations between flushes are consistent and small (1-10), it's likely flush in a loop
         if ($avgOperationsBetweenFlush <= 0 || $avgOperationsBetweenFlush > 10) {
             return null;
         }
@@ -209,10 +206,6 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
      */
     private function isPotentialFlushBoundary(array $queries, int $currentIndex): bool
     {
-        // Look for patterns that suggest a flush happened:
-        // 1. A sequence of INSERT/UPDATE followed by SELECTs (entity refresh)
-        // 2. Time gap between queries
-        // 3. Change in backtrace location (new iteration)
 
         if (!isset($queries[$currentIndex], $queries[$currentIndex + 1])) {
             return false;
@@ -221,34 +214,11 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         $current = $queries[$currentIndex];
         $next    = $queries[$currentIndex + 1];
 
-        // Pattern 1: INSERT/UPDATE followed by SELECT
         if (($current->isInsert() || $current->isUpdate()) && $next->isSelect()) {
             return true;
         }
 
-        // Pattern 2: Backtrace returns to same location (indicates loop iteration)
-        // Note: We DON'T flag when backtrace simply changes (that's just different services)
-        // We only flag if the backtrace pattern suggests a loop (same file:line appearing multiple times)
-        // This is handled at a higher level by analyzing patterns across multiple groups
 
         return false;
-    }
-
-    private function getTopBacktraceFrame(?array $backtrace): string
-    {
-        if (null === $backtrace || [] === $backtrace || !is_array($backtrace)) {
-            return '';
-        }
-
-        // Get the first meaningful frame
-        Assert::isIterable($backtrace, '$backtrace must be iterable');
-
-        foreach ($backtrace as $frame) {
-            if (isset($frame['file'], $frame['line'])) {
-                return $frame['file'] . ':' . $frame['line'];
-            }
-        }
-
-        return '';
     }
 }

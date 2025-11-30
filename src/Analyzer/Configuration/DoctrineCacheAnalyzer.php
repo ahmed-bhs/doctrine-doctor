@@ -72,54 +72,45 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
-        //  Article pattern: Use generator instead of array
         return IssueCollection::fromGenerator(
             /**
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () {
-                // First, check YAML configuration files for production issues
-                // This allows detection even in dev/test environments
                 $yamlIssues = $this->checkYamlConfiguration();
                 foreach ($yamlIssues as $issue) {
                     yield $issue;
                 }
 
-                // Only analyze runtime configuration in production environment
                 if ('prod' !== $this->environment) {
                     return;
                 }
 
                 $configuration = $this->entityManager->getConfiguration();
-                // Check 1: Metadata Cache (CRITICAL)
                 $metadataIssue = $this->checkMetadataCache($configuration);
 
                 if ($metadataIssue instanceof ConfigurationIssue) {
                     yield $metadataIssue;
                 }
 
-                // Check 2: Query Cache (HIGH)
                 $queryIssue = $this->checkQueryCache($configuration);
 
                 if ($queryIssue instanceof ConfigurationIssue) {
                     yield $queryIssue;
                 }
 
-                // Check 3: Result Cache (MEDIUM)
                 $resultIssue = $this->checkResultCache($configuration);
 
                 if ($resultIssue instanceof ConfigurationIssue) {
                     yield $resultIssue;
                 }
 
-                // Check 4: Auto Generate Proxy Classes (HIGH)
                 $proxyIssue = $this->checkProxyConfiguration($configuration);
 
                 if ($proxyIssue instanceof ConfigurationIssue) {
                     yield $proxyIssue;
                 }
 
-                // Check 5: Second Level Cache (if enabled)
                 if ($configuration->isSecondLevelCacheEnabled()) {
                     $secondLevelIssue = $this->checkSecondLevelCache($configuration);
 
@@ -148,7 +139,7 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
      *
      * @return array<ConfigurationIssue>
      *
-     * @SuppressWarnings(PHPMD.StaticAccess)
+     * @SuppressWarnings("PHPMD.StaticAccess")
      */
     private function checkYamlConfiguration(): array
     {
@@ -167,11 +158,9 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         try {
             $config = Yaml::parseFile($configFile);
 
-            // Check when@prod section for array cache configuration
             if (isset($config['when@prod']['doctrine']['orm'])) {
                 $prodOrmConfig = $config['when@prod']['doctrine']['orm'];
 
-                // Check metadata_cache_driver
                 if (isset($prodOrmConfig['metadata_cache_driver']['type'])
                     && 'array' === $prodOrmConfig['metadata_cache_driver']['type']) {
                     $issues[] = $this->createYamlIssue(
@@ -186,7 +175,6 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                     );
                 }
 
-                // Check query_cache_driver
                 if (isset($prodOrmConfig['query_cache_driver']['type'])
                     && 'array' === $prodOrmConfig['query_cache_driver']['type']) {
                     $issues[] = $this->createYamlIssue(
@@ -201,7 +189,6 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                     );
                 }
 
-                // Check result_cache_driver
                 if (isset($prodOrmConfig['result_cache_driver']['type'])
                     && 'array' === $prodOrmConfig['result_cache_driver']['type']) {
                     $issues[] = $this->createYamlIssue(
@@ -217,7 +204,6 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                 }
             }
         } catch (\Exception $e) {
-            // Ignore YAML parsing errors - file might be malformed
             return $issues;
         }
 
@@ -287,7 +273,6 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
             );
         }
 
-        // Check if it's filesystem cache (better than array, but not optimal)
         if ($this->isFilesystemCache($cache)) {
             return $this->createIssue(
                 'warning',
@@ -384,9 +369,6 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     {
         $autoGenerate = $configuration->getAutoGenerateProxyClasses();
 
-        // In Doctrine 2.x: 0 = never, 1 = always, 2 = on file change
-        // In Doctrine 3.x: similar constants
-        // auto_generate_proxy_classes should be false/0 in production
 
         if (in_array($autoGenerate, [true, 1, 2], true)) {
             $configurationIssue = new ConfigurationIssue([
@@ -430,14 +412,11 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
             return null;
         }
 
-        // Try to get the cache implementation (reflection)
         try {
             $reflectionClass  = new ReflectionClass($cacheFactory::class);
             $regionsCacheProp = $reflectionClass->getProperty('regionsConfiguration');
             $regionsCacheProp->getValue($cacheFactory);
 
-            // This is a simplified check - full implementation would be more complex
-            // For now, we just warn if second level cache is enabled but might be using array
 
             return $this->createIssue(
                 'warning',
@@ -448,7 +427,6 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                 'Varies',
             );
         } catch (\Exception) {
-            // Can't determine - skip
             return null;
         }
     }
@@ -466,7 +444,6 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
             }
         }
 
-        // Check for Symfony ArrayAdapter
         return str_contains($className, 'ArrayAdapter');
     }
 

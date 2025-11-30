@@ -58,9 +58,7 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                 Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $queryData) {
-                    // Detect SELECT * FROM table without WHERE or LIMIT
                     if ($this->isFindAllPattern($queryData->sql)) {
-                        // Count approximate rows that would be returned
                         $rowCount = $this->estimateRowCount($queryData);
 
                         if ($rowCount > $this->threshold) {
@@ -100,31 +98,24 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
     {
         $normalized = strtoupper(trim($sql));
 
-        // Must be a SELECT query
         if (!str_starts_with($normalized, 'SELECT')) {
             return false;
         }
 
-        // Ignore aggregate queries - they don't load entities into memory
-        // COUNT, MAX, MIN, SUM, AVG return a single value, not entity collections
-        if (preg_match('/SELECT\s+(COUNT|MAX|MIN|SUM|AVG)\s*\(/i', $sql)) {
+        if (preg_match('/SELECT\s+(COUNT|MAX|MIN|SUM|AVG)\s*\(/i', $sql) > 0) {
             return false;
         }
 
-        // Ignore EXISTS queries
-        if (preg_match('/SELECT\s+EXISTS\s*\(/i', $sql)) {
+        if (preg_match('/SELECT\s+EXISTS\s*\(/i', $sql) > 0) {
             return false;
         }
 
         try {
-            // Use SQL parser to properly detect WHERE/LIMIT (avoids false positives from comments/strings)
             $hasWhere = !empty($this->sqlExtractor->extractWhereColumns($sql));
             $hasLimit = $this->sqlExtractor->hasLimit($sql);
 
-            // Pattern: SELECT without WHERE and without LIMIT
             return !$hasWhere && !$hasLimit;
         } catch (\Throwable $e) {
-            // Fallback to simple string detection if parser fails
             $this->logger?->warning('[FindAllAnalyzer] Parser failed, using fallback', [
                 'error' => $e->getMessage(),
             ]);
@@ -139,15 +130,10 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
 
     private function estimateRowCount(QueryData $queryData): int
     {
-        // PRIORITY 1: Use actual row count from query result if available
         if (null !== $queryData->rowCount) {
             return $queryData->rowCount;
         }
 
-        // FALLBACK: For findAll() detection, we assume the query returns many rows
-        // since there's no WHERE/LIMIT clause. We use a high estimate to trigger
-        // the warning. In a real scenario without rowCount, it's better to be
-        // conservative and warn about potential issues.
         return 999; // Assume potentially large result set
     }
 }

@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -56,16 +55,12 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         'SET',
     ];
 
-    private SqlStructureExtractor $sqlExtractor;
-
     public function __construct(
         /**
          * @readonly
          */
         private int $threshold = 5,
-        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

@@ -62,7 +62,7 @@ class QueryData
      * Create from array (legacy compatibility).
      * @param array<string, mixed> $data
      *
-     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings("PHPMD.NPathComplexity")
      */
     public static function fromArray(array $data): self
     {

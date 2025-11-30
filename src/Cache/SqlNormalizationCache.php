@@ -56,7 +56,7 @@ final class SqlNormalizationCache
     private static ?SqlStructureExtractor $extractor = null;
 
     /**
-     * @var array<string, array{joins: bool, orderBy: bool, limit: bool, select: bool}> Quick analysis cache
+     * @var array<string, array{joins: bool, orderBy: bool, limit: bool, select: bool, groupBy: bool}> Quick analysis cache
      */
     private static array $analysisCache = [];
 

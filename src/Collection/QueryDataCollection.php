@@ -284,7 +284,6 @@ final class QueryDataCollection extends AbstractCollection
      */
     public function excludePaths(array $excludedPaths): self
     {
-        // If no paths to exclude, return as-is
         if ([] === $excludedPaths) {
             return $this;
         }
@@ -302,7 +301,6 @@ final class QueryDataCollection extends AbstractCollection
     {
         $backtrace = $queryData->backtrace;
 
-        // No backtrace = include by default (conservative approach)
         if (null === $backtrace || [] === $backtrace) {
             return false;
         }
@@ -310,14 +308,12 @@ final class QueryDataCollection extends AbstractCollection
         foreach ($backtrace as $frame) {
             $file = $frame['file'] ?? '';
 
-            if ('' === $file) {
+            if ('' === $file || !is_string($file)) {
                 continue;
             }
 
-            // Normalize path separators for cross-platform compatibility (Windows vs Unix)
             $normalizedPath = str_replace('\\', '/', $file);
 
-            // Check if this frame matches any excluded path
             foreach ($excludedPaths as $excludedPath) {
                 $normalizedExcludedPath = str_replace('\\', '/', $excludedPath);
 

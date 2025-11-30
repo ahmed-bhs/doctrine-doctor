@@ -86,25 +86,20 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
                         continue;
                     }
 
-                    // Skip queries on small tables (fast execution = small table)
-                    // This avoids false positives for reference tables with few rows
                     if ($executionTime < $this->minExecutionTimeThreshold) {
                         continue;
                     }
 
-                    // Method 1: Detect LIKE with leading wildcard directly in SQL
                     if (preg_match_all(self::LIKE_LEADING_WILDCARD_PATTERN, $sql, $matches, PREG_SET_ORDER) >= 1) {
                         Assert::isIterable($matches, '$matches must be iterable');
 
                         foreach ($matches as $match) {
                             $pattern = $match[2]; // The LIKE pattern (e.g., '%search%')
 
-                            // Only flag if wildcard is at the beginning
                             if (!str_starts_with($pattern, '%')) {
                                 continue;
                             }
 
-                            // Deduplicate
                             $key = md5($pattern);
                             if (isset($seenIssues[$key])) {
                                 continue;
@@ -121,11 +116,9 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
                         }
                     }
 
-                    // Method 2: Detect LIKE with placeholder (? or :name) and check params for leading wildcard
                     if (str_contains(strtoupper($sql), 'LIKE') && !empty($params)) {
                         foreach ($params as $param) {
                             if (is_string($param) && str_starts_with($param, '%')) {
-                                // Deduplicate
                                 $key = md5($param);
                                 if (isset($seenIssues[$key])) {
                                     continue;
@@ -211,12 +204,6 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
     ): PerformanceIssue {
         $backtrace = $this->extractBacktrace($query);
 
-        // Determine severity based on execution time
-        // Leading wildcard LIKE patterns are ALWAYS problematic (prevent index usage)
-        // even with good current performance. The severity reflects the urgency:
-        // < 100ms: WARNING - Pattern is technically problematic, will degrade with data growth
-        // >= 100ms: CRITICAL - Already slow, immediate action required
-        // This proactive approach helps catch issues in dev (small datasets) before production
         $severity = match (true) {
             $executionTime >= 100 => Severity::critical(),
             default => Severity::warning(), // Always warn - pattern prevents index usage
@@ -224,7 +211,6 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
 
         $likeType = $this->getLikeType($pattern);
 
-        // Adapt title and description based on execution time
         [$title, $description] = $this->buildTitleAndDescription($pattern, $likeType, $executionTime, $severity);
 
         $issueData = new IssueData(
@@ -233,7 +219,7 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
             description: $description,
             severity: $severity,
             suggestion: $this->createIneffectiveLikeSuggestion($pattern, $sql, $likeType, $executionTime, $severity),
-            queries: [$query],
+            queries: [$query], // @phpstan-ignore argument.type (query is QueryData from collection)
             backtrace: $backtrace,
         );
 
@@ -281,7 +267,6 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
         $executionTimeStr = sprintf('%.2fms', $executionTime);
 
         if ($severity->isCritical()) {
-            // >= 100ms: Critical - already slow, immediate action needed
             $title = sprintf('LIKE Pattern Causing Slow Query (%s)', $executionTimeStr);
             $description = sprintf(
                 "Query uses LIKE with leading wildcard (%s), forcing full table scan. " .
@@ -293,9 +278,6 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
                 $pattern,
             );
         } else {
-            // < 100ms: Warning - pattern is problematic, will degrade with scale
-            // Even with good current performance (common in dev/small datasets),
-            // this pattern prevents index usage and will cause issues at scale
             $title = sprintf('LIKE Pattern Prevents Index Usage (%s)', $executionTimeStr);
             $description = sprintf(
                 "Query uses LIKE with leading wildcard (%s), which **prevents index usage and forces full table scan**. " .
@@ -321,7 +303,6 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
         float $executionTime,
         Severity $severity,
     ): mixed {
-        // Adapt suggestion title based on severity
         $suggestionSeverity = $severity;
         $suggestionTitle = $severity->isCritical()
             ? 'Replace LIKE with full-text search (urgent performance issue)'

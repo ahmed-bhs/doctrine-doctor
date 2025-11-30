@@ -22,7 +22,7 @@ use PhpMyAdmin\SqlParser\Statements\SelectStatement;
  * This class focuses solely on condition analysis,
  * following the Single Responsibility Principle.
  *
- * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings("PHPMD.ExcessiveClassComplexity")
  */
 final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
 {
@@ -218,7 +218,7 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
     }
 
     /**
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings("PHPMD.CyclomaticComplexity")
      */
     public function hasLocaleConstraintInJoin(string $sql): bool
     {
@@ -300,8 +300,8 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
     }
 
     /**
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings("PHPMD.CyclomaticComplexity")
+     * @SuppressWarnings("PHPMD.NPathComplexity")
      */
     public function isAliasUsedInQuery(string $sql, string $alias, ?string $joinExpression = null): bool
     {

@@ -287,6 +287,9 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         return null;
     }
 
+    /**
+     * @param class-string $entityClass
+     */
     private function checkForEnumOpportunity(
         string $entityClass,
         string $fieldName,
@@ -343,6 +346,8 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
     /**
      * Analyze distinct values in the database to determine if field looks like an enum.
      *
+     * @param class-string $entityClass
+     * @param array<string, mixed> $mapping
      * @return array{distinct: int, total: int, ratio: float}
      */
     private function analyzeDistinctValues(string $entityClass, string $fieldName, array $mapping): array
@@ -359,7 +364,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             );
             $result = $this->entityManager->getConnection()->executeQuery($sql)->fetchAssociative();
 
-            if (!$result || 0 === (int) $result['t']) {
+            if (false === $result || 0 === (int) $result['t']) {
                 return ['distinct' => 0, 'total' => 0, 'ratio' => 1.0];
             }
 

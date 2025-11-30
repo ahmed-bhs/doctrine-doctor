@@ -25,7 +25,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  * $allMetadata = $this->metadataProvider->getAllMetadata(); // Already filtered!
  * ```
  *
- * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
+ * @SuppressWarnings("PHPMD.BooleanArgumentFlag")
  */
 class EntityMetadataProvider
 {

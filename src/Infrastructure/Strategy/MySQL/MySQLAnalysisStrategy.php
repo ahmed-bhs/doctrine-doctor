@@ -35,7 +35,7 @@ use Doctrine\DBAL\Connection;
  * This facade maintains backward compatibility while allowing dependency injection
  * of specialized analyzers for testing and extensibility.
  *
- * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+ * @SuppressWarnings("PHPMD.ExcessiveParameterList")
  */
 class MySQLAnalysisStrategy implements PlatformAnalysisStrategy
 {

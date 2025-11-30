@@ -129,28 +129,20 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         $issues      = [];
         $entityClass = $classMetadata->getName();
 
-        // Get all field mappings (excluding associations)
         $fieldMappings = $classMetadata->fieldMappings;
 
         Assert::isIterable($fieldMappings, '$fieldMappings must be iterable');
 
         foreach ($fieldMappings as $fieldName => $mapping) {
-            // Skip non-integer fields (foreign keys are typically integers)
             $type = MappingHelper::getString($mapping, 'type');
 
             if (!in_array($type, ['integer', 'bigint', 'smallint'], true)) {
                 continue;
             }
 
-            // Check if field name suggests it's a foreign key
-            // Check if there's already a proper relation for this field
             if ($this->isForeignKeyField($fieldName) && !$this->hasProperRelation($classMetadata, $fieldName)) {
-                // Only report if the target entity actually exists in the project
-                // This avoids false positives for external IDs (vendorId when Vendor doesn't exist)
                 $targetEntity = $this->guessTargetEntity($fieldName, $allMetadata);
 
-                // If targetEntity contains namespace separator, it exists in metadata
-                // If it's just a simple name like "Vendor", the entity doesn't exist
                 if (null !== $targetEntity && str_contains($targetEntity, '\\')) {
                     $issue = $this->createForeignKeyIssue(
                         $entityClass,
@@ -174,25 +166,18 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
     {
         $lowerFieldName = strtolower($fieldName);
 
-        // Check common FK suffixes first (strongest indicator)
-        // This takes priority over non-FK patterns to avoid "countryId" vs "count" issues
         foreach (self::FK_SUFFIXES as $suffix) {
             if (str_ends_with($lowerFieldName, strtolower($suffix)) && 'id' !== $lowerFieldName) {
                 return true;
             }
         }
 
-        // Then check if this field is explicitly NOT a foreign key
-        // Only apply if it doesn't have a strong FK suffix
         if ($this->isNonForeignKeyField($lowerFieldName)) {
             return false;
         }
 
-        // Check if field name contains entity patterns AND is a simple reference
-        // More restrictive: only match if it's a simple entity reference
         foreach (self::ENTITY_PATTERNS as $pattern) {
             if (str_contains($lowerFieldName, $pattern)) {
-                // Additional check: ensure it's not compound with non-FK patterns
                 if ($this->isSimpleEntityReference($lowerFieldName, $pattern)) {
                     return true;
                 }
@@ -225,23 +210,19 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         $patternLength = strlen($pattern);
         $fieldLength = strlen($fieldName);
 
-        // Check if pattern appears at the end (suffix)
         if (str_ends_with($fieldName, $pattern)) {
             return true;
         }
 
-        // Check if pattern appears at the beginning
         if (str_starts_with($fieldName, $pattern)) {
             return true;
         }
 
-        // Check if pattern appears in the middle with word boundaries
         $pos = strpos($fieldName, $pattern);
         if (false === $pos) {
             return false;
         }
 
-        // Must have word boundaries before and after
         $before = (0 === $pos) || !ctype_alpha($fieldName[$pos - 1]);
         $after = ($pos + $patternLength === $fieldLength) || !ctype_alpha($fieldName[$pos + $patternLength]);
 
@@ -256,7 +237,6 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
      */
     private function isSimpleEntityReference(string $fieldName, string $entityPattern): bool
     {
-        // Check if the field is exactly the entity name + optional suffix
         $patternParts = [
             $entityPattern,
             $entityPattern . '_id',
@@ -271,12 +251,9 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
             }
         }
 
-        // Additional check: if it contains entity pattern but is much longer,
-        // it's likely compound (like orderExpirationDays)
         $entityLength = strlen($entityPattern);
         $fieldLength = strlen($fieldName);
 
-        // If field is significantly longer than entity pattern, it's compound
         if ($fieldLength > $entityLength + 6) { // Allow for _id suffix
             return false;
         }
@@ -289,7 +266,6 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
      */
     private function hasProperRelation(ClassMetadata $classMetadata, string $fieldName): bool
     {
-        // Remove common FK suffixes to get base name
         $baseName = $fieldName;
 
         foreach (self::FK_SUFFIXES as $suffix) {
@@ -299,7 +275,6 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
             }
         }
 
-        // Check if there's an association with this base name
         $associations = $classMetadata->getAssociationNames();
 
         Assert::isIterable($associations, '$associations must be iterable');
@@ -323,12 +298,10 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         array|object $mapping,
         array $allMetadata,
     ): IntegrityIssue {
-        // Try to guess the target entity
         $targetEntity = $this->guessTargetEntity($fieldName, $allMetadata);
 
         $type = MappingHelper::getString($mapping, 'type');
 
-        // Create synthetic backtrace
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
         $codeQualityIssue = new IntegrityIssue([
@@ -361,7 +334,6 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
      */
     private function guessTargetEntity(string $fieldName, array $allMetadata): ?string
     {
-        // Remove FK suffix
         $baseName = $fieldName;
 
         foreach (self::FK_SUFFIXES as $suffix) {
@@ -371,7 +343,6 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
             }
         }
 
-        // Try to find matching entity
         $baseNameLower = strtolower($baseName);
 
         Assert::isIterable($allMetadata, '$allMetadata must be iterable');
@@ -385,7 +356,6 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
             }
         }
 
-        // Return capitalized base name as guess
         return ucfirst($baseName);
     }
 
@@ -445,7 +415,6 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
                 return null;
             }
 
-            // Try to find the property line
             $lineNumber = $reflectionClass->getStartLine();
 
             if ($reflectionClass->hasProperty($fieldName)) {

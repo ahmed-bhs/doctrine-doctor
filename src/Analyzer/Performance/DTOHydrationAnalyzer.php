@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -57,34 +56,27 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
      */
     private const MIN_OCCURRENCES = 2;
 
-    private SqlStructureExtractor $sqlExtractor;
-
     public function __construct(
         /**
          * @readonly
          */
         private SuggestionFactory $suggestionFactory,
-        ?SqlStructureExtractor $sqlExtractor = null,
     ) {
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
-        //  Article pattern: Use generator instead of array
         return IssueCollection::fromGenerator(
             /**
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                // Group queries with aggregations
                 $aggregationQueries = $this->findAggregationQueries($queryDataCollection);
 
                 if ([] === $aggregationQueries) {
                     return IssueCollection::empty();
                 }
 
-                // Group by pattern
                 $patterns = $this->groupQueriesByPattern($aggregationQueries);
 
                 Assert::isIterable($patterns, '$patterns must be iterable');
@@ -94,7 +86,6 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                         continue;
                     }
 
-                    // Check if already using DTO hydration
                     Assert::string($pattern, 'Pattern key must be string');
                     if ($this->usesDTOHydration($pattern)) {
                         continue;
@@ -121,7 +112,6 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             $sql      = $query->sql;
             $upperSql = strtoupper($sql);
 
-            // Check for aggregation functions
             $hasAggregation = false;
 
             foreach (self::AGGREGATION_FUNCTIONS as $func) {
@@ -131,7 +121,6 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                 }
             }
 
-            // Check for GROUP BY
             $hasGroupBy = str_contains($upperSql, 'GROUP BY');
 
             if ($hasAggregation || $hasGroupBy) {
@@ -197,16 +186,13 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $firstQuery = $queries[0];
         $example    = is_array($firstQuery) ? ($firstQuery['sql'] ?? '') : $firstQuery->sql;
 
-        // Extract backtrace from first query for debugging
         $backtrace = is_array($firstQuery)
             ? ($firstQuery['backtrace'] ?? null)
             : $firstQuery->backtrace;
 
-        // Detect aggregation types
         $aggregations = $this->detectAggregations($example);
         $hasGroupBy   = str_contains(strtoupper((string) $example), 'GROUP BY');
 
-        // Calculate performance impact
         $avgTime              = $this->calculateAverageTime($queries);
         $estimatedImprovement = $this->estimateImprovement($avgTime, $count);
 
@@ -280,7 +266,6 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
      */
     private function estimateImprovement(float $avgTime, int $count): string
     {
-        // Conservative: 3x faster, 70% less memory
         $timeSaved   = round($avgTime * 0.66 * $count, 2);
         $memorySaved = 70;
 
