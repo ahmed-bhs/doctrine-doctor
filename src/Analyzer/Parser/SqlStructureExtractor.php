@@ -141,6 +141,14 @@ class SqlStructureExtractor
         return $this->joinExtractor->extractTableNameWithAlias($sql, $targetAlias);
     }
 
+    /**
+     * @return array<int, array{left: string, operator: string, right: string}>
+     */
+    public function extractJoinOnConditions(string $sql, string $tableName): array
+    {
+        return $this->joinExtractor->extractJoinOnConditions($sql, $tableName);
+    }
+
     // ==================== QUERY NORMALIZER DELEGATION ====================
 
     public function normalizeQuery(string $sql): string

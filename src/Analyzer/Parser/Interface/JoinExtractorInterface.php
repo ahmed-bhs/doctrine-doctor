@@ -101,4 +101,24 @@ interface JoinExtractorInterface
      * @return array{realName: string, display: string, alias: string}|null
      */
     public function extractTableNameWithAlias(string $sql, string $targetAlias): ?array;
+
+    /**
+     * Extracts parsed ON conditions for a specific JOIN.
+     *
+     * Returns structured conditions instead of a string, making it easier to analyze
+     * JOIN relationships without regex parsing.
+     *
+     * Example:
+     * SQL: "... LEFT JOIN orders o ON u.id = o.user_id AND o.status = 'active' ..."
+     * Returns:
+     * [
+     *     ['left' => 'u.id', 'operator' => '=', 'right' => 'o.user_id'],
+     *     ['left' => 'o.status', 'operator' => '=', 'right' => "'active'"],
+     * ]
+     *
+     * @param string $sql The full SQL query
+     * @param string $tableName The joined table name to find conditions for
+     * @return array<int, array{left: string, operator: string, right: string}> Array of parsed conditions
+     */
+    public function extractJoinOnConditions(string $sql, string $tableName): array;
 }

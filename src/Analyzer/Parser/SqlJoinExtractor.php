@@ -280,4 +280,59 @@ final class SqlJoinExtractor implements JoinExtractorInterface
             default => $type,
         };
     }
+
+    /**
+     * Extracts parsed ON conditions for a specific JOIN.
+     *
+     * @return array<int, array{left: string, operator: string, right: string}>
+     */
+    public function extractJoinOnConditions(string $sql, string $tableName): array
+    {
+        $parser = new Parser($sql);
+        $statement = $parser->statements[0] ?? null;
+
+        if (!$statement instanceof SelectStatement) {
+            return [];
+        }
+
+        if (null === $statement->join || [] === $statement->join) {
+            return [];
+        }
+
+        // Find matching JOIN by table name
+        foreach ($statement->join as $join) {
+            $joinTable = $join->expr->table ?? null;
+            $joinAlias = $join->expr->alias ?? null;
+
+            // Match by table name or alias
+            if ($joinTable !== $tableName && $joinAlias !== $tableName) {
+                continue;
+            }
+
+            // Extract and parse ON conditions
+            if (null === $join->on || [] === $join->on) {
+                return [];
+            }
+
+            $parsedConditions = [];
+
+            foreach ($join->on as $condition) {
+                // Skip logical operators (AND, OR)
+                if ($condition->isOperator) {
+                    continue;
+                }
+
+                // Extract structured condition
+                $parsedConditions[] = [
+                    'left' => $condition->leftOperand,
+                    'operator' => $condition->operator,
+                    'right' => $condition->rightOperand,
+                ];
+            }
+
+            return $parsedConditions;
+        }
+
+        return [];
+    }
 }

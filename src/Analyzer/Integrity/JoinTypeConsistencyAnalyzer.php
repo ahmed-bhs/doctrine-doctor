@@ -402,11 +402,13 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      */
     private function extractFromTable(string $sql, array $metadataMap): ?string
     {
-        if (1 !== preg_match('/FROM\s+(\w+)(?:\s+\w+)?/i', $sql, $matches)) {
+        $mainTable = $this->sqlExtractor->extractMainTable($sql);
+
+        if (null === $mainTable) {
             return null;
         }
 
-        $tableName = $matches[1];
+        $tableName = $mainTable['table'];
 
         if (!isset($metadataMap[$tableName])) {
             return null;
@@ -434,23 +436,14 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             return false;
         }
 
-        // Extract ON clause
-        $joinExpression = $join['type'] . ' JOIN ' . $joinTable . (isset($join['alias']) ? ' ' . $join['alias'] : '');
-        $onClause = $this->sqlExtractor->extractJoinOnClause($sql, $joinExpression);
-
-        if (null === $onClause) {
-            return $this->canBeCollection($joinTable, $metadataMap);
-        }
-
-        // Analyze FK direction
-        return $this->isForeignKeyInJoinedTable($onClause, $fromTable, $joinTable, $metadataMap);
+        return $this->isForeignKeyInJoinedTable($sql, $fromTable, $joinTable, $metadataMap);
     }
 
     /**
      * Determine if FK is in joined table (making it a collection).
      * @param array<string, ClassMetadata> $metadataMap
      */
-    private function isForeignKeyInJoinedTable(string $onClause, string $fromTable, string $joinTable, array $metadataMap): bool
+    private function isForeignKeyInJoinedTable(string $sql, string $fromTable, string $joinTable, array $metadataMap): bool
     {
         $fromMetadata = $metadataMap[$fromTable] ?? null;
         $joinMetadata = $metadataMap[$joinTable] ?? null;
@@ -462,12 +455,19 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         $fromPKs = $fromMetadata->getIdentifierFieldNames();
         $joinPKs = $joinMetadata->getIdentifierFieldNames();
 
-        // Parse ON clause
-        if (1 !== preg_match('/(\w+)\.(\w+)\s*=\s*(\w+)\.(\w+)/i', $onClause, $matches)) {
-            return false;
+        $conditions = $this->sqlExtractor->extractJoinOnConditions($sql, $joinTable);
+
+        if ([] === $conditions) {
+            return $this->canBeCollection($joinTable, $metadataMap);
         }
 
-        [, , $leftCol, , $rightCol] = $matches;
+        $condition = $conditions[0];
+
+        $leftParts = explode('.', $condition['left']);
+        $rightParts = explode('.', $condition['right']);
+
+        $leftCol = end($leftParts);
+        $rightCol = end($rightParts);
 
         // from.PK = join.nonPK → Collection
         if (in_array($leftCol, $fromPKs, true) && !in_array($rightCol, $joinPKs, true)) {

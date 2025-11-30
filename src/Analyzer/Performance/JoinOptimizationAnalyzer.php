@@ -315,12 +315,13 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
      */
     private function extractFromTable(string $sql, array $metadataMap): ?string
     {
-        // Pattern: FROM table_name alias
-        if (1 !== preg_match('/FROM\s+(\w+)(?:\s+\w+)?/i', $sql, $matches)) {
+        $mainTable = $this->sqlExtractor->extractMainTable($sql);
+
+        if (null === $mainTable) {
             return null;
         }
 
-        $tableName = $matches[1];
+        $tableName = $mainTable['table'];
 
         // Verify table exists in metadata
         if (!isset($metadataMap[$tableName])) {
@@ -715,18 +716,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
             return false;
         }
 
-        // Extract the ON clause for this specific JOIN
-        $onClause = $this->extractOnClauseForJoin($sql, $join);
-
-        if (null === $onClause) {
-            // Fallback: check if table CAN be a collection based on metadata
-            return $this->canBeCollection($joinTable, $metadataMap);
-        }
-
-        // Analyze FK direction from ON clause
-        // Pattern: "table1.column1 = table2.column2"
-        // We need to determine which column is the FK
-        return $this->isForeignKeyInJoinedTable($onClause, $fromTable, $joinTable, $metadataMap);
+        return $this->isForeignKeyInJoinedTable($sql, $fromTable, $joinTable, $metadataMap);
     }
 
     /**
@@ -765,7 +755,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
      * @param array<string, ClassMetadata> $metadataMap
      */
     private function isForeignKeyInJoinedTable(
-        string $onClause,
+        string $sql,
         string $fromTable,
         string $joinTable,
         array $metadataMap,
@@ -780,12 +770,10 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $fromPKs = $fromMetadata->getIdentifierFieldNames();
         $joinPKs = $joinMetadata->getIdentifierFieldNames();
 
-        // Split ON clause by AND to handle composite keys
-        // Example: "t1.id1 = t2.fk1 AND t1.id2 = t2.fk2"
-        $conditions = preg_split('/\s+AND\s+/i', $onClause);
+        $conditions = $this->sqlExtractor->extractJoinOnConditions($sql, $joinTable);
 
-        if (false === $conditions) {
-            return false;
+        if ([] === $conditions) {
+            return $this->canBeCollection($joinTable, $metadataMap);
         }
 
         $collectionVotes = 0;
@@ -793,19 +781,11 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $totalConditions = 0;
 
         foreach ($conditions as $condition) {
-            // Parse each condition: "table1.col1 = table2.col2"
-            // Skip conditions with functions or complex expressions
-            if (false !== stripos($condition, '(')) {
-                // Contains function call - skip for safety
-                continue;
-            }
+            $leftParts = explode('.', $condition['left']);
+            $rightParts = explode('.', $condition['right']);
 
-            // Extract column names (basic pattern - handles simple equality)
-            if (1 !== preg_match('/(\w+)\.(\w+)\s*=\s*(\w+)\.(\w+)/i', $condition, $matches)) {
-                continue;
-            }
-
-            [, $leftAlias, $leftCol, $rightAlias, $rightCol] = $matches;
+            $leftCol = end($leftParts);
+            $rightCol = end($rightParts);
 
             ++$totalConditions;
 
