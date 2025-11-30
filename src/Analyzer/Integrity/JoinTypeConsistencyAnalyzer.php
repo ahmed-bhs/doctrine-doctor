@@ -137,36 +137,41 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                             $metadataMap = $this->getMetadataMap();
                             $fromTable = $this->extractFromTable($sql, $metadataMap);
 
-                            if (null !== $fromTable) {
-                                $hasCollectionInnerJoin = false;
+                            $shouldAlert = false;
 
+                            if (null !== $fromTable) {
+                                // With metadata: check if JOIN is on collection
                                 foreach ($innerJoins as $join) {
                                     if ($this->isCollectionJoin($join, $metadataMap, $sql, $fromTable)) {
-                                        $hasCollectionInnerJoin = true;
+                                        $shouldAlert = true;
                                         break;
                                     }
                                 }
+                            } else {
+                                // Without metadata: fallback to conservative detection
+                                // Alert on any INNER JOIN with aggregation as it MIGHT be a collection
+                                $shouldAlert = true;
+                            }
 
-                                if ($hasCollectionInnerJoin) {
-                                    $aggregation = $aggregations[0];
+                            if ($shouldAlert) {
+                                $aggregation = $aggregations[0];
 
-                                    $key = 'aggregation_inner_join_' . md5($sql);
-                                    if (isset($seenIssues[$key])) {
-                                        continue;
-                                    }
-
-                                    $seenIssues[$key] = true;
-
-                                    // Check if the query is protected against row duplication
-                                    $isProtected = $this->isQueryProtectedAgainstDuplication($sql);
-
-                                    yield $this->createAggregationWithInnerJoinIssue(
-                                        $aggregation,
-                                        $sql,
-                                        $query,
-                                        $isProtected,
-                                    );
+                                $key = 'aggregation_inner_join_' . md5($sql);
+                                if (isset($seenIssues[$key])) {
+                                    continue;
                                 }
+
+                                $seenIssues[$key] = true;
+
+                                // Check if the query is protected against row duplication
+                                $isProtected = $this->isQueryProtectedAgainstDuplication($sql);
+
+                                yield $this->createAggregationWithInnerJoinIssue(
+                                    $aggregation,
+                                    $sql,
+                                    $query,
+                                    $isProtected,
+                                );
                             }
                         }
                     }
