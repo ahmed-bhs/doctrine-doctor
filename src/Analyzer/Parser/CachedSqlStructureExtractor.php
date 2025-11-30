@@ -101,6 +101,16 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     private static array $hasDistinctCache = [];
 
     /**
+     * @var array<string, bool> Cache for hasJoins results
+     */
+    private static array $hasJoinsCache = [];
+
+    /**
+     * @var array<string, bool> Cache for hasComplexWhereConditions results
+     */
+    private static array $hasComplexWhereConditionsCache = [];
+
+    /**
      * @var int Cache hit counter
      */
     private static int $hits = 0;
@@ -366,6 +376,44 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     }
 
     /**
+     * Check if SQL has JOINs (cached).
+     */
+    public function hasJoins(string $sql): bool
+    {
+        $key = md5($sql);
+
+        if (isset(self::$hasJoinsCache[$key])) {
+            ++self::$hits;
+
+            return self::$hasJoinsCache[$key];
+        }
+
+        ++self::$misses;
+        self::$hasJoinsCache[$key] = parent::hasJoins($sql);
+
+        return self::$hasJoinsCache[$key];
+    }
+
+    /**
+     * Check if SQL has complex WHERE conditions (cached).
+     */
+    public function hasComplexWhereConditions(string $sql): bool
+    {
+        $key = md5($sql);
+
+        if (isset(self::$hasComplexWhereConditionsCache[$key])) {
+            ++self::$hits;
+
+            return self::$hasComplexWhereConditionsCache[$key];
+        }
+
+        ++self::$misses;
+        self::$hasComplexWhereConditionsCache[$key] = parent::hasComplexWhereConditions($sql);
+
+        return self::$hasComplexWhereConditionsCache[$key];
+    }
+
+    /**
      * Warm up cache with queries.
      *
      * OPTIMIZED: Only processes unique SQL patterns (based on md5 hash).
@@ -397,6 +445,8 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
                 $instance->detectLazyLoadingPattern($sql);
                 $instance->detectPartialCollectionLoad($sql);
                 $instance->detectNPlusOneFromJoin($sql);
+                $instance->hasJoins($sql);
+                $instance->hasComplexWhereConditions($sql);
             }
         }
     }
@@ -417,6 +467,8 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
             + count(self::$normalizeCache)
             + count(self::$hasSubqueryCache)
             + count(self::$hasOrderByCache)
+            + count(self::$hasJoinsCache)
+            + count(self::$hasComplexWhereConditionsCache)
             + count(self::$orderByColumnsCache)
             + count(self::$hasGroupByCache)
             + count(self::$groupByColumnsCache)
@@ -442,6 +494,8 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         self::$partialCollectionCache = [];
         self::$nplusOneJoinCache = [];
         self::$normalizeCache = [];
+        self::$hasJoinsCache = [];
+        self::$hasComplexWhereConditionsCache = [];
         self::$hasSubqueryCache = [];
         self::$hasOrderByCache = [];
         self::$orderByColumnsCache = [];

@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\CachedSqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -28,7 +28,7 @@ use Webmozart\Assert\Assert;
 
 class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    private SqlStructureExtractor $sqlExtractor;
+    private CachedSqlStructureExtractor $sqlExtractor;
 
     public function __construct(
         /**
@@ -47,9 +47,9 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
          * @readonly
          */
         private ?LoggerInterface $logger = null,
-        ?SqlStructureExtractor $sqlExtractor = null,
+        ?CachedSqlStructureExtractor $sqlExtractor = null,
     ) {
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+        $this->sqlExtractor = $sqlExtractor ?? new CachedSqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
