@@ -322,7 +322,6 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\DTOHydrationAnalyzer:
         arguments:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
-            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
 
