@@ -21,6 +21,8 @@ use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Webmozart\Assert\Assert;
 
 /**
@@ -45,7 +47,16 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
 
     private SqlStructureExtractor $sqlExtractor;
 
+    /**
+     * @var array<string, ClassMetadata>|null Cached metadata map
+     */
+    private ?array $metadataMapCache = null;
+
     public function __construct(
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
         /**
          * @readonly
          */
@@ -111,38 +122,53 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                         }
                     }
 
-                    // Pattern 2: COUNT/SUM/AVG with INNER JOIN (potential duplication bug)
-                    // Migration from regex to SQL Parser:
-                    // - Use extractAggregationFunctions() to find aggregation functions (SQL Parser)
-                    // - Keep lightweight regex for INNER JOIN detection
-                    //
-                    // Why regex here? The SQL parser (phpmyadmin/sql-parser) doesn't parse subqueries recursively.
-                    // Example: "SELECT COUNT(*) FROM (SELECT * FROM users INNER JOIN orders) sub"
-                    // → extractJoins() only sees the outer query, misses INNER JOIN in subquery
-                    // → Simple regex scan works across all nesting levels
-                    // This is an appropriate use of regex: lightweight string pattern matching in valid SQL.
+                    // Pattern 2: COUNT/SUM/AVG with INNER JOIN on collection (potential duplication bug)
+                    // IMPROVED: Now only alerts if INNER JOIN is on a collection (OneToMany/ManyToMany)
+                    // INNER JOIN on ManyToOne doesn't cause row duplication, so no false positive
                     $aggregations = $this->sqlExtractor->extractAggregationFunctions($sql);
-                    $hasInnerJoin = (bool) preg_match('/\bINNER\s+JOIN\b/i', $sql);
 
-                    if (!empty($aggregations) && $hasInnerJoin) {
-                        $aggregation = $aggregations[0]; // Use first aggregation function found
+                    if (!empty($aggregations)) {
+                        // Extract INNER JOINs specifically
+                        $joins = $this->sqlExtractor->extractJoins($sql);
+                        $innerJoins = array_filter($joins, fn ($join) => 'INNER' === $join['type']);
 
-                        $key = 'aggregation_inner_join_' . md5($sql);
-                        if (isset($seenIssues[$key])) {
-                            continue;
+                        if (!empty($innerJoins)) {
+                            // Check if any INNER JOIN is on a collection
+                            $metadataMap = $this->getMetadataMap();
+                            $fromTable = $this->extractFromTable($sql, $metadataMap);
+
+                            if (null !== $fromTable) {
+                                $hasCollectionInnerJoin = false;
+
+                                foreach ($innerJoins as $join) {
+                                    if ($this->isCollectionJoin($join, $metadataMap, $sql, $fromTable)) {
+                                        $hasCollectionInnerJoin = true;
+                                        break;
+                                    }
+                                }
+
+                                if ($hasCollectionInnerJoin) {
+                                    $aggregation = $aggregations[0];
+
+                                    $key = 'aggregation_inner_join_' . md5($sql);
+                                    if (isset($seenIssues[$key])) {
+                                        continue;
+                                    }
+
+                                    $seenIssues[$key] = true;
+
+                                    // Check if the query is protected against row duplication
+                                    $isProtected = $this->isQueryProtectedAgainstDuplication($sql);
+
+                                    yield $this->createAggregationWithInnerJoinIssue(
+                                        $aggregation,
+                                        $sql,
+                                        $query,
+                                        $isProtected,
+                                    );
+                                }
+                            }
                         }
-
-                        $seenIssues[$key] = true;
-
-                        // Check if the query is protected against row duplication
-                        $isProtected = $this->isQueryProtectedAgainstDuplication($sql);
-
-                        yield $this->createAggregationWithInnerJoinIssue(
-                            $aggregation,
-                            $sql,
-                            $query,
-                            $isProtected,
-                        );
                     }
                 }
             },
@@ -345,5 +371,148 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                 tags: $tags,
             ),
         );
+    }
+
+    /**
+     * Build metadata map (cached for performance).
+     * @return array<string, ClassMetadata>
+     */
+    private function getMetadataMap(): array
+    {
+        if (null !== $this->metadataMapCache) {
+            return $this->metadataMapCache;
+        }
+
+        $map = [];
+        $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
+
+        foreach ($allMetadata as $metadata) {
+            $tableName = $metadata->getTableName();
+            $map[$tableName] = $metadata;
+        }
+
+        $this->metadataMapCache = $map;
+
+        return $map;
+    }
+
+    /**
+     * Extract FROM table from SQL.
+     * @param array<string, ClassMetadata> $metadataMap
+     */
+    private function extractFromTable(string $sql, array $metadataMap): ?string
+    {
+        if (1 !== preg_match('/FROM\s+(\w+)(?:\s+\w+)?/i', $sql, $matches)) {
+            return null;
+        }
+
+        $tableName = $matches[1];
+
+        if (!isset($metadataMap[$tableName])) {
+            return null;
+        }
+
+        return $tableName;
+    }
+
+    /**
+     * Determine if a JOIN is on a collection (OneToMany/ManyToMany).
+     * @param array<string, mixed> $join
+     * @param array<string, ClassMetadata> $metadataMap
+     */
+    private function isCollectionJoin(array $join, array $metadataMap, string $sql, string $fromTable): bool
+    {
+        $joinTable = $join['table'];
+
+        if (!is_string($joinTable)) {
+            return false;
+        }
+
+        $metadata = $metadataMap[$joinTable] ?? null;
+
+        if (null === $metadata) {
+            return false;
+        }
+
+        // Extract ON clause
+        $joinExpression = $join['type'] . ' JOIN ' . $joinTable . (isset($join['alias']) ? ' ' . $join['alias'] : '');
+        $onClause = $this->sqlExtractor->extractJoinOnClause($sql, $joinExpression);
+
+        if (null === $onClause) {
+            return $this->canBeCollection($joinTable, $metadataMap);
+        }
+
+        // Analyze FK direction
+        return $this->isForeignKeyInJoinedTable($onClause, $fromTable, $joinTable, $metadataMap);
+    }
+
+    /**
+     * Determine if FK is in joined table (making it a collection).
+     * @param array<string, ClassMetadata> $metadataMap
+     */
+    private function isForeignKeyInJoinedTable(string $onClause, string $fromTable, string $joinTable, array $metadataMap): bool
+    {
+        $fromMetadata = $metadataMap[$fromTable] ?? null;
+        $joinMetadata = $metadataMap[$joinTable] ?? null;
+
+        if (null === $fromMetadata || null === $joinMetadata) {
+            return false;
+        }
+
+        $fromPKs = $fromMetadata->getIdentifierFieldNames();
+        $joinPKs = $joinMetadata->getIdentifierFieldNames();
+
+        // Parse ON clause
+        if (1 !== preg_match('/(\w+)\.(\w+)\s*=\s*(\w+)\.(\w+)/i', $onClause, $matches)) {
+            return false;
+        }
+
+        [, , $leftCol, , $rightCol] = $matches;
+
+        // from.PK = join.nonPK → Collection
+        if (in_array($leftCol, $fromPKs, true) && !in_array($rightCol, $joinPKs, true)) {
+            return true;
+        }
+
+        // from.nonPK = join.PK → NOT collection
+        if (!in_array($leftCol, $fromPKs, true) && in_array($rightCol, $joinPKs, true)) {
+            return false;
+        }
+
+        return $this->canBeCollection($joinTable, $metadataMap);
+    }
+
+    /**
+     * Fallback: Check if table CAN be a collection based on metadata.
+     * @param array<string, ClassMetadata> $metadataMap
+     */
+    private function canBeCollection(string $tableName, array $metadataMap): bool
+    {
+        foreach ($metadataMap as $metadata) {
+            foreach ($metadata->getAssociationMappings() as $mapping) {
+                $targetEntity = $mapping['targetEntity'] ?? null;
+
+                if (null === $targetEntity) {
+                    continue;
+                }
+
+                try {
+                    $targetMetadata = $this->entityManager->getClassMetadata($targetEntity);
+
+                    if ($targetMetadata->getTableName() === $tableName) {
+                        if (
+                            ClassMetadata::ONE_TO_MANY === $mapping['type']
+                            || ClassMetadata::MANY_TO_MANY === $mapping['type']
+                        ) {
+                            return true;
+                        }
+                    }
+                } catch (\Exception) {
+                    continue;
+                }
+            }
+        }
+
+        return false;
     }
 }
