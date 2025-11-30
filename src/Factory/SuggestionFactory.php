@@ -473,7 +473,7 @@ final class SuggestionFactory
     public function createOverEagerLoading(
         int $joinCount,
     ): SuggestionInterface {
-        Assert::greaterThan($joinCount, 2, 'Join count must be greater than 2 for over-eager loading, got %s');
+        Assert::greaterThanEq($joinCount, 2, 'Join count must be at least 2 for over-eager loading, got %s');
 
         return new ModernSuggestion(
             templateName: 'Performance/over_eager_loading',

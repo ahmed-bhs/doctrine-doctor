@@ -15,6 +15,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\JoinTypeConsistencyAnalyzer;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\InMemoryTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -31,9 +32,10 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
 
     protected function setUp(): void
     {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         $renderer = new InMemoryTemplateRenderer();
         $suggestionFactory = new SuggestionFactory($renderer);
-        $this->analyzer = new JoinTypeConsistencyAnalyzer($suggestionFactory);
+        $this->analyzer = new JoinTypeConsistencyAnalyzer($entityManager, $suggestionFactory);
     }
 
     #[Test]
