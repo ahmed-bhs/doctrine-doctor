@@ -105,6 +105,17 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             return false;
         }
 
+        // Ignore aggregate queries - they don't load entities into memory
+        // COUNT, MAX, MIN, SUM, AVG return a single value, not entity collections
+        if (preg_match('/SELECT\s+(COUNT|MAX|MIN|SUM|AVG)\s*\(/i', $sql)) {
+            return false;
+        }
+
+        // Ignore EXISTS queries
+        if (preg_match('/SELECT\s+EXISTS\s*\(/i', $sql)) {
+            return false;
+        }
+
         try {
             // Use SQL parser to properly detect WHERE/LIMIT (avoids false positives from comments/strings)
             $hasWhere = !empty($this->sqlExtractor->extractWhereColumns($sql));

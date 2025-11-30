@@ -82,6 +82,16 @@ final class IssueDeduplicator
         $sql = $this->extractSqlFromIssue($issue);
         $entityOrTable = $this->extractEntityOrTable($title, $description, $sql);
 
+        // Special handling: Issues that should NEVER be grouped together
+        // even if they have the same SQL (they identify different problems)
+        if (str_contains($title, 'Multiple Collection JOINs')) {
+            return 'multi_collection_joins:' . md5($sql);
+        }
+
+        if (str_contains($title, 'Suboptimal LEFT JOIN')) {
+            return 'suboptimal_left_join:' . md5($sql . ':' . ($entityOrTable ?? ''));
+        }
+
         // Try specific signature strategies in order of priority
         $signature = $this->getRepeatedQuerySignature($title, $entityOrTable);
         if (null !== $signature) {
@@ -289,8 +299,10 @@ final class IssueDeduplicator
         $priorities = [
             'N+1 Query' => 100,
             'Missing Index' => 90,
+            'Multiple Collection JOINs' => 85,  // JoinOptimizationAnalyzer - multi-step hydration opportunity (O(n^m) complexity)
             'Lazy Loading' => 80,
             'Too Many JOINs' => 75,  // JoinOptimizationAnalyzer - technical SQL optimization
+            'Suboptimal LEFT JOIN' => 73,  // JoinOptimizationAnalyzer - LEFT JOIN on NOT NULL should be INNER JOIN
             'Excessive Eager Loading' => 72,  // EagerLoadingAnalyzer - performance/cartesian product risk
             'Slow Query' => 70,
             'Unused JOIN' => 60,

@@ -226,15 +226,10 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
             return true;
         }
 
-        // Pattern 2: Backtrace changes (indicates new loop iteration or function call)
-        if (null !== $current->backtrace && null !== $next->backtrace) {
-            $currentTrace = $this->getTopBacktraceFrame($current->backtrace);
-            $nextTrace    = $this->getTopBacktraceFrame($next->backtrace);
-
-            if ($currentTrace !== $nextTrace) {
-                return true;
-            }
-        }
+        // Pattern 2: Backtrace returns to same location (indicates loop iteration)
+        // Note: We DON'T flag when backtrace simply changes (that's just different services)
+        // We only flag if the backtrace pattern suggests a loop (same file:line appearing multiple times)
+        // This is handled at a higher level by analyzing patterns across multiple groups
 
         return false;
     }

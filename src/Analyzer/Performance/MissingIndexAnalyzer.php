@@ -567,11 +567,15 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         }
 
         if ($isFullIndexScan && null === $possibleKeys) {
-            return true; // Full index scan without selective index available
+            // Full index scan without selective index available
+            // But still respect the minimum rows threshold for small tables
+            return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
         }
 
         if ($hasPossibleKeysButNotUsed) {
-            return true; // MySQL has indexes but chose not to use them
+            // MySQL has indexes but chose not to use them
+            // But still respect the minimum rows threshold for small tables
+            return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
         }
 
         // For other cases, only suggest if many rows scanned

@@ -110,14 +110,14 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
 
     /**
      * Collect query frequencies and details.
-     * @return array{0: array<string, int>, 1: array<string, array{originalSql: string, totalTime: float, backtrace: ?array}>}
-     * @phpstan-return array{0: array<string, int>, 1: array<string, array{originalSql: string, totalTime: float, backtrace: ?array}>}
+     * @return array{0: array<string, int>, 1: array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array}>}
+     * @phpstan-return array{0: array<string, int>, 1: array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array}>}
      */
     private function collectQueryFrequencies(QueryDataCollection $queryDataCollection): array
     {
         /** @var array<string, int> */
         $queryFrequencies = [];
-        /** @var array<string, array{originalSql: string, totalTime: float, backtrace: ?array}> */
+        /** @var array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array}> */
         $queryDetails = [];
 
         Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
@@ -136,7 +136,9 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
 
             // Create a unique key combining normalized SQL + parameters
             // This ensures we only count TRUE duplicates (same query + same params)
-            $queryKey = $this->createQueryKey($normalized, $params);
+            // For queries with LIMIT/OFFSET in SQL (pagination), use the original SQL
+            // to distinguish different pages
+            $queryKey = $this->createQueryKey($sql, $normalized, $params);
 
             if (!isset($queryFrequencies[$queryKey])) {
                 $queryFrequencies[$queryKey] = 0;
@@ -144,12 +146,14 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
                     'originalSql' => $sql,
                     'totalTime' => 0.0,
                     'backtrace' => $this->extractBacktrace($query),
+                    'queries' => [],
                 ];
             }
 
             $queryFrequencies[$queryKey]++;
             $existingTotal = $queryDetails[$queryKey]['totalTime'];
             $queryDetails[$queryKey]['totalTime'] = $existingTotal + $executionTime;
+            $queryDetails[$queryKey]['queries'][] = $query;
         }
 
         /** @phpstan-ignore-next-line */
@@ -159,7 +163,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     /**
      * Generate issues for frequently executed queries.
      * @param array<string, int> $queryFrequencies
-     * @param array<string, array{originalSql: string, totalTime: float, backtrace: ?array}> $queryDetails
+     * @param array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array}> $queryDetails
      * @return \Generator<PerformanceIssue>
      */
     private function generateFrequentQueryIssues(array $queryFrequencies, array $queryDetails): \Generator
@@ -181,6 +185,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
                     $count,
                     $details['totalTime'],
                     $details['backtrace'],
+                    $details['queries'],
                 );
             }
         }
@@ -216,6 +221,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
                     $sql,
                     $staticTable,
                     $this->extractBacktrace($query),
+                    $query,
                 );
             }
         }
@@ -291,9 +297,16 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
      *
      * @param array<mixed> $params
      */
-    private function createQueryKey(string $normalizedSql, array $params): string
+    private function createQueryKey(string $originalSql, string $normalizedSql, array $params): string
     {
-        // If no params available (old data or native queries), fall back to SQL-only key
+        // For queries with LIMIT/OFFSET in SQL (pagination), use original SQL
+        // to distinguish different pages (LIMIT 5 OFFSET 0 vs LIMIT 5 OFFSET 5)
+        $upperSql = strtoupper($originalSql);
+        if (str_contains($upperSql, 'LIMIT') || str_contains($upperSql, 'OFFSET')) {
+            return md5($originalSql);
+        }
+
+        // If no params available (old data or native queries), fall back to normalized SQL key
         if (empty($params)) {
             return $normalizedSql;
         }
@@ -367,6 +380,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         int $count,
         float $totalTime,
         ?array $backtrace,
+        array $queries,
     ): PerformanceIssue {
         // Determine severity based on frequency
         $severity = match (true) {
@@ -396,7 +410,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
             ),
             severity: $severity,
             suggestion: $this->createFrequentQuerySuggestion($originalSql, $count, $totalTime),
-            queries: [],
+            queries: $queries,
             backtrace: $backtrace,
         );
 
@@ -410,6 +424,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         string $sql,
         string $tableName,
         ?array $backtrace,
+        array|object $query,
     ): PerformanceIssue {
         $issueData = new IssueData(
             type: 'static_table_caching_opportunity',
@@ -422,7 +437,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
             ),
             severity: Severity::info(),
             suggestion: $this->createStaticTableSuggestion($sql, $tableName),
-            queries: [],
+            queries: [$query],
             backtrace: $backtrace,
         );
 

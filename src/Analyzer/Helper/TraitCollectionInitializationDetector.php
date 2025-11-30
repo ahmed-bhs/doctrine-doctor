@@ -53,12 +53,10 @@ final class TraitCollectionInitializationDetector
             $traits = $reflectionClass->getTraits();
 
             foreach ($traits as $trait) {
-                // Check if this trait initializes the collection
-                if ($this->doesTraitInitializeCollection($trait, $fieldName)) {
+                if ($this->doesTraitInitializeCollection($trait, $fieldName, $reflectionClass)) {
                     return true;
                 }
 
-                // Recursively check nested traits (traits using other traits)
                 if ($this->isCollectionInitializedInTraits($trait, $fieldName)) {
                     return true;
                 }
@@ -81,24 +79,26 @@ final class TraitCollectionInitializationDetector
      * This checks:
      * 1. Direct initialization in trait constructor
      * 2. Initialization via dedicated init methods
+     * 3. Aliased trait constructor called from class constructor
      *
      * @param ReflectionClass<object> $trait The trait to check
      * @param string $fieldName The field name to look for
+     * @param ReflectionClass<object>|null $usingClass The class using the trait (for alias detection)
      * @return bool True if the trait initializes this field
      */
-    private function doesTraitInitializeCollection(ReflectionClass $trait, string $fieldName): bool
+    private function doesTraitInitializeCollection(ReflectionClass $trait, string $fieldName, ?ReflectionClass $usingClass = null): bool
     {
         try {
-            // Check if trait has a constructor
             if (!$trait->hasMethod('__construct')) {
                 return false;
             }
 
             $traitConstructor = $trait->getMethod('__construct');
 
-            // Use PhpCodeParser for robust AST-based detection
-            // This replaces fragile regex with proper PHP parsing
             if ($this->phpCodeParser->hasCollectionInitialization($traitConstructor, $fieldName)) {
+                if (null !== $usingClass) {
+                    return $this->isTraitConstructorCalled($usingClass, $trait);
+                }
                 return true;
             }
 
@@ -111,5 +111,99 @@ final class TraitCollectionInitializationDetector
             ]);
             return false;
         }
+    }
+
+    /**
+     * Check if a trait's constructor is called from the using class.
+     *
+     * This detects patterns like:
+     * - Trait constructor aliased: `use TranslatableTrait { __construct as initTranslations; }`
+     *   and called: `$this->initTranslations();`
+     * - Direct call if not conflicting
+     *
+     * @param ReflectionClass<object> $usingClass The class using the trait
+     * @param ReflectionClass<object> $trait The trait being used
+     * @return bool True if the trait constructor is called
+     */
+    private function isTraitConstructorCalled(ReflectionClass $usingClass, ReflectionClass $trait): bool
+    {
+        if (!$usingClass->hasMethod('__construct')) {
+            return true;
+        }
+
+        $classConstructor = $usingClass->getMethod('__construct');
+
+        $filename = $classConstructor->getFileName();
+        if (false === $filename) {
+            return true; // Assume it's called if we can't check
+        }
+
+        $startLine = $classConstructor->getStartLine();
+        $endLine = $classConstructor->getEndLine();
+        if (false === $startLine || false === $endLine) {
+            return true;
+        }
+
+        $source = file($filename);
+        if (false === $source) {
+            return true;
+        }
+
+        $constructorCode = implode('', array_slice($source, $startLine - 1, $endLine - $startLine + 1));
+
+        $traitName = $trait->getShortName();
+
+        $patterns = [
+            '/\$this\s*->\s*init' . preg_quote($traitName, '/') . '\s*\(/i',
+            '/\$this\s*->\s*initialize' . preg_quote($traitName, '/') . '\s*\(/i',
+            '/\$this\s*->\s*' . lcfirst($traitName) . '__construct\s*\(/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (1 === preg_match($pattern, $constructorCode)) {
+                return true;
+            }
+        }
+
+        $traitAliases = $this->getTraitAliases($usingClass, $trait);
+        foreach ($traitAliases as $alias) {
+            if (str_contains($constructorCode, '$this->' . $alias . '(')) {
+                return true;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Get method aliases for a trait in a class.
+     * This parses the class file to find `use Trait { method as alias }` patterns.
+     *
+     * @param ReflectionClass<object> $usingClass
+     * @param ReflectionClass<object> $trait
+     * @return array<string> List of aliases for __construct
+     */
+    private function getTraitAliases(ReflectionClass $usingClass, ReflectionClass $trait): array
+    {
+        $aliases = [];
+        $filename = $usingClass->getFileName();
+        if (false === $filename) {
+            return $aliases;
+        }
+
+        $source = file_get_contents($filename);
+        if (false === $source) {
+            return $aliases;
+        }
+
+        $traitName = $trait->getShortName();
+
+        $pattern = '/' . preg_quote($traitName, '/') . '\s*::\s*__construct\s+as\s+(?:private\s+|protected\s+|public\s+)?(\w+)/i';
+
+        if (preg_match_all($pattern, $source, $matches)) {
+            $aliases = $matches[1];
+        }
+
+        return $aliases;
     }
 }

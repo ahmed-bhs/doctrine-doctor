@@ -31,6 +31,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         $this->analyzer = new IneffectiveLikeAnalyzer(
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            minExecutionTimeThreshold: 0.0, // Always report in tests
         );
     }
 

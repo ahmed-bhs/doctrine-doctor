@@ -97,15 +97,16 @@ final class FlushInLoopAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_detects_delete_with_backtrace_changes(): void
+    public function it_does_not_flag_delete_without_insert_update_pattern(): void
     {
-        // Arrange: DELETE -> SELECT with backtrace changes (loop iterations)
+        // Arrange: DELETE -> SELECT without INSERT/UPDATE is not a flush pattern
+        // Flush detection was refined to reduce false positives from backtrace changes
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 6; $i++) {
             $queries->addQueryWithBacktrace(
                 "DELETE FROM temp_users WHERE id = ?",
-                [['file' => 'UserService.php', 'line' => 100 + $i]],  // Different line each iteration
+                [['file' => 'UserService.php', 'line' => 100 + $i]],
                 2.0,
             );
             $queries->addQueryWithBacktrace(
@@ -118,9 +119,10 @@ final class FlushInLoopAnalyzerTest extends TestCase
         // Act
         $issues = $this->analyzer->analyze($queries->build());
 
-        // Assert: Should detect based on backtrace changes indicating flush boundaries
+        // Assert: DELETE -> SELECT alone is NOT a flush pattern (no INSERT/UPDATE before SELECT)
+        // This avoids false positives from simple DELETE operations
         $issuesArray = $issues->toArray();
-        self::assertGreaterThan(0, count($issuesArray), 'Should detect DELETE pattern with backtrace changes');
+        self::assertCount(0, $issuesArray, 'DELETE -> SELECT without INSERT/UPDATE should not be flagged');
     }
 
     #[Test]

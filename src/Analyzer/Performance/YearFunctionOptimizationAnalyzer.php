@@ -37,6 +37,12 @@ use Webmozart\Assert\Assert;
  */
 class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    /**
+     * Minimum execution time (ms) to report an issue.
+     * Fast queries likely don't need optimization or column is not indexed anyway.
+     */
+    private const MIN_EXECUTION_TIME_THRESHOLD = 10.0;
+
     public function __construct(
         /**
          * @readonly
@@ -46,6 +52,11 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
          * @readonly
          */
         private ?SqlStructureExtractor $sqlExtractor = null,
+        /**
+         * @readonly
+         * Minimum execution time in ms to report. Set to 0 to always report.
+         */
+        private float $minExecutionTimeThreshold = self::MIN_EXECUTION_TIME_THRESHOLD,
     ) {
         // Dependency injection with fallback for backwards compatibility
         $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
@@ -70,6 +81,12 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                     }
 
                     if ('0' === $sql) {
+                        continue;
+                    }
+
+                    // Skip fast queries - they likely don't need optimization
+                    // or the column is not indexed anyway
+                    if ($executionTime < $this->minExecutionTimeThreshold) {
                         continue;
                     }
 
@@ -164,7 +181,7 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             ),
             severity: $executionTime > 100 ? Severity::critical() : Severity::warning(),
             suggestion: $this->createDateFunctionSuggestion($function, $field, $operator, $value, $optimizedClause),
-            queries: [],
+            queries: [$query],
             backtrace: $backtrace,
         );
 

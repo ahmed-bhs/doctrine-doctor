@@ -82,6 +82,11 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
          * @readonly
          */
         private DataCollectorHelpers $dataCollectorHelpers,
+        /**
+         * @var array<string> Paths to exclude from DBAL query analysis (e.g., ['vendor/', 'var/cache/'])
+         * @readonly
+         */
+        private array $excludePaths = ['vendor/'],
     ) {
     }
 
@@ -578,12 +583,27 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $dataCollectorLogger->logInfoIfEnabled(sprintf('Query #%d: %s', $i + 1, substr($sql, 0, 100)));
         }
 
+        // ⚡ OPTIMIZATION: Filter queries ONCE before creating the generator (not N times in the loop!)
+        // This avoids iterating through all backtraces N times (once per analyzer)
+        $filteredQueries = $queries;
+        if ([] !== $this->excludePaths) {
+            $filteredQueries = $this->filterQueriesByPaths($queries, $this->excludePaths);
+            $filteredCount = count($queries) - count($filteredQueries);
+            $dataCollectorLogger->logInfoIfEnabled(sprintf(
+                'Applied exclude_paths filter (%s): %d queries filtered, %d remaining',
+                implode(', ', $this->excludePaths),
+                $filteredCount,
+                count($filteredQueries)
+            ));
+        }
+
         //  OPTIMIZATION: Factory callable to create a fresh generator for each analyzer
         // Each analyzer gets its OWN generator - never reused!
-        $createQueryDTOsGenerator = function () use ($queries, $dataCollectorLogger) {
-            Assert::isIterable($queries, '$queries must be iterable');
+        // Uses FILTERED queries (vendor/ already excluded)
+        $createQueryDTOsGenerator = function () use ($filteredQueries, $dataCollectorLogger) {
+            Assert::isIterable($filteredQueries, '$filteredQueries must be iterable');
 
-            foreach ($queries as $query) {
+            foreach ($filteredQueries as $query) {
                 try {
                     yield QueryData::fromArray($query);
                 } catch (\Throwable $e) {
@@ -607,6 +627,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                 try {
                     //  Create FRESH collection for THIS analyzer only
                     // Pass the CALLABLE, not the generator result!
+                    // Queries are already filtered (no need to call excludePaths again!)
                     $queryCollection = QueryDataCollection::fromGenerator($createQueryDTOsGenerator);
 
                     $dataCollectorLogger->logInfoIfEnabled(sprintf('Created QueryCollection for %s', $analyzerName));
@@ -658,5 +679,121 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
         //  Final conversion to array (required for serialization)
         return $deduplicatedCollection->toArrayOfArrays();
+    }
+
+    /**
+     * Filter raw queries by excluded paths (e.g., vendor/, var/cache/).
+     * This is done BEFORE converting to QueryData objects for performance.
+     *
+     * @param array<int, array<string, mixed>> $queries Raw query arrays from Doctrine DataCollector
+     * @param array<string>                    $excludedPaths Paths to exclude (e.g., ['vendor/', 'var/cache/'])
+     * @return array<int, array<string, mixed>> Filtered queries
+     */
+    private function filterQueriesByPaths(array $queries, array $excludedPaths): array
+    {
+        if ([] === $excludedPaths) {
+            return $queries;
+        }
+
+        $filtered = [];
+
+        Assert::isIterable($queries, '$queries must be iterable');
+
+        foreach ($queries as $query) {
+            Assert::isArray($query, 'Query must be an array');
+
+            // Check if this query should be excluded based on backtrace
+            if (!$this->isQueryFromExcludedPaths($query, $excludedPaths)) {
+                $filtered[] = $query;
+            }
+        }
+
+        return $filtered;
+    }
+
+    /**
+     * Check if a raw query originates from excluded paths by analyzing its backtrace.
+     *
+     * SMART FILTERING LOGIC:
+     * Instead of excluding if ANY frame is from vendor/, we find the FIRST application frame
+     * (non-vendor, non-cache) and use it to determine if the query should be excluded.
+     *
+     * Example:
+     *   App\Controller\UserController::index()  ← First app frame (NOT in vendor/)
+     *     → Symfony\Component\HttpKernel\...     ← vendor (ignored)
+     *     → Doctrine\ORM\EntityManager::...      ← vendor (ignored)
+     *
+     * Result: INCLUDED (because first app frame is from App\Controller, not vendor/)
+     *
+     * This ensures we analyze queries triggered by YOUR code, even if they go through vendor code.
+     *
+     * @param array<string, mixed> $queryArray Raw query array with 'backtrace' key
+     * @param array<string>        $excludedPaths Paths to check (e.g., ['vendor/', 'var/cache/'])
+     */
+    private function isQueryFromExcludedPaths(array $queryArray, array $excludedPaths): bool
+    {
+        $backtrace = $queryArray['backtrace'] ?? null;
+
+        // No backtrace = include by default (conservative approach)
+        if (null === $backtrace || !is_array($backtrace) || [] === $backtrace) {
+            return false;
+        }
+
+        Assert::isIterable($backtrace, '$backtrace must be iterable');
+
+        // Find the FIRST frame that is NOT from an excluded path
+        // This represents the "originating" application code
+        $firstAppFrame = null;
+        $hasValidFrames = false; // Track if we found at least one valid frame
+
+        foreach ($backtrace as $frame) {
+            if (!is_array($frame)) {
+                continue;
+            }
+
+            $file = $frame['file'] ?? '';
+
+            if ('' === $file || !is_string($file)) {
+                continue;
+            }
+
+            // We found a valid frame with a file path
+            $hasValidFrames = true;
+
+            // Normalize path separators for cross-platform compatibility
+            $normalizedPath = str_replace('\\', '/', $file);
+
+            // Check if this frame is from an excluded path
+            $isExcluded = false;
+            foreach ($excludedPaths as $excludedPath) {
+                $normalizedExcludedPath = str_replace('\\', '/', $excludedPath);
+
+                if (str_contains($normalizedPath, $normalizedExcludedPath)) {
+                    $isExcluded = true;
+                    break;
+                }
+            }
+
+            // If this frame is NOT excluded, it's our first application frame!
+            if (!$isExcluded) {
+                $firstAppFrame = $normalizedPath;
+                break;
+            }
+        }
+
+        // If we found an application frame, INCLUDE the query (return false to NOT exclude)
+        if (null !== $firstAppFrame) {
+            return false; // Query originates from application code
+        }
+
+        // CONSERVATIVE APPROACH:
+        // If we found NO valid frames at all, include the query (don't risk false positives)
+        if (!$hasValidFrames) {
+            return false;
+        }
+
+        // If we found valid frames but ALL are from excluded paths, EXCLUDE the query
+        // This means the entire call stack is vendor/cache code
+        return true;
     }
 }

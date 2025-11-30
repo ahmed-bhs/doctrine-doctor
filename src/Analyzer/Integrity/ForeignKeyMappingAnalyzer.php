@@ -145,13 +145,21 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
             // Check if field name suggests it's a foreign key
             // Check if there's already a proper relation for this field
             if ($this->isForeignKeyField($fieldName) && !$this->hasProperRelation($classMetadata, $fieldName)) {
-                $issue = $this->createForeignKeyIssue(
-                    $entityClass,
-                    $fieldName,
-                    $mapping,
-                    $allMetadata,
-                );
-                $issues[] = $issue;
+                // Only report if the target entity actually exists in the project
+                // This avoids false positives for external IDs (vendorId when Vendor doesn't exist)
+                $targetEntity = $this->guessTargetEntity($fieldName, $allMetadata);
+
+                // If targetEntity contains namespace separator, it exists in metadata
+                // If it's just a simple name like "Vendor", the entity doesn't exist
+                if (null !== $targetEntity && str_contains($targetEntity, '\\')) {
+                    $issue = $this->createForeignKeyIssue(
+                        $entityClass,
+                        $fieldName,
+                        $mapping,
+                        $allMetadata,
+                    );
+                    $issues[] = $issue;
+                }
             }
         }
 

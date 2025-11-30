@@ -70,8 +70,12 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                         continue;
                     }
 
+                    // Remove SQL comments to avoid false positives
+                    // e.g., "WHERE x IS NULL -- Don't use = NULL"
+                    $sqlWithoutComments = $this->removeSqlComments($sql);
+
                     // Find all incorrect NULL comparisons
-                    if (preg_match_all(self::NULL_COMPARISON_PATTERN, $sql, $matches, PREG_SET_ORDER) >= 1) {
+                    if (preg_match_all(self::NULL_COMPARISON_PATTERN, $sqlWithoutComments, $matches, PREG_SET_ORDER) >= 1) {
                         Assert::isIterable($matches, '$matches must be iterable');
 
                         foreach ($matches as $match) {
@@ -115,6 +119,21 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         }
 
         return is_object($query) && property_exists($query, 'sql') ? ($query->sql ?? '') : '';
+    }
+
+    /**
+     * Remove SQL comments to avoid false positives.
+     * Removes both single-line (--) and multi-line comments.
+     */
+    private function removeSqlComments(string $sql): string
+    {
+        // Remove single-line comments (-- ...)
+        $sql = preg_replace('/--.*$/m', '', $sql) ?? $sql;
+
+        // Remove multi-line comments (/* ... */)
+        $sql = preg_replace('/\/\*.*?\*\//s', '', $sql) ?? $sql;
+
+        return $sql;
     }
 
     /**

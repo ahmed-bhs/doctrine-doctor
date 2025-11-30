@@ -20,6 +20,8 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Webmozart\Assert\Assert;
 
 /**
@@ -48,15 +50,24 @@ use Webmozart\Assert\Assert;
  */
 class UnusedEagerLoadAnalyzer implements AnalyzerInterface
 {
-    /** @var int Threshold for detecting over-eager loading */
-    private const MULTIPLE_JOINS_THRESHOLD = 3;
+    /** @var int Threshold for detecting over-eager loading (collection JOINs only) */
+    private const MULTIPLE_COLLECTION_JOINS_THRESHOLD = 2;
 
     /** @var string Issue type identifier */
     private const ISSUE_TYPE = 'unused_eager_load';
 
     private SqlStructureExtractor $sqlExtractor;
 
+    /**
+     * @var array<string, ClassMetadata>|null Cached metadata map
+     */
+    private ?array $metadataMapCache = null;
+
     public function __construct(
+        /**
+         * @readonly
+         */
+        private EntityManagerInterface $entityManager,
         /**
          * @readonly
          */
@@ -156,30 +167,76 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
     }
 
     /**
-     * Detects over-eager loading with too many JOINs.
+     * Detects over-eager loading with too many collection JOINs.
+     *
+     * IMPROVED: Now distinguishes between:
+     * - Collection JOINs (OneToMany/ManyToMany) → cause cartesian product
+     * - ManyToOne JOINs → no row multiplication
+     *
+     * Only alerts if >=2 collection JOINs (real performance problem).
+     *
+     * Examples:
+     * - 3 ManyToOne JOINs → OK (1 row per entity)
+     * - 2 OneToMany JOINs → PROBLEM (cartesian product!)
      */
     private function detectOverEagerLoading(string $sql, ?array $backtrace): ?IssueData
     {
-        $joinCount = $this->sqlExtractor->countJoins($sql);
+        $metadataMap = $this->getMetadataMap();
 
-        if ($joinCount < self::MULTIPLE_JOINS_THRESHOLD) {
-            return null; // Not enough JOINs to be considered over-eager
+        // Extract FROM table to determine join direction
+        $fromTable = $this->extractFromTable($sql, $metadataMap);
+
+        if (null === $fromTable) {
+            // Can't analyze without knowing the main table - fallback to total count
+            $joinCount = $this->sqlExtractor->countJoins($sql);
+
+            if ($joinCount < self::MULTIPLE_COLLECTION_JOINS_THRESHOLD) {
+                return null;
+            }
+
+            return $this->createOverEagerIssue($joinCount, $backtrace, isCollection: null);
         }
 
-        // Over-eager loading: Multiple JOINs that likely cause data duplication
+        // Count collection JOINs specifically (these cause cartesian product)
+        $collectionJoinCount = $this->countCollectionJoins($sql, $fromTable, $metadataMap);
+
+        if ($collectionJoinCount < self::MULTIPLE_COLLECTION_JOINS_THRESHOLD) {
+            return null; // Not enough collection JOINs to be problematic
+        }
+
+        return $this->createOverEagerIssue($collectionJoinCount, $backtrace, isCollection: true);
+    }
+
+    /**
+     * Create over-eager loading issue.
+     */
+    private function createOverEagerIssue(int $joinCount, ?array $backtrace, ?bool $isCollection): IssueData
+    {
+        $joinType = $isCollection === true ? 'collection JOINs (OneToMany/ManyToMany)'
+                  : ($isCollection === false ? 'JOINs' : 'JOINs (possibly collections)');
+
         $description = DescriptionHighlighter::highlight(
-            'Over-eager loading detected: {count} JOINs in a single query. This can cause significant data duplication and memory waste, especially with collection relationships (OneToMany/ManyToMany).',
-            ['count' => $joinCount],
+            'Over-eager loading detected: {count} {type} in a single query. This can cause significant data duplication and memory waste.',
+            [
+                'count' => $joinCount,
+                'type' => $joinType,
+            ],
         );
 
-        $description .= "\n\nEach collection JOIN multiplies the result rows. With {$joinCount} JOINs, you may be loading the same parent entity data hundreds or thousands of times.";
+        if ($isCollection === true) {
+            $description .= "\n\n⚠️ Each collection JOIN multiplies the result rows. With {$joinCount} collection JOINs, you may be loading the same parent entity data hundreds or thousands of times.";
+            $description .= "\n\nExample: 1 parent × 10 items × 5 comments = 50 SQL rows for 1 entity!";
+        } else {
+            $description .= "\n\nMultiple JOINs can impact performance and memory usage.";
+        }
+
         $description .= "\n\nConsider using separate queries, batch fetching, or loading only the relations you actually need.";
 
         return new IssueData(
             type: self::ISSUE_TYPE,
-            title: "Over-Eager Loading: {$joinCount} JOINs in Single Query",
+            title: "Over-Eager Loading: {$joinCount} {$joinType} in Single Query",
             description: $description,
-            severity: $this->calculateOverEagerSeverity($joinCount),
+            severity: $this->calculateOverEagerSeverity($joinCount, $isCollection === true),
             suggestion: $this->createOverEagerSuggestion($joinCount),
             queries: [],
             backtrace: $backtrace,
@@ -258,11 +315,24 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
         return Severity::info();
     }
 
-    private function calculateOverEagerSeverity(int $joinCount): Severity
+    private function calculateOverEagerSeverity(int $joinCount, bool $isCollectionJoin = false): Severity
     {
-        // Many JOINs can cause exponential data duplication with collections
+        // Collection JOINs cause exponential data duplication - more severe
+        if ($isCollectionJoin) {
+            if ($joinCount >= 3) {
+                return Severity::critical(); // 3+ collection JOINs = exponential explosion
+            }
+
+            if ($joinCount >= 2) {
+                return Severity::warning(); // 2 collection JOINs = significant duplication
+            }
+
+            return Severity::info();
+        }
+
+        // Regular JOINs (ManyToOne) - less severe
         if ($joinCount >= 5) {
-            return Severity::critical(); // Likely severe performance issue
+            return Severity::critical();
         }
 
         if ($joinCount >= 4) {
@@ -270,5 +340,172 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
         }
 
         return Severity::info();
+    }
+
+    /**
+     * Build metadata map (cached for performance).
+     * @return array<string, ClassMetadata>
+     */
+    private function getMetadataMap(): array
+    {
+        if (null !== $this->metadataMapCache) {
+            return $this->metadataMapCache;
+        }
+
+        $map = [];
+        $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
+
+        foreach ($allMetadata as $metadata) {
+            $tableName = $metadata->getTableName();
+            $map[$tableName] = $metadata;
+        }
+
+        $this->metadataMapCache = $map;
+
+        return $map;
+    }
+
+    /**
+     * Extract FROM table from SQL.
+     * @param array<string, ClassMetadata> $metadataMap
+     */
+    private function extractFromTable(string $sql, array $metadataMap): ?string
+    {
+        if (1 !== preg_match('/FROM\s+(\w+)(?:\s+\w+)?/i', $sql, $matches)) {
+            return null;
+        }
+
+        $tableName = $matches[1];
+
+        if (!isset($metadataMap[$tableName])) {
+            return null;
+        }
+
+        return $tableName;
+    }
+
+    /**
+     * Count collection JOINs (OneToMany/ManyToMany) in the query.
+     * @param array<string, ClassMetadata> $metadataMap
+     */
+    private function countCollectionJoins(string $sql, string $fromTable, array $metadataMap): int
+    {
+        $joins = $this->sqlExtractor->extractJoins($sql);
+        $collectionCount = 0;
+
+        foreach ($joins as $join) {
+            if ($this->isCollectionJoin($join, $metadataMap, $sql, $fromTable)) {
+                ++$collectionCount;
+            }
+        }
+
+        return $collectionCount;
+    }
+
+    /**
+     * Determine if a JOIN is on a collection (OneToMany/ManyToMany).
+     * Reuses logic from JoinOptimizationAnalyzer.
+     *
+     * @param array<string, mixed> $join
+     * @param array<string, ClassMetadata> $metadataMap
+     */
+    private function isCollectionJoin(array $join, array $metadataMap, string $sql, string $fromTable): bool
+    {
+        $joinTable = $join['table'];
+
+        if (!is_string($joinTable)) {
+            return false;
+        }
+
+        $metadata = $metadataMap[$joinTable] ?? null;
+
+        if (null === $metadata) {
+            return false;
+        }
+
+        // Extract ON clause
+        $joinExpression = $join['type'] . ' JOIN ' . $joinTable . (isset($join['alias']) ? ' ' . $join['alias'] : '');
+        $onClause = $this->sqlExtractor->extractJoinOnClause($sql, $joinExpression);
+
+        if (null === $onClause) {
+            // Fallback: check metadata
+            return $this->canBeCollection($joinTable, $metadataMap);
+        }
+
+        // Analyze FK direction from ON clause
+        return $this->isForeignKeyInJoinedTable($onClause, $fromTable, $joinTable, $metadataMap);
+    }
+
+    /**
+     * Determine if FK is in joined table (making it a collection).
+     * Simplified version from JoinOptimizationAnalyzer.
+     *
+     * @param array<string, ClassMetadata> $metadataMap
+     */
+    private function isForeignKeyInJoinedTable(string $onClause, string $fromTable, string $joinTable, array $metadataMap): bool
+    {
+        $fromMetadata = $metadataMap[$fromTable] ?? null;
+        $joinMetadata = $metadataMap[$joinTable] ?? null;
+
+        if (null === $fromMetadata || null === $joinMetadata) {
+            return false;
+        }
+
+        $fromPKs = $fromMetadata->getIdentifierFieldNames();
+        $joinPKs = $joinMetadata->getIdentifierFieldNames();
+
+        // Parse ON clause: "table1.col1 = table2.col2"
+        if (1 !== preg_match('/(\w+)\.(\w+)\s*=\s*(\w+)\.(\w+)/i', $onClause, $matches)) {
+            return false;
+        }
+
+        [, , $leftCol, , $rightCol] = $matches;
+
+        // from.PK = join.nonPK → Collection
+        if (in_array($leftCol, $fromPKs, true) && !in_array($rightCol, $joinPKs, true)) {
+            return true;
+        }
+
+        // from.nonPK = join.PK → NOT collection
+        if (!in_array($leftCol, $fromPKs, true) && in_array($rightCol, $joinPKs, true)) {
+            return false;
+        }
+
+        // Uncertain - check metadata
+        return $this->canBeCollection($joinTable, $metadataMap);
+    }
+
+    /**
+     * Fallback: Check if table CAN be a collection based on metadata.
+     * @param array<string, ClassMetadata> $metadataMap
+     */
+    private function canBeCollection(string $tableName, array $metadataMap): bool
+    {
+        foreach ($metadataMap as $metadata) {
+            foreach ($metadata->getAssociationMappings() as $mapping) {
+                $targetEntity = $mapping['targetEntity'] ?? null;
+
+                if (null === $targetEntity) {
+                    continue;
+                }
+
+                try {
+                    $targetMetadata = $this->entityManager->getClassMetadata($targetEntity);
+
+                    if ($targetMetadata->getTableName() === $tableName) {
+                        if (
+                            ClassMetadata::ONE_TO_MANY === $mapping['type']
+                            || ClassMetadata::MANY_TO_MANY === $mapping['type']
+                        ) {
+                            return true;
+                        }
+                    }
+                } catch (\Exception) {
+                    continue;
+                }
+            }
+        }
+
+        return false;
     }
 }

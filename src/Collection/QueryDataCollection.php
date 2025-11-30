@@ -276,6 +276,61 @@ final class QueryDataCollection extends AbstractCollection
     }
 
     /**
+     * Exclude queries that originate from specified paths (e.g., vendor/, var/cache/).
+     * Analyzes the backtrace to determine if any frame is from excluded paths.
+     * This helps focus analysis on application code rather than third-party libraries.
+     *
+     * @param array<string> $excludedPaths Paths to exclude (e.g., ['vendor/', 'var/cache/'])
+     */
+    public function excludePaths(array $excludedPaths): self
+    {
+        // If no paths to exclude, return as-is
+        if ([] === $excludedPaths) {
+            return $this;
+        }
+
+        return $this->filter(fn (QueryData $queryData): bool => !$this->isQueryFromExcludedPaths($queryData, $excludedPaths));
+    }
+
+    /**
+     * Check if a query originates from one of the excluded paths by analyzing its backtrace.
+     * If any frame in the backtrace contains an excluded path, the query is filtered out.
+     *
+     * @param array<string> $excludedPaths Paths to check against (e.g., ['vendor/', 'var/cache/'])
+     */
+    private function isQueryFromExcludedPaths(QueryData $queryData, array $excludedPaths): bool
+    {
+        $backtrace = $queryData->backtrace;
+
+        // No backtrace = include by default (conservative approach)
+        if (null === $backtrace || [] === $backtrace) {
+            return false;
+        }
+
+        foreach ($backtrace as $frame) {
+            $file = $frame['file'] ?? '';
+
+            if ('' === $file) {
+                continue;
+            }
+
+            // Normalize path separators for cross-platform compatibility (Windows vs Unix)
+            $normalizedPath = str_replace('\\', '/', $file);
+
+            // Check if this frame matches any excluded path
+            foreach ($excludedPaths as $excludedPath) {
+                $normalizedExcludedPath = str_replace('\\', '/', $excludedPath);
+
+                if (str_contains($normalizedPath, $normalizedExcludedPath)) {
+                    return true; // Found a match, exclude this query
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param iterable<int, QueryData> $items
      */
     protected static function createInstance(iterable $items): static

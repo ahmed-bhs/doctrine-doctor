@@ -11,40 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\DependencyInjection;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\AutoGenerateProxyClassesAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\CharsetAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\ConnectionPoolingAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\InnoDBEngineAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\StrictModeAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\BidirectionalConsistencyAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\BlameableTraitAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeAllAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeConfigurationAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadePersistOnIndependentEntityAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeRemoveOnIndependentEntityAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CollectionEmptyAccessAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CollectionInitializationAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EntityManagerInEntityAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EntityStateConsistencyAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\FinalEntityAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MissingEmbeddableOpportunityAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MissingOrphanRemovalOnCompositionAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OnDeleteCascadeMismatchAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OrphanRemovalWithoutCascadeRemoveAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\TransactionBoundaryAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\BulkOperationAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\EagerLoadingAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\EntityManagerClearAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\FindAllAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\GetReferenceAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\HydrationAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\JoinOptimizationAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\LazyLoadingAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\NPlusOneAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\SlowQueryAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Security\DQLInjectionAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -115,6 +81,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $containerBuilder->setParameter('doctrine_doctor.enabled', $config['enabled']);
         $containerBuilder->setParameter('doctrine_doctor.profiler.show_debug_info', $config['profiler']['show_debug_info']);
         $containerBuilder->setParameter('doctrine_doctor.analysis.exclude_third_party_entities', $config['analysis']['exclude_third_party_entities']);
+        $containerBuilder->setParameter('doctrine_doctor.analysis.exclude_paths', $config['analysis']['exclude_paths']);
 
         // Debug parameters (defaults to false for performance)
         $containerBuilder->setParameter('doctrine_doctor.debug.enabled', $config['debug']['enabled'] ?? false);
@@ -170,51 +137,55 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
      */
     private function disableAnalyzers(ContainerBuilder $containerBuilder, array $config): void
     {
-        $analyzerMap = [
-            'n_plus_one' => NPlusOneAnalyzer::class,
-            'missing_index' => MissingIndexAnalyzer::class,
-            'slow_query' => SlowQueryAnalyzer::class,
-            'hydration' => HydrationAnalyzer::class,
-            'eager_loading' => EagerLoadingAnalyzer::class,
-            'entity_manager_clear' => EntityManagerClearAnalyzer::class,
-            'find_all' => FindAllAnalyzer::class,
-            'get_reference' => GetReferenceAnalyzer::class,
-            'flush_in_loop' => FlushInLoopAnalyzer::class,
-            'lazy_loading' => LazyLoadingAnalyzer::class,
-            'dql_injection' => DQLInjectionAnalyzer::class,
-            'bulk_operation' => BulkOperationAnalyzer::class,
-            'strict_mode' => StrictModeAnalyzer::class,
-            'charset' => CharsetAnalyzer::class,
-            'innodb_engine' => InnoDBEngineAnalyzer::class,
-            'connection_pooling' => ConnectionPoolingAnalyzer::class,
-            'collection_initialization' => CollectionInitializationAnalyzer::class,
-            'cascade_configuration' => CascadeConfigurationAnalyzer::class,
-            'cascade_all' => CascadeAllAnalyzer::class,
-            'cascade_persist_on_independent_entity' => CascadePersistOnIndependentEntityAnalyzer::class,
-            'cascade_remove_on_independent_entity' => CascadeRemoveOnIndependentEntityAnalyzer::class,
-            'bidirectional_consistency' => BidirectionalConsistencyAnalyzer::class,
-            'missing_orphan_removal_on_composition' => MissingOrphanRemovalOnCompositionAnalyzer::class,
-            'orphan_removal_without_cascade_remove' => OrphanRemovalWithoutCascadeRemoveAnalyzer::class,
-            'on_delete_cascade_mismatch' => OnDeleteCascadeMismatchAnalyzer::class,
-            'entity_state_consistency' => EntityStateConsistencyAnalyzer::class,
-            'entity_manager_in_entity' => EntityManagerInEntityAnalyzer::class,
-            'final_entity' => FinalEntityAnalyzer::class,
-            'transaction_boundary' => TransactionBoundaryAnalyzer::class,
-            'auto_generate_proxy_classes' => AutoGenerateProxyClassesAnalyzer::class,
-            'join_optimization' => JoinOptimizationAnalyzer::class,
-            'collection_empty_access' => CollectionEmptyAccessAnalyzer::class,
-            'missing_embeddable_opportunity' => MissingEmbeddableOpportunityAnalyzer::class,
-            'blameable_trait' => BlameableTraitAnalyzer::class,
-        ];
+        // ✅ Auto-discovery: Find ALL analyzers via their tag (no manual map needed!)
+        // This ensures all 69+ analyzers can be disabled via YAML config
+        $allAnalyzers = $containerBuilder->findTaggedServiceIds('doctrine_doctor.analyzer');
 
-        Assert::isIterable($analyzerMap, '$analyzerMap must be iterable');
+        foreach (array_keys($allAnalyzers) as $analyzerClass) {
+            // Convert class name to config key by convention
+            // NPlusOneAnalyzer → n_plus_one
+            // SQLInjectionInRawQueriesAnalyzer → sql_injection_in_raw_queries
+            $configKey = $this->classNameToConfigKey($analyzerClass);
 
-        foreach ($analyzerMap as $configKey => $analyzerClass) {
+            // Check if this analyzer is disabled in the config
             if (isset($config['analyzers'][$configKey])
                 && false === (bool) ($config['analyzers'][$configKey]['enabled'] ?? true)
                 && $containerBuilder->hasDefinition($analyzerClass)) {
                 $containerBuilder->removeDefinition($analyzerClass);
             }
         }
+    }
+
+    /**
+     * Converts an analyzer class name to its configuration key.
+     * Uses naming convention: PascalCase → snake_case.
+     *
+     * Examples:
+     *   NPlusOneAnalyzer → n_plus_one
+     *   MissingIndexAnalyzer → missing_index
+     *   SQLInjectionInRawQueriesAnalyzer → sql_injection_in_raw_queries
+     *   DTOHydrationAnalyzer → dto_hydration
+     */
+    private function classNameToConfigKey(string $className): string
+    {
+        // Extract short class name (without namespace)
+        $lastBackslashPos = strrpos($className, '\\');
+        $shortName = false !== $lastBackslashPos
+            ? substr($className, $lastBackslashPos + 1)
+            : $className;
+
+        // Remove 'Analyzer' suffix
+        $withoutSuffix = (string) preg_replace('/Analyzer$/', '', $shortName);
+        Assert::stringNotEmpty($withoutSuffix, 'Class name must not be empty after removing Analyzer suffix');
+
+        // Convert PascalCase to snake_case with acronym support
+        // Step 1: Handle acronyms followed by a word (SQLInjection → SQL_Injection)
+        $step1 = (string) preg_replace('/([A-Z]+)([A-Z][a-z])/', '$1_$2', $withoutSuffix);
+
+        // Step 2: Handle lowercase→uppercase transitions (camelCase → camel_Case)
+        $step2 = (string) preg_replace('/([a-z\d])([A-Z])/', '$1_$2', $step1);
+
+        // Convert to lowercase
+        return strtolower($step2);
     }
 }

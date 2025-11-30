@@ -30,7 +30,8 @@ use Webmozart\Assert\Assert;
  * 1. LEFT JOIN on NOT NULL relations (should use INNER JOIN)
  * 2. Too many JOINs in a single query (>6)
  * 3. JOINs without using the joined alias
- * 4. Missing indexes on JOIN columns
+ * 4. Multiple LEFT JOINs on collections (O(n^m) hydration - use multi-step)
+ * 5. Missing indexes on JOIN columns
  * Example:
  * BAD:
  *   SELECT o FROM Order o
@@ -38,6 +39,17 @@ use Webmozart\Assert\Assert;
  *  GOOD:
  *   SELECT o FROM Order o
  *   INNER JOIN o.customer c  -- 20-30% faster
+ *
+ * BAD (O(n^m) hydration):
+ *   SELECT u, a, s FROM User u
+ *   LEFT JOIN u.socialAccounts a  -- collection
+ *   LEFT JOIN u.sessions s         -- collection
+ *   // 3 accounts × 2 sessions = 6 rows per user!
+ *
+ * GOOD (multi-step hydration):
+ *   // Step 1: SELECT u, a FROM User u LEFT JOIN u.socialAccounts a
+ *   // Step 2: SELECT u, s FROM User u LEFT JOIN u.sessions s
+ *   // 3 + 2 = 5 rows total
  */
 class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
@@ -107,7 +119,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
 
     public function getDescription(): string
     {
-        return 'Detects suboptimal JOIN usage: LEFT JOIN on NOT NULL, too many JOINs, unused JOINs';
+        return 'Detects suboptimal JOIN usage: LEFT JOIN on NOT NULL, too many JOINs, unused JOINs, multiple collection JOINs';
     }
 
     /**
@@ -142,9 +154,12 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     private function analyzeQueryJoins(array $context, array $joins, array $metadataMap, array &$seenIssues, array|object $query): \Generator
     {
         // Check 1: Too many JOINs
-        yield from $this->checkAndYieldTooManyJoins($context, $joins, $seenIssues);
+        yield from $this->checkAndYieldTooManyJoins($context, $joins, $seenIssues, $query);
 
-        // Check 2 & 3: Suboptimal and unused JOINs
+        // Check 2: Multiple collection JOINs (O(n^m) hydration)
+        yield from $this->checkAndYieldMultipleCollectionJoins($context, $joins, $metadataMap, $seenIssues, $query);
+
+        // Check 3 & 4: Suboptimal and unused JOINs
         yield from $this->checkAndYieldJoinIssues($context, $joins, $metadataMap, $seenIssues, $query);
     }
 
@@ -155,9 +170,9 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
      * @param array<string, bool> $seenIssues
      * @return \Generator<PerformanceIssue>
      */
-    private function checkAndYieldTooManyJoins(array $context, array $joins, array &$seenIssues): \Generator
+    private function checkAndYieldTooManyJoins(array $context, array $joins, array &$seenIssues, array|object $query): \Generator
     {
-        $tooManyJoins = $this->checkTooManyJoins($context['sql'], $joins, $context['executionTime']);
+        $tooManyJoins = $this->checkTooManyJoins($context['sql'], $joins, $context['executionTime'], $query);
 
         if ($tooManyJoins instanceof PerformanceIssue) {
             $key = $this->buildIssueKey($tooManyJoins);
@@ -182,7 +197,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         Assert::isIterable($joins, '$joins must be iterable');
 
         foreach ($joins as $join) {
-            yield from $this->checkAndYieldSuboptimalJoin($join, $metadataMap, $context, $seenIssues);
+            yield from $this->checkAndYieldSuboptimalJoin($join, $metadataMap, $context, $seenIssues, $query);
             yield from $this->checkAndYieldUnusedJoin($join, $context['sql'], $seenIssues, $query);
         }
     }
@@ -195,9 +210,9 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
      * @param array<string, bool> $seenIssues
      * @return \Generator<PerformanceIssue>
      */
-    private function checkAndYieldSuboptimalJoin(array $join, array $metadataMap, array $context, array &$seenIssues): \Generator
+    private function checkAndYieldSuboptimalJoin(array $join, array $metadataMap, array $context, array &$seenIssues, array|object $query): \Generator
     {
-        $suboptimalJoin = $this->checkSuboptimalJoinType($join, $metadataMap, $context['sql'], $context['executionTime']);
+        $suboptimalJoin = $this->checkSuboptimalJoinType($join, $metadataMap, $context['sql'], $context['executionTime'], $query);
 
         if ($suboptimalJoin instanceof PerformanceIssue) {
             $key = $this->buildIssueKey($suboptimalJoin);
@@ -230,16 +245,123 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     }
 
     /**
+     * Check and yield multiple collection joins issue.
+     * @param array{sql: string, executionTime: float} $context
+     * @param array<mixed> $joins
+     * @param array<mixed> $metadataMap
+     * @param array<string, bool> $seenIssues
+     * @return \Generator<PerformanceIssue>
+     */
+    private function checkAndYieldMultipleCollectionJoins(array $context, array $joins, array $metadataMap, array &$seenIssues, array|object $query): \Generator
+    {
+        $sql = $context['sql'];
+
+        // DEBUG: Log this call
+
+        // Filter only LEFT JOINs
+        $leftJoins = array_filter($joins, fn (array $join) => 'LEFT' === $join['type']);
+
+
+        if (count($leftJoins) < 2) {
+            return; // No issue if less than 2 LEFT JOINs
+        }
+
+        // Extract the main FROM table
+        $fromTable = $this->extractFromTable($sql, $metadataMap);
+
+        if (null === $fromTable) {
+            return; // Can't analyze without knowing the main table
+        }
+
+
+        // Identify which JOINs are on collection-valued associations
+        $collectionJoins = [];
+
+        foreach ($leftJoins as $join) {
+            Assert::isArray($join, 'Join must be an array');
+            $isCollection = $this->isCollectionJoin($join, $metadataMap, $sql, $fromTable);
+
+            if ($isCollection) {
+                $collectionJoins[] = $join;
+            }
+        }
+
+
+        // Issue only if 2+ collection JOINs
+        if (count($collectionJoins) < 2) {
+            return;
+        }
+
+
+        $issue = $this->createMultiStepHydrationIssue($context, $collectionJoins, $query);
+
+        if (null !== $issue) {
+            $key = $this->buildMultiStepIssueKey($issue);
+
+            if (!isset($seenIssues[$key])) {
+                $seenIssues[$key] = true;
+                yield $issue;
+            } else {
+            }
+        }
+    }
+
+    /**
+     * Extract the main FROM table from SQL query.
+     *
+     * @param string $sql Full SQL query
+     * @param array<string, ClassMetadata> $metadataMap
+     * @return string|null Table name or null if not found
+     */
+    private function extractFromTable(string $sql, array $metadataMap): ?string
+    {
+        // Pattern: FROM table_name alias
+        if (1 !== preg_match('/FROM\s+(\w+)(?:\s+\w+)?/i', $sql, $matches)) {
+            return null;
+        }
+
+        $tableName = $matches[1];
+
+        // Verify table exists in metadata
+        if (!isset($metadataMap[$tableName])) {
+            return null;
+        }
+
+        return $tableName;
+    }
+
+    /**
      * Build unique key for issue deduplication.
      */
     private function buildIssueKey(PerformanceIssue $performanceIssue): string
     {
-        return $performanceIssue->getTitle() . '|' . ($performanceIssue->getData()['table'] ?? '');
+        $data = $performanceIssue->getData();
+        $table = $data['table'] ?? '';
+        Assert::string($table, 'Table must be a string');
+
+        return $performanceIssue->getTitle() . '|' . $table;
     }
 
+    /**
+     * Build unique key for multi-step hydration issue deduplication.
+     */
+    private function buildMultiStepIssueKey(PerformanceIssue $performanceIssue): string
+    {
+        $data = $performanceIssue->getData();
+        $tables = $data['tables'] ?? [];
+        Assert::isArray($tables, 'Tables must be an array');
+
+        return $performanceIssue->getTitle() . '|' . implode(',', $tables);
+    }
+
+    /**
+     * Build map of table names to ClassMetadata.
+     *
+     * @return array<string, ClassMetadata>
+     */
     private function buildMetadataMap(): array
     {
-
+        /** @var array<string, ClassMetadata> $map */
         $map                  = [];
         $classMetadataFactory = $this->entityManager->getMetadataFactory();
         $allMetadata          = $classMetadataFactory->getAllMetadata();
@@ -303,7 +425,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     /**
      * Check if there are too many JOINs.
      */
-    private function checkTooManyJoins(string $sql, array $joins, float $executionTime): ?PerformanceIssue
+    private function checkTooManyJoins(string $sql, array $joins, float $executionTime, array|object $query): ?PerformanceIssue
     {
         $joinCount = count($joins);
 
@@ -313,11 +435,16 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
 
         $severity = $joinCount > $this->maxJoinsCritical ? 'critical' : 'warning';
 
+        // Extract backtrace from query
+        $backtrace = $this->extractBacktrace($query);
+
         $performanceIssue = new PerformanceIssue([
             'query'           => $this->truncateQuery($sql),
             'join_count'      => $joinCount,
             'max_recommended' => $this->maxJoinsRecommended,
             'execution_time'  => $executionTime,
+            'queries'         => [$query],
+            'backtrace'       => $backtrace,
         ]);
 
         $performanceIssue->setSeverity($severity);
@@ -333,12 +460,25 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
 
     /**
      * Check if JOIN type is suboptimal based on relation nullability.
+     *
+     * Only flag LEFT JOINs as suboptimal when:
+     * 1. The FK is NOT NULL
+     * 2. AND it's a ManyToOne join (FK in source table, joining from many to one)
+     *
+     * Do NOT flag OneToMany/ManyToMany joins (collections) even if FK is NOT NULL,
+     * because LEFT JOIN is correct when a parent entity can have 0 children.
+     *
+     * Example:
+     * - User hasMany SocialAccounts (OneToMany)
+     * - Query: FROM users LEFT JOIN social_accounts → Correct! User can have 0 accounts
+     * - Even though social_accounts.user_id is NOT NULL, LEFT JOIN is the right choice
      */
     private function checkSuboptimalJoinType(
         array $join,
         array $metadataMap,
         string $sql,
         float $executionTime,
+        array|object $query,
     ): ?PerformanceIssue {
         $tableName = $join['table'];
         $joinType  = $join['type'];
@@ -352,11 +492,30 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
 
         // Check if this is a LEFT JOIN on a NOT NULL relation
         if ('LEFT' === $joinType) {
+            // Extract the main FROM table to determine join direction
+            $fromTable = $this->extractFromTable($sql, $metadataMap);
+
+            if (null === $fromTable) {
+                // Can't determine join direction - skip analysis
+                return null;
+            }
+
+            // IMPORTANT: Check if this is a collection join (OneToMany/ManyToMany)
+            // Collection joins should use LEFT JOIN even if FK is NOT NULL
+            $isCollection = $this->isCollectionJoin($join, $metadataMap, $sql, $fromTable);
+
+            if ($isCollection) {
+                // This is a collection join → LEFT JOIN is correct
+                // Don't flag as suboptimal even if FK is NOT NULL
+                return null;
+            }
+
+            // Not a collection - check if FK is nullable
             $isNullable = $this->isJoinNullable($join, $sql, $metadata);
 
             if (false === $isNullable) {
-                // LEFT JOIN on NOT NULL relation → should be INNER JOIN
-                return $this->createLeftJoinOnNotNullIssue($join, $metadata, $sql, $executionTime);
+                // LEFT JOIN on ManyToOne with NOT NULL FK → should be INNER JOIN
+                return $this->createLeftJoinOnNotNullIssue($join, $metadata, $sql, $executionTime, $query);
             }
         }
 
@@ -366,37 +525,84 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     /**
      * Determine if a JOIN relation is nullable using SQL parser.
      *
-     * Migration from regex to SQL Parser:
-     * - Replaced regex pattern for ON clause extraction with SqlStructureExtractor::extractJoinOnClause()
-     * - More robust: properly parses JOIN structure
-     * - Handles complex ON conditions, multiple JOINs
+     * Improvements:
+     * - Handles multiple associations to the same target entity
+     * - Supports composite keys (multiple joinColumns)
+     * - More precise matching to avoid false positives
+     *
+     * Strategy:
+     * 1. Extract all column names from ON clause
+     * 2. For each association, check if ALL its joinColumns appear in ON clause
+     * 3. Return nullable status only if we have a complete match
+     *
+     * Edge cases handled:
+     * - Entity with billingAddress and shippingAddress (both Address entities)
+     * - Composite keys (tenant_id + entity_id)
+     * - Similar column names (user_id vs parent_user_id)
      */
     private function isJoinNullable(array $join, string $sql, ClassMetadata $classMetadata): ?bool
     {
         // Use SQL parser to extract ON clause
         $onClause = $this->sqlExtractor->extractJoinOnClause($sql, (string) $join['full_match']);
 
-        if (null !== $onClause) {
-            // Look for foreign key columns
-            foreach ($classMetadata->getAssociationMappings() as $associationMapping) {
-                if (isset($associationMapping['joinColumns'])) {
-                    Assert::isIterable($associationMapping['joinColumns'], 'joinColumns must be iterable');
+        if (null === $onClause) {
+            return null;
+        }
 
-                    foreach ($associationMapping['joinColumns'] as $joinColumn) {
-                        $columnName = $joinColumn['name'] ?? null;
+        // Extract all column names from ON clause (both sides of conditions)
+        // Pattern: table.column or just column
+        preg_match_all('/(?:\w+\.)?(\w+)\s*=/', $onClause, $matches);
+        $columnsInOnClause = array_map('strtolower', $matches[1] ?? []);
 
-                        // Check if this column appears in the ON clause
-                        if (null !== $columnName && false !== stripos($onClause, (string) $columnName)) {
-                            // Found the FK - check if it's nullable
-                            return $joinColumn['nullable'] ?? true;
-                        }
+        if ([] === $columnsInOnClause) {
+            return null;
+        }
+
+        // Look for the best matching association
+        $bestMatch = null;
+        $bestMatchCount = 0;
+
+        foreach ($classMetadata->getAssociationMappings() as $associationMapping) {
+            if (!isset($associationMapping['joinColumns'])) {
+                continue;
+            }
+
+            Assert::isIterable($associationMapping['joinColumns'], 'joinColumns must be iterable');
+
+            // Check if ALL joinColumns for this association appear in ON clause
+            $joinColumns = $associationMapping['joinColumns'];
+            $matchedColumns = 0;
+            $allNullable = true;
+
+            foreach ($joinColumns as $joinColumn) {
+                $columnName = $joinColumn['name'] ?? null;
+
+                if (null === $columnName) {
+                    continue;
+                }
+
+                $columnNameLower = strtolower($columnName);
+
+                // Check if this column appears in ON clause
+                if (in_array($columnNameLower, $columnsInOnClause, true)) {
+                    ++$matchedColumns;
+
+                    // Track nullable status - if ANY column is NOT NULL, association is NOT NULL
+                    $isNullable = $joinColumn['nullable'] ?? true;
+                    if (!$isNullable) {
+                        $allNullable = false;
                     }
                 }
             }
+
+            // If ALL joinColumns matched, this is our association
+            if ($matchedColumns === count($joinColumns) && $matchedColumns > $bestMatchCount) {
+                $bestMatchCount = $matchedColumns;
+                $bestMatch = $allNullable;
+            }
         }
 
-        // Unknown - return null
-        return null;
+        return $bestMatch;
     }
 
     private function createLeftJoinOnNotNullIssue(
@@ -404,6 +610,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         ClassMetadata $classMetadata,
         string $sql,
         float $executionTime,
+        array|object $query,
     ): PerformanceIssue {
         $entityClass = $classMetadata->getName();
         $tableName   = $join['table'];
@@ -414,6 +621,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
             'table'          => $tableName,
             'entity'         => $entityClass,
             'execution_time' => $executionTime,
+            'queries'        => [$query],
             'backtrace'      => $this->createEntityBacktrace($classMetadata),
         ]);
 
@@ -458,6 +666,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                 'join_type' => $join['type'],
                 'table'     => $join['table'],
                 'alias'     => $alias,
+                'queries'   => [$query],
                 'backtrace' => $backtrace,
             ]);
 
@@ -473,6 +682,280 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         }
 
         return null;
+    }
+
+    /**
+     * Determine if a JOIN is on a collection-valued association (one-to-many or many-to-many).
+     *
+     * Strategy:
+     * 1. Analyze the ON clause to find FK direction
+     * 2. If FK is in the RIGHT table → OneToMany (collection)
+     * 3. If FK is in the LEFT table → ManyToOne (not a collection)
+     *
+     * Examples:
+     * - "user u LEFT JOIN order o ON u.id = o.user_id" → FK in 'order' → Collection ✅
+     * - "order o LEFT JOIN user u ON o.user_id = u.id" → FK in 'order' → NOT collection ❌
+     *
+     * @param array<string, mixed> $join The JOIN information (type, table, alias)
+     * @param array<string, ClassMetadata> $metadataMap Map of table names to metadata
+     * @param string $sql The full SQL query (needed to extract ON clause)
+     * @param string $fromTable The main table being selected from
+     */
+    private function isCollectionJoin(array $join, array $metadataMap, string $sql, string $fromTable): bool
+    {
+        $joinTable = $join['table'];
+
+        if (!is_string($joinTable)) {
+            return false;
+        }
+
+        $metadata = $metadataMap[$joinTable] ?? null;
+
+        if (null === $metadata) {
+            return false;
+        }
+
+        // Extract the ON clause for this specific JOIN
+        $onClause = $this->extractOnClauseForJoin($sql, $join);
+
+        if (null === $onClause) {
+            // Fallback: check if table CAN be a collection based on metadata
+            return $this->canBeCollection($joinTable, $metadataMap);
+        }
+
+        // Analyze FK direction from ON clause
+        // Pattern: "table1.column1 = table2.column2"
+        // We need to determine which column is the FK
+        return $this->isForeignKeyInJoinedTable($onClause, $fromTable, $joinTable, $metadataMap);
+    }
+
+    /**
+     * Extract ON clause for a specific JOIN from SQL.
+     *
+     * @param string $sql Full SQL query
+     * @param array<string, mixed> $join JOIN info
+     */
+    private function extractOnClauseForJoin(string $sql, array $join): ?string
+    {
+        $joinMatch = $join['full_match'] ?? null;
+
+        if (!is_string($joinMatch)) {
+            return null;
+        }
+
+        return $this->sqlExtractor->extractJoinOnClause($sql, $joinMatch);
+    }
+
+    /**
+     * Determine if the FK is in the joined table (making it a collection from main table's perspective).
+     *
+     * Improvements:
+     * - Handles composite keys (multiple conditions with AND)
+     * - Gracefully handles expressions with functions (LOWER, COALESCE, etc.)
+     * - Supports self-referencing relations
+     *
+     * Logic:
+     * - "main.id = joined.fk_id" → FK in joined table → Collection ✅
+     * - "main.fk_id = joined.id" → FK in main table → NOT collection ❌
+     * - Composite: "main.id1 = joined.fk1 AND main.id2 = joined.fk2" → Collection ✅
+     *
+     * @param string $onClause The ON clause (e.g., "u0_.id = o1_.user_id")
+     * @param string $fromTable Main table name
+     * @param string $joinTable Joined table name
+     * @param array<string, ClassMetadata> $metadataMap
+     */
+    private function isForeignKeyInJoinedTable(
+        string $onClause,
+        string $fromTable,
+        string $joinTable,
+        array $metadataMap,
+    ): bool {
+        $fromMetadata = $metadataMap[$fromTable] ?? null;
+        $joinMetadata = $metadataMap[$joinTable] ?? null;
+
+        if (null === $fromMetadata || null === $joinMetadata) {
+            return false;
+        }
+
+        $fromPKs = $fromMetadata->getIdentifierFieldNames();
+        $joinPKs = $joinMetadata->getIdentifierFieldNames();
+
+        // Split ON clause by AND to handle composite keys
+        // Example: "t1.id1 = t2.fk1 AND t1.id2 = t2.fk2"
+        $conditions = preg_split('/\s+AND\s+/i', $onClause);
+
+        if (false === $conditions) {
+            return false;
+        }
+
+        $collectionVotes = 0;
+        $notCollectionVotes = 0;
+        $totalConditions = 0;
+
+        foreach ($conditions as $condition) {
+            // Parse each condition: "table1.col1 = table2.col2"
+            // Skip conditions with functions or complex expressions
+            if (false !== stripos($condition, '(')) {
+                // Contains function call - skip for safety
+                continue;
+            }
+
+            // Extract column names (basic pattern - handles simple equality)
+            if (1 !== preg_match('/(\w+)\.(\w+)\s*=\s*(\w+)\.(\w+)/i', $condition, $matches)) {
+                continue;
+            }
+
+            [, $leftAlias, $leftCol, $rightAlias, $rightCol] = $matches;
+
+            ++$totalConditions;
+
+            // Determine FK direction for this condition
+            $leftIsPK = in_array($leftCol, $fromPKs, true);
+            $rightIsPK = in_array($rightCol, $joinPKs, true);
+
+            // Case 1: from.PK = join.nonPK → FK in join table → Collection
+            if ($leftIsPK && !$rightIsPK) {
+                ++$collectionVotes;
+            }
+
+            // Case 2: from.nonPK = join.PK → FK in from table → NOT collection
+            elseif (!$leftIsPK && $rightIsPK) {
+                ++$notCollectionVotes;
+            }
+
+            // Case 3: Both PKs (ManyToMany join table) or both non-PKs (unusual)
+            // Don't vote - need more context
+        }
+
+        // No valid conditions parsed - fallback to metadata check
+        if (0 === $totalConditions) {
+            return $this->canBeCollection($joinTable, $metadataMap);
+        }
+
+        // Majority vote: if most conditions indicate collection, it's a collection
+        // For composite keys, ALL conditions should agree
+        if ($collectionVotes > 0 && $notCollectionVotes === 0) {
+            return true; // Collection
+        }
+
+        if ($notCollectionVotes > 0 && $collectionVotes === 0) {
+            return false; // NOT collection
+        }
+
+        // Mixed or uncertain - fallback
+        return $this->canBeCollection($joinTable, $metadataMap);
+    }
+
+    /**
+     * Fallback: Check if a table CAN be a collection target based on metadata.
+     * This is less precise but works when ON clause analysis fails.
+     */
+    private function canBeCollection(string $tableName, array $metadataMap): bool
+    {
+        foreach ($metadataMap as $sourceMetadata) {
+            foreach ($sourceMetadata->getAssociationMappings() as $associationMapping) {
+                $targetEntity = $associationMapping['targetEntity'] ?? null;
+
+                if (null === $targetEntity) {
+                    continue;
+                }
+
+                try {
+                    $targetMetadata = $this->entityManager->getClassMetadata($targetEntity);
+
+                    if ($targetMetadata->getTableName() === $tableName) {
+                        if (
+                            ClassMetadata::ONE_TO_MANY === $associationMapping['type']
+                            || ClassMetadata::MANY_TO_MANY === $associationMapping['type']
+                        ) {
+                            return true;
+                        }
+                    }
+                } catch (\Exception) {
+                    continue;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Create issue for multi-step hydration opportunity.
+     *
+     * @param array{sql: string, executionTime: float} $context
+     * @param array<mixed>                             $collectionJoins
+     */
+    private function createMultiStepHydrationIssue(
+        array $context,
+        array $collectionJoins,
+        array|object $query,
+    ): ?PerformanceIssue {
+        $sql           = $context['sql'];
+        $executionTime = $context['executionTime'];
+
+        $tables        = array_column($collectionJoins, 'table');
+        $joinCount     = count($collectionJoins);
+
+        // Extract backtrace from query
+        $backtrace = $this->extractBacktrace($query);
+
+        // Estimate cartesian product impact
+        $estimatedExplosion = sprintf(
+            '%d collection JOINs → O(n^%d) hydration complexity',
+            $joinCount,
+            $joinCount,
+        );
+
+        $performanceIssue = new PerformanceIssue([
+            'query'               => $this->truncateQuery($sql),
+            'join_count'          => $joinCount,
+            'tables'              => $tables,
+            'execution_time'      => $executionTime,
+            'complexity'          => $estimatedExplosion,
+            'queries'             => [$query],
+            'backtrace'           => $backtrace,
+        ]);
+
+        $severity = $joinCount >= 3 ? 'critical' : 'warning';
+
+        $performanceIssue->setSeverity($severity);
+        $performanceIssue->setTitle(sprintf('Multiple Collection JOINs Causing O(n^%d) Hydration', $joinCount));
+        $performanceIssue->setMessage(
+            sprintf(
+                'Query performs %d LEFT JOINs on collection-valued associations (%s). ',
+                $joinCount,
+                implode(', ', $tables),
+            ) .
+            'This creates a cartesian product that exponentially increases SQL rows and hydration cost. ' .
+            'Use multi-step hydration to split into separate queries.',
+        );
+        $performanceIssue->setSuggestion($this->createMultiStepSuggestion($joinCount, $tables, $sql));
+
+        return $performanceIssue;
+    }
+
+    /**
+     * Create suggestion for multi-step hydration.
+     *
+     * @param array<string> $tables
+     */
+    private function createMultiStepSuggestion(int $joinCount, array $tables, string $sql): SuggestionInterface
+    {
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Performance/multi_step_hydration',
+            context: [
+                'join_count' => $joinCount,
+                'tables'     => $tables,
+                'sql'        => $this->truncateQuery($sql),
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $joinCount >= 3 ? Severity::critical() : Severity::warning(),
+                title: sprintf('Multiple Collection JOINs (O(n^%d) complexity)', $joinCount),
+                tags: ['performance', 'hydration', 'join', 'optimization'],
+            ),
+        );
     }
 
     private function createTooManyJoinsSuggestion(int $joinCount, string $sql): SuggestionInterface

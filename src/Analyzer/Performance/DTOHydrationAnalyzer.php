@@ -197,6 +197,11 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $firstQuery = $queries[0];
         $example    = is_array($firstQuery) ? ($firstQuery['sql'] ?? '') : $firstQuery->sql;
 
+        // Extract backtrace from first query for debugging
+        $backtrace = is_array($firstQuery)
+            ? ($firstQuery['backtrace'] ?? null)
+            : $firstQuery->backtrace;
+
         // Detect aggregation types
         $aggregations = $this->detectAggregations($example);
         $hasGroupBy   = str_contains(strtoupper((string) $example), 'GROUP BY');
@@ -212,6 +217,8 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             'has_group_by'          => $hasGroupBy,
             'avg_time'              => $avgTime,
             'estimated_improvement' => $estimatedImprovement,
+            'queries'               => $queries,
+            'backtrace'             => $backtrace,
         ]);
 
         $performanceIssue->setSeverity($count > 5 ? 'critical' : 'warning');

@@ -154,9 +154,10 @@ final class DQLInjectionAnalyzerTest extends TestCase
     #[Test]
     public function it_detects_numeric_value_in_quotes(): void
     {
-        // Arrange: Numeric value in quotes (possible concatenation)
+        // Arrange: Numeric value in quotes that looks suspicious (long number with text)
+        // Short numbers like '123' are now excluded as they're likely postal codes/IDs
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE id = '123'")
+            ->addQuery("SELECT * FROM users WHERE id = '12345678901234567890'")
             ->build();
 
         // Act
@@ -192,9 +193,10 @@ final class DQLInjectionAnalyzerTest extends TestCase
     #[Test]
     public function it_detects_multiple_conditions_with_literal_strings(): void
     {
-        // Arrange: Multiple OR/AND with literal strings (CRITICAL)
+        // Arrange: Multiple OR/AND with literal strings that are NOT safe enum values
+        // Note: 'admin' and 'active' are now considered safe enum values
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE role = 'admin' OR status = 'active'")
+            ->addQuery("SELECT * FROM users WHERE username = 'john.doe@example.com' OR email = 'test@malicious.com'")
             ->build();
 
         // Act

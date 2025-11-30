@@ -980,6 +980,56 @@ final class SuggestionFactory
         return Severity::info();
     }
 
+    /**
+     * Create an "Array Cache in Production" suggestion.
+     */
+    public function createArrayCacheProduction(
+        string $cacheType,
+        string $currentConfig,
+    ): SuggestionInterface {
+        $cacheLabel = match ($cacheType) {
+            'metadata' => 'Metadata Cache',
+            'query' => 'Query Cache',
+            'result' => 'Result Cache',
+            'second_level' => 'Second Level Cache',
+            default => 'Cache',
+        };
+
+        return new ModernSuggestion(
+            templateName: 'Configuration/array_cache_production',
+            context: [
+                'cache_type' => $cacheType,
+                'current_config' => $currentConfig,
+                'cache_label' => $cacheLabel,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::configuration(),
+                severity: 'metadata' === $cacheType ? Severity::critical() : Severity::warning(),
+                title: sprintf('ArrayCache in Production (%s)', $cacheLabel),
+                tags: ['configuration', 'cache', 'performance'],
+            ),
+            suggestionRenderer: $this->suggestionRenderer,
+        );
+    }
+
+    /**
+     * Create a "Proxy Auto-Generate" suggestion.
+     */
+    public function createProxyAutoGenerate(): SuggestionInterface
+    {
+        return new ModernSuggestion(
+            templateName: 'Configuration/proxy_auto_generate',
+            context: [],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::configuration(),
+                severity: Severity::critical(),
+                title: 'Proxy Auto-Generation Enabled in Production',
+                tags: ['configuration', 'proxy', 'performance'],
+            ),
+            suggestionRenderer: $this->suggestionRenderer,
+        );
+    }
+
     private function calculateNestedSeverity(int $depth, int $queryCount): Severity
     {
         // Nested N+1 is more severe because it multiplies queries

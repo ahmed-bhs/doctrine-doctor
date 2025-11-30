@@ -29,9 +29,8 @@
                                         <div class="dd-tooltip-item">
                                             <span class="dd-tooltip-severity {% if duplicatedIssue.getSeverity().isCritical() %}severity-critical{% elseif duplicatedIssue.getSeverity().isWarning() %}severity-warning{% else %}severity-info{% endif %}">
                                                 {{ duplicatedIssue.getSeverity().getEmoji() }}
-                                                <span class="dd-tooltip-type">{{ duplicatedIssue.getType() }}</span>
+                                                <span class="dd-tooltip-type">{{ duplicatedIssue.getTitle() }}</span>
                                             </span>
-{#                                            <div class="dd-tooltip-title">{{ duplicatedIssue.getTitle() }}</div>#}
                                             {% set cleanDescription = duplicatedIssue.getDescription() %}
                                             {% if cleanDescription|length > 100 %}
                                                 <div class="dd-tooltip-description dd-expandable-desc">
@@ -2016,7 +2015,7 @@
 
         .dd-tooltip-type {
             display: inline-block;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             color: #6b7280;
             text-transform: uppercase;
@@ -2033,7 +2032,7 @@
         }
 
         .dd-tooltip-description {
-            font-size: 12px;
+            font-size: 11px;
             color: #6b7280;
             margin-top: 4px;
             line-height: 1.3;

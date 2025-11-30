@@ -43,11 +43,22 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
      */
     private const LIKE_LEADING_WILDCARD_PATTERN = '/\bLIKE\s+([\'"])(%[^\'\"]+)\1/i';
 
+    /**
+     * Minimum execution time (ms) to report an issue.
+     * Queries faster than this are likely on small tables where LIKE performance is negligible.
+     */
+    private const MIN_EXECUTION_TIME_THRESHOLD = 5.0;
+
     public function __construct(
         /**
          * @readonly
          */
         private SuggestionFactory $suggestionFactory,
+        /**
+         * @readonly
+         * Minimum execution time in ms to report. Set to 0 to always report.
+         */
+        private float $minExecutionTimeThreshold = self::MIN_EXECUTION_TIME_THRESHOLD,
     ) {
     }
 
@@ -65,6 +76,8 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
                 foreach ($queryDataCollection as $query) {
                     $sql = $this->extractSQL($query);
                     $executionTime = $this->extractExecutionTime($query);
+                    $params = $this->extractParams($query);
+
                     if ('' === $sql) {
                         continue;
                     }
@@ -73,7 +86,13 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
                         continue;
                     }
 
-                    // Detect LIKE with leading wildcard
+                    // Skip queries on small tables (fast execution = small table)
+                    // This avoids false positives for reference tables with few rows
+                    if ($executionTime < $this->minExecutionTimeThreshold) {
+                        continue;
+                    }
+
+                    // Method 1: Detect LIKE with leading wildcard directly in SQL
                     if (preg_match_all(self::LIKE_LEADING_WILDCARD_PATTERN, $sql, $matches, PREG_SET_ORDER) >= 1) {
                         Assert::isIterable($matches, '$matches must be iterable');
 
@@ -99,6 +118,28 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
                                 $executionTime,
                                 $query,
                             );
+                        }
+                    }
+
+                    // Method 2: Detect LIKE with placeholder (? or :name) and check params for leading wildcard
+                    if (str_contains(strtoupper($sql), 'LIKE') && !empty($params)) {
+                        foreach ($params as $param) {
+                            if (is_string($param) && str_starts_with($param, '%')) {
+                                // Deduplicate
+                                $key = md5($param);
+                                if (isset($seenIssues[$key])) {
+                                    continue;
+                                }
+
+                                $seenIssues[$key] = true;
+
+                                yield $this->createIneffectiveLikeIssue(
+                                    $param,
+                                    $sql,
+                                    $executionTime,
+                                    $query,
+                                );
+                            }
                         }
                     }
                 }
@@ -141,6 +182,25 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
     }
 
     /**
+     * Extract parameters from query data.
+     * @return array<mixed>
+     */
+    private function extractParams(array|object $query): array
+    {
+        if (is_array($query)) {
+            $params = $query['params'] ?? [];
+            return is_array($params) ? $params : [];
+        }
+
+        if (is_object($query) && property_exists($query, 'params')) {
+            $params = $query->params ?? [];
+            return is_array($params) ? $params : [];
+        }
+
+        return [];
+    }
+
+    /**
      * Create issue for ineffective LIKE pattern.
      */
     private function createIneffectiveLikeIssue(
@@ -173,7 +233,7 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
             description: $description,
             severity: $severity,
             suggestion: $this->createIneffectiveLikeSuggestion($pattern, $sql, $likeType, $executionTime, $severity),
-            queries: [],
+            queries: [$query],
             backtrace: $backtrace,
         );
 

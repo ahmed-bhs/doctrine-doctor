@@ -74,6 +74,19 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         '_at',           // password_reset_at (timestamps)
         '_date',         // token_expiry_date
         '_time',         // last_password_change_time
+        '_reset',        // password_reset (action, not the password)
+        '_expiry',       // token_expiry
+        '_expires',      // token_expires
+        '_changed',      // password_changed
+        '_updated',      // token_updated
+        '_created',      // token_created
+        '_hash',         // password_hash (already hashed, not raw password)
+        '_type',         // token_type
+        '_length',       // password_length (configuration)
+        '_min',          // password_min_length
+        '_max',          // password_max_length
+        '_policy',       // password_policy
+        '_rules',        // password_rules
     ];
 
     private PhpCodeParser $phpCodeParser;
