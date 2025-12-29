@@ -32,8 +32,8 @@
 
     <rule ref="rulesets/codesize.xml/ExcessiveMethodLength">
         <properties>
-            <!-- Analyzers may need detailed logic -->
-            <property name="minimum" value="150"/>
+            <!-- Analyzers may need detailed logic, tests may have long provider methods -->
+            <property name="minimum" value="260"/>
             <property name="ignore-whitespace" value="true"/>
         </properties>
     </rule>
@@ -55,8 +55,8 @@
 
     <rule ref="rulesets/codesize.xml/ExcessivePublicCount">
         <properties>
-            <!-- Collections and factories expose rich domain APIs -->
-            <property name="minimum" value="28"/>
+            <!-- Collections and factories expose rich domain APIs, test classes have many test methods -->
+            <property name="minimum" value="45"/>
         </properties>
     </rule>
 
@@ -68,16 +68,16 @@
 
     <rule ref="rulesets/codesize.xml/TooManyMethods">
         <properties>
-            <!-- Collections and factories may have many domain-specific methods -->
-            <property name="maxmethods" value="30"/>
+            <!-- Collections and factories may have many domain-specific methods, test classes have many tests -->
+            <property name="maxmethods" value="45"/>
             <property name="ignorepattern" value="(^(get|set|is|has|with))i"/>
         </properties>
     </rule>
 
     <rule ref="rulesets/codesize.xml/TooManyPublicMethods">
         <properties>
-            <!-- Collections provide rich domain APIs, factories have one method per suggestion type -->
-            <property name="maxmethods" value="24"/>
+            <!-- Collections provide rich domain APIs, factories have one method per suggestion type, test classes have many tests -->
+            <property name="maxmethods" value="45"/>
             <property name="ignorepattern" value="(^(get|set|is|has|with))i"/>
         </properties>
     </rule>
@@ -149,8 +149,8 @@
     <rule ref="rulesets/design.xml/CountInLoopExpression"/>
     <rule ref="rulesets/design.xml/CouplingBetweenObjects">
         <properties>
-            <!-- Analyzers bridge multiple concerns (ORM, Reflection, Issue creation) -->
-            <property name="maximum" value="20"/>
+            <!-- Analyzers bridge multiple concerns (ORM, Reflection, Issue creation), test classes use many fixtures -->
+            <property name="maximum" value="23"/>
         </properties>
     </rule>
 
@@ -177,9 +177,9 @@
 
     <rule ref="rulesets/naming.xml/ShortVariable">
         <properties>
-            <!-- Extended exceptions for common Doctrine/Symfony variables -->
+            <!-- Extended exceptions for common Doctrine/Symfony variables and test loop variables -->
             <property name="minimum" value="3"/>
-            <property name="exceptions" value="id,em,qb,dql,sql,orm,key,row,col,map,dto,url,uri,ref,idx,opt,io"/>
+            <property name="exceptions" value="id,em,qb,dql,sql,orm,key,row,col,map,dto,url,uri,ref,idx,opt,io,i,j,k,s,t,v"/>
         </properties>
     </rule>
 
@@ -277,5 +277,9 @@
     <!-- Tests are now analyzed (aligned with ECS and PHPStan) -->
     <!-- Test Fixtures are excluded as they contain intentionally malformed code -->
     <exclude-pattern>tests/Fixtures/*</exclude-pattern>
+
+    <!-- Exclude security tests that intentionally use $_GET/$_POST to test SQL injection detection -->
+    <exclude-pattern>tests/Unit/Analyzer/Parser/Visitor/SqlInjectionPatternVisitorTest.php</exclude-pattern>
+    <exclude-pattern>tests/Unit/Analyzer/Parser/Visitor/SqlInjectionSecurityTest.php</exclude-pattern>
 </ruleset>
 

@@ -91,7 +91,8 @@ final class SafeContextTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Undefined context variable: missing');
 
-        $unused = $context['missing']; // Triggers exception
+        /** @phpstan-ignore expr.resultUnused */
+        $context['missing']; // Triggers exception
     }
 
     public function test_has_checks_variable_existence(): void
