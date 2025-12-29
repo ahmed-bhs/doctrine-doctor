@@ -172,6 +172,9 @@ PHP;
         }
     }
 
+    /**
+     * @runInSeparateProcess
+     */
     public function test_it_should_capture_http_response_with_leaked_html(): void
     {
         // Simulate what happens in a real HTTP response
