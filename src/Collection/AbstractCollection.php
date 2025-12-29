@@ -146,7 +146,7 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
 
         // OPTIMIZED: Use progressive caching via getIterator()
         // This ensures consistent caching behavior
-        foreach ($this->getIterator() as $item) {
+        foreach ($this->getIterator() as $_) {
             // getIterator() handles caching, just consume it
         }
 

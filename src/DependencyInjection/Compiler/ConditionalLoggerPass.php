@@ -37,7 +37,7 @@ final class ConditionalLoggerPass implements CompilerPassInterface
         // Replace all optional logger injections with NullLogger for Doctrine Doctor services
         $nullLoggerRef = new Reference('doctrine_doctor.null_logger');
 
-        foreach ($container->findTaggedServiceIds('doctrine_doctor.analyzer') as $id => $tags) {
+        foreach ($container->findTaggedServiceIds('doctrine_doctor.analyzer') as $id => $_) {
             if (!$container->hasDefinition($id)) {
                 continue;
             }
