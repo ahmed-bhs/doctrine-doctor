@@ -89,17 +89,41 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 - **Purpose**: Detects inefficient result set hydration
 - **Impact**: 50-80% memory reduction
 
+#### 3.2.6 NestedRelationshipN1Analyzer
+
+- **Severity**: Critical
+- **Purpose**: Detects nested N+1 queries (multi-level lazy loading chains)
+- **Detection**: Query chain pattern analysis tracking foreign key relationships
+- **Impact**: Prevents exponential query growth (N×M queries for 2-level nesting)
+- **Example**: `$article->getAuthor()->getCountry()` creates N+1 for authors AND N+1 for countries
+
+#### 3.2.7 UnusedEagerLoadAnalyzer
+
+- **Severity**: High
+- **Purpose**: Detects JOIN FETCH where joined data is never accessed
+- **Detection**: Analyzes SELECT/WHERE/ORDER BY clauses for unused table aliases
+- **Impact**: 30-70% memory reduction, faster hydration, reduced bandwidth
+- **Example**: `SELECT a FROM Article a JOIN a.author` but never uses author data
+
+#### 3.2.8 FlushInLoopAnalyzerModern
+
+- **Severity**: Critical
+- **Purpose**: Modern implementation of flush-in-loop detection using factory pattern
+- **Detection**: Temporal analysis of flush() calls with improved architecture
+- **Impact**: Same as FlushInLoopAnalyzer (10-100x improvement)
+- **Note**: Refactored version with better separation of concerns
+
 ---
 
 ### 3.3 Performance Analyzer Summary Table
 
 | Analyzer ID | Detection Method | Typical Impact | Configuration |
 |-------------|------------------|----------------|---------------|
-| NPlusOneAnalyzer | Query signature matching | 90-99% query reduction | `threshold: 3` |
-| MissingIndexAnalyzer | EXPLAIN analysis | 10-1000x speedup | `slow_query_threshold: 100` |
-| SlowQueryAnalyzer | Execution time | Direct | `threshold: 50` (ms) |
-| HydrationAnalyzer | Result set size | 50-80% memory reduction | `row_threshold: 1000` |
-| FlushInLoopAnalyzer | Trace analysis | 10-100x | `flush_count_threshold: 3` |
+| NPlusOneAnalyzer | Query signature matching | 90-99% query reduction | `threshold: 5` |
+| MissingIndexAnalyzer | EXPLAIN analysis | 10-1000x speedup | `slow_query_threshold: 50` |
+| SlowQueryAnalyzer | Execution time | Direct | `threshold: 100` (ms) |
+| HydrationAnalyzer | Result set size | 50-80% memory reduction | `row_threshold: 99` |
+| FlushInLoopAnalyzer | Trace analysis | 10-100x | `flush_count_threshold: 5` |
 | EagerLoadingAnalyzer | JOIN count | Query optimization | `join_threshold: 5` |
 | LazyLoadingAnalyzer | Proxy initialization | Query reduction | `threshold: 10` |
 | DTOHydrationAnalyzer | Hydration mode | Memory + performance | — |
@@ -112,7 +136,7 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 | SetMaxResultsWithCollectionJoinAnalyzer | LIMIT + JOIN | Incorrect results | — |
 | PartialObjectAnalyzer | SELECT clause | Memory reduction | `threshold: 5` |
 | OrderByWithoutLimitAnalyzer | ORDER BY + full scan | Resource usage | — |
-| FindAllAnalyzer | Unfiltered queries | Memory exhaustion | `threshold: 1000` |
+| FindAllAnalyzer | Unfiltered queries | Memory exhaustion | `threshold: 99` |
 | YearFunctionOptimizationAnalyzer | Function in WHERE | Index usage | — |
 | IneffectiveLikeAnalyzer | Leading wildcard | Full table scan | — |
 | DivisionByZeroAnalyzer | Division operations | Runtime errors | — |
@@ -120,6 +144,13 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 | CollectionEmptyAccessAnalyzer | Uninitialized collections | Lazy load prevention | — |
 | AutoGenerateProxyClassesAnalyzer | Configuration | Production readiness | — |
 | DoctrineCacheAnalyzer | Cache configuration | Deprecation warnings | — |
+| NestedRelationshipN1Analyzer | Query chain analysis | Exponential query prevention | `nesting_threshold: 2` |
+| UnusedEagerLoadAnalyzer | Alias usage analysis | 30-70% memory reduction | — |
+
+**Internal Parser Utilities** (not directly user-facing):
+| SqlAggregationAnalyzer | Aggregation function analysis | Query optimization | Internal |
+| SqlConditionAnalyzer | WHERE/ON clause analysis | Index effectiveness | Internal |
+| SqlPerformanceAnalyzer | SQL pattern analysis | Performance insights | Internal |
 
 ---
 
@@ -174,7 +205,35 @@ Code Quality analyzers detect code smells, anti-patterns, and violations of best
 
 ### 5.2 Key Analyzers
 
-#### 5.2.1 CascadeConfigurationAnalyzer
+#### 5.2.1 CascadeAnalyzer (Unified)
+
+**Description**: Single unified analyzer for all cascade-related issues following Single Responsibility Principle.
+
+**Detects**:
+1. `cascade="all"` usage (highest priority - most dangerous)
+2. `cascade="remove"` on independent entities (potential data loss)
+3. `cascade="persist"` on independent entities (wrong aggregate boundaries)
+
+**Benefits**:
+- O(n) performance instead of O(3n)
+- No duplicate issues
+- Clear priority ordering
+
+**Example Violation**:
+
+```php
+/**
+ * @ORM\ManyToOne(targetEntity="Tag")
+ * @ORM\JoinColumn(cascade={"remove"})  // ❌ Tag is independent!
+ */
+private Tag $tag;
+```
+
+**Issue**: Deleting article would delete shared tag → data loss
+
+---
+
+#### 5.2.2 CascadeConfigurationAnalyzer
 
 **Description**: Validates consistency between ORM cascade operations and database foreign key constraints.
 
@@ -267,6 +326,9 @@ class Customer {
 
 - **CharsetAnalyzer**: Detects charset issues (recommends UTF8MB4)
 - **CollationAnalyzer**: Validates collation settings for proper sorting
+  - MySQL/MariaDB: Detects utf8mb4_general_ci vs utf8mb4_unicode_ci, collation mismatches
+  - PostgreSQL: Detects "C" collation issues, libc vs ICU collations, FK collation mismatches
+  - Platform-specific recommendations for optimal sorting accuracy
 - **StrictModeAnalyzer**: Ensures MySQL strict mode is enabled
 - **InnoDBEngineAnalyzer**: Validates InnoDB storage engine usage
 
@@ -299,13 +361,13 @@ doctrine_doctor:
     analyzers:
         n_plus_one:
             enabled: true
-            threshold: 3
+            threshold: 5
         slow_query:
             enabled: true
-            threshold: 50  # milliseconds
+            threshold: 100  # milliseconds
         missing_index:
             enabled: true
-            slow_query_threshold: 100
+            slow_query_threshold: 50
 ```
 
 ### 7.3 Category Configuration
