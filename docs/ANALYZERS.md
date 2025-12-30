@@ -210,11 +210,13 @@ Code Quality analyzers detect code smells, anti-patterns, and violations of best
 **Description**: Single unified analyzer for all cascade-related issues following Single Responsibility Principle.
 
 **Detects**:
+
 1. `cascade="all"` usage (highest priority - most dangerous)
 2. `cascade="remove"` on independent entities (potential data loss)
 3. `cascade="persist"` on independent entities (wrong aggregate boundaries)
 
 **Benefits**:
+
 - O(n) performance instead of O(3n)
 - No duplicate issues
 - Clear priority ordering
