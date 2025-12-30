@@ -5,11 +5,11 @@
 **Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler**
 
 [![PHP 8.2+](https://img.shields.io/badge/PHP-8.2+-777BB4.svg?logo=php&logoColor=white)](https://php.net)
-[![Symfony 6.4+ | 7.x](https://img.shields.io/badge/Symfony-6.4%2B%20%7C%207.x-000000.svg?logo=symfony&logoColor=white)](https://symfony.com)
+[![Symfony 6.0+ | 7.x](https://img.shields.io/badge/Symfony-6.0%2B%20%7C%207.x-000000.svg?logo=symfony&logoColor=white)](https://symfony.com)
 [![Doctrine ORM](https://img.shields.io/badge/Doctrine-2.10%2B%20%7C%203.x%20%7C%204.x-FC6A31.svg?logo=doctrine&logoColor=white)](https://www.doctrine-project.org)
 [![License MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/ahmed-bhs/doctrine-doctor/workflows/CI/badge.svg)](https://github.com/ahmed-bhs/doctrine-doctor/actions)
-[![PHPStan Level 9](https://img.shields.io/badge/PHPStan-Level%208-brightgreen.svg)](https://phpstan.org)
+[![PHPStan Level 8](https://img.shields.io/badge/PHPStan-Level%208-brightgreen.svg)](https://phpstan.org)
 [![Code Style](https://img.shields.io/badge/Code%20Style-PSR--12-blue.svg)](https://www.php-fig.org/psr/psr-12/)
 [![Packagist Version](https://img.shields.io/packagist/v/ahmed-bhs/doctrine-doctor.svg)](https://packagist.org/packages/ahmed-bhs/doctrine-doctor)
 
@@ -81,9 +81,9 @@ Configure thresholds in `config/packages/dev/doctrine_doctor.yaml`:
 doctrine_doctor:
     analyzers:
         n_plus_one:
-            threshold: 3
+            threshold: 5  # default, lower to 3 to be stricter
         slow_query:
-            threshold: 50  # milliseconds
+            threshold: 100  # milliseconds (default)
 ```
 
 **Enable backtraces** to see WHERE in your code issues originate:

@@ -66,13 +66,6 @@ doctrine_doctor:
             # Analyzer-specific parameters
             threshold: <value>
             # ... additional parameters
-
-    # Group-based control
-    groups:
-        performance: true|false
-        security: true|false
-        integrity: true|false
-        configuration: true|false
 ```
 
 ### 2.2 Default Values
@@ -91,15 +84,15 @@ doctrine_doctor:
         # Performance
         n_plus_one:
             enabled: true
-            threshold: 3
+            threshold: 5
 
         slow_query:
             enabled: true
-            threshold: 50  # milliseconds
+            threshold: 100  # milliseconds
 
         missing_index:
             enabled: true
-            slow_query_threshold: 100
+            slow_query_threshold: 50
             min_rows_scanned: 1000
             explain_queries: true
 
@@ -218,19 +211,19 @@ doctrine_doctor:
     analyzers:
         n_plus_one:
             enabled: true
-            threshold: 3
+            threshold: 5
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable analyzer |
-| `threshold` | integer | `3` | Minimum duplicate query occurrences to trigger detection |
+| `threshold` | integer | `5` | Minimum duplicate query occurrences to trigger detection |
 
 **Tuning Guide**:
 
 - **Strict**: `threshold: 2` - Catch even minor N+1 issues
-- **Balanced**: `threshold: 3` - Default, good signal-to-noise ratio
-- **Permissive**: `threshold: 5` - Only major N+1 problems
+- **Balanced**: `threshold: 5` - Default, good signal-to-noise ratio
+- **Permissive**: `threshold: 10` - Only major N+1 problems
 
 ---
 
@@ -241,13 +234,13 @@ doctrine_doctor:
     analyzers:
         slow_query:
             enabled: true
-            threshold: 50
+            threshold: 100
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable analyzer |
-| `threshold` | integer | `50` | Execution time threshold in milliseconds |
+| `threshold` | integer | `100` | Execution time threshold in milliseconds |
 
 **Tuning by Environment**:
 
@@ -307,15 +300,15 @@ doctrine_doctor:
     analyzers:
         hydration:
             enabled: true
-            row_threshold: 1000
-            critical_threshold: 5000
+            row_threshold: 99
+            critical_threshold: 999
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable analyzer |
-| `row_threshold` | integer | `1000` | Rows to trigger "High" severity |
-| `critical_threshold` | integer | `5000` | Rows to trigger "Critical" severity |
+| `row_threshold` | integer | `99` | Rows to trigger "High" severity |
+| `critical_threshold` | integer | `999` | Rows to trigger "Critical" severity |
 
 ---
 
@@ -326,14 +319,14 @@ doctrine_doctor:
     analyzers:
         flush_in_loop:
             enabled: true
-            flush_count_threshold: 3
+            flush_count_threshold: 5
             time_window_ms: 1000
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable analyzer |
-| `flush_count_threshold` | integer | `3` | Minimum flush calls to detect loop pattern |
+| `flush_count_threshold` | integer | `5` | Minimum flush calls to detect loop pattern |
 | `time_window_ms` | integer | `1000` | Time window (ms) to group flush calls |
 
 ---
@@ -468,13 +461,13 @@ doctrine_doctor:
     analyzers:
         find_all:
             enabled: true
-            threshold: 1000
+            threshold: 99
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable analyzer |
-| `threshold` | integer | `1000` | Row count to flag `findAll()` usage |
+| `threshold` | integer | `99` | Row count to flag `findAll()` usage |
 
 ---
 
@@ -621,36 +614,20 @@ doctrine_doctor:
 
 ## 8. Group Management
 
-### 8.1 Enable/Disable Analyzer Groups
-
-```yaml
-doctrine_doctor:
-    groups:
-        performance: true
-        security: true
-        integrity: true
-        configuration: true
-```
-
-**Group Definitions**:
-
-| Group | Analyzers Included | Count |
-|-------|-------------------|-------|
-| `performance` | N+1, slow query, hydration, flush in loop, etc. | 25 |
-| `security` | DQL injection, SQL injection, sensitive data, etc. | 4 |
-| `integrity` | Cascade, bidirectional, type safety, etc. | 29 |
-| `configuration` | Charset, collation, timezone, Gedmo traits, etc. | 8 |
-
-**Use Case**: Focus on critical issues only
-
-```yaml
-doctrine_doctor:
-    groups:
-        performance: true
-        security: true
-        integrity: false  # Temporarily disable
-        configuration: false
-```
+> **⚠️ Note**: Group-based configuration (`groups:` node) is not yet implemented.
+>
+> To enable/disable specific analyzers, use individual analyzer configuration:
+>
+> ```yaml
+> doctrine_doctor:
+>     analyzers:
+>         n_plus_one:
+>             enabled: false  # Disable specific analyzer
+>         slow_query:
+>             enabled: true   # Keep enabled
+> ```
+>
+> This feature is planned for a future release to allow bulk enable/disable by category.
 
 ---
 
@@ -867,11 +844,19 @@ doctrine_doctor:
 
 ```yaml
 doctrine_doctor:
-    groups:
-        performance: false
-        security: true
-        integrity: false
-        configuration: false
+    # Enable only security analyzers individually
+    analyzers:
+        dql_injection:
+            enabled: true
+        sql_injection:
+            enabled: true
+        sensitive_data_exposure:
+            enabled: true
+        # Disable performance analyzers
+        n_plus_one:
+            enabled: false
+        slow_query:
+            enabled: false
 ```
 
 ### Full Customization
@@ -887,26 +872,26 @@ doctrine_doctor:
     analyzers:
         n_plus_one:
             enabled: true
-            threshold: 3
+            threshold: 5
 
         slow_query:
             enabled: true
-            threshold: 50
+            threshold: 100
 
         missing_index:
             enabled: true
-            slow_query_threshold: 100
+            slow_query_threshold: 50
             min_rows_scanned: 1000
             explain_queries: true
 
         hydration:
             enabled: true
-            row_threshold: 1000
-            critical_threshold: 5000
+            row_threshold: 99
+            critical_threshold: 999
 
         flush_in_loop:
             enabled: true
-            flush_count_threshold: 3
+            flush_count_threshold: 5
             time_window_ms: 1000
 
         eager_loading:
@@ -937,7 +922,7 @@ doctrine_doctor:
 
         find_all:
             enabled: true
-            threshold: 1000
+            threshold: 99
 
         get_reference:
             enabled: true
