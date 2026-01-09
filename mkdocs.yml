@@ -180,5 +180,6 @@ nav:
       - Creating Analyzers: contributing/creating-analyzers.md
 
   - About:
+      - FAQ: about/faq.md
       - Changelog: about/changelog.md
       - License: about/license.md

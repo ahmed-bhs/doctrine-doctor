@@ -671,7 +671,75 @@ html {
   font-size: 0.85rem;
 }
 
-/* ===== 21. Homepage Hero ===== */
+/* ===== 21. Subtle Animations ===== */
+
+/* Smooth transitions for interactive elements */
+.md-nav__link,
+.md-tabs__link,
+.md-header__button,
+.md-footer__link,
+.md-button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fade in animation for content */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.md-content__inner > * {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Pulse animation for badges */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.severity-critical {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hover lift effect for cards */
+.feature-card,
+.md-typeset table:not([class]),
+.md-typeset .highlight {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Icon rotation on expand */
+.md-nav__icon {
+  transition: transform 0.25s;
+}
+
+/* Loading skeleton animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* ===== 22. Homepage Hero ===== */
 
 .hero-section {
   background: linear-gradient(135deg, var(--dd-primary) 0%, var(--dd-primary-dark) 100%);
