@@ -1,0 +1,43 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/deploy-docs.yml'
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for git info
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          key: ${{ github.ref }}
+          path: .cache
+
+      - name: Install MkDocs Material
+        run: |
+          pip install --upgrade pip
+          pip install mkdocs-material
+          pip install mkdocs-minify-plugin
+
+      - name: Deploy to GitHub Pages
+        run: mkdocs gh-deploy --force

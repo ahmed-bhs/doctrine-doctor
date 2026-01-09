@@ -34,3 +34,7 @@ Thumbs.db
 # Logs
 *.log
 bin/act
+
+# MkDocs
+/site/
+.cache/
