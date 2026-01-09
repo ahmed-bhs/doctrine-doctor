@@ -15,30 +15,87 @@ extra:
 
   generator: false
 
-  # SEO Tags
+  # SEO Tags - Complete
   meta:
+    # Primary Meta Tags
+    - name: title
+      content: Doctrine Doctor - Runtime Analysis Tool for Doctrine ORM & Symfony
+    - name: description
+      content: Detect N+1 queries, missing indexes, security vulnerabilities, and 66+ performance issues in your Symfony/Doctrine apps. Free open-source profiler integration.
     - name: keywords
-      content: doctrine, orm, symfony, performance, n+1 queries, database optimization, security analysis, profiler
+      content: doctrine, orm, symfony, performance, n+1 queries, database optimization, security analysis, profiler, php, mysql, postgresql, query analyzer, missing index, slow query, dql injection, sql injection, symfony bundle, developer tools, debugging, performance monitoring
     - name: author
       content: Ahmed EBEN HASSINE
+    - name: robots
+      content: index, follow
+    - name: language
+      content: English
+    - name: revisit-after
+      content: 7 days
+
+    # Open Graph / Facebook
     - property: og:type
       content: website
+    - property: og:site_name
+      content: Doctrine Doctor
     - property: og:title
       content: Doctrine Doctor - Runtime Analysis for Doctrine ORM
     - property: og:description
       content: Detect N+1 queries, missing indexes, and 66+ performance issues in your Symfony/Doctrine apps. Integrated into Web Profiler.
     - property: og:image
       content: https://ahmed-bhs.github.io/doctrine-doctor/images/logo.png
+    - property: og:image:alt
+      content: Doctrine Doctor Logo - Medical stethoscope representing code health analysis
     - property: og:url
       content: https://ahmed-bhs.github.io/doctrine-doctor/
+    - property: og:locale
+      content: en_US
+
+    # Twitter Card
     - name: twitter:card
       content: summary_large_image
     - name: twitter:title
       content: Doctrine Doctor - Runtime Analysis for Doctrine ORM
     - name: twitter:description
-      content: Detect N+1 queries, missing indexes, and 66+ performance issues
+      content: Detect N+1 queries, missing indexes, and 66+ performance issues in your Symfony/Doctrine apps
     - name: twitter:image
       content: https://ahmed-bhs.github.io/doctrine-doctor/images/logo.png
+    - name: twitter:creator
+      content: "@ahmed_bhs"
+    - name: twitter:site
+      content: "@ahmed_bhs"
+
+    # Additional SEO
+    - name: rating
+      content: General
+    - name: distribution
+      content: Global
+    - name: coverage
+      content: Worldwide
+    - name: target
+      content: developers, php developers, symfony developers
+    - name: HandheldFriendly
+      content: "True"
+    - name: MobileOptimized
+      content: "375"
+    - name: apple-mobile-web-app-capable
+      content: "yes"
+    - name: apple-mobile-web-app-status-bar-style
+      content: black-translucent
+
+    # Theme Color for Mobile
+    - name: theme-color
+      content: "#00897B"
+    - name: msapplication-TileColor
+      content: "#00897B"
+    - name: msapplication-navbutton-color
+      content: "#00897B"
+
+    # Structured Data (JSON-LD will be added separately)
+    - name: category
+      content: Software Development Tools
+    - name: coverage
+      content: Worldwide
 
 repo_name: ahmed-bhs/doctrine-doctor
 repo_url: https://github.com/ahmed-bhs/doctrine-doctor
