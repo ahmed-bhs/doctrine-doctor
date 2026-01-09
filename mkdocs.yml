@@ -1,7 +1,44 @@
 site_name: Doctrine Doctor
-site_description: Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler
+site_description: Runtime Analysis Tool for Doctrine ORM. Detects N+1 queries, missing indexes, security issues, and 66+ performance problems. Integrated into Symfony Web Profiler.
 site_author: Ahmed EBEN HASSINE
 site_url: https://ahmed-bhs.github.io/doctrine-doctor/
+
+# SEO and Social
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ahmed-bhs
+      name: Ahmed EBEN HASSINE on GitHub
+    - icon: fontawesome/solid/mug-hot
+      link: https://www.buymeacoffee.com/w6ZhBSGX2
+      name: Buy Me a Coffee
+
+  generator: false
+
+  # SEO Tags
+  meta:
+    - name: keywords
+      content: doctrine, orm, symfony, performance, n+1 queries, database optimization, security analysis, profiler
+    - name: author
+      content: Ahmed EBEN HASSINE
+    - property: og:type
+      content: website
+    - property: og:title
+      content: Doctrine Doctor - Runtime Analysis for Doctrine ORM
+    - property: og:description
+      content: Detect N+1 queries, missing indexes, and 66+ performance issues in your Symfony/Doctrine apps. Integrated into Web Profiler.
+    - property: og:image
+      content: https://ahmed-bhs.github.io/doctrine-doctor/images/logo.png
+    - property: og:url
+      content: https://ahmed-bhs.github.io/doctrine-doctor/
+    - name: twitter:card
+      content: summary_large_image
+    - name: twitter:title
+      content: Doctrine Doctor - Runtime Analysis for Doctrine ORM
+    - name: twitter:description
+      content: Detect N+1 queries, missing indexes, and 66+ performance issues
+    - name: twitter:image
+      content: https://ahmed-bhs.github.io/doctrine-doctor/images/logo.png
 
 repo_name: ahmed-bhs/doctrine-doctor
 repo_url: https://github.com/ahmed-bhs/doctrine-doctor
@@ -51,8 +88,8 @@ theme:
     repo: fontawesome/brands/github
     edit: material/pencil
 
-  logo: docs/images/logo.png
-  favicon: docs/images/logo.png
+  logo: images/logo.png
+  favicon: images/logo.png
 
 # Extensions
 markdown_extensions:
@@ -109,18 +146,6 @@ extra_css:
 # Extra JavaScript
 extra_javascript:
   - javascripts/extra.js
-
-# Social links and footer
-extra:
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/ahmed-bhs
-      name: Ahmed EBEN HASSINE on GitHub
-    - icon: fontawesome/solid/mug-hot
-      link: https://www.buymeacoffee.com/w6ZhBSGX2
-      name: Buy Me a Coffee
-
-  generator: false  # Remove "Made with Material for MkDocs" footer
 
 # Copyright
 copyright: >

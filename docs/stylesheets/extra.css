@@ -38,70 +38,70 @@
   --dd-primary-dark: #26A69A;
 }
 
-/* ===== 2. Typography System - COMPACT ===== */
+/* ===== 2. Typography System - ULTRA COMPACT ===== */
 
-/* Body text - Compact and readable */
+/* Body text - Ultra compact and readable */
 .md-typeset {
   font-family: var(--font-family-primary);
-  font-size: 0.875rem;      /* Reduced from 1rem */
-  line-height: 1.6;         /* Reduced from 1.7 */
+  font-size: 0.8125rem;     /* ULTRA REDUCED: 13px */
+  line-height: 1.5;         /* ULTRA REDUCED: 1.5 */
 }
 
-/* Paragraphs - compact spacing */
+/* Paragraphs - ultra compact spacing */
 .md-typeset p {
-  margin: 0.75rem 0;        /* Reduced from default 1rem */
+  margin: 0.5rem 0;         /* ULTRA REDUCED from 0.75rem */
 }
 
 /* Reduce spacing around block elements */
 .md-typeset blockquote {
-  margin: 1rem 0;           /* Reduced from default */
-  padding: 0.75rem 1rem;    /* Compact padding */
+  margin: 0.75rem 0;        /* ULTRA REDUCED */
+  padding: 0.5rem 0.75rem;  /* ULTRA REDUCED */
 }
 
-/* Horizontal rules - compact */
+/* Horizontal rules - ultra compact */
 .md-typeset hr {
-  margin: 1.5rem 0;         /* Reduced from default */
+  margin: 1rem 0;           /* ULTRA REDUCED from 1.5rem */
 }
 
-/* Headings - Compact but distinctive */
+/* Headings - ULTRA COMPACT but distinctive */
 .md-typeset h1 {
   font-family: var(--font-family-headings);
   font-weight: 700;
-  font-size: 2rem;          /* Reduced from 2.5rem */
+  font-size: 1.625rem;      /* ULTRA REDUCED: 26px */
   line-height: 1.2;
   color: var(--dd-primary-dark);
-  border-bottom: 2px solid var(--dd-primary);  /* Reduced from 3px */
-  padding-bottom: 0.4rem;   /* Reduced from 0.5rem */
-  margin-bottom: 1rem;      /* Reduced from 1.5rem */
-  margin-top: 1.5rem;       /* Reduced from 2rem */
+  border-bottom: 2px solid var(--dd-primary);
+  padding-bottom: 0.3rem;   /* ULTRA REDUCED */
+  margin-bottom: 0.625rem;  /* ULTRA REDUCED */
+  margin-top: 1rem;         /* ULTRA REDUCED */
 }
 
 .md-typeset h2 {
   font-family: var(--font-family-headings);
   font-weight: 600;
-  font-size: 1.5rem;        /* Reduced from 1.875rem */
+  font-size: 1.25rem;       /* ULTRA REDUCED: 20px */
   color: var(--dd-primary);
-  margin-top: 1.75rem;      /* Reduced from 2.5rem */
-  margin-bottom: 0.75rem;   /* Reduced from 1rem */
-  border-left: 3px solid var(--dd-primary);  /* Reduced from 4px */
-  padding-left: 0.75rem;    /* Reduced from 1rem */
+  margin-top: 1.25rem;      /* ULTRA REDUCED */
+  margin-bottom: 0.5rem;    /* ULTRA REDUCED */
+  border-left: 3px solid var(--dd-primary);
+  padding-left: 0.625rem;   /* ULTRA REDUCED */
 }
 
 .md-typeset h3 {
   font-family: var(--font-family-headings);
   font-weight: 600;
-  font-size: 1.25rem;       /* Reduced from 1.5rem */
-  margin-top: 1.5rem;       /* Reduced from 2rem */
-  margin-bottom: 0.5rem;
+  font-size: 1.0625rem;     /* ULTRA REDUCED: 17px */
+  margin-top: 1rem;         /* ULTRA REDUCED */
+  margin-bottom: 0.375rem;  /* ULTRA REDUCED */
 }
 
 .md-typeset h4 {
   font-family: var(--font-family-headings);
   font-weight: 600;
-  font-size: 1.05rem;       /* Reduced from 1.25rem */
+  font-size: 0.9375rem;     /* ULTRA REDUCED: 15px */
   color: var(--dd-primary);
-  margin-top: 1.25rem;
-  margin-bottom: 0.4rem;
+  margin-top: 0.875rem;     /* ULTRA REDUCED */
+  margin-bottom: 0.3rem;    /* ULTRA REDUCED */
 }
 
 /* Code font */
@@ -129,32 +129,32 @@
   background: linear-gradient(135deg, var(--dd-primary-dark) 0%, #004D3F 100%);
 }
 
-/* ===== 4. Code Blocks - COMPACT ===== */
+/* ===== 4. Code Blocks - ULTRA COMPACT ===== */
 
-/* Code blocks - Compact medical theme */
+/* Code blocks - Ultra compact medical theme */
 .md-typeset .highlight {
-  border-radius: 6px;       /* Reduced from 8px */
+  border-radius: 4px;       /* ULTRA REDUCED */
   border: 1px solid var(--dd-gray-300);
-  margin: 1rem 0;           /* Reduced from 1.5rem */
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);  /* Reduced shadow */
+  margin: 0.625rem 0;       /* ULTRA REDUCED: 10px */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  font-size: 0.8125rem;     /* Smaller code font */
+  font-size: 0.75rem;       /* ULTRA REDUCED: 12px */
 }
 
 .md-typeset .highlight:hover {
   border-color: var(--dd-primary);
-  box-shadow: 0 2px 8px rgba(0, 137, 123, 0.1);  /* Reduced shadow */
+  box-shadow: 0 2px 6px rgba(0, 137, 123, 0.1);
 }
 
-/* Compact code blocks - reduce internal padding */
+/* Ultra compact code blocks - minimal padding */
 .md-typeset .highlight > pre {
   margin: 0;
-  padding: 0.75rem 1rem;    /* Reduced from default */
+  padding: 0.5rem 0.75rem;  /* ULTRA REDUCED */
 }
 
 .md-typeset .highlight > pre > code {
-  font-size: 0.8125rem;     /* Consistent small size */
-  line-height: 1.5;         /* Compact line height */
+  font-size: 0.75rem;       /* ULTRA REDUCED: 12px */
+  line-height: 1.4;         /* ULTRA COMPACT */
 }
 
 /* Inline code - compact */
@@ -225,16 +225,21 @@
   background-color: rgba(0, 137, 123, 0.05);
 }
 
-/* ===== 7. Admonitions (Callouts) - COMPACT ===== */
+/* ===== 7. Admonitions (Callouts) - ULTRA COMPACT ===== */
 
 .md-typeset .admonition,
 .md-typeset details {
-  border-radius: 6px;       /* Reduced from 8px */
-  padding: 0.75rem 1rem;    /* Reduced from 1rem 1.25rem */
-  margin: 1rem 0;           /* Reduced from 1.5rem */
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);  /* Reduced shadow */
-  border-left: 3px solid var(--dd-primary);    /* Reduced from 4px */
-  font-size: 0.875rem;      /* Match body font size */
+  border-radius: 4px;       /* ULTRA REDUCED */
+  padding: 0.5rem 0.75rem;  /* ULTRA REDUCED */
+  margin: 0.625rem 0;       /* ULTRA REDUCED: 10px */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-left: 3px solid var(--dd-primary);
+  font-size: 0.8125rem;     /* Match body font: 13px */
+}
+
+.md-typeset .admonition-title {
+  font-size: 0.875rem;      /* Slightly larger title */
+  margin-bottom: 0.375rem;  /* ULTRA REDUCED */
 }
 
 .md-typeset .admonition.tip,
@@ -431,30 +436,30 @@
   color: var(--dd-primary);
 }
 
-/* ===== 14. Lists - COMPACT ===== */
+/* ===== 14. Lists - ULTRA COMPACT ===== */
 
 .md-typeset ul,
 .md-typeset ol {
-  margin: 0.75rem 0;        /* Reduced from default */
-  padding-left: 1.5rem;     /* Reduced from default */
+  margin: 0.5rem 0;         /* ULTRA REDUCED */
+  padding-left: 1.25rem;    /* ULTRA REDUCED */
 }
 
 .md-typeset ul li,
 .md-typeset ol li {
-  margin-bottom: 0.25em;    /* Reduced from 0.5em */
-  line-height: 1.5;         /* Compact line height */
+  margin-bottom: 0.125em;   /* ULTRA REDUCED: almost no space */
+  line-height: 1.4;         /* ULTRA COMPACT */
 }
 
 .md-typeset ul li::marker {
   color: var(--dd-primary);
 }
 
-/* Nested lists - even more compact */
+/* Nested lists - ultra compact */
 .md-typeset ul ul,
 .md-typeset ol ol,
 .md-typeset ul ol,
 .md-typeset ol ul {
-  margin: 0.25rem 0;
+  margin: 0.125rem 0;       /* ULTRA REDUCED */
 }
 
 /* ===== 15. Accessibility ===== */
@@ -477,22 +482,32 @@
   }
 }
 
-/* ===== 16. Content Spacing - GLOBAL COMPACT ===== */
+/* ===== 16. Content Spacing - ULTRA COMPACT ===== */
 
-/* Reduce main content padding for more compact view */
+/* Ultra reduce main content padding */
 .md-content__inner {
-  padding-top: 1.5rem;      /* Reduced from default */
-  padding-bottom: 1.5rem;   /* Reduced from default */
+  padding-top: 0.75rem;     /* ULTRA REDUCED */
+  padding-bottom: 0.75rem;  /* ULTRA REDUCED */
 }
 
-/* Compact main container */
+/* Ultra compact main container */
 .md-main__inner {
-  margin-top: 0.5rem;       /* Reduced from default */
+  margin-top: 0.25rem;      /* ULTRA REDUCED */
 }
 
-/* Compact tabs container */
+/* Ultra compact tabs container */
 .md-tabs__list {
-  padding-left: 0.5rem;     /* Compact padding */
+  padding-left: 0.25rem;    /* ULTRA REDUCED */
+}
+
+/* Reduce sidebar padding */
+.md-sidebar__scrollwrap {
+  margin-top: 0.5rem;       /* ULTRA REDUCED */
+}
+
+/* Compact navigation items in sidebar */
+.md-nav--primary > .md-nav__list {
+  padding: 0.25rem 0;       /* ULTRA REDUCED */
 }
 
 /* ===== 17. Responsive Design ===== */
