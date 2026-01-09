@@ -1,0 +1,147 @@
+site_name: Doctrine Doctor
+site_description: Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler
+site_author: Ahmed EBEN HASSINE
+site_url: https://ahmed-bhs.github.io/doctrine-doctor/
+
+repo_name: ahmed-bhs/doctrine-doctor
+repo_url: https://github.com/ahmed-bhs/doctrine-doctor
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: en
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    - navigation.instant      # Fast page loading
+    - navigation.tracking     # Track URL in address bar
+    - navigation.tabs         # Top-level sections in tabs
+    - navigation.sections     # Expand sections in sidebar
+    - navigation.expand       # Expand all sections by default
+    - navigation.top          # "Back to top" button
+    - search.suggest          # Search suggestions
+    - search.highlight        # Highlight search terms
+    - search.share            # Share search results
+    - content.code.copy       # Copy code button
+    - content.action.edit     # Edit this page button
+    - toc.follow              # Follow table of contents
+
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+
+  logo: docs/images/logo.png
+  favicon: docs/images/logo.png
+
+# Extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Plugins
+plugins:
+  - search:
+      lang: en
+      separator: '[\s\-\.]+'
+  - minify:
+      minify_html: true
+
+# Extra CSS
+extra_css:
+  - stylesheets/extra.css
+
+# Extra JavaScript
+extra_javascript:
+  - javascripts/extra.js
+
+# Social links and footer
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ahmed-bhs
+      name: Ahmed EBEN HASSINE on GitHub
+    - icon: fontawesome/solid/mug-hot
+      link: https://www.buymeacoffee.com/w6ZhBSGX2
+      name: Buy Me a Coffee
+
+  generator: false  # Remove "Made with Material for MkDocs" footer
+
+# Copyright
+copyright: >
+  Copyright &copy; 2024-2026 Ahmed EBEN HASSINE -
+  <a href="https://github.com/ahmed-bhs/doctrine-doctor/blob/main/LICENSE">MIT License</a>
+
+# Navigation structure
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Quick Start: getting-started/quick-start.md
+      - Installation: getting-started/installation.md
+      - First Steps: getting-started/first-steps.md
+  - Documentation:
+      - Configuration: CONFIGURATION.md
+      - Analyzers: ANALYZERS.md
+      - Architecture: ARCHITECTURE.md
+      - Template Security: TEMPLATE_SECURITY.md
+  - Examples:
+      - N+1 Query Detection: examples/n-plus-one.md
+      - Missing Indexes: examples/missing-indexes.md
+      - Security Issues: examples/security.md
+  - Contributing:
+      - How to Contribute: contributing/overview.md
+      - Development Setup: contributing/development.md
+      - Creating Analyzers: contributing/creating-analyzers.md
+  - About:
+      - License: about/license.md
+      - Changelog: about/changelog.md
