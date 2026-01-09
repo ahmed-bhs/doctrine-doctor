@@ -38,51 +38,70 @@
   --dd-primary-dark: #26A69A;
 }
 
-/* ===== 2. Typography System ===== */
+/* ===== 2. Typography System - COMPACT ===== */
 
-/* Body text - Enhanced readability */
+/* Body text - Compact and readable */
 .md-typeset {
   font-family: var(--font-family-primary);
-  font-size: 1rem;
-  line-height: 1.7;
+  font-size: 0.875rem;      /* Reduced from 1rem */
+  line-height: 1.6;         /* Reduced from 1.7 */
 }
 
-/* Headings - More distinctive */
+/* Paragraphs - compact spacing */
+.md-typeset p {
+  margin: 0.75rem 0;        /* Reduced from default 1rem */
+}
+
+/* Reduce spacing around block elements */
+.md-typeset blockquote {
+  margin: 1rem 0;           /* Reduced from default */
+  padding: 0.75rem 1rem;    /* Compact padding */
+}
+
+/* Horizontal rules - compact */
+.md-typeset hr {
+  margin: 1.5rem 0;         /* Reduced from default */
+}
+
+/* Headings - Compact but distinctive */
 .md-typeset h1 {
   font-family: var(--font-family-headings);
   font-weight: 700;
-  font-size: 2.5rem;
+  font-size: 2rem;          /* Reduced from 2.5rem */
   line-height: 1.2;
   color: var(--dd-primary-dark);
-  border-bottom: 3px solid var(--dd-primary);
-  padding-bottom: 0.5rem;
-  margin-bottom: 1.5rem;
-  margin-top: 2rem;
+  border-bottom: 2px solid var(--dd-primary);  /* Reduced from 3px */
+  padding-bottom: 0.4rem;   /* Reduced from 0.5rem */
+  margin-bottom: 1rem;      /* Reduced from 1.5rem */
+  margin-top: 1.5rem;       /* Reduced from 2rem */
 }
 
 .md-typeset h2 {
   font-family: var(--font-family-headings);
   font-weight: 600;
-  font-size: 1.875rem;
+  font-size: 1.5rem;        /* Reduced from 1.875rem */
   color: var(--dd-primary);
-  margin-top: 2.5rem;
-  margin-bottom: 1rem;
-  border-left: 4px solid var(--dd-primary);
-  padding-left: 1rem;
+  margin-top: 1.75rem;      /* Reduced from 2.5rem */
+  margin-bottom: 0.75rem;   /* Reduced from 1rem */
+  border-left: 3px solid var(--dd-primary);  /* Reduced from 4px */
+  padding-left: 0.75rem;    /* Reduced from 1rem */
 }
 
 .md-typeset h3 {
   font-family: var(--font-family-headings);
   font-weight: 600;
-  font-size: 1.5rem;
-  margin-top: 2rem;
+  font-size: 1.25rem;       /* Reduced from 1.5rem */
+  margin-top: 1.5rem;       /* Reduced from 2rem */
+  margin-bottom: 0.5rem;
 }
 
 .md-typeset h4 {
   font-family: var(--font-family-headings);
   font-weight: 600;
-  font-size: 1.25rem;
+  font-size: 1.05rem;       /* Reduced from 1.25rem */
   color: var(--dd-primary);
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
 }
 
 /* Code font */
@@ -110,34 +129,48 @@
   background: linear-gradient(135deg, var(--dd-primary-dark) 0%, #004D3F 100%);
 }
 
-/* ===== 4. Code Blocks ===== */
+/* ===== 4. Code Blocks - COMPACT ===== */
 
-/* Code blocks - Medical theme */
+/* Code blocks - Compact medical theme */
 .md-typeset .highlight {
-  border-radius: 8px;
+  border-radius: 6px;       /* Reduced from 8px */
   border: 1px solid var(--dd-gray-300);
-  margin: 1.5rem 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 1rem 0;           /* Reduced from 1.5rem */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);  /* Reduced shadow */
   overflow: hidden;
+  font-size: 0.8125rem;     /* Smaller code font */
 }
 
 .md-typeset .highlight:hover {
   border-color: var(--dd-primary);
-  box-shadow: 0 4px 12px rgba(0, 137, 123, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 137, 123, 0.1);  /* Reduced shadow */
 }
 
-/* Inline code */
+/* Compact code blocks - reduce internal padding */
+.md-typeset .highlight > pre {
+  margin: 0;
+  padding: 0.75rem 1rem;    /* Reduced from default */
+}
+
+.md-typeset .highlight > pre > code {
+  font-size: 0.8125rem;     /* Consistent small size */
+  line-height: 1.5;         /* Compact line height */
+}
+
+/* Inline code - compact */
 .md-typeset code:not(.highlight code) {
   background-color: rgba(0, 137, 123, 0.1);
   color: var(--dd-primary-dark);
-  padding: 0.2em 0.4em;
-  border-radius: 4px;
+  padding: 0.15em 0.35em;   /* Reduced padding */
+  border-radius: 3px;       /* Smaller radius */
   font-weight: 500;
+  font-size: 0.85em;        /* Slightly smaller */
 }
 
-/* Copy button styling */
+/* Copy button styling - more compact */
 .md-clipboard {
   color: var(--dd-primary);
+  padding: 0.4rem;          /* Reduced padding */
 }
 
 .md-clipboard:hover {
@@ -165,38 +198,43 @@
   border-radius: 2px;
 }
 
-/* ===== 6. Tables ===== */
+/* ===== 6. Tables - COMPACT ===== */
 
 .md-typeset table:not([class]) {
-  border-radius: 8px;
+  border-radius: 6px;       /* Reduced from 8px */
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);  /* Reduced shadow */
+  font-size: 0.8125rem;     /* Smaller font */
+  margin: 1rem 0;           /* Compact margins */
 }
 
 .md-typeset table:not([class]) th {
   background-color: var(--dd-primary);
   color: white;
   font-weight: 600;
-  padding: 1rem;
+  padding: 0.625rem 0.75rem;  /* Reduced from 1rem */
+  font-size: 0.8125rem;       /* Smaller header font */
 }
 
 .md-typeset table:not([class]) td {
-  padding: 0.875rem 1rem;
+  padding: 0.5rem 0.75rem;    /* Reduced from 0.875rem 1rem */
+  line-height: 1.5;           /* Compact line height */
 }
 
 .md-typeset table:not([class]) tr:hover {
   background-color: rgba(0, 137, 123, 0.05);
 }
 
-/* ===== 7. Admonitions (Callouts) ===== */
+/* ===== 7. Admonitions (Callouts) - COMPACT ===== */
 
 .md-typeset .admonition,
 .md-typeset details {
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  margin: 1.5rem 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid var(--dd-primary);
+  border-radius: 6px;       /* Reduced from 8px */
+  padding: 0.75rem 1rem;    /* Reduced from 1rem 1.25rem */
+  margin: 1rem 0;           /* Reduced from 1.5rem */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);  /* Reduced shadow */
+  border-left: 3px solid var(--dd-primary);    /* Reduced from 4px */
+  font-size: 0.875rem;      /* Match body font size */
 }
 
 .md-typeset .admonition.tip,
@@ -393,15 +431,30 @@
   color: var(--dd-primary);
 }
 
-/* ===== 14. Lists ===== */
+/* ===== 14. Lists - COMPACT ===== */
+
+.md-typeset ul,
+.md-typeset ol {
+  margin: 0.75rem 0;        /* Reduced from default */
+  padding-left: 1.5rem;     /* Reduced from default */
+}
 
 .md-typeset ul li,
 .md-typeset ol li {
-  margin-bottom: 0.5em;
+  margin-bottom: 0.25em;    /* Reduced from 0.5em */
+  line-height: 1.5;         /* Compact line height */
 }
 
 .md-typeset ul li::marker {
   color: var(--dd-primary);
+}
+
+/* Nested lists - even more compact */
+.md-typeset ul ul,
+.md-typeset ol ol,
+.md-typeset ul ol,
+.md-typeset ol ul {
+  margin: 0.25rem 0;
 }
 
 /* ===== 15. Accessibility ===== */
@@ -424,19 +477,46 @@
   }
 }
 
-/* ===== 16. Responsive Design ===== */
+/* ===== 16. Content Spacing - GLOBAL COMPACT ===== */
+
+/* Reduce main content padding for more compact view */
+.md-content__inner {
+  padding-top: 1.5rem;      /* Reduced from default */
+  padding-bottom: 1.5rem;   /* Reduced from default */
+}
+
+/* Compact main container */
+.md-main__inner {
+  margin-top: 0.5rem;       /* Reduced from default */
+}
+
+/* Compact tabs container */
+.md-tabs__list {
+  padding-left: 0.5rem;     /* Compact padding */
+}
+
+/* ===== 17. Responsive Design ===== */
 
 @media screen and (max-width: 768px) {
+  .md-typeset {
+    font-size: 0.8125rem;   /* Even smaller on mobile */
+  }
+
   .md-typeset h1 {
-    font-size: 2rem;
+    font-size: 1.75rem;     /* Reduced further */
   }
 
   .md-typeset h2 {
-    font-size: 1.5rem;
+    font-size: 1.375rem;    /* Reduced further */
   }
 
   .md-typeset h3 {
-    font-size: 1.25rem;
+    font-size: 1.125rem;    /* Reduced further */
+  }
+
+  .md-content__inner {
+    padding-top: 1rem;      /* Even more compact on mobile */
+    padding-bottom: 1rem;
   }
 }
 
