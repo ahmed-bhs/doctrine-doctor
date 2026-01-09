@@ -1,19 +1,24 @@
 # Doctrine Doctor
 
-<div align="center">
+<p align="center">
   <img src="images/logo.png" alt="Doctrine Doctor Logo" width="150">
+</p>
 
-  **Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler**
+<p align="center">
+  <strong>Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler</strong>
+</p>
 
-  [![PHP 8.2+](https://img.shields.io/badge/PHP-8.2+-777BB4.svg?logo=php&logoColor=white)](https://php.net)
-  [![Symfony 6.0+ | 7.x](https://img.shields.io/badge/Symfony-6.0%2B%20%7C%207.x-000000.svg?logo=symfony&logoColor=white)](https://symfony.com)
-  [![Doctrine ORM](https://img.shields.io/badge/Doctrine-2.10%2B%20%7C%203.x%20%7C%204.x-FC6A31.svg?logo=doctrine&logoColor=white)](https://www.doctrine-project.org)
-  [![License MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/ahmed-bhs/doctrine-doctor/blob/main/LICENSE)
-  [![CI](https://github.com/ahmed-bhs/doctrine-doctor/workflows/CI/badge.svg)](https://github.com/ahmed-bhs/doctrine-doctor/actions)
-  [![PHPStan Level 8](https://img.shields.io/badge/PHPStan-Level%208-brightgreen.svg)](https://phpstan.org)
-  [![Code Style](https://img.shields.io/badge/Code%20Style-PSR--12-blue.svg)](https://www.php-fig.org/psr/psr-12/)
-  [![Packagist Version](https://img.shields.io/packagist/v/ahmed-bhs/doctrine-doctor.svg)](https://packagist.org/packages/ahmed-bhs/doctrine-doctor)
-</div>
+<p align="center">
+  <a href="https://php.net"><img src="https://img.shields.io/badge/PHP-8.2+-777BB4.svg?logo=php&logoColor=white" alt="PHP 8.2+"></a>
+  <a href="https://symfony.com"><img src="https://img.shields.io/badge/Symfony-6.0%2B%20%7C%207.x-000000.svg?logo=symfony&logoColor=white" alt="Symfony 6.0+ | 7.x"></a>
+  <a href="https://www.doctrine-project.org"><img src="https://img.shields.io/badge/Doctrine-2.10%2B%20%7C%203.x%20%7C%204.x-FC6A31.svg?logo=doctrine&logoColor=white" alt="Doctrine ORM"></a>
+  <br>
+  <a href="https://github.com/ahmed-bhs/doctrine-doctor/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License MIT"></a>
+  <a href="https://github.com/ahmed-bhs/doctrine-doctor/actions"><img src="https://github.com/ahmed-bhs/doctrine-doctor/workflows/CI/badge.svg" alt="CI"></a>
+  <a href="https://phpstan.org"><img src="https://img.shields.io/badge/PHPStan-Level%208-brightgreen.svg" alt="PHPStan Level 8"></a>
+  <a href="https://www.php-fig.org/psr/psr-12/"><img src="https://img.shields.io/badge/Code%20Style-PSR--12-blue.svg" alt="Code Style"></a>
+  <a href="https://packagist.org/packages/ahmed-bhs/doctrine-doctor"><img src="https://img.shields.io/packagist/v/ahmed-bhs/doctrine-doctor.svg" alt="Packagist Version"></a>
+</p>
 
 ---
 
@@ -27,9 +32,9 @@ Unlike static analysis tools (PHPStan, Psalm) that analyze code without executio
   - 📍 **Backtrace**: Points to exact template line
   - 💡 **Suggestion**: Use `->addSelect(..)` to eager load authors
 
-<div align="center">
-  <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo.gif" alt="Doctrine Doctor Demo" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-</div>
+<p align="center">
+  <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo.gif" alt="Doctrine Doctor Demo" width="100%">
+</p>
 
 ---
 
@@ -167,18 +172,15 @@ MIT License - see [LICENSE](about/license.md) for details.
 
 ---
 
-<div align="center">
+<p align="center">
+  <strong>Created by <a href="https://github.com/ahmed-bhs">Ahmed EBEN HASSINE</a></strong>
+</p>
 
-**Created by [Ahmed EBEN HASSINE](https://github.com/ahmed-bhs)**
-
-<a href="https://github.com/sponsors/ahmed-bhs" target="_blank">
-  <img src="https://img.shields.io/static/v1?label=Sponsor&message=GitHub&logo=github&style=for-the-badge&color=blue"
-       alt="Sponsor me on GitHub" style="height: 32px; border-radius: 5px;">
-</a>
-
-<a href="https://www.buymeacoffee.com/w6ZhBSGX2" target="_blank">
-  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
-       alt="Buy Me A Coffee" style="height: 32px; width: 128px; border-radius: 5px;">
-</a>
-
-</div>
+<p align="center">
+  <a href="https://github.com/sponsors/ahmed-bhs" target="_blank">
+    <img src="https://img.shields.io/static/v1?label=Sponsor&message=GitHub&logo=github&style=for-the-badge&color=blue" alt="Sponsor me on GitHub" height="32">
+  </a>
+  <a href="https://www.buymeacoffee.com/w6ZhBSGX2" target="_blank">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="32">
+  </a>
+</p>
