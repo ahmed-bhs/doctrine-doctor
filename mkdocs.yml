@@ -11,19 +11,19 @@ theme:
   name: material
   language: en
   palette:
-    # Light mode
+    # Light mode - Medical theme
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: blue
-      accent: indigo
+      primary: teal
+      accent: amber
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    # Dark mode
+    # Dark mode - Medical theme
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: blue
-      accent: indigo
+      primary: teal
+      accent: amber
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -32,14 +32,19 @@ theme:
     - navigation.instant      # Fast page loading
     - navigation.tracking     # Track URL in address bar
     - navigation.tabs         # Top-level sections in tabs
+    - navigation.tabs.sticky  # Tabs always visible
     - navigation.sections     # Expand sections in sidebar
     - navigation.expand       # Expand all sections by default
     - navigation.top          # "Back to top" button
+    - navigation.footer       # Previous/Next navigation
+    - navigation.indexes      # Section index pages
     - search.suggest          # Search suggestions
     - search.highlight        # Highlight search terms
     - search.share            # Share search results
     - content.code.copy       # Copy code button
+    - content.code.annotate   # Code annotations
     - content.action.edit     # Edit this page button
+    - content.tabs.link       # Link content tabs
     - toc.follow              # Follow table of contents
 
   icon:

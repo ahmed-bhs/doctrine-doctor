@@ -1,12 +1,97 @@
-/* Custom styles for Doctrine Doctor documentation */
+/* ===== Doctrine Doctor - Medical Theme CSS ===== */
 
+/* ===== 1. Color System ===== */
 :root {
-  --dd-primary: #2196f3;
-  --dd-accent: #3f51b5;
-  --dd-success: #4caf50;
-  --dd-warning: #ff9800;
-  --dd-error: #f44336;
+  /* Primary Medical Palette */
+  --dd-primary: #00897B;        /* Teal - Main brand color */
+  --dd-primary-light: #4DB6AC;  /* Light teal - Hover states */
+  --dd-primary-dark: #00695C;   /* Dark teal - Active states */
+
+  /* Accent Colors */
+  --dd-accent: #FFA726;         /* Amber - CTAs, highlights */
+  --dd-accent-light: #FFB74D;   /* Light amber */
+
+  /* Diagnostic Status Colors */
+  --dd-healthy: #66BB6A;        /* Green - Success, "no issues" */
+  --dd-warning: #FFA726;        /* Amber - Medium severity */
+  --dd-critical: #EF5350;       /* Red - Critical issues */
+  --dd-info: #42A5F5;          /* Blue - Informational */
+
+  /* Neutral Medical Palette */
+  --dd-white: #FFFFFF;          /* Clean, sterile */
+  --dd-gray-50: #FAFAFA;        /* Background */
+  --dd-gray-100: #F5F5F5;       /* Cards */
+  --dd-gray-300: #E0E0E0;       /* Borders */
+  --dd-gray-600: #757575;       /* Secondary text */
+  --dd-gray-900: #212121;       /* Primary text */
+
+  /* Typography */
+  --font-family-primary: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-family-code: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
+  --font-family-headings: 'Poppins', 'Inter', -apple-system, sans-serif;
 }
+
+/* Dark mode adjustments */
+[data-md-color-scheme="slate"] {
+  --dd-primary: #4DB6AC;
+  --dd-primary-light: #80CBC4;
+  --dd-primary-dark: #26A69A;
+}
+
+/* ===== 2. Typography System ===== */
+
+/* Body text - Enhanced readability */
+.md-typeset {
+  font-family: var(--font-family-primary);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+/* Headings - More distinctive */
+.md-typeset h1 {
+  font-family: var(--font-family-headings);
+  font-weight: 700;
+  font-size: 2.5rem;
+  line-height: 1.2;
+  color: var(--dd-primary-dark);
+  border-bottom: 3px solid var(--dd-primary);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  margin-top: 2rem;
+}
+
+.md-typeset h2 {
+  font-family: var(--font-family-headings);
+  font-weight: 600;
+  font-size: 1.875rem;
+  color: var(--dd-primary);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--dd-primary);
+  padding-left: 1rem;
+}
+
+.md-typeset h3 {
+  font-family: var(--font-family-headings);
+  font-weight: 600;
+  font-size: 1.5rem;
+  margin-top: 2rem;
+}
+
+.md-typeset h4 {
+  font-family: var(--font-family-headings);
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: var(--dd-primary);
+}
+
+/* Code font */
+.md-typeset code,
+.md-typeset pre {
+  font-family: var(--font-family-code);
+}
+
+/* ===== 3. Logo and Header ===== */
 
 /* Logo styling */
 .md-header__button.md-logo img,
@@ -15,97 +100,387 @@
   width: auto;
 }
 
-/* Code blocks */
-.highlight {
-  border-radius: 4px;
+/* Header medical theme */
+.md-header {
+  background: linear-gradient(135deg, var(--dd-primary) 0%, var(--dd-primary-dark) 100%);
+  box-shadow: 0 4px 12px rgba(0, 137, 123, 0.2);
 }
 
-/* Admonitions */
+[data-md-color-scheme="slate"] .md-header {
+  background: linear-gradient(135deg, var(--dd-primary-dark) 0%, #004D3F 100%);
+}
+
+/* ===== 4. Code Blocks ===== */
+
+/* Code blocks - Medical theme */
+.md-typeset .highlight {
+  border-radius: 8px;
+  border: 1px solid var(--dd-gray-300);
+  margin: 1.5rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.md-typeset .highlight:hover {
+  border-color: var(--dd-primary);
+  box-shadow: 0 4px 12px rgba(0, 137, 123, 0.1);
+}
+
+/* Inline code */
+.md-typeset code:not(.highlight code) {
+  background-color: rgba(0, 137, 123, 0.1);
+  color: var(--dd-primary-dark);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* Copy button styling */
+.md-clipboard {
+  color: var(--dd-primary);
+}
+
+.md-clipboard:hover {
+  background-color: rgba(0, 137, 123, 0.1);
+}
+
+/* ===== 5. Links ===== */
+
+/* Links - Diagnostic pulse effect */
+.md-typeset a {
+  color: var(--dd-primary);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.md-typeset a:hover {
+  color: var(--dd-primary-dark);
+  border-bottom: 1px solid var(--dd-primary);
+}
+
+.md-typeset a:focus {
+  outline: 2px solid var(--dd-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ===== 6. Tables ===== */
+
+.md-typeset table:not([class]) {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--dd-primary);
+  color: white;
+  font-weight: 600;
+  padding: 1rem;
+}
+
+.md-typeset table:not([class]) td {
+  padding: 0.875rem 1rem;
+}
+
+.md-typeset table:not([class]) tr:hover {
+  background-color: rgba(0, 137, 123, 0.05);
+}
+
+/* ===== 7. Admonitions (Callouts) ===== */
+
 .md-typeset .admonition,
 .md-typeset details {
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border-left: 4px solid var(--dd-primary);
 }
 
 .md-typeset .admonition.tip,
 .md-typeset details.tip {
-  border-left-color: var(--dd-success);
+  border-left-color: var(--dd-healthy);
+  background-color: rgba(102, 187, 106, 0.05);
 }
 
 .md-typeset .admonition.warning,
 .md-typeset details.warning {
   border-left-color: var(--dd-warning);
+  background-color: rgba(255, 167, 38, 0.05);
 }
 
 .md-typeset .admonition.danger,
 .md-typeset details.danger {
-  border-left-color: var(--dd-error);
+  border-left-color: var(--dd-critical);
+  background-color: rgba(239, 83, 80, 0.05);
 }
 
-/* Tables */
-.md-typeset table:not([class]) {
-  border-radius: 4px;
-  overflow: hidden;
+.md-typeset .admonition.note {
+  border-left-color: var(--dd-info);
+  background-color: rgba(66, 165, 245, 0.05);
 }
 
-.md-typeset table:not([class]) th {
-  background-color: var(--md-primary-fg-color--light);
+/* ===== 8. Severity Badges ===== */
+
+/* Animated severity badges */
+.severity-badge,
+.severity-critical,
+.severity-high,
+.severity-medium,
+.severity-low {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.875rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Badges */
-.md-typeset a.badge {
-  text-decoration: none;
+.severity-badge:hover,
+.severity-critical:hover,
+.severity-high:hover,
+.severity-medium:hover,
+.severity-low:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Custom severity badges */
 .severity-critical {
-  background-color: var(--dd-error);
+  background: linear-gradient(135deg, #EF5350 0%, #E53935 100%);
   color: white;
-  padding: 2px 8px;
-  border-radius: 3px;
-  font-size: 0.85em;
-  font-weight: 600;
 }
 
 .severity-high {
-  background-color: var(--dd-warning);
+  background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%);
   color: white;
-  padding: 2px 8px;
-  border-radius: 3px;
-  font-size: 0.85em;
-  font-weight: 600;
 }
 
 .severity-medium {
-  background-color: #ffeb3b;
+  background: linear-gradient(135deg, #FFEB3B 0%, #FDD835 100%);
   color: #333;
-  padding: 2px 8px;
-  border-radius: 3px;
-  font-size: 0.85em;
-  font-weight: 600;
 }
 
 .severity-low {
-  background-color: #2196f3;
+  background: linear-gradient(135deg, #42A5F5 0%, #1E88E5 100%);
   color: white;
-  padding: 2px 8px;
-  border-radius: 3px;
-  font-size: 0.85em;
-  font-weight: 600;
 }
 
-/* Improve code font */
-.md-typeset code {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-}
+/* ===== 9. Navigation Improvements ===== */
 
-/* Navigation improvements */
 .md-nav__link--active {
   font-weight: 600;
+  color: var(--dd-primary);
 }
 
-/* Better spacing for lists */
+.md-nav__link:hover {
+  color: var(--dd-primary);
+}
+
+/* ===== 10. Footer ===== */
+
+.md-footer {
+  background: linear-gradient(135deg, var(--dd-primary-dark) 0%, var(--dd-primary) 100%);
+}
+
+.md-footer-meta {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.md-footer__link:hover {
+  transform: translateX(4px);
+  transition: transform 0.3s ease;
+}
+
+/* ===== 11. Search ===== */
+
+.md-search__form {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+}
+
+.md-search__input {
+  font-family: var(--font-family-primary);
+}
+
+.md-search__input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ===== 12. Buttons and CTAs ===== */
+
+.md-button {
+  border-radius: 50px;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.md-button--primary {
+  background-color: var(--dd-primary);
+  border-color: var(--dd-primary);
+}
+
+.md-button--primary:hover {
+  background-color: var(--dd-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3);
+}
+
+/* ===== 13. Feature Cards ===== */
+
+.feature-card {
+  background: white;
+  border-left: 4px solid var(--dd-primary);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.feature-card:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 8px rgba(0, 137, 123, 0.15);
+}
+
+.feature-card h3 {
+  margin-top: 0;
+  color: var(--dd-primary);
+}
+
+/* ===== 14. Lists ===== */
+
 .md-typeset ul li,
 .md-typeset ol li {
   margin-bottom: 0.5em;
+}
+
+.md-typeset ul li::marker {
+  color: var(--dd-primary);
+}
+
+/* ===== 15. Accessibility ===== */
+
+/* Focus states for keyboard navigation */
+*:focus-visible {
+  outline: 3px solid var(--dd-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== 16. Responsive Design ===== */
+
+@media screen and (max-width: 768px) {
+  .md-typeset h1 {
+    font-size: 2rem;
+  }
+
+  .md-typeset h2 {
+    font-size: 1.5rem;
+  }
+
+  .md-typeset h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* ===== 17. Smooth Scrolling ===== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ===== 18. Tabs ===== */
+
+.md-tabs {
+  background: linear-gradient(135deg, var(--dd-primary) 0%, var(--dd-primary-dark) 100%);
+}
+
+.md-tabs__link {
+  font-weight: 500;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.md-tabs__link:hover {
+  opacity: 1;
+}
+
+.md-tabs__link--active {
+  opacity: 1;
+  font-weight: 600;
+}
+
+/* ===== 19. Content Tabs ===== */
+
+.md-typeset .tabbed-set>label {
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.md-typeset .tabbed-set>label:hover {
+  color: var(--dd-primary);
+}
+
+.md-typeset .tabbed-set>input:checked+label {
+  border-bottom-color: var(--dd-primary);
+  color: var(--dd-primary);
+  font-weight: 600;
+}
+
+/* ===== 20. Homepage Hero ===== */
+
+.hero-section {
+  background: linear-gradient(135deg, var(--dd-primary) 0%, var(--dd-primary-dark) 100%);
+  color: white;
+  padding: 4rem 2rem;
+  border-radius: 16px;
+  margin: 2rem 0 3rem 0;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 137, 123, 0.3);
+}
+
+.hero-section h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  border: none;
+  color: white;
+  padding-bottom: 0;
+}
+
+.hero-section .tagline {
+  font-size: 1.5rem;
+  opacity: 0.95;
+  margin-bottom: 2rem;
+}
+
+@media screen and (max-width: 768px) {
+  .hero-section {
+    padding: 2rem 1rem;
+  }
+
+  .hero-section h1 {
+    font-size: 2rem;
+  }
+
+  .hero-section .tagline {
+    font-size: 1.125rem;
+  }
 }
