@@ -1,0 +1,111 @@
+/* Custom styles for Doctrine Doctor documentation */
+
+:root {
+  --dd-primary: #2196f3;
+  --dd-accent: #3f51b5;
+  --dd-success: #4caf50;
+  --dd-warning: #ff9800;
+  --dd-error: #f44336;
+}
+
+/* Logo styling */
+.md-header__button.md-logo img,
+.md-logo img {
+  height: 32px;
+  width: auto;
+}
+
+/* Code blocks */
+.highlight {
+  border-radius: 4px;
+}
+
+/* Admonitions */
+.md-typeset .admonition,
+.md-typeset details {
+  border-left: 4px solid var(--dd-primary);
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-left-color: var(--dd-success);
+}
+
+.md-typeset .admonition.warning,
+.md-typeset details.warning {
+  border-left-color: var(--dd-warning);
+}
+
+.md-typeset .admonition.danger,
+.md-typeset details.danger {
+  border-left-color: var(--dd-error);
+}
+
+/* Tables */
+.md-typeset table:not([class]) {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-primary-fg-color--light);
+  font-weight: 600;
+}
+
+/* Badges */
+.md-typeset a.badge {
+  text-decoration: none;
+}
+
+/* Custom severity badges */
+.severity-critical {
+  background-color: var(--dd-error);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.severity-high {
+  background-color: var(--dd-warning);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.severity-medium {
+  background-color: #ffeb3b;
+  color: #333;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.severity-low {
+  background-color: #2196f3;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+/* Improve code font */
+.md-typeset code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+/* Navigation improvements */
+.md-nav__link--active {
+  font-weight: 600;
+}
+
+/* Better spacing for lists */
+.md-typeset ul li,
+.md-typeset ol li {
+  margin-bottom: 0.5em;
+}
