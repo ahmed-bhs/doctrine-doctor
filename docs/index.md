@@ -172,15 +172,11 @@ MIT License - see [LICENSE](about/license.md) for details.
 
 ---
 
-<p align="center">
-  <strong>Created by <a href="https://github.com/ahmed-bhs">Ahmed EBEN HASSINE</a></strong>
-</p>
+<div align="center" markdown="1">
 
-<p align="center">
-  <a href="https://github.com/sponsors/ahmed-bhs" target="_blank">
-    <img src="https://img.shields.io/static/v1?label=Sponsor&message=GitHub&logo=github&style=for-the-badge&color=blue" alt="Sponsor me on GitHub" height="32">
-  </a>
-  <a href="https://www.buymeacoffee.com/w6ZhBSGX2" target="_blank">
-    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="32">
-  </a>
-</p>
+**Created by [Ahmed EBEN HASSINE](https://github.com/ahmed-bhs)**
+
+[![Sponsor on GitHub](https://img.shields.io/static/v1?label=Sponsor&message=GitHub&logo=github&style=for-the-badge&color=blue){ width="200" }](https://github.com/sponsors/ahmed-bhs)
+[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png){ width="180" }](https://www.buymeacoffee.com/w6ZhBSGX2)
+
+</div>
