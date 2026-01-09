@@ -272,13 +272,53 @@
 
 /* ===== 9. Navigation Improvements ===== */
 
+/* Sidebar navigation */
+.md-nav__link {
+  transition: all 0.2s ease;
+}
+
 .md-nav__link--active {
   font-weight: 600;
-  color: var(--dd-primary);
+  color: var(--dd-primary) !important;
+  border-left: 3px solid var(--dd-primary);
+  padding-left: calc(1rem - 3px);
 }
 
 .md-nav__link:hover {
-  color: var(--dd-primary);
+  color: var(--dd-primary) !important;
+  background-color: rgba(0, 137, 123, 0.05);
+  border-radius: 4px;
+}
+
+/* Navigation sections */
+.md-nav__title {
+  font-weight: 600;
+  color: var(--dd-primary-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.8rem;
+}
+
+/* Nested navigation items */
+.md-nav--secondary .md-nav__link--active {
+  color: var(--dd-primary) !important;
+  background-color: rgba(0, 137, 123, 0.1);
+  border-radius: 4px;
+}
+
+/* Table of contents in sidebar */
+.md-nav--secondary .md-nav__link {
+  color: var(--dd-gray-600);
+}
+
+.md-nav--secondary .md-nav__link:hover {
+  color: var(--dd-primary) !important;
+}
+
+/* Current page in TOC */
+.md-nav--secondary .md-nav__link--active {
+  color: var(--dd-primary) !important;
+  font-weight: 600;
 }
 
 /* ===== 10. Footer ===== */
@@ -410,6 +450,7 @@ html {
 
 .md-tabs {
   background: linear-gradient(135deg, var(--dd-primary) 0%, var(--dd-primary-dark) 100%);
+  box-shadow: 0 2px 8px rgba(0, 137, 123, 0.2);
 }
 
 .md-tabs__link {
@@ -444,7 +485,98 @@ html {
   font-weight: 600;
 }
 
-/* ===== 20. Homepage Hero ===== */
+/* ===== 20. Sidebar Enhancements ===== */
+
+/* Sidebar container */
+.md-sidebar--primary {
+  background-color: var(--dd-gray-50);
+  border-right: 1px solid var(--dd-gray-300);
+}
+
+[data-md-color-scheme="slate"] .md-sidebar--primary {
+  background-color: transparent;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Navigation items styling */
+.md-nav__item {
+  margin-bottom: 0.25rem;
+}
+
+.md-nav__item .md-nav__link {
+  border-radius: 6px;
+  margin: 2px 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+/* Add visual hierarchy to sections */
+.md-nav__item--nested > .md-nav__link {
+  font-weight: 600;
+  color: var(--dd-primary-dark);
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 2px solid var(--dd-gray-300);
+}
+
+.md-nav__item--nested > .md-nav__link:first-child {
+  border-top: none;
+  margin-top: 0.5rem;
+}
+
+/* Add icons to main sections using CSS */
+.md-nav__item--nested:nth-child(2) > .md-nav__link::before {
+  content: "🚀 ";
+  margin-right: 0.5rem;
+}
+
+.md-nav__item--nested:nth-child(3) > .md-nav__link::before {
+  content: "📖 ";
+  margin-right: 0.5rem;
+}
+
+.md-nav__item--nested:nth-child(4) > .md-nav__link::before {
+  content: "💡 ";
+  margin-right: 0.5rem;
+}
+
+.md-nav__item--nested:nth-child(5) > .md-nav__link::before {
+  content: "🔬 ";
+  margin-right: 0.5rem;
+}
+
+.md-nav__item--nested:nth-child(6) > .md-nav__link::before {
+  content: "🤝 ";
+  margin-right: 0.5rem;
+}
+
+.md-nav__item--nested:nth-child(7) > .md-nav__link::before {
+  content: "ℹ️ ";
+  margin-right: 0.5rem;
+}
+
+/* Expand/collapse indicators */
+.md-nav__item--nested > .md-nav__link[data-md-state="expanded"]::after {
+  transform: rotate(180deg);
+}
+
+/* Secondary navigation (TOC) */
+.md-sidebar--secondary {
+  border-left: 1px solid var(--dd-gray-300);
+}
+
+[data-md-color-scheme="slate"] .md-sidebar--secondary {
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* TOC title */
+.md-sidebar--secondary .md-nav__title {
+  color: var(--dd-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* ===== 21. Homepage Hero ===== */
 
 .hero-section {
   background: linear-gradient(135deg, var(--dd-primary) 0%, var(--dd-primary-dark) 100%);

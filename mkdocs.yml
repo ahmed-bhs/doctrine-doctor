@@ -130,23 +130,30 @@ copyright: >
 # Navigation structure
 nav:
   - Home: index.md
+
   - Getting Started:
-      - Quick Start: getting-started/quick-start.md
-      - Installation: getting-started/installation.md
-      - First Steps: getting-started/first-steps.md
-  - Documentation:
+      - getting-started/quick-start.md
+      - getting-started/installation.md
+      - getting-started/first-steps.md
+
+  - User Guide:
       - Configuration: CONFIGURATION.md
-      - Analyzers: ANALYZERS.md
-      - Architecture: ARCHITECTURE.md
-      - Template Security: TEMPLATE_SECURITY.md
+      - Analyzers Catalog: ANALYZERS.md
+
   - Examples:
-      - N+1 Query Detection: examples/n-plus-one.md
+      - N+1 Queries: examples/n-plus-one.md
       - Missing Indexes: examples/missing-indexes.md
       - Security Issues: examples/security.md
+
+  - Advanced:
+      - Architecture: ARCHITECTURE.md
+      - Template Security: TEMPLATE_SECURITY.md
+
   - Contributing:
-      - How to Contribute: contributing/overview.md
-      - Development Setup: contributing/development.md
+      - Overview: contributing/overview.md
+      - Development: contributing/development.md
       - Creating Analyzers: contributing/creating-analyzers.md
+
   - About:
-      - License: about/license.md
       - Changelog: about/changelog.md
+      - License: about/license.md
