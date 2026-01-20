@@ -1,3 +1,10 @@
+---
+layout: default
+title: License
+parent: About
+nav_order: 3
+---
+
 # License
 
 Doctrine Doctor is released under the MIT License.
@@ -88,7 +95,7 @@ Doctrine Doctor uses the following open-source dependencies:
 
 By contributing to Doctrine Doctor, you agree that your contributions will be licensed under the MIT License.
 
-See [Contributing Guidelines](../contributing/overview.md) for more information.
+See [Contributing Guidelines]({{ site.baseurl }}/contributing/overview) for more information.
 
 ---
 
@@ -101,4 +108,4 @@ For licensing questions, please contact:
 
 ---
 
-**[← Home](../index.md)** | **[Changelog →](changelog.md)**
+**[← Home]({{ site.baseurl }}/)** | **[Changelog →](changelog)**

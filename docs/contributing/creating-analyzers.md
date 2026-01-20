@@ -1,3 +1,10 @@
+---
+layout: default
+title: Creating Analyzers
+parent: Contributing
+nav_order: 3
+---
+
 # Creating Custom Analyzers
 
 Complete guide to creating your own analyzers for Doctrine Doctor.
@@ -600,4 +607,4 @@ Document your analyzer:
 
 ---
 
-**[← Development Setup](development.md)** | **[Configuration →](../CONFIGURATION.md)**
+**[← Development Setup](development)** | **[Configuration →]({{ site.baseurl }}/user-guide/configuration)**

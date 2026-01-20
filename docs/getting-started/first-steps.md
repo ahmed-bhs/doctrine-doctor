@@ -1,3 +1,10 @@
+---
+layout: default
+title: First Steps
+parent: Getting Started
+nav_order: 3
+---
+
 # First Steps
 
 Learn how to use Doctrine Doctor effectively in your Symfony project.
@@ -112,7 +119,7 @@ doctrine_doctor:
             threshold: 50  # Flag queries over 50ms
 ```
 
-[See full configuration reference →](../CONFIGURATION.md)
+[See full configuration reference →]({{ site.baseurl }}/user-guide/configuration)
 
 ---
 
@@ -178,11 +185,7 @@ doctrine_doctor:
 
 ## Next Steps
 
-- [Explore common examples](../examples/n-plus-one.md)
-- [Learn about all analyzers](../ANALYZERS.md)
-- [Understand the architecture](../ARCHITECTURE.md)
-- [Customize configuration](../CONFIGURATION.md)
-
----
-
-**[← Installation](installation.md)** | **[Examples →](../examples/n-plus-one.md)**
+- [Explore common examples]({{ site.baseurl }}/examples/n-plus-one)
+- [Learn about all analyzers]({{ site.baseurl }}/user-guide/analyzers)
+- [Understand the architecture]({{ site.baseurl }}/advanced/architecture)
+- [Customize configuration]({{ site.baseurl }}/user-guide/configuration)

@@ -1,24 +1,28 @@
+---
+layout: home
+title: Home
+nav_order: 1
+description: "Doctrine Doctor - Runtime Analysis Tool for Doctrine ORM. Detects N+1 queries, missing indexes, security issues, and 66+ performance problems."
+permalink: /
+---
+
 # Doctrine Doctor
+{: .fs-9 }
 
-<p align="center">
-  <img src="images/logo.png" alt="Doctrine Doctor Logo" width="150">
-</p>
+Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler
+{: .fs-6 .fw-300 }
 
-<p align="center">
-  <strong>Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler</strong>
-</p>
+[Get started now](getting-started/quick-start){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
+[View on GitHub](https://github.com/ahmed-bhs/doctrine-doctor){: .btn .fs-5 .mb-4 .mb-md-0 }
 
-<p align="center">
-  <a href="https://php.net"><img src="https://img.shields.io/badge/PHP-8.2+-777BB4.svg?logo=php&logoColor=white" alt="PHP 8.2+"></a>
-  <a href="https://symfony.com"><img src="https://img.shields.io/badge/Symfony-6.0%2B%20%7C%207.x-000000.svg?logo=symfony&logoColor=white" alt="Symfony 6.0+ | 7.x"></a>
-  <a href="https://www.doctrine-project.org"><img src="https://img.shields.io/badge/Doctrine-2.10%2B%20%7C%203.x%20%7C%204.x-FC6A31.svg?logo=doctrine&logoColor=white" alt="Doctrine ORM"></a>
-  <br>
-  <a href="https://github.com/ahmed-bhs/doctrine-doctor/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License MIT"></a>
-  <a href="https://github.com/ahmed-bhs/doctrine-doctor/actions"><img src="https://github.com/ahmed-bhs/doctrine-doctor/workflows/CI/badge.svg" alt="CI"></a>
-  <a href="https://phpstan.org"><img src="https://img.shields.io/badge/PHPStan-Level%208-brightgreen.svg" alt="PHPStan Level 8"></a>
-  <a href="https://www.php-fig.org/psr/psr-12/"><img src="https://img.shields.io/badge/Code%20Style-PSR--12-blue.svg" alt="Code Style"></a>
-  <a href="https://packagist.org/packages/ahmed-bhs/doctrine-doctor"><img src="https://img.shields.io/packagist/v/ahmed-bhs/doctrine-doctor.svg" alt="Packagist Version"></a>
-</p>
+---
+
+[![PHP 8.2+](https://img.shields.io/badge/PHP-8.2+-777BB4.svg?logo=php&logoColor=white)](https://php.net)
+[![Symfony 6.0+ | 7.x](https://img.shields.io/badge/Symfony-6.0%2B%20%7C%207.x-000000.svg?logo=symfony&logoColor=white)](https://symfony.com)
+[![Doctrine ORM](https://img.shields.io/badge/Doctrine-2.10%2B%20%7C%203.x%20%7C%204.x-FC6A31.svg?logo=doctrine&logoColor=white)](https://www.doctrine-project.org)
+[![License MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/ahmed-bhs/doctrine-doctor/blob/main/LICENSE)
+[![CI](https://github.com/ahmed-bhs/doctrine-doctor/workflows/CI/badge.svg)](https://github.com/ahmed-bhs/doctrine-doctor/actions)
+[![PHPStan Level 8](https://img.shields.io/badge/PHPStan-Level%208-brightgreen.svg)](https://phpstan.org)
 
 ---
 
@@ -100,52 +104,46 @@ doctrine:
         profiling_collect_backtrace: true
 ```
 
-[Full configuration reference →](CONFIGURATION.md)
+[Full configuration reference →](user-guide/configuration)
 
 ---
 
 ## Example: N+1 Query Detection
 
-=== "Problem"
+### Problem: Template triggers lazy loading
 
-    **Template triggers lazy loading**
+```php
+// Controller
+$users = $repository->findAll();
 
-    ```php
-    // Controller
-    $users = $repository->findAll();
+// Template
+{% raw %}{% for user in users %}
+    {{ user.profile.bio }}
+{% endfor %}{% endraw %}
+```
 
-    // Template
-    {% for user in users %}
-        {{ user.profile.bio }}
-    {% endfor %}
-    ```
+*Triggers 100 queries*
 
-    _Triggers 100 queries_
+### Detection: Doctrine Doctor detects N+1
 
-=== "Detection"
+- 100 queries instead of 1
+- Shows exact query count, execution time
+- Suggests eager loading
 
-    **Doctrine Doctor detects N+1**
+*Real-time detection*
 
-    - 100 queries instead of 1
-    - Shows exact query count, execution time
-    - Suggests eager loading
+### Solution: Eager load with JOIN
 
-    _Real-time detection_
+```php
+$users = $repository
+    ->createQueryBuilder('u')
+    ->leftJoin('u.profile', 'p')
+    ->addSelect('p')
+    ->getQuery()
+    ->getResult();
+```
 
-=== "Solution"
-
-    **Eager load with JOIN**
-
-    ```php
-    $users = $repository
-        ->createQueryBuilder('u')
-        ->leftJoin('u.profile', 'p')
-        ->addSelect('p')
-        ->getQuery()
-        ->getResult();
-    ```
-
-    _Single query_
+*Single query*
 
 ---
 
@@ -153,30 +151,26 @@ doctrine:
 
 | Document | Description |
 |----------|-------------|
-| [**Configuration Reference**](CONFIGURATION.md) | Comprehensive guide to all configuration options - customize analyzers, thresholds, and outputs to match your workflow |
-| [**Full Analyzers List**](ANALYZERS.md) | Complete catalog of all 66 analyzers covering performance, security, code quality, and configuration |
-| [**Architecture Guide**](ARCHITECTURE.md) | Deep dive into system design, architecture patterns, and technical internals |
-| [**Template Security**](TEMPLATE_SECURITY.md) | Essential security best practices for PHP templates - prevent XSS attacks and ensure safe template rendering |
+| [**Configuration Reference**](user-guide/configuration) | Comprehensive guide to all configuration options - customize analyzers, thresholds, and outputs to match your workflow |
+| [**Full Analyzers List**](user-guide/analyzers) | Complete catalog of all 66 analyzers covering performance, security, code quality, and configuration |
+| [**Architecture Guide**](advanced/architecture) | Deep dive into system design, architecture patterns, and technical internals |
+| [**Template Security**](advanced/template-security) | Essential security best practices for PHP templates - prevent XSS attacks and ensure safe template rendering |
 
 ---
 
 ## Contributing
 
-We welcome contributions! See our [Contributing Guide](contributing/overview.md) for details.
+We welcome contributions! See our [Contributing Guide](contributing/overview) for details.
 
 ---
 
 ## License
 
-MIT License - see [LICENSE](about/license.md) for details.
+MIT License - see [LICENSE](about/license) for details.
 
 ---
 
-<div align="center" markdown="1">
-
 **Created by [Ahmed EBEN HASSINE](https://github.com/ahmed-bhs)**
 
-[![Sponsor on GitHub](https://img.shields.io/static/v1?label=Sponsor&message=GitHub&logo=github&style=for-the-badge&color=blue){ width="200" }](https://github.com/sponsors/ahmed-bhs)
-[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png){ width="180" }](https://www.buymeacoffee.com/w6ZhBSGX2)
-
-</div>
+[![Sponsor on GitHub](https://img.shields.io/static/v1?label=Sponsor&message=GitHub&logo=github&style=for-the-badge&color=blue)](https://github.com/sponsors/ahmed-bhs)
+[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/w6ZhBSGX2)

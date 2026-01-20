@@ -1,3 +1,10 @@
+---
+layout: default
+title: Changelog
+parent: About
+nav_order: 2
+---
+
 # Changelog
 
 All notable changes to Doctrine Doctor will be documented in this file.
@@ -10,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Documentation website with MkDocs Material
+- Documentation website with Just the Docs (Jekyll)
 - Comprehensive examples for N+1 queries, missing indexes, and security issues
 - Development guide for contributors
 
@@ -85,9 +92,9 @@ When version 2.0.0 is released, upgrade instructions will be provided here.
 Found a bug or have a feature request? Please check:
 
 1. [Existing Issues](https://github.com/ahmed-bhs/doctrine-doctor/issues)
-2. [Contributing Guide](../contributing/overview.md)
-3. [Development Setup](../contributing/development.md)
+2. [Contributing Guide]({{ site.baseurl }}/contributing/overview)
+3. [Development Setup]({{ site.baseurl }}/contributing/development)
 
 ---
 
-**[← License](license.md)** | **[Home →](../index.md)**
+**[← License](license)** | **[Home →]({{ site.baseurl }}/)**

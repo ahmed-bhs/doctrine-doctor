@@ -1,3 +1,10 @@
+---
+layout: default
+title: Missing Indexes
+parent: Examples
+nav_order: 2
+---
+
 # Missing Index Detection Examples
 
 Learn how Doctrine Doctor identifies missing database indexes and improves query performance.
@@ -477,4 +484,4 @@ DROP INDEX idx_unused ON article;
 
 ---
 
-**[← N+1 Queries](n-plus-one.md)** | **[Security Issues →](security.md)**
+**[← N+1 Queries](n-plus-one)** | **[Security Issues →](security)**

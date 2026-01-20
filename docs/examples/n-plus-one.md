@@ -1,3 +1,10 @@
+---
+layout: default
+title: N+1 Queries
+parent: Examples
+nav_order: 1
+---
+
 # N+1 Query Detection Examples
 
 Learn how to identify and fix N+1 query problems with Doctrine Doctor.
@@ -45,13 +52,13 @@ class ArticleController extends AbstractController
 ```
 
 ```twig
-{# templates/article/index.html.twig #}
+{% raw %}{# templates/article/index.html.twig #}
 {% for article in articles %}
     <article>
         <h2>{{ article.title }}</h2>
         <p>By {{ article.author.name }}</p>  {# +N queries! #}
     </article>
-{% endfor %}
+{% endfor %}{% endraw %}
 ```
 
 ### Doctrine Doctor Detection
@@ -108,7 +115,7 @@ public function index(ArticleRepository $articleRepository): Response
 ```
 
 ```twig
-{% for article in articles %}
+{% raw %}{% for article in articles %}
     <article>
         <h2>{{ article.title }}</h2>
         <p>By {{ article.author.name }}</p>
@@ -119,7 +126,7 @@ public function index(ArticleRepository $articleRepository): Response
             <p>{{ comment.content }} - {{ comment.author.name }}</p>  {# And another! #}
         {% endfor %}
     </article>
-{% endfor %}
+{% endfor %}{% endraw %}
 ```
 
 ### Doctrine Doctor Detection
@@ -320,4 +327,4 @@ Improvement: 98% faster, 82% less memory
 
 ---
 
-**[← First Steps](../getting-started/first-steps.md)** | **[Missing Indexes →](missing-indexes.md)**
+**[← First Steps]({{ site.baseurl }}/getting-started/first-steps)** | **[Missing Indexes →](missing-indexes)**

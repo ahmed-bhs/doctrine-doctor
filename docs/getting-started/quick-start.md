@@ -1,3 +1,10 @@
+---
+layout: default
+title: Quick Start
+parent: Getting Started
+nav_order: 1
+---
+
 # Quick Start
 
 Get Doctrine Doctor running in your Symfony project in under 30 seconds.
@@ -12,8 +19,10 @@ Install via Composer:
 composer require --dev ahmed-bhs/doctrine-doctor
 ```
 
-!!! success "Auto-Configuration"
-    Doctrine Doctor is automatically configured via [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No manual setup required!
+{: .note-title }
+> Auto-Configuration
+>
+> Doctrine Doctor is automatically configured via [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No manual setup required!
 
 ---
 
@@ -21,9 +30,7 @@ composer require --dev ahmed-bhs/doctrine-doctor
 
 1. **Refresh any page** in your Symfony application (in `dev` environment)
 2. **Open the Symfony Web Profiler** (bottom toolbar)
-3. **Look for the "Doctrine Doctor" panel** 🩺
-
-![Doctrine Doctor in Web Profiler](../images/profiler-panel.png)
+3. **Look for the "Doctrine Doctor" panel**
 
 ---
 
@@ -62,10 +69,10 @@ class UserController extends AbstractController
 And a Twig template:
 
 ```twig
-{# templates/user/index.html.twig #}
+{% raw %}{# templates/user/index.html.twig #}
 {% for user in users %}
     <p>{{ user.name }} - {{ user.profile.bio }}</p>
-{% endfor %}
+{% endfor %}{% endraw %}
 ```
 
 **Result**: Doctrine Doctor will detect the N+1 query issue and suggest using eager loading!
@@ -83,18 +90,14 @@ doctrine:
         profiling_collect_backtrace: true
 ```
 
-!!! tip "Performance Impact"
-    Backtrace collection has minimal overhead (~2-5%) and is recommended for development.
+{: .highlight }
+> **Performance Impact**: Backtrace collection has minimal overhead (~2-5%) and is recommended for development.
 
 ---
 
 ## Next Steps
 
-- [Configure analyzers](../CONFIGURATION.md) to match your needs
-- [Explore all 66 analyzers](../ANALYZERS.md) available
-- [Learn about the architecture](../ARCHITECTURE.md)
-- [See more examples](../examples/n-plus-one.md)
-
----
-
-**[← Back to Home](../index.md)** | **[Installation Details →](installation.md)**
+- [Configure analyzers]({{ site.baseurl }}/user-guide/configuration) to match your needs
+- [Explore all 66 analyzers]({{ site.baseurl }}/user-guide/analyzers) available
+- [Learn about the architecture]({{ site.baseurl }}/advanced/architecture)
+- [See more examples]({{ site.baseurl }}/examples/n-plus-one)

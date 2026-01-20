@@ -1,14 +1,19 @@
+---
+layout: default
+title: Architecture
+parent: Advanced
+nav_order: 1
+---
+
 # System Architecture
 
-## Table of Contents
+{: .no_toc }
 
-- [1. Overview](#1-overview)
-- [2. Architectural Patterns](#2-architectural-patterns)
-- [3. Component Diagram](#3-component-diagram)
-- [4. Analysis Lifecycle Diagram](#4-analysis-lifecycle-diagram)
-- [5. Class Structure](#5-class-structure)
-- [6. Design Decisions](#6-design-decisions)
-- [7. Extension Points](#7-extension-points)
+## Table of Contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
 
 ---
 
@@ -372,7 +377,7 @@ $code = ob_get_clean();
 return ['code' => $code, 'description' => 'Suggestion'];
 ````
 
-**Note**: Templates use `SafeContext` for automatic XSS protection. See [Template Security Guide](TEMPLATE_SECURITY.md) for details.
+**Note**: Templates use `SafeContext` for automatic XSS protection. See [Template Security Guide](template-security) for details.
 
 ### 6.3 Analyzer Independence
 
@@ -481,4 +486,4 @@ class CustomDataCollectorHelpers extends DataCollectorHelpers
 
 ---
 
-**[← Back to Main Documentation](../README.md)** | **[Configuration Reference →](CONFIGURATION.md)**
+**[← Back to Main Documentation]({{ site.baseurl }}/)** | **[Configuration Reference →](../user-guide/configuration)**

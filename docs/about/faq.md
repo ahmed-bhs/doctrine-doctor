@@ -1,3 +1,10 @@
+---
+layout: default
+title: FAQ
+parent: About
+nav_order: 1
+---
+
 # FAQ - Frequently Asked Questions
 
 Quick answers to common questions about Doctrine Doctor.
@@ -89,7 +96,7 @@ doctrine_doctor:
 
 ### Can I create custom analyzers?
 
-Yes! Implement `AnalyzerInterface` and tag with `doctrine_doctor.analyzer`. [See guide](../contributing/creating-analyzers.md).
+Yes! Implement `AnalyzerInterface` and tag with `doctrine_doctor.analyzer`. [See guide]({{ site.baseurl }}/contributing/creating-analyzers).
 
 ### Which analyzers are most important?
 
@@ -192,7 +199,7 @@ Doctrine Doctor extends it:
 
 ### How can I contribute?
 
-See [Contributing Guide](../contributing/overview.md). Ways to help:
+See [Contributing Guide]({{ site.baseurl }}/contributing/overview). Ways to help:
 - Report bugs
 - Request features
 - Submit PRs

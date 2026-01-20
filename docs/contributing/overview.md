@@ -1,3 +1,10 @@
+---
+layout: default
+title: Overview
+parent: Contributing
+nav_order: 1
+---
+
 # Contributing to Doctrine Doctor
 
 We welcome contributions from the community! This guide will help you get started.
@@ -48,7 +55,7 @@ Want to contribute code? Great!
 
 ### 1. Setup Development Environment
 
-See [Development Setup](development.md) for detailed instructions.
+See [Development Setup](development) for detailed instructions.
 
 ### 2. Choose an Issue
 
@@ -241,7 +248,7 @@ Add screenshots for UI changes
 
 ## Creating New Analyzers
 
-See detailed guide: [Creating Analyzers](creating-analyzers.md)
+See detailed guide: [Creating Analyzers](creating-analyzers)
 
 Quick overview:
 
@@ -300,4 +307,4 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ---
 
-**[Development Setup →](development.md)** | **[Creating Analyzers →](creating-analyzers.md)**
+**[Development Setup →](development)** | **[Creating Analyzers →](creating-analyzers)**

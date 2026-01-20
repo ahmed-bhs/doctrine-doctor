@@ -1,21 +1,19 @@
+---
+layout: default
+title: Configuration
+parent: User Guide
+nav_order: 1
+---
+
 # Configuration Reference
 
-## Table of Contents
+{: .no_toc }
 
-- [1. Overview](#1-overview)
-- [2. Configuration Structure](#2-configuration-structure)
-- [3. Global Settings](#3-global-settings)
-- [4. Analysis Configuration](#4-analysis-configuration)
-  - [4.1 Excluding Vendor Entities](#41-excluding-vendor-entities)
-- [5. Profiler Configuration](#5-profiler-configuration)
-  - [5.1 Profiler Visibility](#51-profiler-visibility)
-  - [5.2 Debug Information](#52-debug-information)
-  - [5.3 Enabling Query Backtraces](#53-enabling-query-backtraces)
-- [6. Analyzer Configuration](#6-analyzer-configuration)
-- [7. Performance Thresholds](#7-performance-thresholds)
-- [8. Group Management](#8-group-management)
-- [9. Environment-Specific Configuration](#9-environment-specific-configuration)
-- [10. Advanced Configuration](#10-advanced-configuration)
+## Table of Contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
 
 ---
 
@@ -975,4 +973,4 @@ doctrine_doctor:
 
 ---
 
-**[← Back to Main Documentation](../README.md)** | **[Analyzer Reference →](ANALYZERS.md)** | **[Architecture →](ARCHITECTURE.md)**
+**[← Back to Main Documentation]({{ site.baseurl }}/)** | **[Analyzer Reference →](../user-guide/analyzers)** | **[Architecture →](../advanced/architecture)**

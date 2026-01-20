@@ -1,3 +1,10 @@
+---
+layout: default
+title: Security Issues
+parent: Examples
+nav_order: 3
+---
+
 # Security Issue Detection Examples
 
 Learn how Doctrine Doctor identifies security vulnerabilities in Doctrine ORM usage.
@@ -539,4 +546,4 @@ private string $email;
 
 ---
 
-**[← Missing Indexes](missing-indexes.md)** | **[Contributing →](../contributing/overview.md)**
+**[← Missing Indexes](missing-indexes)** | **[Contributing →]({{ site.baseurl }}/contributing/overview)**

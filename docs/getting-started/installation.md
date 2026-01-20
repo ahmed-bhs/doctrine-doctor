@@ -1,3 +1,10 @@
+---
+layout: default
+title: Installation
+parent: Getting Started
+nav_order: 2
+---
+
 # Installation
 
 Detailed installation guide for Doctrine Doctor.
@@ -18,8 +25,8 @@ Detailed installation guide for Doctrine Doctor.
 composer require --dev ahmed-bhs/doctrine-doctor
 ```
 
-!!! warning "Development Only"
-    Always install Doctrine Doctor as a development dependency (`--dev`). Never use it in production.
+{: .warning }
+> **Development Only**: Always install Doctrine Doctor as a development dependency (`--dev`). Never use it in production.
 
 ---
 
@@ -114,10 +121,6 @@ If using the Missing Index Analyzer, ensure your database user has `SELECT` perm
 
 ## Next Steps
 
-- [Quick Start Guide](quick-start.md)
-- [First Steps](first-steps.md)
-- [Configuration Reference](../CONFIGURATION.md)
-
----
-
-**[← Quick Start](quick-start.md)** | **[First Steps →](first-steps.md)**
+- [Quick Start Guide](quick-start)
+- [First Steps](first-steps)
+- [Configuration Reference]({{ site.baseurl }}/user-guide/configuration)

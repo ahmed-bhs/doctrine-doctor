@@ -1,3 +1,10 @@
+---
+layout: default
+title: Development
+parent: Contributing
+nav_order: 2
+---
+
 # Development Setup
 
 Complete guide to setting up Doctrine Doctor for local development.
@@ -400,4 +407,4 @@ mkdocs build
 
 ---
 
-**[← Contributing Overview](overview.md)** | **[Creating Analyzers →](creating-analyzers.md)**
+**[← Contributing Overview](overview)** | **[Creating Analyzers →](creating-analyzers)**

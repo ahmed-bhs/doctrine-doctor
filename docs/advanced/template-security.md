@@ -1,18 +1,21 @@
+---
+layout: default
+title: Template Security
+parent: Advanced
+nav_order: 2
+---
+
 # PHP Template Security Guide
 
-## Overview
+{: .no_toc }
 
 This document describes the security features implemented in the PHP template rendering system to prevent XSS (Cross-Site Scripting) and other injection attacks.
 
----
-
 ## Table of Contents
+{: .no_toc .text-delta }
 
-- [1. Auto-Escaping with SafeContext](#1-auto-escaping-with-safecontext)
-- [2. Context-Aware Escaping](#2-context-aware-escaping)
-- [3. Security Best Practices](#3-security-best-practices)
-- [4. Migration Guide](#4-migration-guide)
-- [5. Common Pitfalls](#5-common-pitfalls)
+1. TOC
+{:toc}
 
 ---
 
@@ -454,4 +457,4 @@ var_dump($context->test3); // Should NOT contain javascript: protocol
 
 ---
 
-**[← Back to Main Documentation](../README.md)** | **[Template Analysis →](TEMPLATE_ANALYSIS.md)**
+**[← Back to Main Documentation]({{ site.baseurl }}/)** | **[Template Analysis →](template-analysis)**
