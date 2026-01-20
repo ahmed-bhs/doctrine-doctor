@@ -6,30 +6,15 @@ description: Runtime Analysis Tool for Doctrine ORM. Detects N+1 queries, missin
 baseurl: "/doctrine-doctor"
 url: "https://ahmed-bhs.github.io"
 
-# Theme settings
-remote_theme: just-the-docs/just-the-docs@v0.10.0
-color_scheme: doctrine_doctor
-
-# Logo and branding
-logo: "/images/logo.png"
-favicon_ico: "/images/logo.png"
-
 # Repository
-gh_repo_url: "https://github.com/ahmed-bhs/doctrine-doctor"
-aux_links:
-  "GitHub":
-    - "https://github.com/ahmed-bhs/doctrine-doctor"
+repository: ahmed-bhs/doctrine-doctor
+github_username: ahmed-bhs
 
-aux_links_new_tab: true
+# Theme
+remote_theme: just-the-docs/just-the-docs@v0.8.2
 
-# Heading anchor links
-heading_anchors: true
-
-# Navigation Structure
-nav_external_links:
-  - title: GitHub
-    url: https://github.com/ahmed-bhs/doctrine-doctor
-    hide_icon: false
+# Logo
+logo: "/images/logo.png"
 
 # Search
 search_enabled: true
@@ -44,23 +29,28 @@ search:
 
 # Mermaid diagrams support
 mermaid:
-  version: "10.9.0"
+  version: "9.4.0"
 
-# Code copy button
-enable_copy_code_button: true
+# Navigation
+nav_sort: title
+nav_external_links:
+  - title: GitHub Repository
+    url: https://github.com/ahmed-bhs/doctrine-doctor
+  - title: Packagist
+    url: https://packagist.org/packages/ahmed-bhs/doctrine-doctor
 
-# Footer
-footer_content: "Copyright &copy; 2024-2026 Ahmed EBEN HASSINE - <a href=\"https://github.com/ahmed-bhs/doctrine-doctor/blob/main/LICENSE\">MIT License</a>"
+# Code highlighting
+color_scheme: light
+highlighter: rouge
 
-# Back to top link
-back_to_top: true
-back_to_top_text: "Back to top"
+# Syntax highlighting theme
+kramdown:
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    block:
+      line_numbers: false
 
-# Last modified date
-last_edit_timestamp: true
-last_edit_time_format: "%b %e %Y at %I:%M %p"
-
-# Callouts (admonitions)
+# Callouts
 callouts_level: quiet
 callouts:
   highlight:
@@ -77,33 +67,26 @@ callouts:
   warning:
     title: Warning
     color: red
-  tip:
-    title: Tip
-    color: green
-  success:
-    title: Success
-    color: green
 
-# SEO tags
-author: Ahmed EBEN HASSINE
-twitter:
-  username: ahmed_bhs
-  card: summary_large_image
+# Footer
+footer_content: 'Copyright &copy; 2024-2026 Ahmed EBEN HASSINE. Distributed under the <a href="https://github.com/ahmed-bhs/doctrine-doctor/blob/main/LICENSE">MIT License</a>.'
 
-social:
-  name: Ahmed EBEN HASSINE
-  links:
-    - https://github.com/ahmed-bhs
+# Back to top link
+back_to_top: true
+back_to_top_text: "Back to top"
 
-# Build settings
-markdown: kramdown
-kramdown:
-  input: GFM
-  hard_wrap: false
-  syntax_highlighter: rouge
-  syntax_highlighter_opts:
-    block:
-      line_numbers: false
+# Aux links for the upper right navigation
+aux_links:
+  "View on GitHub":
+    - "https://github.com/ahmed-bhs/doctrine-doctor"
+  "Packagist":
+    - "https://packagist.org/packages/ahmed-bhs/doctrine-doctor"
+
+# Makes Aux links open in a new tab
+aux_links_new_tab: true
+
+# Heading anchor links
+heading_anchors: true
 
 # Plugins
 plugins:
@@ -113,17 +96,9 @@ plugins:
 
 # Exclude from processing
 exclude:
+  - node_modules/
+  - vendor/
+  - .sass-cache/
+  - .jekyll-cache/
   - Gemfile
   - Gemfile.lock
-  - node_modules
-  - vendor
-  - .git
-  - .github
-  - "*.gemspec"
-  - "*.gem"
-  - LICENSE
-  - README.md
-  - mkdocs.yml
-  - requirements.txt
-  - stylesheets/extra.css
-  - javascripts/extra.js
