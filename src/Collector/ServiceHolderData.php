@@ -11,17 +11,19 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Collector;
 
-use AhmedBhs\DoctrineDoctor\Collector\Helper\DatabaseInfoCollector;
 use AhmedBhs\DoctrineDoctor\Collector\Helper\DataCollectorLogger;
 use AhmedBhs\DoctrineDoctor\Collector\Helper\IssueReconstructor;
 use AhmedBhs\DoctrineDoctor\Collector\Helper\QueryStatsCalculator;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
 
 /**
  * Data Transfer Object for services stored in ServiceHolder.
- * Reduces parameter count by encapsulating related services.
+ *
+ * Important: This class intentionally does NOT store EntityManager or other
+ * Doctrine objects. In worker mode (FrankenPHP, RoadRunner), these objects
+ * become invalid between requests and cause segfaults. Only stateless services
+ * that don't hold database connections should be stored here.
  */
 final class ServiceHolderData
 {
@@ -33,15 +35,7 @@ final class ServiceHolderData
         /**
          * @readonly
          */
-        public ?EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
         public ?Stopwatch $stopwatch,
-        /**
-         * @readonly
-         */
-        public DatabaseInfoCollector $databaseInfoCollector,
         /**
          * @readonly
          */
