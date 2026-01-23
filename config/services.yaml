@@ -77,6 +77,8 @@ services:
             $issueDeduplicator: '@AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator'
 
     # Data Collector
+    # Implements ResetInterface for FrankenPHP/RoadRunner/Swoole worker mode compatibility
+    # The kernel.reset tag ensures reset() is called between requests in persistent runtimes
     AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector:
         arguments:
             $analyzers: !tagged_iterator doctrine_doctor.analyzer
@@ -88,6 +90,7 @@ services:
             $excludePaths: '%doctrine_doctor.analysis.exclude_paths%'
         tags:
             - { name: data_collector, id: doctrine_doctor, template: '@doctrine_doctor/profiler/doctrine_doctor.html.twig', priority: 249 }
+            - { name: kernel.reset, method: reset }
 
     # Parsers
     # Use CachedSqlStructureExtractor for 1000x+ performance improvement on SQL parsing
@@ -127,6 +130,12 @@ services:
 
     AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator: ~
 
+    # Worker Mode Reset Subscriber
+    # Required for FrankenPHP worker mode, RoadRunner, Swoole, and other persistent PHP runtimes
+    # Clears ServiceHolder static state between requests to prevent segfaults from stale Doctrine objects
+    AhmedBhs\DoctrineDoctor\EventSubscriber\WorkerModeResetSubscriber:
+        tags:
+            - { name: kernel.event_subscriber }
 
     # Specific analyzer configurations
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\NPlusOneAnalyzer:
