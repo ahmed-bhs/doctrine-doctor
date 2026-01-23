@@ -29,23 +29,18 @@ use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\Stopwatch\StopwatchEvent;
+use Symfony\Contracts\Service\ResetInterface;
 use Webmozart\Assert\Assert;
 
 /**
- * Optimized DataCollector for Doctrine Doctor with Late Collection.
- * Performance optimizations:
- * - Minimal overhead during request (~1-2ms in collect())
- * - Heavy analysis deferred to lateCollect() - runs AFTER response sent to client
- * - Analysis time NOT included in request time metrics
- * - Memoization to avoid repeated calculations
- * - No file I/O or extra SQL queries during request handling
- * - Zero overhead in production (when profiler is disabled)
- * How it works:
- * 1. collect() - Fast, stores raw query data only (~1-2ms)
- * 2. Response sent to client (request time stops here)
- * 3. lateCollect() - Heavy analysis happens here (10-50ms, NOT counted in request time)
+ * DataCollector for Doctrine Doctor.
+ *
+ * FrankenPHP Worker Mode Compatibility:
+ * All analysis is performed in collect() (not lateCollect) because analyzers
+ * use EntityManager which becomes invalid after the request ends in persistent
+ * PHP runtimes (FrankenPHP, RoadRunner, Swoole).
  */
-class DoctrineDoctorDataCollector extends DataCollector implements LateDataCollectorInterface
+class DoctrineDoctorDataCollector extends DataCollector implements LateDataCollectorInterface, ResetInterface
 {
     private ?array $memoizedIssues = null;
 
@@ -90,35 +85,24 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     }
 
     /**
-     * Fast collect() - stores raw data only, NO heavy analysis.
-     * What it does:
-     * - Stores raw query data from DoctrineDataCollector (~1-2ms)
-     * - Generates unique token for service storage
-     * - Stores services in ServiceHolder for lateCollect() access
-     * What it does NOT do:
-     * - NO query analysis (deferred to lateCollect())
-     * - NO database info collection (deferred to lateCollect())
-     * - NO heavy processing
-     * Result: Minimal impact on request time (~1-2ms only)
+     * Collect data during request handling.
+     *
+     * FrankenPHP Worker Mode Compatibility:
+     * All analysis is done HERE (not in lateCollect) because analyzers use EntityManager
+     * which becomes invalid after the request ends in persistent PHP runtimes.
+     *
      * @SuppressWarnings(UnusedFormalParameter)
      */
     public function collect(Request $_request, Response $_response, ?\Throwable $_exception = null): void
     {
-        $token = uniqid('doctrine_doctor_', true);
+        $databaseInfo = $this->dataCollectorHelpers->databaseInfoCollector->collectDatabaseInfo($this->entityManager);
 
         $this->data = [
             'enabled'           => (bool) $this->doctrineDataCollector,
             'show_debug_info'   => $this->showDebugInfo,
-            'token'             => $token,
             'timeline_queries'  => [],
             'issues'            => [],
-            'database_info'     => [
-                'driver'              => 'N/A',
-                'database_version'    => 'N/A',
-                'doctrine_version'    => 'N/A',
-                'is_deprecated'       => false,
-                'deprecation_message' => null,
-            ],
+            'database_info'     => $databaseInfo,
             'profiler_overhead' => [
                 'analysis_time_ms' => 0,
                 'db_info_time_ms'  => 0,
@@ -144,19 +128,24 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             }
         }
 
-        ServiceHolder::store(
-            $token,
-            new ServiceHolderData(
-                analyzers: $this->analyzers,
-                entityManager: $this->entityManager,
-                stopwatch: $this->stopwatch,
-                databaseInfoCollector: $this->dataCollectorHelpers->databaseInfoCollector,
-                issueReconstructor: $this->dataCollectorHelpers->issueReconstructor,
-                queryStatsCalculator: $this->dataCollectorHelpers->queryStatsCalculator,
-                dataCollectorLogger: $this->dataCollectorHelpers->dataCollectorLogger,
-                issueDeduplicator: $this->dataCollectorHelpers->issueDeduplicator,
-            ),
+        // Run analysis NOW while EntityManager is still valid (required for worker mode)
+        $this->stopwatch?->start('doctrine_doctor.analysis', 'doctrine_doctor_profiling');
+
+        SqlNormalizationCache::warmUp($this->data['timeline_queries']);
+        CachedSqlStructureExtractor::warmUp($this->data['timeline_queries']);
+
+        $this->data['issues'] = $this->analyzeQueriesLazy(
+            $this->analyzers,
+            $this->dataCollectorHelpers->dataCollectorLogger,
+            $this->dataCollectorHelpers->issueDeduplicator,
         );
+
+        $analysisEvent = $this->stopwatch?->stop('doctrine_doctor.analysis');
+
+        if ($analysisEvent instanceof StopwatchEvent) {
+            $this->data['profiler_overhead']['analysis_time_ms'] = $analysisEvent->getDuration();
+            $this->data['profiler_overhead']['total_time_ms']    = $analysisEvent->getDuration();
+        }
 
         if ($this->showDebugInfo) {
             $analyzersList = [];
@@ -170,83 +159,22 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                 'doctrine_collector_exists' => true,
                 'analyzers_count'           => count($analyzersList),
                 'analyzers_list'            => $analyzersList,
-                'query_time_stats'          => [], // Will be filled in lateCollect()
-                'profiler_overhead_ms'      => 0, // Will be filled in lateCollect()
+                'query_time_stats'          => $this->dataCollectorHelpers->queryStatsCalculator->calculateStats($this->data['timeline_queries']),
+                'profiler_overhead_ms'      => $this->data['profiler_overhead']['total_time_ms'],
             ];
         }
     }
 
     /**
-     * Heavy analysis happens here - runs AFTER response sent to client.
-     * This is the magic: lateCollect() is called AFTER the HTTP response
-     * has been sent to the client, so its execution time is NOT included
-     * in the request time metrics shown in the Symfony profiler.
-     * What it does:
-     * - Retrieves services from ServiceHolder using stored token
-     * - Runs heavy query analysis with all analyzers (~10-50ms)
-     * - Collects database information
-     * - Measures time with Stopwatch (for transparency)
-     * - Cleans up ServiceHolder
-     * Result: Zero impact on perceived request time!
+     * Late collect - no longer performs analysis.
+     *
+     * Analysis has been moved to collect() for FrankenPHP worker mode compatibility.
+     * Analyzers use EntityManager which becomes invalid after request ends in
+     * persistent PHP runtimes (FrankenPHP, RoadRunner, Swoole).
      */
     public function lateCollect(): void
     {
-        $token = $this->data['token'] ?? null;
-
-        if (!$token) {
-            return;
-        }
-
-        $services = ServiceHolder::get($token);
-
-        if (!$services instanceof ServiceHolderData) {
-            return;
-        }
-
-        $analyzers             = $services->analyzers;
-        $entityManager         = $services->entityManager;
-        $stopwatch             = $services->stopwatch;
-        $databaseInfoCollector = $services->databaseInfoCollector;
-        $queryStatsCalculator  = $services->queryStatsCalculator;
-        $dataCollectorLogger   = $services->dataCollectorLogger;
-        $issueDeduplicator     = $services->issueDeduplicator;
-
-        $stopwatch?->start('doctrine_doctor.late_total', 'doctrine_doctor_profiling');
-
-        SqlNormalizationCache::warmUp($this->data['timeline_queries']);
-
-        CachedSqlStructureExtractor::warmUp($this->data['timeline_queries']);
-
-        $stopwatch?->start('doctrine_doctor.late_analysis', 'doctrine_doctor_profiling');
-        $this->data['issues'] = $this->analyzeQueriesLazy($analyzers, $dataCollectorLogger, $issueDeduplicator);
-        $analysisEvent        = $stopwatch?->stop('doctrine_doctor.late_analysis');
-
-        if ($analysisEvent instanceof StopwatchEvent) {
-            $this->data['profiler_overhead']['analysis_time_ms'] = $analysisEvent->getDuration();
-        }
-
-        $stopwatch?->start('doctrine_doctor.late_db_info', 'doctrine_doctor_profiling');
-        $this->data['database_info'] = $databaseInfoCollector->collectDatabaseInfo($entityManager);
-        $dbInfoEvent                 = $stopwatch?->stop('doctrine_doctor.late_db_info');
-
-        if ($dbInfoEvent instanceof StopwatchEvent) {
-            $this->data['profiler_overhead']['db_info_time_ms'] = $dbInfoEvent->getDuration();
-        }
-
-        $totalEvent = $stopwatch?->stop('doctrine_doctor.late_total');
-
-        if ($totalEvent instanceof StopwatchEvent) {
-            $this->data['profiler_overhead']['total_time_ms'] = $totalEvent->getDuration();
-        }
-
-        if (($this->data['show_debug_info'] ?? false) && isset($this->data['debug_data'])) {
-            $this->data['debug_data']['query_time_stats']     = $queryStatsCalculator->calculateStats($this->data['timeline_queries']);
-            $this->data['debug_data']['profiler_overhead_ms'] = $this->data['profiler_overhead']['total_time_ms'];
-        }
-
-        ServiceHolder::clear($token);
-
-        unset($this->data['token']);
+        // Analysis is done in collect() for worker mode compatibility
     }
 
     public function getName(): string
@@ -255,16 +183,23 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     }
 
     /**
-     * Reset all caches and cleanup ServiceHolder.
+     * Reset collector state between requests.
+     *
+     * This method is called by Symfony's services_resetter after each request.
+     * Critical for FrankenPHP worker mode compatibility:
+     * - ServiceHolder stores EntityManager and other Doctrine objects
+     * - In worker mode, these objects become invalid after request ends
+     * - Without clearing, next request causes segfault when accessing stale objects
+     *
+     * Performance optimization:
+     * SQL caches (SqlNormalizationCache, CachedSqlStructureExtractor) are NOT cleared.
+     * They only contain strings/arrays (no Doctrine object references), so they're
+     * safe to keep across requests and provide significant performance benefits
+     * in worker mode where the same queries are often executed repeatedly.
      */
     public function reset(): void
     {
-        if (isset($this->data['token'])) {
-            ServiceHolder::clear($this->data['token']);
-        }
-
-        SqlNormalizationCache::clear();
-        CachedSqlStructureExtractor::clearCache();
+        ServiceHolder::clearAll();
 
         $this->data                 = [];
         $this->memoizedIssues       = null;

@@ -52,7 +52,12 @@ class ServiceHolder
     }
 
     /**
-     * Clear all stored services (useful for testing).
+     * Clear all stored services.
+     *
+     * Used for:
+     * - Worker mode cleanup (FrankenPHP, RoadRunner, Swoole)
+     * - Testing isolation
+     * - Reset mechanism (ResetInterface)
      */
     public static function clearAll(): void
     {
