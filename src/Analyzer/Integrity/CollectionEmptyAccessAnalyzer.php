@@ -37,15 +37,6 @@ use Webmozart\Assert\Assert;
  */
 class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    /**
-     * Track collection states to detect unsafe access patterns.
-     * This property tracks empty collections for potential future enhancement
-     * to detect unsafe access patterns at runtime.
-     * @var array<string, array{isEmpty: bool, accessed: bool}>
-     * @phpstan-ignore property.onlyWritten
-     */
-    private array $collectionStates = [];
-
     public function __construct(
         /**
          * @readonly
@@ -61,36 +52,19 @@ class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
         return IssueCollection::fromGenerator(
-            /**
-             * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
-             */
             function () {
-                // Reset collection states for each analysis run
-                $this->collectionStates = [];
+                $metadataFactory = $this->entityManager->getMetadataFactory();
+                $allMetadata = $metadataFactory->getAllMetadata();
 
-                // Get all managed entities to check their collections
-                $unitOfWork      = $this->entityManager->getUnitOfWork();
-                $managedEntities = $unitOfWork->getIdentityMap();
+                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
-                Assert::isIterable($managedEntities, '$managedEntities must be iterable');
+                foreach ($allMetadata as $metadata) {
+                    $entityIssues = $this->analyzeEntity($metadata);
 
-                foreach ($managedEntities as $entityClass => $entities) {
-                    try {
-                        $metadata = $this->entityManager->getClassMetadata($entityClass);
-                    } catch (\Throwable) {
-                        continue;
-                    }
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
-                    // Check each entity instance
-                    Assert::isIterable($entities, '$entities must be iterable');
-
-                    foreach ($entities as $entity) {
-                        $entityIssues = $this->checkEntityCollections($entity, $metadata);
-                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
-
-                        foreach ($entityIssues as $entityIssue) {
-                            yield $entityIssue;
-                        }
+                    foreach ($entityIssues as $entityIssue) {
+                        yield $entityIssue;
                     }
                 }
             },
@@ -108,121 +82,157 @@ class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
     }
 
     /**
-     * Check all collection properties of an entity.
      * @template T of object
      * @param ClassMetadata<T> $classMetadata
      * @return list<IssueInterface>
      */
-    private function checkEntityCollections(object $entity, ClassMetadata $classMetadata): array
+    private function analyzeEntity(ClassMetadata $classMetadata): array
     {
-
-        $issues = [];
-
-        // Use cached ReflectionClass from Doctrine's ClassMetadata
         $reflectionClass = $classMetadata->reflClass;
 
         if (null === $reflectionClass) {
             return [];
         }
 
-        // Check each collection-valued association
+        $collectionAssociations = [];
         foreach ($classMetadata->getAssociationNames() as $assocName) {
-            if (!$classMetadata->isCollectionValuedAssociation($assocName)) {
+            if ($classMetadata->isCollectionValuedAssociation($assocName)) {
+                $collectionAssociations[] = $assocName;
+            }
+        }
+
+        if ([] === $collectionAssociations) {
+            return [];
+        }
+
+        $constructorSource = $this->getConstructorSource($reflectionClass);
+
+        $issues = [];
+
+        foreach ($collectionAssociations as $assocName) {
+            if (null === $constructorSource) {
+                $issues[] = $this->createUninitializedCollectionIssue(
+                    $classMetadata->getName(),
+                    $assocName,
+                );
+
                 continue;
             }
 
-            if (!$reflectionClass->hasProperty($assocName)) {
-                continue;
-            }
-
-            $property   = $reflectionClass->getProperty($assocName);
-
-            // Try to get the collection value, but catch errors for uninitialized typed properties (PHP 8.1+)
-            try {
-                $collection = $property->getValue($entity);
-            } catch (\Error $e) {
-                // Property is not initialized (PHP 8.1+ typed properties)
-                if (str_contains($e->getMessage(), 'must not be accessed before initialization')) {
-                    $issues[] = $this->createUninitializedCollectionIssue($entity, $assocName);
-                    continue;
-                }
-
-                throw $e;
-            }
-
-            // Check if collection is null (not initialized)
-            if (null === $collection) {
-                $issues[] = $this->createUninitializedCollectionIssue($entity, $assocName);
-                continue;
-            }
-
-            // Check if collection is empty and might be accessed unsafely
-            // Track state for potential future use in detecting unsafe access patterns
-            if (\is_object($collection) && method_exists($collection, 'isEmpty') && $collection->isEmpty()) {
-                // Track this collection as empty
-                $collectionId = $this->getCollectionId($entity, $assocName);
-                $this->collectionStates[$collectionId] = ['isEmpty' => true, 'accessed' => false];
+            if (!$this->isCollectionInitializedInConstructor($assocName, $constructorSource, $reflectionClass)) {
+                $issues[] = $this->createUninitializedCollectionIssue(
+                    $classMetadata->getName(),
+                    $assocName,
+                );
             }
         }
 
         return $issues;
     }
 
-    /**
-     * Create issue for uninitialized collection.
-     */
+    private function getConstructorSource(\ReflectionClass $reflectionClass): ?string
+    {
+        $constructor = $reflectionClass->getConstructor();
+
+        if (null === $constructor) {
+            return null;
+        }
+
+        $fileName = $constructor->getFileName();
+        if (false === $fileName || !file_exists($fileName)) {
+            return null;
+        }
+
+        $startLine = $constructor->getStartLine();
+        $endLine = $constructor->getEndLine();
+
+        if (false === $startLine || false === $endLine) {
+            return null;
+        }
+
+        $lines = file($fileName);
+        if (false === $lines) {
+            return null;
+        }
+
+        return implode('', \array_slice($lines, $startLine - 1, $endLine - $startLine + 1));
+    }
+
+    private function isCollectionInitializedInConstructor(
+        string $propertyName,
+        string $constructorSource,
+        \ReflectionClass $reflectionClass,
+    ): bool {
+        if (1 === preg_match('/\$this\s*->\s*' . preg_quote($propertyName, '/') . '\s*=\s*new\s+/', $constructorSource)) {
+            return true;
+        }
+
+        if ($reflectionClass->hasProperty($propertyName)) {
+            $property = $reflectionClass->getProperty($propertyName);
+            if ($property->hasDefaultValue() && null !== $property->getDefaultValue()) {
+                return true;
+            }
+
+            if ($property->hasType()) {
+                $type = $property->getType();
+                if ($type instanceof \ReflectionNamedType && !$type->allowsNull()) {
+                    $attributes = $property->getAttributes();
+                    foreach ($attributes as $attribute) {
+                        if (str_contains($attribute->getName(), 'OneToMany') || str_contains($attribute->getName(), 'ManyToMany')) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        $parent = $reflectionClass->getParentClass();
+        if (false !== $parent) {
+            $parentConstructorSource = $this->getConstructorSource($parent);
+            if (null !== $parentConstructorSource) {
+                if (str_contains($constructorSource, 'parent::__construct')) {
+                    return $this->isCollectionInitializedInConstructor($propertyName, $parentConstructorSource, $parent);
+                }
+            }
+        }
+
+        return false;
+    }
+
     private function createUninitializedCollectionIssue(
-        object $entity,
+        string $entityClass,
         string $propertyName,
     ): IssueInterface {
-        $entityClass    = $entity::class;
         $shortClassName = $this->getShortClassName($entityClass);
 
         $description = sprintf(
-            "Collection property %s::\$%s is not initialized.
-
-",
+            "Collection property %s::\$%s is not initialized.\n\n",
             $shortClassName,
             $propertyName,
         );
 
-        $description .= "This can cause issues:
-";
-        $description .= "- Accessing the collection will return NULL instead of a Collection object
-";
-        $description .= "- Calling isEmpty(), count(), first(), etc. will fail
-";
-        $description .= "- Adding items to the collection will fail
+        $description .= "This can cause issues:\n";
+        $description .= "- Accessing the collection will return NULL instead of a Collection object\n";
+        $description .= "- Calling isEmpty(), count(), first(), etc. will fail\n";
+        $description .= "- Adding items to the collection will fail\n\n";
 
-";
-
-        $description .= "Solution:
-";
-        $description .= "Initialize the collection in the constructor:
-
-";
+        $description .= "Solution:\n";
+        $description .= "Initialize the collection in the constructor:\n\n";
         $description .= sprintf(
-            "  // In %s::__construct()
-",
+            "  // In %s::__construct()\n",
             $shortClassName,
         );
         $description .= sprintf(
-            "  \$this->%s = new ArrayCollection();
-
-",
+            "  \$this->%s = new ArrayCollection();\n\n",
             $propertyName,
         );
 
-        $description .= "Or use PHP 8.1+ property initialization:
-
-";
+        $description .= "Or use PHP 8.1+ property initialization:\n\n";
         $description .= sprintf(
-            "  private Collection \$%s = new ArrayCollection();
-",
+            "  private Collection \$%s = new ArrayCollection();\n",
             $propertyName,
         );
 
-        // Create suggestion
         $suggestionCode = sprintf(
             "// In %s::__construct():\n\$this->%s = new ArrayCollection();\n\n" .
             "// Or use PHP 8.1+ property initialization:\n" .
@@ -247,17 +257,6 @@ class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         return $this->issueFactory->create($issueData);
     }
 
-    /**
-     * Generate unique ID for a collection instance.
-     */
-    private function getCollectionId(object $entity, string $propertyName): string
-    {
-        return spl_object_id($entity) . '::' . $propertyName;
-    }
-
-    /**
-     * Get short class name without namespace.
-     */
     private function getShortClassName(string $fqcn): string
     {
         $parts = explode('\\', $fqcn);

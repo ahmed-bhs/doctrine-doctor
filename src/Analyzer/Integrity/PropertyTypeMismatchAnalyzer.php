@@ -16,31 +16,27 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
+use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use ReflectionClass;
 use ReflectionEnum;
-use ReflectionNamedType;
 use Webmozart\Assert\Assert;
 
 /**
- * Detects type mismatches between entity properties and their database values.
+ * Detects type mismatches between entity property declarations and Doctrine mappings.
  * Inspired by PHPStan's EntityColumnRule.
- * Detects runtime type issues:
- * - Property declared as 'int' receiving string "25" from database
- * - Enum property with mismatched backing type
- * - Non-nullable property receiving NULL from database
- * - DateTime property receiving invalid date string
- * This analyzer checks entities after hydration to detect real-world type issues
- * that static analysis cannot catch (dynamic queries, custom types, etc.).
+ *
+ * Static analysis version - checks metadata and reflection types without
+ * accessing entity instances (no lazy loading triggered).
+ *
+ * Detects:
+ * - PHP property type doesn't match Doctrine column type
+ * - Non-nullable Doctrine column with nullable PHP property (or vice versa)
+ * - Enum backing type mismatch with database column type
  */
 class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    /** @var array<string, bool> Cache to avoid checking same entity multiple times */
-    /** @var array<mixed> */
-    private array $checkedEntities = [];
-
     public function __construct(
         /**
          * @readonly
@@ -56,76 +52,59 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
         return IssueCollection::fromGenerator(
-            /**
-             * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
-             */
             function () {
-                $this->checkedEntities = [];
+                $metadataFactory = $this->entityManager->getMetadataFactory();
+                $allMetadata = $metadataFactory->getAllMetadata();
 
-                // Get Unit of Work to access managed entities
-                $unitOfWork = $this->entityManager->getUnitOfWork();
+                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
-                // Get all managed entities (those loaded during request)
-                $managedEntities = $unitOfWork->getIdentityMap();
+                foreach ($allMetadata as $metadata) {
+                    $entityIssues = $this->analyzeEntity($metadata);
 
-                // Check each entity type
-                Assert::isIterable($managedEntities, '$managedEntities must be iterable');
+                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
-                foreach ($managedEntities as $entityClass => $entities) {
-                    if (isset($this->checkedEntities[$entityClass])) {
-                        continue;
-                    }
-
-                    $this->checkedEntities[$entityClass] = true;
-
-                    try {
-                        $metadata = $this->entityManager->getClassMetadata($entityClass);
-                    } catch (\Throwable) {
-                        continue;
-                    }
-
-                    // Check all entities of this class
-                    Assert::isIterable($entities, '$entities must be iterable');
-
-                    foreach ($entities as $entity) {
-                        $entityIssues = $this->checkEntityProperties($entity, $metadata);
-                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
-
-                        foreach ($entityIssues as $entityIssue) {
-                            yield $entityIssue;
-                        }
+                    foreach ($entityIssues as $entityIssue) {
+                        yield $entityIssue;
                     }
                 }
             },
         );
     }
 
-    /**
-     * Check all properties of an entity for type mismatches.
-     */
-    private function checkEntityProperties(object $entity, ClassMetadata $classMetadata): array
+    public function getName(): string
     {
+        return 'Property Type Mismatch Analyzer';
+    }
 
-        $issues = [];
+    public function getDescription(): string
+    {
+        return 'Detects type mismatches between entity property declarations and Doctrine mappings';
+    }
 
-        // Use cached ReflectionClass from Doctrine's ClassMetadata
+    /**
+     * @template T of object
+     * @param ClassMetadata<T> $classMetadata
+     * @return list<IssueInterface>
+     */
+    private function analyzeEntity(ClassMetadata $classMetadata): array
+    {
         $reflectionClass = $classMetadata->reflClass;
 
         if (null === $reflectionClass) {
             return [];
         }
 
-        // Check each mapped field
+        $issues = [];
+
         foreach ($classMetadata->getFieldNames() as $fieldName) {
-            $issue = $this->checkFieldType($entity, $fieldName, $classMetadata, $reflectionClass);
+            $issue = $this->checkFieldType($fieldName, $classMetadata, $reflectionClass);
             if (null !== $issue) {
                 $issues[] = $issue;
             }
         }
 
-        // Check associations
         foreach ($classMetadata->getAssociationNames() as $assocName) {
-            $issue = $this->checkAssociationType($entity, $assocName, $classMetadata, $reflectionClass);
+            $issue = $this->checkAssociationType($assocName, $classMetadata, $reflectionClass);
             if (null !== $issue) {
                 $issues[] = $issue;
             }
@@ -134,64 +113,19 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         return $issues;
     }
 
-    /**
-     * Check if a field value matches its declared type.
-     */
     private function checkFieldType(
-        object $entity,
         string $fieldName,
         ClassMetadata $classMetadata,
         \ReflectionClass $reflectionClass,
-    ): ?object {
-        $valueData = $this->getFieldValueAndMapping($entity, $fieldName, $classMetadata, $reflectionClass);
-        if (null === $valueData) {
-            return null;
-        }
-
-        ['value' => $value, 'fieldMapping' => $fieldMapping, 'doctrineType' => $doctrineType] = $valueData;
-
-        // Check NULL values
-        $nullIssue = $this->validateNullValue($entity, $fieldName, $value, $fieldMapping, $doctrineType);
-        if (null !== $nullIssue) {
-            return $nullIssue;
-        }
-
-        if (null === $value) {
-            return null;
-        }
-
-        // Check type match
-        $typeIssue = $this->validateTypeMatch($entity, $fieldName, $value, $doctrineType);
-        if (null !== $typeIssue) {
-            return $typeIssue;
-        }
-
-        // Check enum backing type (PHP 8.1+)
-        return $this->validateEnumBackingType($value, $fieldMapping, $entity, $fieldName);
-    }
-
-    /**
-     * Get field value and mapping information.
-     * @return array{value: mixed, fieldMapping: array<string, mixed>|object, doctrineType: string}|null
-     */
-    private function getFieldValueAndMapping(
-        object $entity,
-        string $fieldName,
-        ClassMetadata $classMetadata,
-        \ReflectionClass $reflectionClass,
-    ): ?array {
+    ): ?IssueInterface {
         if (!$reflectionClass->hasProperty($fieldName)) {
             return null;
         }
 
-        $reflectionProperty = $reflectionClass->getProperty($fieldName);
+        $property = $reflectionClass->getProperty($fieldName);
+        $propertyType = $property->getType();
 
-        try {
-            if (!$reflectionProperty->isInitialized($entity)) {
-                return null;
-            }
-            $value = $reflectionProperty->getValue($entity);
-        } catch (\Error) {
+        if (!$propertyType instanceof \ReflectionNamedType) {
             return null;
         }
 
@@ -202,250 +136,133 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             return null;
         }
 
-        return ['value' => $value, 'fieldMapping' => $fieldMapping, 'doctrineType' => $doctrineType];
-    }
-
-    /**
-     * Validate NULL value constraints.
-     * @param array<string, mixed>|object $fieldMapping
-     */
-    private function validateNullValue(
-        object $entity,
-        string $fieldName,
-        mixed $value,
-        array|object $fieldMapping,
-        string $doctrineType,
-    ): ?object {
-        if (null !== $value) {
-            return null;
-        }
-
         $nullable = (bool) (MappingHelper::getBool($fieldMapping, 'nullable') ?? false);
-        if ($nullable) {
-            return null;
-        }
+        $phpTypeName = $propertyType->getName();
+        $isIdentifier = $classMetadata->isIdentifier($fieldName);
 
-        // Use cached ReflectionClass from Doctrine's ClassMetadata
-        $metadata = $this->entityManager->getClassMetadata($entity::class);
-
-        if (null === $metadata->reflClass) {
-            return null;
-        }
-
-        $reflectionProperty = $metadata->reflClass->getProperty($fieldName);
-
-        if ($this->isPropertyNullable($reflectionProperty)) {
-            return null;
-        }
-
-        return $this->createTypeMismatchIssue(
-            entity: $entity,
-            fieldName: $fieldName,
-            expectedType: $doctrineType . ' (non-nullable)',
-            actualType: 'NULL',
-            value: $value,
-            severity: Severity::critical(),
+        $nullabilityIssue = $this->checkNullabilityMismatch(
+            $classMetadata->getName(),
+            $fieldName,
+            $doctrineType,
+            $phpTypeName,
+            $nullable,
+            $propertyType->allowsNull(),
+            $isIdentifier,
         );
-    }
 
-    /**
-     * Validate type compatibility.
-     */
-    private function validateTypeMatch(
-        object $entity,
-        string $fieldName,
-        mixed $value,
-        string $doctrineType,
-    ): ?object {
+        if (null !== $nullabilityIssue) {
+            return $nullabilityIssue;
+        }
+
         $expectedPhpType = $this->doctrineTypeToPhpType($doctrineType);
-        $actualPhpType   = get_debug_type($value);
 
-        if ($this->isTypeCompatible($value, $expectedPhpType)) {
-            return null;
+        if ('mixed' !== $expectedPhpType && $phpTypeName !== $expectedPhpType && !$this->isTypeCompatible($phpTypeName, $expectedPhpType)) {
+            return $this->createIssue(
+                $classMetadata->getName(),
+                $fieldName,
+                sprintf('%s (PHP: %s)', $doctrineType, $expectedPhpType),
+                $phpTypeName,
+                Severity::warning(),
+            );
         }
 
-        return $this->createTypeMismatchIssue(
-            entity: $entity,
-            fieldName: $fieldName,
-            expectedType: $expectedPhpType,
-            actualType: $actualPhpType,
-            value: $value,
-            severity: Severity::warning(),
-        );
+        $enumType = MappingHelper::getProperty($fieldMapping, 'enumType');
+        if (null !== $enumType && \is_string($enumType) && enum_exists($enumType)) {
+            return $this->checkEnumBackingType($classMetadata->getName(), $fieldName, $enumType, $doctrineType);
+        }
+
+        return null;
     }
 
-    /**
-     * Validate enum backing type.
-     * @param array<string, mixed>|object $fieldMapping
-     */
-    private function validateEnumBackingType(
-        mixed $value,
-        array|object $fieldMapping,
-        object $entity,
+    private function checkNullabilityMismatch(
+        string $entityClass,
         string $fieldName,
-    ): ?object {
-        if (null === MappingHelper::getProperty($fieldMapping, 'enumType')) {
+        string $doctrineType,
+        string $phpTypeName,
+        bool $nullable,
+        bool $phpAllowsNull,
+        bool $isIdentifier,
+    ): ?IssueInterface {
+        if ($isIdentifier) {
             return null;
         }
 
-        return $this->checkEnumBackingType($value, $fieldMapping, $entity, $fieldName);
+        if (!$nullable && $phpAllowsNull) {
+            return $this->createIssue(
+                $entityClass,
+                $fieldName,
+                sprintf('%s (non-nullable)', $doctrineType),
+                sprintf('?%s (nullable)', $phpTypeName),
+                Severity::warning(),
+            );
+        }
+
+        if ($nullable && !$phpAllowsNull) {
+            return $this->createIssue(
+                $entityClass,
+                $fieldName,
+                sprintf('%s (nullable)', $doctrineType),
+                sprintf('%s (non-nullable)', $phpTypeName),
+                Severity::warning(),
+            );
+        }
+
+        return null;
     }
 
-    /**
-     * Check if an association value matches its declared type.
-     */
     private function checkAssociationType(
-        object $entity,
         string $assocName,
         ClassMetadata $classMetadata,
         \ReflectionClass $reflectionClass,
-    ): ?object {
-        $reflectionProperty = $this->getInitializedProperty($entity, $assocName, $reflectionClass);
-        if (!$reflectionProperty instanceof \ReflectionProperty) {
+    ): ?IssueInterface {
+        if (!$reflectionClass->hasProperty($assocName)) {
             return null;
         }
 
-        $value              = $reflectionProperty->getValue($entity);
-        $associationMapping = $classMetadata->getAssociationMapping($assocName);
-        $targetEntity       = MappingHelper::getString($associationMapping, 'targetEntity');
+        if (!$classMetadata->isSingleValuedAssociation($assocName)) {
+            return null;
+        }
 
-        // Skip if no target entity information
+        $property = $reflectionClass->getProperty($assocName);
+        $propertyType = $property->getType();
+
+        if (!$propertyType instanceof \ReflectionNamedType) {
+            return null;
+        }
+
+        $mapping = $classMetadata->getAssociationMapping($assocName);
+        $targetEntity = MappingHelper::getString($mapping, 'targetEntity');
+
         if (null === $targetEntity) {
             return null;
         }
 
-        // Check ToOne associations
-        if ($classMetadata->isSingleValuedAssociation($assocName)) {
-            return $this->checkToOneAssociation(
-                entity: $entity,
-                assocName: $assocName,
-                value: $value,
-                targetEntity: $targetEntity,
-                associationMapping: $associationMapping,
-                reflectionProperty: $reflectionProperty,
-            );
+        $joinColumns = $mapping['joinColumns'] ?? [];
+        $nullable = true;
+        if (\is_array($joinColumns) && isset($joinColumns[0]) && \is_array($joinColumns[0])) {
+            $nullable = (bool) ($joinColumns[0]['nullable'] ?? true);
         }
 
-        // Check ToMany associations (collections)
-        if ($classMetadata->isCollectionValuedAssociation($assocName)) {
-            return $this->checkToManyAssociation(
-                entity: $entity,
-                assocName: $assocName,
-                value: $value,
-                targetEntity: $targetEntity,
+        if (!$nullable && $propertyType->allowsNull()) {
+            return $this->createIssue(
+                $classMetadata->getName(),
+                $assocName,
+                sprintf('%s (non-nullable)', $this->getShortClassName($targetEntity)),
+                sprintf('?%s (nullable)', $propertyType->getName()),
+                Severity::warning(),
             );
         }
 
         return null;
     }
 
-    /**
-     * Get initialized property or null if not available.
-     */
-    private function getInitializedProperty(
-        object $entity,
-        string $propertyName,
-        \ReflectionClass $reflectionClass,
-    ): ?\ReflectionProperty {
-        if (!$reflectionClass->hasProperty($propertyName)) {
-            return null;
-        }
-
-        $reflectionProperty = $reflectionClass->getProperty($propertyName);
-
-        try {
-            if (!$reflectionProperty->isInitialized($entity)) {
-                return null;
-            }
-        } catch (\Error) {
-            return null;
-        }
-
-        return $reflectionProperty;
-    }
-
-    /**
-     * Check ToOne association type.
-     * @param array<string, mixed>|object $associationMapping
-     */
-    private function checkToOneAssociation(
-        object $entity,
-        string $assocName,
-        mixed $value,
-        string $targetEntity,
-        array|object $associationMapping,
-        \ReflectionProperty $reflectionProperty,
-    ): ?object {
-        if (null === $value) {
-            $nullable = (bool) (MappingHelper::getArray($associationMapping, 'joinColumns')[0]['nullable'] ?? true);
-
-            if (!$nullable && !$this->isPropertyNullable($reflectionProperty)) {
-                return $this->createTypeMismatchIssue(
-                    entity: $entity,
-                    fieldName: $assocName,
-                    expectedType: $this->getShortClassName($targetEntity),
-                    actualType: 'NULL',
-                    value: null,
-                    severity: Severity::critical(),
-                );
-            }
-
-            return null;
-        }
-
-        if (!$value instanceof $targetEntity) {
-            return $this->createTypeMismatchIssue(
-                entity: $entity,
-                fieldName: $assocName,
-                expectedType: $this->getShortClassName($targetEntity),
-                actualType: get_debug_type($value),
-                value: $value,
-                severity: Severity::critical(),
-            );
-        }
-
-        return null;
-    }
-
-    /**
-     * Check ToMany association type (collections).
-     */
-    private function checkToManyAssociation(
-        object $entity,
-        string $assocName,
-        mixed $value,
-        string $targetEntity,
-    ): ?object {
-        if (null === $value || (!is_iterable($value) && !$value instanceof \Countable)) {
-            return $this->createTypeMismatchIssue(
-                entity: $entity,
-                fieldName: $assocName,
-                expectedType: sprintf('Collection<%s>', $this->getShortClassName($targetEntity)),
-                actualType: get_debug_type($value),
-                value: $value,
-                severity: Severity::warning(),
-            );
-        }
-
-        return null;
-    }
-
-    /**
-     * Check if enum has correct backing type.
-     * @param array<string, mixed> $fieldMapping
-     */
-    private function checkEnumBackingType(mixed $value, array|object $fieldMapping, object $entity, string $fieldName): ?object
-    {
-        if (!is_object($value) || !class_exists($value::class)) {
-            return null;
-        }
-
-        $enumClass      = $value::class;
-
-        if (!enum_exists($enumClass)) {
-            return null;
-        }
-
+    private function checkEnumBackingType(
+        string $entityClass,
+        string $fieldName,
+        string $enumClass,
+        string $doctrineType,
+    ): ?IssueInterface {
+        /** @var class-string<\UnitEnum> $enumClass */
         $reflectionEnum = new ReflectionEnum($enumClass);
 
         if (!$reflectionEnum->isBacked()) {
@@ -453,156 +270,92 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         }
 
         $backingType = $reflectionEnum->getBackingType();
-
-        if (!$backingType instanceof ReflectionNamedType) {
-            return null;
-        }
-
-        $doctrineType    = MappingHelper::getString($fieldMapping, 'type');
-
-        // Skip if no type information
-        if (null === $doctrineType) {
+        if (!$backingType instanceof \ReflectionNamedType) {
             return null;
         }
 
         $expectedPhpType = $this->doctrineTypeToPhpType($doctrineType);
+        $backingTypeName = $backingType->getName();
 
-        if ($backingType->getName() !== $expectedPhpType) {
-            return $this->createTypeMismatchIssue(
-                entity: $entity,
-                fieldName: $fieldName,
-                expectedType: sprintf(
-                    'Enum %s with backing type matching database type %s (%s)',
-                    $this->getShortClassName($enumClass),
-                    $doctrineType,
-                    $expectedPhpType,
-                ),
-                actualType: sprintf(
-                    'Enum %s with backing type %s',
-                    $this->getShortClassName($enumClass),
-                    $backingType->getName(),
-                ),
-                value: $value,
-                severity: Severity::critical(),
+        if ($backingTypeName !== $expectedPhpType && 'mixed' !== $expectedPhpType) {
+            $shortEnum = $this->getShortClassName($enumClass);
+
+            return $this->createIssue(
+                $entityClass,
+                $fieldName,
+                sprintf('Enum %s backing type matching %s (%s)', $shortEnum, $doctrineType, $expectedPhpType),
+                sprintf('Enum %s with backing type %s', $shortEnum, $backingTypeName),
+                Severity::critical(),
             );
         }
 
         return null;
     }
 
-    /**
-     * Check if property is declared as nullable in PHP.
-     */
-    private function isPropertyNullable(\ReflectionProperty $reflectionProperty): bool
+    private function isTypeCompatible(string $phpType, string $expectedType): bool
     {
-        $type = $reflectionProperty->getType();
-
-        if (null === $type) {
-            return true; // No type hint = accepts null
-        }
-
-        return $type->allowsNull();
-    }
-
-    /**
-     * Check if value is compatible with expected PHP type.
-     */
-    private function isTypeCompatible(mixed $value, string $expectedPhpType): bool
-    {
-        // Exact match
-        if (get_debug_type($value) === $expectedPhpType) {
+        if ($phpType === $expectedType) {
             return true;
         }
 
-        // Special cases
-        return match ($expectedPhpType) {
-            'int'    => is_int($value) || (is_string($value) && ctype_digit($value)),
-            'float'  => is_float($value) || is_int($value) || is_numeric($value),
-            'string' => is_string($value) || is_numeric($value),
-            'bool'   => is_bool($value) || 0 === $value || 1 === $value || '0' === $value || '1' === $value,
-            'array'  => is_array($value),
-            'DateTime', 'DateTimeImmutable' => $value instanceof \DateTimeInterface,
-            default => true, // Unknown types, allow
+        return match ($expectedType) {
+            'int' => 'float' === $phpType,
+            'float' => 'int' === $phpType,
+            'DateTime' => \in_array($phpType, ['DateTimeInterface', 'DateTimeImmutable', 'DateTime'], true),
+            'DateTimeImmutable' => \in_array($phpType, ['DateTimeInterface', 'DateTime'], true),
+            default => false,
         };
     }
 
-    /**
-     * Convert Doctrine type to PHP type.
-     */
     private function doctrineTypeToPhpType(string $doctrineType): string
     {
         return match ($doctrineType) {
-            'integer', 'smallint', 'bigint' => 'int',
-            'decimal', 'float' => 'float',
+            'integer', 'smallint' => 'int',
+            'bigint', 'decimal' => 'string',
+            'float' => 'float',
             'string', 'text', 'guid' => 'string',
             'boolean' => 'bool',
-            'datetime', 'datetime_immutable', 'datetimetz', 'datetimetz_immutable' => 'DateTime',
-            'date', 'date_immutable' => 'DateTime',
-            'time', 'time_immutable' => 'DateTime',
+            'datetime', 'datetimetz' => 'DateTime',
+            'datetime_immutable', 'datetimetz_immutable' => 'DateTimeImmutable',
+            'date' => 'DateTime',
+            'date_immutable' => 'DateTimeImmutable',
+            'time' => 'DateTime',
+            'time_immutable' => 'DateTimeImmutable',
             'json', 'simple_array' => 'array',
             default => 'mixed',
         };
     }
 
-    /**
-     * Create a type mismatch issue.
-     */
-    private function createTypeMismatchIssue(
-        object $entity,
+    private function createIssue(
+        string $entityClass,
         string $fieldName,
         string $expectedType,
         string $actualType,
-        mixed $value,
         Severity $severity,
-    ): object {
-        $entityClass    = $entity::class;
+    ): IssueInterface {
         $shortClassName = $this->getShortClassName($entityClass);
 
         $description = sprintf(
-            "Property %s::\$%s has type mismatch:
-",
+            "Property %s::\$%s has type mismatch:\n",
             $shortClassName,
             $fieldName,
         );
-        $description .= sprintf("  Expected: %s
-", $expectedType);
-        $description .= sprintf("  Actual:   %s
+        $description .= sprintf("  Expected: %s\n", $expectedType);
+        $description .= sprintf("  Actual:   %s\n\n", $actualType);
 
-", $actualType);
+        $description .= "Possible causes:\n";
+        $description .= "- Database column type doesn't match Doctrine mapping\n";
+        $description .= "- Property type hint doesn't match mapping nullable setting\n";
+        $description .= "- Migration changed database type without updating entity\n\n";
 
-        if (null !== $value && !is_object($value)) {
-            $description .= sprintf("Value: %s
-
-", var_export($value, true));
-        }
-
-        $description .= "Possible causes:
-";
-        $description .= "- Database column type doesn't match Doctrine mapping
-";
-        $description .= "- Custom type converter returning wrong type
-";
-        $description .= "- Manual property assignment without type checking
-";
-        $description .= "- Migration changed database type without updating entity
-
-";
-
-        $description .= "Solutions:
-";
-        $description .= "1. Fix the property type annotation in the entity
-";
-        $description .= "2. Update the Doctrine mapping to match database column type
-";
+        $description .= "Solutions:\n";
+        $description .= "1. Fix the property type annotation in the entity\n";
+        $description .= "2. Update the Doctrine mapping to match the property type\n";
         $description .= '3. Create a migration to fix the database column type';
 
         $issueData = new IssueData(
             type: 'property_type_mismatch',
-            title: sprintf(
-                'Type Mismatch: %s::\$%s',
-                $shortClassName,
-                $fieldName,
-            ),
+            title: sprintf('Type Mismatch: %s::\$%s', $shortClassName, $fieldName),
             description: $description,
             severity: $severity,
             suggestion: null,
@@ -612,9 +365,6 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         return $this->issueFactory->create($issueData);
     }
 
-    /**
-     * Get short class name without namespace.
-     */
     private function getShortClassName(string $fqcn): string
     {
         $parts = explode('\\', $fqcn);
