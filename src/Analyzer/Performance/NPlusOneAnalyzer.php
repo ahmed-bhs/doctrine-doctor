@@ -19,6 +19,7 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -106,14 +107,15 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
                         // The nplusone exemption is context-dependent (e.g., loading ONE parent vs MANY)
                         // For now, disabled to avoid false negatives
 
-                        $detectedType  = $this->detectNPlusOneType($sql);
+                        $detectedType    = $this->detectNPlusOneType($sql);
+                        $triggerLocation = $this->extractTriggerLocation($backtrace);
 
                         $issueData = new IssueData(
                             type: 'n_plus_one',
                             title: sprintf('N+1 Query Detected: %d queries (%s)', $group->count(), $detectedType['type']),
                             description: $this->buildDescription($group->count(), $totalTime, $pattern, $backtrace, $detectedType),
                             severity: $this->calculateSeverity($group->count(), $totalTime, $detectedType['type']),
-                            suggestion: $this->generateSuggestion($groupArray),
+                            suggestion: $this->generateSuggestion($groupArray, $triggerLocation),
                             queries: $groupArray,
                             backtrace: $backtrace,
                         );
@@ -213,7 +215,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
      *
      * @param QueryData[] $queryGroup
      */
-    private function generateSuggestion(array $queryGroup): ?SuggestionInterface
+    private function generateSuggestion(array $queryGroup, ?string $triggerLocation = null): ?SuggestionInterface
     {
         $sql  = $queryGroup[0]->sql;
         $type = $this->detectNPlusOneType($sql);
@@ -222,67 +224,13 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         // Try to detect N+1 pattern from WHERE clause (most common pattern)
         $wherePattern = $this->sqlExtractor->detectNPlusOnePattern($sql);
         if (null !== $wherePattern) {
-            $entity   = $this->tableToEntity($wherePattern['table']);
-            $relation = $this->underscoreToCamelCase($wherePattern['foreignKey']);
-
-            // Type-specific suggestions
-            return match ($type['type']) {
-                'proxy' => $this->suggestionFactory->createBatchFetch(
-                    entity: $entity,
-                    relation: $relation,
-                    queryCount: $queryCount,
-                ),
-                'collection' => $type['hasLimit']
-                    ? $this->suggestionFactory->createExtraLazy(
-                        entity: $entity,
-                        relation: $relation,
-                        queryCount: $queryCount,
-                        hasLimit: true,
-                    )
-                    : $this->suggestionFactory->createEagerLoading(
-                        entity: $entity,
-                        relation: $relation,
-                        queryCount: $queryCount,
-                    ),
-                default => $this->suggestionFactory->createEagerLoading(
-                    entity: $entity,
-                    relation: $relation,
-                    queryCount: $queryCount,
-                ),
-            };
+            return $this->createSuggestionFromPattern($wherePattern, $type, $queryCount, $triggerLocation);
         }
 
         // Try to detect N+1 pattern from JOIN conditions
         $joinPattern = $this->sqlExtractor->detectNPlusOneFromJoin($sql);
         if (null !== $joinPattern) {
-            $entity   = $this->tableToEntity($joinPattern['table']);
-            $relation = $this->underscoreToCamelCase($joinPattern['foreignKey']);
-
-            // Type-specific suggestions for JOIN patterns
-            return match ($type['type']) {
-                'proxy' => $this->suggestionFactory->createBatchFetch(
-                    entity: $entity,
-                    relation: $relation,
-                    queryCount: $queryCount,
-                ),
-                'collection' => $type['hasLimit']
-                    ? $this->suggestionFactory->createExtraLazy(
-                        entity: $entity,
-                        relation: $relation,
-                        queryCount: $queryCount,
-                        hasLimit: true,
-                    )
-                    : $this->suggestionFactory->createEagerLoading(
-                        entity: $entity,
-                        relation: $relation,
-                        queryCount: $queryCount,
-                    ),
-                default => $this->suggestionFactory->createEagerLoading(
-                    entity: $entity,
-                    relation: $relation,
-                    queryCount: $queryCount,
-                ),
-            };
+            return $this->createSuggestionFromPattern($joinPattern, $type, $queryCount, $triggerLocation);
         }
 
         // Fallback: For proxy N+1 without detectable relation (e.g., WHERE id = ?)
@@ -291,16 +239,247 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             $lazyTable = $this->sqlExtractor->detectLazyLoadingPattern($sql);
             if (null !== $lazyTable) {
                 $entity = $this->tableToEntity($lazyTable);
-                // Use generic relation name since we can't detect the specific relation
                 return $this->suggestionFactory->createBatchFetch(
                     entity: $entity,
-                    relation: 'relation',  // Generic name
+                    relation: 'relation',
                     queryCount: $queryCount,
+                    triggerLocation: $triggerLocation,
                 );
             }
         }
 
         return null;
+    }
+
+    /**
+     * @param array{table: string, foreignKey: string} $pattern
+     * @param array{type: string, hasLimit: bool}      $type
+     */
+    private function createSuggestionFromPattern(array $pattern, array $type, int $queryCount, ?string $triggerLocation = null): SuggestionInterface
+    {
+        $entity   = $this->tableToEntity($pattern['table']);
+        $relation = $this->underscoreToCamelCase($pattern['foreignKey']);
+
+        if ('collection' === $type['type'] && !$type['hasLimit']) {
+            $collectionOwner = $this->resolveCollectionOwner($pattern['table'], $pattern['foreignKey']);
+            if (null !== $collectionOwner) {
+                return $this->suggestionFactory->createCollectionEagerLoading(
+                    parentEntity: $collectionOwner['parentEntity'],
+                    collectionField: $collectionOwner['collectionField'],
+                    childEntity: $collectionOwner['childEntity'],
+                    queryCount: $queryCount,
+                    triggerLocation: $triggerLocation,
+                );
+            }
+        }
+
+        return match ($type['type']) {
+            'proxy' => $this->suggestionFactory->createBatchFetch(
+                entity: $entity,
+                relation: $relation,
+                queryCount: $queryCount,
+                triggerLocation: $triggerLocation,
+            ),
+            'collection' => $type['hasLimit']
+                ? $this->suggestionFactory->createExtraLazy(
+                    entity: $entity,
+                    relation: $relation,
+                    queryCount: $queryCount,
+                    hasLimit: true,
+                    triggerLocation: $triggerLocation,
+                )
+                : $this->suggestionFactory->createEagerLoading(
+                    entity: $entity,
+                    relation: $relation,
+                    queryCount: $queryCount,
+                    triggerLocation: $triggerLocation,
+                ),
+            default => $this->suggestionFactory->createEagerLoading(
+                entity: $entity,
+                relation: $relation,
+                queryCount: $queryCount,
+                triggerLocation: $triggerLocation,
+            ),
+        };
+    }
+
+    /**
+     * @return array{parentEntity: string, collectionField: string, childEntity: string}|null
+     */
+    private function resolveCollectionOwner(string $childTable, string $foreignKeyBase): ?array
+    {
+        if (null === $this->tableToEntityCache) {
+            $this->warmUpTableToEntityCache();
+        }
+
+        $childEntityClass = $this->tableToEntityCache[$childTable] ?? null;
+        if (null === $childEntityClass) {
+            return null;
+        }
+
+        try {
+            /** @var class-string $childEntityClass */
+            $childMetadata = $this->entityManager->getClassMetadata($childEntityClass);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        $fkColumnName = $this->camelCaseToSnakeCase($foreignKeyBase) . '_id';
+        $fkMatch = $this->findManyToOneByFkColumn($childMetadata, $fkColumnName);
+
+        if (null === $fkMatch) {
+            return null;
+        }
+
+        return $this->findParentCollectionField($fkMatch['targetEntity'], $fkMatch['fieldName'], $childEntityClass);
+    }
+
+    /**
+     * @return array{fieldName: string, targetEntity: string}|null
+     */
+    private function findManyToOneByFkColumn(\Doctrine\ORM\Mapping\ClassMetadata $metadata, string $fkColumnName): ?array
+    {
+        foreach ($metadata->getAssociationMappings() as $fieldName => $mapping) {
+            if (!$metadata->isSingleValuedAssociation($fieldName)) {
+                continue;
+            }
+
+            $joinColumns = MappingHelper::getArray($mapping, 'joinColumns');
+            if (null === $joinColumns || [] === $joinColumns) {
+                continue;
+            }
+
+            foreach ($joinColumns as $joinColumn) {
+                if (!\is_array($joinColumn)) {
+                    continue;
+                }
+                /** @var array<string, mixed> $joinColumn */
+                $columnName = MappingHelper::getString($joinColumn, 'name');
+                if (null !== $columnName && strtolower($columnName) === strtolower($fkColumnName)) {
+                    $targetEntity = MappingHelper::getString($mapping, 'targetEntity');
+                    if (null !== $targetEntity) {
+                        return ['fieldName' => $fieldName, 'targetEntity' => $targetEntity];
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{parentEntity: string, collectionField: string, childEntity: string}|null
+     */
+    private function findParentCollectionField(string $targetEntityClass, string $matchedFieldName, string $childEntityClass): ?array
+    {
+        try {
+            /** @var class-string $targetEntityClass */
+            $parentMetadata = $this->entityManager->getClassMetadata($targetEntityClass);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        foreach ($parentMetadata->getAssociationMappings() as $parentFieldName => $parentMapping) {
+            $mappedBy = MappingHelper::getString($parentMapping, 'mappedBy');
+            if ($mappedBy === $matchedFieldName) {
+                return [
+                    'parentEntity' => $this->getShortClassName($targetEntityClass),
+                    'collectionField' => $parentFieldName,
+                    'childEntity' => $this->getShortClassName($childEntityClass),
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>>|null $backtrace
+     */
+    private function extractTriggerLocation(?array $backtrace): ?string
+    {
+        if (null === $backtrace || [] === $backtrace) {
+            return null;
+        }
+
+        $frames = array_values($backtrace);
+        $appFrameIndex = $this->findFirstApplicationFrameIndex($frames);
+
+        if (null === $appFrameIndex) {
+            return null;
+        }
+
+        $location = $this->formatFileLocation($frames[$appFrameIndex]);
+        $caller = $this->extractCallerFromNextFrame($frames, $appFrameIndex);
+
+        if (null !== $caller) {
+            return $caller . ' in ' . $location;
+        }
+
+        return $location;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $frames
+     */
+    private function findFirstApplicationFrameIndex(array $frames): ?int
+    {
+        foreach ($frames as $index => $frame) {
+            $file = $frame['file'] ?? null;
+            if (\is_string($file) && !str_contains($file, '/vendor/')) {
+                return $index;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $frame
+     */
+    private function formatFileLocation(array $frame): string
+    {
+        $file = $frame['file'] ?? '';
+        $shortFile = basename(\is_string($file) ? $file : '');
+        $line = $frame['line'] ?? null;
+
+        return \is_int($line) ? $shortFile . ':' . $line : $shortFile;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $frames
+     */
+    private function extractCallerFromNextFrame(array $frames, int $appFrameIndex): ?string
+    {
+        if (!isset($frames[$appFrameIndex + 1])) {
+            return null;
+        }
+
+        $callerFrame = $frames[$appFrameIndex + 1];
+        $class = $callerFrame['class'] ?? null;
+        $function = $callerFrame['function'] ?? null;
+
+        if (\is_string($function) && str_contains($function, '{closure}')) {
+            $function = '{closure}';
+        }
+
+        if (\is_string($class) && \is_string($function)) {
+            return $this->getShortClassName($class) . '::' . $function . '()';
+        }
+
+        return \is_string($function) ? $function . '()' : null;
+    }
+
+    private function camelCaseToSnakeCase(string $string): string
+    {
+        return strtolower((string) preg_replace('/[A-Z]/', '_$0', lcfirst($string)));
+    }
+
+    private function getShortClassName(string $fqcn): string
+    {
+        $parts = explode('\\', $fqcn);
+
+        return end($parts);
     }
 
     /**
