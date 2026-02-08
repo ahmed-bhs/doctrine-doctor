@@ -84,13 +84,26 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     ) {
     }
 
+    private static function getMemoryLimitBytes(): int
+    {
+        $limit = ini_get('memory_limit');
+
+        if ('-1' === $limit || false === $limit) {
+            return \PHP_INT_MAX;
+        }
+
+        $value = (int) $limit;
+        $unit = strtolower(substr(trim($limit), -1));
+
+        return match ($unit) {
+            'g' => $value * 1024 * 1024 * 1024,
+            'm' => $value * 1024 * 1024,
+            'k' => $value * 1024,
+            default => $value,
+        };
+    }
+
     /**
-     * Collect data during request handling.
-     *
-     * FrankenPHP Worker Mode Compatibility:
-     * All analysis is done HERE (not in lateCollect) because analyzers use EntityManager
-     * which becomes invalid after the request ends in persistent PHP runtimes.
-     *
      * @SuppressWarnings(UnusedFormalParameter)
      */
     public function collect(Request $_request, Response $_response, ?\Throwable $_exception = null): void
@@ -102,6 +115,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             'show_debug_info'   => $this->showDebugInfo,
             'timeline_queries'  => [],
             'issues'            => [],
+            'skipped_analyzers' => 0,
             'database_info'     => $databaseInfo,
             'profiler_overhead' => [
                 'analysis_time_ms' => 0,
@@ -128,7 +142,15 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             }
         }
 
-        // Run analysis NOW while EntityManager is still valid (required for worker mode)
+        $this->runAnalysis();
+    }
+
+    public function lateCollect(): void
+    {
+    }
+
+    private function runAnalysis(): void
+    {
         $this->stopwatch?->start('doctrine_doctor.analysis', 'doctrine_doctor_profiling');
 
         SqlNormalizationCache::warmUp($this->data['timeline_queries']);
@@ -163,18 +185,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                 'profiler_overhead_ms'      => $this->data['profiler_overhead']['total_time_ms'],
             ];
         }
-    }
-
-    /**
-     * Late collect - no longer performs analysis.
-     *
-     * Analysis has been moved to collect() for FrankenPHP worker mode compatibility.
-     * Analyzers use EntityManager which becomes invalid after request ends in
-     * persistent PHP runtimes (FrankenPHP, RoadRunner, Swoole).
-     */
-    public function lateCollect(): void
-    {
-        // Analysis is done in collect() for worker mode compatibility
     }
 
     public function getName(): string
@@ -282,10 +292,11 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $counts          = $issueCollection->statistics()->countBySeverity();
 
         $this->memoizedStats = [
-            'total_issues' => $issueCollection->count(),
-            'critical'     => $counts['critical'] ?? 0,
-            'warning'      => $counts['warning'] ?? 0,
-            'info'         => $counts['info'] ?? 0,
+            'total_issues'       => $issueCollection->count(),
+            'critical'           => $counts['critical'] ?? 0,
+            'warning'            => $counts['warning'] ?? 0,
+            'info'               => $counts['info'] ?? 0,
+            'skipped_analyzers'  => $this->data['skipped_analyzers'] ?? 0,
         ];
 
         return $this->memoizedStats;
@@ -461,87 +472,63 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
         $dataCollectorLogger->logInfoIfEnabled(sprintf('analyzeQueriesLazy() called with %d queries', count($queries)));
 
-        if ([] === $queries) {
-            $dataCollectorLogger->logInfoIfEnabled('No queries found, but still running metadata analyzers!');
-        }
-
-        $sampleSize = min(3, count($queries));
-        for ($i = 0; $i < $sampleSize; ++$i) {
-            $sql = $queries[$i]['sql'] ?? 'N/A';
-            $dataCollectorLogger->logInfoIfEnabled(sprintf('Query #%d: %s', $i + 1, substr($sql, 0, 100)));
-        }
-
         $filteredQueries = $queries;
         if ([] !== $this->excludePaths) {
             $filteredQueries = $this->filterQueriesByPaths($queries, $this->excludePaths);
-            $filteredCount = count($queries) - count($filteredQueries);
-            $dataCollectorLogger->logInfoIfEnabled(sprintf(
-                'Applied exclude_paths filter (%s): %d queries filtered, %d remaining',
-                implode(', ', $this->excludePaths),
-                $filteredCount,
-                count($filteredQueries),
-            ));
         }
 
         $createQueryDTOsGenerator = function () use ($filteredQueries, $dataCollectorLogger) {
-            Assert::isIterable($filteredQueries, '$filteredQueries must be iterable');
-
             foreach ($filteredQueries as $query) {
                 try {
                     yield QueryData::fromArray($query);
                 } catch (\Throwable $e) {
                     $dataCollectorLogger->logWarningIfDebugEnabled('Failed to convert query to DTO', $e);
-
                 }
             }
         };
 
-        $allIssuesGenerator = function () use ($createQueryDTOsGenerator, $analyzers, $dataCollectorLogger) {
-            Assert::isIterable($analyzers, '$analyzers must be iterable');
+        $memoryLimit = self::getMemoryLimitBytes();
+        $allIssues = [];
+        $originalLimit = ini_get('memory_limit');
 
-            foreach ($analyzers as $analyzer) {
-                $analyzerName = $analyzer::class;
-                $dataCollectorLogger->logInfoIfEnabled(sprintf('Running analyzer: %s', $analyzerName));
+        $safeLimit = $memoryLimit + (128 * 1048576);
+        @ini_set('memory_limit', (string) $safeLimit);
 
-                try {
-                    $queryCollection = QueryDataCollection::fromGenerator($createQueryDTOsGenerator);
+        $memoryThreshold = (int) ($memoryLimit * 0.70);
 
-                    $dataCollectorLogger->logInfoIfEnabled(sprintf('Created QueryCollection for %s', $analyzerName));
+        foreach ($analyzers as $analyzer) {
+            if (memory_get_usage(true) >= $memoryThreshold) {
+                ++$this->data['skipped_analyzers'];
 
-                    $issueCollection = $analyzer->analyze($queryCollection);
+                continue;
+            }
 
-                    $issueCount = 0;
+            try {
+                $queryCollection = QueryDataCollection::fromGenerator($createQueryDTOsGenerator);
+                $issueCollection = $analyzer->analyze($queryCollection);
 
-                    Assert::isIterable($issueCollection, '$issueCollection must be iterable');
+                foreach ($issueCollection as $issue) {
+                    $allIssues[] = $issue;
 
-                    foreach ($issueCollection as $issue) {
-                        ++$issueCount;
-                        $dataCollectorLogger->logInfoIfEnabled(sprintf('Issue #%d from %s: %s', $issueCount, $analyzerName, $issue->getTitle()));
-                        yield $issue;
+                    if (memory_get_usage(true) >= $memoryThreshold) {
+                        break;
                     }
-
-                    $dataCollectorLogger->logInfoIfEnabled(sprintf('Analyzer %s produced %d issues', $analyzerName, $issueCount));
-                } catch (\Throwable $e) {
-                    $dataCollectorLogger->logErrorIfDebugEnabled('Analyzer failed to execute: ' . $analyzer::class, $e);
-
                 }
+
+                unset($issueCollection, $queryCollection);
+                gc_collect_cycles();
+            } catch (\Throwable $e) {
+                $dataCollectorLogger->logErrorIfDebugEnabled('Analyzer failed: ' . $analyzer::class, $e);
             }
-        };
+        }
 
-        $issuesCollection = IssueCollection::fromGenerator($allIssuesGenerator);
+        @ini_set('memory_limit', $originalLimit ?: '512M');
 
-        $beforeCount = $issuesCollection->count();
-        $dataCollectorLogger->logInfoIfEnabled(sprintf('Total issues before deduplication: %d', $beforeCount));
+        $issuesCollection = IssueCollection::fromArray($allIssues);
+        unset($allIssues);
 
         $deduplicatedCollection = $issueDeduplicator->deduplicate($issuesCollection);
-
-        $afterCount = $deduplicatedCollection->count();
-        $removed = $beforeCount - $afterCount;
-        $dataCollectorLogger->logInfoIfEnabled(sprintf(
-            'Deduplication complete: %d issues removed, %d remaining',
-            $removed,
-            $afterCount,
-        ));
+        unset($issuesCollection);
 
         $deduplicatedCollection = $deduplicatedCollection->sorting()->bySeverityDescending();
 
