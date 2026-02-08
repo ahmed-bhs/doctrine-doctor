@@ -80,6 +80,7 @@ final class SuggestionFactory
         string $entity,
         string $relation,
         int $queryCount,
+        ?string $triggerLocation = null,
     ): SuggestionInterface {
         Assert::stringNotEmpty($entity, 'Entity name cannot be empty');
         Assert::stringNotEmpty($relation, 'Relation name cannot be empty');
@@ -88,9 +89,10 @@ final class SuggestionFactory
         return new ModernSuggestion(
             templateName: 'Performance/eager_loading',
             context: [
-                'entity'      => $entity,
-                'relation'    => $relation,
-                'query_count' => $queryCount,
+                'entity'           => $entity,
+                'relation'         => $relation,
+                'query_count'      => $queryCount,
+                'trigger_location' => $triggerLocation,
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::performance(),
@@ -314,6 +316,7 @@ final class SuggestionFactory
         string $entity,
         string $relation,
         int $queryCount,
+        ?string $triggerLocation = null,
     ): SuggestionInterface {
         Assert::stringNotEmpty($entity, 'Entity name cannot be empty');
         Assert::stringNotEmpty($relation, 'Relation name cannot be empty');
@@ -322,9 +325,10 @@ final class SuggestionFactory
         return new ModernSuggestion(
             templateName: 'Performance/batch_fetch',
             context: [
-                'entity'      => $entity,
-                'relation'    => $relation,
-                'query_count' => $queryCount,
+                'entity'           => $entity,
+                'relation'         => $relation,
+                'query_count'      => $queryCount,
+                'trigger_location' => $triggerLocation,
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::performance(),
@@ -347,6 +351,7 @@ final class SuggestionFactory
         string $relation,
         int $queryCount,
         bool $hasLimit = false,
+        ?string $triggerLocation = null,
     ): SuggestionInterface {
         Assert::stringNotEmpty($entity, 'Entity name cannot be empty');
         Assert::stringNotEmpty($relation, 'Relation name cannot be empty');
@@ -355,16 +360,48 @@ final class SuggestionFactory
         return new ModernSuggestion(
             templateName: 'Performance/extra_lazy',
             context: [
-                'entity'      => $entity,
-                'relation'    => $relation,
-                'query_count' => $queryCount,
-                'has_limit'   => $hasLimit,
+                'entity'           => $entity,
+                'relation'         => $relation,
+                'query_count'      => $queryCount,
+                'has_limit'        => $hasLimit,
+                'trigger_location' => $triggerLocation,
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::performance(),
                 severity: $this->calculateEagerLoadingSeverity($queryCount),
                 title: sprintf('Collection N+1 Query: %d queries for %s.%s', $queryCount, $entity, $relation),
                 tags: ['performance', 'doctrine', 'extra-lazy', 'n+1', 'collection'],
+            ),
+            suggestionRenderer: $this->suggestionRenderer,
+        );
+    }
+
+    public function createCollectionEagerLoading(
+        string $parentEntity,
+        string $collectionField,
+        string $childEntity,
+        int $queryCount,
+        ?string $triggerLocation = null,
+    ): SuggestionInterface {
+        Assert::stringNotEmpty($parentEntity, 'Parent entity name cannot be empty');
+        Assert::stringNotEmpty($collectionField, 'Collection field name cannot be empty');
+        Assert::stringNotEmpty($childEntity, 'Child entity name cannot be empty');
+        Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
+
+        return new ModernSuggestion(
+            templateName: 'Performance/collection_eager_loading',
+            context: [
+                'parent_entity'    => $parentEntity,
+                'collection_field' => $collectionField,
+                'child_entity'     => $childEntity,
+                'query_count'      => $queryCount,
+                'trigger_location' => $triggerLocation,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $this->calculateEagerLoadingSeverity($queryCount),
+                title: sprintf('Collection N+1: %d queries loading %s::$%s', $queryCount, $parentEntity, $collectionField),
+                tags: ['performance', 'doctrine', 'collection', 'n+1', 'eager-loading'],
             ),
             suggestionRenderer: $this->suggestionRenderer,
         );

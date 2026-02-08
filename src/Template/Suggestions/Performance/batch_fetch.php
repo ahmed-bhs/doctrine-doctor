@@ -9,7 +9,7 @@ declare(strict_types=1);
  * @var mixed $queryCount
  * @var mixed $context
  */
-['entity' => $entity, 'relation' => $relation, 'query_count' => $queryCount] = $context;
+['entity' => $entity, 'relation' => $relation, 'query_count' => $queryCount, 'trigger_location' => $triggerLocation] = $context;
 
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
@@ -32,6 +32,12 @@ ob_start();
         Detected <strong><?php echo $queryCount; ?> sequential queries</strong> loading <code><?php echo $e($relation); ?></code> proxy entities.
         This happens when accessing a ManyToOne or OneToOne relation inside a loop where each proxy is lazily initialized.
     </div>
+
+<?php if (null !== $triggerLocation && '' !== $triggerLocation): ?>
+    <div class="alert alert-info">
+        <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
+    </div>
+<?php endif; ?>
 
     <h4>Problem: Proxy Initialization in Loop</h4>
     <div class="query-item">

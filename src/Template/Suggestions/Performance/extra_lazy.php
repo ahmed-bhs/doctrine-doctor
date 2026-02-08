@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @var mixed $hasLimit
  * @var mixed $context
  */
-['entity' => $entity, 'relation' => $relation, 'query_count' => $queryCount, 'has_limit' => $hasLimit] = $context;
+['entity' => $entity, 'relation' => $relation, 'query_count' => $queryCount, 'has_limit' => $hasLimit, 'trigger_location' => $triggerLocation] = $context;
 
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
@@ -37,6 +37,12 @@ ob_start();
             This happens when accessing a lazy-loaded collection inside a loop.
         <?php endif; ?>
     </div>
+
+<?php if (null !== $triggerLocation && '' !== $triggerLocation): ?>
+    <div class="alert alert-info">
+        <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
+    </div>
+<?php endif; ?>
 
     <h4>Problem: Collection Loading in Loop</h4>
     <div class="query-item">
