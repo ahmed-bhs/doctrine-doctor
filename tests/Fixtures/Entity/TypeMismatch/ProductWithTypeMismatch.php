@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity;
+namespace AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\TypeMismatch;
 
 use Doctrine\ORM\Mapping as ORM;
 

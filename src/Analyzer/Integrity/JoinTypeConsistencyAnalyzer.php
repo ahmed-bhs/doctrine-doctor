@@ -50,8 +50,11 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      */
     private ?array $metadataMapCache = null;
 
-    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly SuggestionFactory $suggestionFactory, private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
-    {
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+    ) {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

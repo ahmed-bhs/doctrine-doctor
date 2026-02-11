@@ -74,7 +74,7 @@ final class SensitiveDataExposureAnalyzerIntegrationTest extends DatabaseTestCas
         self::assertGreaterThan(0, count($issues), 'Should detect at least one sensitive data issue');
 
         $issuesArray = $issues->toArray();
-        $passwordIssue = array_find($issuesArray, fn($issueArray) => str_contains((string) $issueArray->getTitle(), 'password'));
+        $passwordIssue = array_find($issuesArray, fn ($issueArray) => str_contains((string) $issueArray->getTitle(), 'password'));
 
         self::assertInstanceOf(IssueInterface::class, $passwordIssue, 'Should detect unprotected password field');
         self::assertStringContainsString('lacks serialization protection', (string) $passwordIssue->getDescription(), 'Should mention lack of protection');
@@ -97,7 +97,7 @@ final class SensitiveDataExposureAnalyzerIntegrationTest extends DatabaseTestCas
         self::assertGreaterThan(0, count($issues));
 
         $issuesArray = $issues->toArray();
-        $apiKeyIssue = array_find($issuesArray, fn($issueArray) => str_contains((string) $issueArray->getTitle(), 'apiKey'));
+        $apiKeyIssue = array_find($issuesArray, fn ($issueArray) => str_contains((string) $issueArray->getTitle(), 'apiKey'));
 
         self::assertInstanceOf(IssueInterface::class, $apiKeyIssue, 'Should detect unprotected apiKey field');
     }
@@ -119,7 +119,7 @@ final class SensitiveDataExposureAnalyzerIntegrationTest extends DatabaseTestCas
         self::assertGreaterThan(0, count($issues));
 
         $issuesArray = $issues->toArray();
-        $toStringIssue = array_find($issuesArray, fn($issueArray) => str_contains((string) $issueArray->getTitle(), '__toString()'));
+        $toStringIssue = array_find($issuesArray, fn ($issueArray) => str_contains((string) $issueArray->getTitle(), '__toString()'));
 
         self::assertInstanceOf(IssueInterface::class, $toStringIssue, 'Should detect sensitive data exposure in __toString()');
         self::assertStringContainsString('serializes the entire object', (string) $toStringIssue->getDescription(), 'Should warn about serializing entire object');
@@ -142,7 +142,7 @@ final class SensitiveDataExposureAnalyzerIntegrationTest extends DatabaseTestCas
         self::assertGreaterThan(0, count($issues));
 
         $issuesArray = $issues->toArray();
-        $jsonIssue = array_find($issuesArray, fn($issueArray) => str_contains((string) $issueArray->getTitle(), 'jsonSerialize()'));
+        $jsonIssue = array_find($issuesArray, fn ($issueArray) => str_contains((string) $issueArray->getTitle(), 'jsonSerialize()'));
 
         self::assertInstanceOf(IssueInterface::class, $jsonIssue, 'Should detect sensitive data in jsonSerialize()');
         self::assertStringContainsString('exposes sensitive fields', (string) $jsonIssue->getDescription());
@@ -166,7 +166,7 @@ final class SensitiveDataExposureAnalyzerIntegrationTest extends DatabaseTestCas
         self::assertGreaterThan(0, count($issues));
 
         $issuesArray = $issues->toArray();
-        $arrayIssue = array_find($issuesArray, fn($issueArray) => str_contains((string) $issueArray->getTitle(), 'toArray()'));
+        $arrayIssue = array_find($issuesArray, fn ($issueArray) => str_contains((string) $issueArray->getTitle(), 'toArray()'));
 
         self::assertInstanceOf(IssueInterface::class, $arrayIssue, 'Should detect sensitive data in toArray()');
         self::assertStringContainsString('exposes sensitive fields', (string) $arrayIssue->getDescription());

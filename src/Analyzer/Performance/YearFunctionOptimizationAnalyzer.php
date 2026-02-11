@@ -45,14 +45,13 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 
     public function __construct(
         private readonly SuggestionFactory $suggestionFactory,
-        private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+        private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
         /**
          * @readonly
          * Minimum execution time in ms to report. Set to 0 to always report.
          */
-        private readonly float $minExecutionTimeThreshold = self::MIN_EXECUTION_TIME_THRESHOLD
-    )
-    {
+        private readonly float $minExecutionTimeThreshold = self::MIN_EXECUTION_TIME_THRESHOLD,
+    ) {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

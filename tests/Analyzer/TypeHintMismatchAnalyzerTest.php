@@ -72,7 +72,7 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
 
         // Assert: Should detect decimal/float mismatch (CRITICAL)
         $issuesArray = $issues->toArray();
-        $priceIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'ProductWithTypeHintIssues') &&
+        $priceIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'ProductWithTypeHintIssues') &&
             str_contains((string) $issue->getDescription(), 'price'));
 
         self::assertNotNull($priceIssue, 'Should detect decimal/float mismatch');
@@ -93,7 +93,7 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
 
         // Assert: Should detect integer/string mismatch (WARNING)
         $issuesArray = $issues->toArray();
-        $quantityIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'ProductWithTypeHintIssues') &&
+        $quantityIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'ProductWithTypeHintIssues') &&
             str_contains((string) $issue->getDescription(), 'quantity'));
 
         self::assertNotNull($quantityIssue, 'Should detect integer/string mismatch');
@@ -190,7 +190,7 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
 
         // Assert: Should provide suggestion
         $issuesArray = $issues->toArray();
-        $priceIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'price'));
+        $priceIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'price'));
 
         self::assertNotNull($priceIssue);
         $suggestion = $priceIssue->getSuggestion();

@@ -69,7 +69,7 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         $issues = $issueCollection->toArray();
 
         self::assertGreaterThan(0, count($issues), 'Should detect unclosed transaction');
-        $unclosedIssue = array_find($issues, fn($issue) => 'transaction_unclosed' === $issue->getType());
+        $unclosedIssue = array_find($issues, fn ($issue) => 'transaction_unclosed' === $issue->getType());
 
         self::assertNotNull($unclosedIssue, 'Should detect unclosed transaction');
         self::assertSame('Unclosed Transaction Detected', $unclosedIssue->getTitle());
@@ -101,7 +101,7 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         $issues = $issueCollection->toArray();
 
         self::assertGreaterThan(0, count($issues), 'Should detect unclosed transaction');
-        $unclosedIssue = array_find($issues, fn($issue) => 'transaction_unclosed' === $issue->getType());
+        $unclosedIssue = array_find($issues, fn ($issue) => 'transaction_unclosed' === $issue->getType());
 
         self::assertNotNull($unclosedIssue, 'Should detect unclosed transaction even without flush');
         self::assertSame('critical', $unclosedIssue->getSeverity()->value);
@@ -149,7 +149,7 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         $issues = $issueCollection->toArray();
 
         self::assertGreaterThan(0, count($issues), 'Should detect nested transaction');
-        $nestedIssue = array_find($issues, fn($issue) => 'transaction_nested' === $issue->getType());
+        $nestedIssue = array_find($issues, fn ($issue) => 'transaction_nested' === $issue->getType());
 
         self::assertNotNull($nestedIssue, 'Should detect nested transaction');
         self::assertStringContainsString('Nested Transaction Detected', $nestedIssue->getTitle());

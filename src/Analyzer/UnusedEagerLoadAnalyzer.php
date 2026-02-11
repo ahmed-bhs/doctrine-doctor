@@ -61,8 +61,12 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
      */
     private ?array $metadataMapCache = null;
 
-    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly IssueFactoryInterface $issueFactory, private readonly SuggestionFactory $suggestionFactory, private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
-    {
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+    ) {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

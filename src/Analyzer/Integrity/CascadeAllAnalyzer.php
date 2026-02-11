@@ -216,7 +216,7 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 
     private function isIndependentEntity(string $entityClass): bool
     {
-        return array_any(self::INDEPENDENT_PATTERNS, fn($pattern) => str_contains($entityClass, (string) $pattern));
+        return array_any(self::INDEPENDENT_PATTERNS, fn ($pattern) => str_contains($entityClass, (string) $pattern));
     }
 
     private function getAssociationType(array|object $mapping): string

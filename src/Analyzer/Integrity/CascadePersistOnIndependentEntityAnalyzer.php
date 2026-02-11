@@ -205,7 +205,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
      */
     private function isCriticallyIndependentEntity(string $entityClass): bool
     {
-        return array_any(self::CRITICAL_INDEPENDENT_PATTERNS, fn($pattern) => str_contains($entityClass, (string) $pattern));
+        return array_any(self::CRITICAL_INDEPENDENT_PATTERNS, fn ($pattern) => str_contains($entityClass, (string) $pattern));
     }
 
     private function createIssue(

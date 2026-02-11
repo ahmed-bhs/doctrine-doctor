@@ -52,7 +52,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
 
         // Assert: Should detect concatenation in VulnerableRepository::findByNameUnsafe()
         $issuesArray = $issues->toArray();
-        $concatenationIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'findByNameUnsafe') &&
+        $concatenationIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'findByNameUnsafe') &&
             str_contains((string) $issue->getDescription(), 'concatenation'));
 
         self::assertNotNull($concatenationIssue, 'Should detect string concatenation SQL injection');
@@ -95,7 +95,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
 
         // Assert: Should detect missing parameters in searchUnsafe()
         $issuesArray = $issues->toArray();
-        $missingParamsIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'searchUnsafe') ||
+        $missingParamsIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'searchUnsafe') ||
             (str_contains((string) $issue->getDescription(), 'no parameter binding') ||
              str_contains((string) $issue->getDescription(), 'dynamically built')));
 
@@ -114,7 +114,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
 
         // Assert: Should detect sprintf in findByEmailUnsafe()
         $issuesArray = $issues->toArray();
-        $sprintfIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'sprintf'));
+        $sprintfIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'sprintf'));
 
         self::assertNotNull($sprintfIssue, 'Should detect sprintf SQL injection');
         self::assertEquals('critical', $sprintfIssue->getSeverity()->value);

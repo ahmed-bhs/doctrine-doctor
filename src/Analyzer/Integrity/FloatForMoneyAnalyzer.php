@@ -215,19 +215,19 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     private function isMoneyField(string $fieldName): bool
     {
         $fieldLower = strtolower($fieldName);
-        return array_any(self::MONEY_FIELD_PATTERNS, fn($pattern) => str_contains($fieldLower, (string) $pattern));
+        return array_any(self::MONEY_FIELD_PATTERNS, fn ($pattern) => str_contains($fieldLower, (string) $pattern));
     }
 
     private function isNonMoneyField(string $fieldName): bool
     {
         $fieldLower = strtolower($fieldName);
-        return array_any(self::NON_MONEY_FIELD_PATTERNS, fn($pattern) => str_contains($fieldLower, (string) $pattern));
+        return array_any(self::NON_MONEY_FIELD_PATTERNS, fn ($pattern) => str_contains($fieldLower, (string) $pattern));
     }
 
     private function isMoneyEntity(string $className): bool
     {
         $classLower = strtolower($className);
-        return array_any(self::MONEY_ENTITY_PATTERNS, fn($pattern) => str_contains($classLower, (string) $pattern));
+        return array_any(self::MONEY_ENTITY_PATTERNS, fn ($pattern) => str_contains($classLower, (string) $pattern));
     }
 
     private function isGenericNumberField(string $fieldName): bool

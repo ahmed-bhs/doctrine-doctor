@@ -222,7 +222,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                 return true;
             }
         }
-        return array_any(self::METADATA_SUFFIXES, fn($suffix) => str_ends_with($lowerFieldName, (string) $suffix));
+        return array_any(self::METADATA_SUFFIXES, fn ($suffix) => str_ends_with($lowerFieldName, (string) $suffix));
     }
 
     private function checkToStringMethod(

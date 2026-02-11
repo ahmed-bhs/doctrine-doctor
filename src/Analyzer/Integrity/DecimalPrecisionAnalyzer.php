@@ -213,7 +213,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $fieldLower    = strtolower($fieldName);
 
         Assert::isIterable($moneyPatterns, '$moneyPatterns must be iterable');
-        return array_any($moneyPatterns, fn($moneyPattern) => str_contains($fieldLower, (string) $moneyPattern));
+        return array_any($moneyPatterns, fn ($moneyPattern) => str_contains($fieldLower, (string) $moneyPattern));
     }
 
     private function isPercentageField(string $fieldName): bool
@@ -222,7 +222,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $fieldLower         = strtolower($fieldName);
 
         Assert::isIterable($percentagePatterns, '$percentagePatterns must be iterable');
-        return array_any($percentagePatterns, fn($percentagePattern) => str_contains($fieldLower, (string) $percentagePattern));
+        return array_any($percentagePatterns, fn ($percentagePattern) => str_contains($fieldLower, (string) $percentagePattern));
     }
 
     private function createInsufficientPrecisionIssue(

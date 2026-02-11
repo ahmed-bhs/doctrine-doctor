@@ -403,7 +403,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
     private function hasAllCascadeOperations(array $cascade): bool
     {
         $requiredOperations = ['persist', 'remove', 'refresh', 'detach'];
-        return array_all($requiredOperations, fn($operation) => in_array($operation, $cascade, true));
+        return array_all($requiredOperations, fn ($operation) => in_array($operation, $cascade, true));
     }
 
     private function determineSeverityForAll(array|object $mapping): Severity

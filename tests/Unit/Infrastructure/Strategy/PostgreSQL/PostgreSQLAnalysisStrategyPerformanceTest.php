@@ -279,7 +279,7 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
         /** @phpstan-ignore-next-line Mock object has expects() method */
         $connection->expects(self::any())
             ->method('executeQuery')
-            ->willReturnCallback(fn() => $this->createMock(Result::class));
+            ->willReturnCallback(fn () => $this->createMock(Result::class));
 
         /** @phpstan-ignore-next-line Mock object has expects() method */
         $detector->expects(self::any())

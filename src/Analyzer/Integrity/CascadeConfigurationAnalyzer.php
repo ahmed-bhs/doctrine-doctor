@@ -158,12 +158,12 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         }
 
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? '';
-        return array_any(self::TYPICAL_COMPOSED_PATTERNS, fn($pattern) => false !== stripos((string) $targetEntity, (string) $pattern));
+        return array_any(self::TYPICAL_COMPOSED_PATTERNS, fn ($pattern) => false !== stripos((string) $targetEntity, (string) $pattern));
     }
 
     private function isIndependentEntity(string $entityClass): bool
     {
-        return array_any(self::INDEPENDENT_ENTITY_PATTERNS, fn($pattern) => false !== stripos($entityClass, (string) $pattern));
+        return array_any(self::INDEPENDENT_ENTITY_PATTERNS, fn ($pattern) => false !== stripos($entityClass, (string) $pattern));
     }
 
     private function checkCascadeAll(string $entityClass, string $fieldName, array|object $mapping): IntegrityIssue

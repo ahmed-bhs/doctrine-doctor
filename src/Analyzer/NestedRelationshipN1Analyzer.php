@@ -51,9 +51,8 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         private readonly SuggestionFactory $suggestionFactory,
         private readonly int $threshold = 3,
         // Lowered from 5 to detect smaller nested patterns
-        private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor()
-    )
-    {
+        private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+    ) {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -150,7 +149,7 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         if (\count($tablesArray) >= 2) {
             // Build chain from all repeated tables
             // Sort by query count (ascending) to get the likely execution order
-            usort($tablesArray, fn(string $tableA, string $tableB): int => \count($repeatedTables[$tableA]) <=> \count($repeatedTables[$tableB]));
+            usort($tablesArray, fn (string $tableA, string $tableB): int => \count($repeatedTables[$tableA]) <=> \count($repeatedTables[$tableB]));
 
             // Reverse to get parent -> child order (more queries first)
             $tablesArray = array_reverse($tablesArray);

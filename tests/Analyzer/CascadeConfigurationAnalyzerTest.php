@@ -77,7 +77,7 @@ final class CascadeConfigurationAnalyzerTest extends TestCase
 
         // Assert: Should detect dangerous cascade remove on independent entity
         $issuesArray = $issues->toArray();
-        $cascadeRemoveIssues = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getTitle(), 'cascade remove')
+        $cascadeRemoveIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'cascade remove')
             && str_contains((string) $issue->getDescription(), 'Customer'));
 
         self::assertGreaterThan(0, count($cascadeRemoveIssues), 'Should detect cascade remove on independent entity');
@@ -94,7 +94,7 @@ final class CascadeConfigurationAnalyzerTest extends TestCase
 
         // Assert: Should be CRITICAL severity
         $issuesArray = $issues->toArray();
-        $cascadeRemoveIssue = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getTitle(), 'cascade remove')
+        $cascadeRemoveIssue = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'cascade remove')
             && str_contains((string) $issue->getDescription(), 'Customer'));
 
         self::assertGreaterThan(0, count($cascadeRemoveIssue), 'Should detect cascade remove issue');
@@ -116,7 +116,7 @@ final class CascadeConfigurationAnalyzerTest extends TestCase
 
         // Assert: Description should explain the danger
         $issuesArray = $issues->toArray();
-        $cascadeRemoveIssue = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getTitle(), 'cascade remove')
+        $cascadeRemoveIssue = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'cascade remove')
             && str_contains((string) $issue->getDescription(), 'Customer'));
 
         self::assertGreaterThan(0, count($cascadeRemoveIssue));
@@ -215,7 +215,7 @@ final class CascadeConfigurationAnalyzerTest extends TestCase
 
         // Assert: Should provide suggestion (from SuggestionFactory)
         $issuesArray = $issues->toArray();
-        $cascadeRemoveIssue = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getTitle(), 'cascade remove')
+        $cascadeRemoveIssue = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'cascade remove')
             && str_contains((string) $issue->getDescription(), 'Customer'));
 
         self::assertGreaterThan(0, count($cascadeRemoveIssue), 'Should have cascade remove issue');
@@ -382,7 +382,7 @@ final class CascadeConfigurationAnalyzerTest extends TestCase
 
         // Assert: Should detect Customer as independent
         $issuesArray = $issues->toArray();
-        $customerIssues = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getDescription(), 'Customer'));
+        $customerIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getDescription(), 'Customer'));
 
         self::assertGreaterThan(0, count($customerIssues), 'Should detect Customer as independent');
     }
@@ -453,7 +453,7 @@ final class CascadeConfigurationAnalyzerTest extends TestCase
         // Assert: Should detect both types of issues
         $issuesArray = $issues->toArray();
 
-        $cascadeRemoveIssues = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getTitle(), 'cascade remove'));
+        $cascadeRemoveIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'cascade remove'));
 
         $missingCascadeIssues = array_filter($issuesArray, static function ($issue) {
             $data = $issue->getData();
@@ -497,7 +497,7 @@ final class CascadeConfigurationAnalyzerTest extends TestCase
 
         // Assert: Should suggest removing cascade for independent entities
         $issuesArray = $issues->toArray();
-        $cascadeRemoveIssue = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getTitle(), 'cascade remove')
+        $cascadeRemoveIssue = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'cascade remove')
             && str_contains((string) $issue->getDescription(), 'independent'));
 
         self::assertGreaterThan(0, count($cascadeRemoveIssue), 'Should have cascade remove issue');

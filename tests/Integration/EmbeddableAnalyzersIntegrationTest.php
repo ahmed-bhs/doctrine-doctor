@@ -232,7 +232,7 @@ final class EmbeddableAnalyzersIntegrationTest extends TestCase
 
         // Assert - Should detect at least the missing embeddable opportunity
         self::assertNotEmpty($allIssues, 'Should detect various embeddable issues');
-        $foundMissingOpportunity = array_any($allIssues, fn($allIssue) => str_contains((string) $allIssue->getTitle(), 'Money') && str_contains((string) $allIssue->getTitle(), 'Embeddable'));
+        $foundMissingOpportunity = array_any($allIssues, fn ($allIssue) => str_contains((string) $allIssue->getTitle(), 'Money') && str_contains((string) $allIssue->getTitle(), 'Embeddable'));
 
         self::assertTrue($foundMissingOpportunity, 'Should detect at least missing embeddable opportunity');
 

@@ -19,8 +19,10 @@ use Psr\Log\LoggerInterface;
  */
 final readonly class DataCollectorLogger
 {
-    public function __construct(private LoggerInterface $logger, private ?DataCollectorConfig $dataCollectorConfig = new DataCollectorConfig())
-    {
+    public function __construct(
+        private LoggerInterface $logger,
+        private DataCollectorConfig $dataCollectorConfig = new DataCollectorConfig(),
+    ) {
     }
 
     /**

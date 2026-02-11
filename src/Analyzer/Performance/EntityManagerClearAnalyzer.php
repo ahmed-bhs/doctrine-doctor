@@ -22,8 +22,12 @@ use Webmozart\Assert\Assert;
 
 class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    public function __construct(private readonly IssueFactoryInterface $issueFactory, private readonly SuggestionFactory $suggestionFactory, private readonly int $batchSizeThreshold = 20, private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
-    {
+    public function __construct(
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly int $batchSizeThreshold = 20,
+        private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+    ) {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

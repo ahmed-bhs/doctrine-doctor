@@ -304,7 +304,7 @@ final class CompositionRelationshipDetector
             'Item', 'Line', 'Entry', 'Detail', 'Part', 'Component',
             'Element', 'Record', 'Row', 'Member', 'Piece',
         ];
-        return array_any($compositionPatterns, fn($pattern) => str_ends_with($entityClass, (string) $pattern));
+        return array_any($compositionPatterns, fn ($pattern) => str_ends_with($entityClass, (string) $pattern));
     }
 
     /**
@@ -324,7 +324,7 @@ final class CompositionRelationshipDetector
             'Author', 'Editor', 'Publisher',
             'Country', 'City', 'Region', 'Address',
         ];
-        return array_any($independentPatterns, fn($pattern) => str_contains($entityClass, (string) $pattern));
+        return array_any($independentPatterns, fn ($pattern) => str_contains($entityClass, (string) $pattern));
     }
 
     /**

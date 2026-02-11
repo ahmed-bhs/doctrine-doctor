@@ -387,7 +387,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         ];
 
         $lowerFieldName = strtolower($fieldName);
-        return array_any($enumPatterns, fn($pattern) => str_contains($lowerFieldName, (string) $pattern));
+        return array_any($enumPatterns, fn ($pattern) => str_contains($lowerFieldName, (string) $pattern));
     }
 
     private function generateTypeReplacementCode(

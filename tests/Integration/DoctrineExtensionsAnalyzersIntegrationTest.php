@@ -141,7 +141,7 @@ final class DoctrineExtensionsAnalyzersIntegrationTest extends TestCase
 
         // Assert
         $issuesArray = $issueCollection->toArray();
-        $foundSetterIssue = array_any($issuesArray, fn($issueArray) => str_contains(strtolower((string) $issueArray->getTitle()), 'setter')
+        $foundSetterIssue = array_any($issuesArray, fn ($issueArray) => str_contains(strtolower((string) $issueArray->getTitle()), 'setter')
             || str_contains(strtolower((string) $issueArray->getDescription()), 'setter'));
 
         self::assertTrue($foundSetterIssue, 'Should detect public setters on timestamp fields');
@@ -344,7 +344,7 @@ final class DoctrineExtensionsAnalyzersIntegrationTest extends TestCase
 
         // Assert
         $issuesArray = $issueCollection->toArray();
-        $foundSetterIssue = array_any($issuesArray, fn($issueArray) => str_contains(strtolower((string) $issueArray->getTitle()), 'setter')
+        $foundSetterIssue = array_any($issuesArray, fn ($issueArray) => str_contains(strtolower((string) $issueArray->getTitle()), 'setter')
             && str_contains(strtolower((string) $issueArray->getDescription()), 'soft delete'));
 
         self::assertTrue($foundSetterIssue, 'Should detect public setters on soft delete fields');

@@ -307,7 +307,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function isRemoteTimestamp(string $fieldName): bool
     {
         $fieldLower = strtolower($fieldName);
-        return array_any(self::REMOTE_TIMESTAMP_PATTERNS, fn($pattern) => str_contains($fieldLower, (string) $pattern));
+        return array_any(self::REMOTE_TIMESTAMP_PATTERNS, fn ($pattern) => str_contains($fieldLower, (string) $pattern));
     }
 
     /**

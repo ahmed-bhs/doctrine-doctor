@@ -66,8 +66,10 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
 
     private const int FREQUENCY_THRESHOLD_CRITICAL = 10;
 
-    public function __construct(private readonly SuggestionFactory $suggestionFactory, private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
-    {
+    public function __construct(
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+    ) {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
