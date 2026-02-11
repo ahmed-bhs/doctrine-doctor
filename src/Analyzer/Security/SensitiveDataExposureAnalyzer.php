@@ -32,7 +32,7 @@ use Webmozart\Assert\Assert;
  */
 class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    private const SENSITIVE_PATTERNS = [
+    private const array SENSITIVE_PATTERNS = [
         'password',
         'passwd',
         'pwd',
@@ -52,7 +52,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         'bank_account',
     ];
 
-    private const METADATA_PREFIXES = [
+    private const array METADATA_PREFIXES = [
         'is_',           // is_credit_card_saved, is_verified
         'has_',          // has_payment_method, has_token
         'should_',       // should_save_card
@@ -62,7 +62,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         'require_',      // require_token
     ];
 
-    private const METADATA_SUFFIXES = [
+    private const array METADATA_SUFFIXES = [
         '_enabled',      // credit_card_enabled
         '_allowed',      // password_reset_allowed
         '_required',     // token_required
@@ -85,21 +85,12 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         '_rules',        // password_rules
     ];
 
-    private PhpCodeParser $phpCodeParser;
+    private readonly PhpCodeParser $phpCodeParser;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly ?LoggerInterface $logger = null,
         ?PhpCodeParser $phpCodeParser = null,
     ) {
         $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
@@ -231,14 +222,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                 return true;
             }
         }
-
-        foreach (self::METADATA_SUFFIXES as $suffix) {
-            if (str_ends_with($lowerFieldName, $suffix)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::METADATA_SUFFIXES, fn($suffix) => str_ends_with($lowerFieldName, (string) $suffix));
     }
 
     private function checkToStringMethod(

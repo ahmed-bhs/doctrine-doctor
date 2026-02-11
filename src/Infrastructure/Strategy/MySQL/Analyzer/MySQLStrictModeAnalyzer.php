@@ -22,9 +22,9 @@ use Doctrine\DBAL\Connection;
  * MySQL-specific strict mode analyzer.
  * Detects missing SQL modes that ensure data integrity.
  */
-final class MySQLStrictModeAnalyzer implements StrictModeAnalyzerInterface
+final readonly class MySQLStrictModeAnalyzer implements StrictModeAnalyzerInterface
 {
-    private const RECOMMENDED_SQL_MODES = [
+    private const array RECOMMENDED_SQL_MODES = [
         'STRICT_TRANS_TABLES',
         'NO_ZERO_DATE',
         'NO_ZERO_IN_DATE',
@@ -33,9 +33,9 @@ final class MySQLStrictModeAnalyzer implements StrictModeAnalyzerInterface
     ];
 
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        private Connection $connection,
+        private SuggestionFactory $suggestionFactory,
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 
@@ -79,9 +79,7 @@ final class MySQLStrictModeAnalyzer implements StrictModeAnalyzerInterface
      */
     private function getMissingModes(string $currentMode): array
     {
-        $activeModes = array_map(function ($mode) {
-            return trim($mode);
-        }, explode(',', strtoupper($currentMode)));
+        $activeModes = array_map(trim(...), explode(',', strtoupper($currentMode)));
         $missing     = [];
 
         foreach (self::RECOMMENDED_SQL_MODES as $mode) {
@@ -99,9 +97,7 @@ final class MySQLStrictModeAnalyzer implements StrictModeAnalyzerInterface
     private function getFixCommand(string $currentMode, array $missingModes): string
     {
         $allModes = array_merge(
-            array_filter(array_map(function ($mode) {
-                return trim($mode);
-            }, explode(',', $currentMode)), fn (string $mode): bool => '' !== $mode),
+            array_filter(array_map(trim(...), explode(',', $currentMode)), fn (string $mode): bool => '' !== $mode),
             $missingModes,
         );
         $newMode = implode(',', array_unique($allModes));

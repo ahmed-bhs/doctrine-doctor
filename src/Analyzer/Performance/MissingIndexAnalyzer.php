@@ -37,34 +37,8 @@ use Webmozart\Assert\Assert;
  */
 class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private Connection $connection,
-        /**
-         * @readonly
-         */
-        private ?MissingIndexAnalyzerConfig $missingIndexAnalyzerConfig = null,
-        /**
-         * @readonly
-         */
-        private ?DatabasePlatformDetector $databasePlatformDetector = null,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
-        /**
-         * @readonly
-         */
-        private ?QueryColumnExtractor $queryColumnExtractor = null,
-    ) {
-        $this->missingIndexAnalyzerConfig = $missingIndexAnalyzerConfig ?? new MissingIndexAnalyzerConfig();
-        $this->queryColumnExtractor = $queryColumnExtractor ?? new QueryColumnExtractor();
+    public function __construct(private readonly SuggestionFactory $suggestionFactory, private readonly Connection $connection, private readonly ?MissingIndexAnalyzerConfig $missingIndexAnalyzerConfig = new MissingIndexAnalyzerConfig(), private readonly ?DatabasePlatformDetector $databasePlatformDetector = null, private readonly ?LoggerInterface $logger = null, private readonly ?QueryColumnExtractor $queryColumnExtractor = new QueryColumnExtractor())
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

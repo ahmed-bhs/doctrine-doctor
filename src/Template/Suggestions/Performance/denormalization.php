@@ -69,7 +69,7 @@ class <?php echo $e($entity); ?>
     #[ORM\OneToMany(mappedBy: '<?php echo lcfirst($entity); ?>', cascade: ['persist', 'remove'])]
     private Collection $<?php echo $e($relation); ?>;
 
-    public function get<?php echo ucfirst($counterField); ?>(): int
+    public function get<?php echo ucfirst((string) $counterField); ?>(): int
     {
         return $this-><?php echo $e($counterField); ?>;
     }
@@ -101,7 +101,7 @@ class <?php echo $e($entity); ?>
 
 // Now use the cached counter:
 foreach ($entities as $entity) {
-    echo $entity->get<?php echo ucfirst($counterField); ?>(); // No query!
+    echo $entity->get<?php echo ucfirst((string) $counterField); ?>(); // No query!
 }
 // Result: 0 extra queries!</code></pre>
     </div>

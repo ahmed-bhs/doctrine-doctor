@@ -41,7 +41,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
      * Tables that are typically static/rarely change.
      * These are good candidates for long-term caching.
      */
-    private const STATIC_TABLES = [
+    private const array STATIC_TABLES = [
         'countries',
         'currencies',
         'languages',
@@ -60,22 +60,14 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     /**
      * Minimum occurrences to suggest caching.
      */
-    private const FREQUENCY_THRESHOLD_INFO = 3;
+    private const int FREQUENCY_THRESHOLD_INFO = 3;
 
-    private const FREQUENCY_THRESHOLD_WARNING = 5;
+    private const int FREQUENCY_THRESHOLD_WARNING = 5;
 
-    private const FREQUENCY_THRESHOLD_CRITICAL = 10;
+    private const int FREQUENCY_THRESHOLD_CRITICAL = 10;
 
-    private SqlStructureExtractor $sqlExtractor;
-
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        ?SqlStructureExtractor $sqlExtractor = null,
-    ) {
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+    public function __construct(private readonly SuggestionFactory $suggestionFactory, private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

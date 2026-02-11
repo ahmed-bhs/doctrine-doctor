@@ -99,8 +99,8 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $missingConstructorIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'OrderWithoutConstructor') &&
-                          str_contains($issue->getTitle(), 'Missing constructor'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'OrderWithoutConstructor') &&
+                          str_contains((string) $issue->getTitle(), 'Missing constructor'),
         );
 
         self::assertNotEmpty($missingConstructorIssues, 'Should detect missing constructor');
@@ -125,8 +125,8 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $uninitializedIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'ArticleWithConstructorButNoInit') &&
-                          str_contains($issue->getTitle(), 'Uninitialized collection'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'ArticleWithConstructorButNoInit') &&
+                          str_contains((string) $issue->getTitle(), 'Uninitialized collection'),
         );
 
         self::assertNotEmpty($uninitializedIssues, 'Should detect uninitialized collection in constructor');
@@ -151,8 +151,8 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $blogPostIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'BlogPost') &&
-                          !str_contains($issue->getTitle(), 'BlogPostWithoutCollectionInit'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'BlogPost') &&
+                          !str_contains((string) $issue->getTitle(), 'BlogPostWithoutCollectionInit'),
         );
 
         self::assertCount(0, $blogPostIssues, 'Should NOT flag properly initialized collections');
@@ -171,7 +171,7 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $arrayInitIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'ArticleWithArrayInit'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'ArticleWithArrayInit'),
         );
 
         // Should NOT flag array initialization as it's valid
@@ -191,8 +191,8 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $blogPostIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'BlogPost') &&
-                          !str_contains($issue->getTitle(), 'Without'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'BlogPost') &&
+                          !str_contains((string) $issue->getTitle(), 'Without'),
         );
 
         self::assertCount(0, $blogPostIssues, 'Should recognize ArrayCollection initialization as valid');
@@ -257,11 +257,11 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $productIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Product'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Product'),
         );
         $categoryIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Category'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Category'),
         );
 
         self::assertCount(0, $productIssues, 'Should NOT flag entity without collections (Product)');
@@ -281,7 +281,7 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $courseIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'CourseWithMultipleCollections'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'CourseWithMultipleCollections'),
         );
 
         self::assertGreaterThanOrEqual(
@@ -351,7 +351,7 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
 
         $uninitializedIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Uninitialized collection'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Uninitialized collection'),
         );
 
         if (!empty($uninitializedIssues)) {
@@ -380,7 +380,7 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $orderIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'OrderWithoutConstructor'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'OrderWithoutConstructor'),
         );
 
         // Should detect both 'items' (OneToMany) and 'tags' (ManyToMany)
@@ -405,13 +405,13 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $childOrderIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'ChildOrderWithParentInit'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'ChildOrderWithParentInit'),
         );
 
         // Filter to check only items (not comments which is initialized in child)
         $parentCollectionIssues = array_filter(
             $childOrderIssues,
-            fn ($issue) => str_contains($issue->getTitle(), '::$items'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), '::$items'),
         );
 
         self::assertCount(
@@ -439,7 +439,7 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $childOrderIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'ChildOrderNoConstructor'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'ChildOrderNoConstructor'),
         );
 
         self::assertCount(
@@ -462,7 +462,7 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $blogPostIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'BlogPostWithoutCollectionInit'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'BlogPostWithoutCollectionInit'),
         );
 
         self::assertGreaterThan(

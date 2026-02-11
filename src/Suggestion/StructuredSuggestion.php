@@ -22,24 +22,12 @@ use Webmozart\Assert\Assert;
  * This provides a better user experience by organizing suggestion content
  * in a clear, standardized format.
  */
-final class StructuredSuggestion implements SuggestionInterface
+final readonly class StructuredSuggestion implements SuggestionInterface
 {
     public function __construct(
-        /**
-         * @readonly
-         */
         private string $title,
-        /**
-         * @readonly
-         */
         private SuggestionContent $suggestionContent,
-        /**
-         * @readonly
-         */
         private SuggestionMetadata $suggestionMetadata,
-        /**
-         * @readonly
-         */
         private ?string $summary = null,
     ) {
     }

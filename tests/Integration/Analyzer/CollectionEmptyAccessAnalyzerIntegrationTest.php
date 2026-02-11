@@ -111,15 +111,8 @@ final class CollectionEmptyAccessAnalyzerIntegrationTest extends DatabaseTestCas
         self::assertGreaterThan(0, count($issueCollection), 'Should detect uninitialized collection on BlogPostWithoutCollectionInit');
 
         $issuesArray = $issueCollection->toArray();
-        $uninitIssue = null;
-
-        foreach ($issuesArray as $issueArray) {
-            if (str_contains((string) $issueArray->getTitle(), 'BlogPostWithoutCollectionInit')
-                || str_contains((string) $issueArray->getDescription(), 'not initialized')) {
-                $uninitIssue = $issueArray;
-                break;
-            }
-        }
+        $uninitIssue = array_find($issuesArray, fn($issueArray) => str_contains((string) $issueArray->getTitle(), 'BlogPostWithoutCollectionInit')
+            || str_contains((string) $issueArray->getDescription(), 'not initialized'));
 
         if (null !== $uninitIssue) {
             self::assertStringContainsString('not initialized', (string) $uninitIssue->getDescription(), 'Should mention collection is not initialized');

@@ -42,7 +42,7 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     /**
      * Aggregation functions that suggest DTO hydration.
      */
-    private const AGGREGATION_FUNCTIONS = [
+    private const array AGGREGATION_FUNCTIONS = [
         'SUM(',
         'COUNT(',
         'AVG(',
@@ -54,13 +54,10 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     /**
      * Minimum occurrences to trigger warning.
      */
-    private const MIN_OCCURRENCES = 2;
+    private const int MIN_OCCURRENCES = 2;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 
@@ -111,15 +108,7 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         foreach ($queryDataCollection as $query) {
             $sql      = $query->sql;
             $upperSql = strtoupper($sql);
-
-            $hasAggregation = false;
-
-            foreach (self::AGGREGATION_FUNCTIONS as $func) {
-                if (str_contains($upperSql, $func)) {
-                    $hasAggregation = true;
-                    break;
-                }
-            }
+            $hasAggregation = array_any(self::AGGREGATION_FUNCTIONS, fn($func) => str_contains($upperSql, (string) $func));
 
             $hasGroupBy = str_contains($upperSql, 'GROUP BY');
 

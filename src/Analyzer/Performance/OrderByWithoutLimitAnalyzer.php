@@ -37,18 +37,8 @@ use Webmozart\Assert\Assert;
  */
 class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private ?SqlStructureExtractor $sqlExtractor = null,
-    ) {
-        // Dependency injection with fallback for backwards compatibility
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+    public function __construct(private readonly SuggestionFactory $suggestionFactory, private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -245,14 +235,14 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
 
             // Check for single-result methods
             foreach ($singleResultIndicators as $indicator) {
-                if (false !== stripos($function, $indicator)) {
+                if (false !== stripos((string) $function, $indicator)) {
                     return 'single_result';
                 }
             }
 
             // Check for array-result methods
             foreach ($arrayResultIndicators as $indicator) {
-                if (false !== stripos($function, $indicator)) {
+                if (false !== stripos((string) $function, $indicator)) {
                     return 'array_result';
                 }
             }

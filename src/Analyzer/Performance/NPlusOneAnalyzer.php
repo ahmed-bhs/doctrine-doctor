@@ -28,42 +28,21 @@ use Webmozart\Assert\Assert;
 
 class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    private const QUERY_COUNT_WARNING_THRESHOLD = 10;
+    private const int QUERY_COUNT_WARNING_THRESHOLD = 10;
 
-    private const EXECUTION_TIME_WARNING_THRESHOLD = 500.0;
+    private const float EXECUTION_TIME_WARNING_THRESHOLD = 500.0;
 
-    private const EXECUTION_TIME_CRITICAL_THRESHOLD = 1000.0;
+    private const float EXECUTION_TIME_CRITICAL_THRESHOLD = 1000.0;
 
-    private const LOW_EXECUTION_TIME_THRESHOLD = 100.0;
-
-    private SqlStructureExtractor $sqlExtractor;
+    private const float LOW_EXECUTION_TIME_THRESHOLD = 100.0;
 
     /**
      * @var array<string, string>|null Cached table to entity mappings
      */
     private ?array $tableToEntityCache = null;
 
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private int $threshold = 5,
-        ?SqlStructureExtractor $sqlExtractor = null,
-    ) {
-        // Dependency injection with fallback for backwards compatibility
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly IssueFactoryInterface $issueFactory, private readonly SuggestionFactory $suggestionFactory, private readonly int $threshold = 5, private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -547,13 +526,8 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             $this->warmUpTableToEntityCache();
         }
 
-        // Fast O(1) lookup in cached mapping
-        if (isset($this->tableToEntityCache[$table])) {
-            return $this->tableToEntityCache[$table];
-        }
-
         // Fallback: convert table name to entity name (e.g., user_profile -> UserProfile)
-        return $this->tableToClassName($table);
+        return $this->tableToEntityCache[$table] ?? $this->tableToClassName($table);
     }
 
     private function tableToClassName(string $table): string
@@ -578,14 +552,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         if (null === $backtrace) {
             return false;
         }
-
-        foreach ($backtrace as $frame) {
-            if (isset($frame['file']) && is_string($frame['file']) && str_contains($frame['file'], '/vendor/')) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($backtrace, fn($frame) => isset($frame['file']) && is_string($frame['file']) && str_contains($frame['file'], '/vendor/'));
     }
 
     /**

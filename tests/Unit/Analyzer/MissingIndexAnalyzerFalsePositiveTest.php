@@ -63,7 +63,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
             foreach (['web', 'mobile'] as $channel) {
                 $connection->executeStatement(
                     'INSERT INTO sylius_channel_pricing VALUES (?, ?, ?, ?)',
-                    [null, $variantId, $channel, rand(1000, 5000)],
+                    [null, $variantId, $channel, random_int(1000, 5000)],
                 );
             }
         }
@@ -557,7 +557,7 @@ final class MissingIndexAnalyzerFalsePositiveTest extends TestCase
         for ($i = 1; $i <= 1000; $i++) {
             $connection->executeStatement(
                 'INSERT INTO products VALUES (?, ?, ?)',
-                [$i, rand(100, 1000), rand(0, 100)],
+                [$i, random_int(100, 1000), random_int(0, 100)],
             );
         }
 

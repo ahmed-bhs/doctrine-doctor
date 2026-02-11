@@ -17,19 +17,10 @@ use Psr\Log\LoggerInterface;
  * Helper for conditional logging in DataCollector.
  * Extracted from DoctrineDoctorDataCollector to reduce complexity.
  */
-final class DataCollectorLogger
+final readonly class DataCollectorLogger
 {
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private LoggerInterface $logger,
-        /**
-         * @readonly
-         */
-        private ?DataCollectorConfig $dataCollectorConfig = null,
-    ) {
-        $this->dataCollectorConfig = $dataCollectorConfig ?? new DataCollectorConfig();
+    public function __construct(private LoggerInterface $logger, private ?DataCollectorConfig $dataCollectorConfig = new DataCollectorConfig())
+    {
     }
 
     /**

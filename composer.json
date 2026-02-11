@@ -46,30 +46,31 @@
     "source": "https://github.com/ahmed-bhs/doctrine-doctor"
   },
   "require": {
-    "php": "^8.2",
-    "doctrine/doctrine-bundle": "^2.12",
-    "doctrine/orm": "^2.10|^3.0|^4.0",
+    "php": "^8.4",
+    "doctrine/doctrine-bundle": "^3.0",
+    "doctrine/orm": "^3.0|^4.0",
     "nikic/php-parser": "^5.6",
     "phpmyadmin/sql-parser": "^6.0",
     "symfony/framework-bundle": "^6.0|^7.0",
     "webmozart/assert": "^1.11"
   },
   "require-dev": {
-    "phpunit/phpunit": "^10.0",
-    "symfony/var-dumper": "^6.0|^7.0",
-    "symfony/var-exporter": "^6.4|^7.0",
-    "symfony/stopwatch": "^6.0|^7.0",
-    "twig/twig": "^3.0",
+    "bitbag/coding-standard": "^3.0",
     "deptrac/deptrac": "^4.2",
+    "php-parallel-lint/php-parallel-lint": "^1.4",
+    "phpmd/phpmd": "^2.15",
+    "phpstan/extension-installer": "^1.4",
     "phpstan/phpstan": "^2.1",
     "phpstan/phpstan-doctrine": "^2.0",
-    "phpstan/phpstan-symfony": "^2.0",
     "phpstan/phpstan-phpunit": "^2.0",
-    "phpstan/extension-installer": "^1.4",
+    "phpstan/phpstan-symfony": "^2.0",
+    "phpunit/phpunit": "^10.0",
+    "rector/rector": "^2.3",
+    "symfony/stopwatch": "^6.0|^7.0",
+    "symfony/var-dumper": "^6.0|^7.0",
+    "symfony/var-exporter": "^6.4|^7.0",
     "symplify/easy-coding-standard": "^12.6",
-    "bitbag/coding-standard": "^3.0",
-    "php-parallel-lint/php-parallel-lint": "^1.4",
-    "phpmd/phpmd": "^2.15"
+    "twig/twig": "^3.0"
   },
   "autoload": {
     "psr-4": {
@@ -91,6 +92,8 @@
     "phpmd": "phpmd src text phpmd.xml",
     "phpmd:html": "phpmd src html phpmd.xml --reportfile phpmd-report.html",
     "phpmd:xml": "phpmd src xml phpmd.xml --reportfile phpmd-report.xml",
+    "rector": "rector process --dry-run",
+    "rector:fix": "rector process",
     "ecs": "ecs check",
     "ecs:fix": "ecs check --fix",
     "deptrac": "deptrac analyse --config-file=deptrac.yaml",

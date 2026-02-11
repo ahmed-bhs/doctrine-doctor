@@ -395,9 +395,9 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     {
         // Fast query (< 10ms) with getOneOrNullResult should be skipped (false positive)
         $backtrace = [
-            ['file' => 'Query.php', 'line' => 296, 'class' => 'Doctrine\\ORM\\Query', 'function' => '_doExecute'],
-            ['file' => 'AbstractQuery.php', 'line' => 886, 'class' => 'Doctrine\\ORM\\AbstractQuery', 'function' => 'execute'],
-            ['file' => 'AbstractQuery.php', 'line' => 737, 'class' => 'Doctrine\\ORM\\AbstractQuery', 'function' => 'getOneOrNullResult'],
+            ['file' => 'Query.php', 'line' => 296, 'class' => \Doctrine\ORM\Query::class, 'function' => '_doExecute'],
+            ['file' => 'AbstractQuery.php', 'line' => 886, 'class' => \Doctrine\ORM\AbstractQuery::class, 'function' => 'execute'],
+            ['file' => 'AbstractQuery.php', 'line' => 737, 'class' => \Doctrine\ORM\AbstractQuery::class, 'function' => 'getOneOrNullResult'],
             ['file' => 'TaxonRepository.php', 'line' => 85, 'class' => 'TaxonRepository', 'function' => 'findOneBySlug'],
         ];
 
@@ -420,7 +420,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     {
         // Slow query (>= 10ms) with getOneOrNullResult should still be detected
         $backtrace = [
-            ['file' => 'AbstractQuery.php', 'line' => 737, 'class' => 'Doctrine\\ORM\\AbstractQuery', 'function' => 'getOneOrNullResult'],
+            ['file' => 'AbstractQuery.php', 'line' => 737, 'class' => \Doctrine\ORM\AbstractQuery::class, 'function' => 'getOneOrNullResult'],
             ['file' => 'UserRepository.php', 'line' => 50, 'class' => 'UserRepository', 'function' => 'findOneByEmail'],
         ];
 
@@ -449,8 +449,8 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     {
         // Array result methods (getResult, findBy) should be flagged more severely
         $backtrace = [
-            ['file' => 'AbstractQuery.php', 'line' => 886, 'class' => 'Doctrine\\ORM\\AbstractQuery', 'function' => 'execute'],
-            ['file' => 'Query.php', 'line' => 737, 'class' => 'Doctrine\\ORM\\Query', 'function' => 'getResult'],
+            ['file' => 'AbstractQuery.php', 'line' => 886, 'class' => \Doctrine\ORM\AbstractQuery::class, 'function' => 'execute'],
+            ['file' => 'Query.php', 'line' => 737, 'class' => \Doctrine\ORM\Query::class, 'function' => 'getResult'],
             ['file' => 'OrderRepository.php', 'line' => 42, 'class' => 'OrderRepository', 'function' => 'findAllOrdered'],
         ];
 
@@ -480,7 +480,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     {
         // getSingleResult should also be detected as single_result context
         $backtrace = [
-            ['file' => 'AbstractQuery.php', 'line' => 737, 'class' => 'Doctrine\\ORM\\AbstractQuery', 'function' => 'getSingleResult'],
+            ['file' => 'AbstractQuery.php', 'line' => 737, 'class' => \Doctrine\ORM\AbstractQuery::class, 'function' => 'getSingleResult'],
             ['file' => 'UserRepository.php', 'line' => 60, 'class' => 'UserRepository', 'function' => 'getByUsername'],
         ];
 
@@ -503,7 +503,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     {
         // Very slow (> 100ms) single_result should get WARNING severity
         $backtrace = [
-            ['file' => 'AbstractQuery.php', 'line' => 737, 'class' => 'Doctrine\\ORM\\AbstractQuery', 'function' => 'getOneOrNullResult'],
+            ['file' => 'AbstractQuery.php', 'line' => 737, 'class' => \Doctrine\ORM\AbstractQuery::class, 'function' => 'getOneOrNullResult'],
             ['file' => 'ProductRepository.php', 'line' => 90, 'class' => 'ProductRepository', 'function' => 'findOneBySlug'],
         ];
 
@@ -531,7 +531,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     {
         // Very slow (> 500ms) array_result should get CRITICAL severity
         $backtrace = [
-            ['file' => 'Query.php', 'line' => 737, 'class' => 'Doctrine\\ORM\\Query', 'function' => 'getResult'],
+            ['file' => 'Query.php', 'line' => 737, 'class' => \Doctrine\ORM\Query::class, 'function' => 'getResult'],
             ['file' => 'OrderRepository.php', 'line' => 100, 'class' => 'OrderRepository', 'function' => 'findAll'],
         ];
 
@@ -559,7 +559,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     {
         // Repository findBy method should be detected as array_result
         $backtrace = [
-            ['file' => 'EntityRepository.php', 'line' => 200, 'class' => 'Doctrine\\ORM\\EntityRepository', 'function' => 'findBy'],
+            ['file' => 'EntityRepository.php', 'line' => 200, 'class' => \Doctrine\ORM\EntityRepository::class, 'function' => 'findBy'],
             ['file' => 'UserController.php', 'line' => 42, 'class' => 'UserController', 'function' => 'listUsers'],
         ];
 

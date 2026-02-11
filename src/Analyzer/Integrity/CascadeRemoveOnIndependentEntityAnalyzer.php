@@ -38,7 +38,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
     /**
      * Entity patterns that are typically independent.
      */
-    private const INDEPENDENT_PATTERNS = [
+    private const array INDEPENDENT_PATTERNS = [
         'User', 'Customer', 'Account', 'Member', 'Client',
         'Company', 'Organization', 'Team', 'Department',
         'Product', 'Category', 'Brand', 'Tag',
@@ -49,10 +49,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
     private readonly CompositionRelationshipDetector $compositionDetector;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
+        private readonly EntityManagerInterface $entityManager,
         ?CompositionRelationshipDetector $compositionDetector = null,
     ) {
         // Dependency Injection with fallback for backwards compatibility

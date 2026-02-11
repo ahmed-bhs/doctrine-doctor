@@ -141,7 +141,7 @@ final class SafeContext implements ArrayAccess
     {
         // Recursively escape arrays
         if (is_array($value)) {
-            return array_map(fn ($item) => $this->escape($item), $value);
+            return array_map($this->escape(...), $value);
         }
 
         // Escape strings

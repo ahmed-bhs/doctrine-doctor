@@ -17,20 +17,11 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
 class IndexSuggestion implements SuggestionInterface
 {
-    /**
-     * @readonly
-     */
-    private string $table;
+    private readonly string $table;
 
-    /**
-     * @readonly
-     */
-    private array $columns;
+    private readonly array $columns;
 
-    /**
-     * @readonly
-     */
-    private string $migrationCode;
+    private readonly string $migrationCode;
 
     public function __construct(array $data)
     {
@@ -94,9 +85,7 @@ class IndexSuggestion implements SuggestionInterface
             return '// Unable to generate migration code: table or columns missing.';
         }
 
-        $indexName = 'IDX_' . strtoupper($table) . '_' . implode('_', array_map(function ($column) {
-            return strtoupper($column);
-        }, $columns));
+        $indexName = 'IDX_' . strtoupper($table) . '_' . implode('_', array_map(strtoupper(...), $columns));
         $cols      = implode(', ', $columns);
 
         return sprintf('CREATE INDEX %s ON %s (%s);', $indexName, $table, $cols);

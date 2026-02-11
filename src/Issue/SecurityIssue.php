@@ -29,6 +29,7 @@ class SecurityIssue extends AbstractIssue
         ], $data));
     }
 
+    #[\Override]
     public function getType(): string
     {
         return 'Security';

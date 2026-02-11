@@ -41,18 +41,15 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
      * Pattern to detect division operations in SQL/DQL.
      * Matches: field1 / field2, expression / field, etc.
      */
-    private const DIVISION_PATTERN = '/(\w+(?:\.\w+)?)\s*\/\s*(\w+(?:\.\w+)?)/';
+    private const string DIVISION_PATTERN = '/(\w+(?:\.\w+)?)\s*\/\s*(\w+(?:\.\w+)?)/';
 
     /**
      * Pattern to detect if division is already protected.
      */
-    private const PROTECTED_PATTERN = '/NULLIF|COALESCE|CASE\s+WHEN/i';
+    private const string PROTECTED_PATTERN = '/NULLIF|COALESCE|CASE\s+WHEN/i';
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 

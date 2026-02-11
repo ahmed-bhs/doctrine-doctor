@@ -665,7 +665,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         ];
 
         $queryDataObjects = array_map(
-            fn ($q) => \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray($q),
+            \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray(...),
             $rawQueries,
         );
 
@@ -690,7 +690,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         ];
 
         $queryDataObjects = array_map(
-            fn ($q) => \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray($q),
+            \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray(...),
             $rawQueries,
         );
 
@@ -724,7 +724,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         ];
 
         $queryDataObjects = array_map(
-            fn ($q) => \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray($q),
+            \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray(...),
             $rawQueries,
         );
 

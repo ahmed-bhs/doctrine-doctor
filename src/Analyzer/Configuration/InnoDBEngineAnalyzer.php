@@ -31,22 +31,10 @@ use Psr\Log\LoggerInterface;
 class InnoDBEngineAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     public function __construct(
-        /**
-         * @readonly
-         */
-        private Connection $connection,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private ?DatabasePlatformDetector $databasePlatformDetector = null,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
+        private readonly Connection $connection,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly ?DatabasePlatformDetector $databasePlatformDetector = null,
+        private readonly ?LoggerInterface $logger = null,
     ) {
     }
 

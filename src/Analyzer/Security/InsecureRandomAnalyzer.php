@@ -32,7 +32,7 @@ use Webmozart\Assert\Assert;
 class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     // Insecure functions that should not be used for security
-    private const INSECURE_FUNCTIONS = [
+    private const array INSECURE_FUNCTIONS = [
         'rand',
         'mt_rand',
         'srand',
@@ -43,7 +43,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     ];
 
     // Context patterns that indicate security-sensitive usage
-    private const SENSITIVE_CONTEXTS = [
+    private const array SENSITIVE_CONTEXTS = [
         'token',
         'secret',
         'key',
@@ -59,18 +59,9 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly ?LoggerInterface $logger = null,
         /**
          * @readonly
          */
@@ -199,14 +190,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     {
         $lowerMethodName = strtolower($methodName);
         $lowerSource     = strtolower($source);
-
-        foreach (self::SENSITIVE_CONTEXTS as $context) {
-            if (str_contains($lowerMethodName, $context) || str_contains($lowerSource, $context)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::SENSITIVE_CONTEXTS, fn($context) => str_contains($lowerMethodName, (string) $context) || str_contains($lowerSource, (string) $context));
     }
 
     private function createInsecureRandomIssue(

@@ -34,10 +34,10 @@ ob_start();
 
     <h4>Solution</h4>
     <div class="query-item">
-        <pre><code class="language-sql"><?= htmlspecialchars($correct) ?>
+        <pre><code class="language-sql"><?= htmlspecialchars((string) $correct) ?>
 
 -- DQL example
-$qb->where('e.<?= htmlspecialchars($field) ?> IS NULL');</code></pre>
+$qb->where('e.<?= htmlspecialchars((string) $field) ?> IS NULL');</code></pre>
     </div>
 </div>
 

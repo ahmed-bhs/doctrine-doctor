@@ -34,7 +34,7 @@ use Webmozart\Assert\Assert;
 class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     // Deprecated/problematic types
-    private const PROBLEMATIC_TYPES = [
+    private const array PROBLEMATIC_TYPES = [
         'object' => [
             'severity'    => 'critical',
             'reason'      => 'Uses PHP serialize() which is insecure and fragile',
@@ -48,21 +48,12 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
     ];
 
     // Types that need validation
-    private const SIMPLE_ARRAY_MAX_LENGTH = 255;
+    private const int SIMPLE_ARRAY_MAX_LENGTH = 255;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -396,14 +387,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         ];
 
         $lowerFieldName = strtolower($fieldName);
-
-        foreach ($enumPatterns as $pattern) {
-            if (str_contains($lowerFieldName, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($enumPatterns, fn($pattern) => str_contains($lowerFieldName, (string) $pattern));
     }
 
     private function generateTypeReplacementCode(

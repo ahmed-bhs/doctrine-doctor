@@ -37,12 +37,12 @@ use Webmozart\Assert\Assert;
  * The UnitOfWork uses strict comparison (===) which considers "5.0" !== 5.0,
  * causing Doctrine to think the value changed when it hasn't.
  */
-final class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
+final readonly class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     /**
      * Mapping of Doctrine types to expected PHP types.
      */
-    private const TYPE_MAPPINGS = [
+    private const array TYPE_MAPPINGS = [
         // Numeric types
         'integer'  => ['int', 'integer'],
         'smallint' => ['int', 'integer'],
@@ -80,17 +80,8 @@ final class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
         private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
         private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
         private SuggestionFactory $suggestionFactory,
     ) {
     }
