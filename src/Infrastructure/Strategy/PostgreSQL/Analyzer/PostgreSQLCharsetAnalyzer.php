@@ -22,16 +22,16 @@ use Doctrine\DBAL\Connection;
  * PostgreSQL-specific encoding analyzer.
  * Detects issues with server/client encoding and template databases.
  */
-final class PostgreSQLCharsetAnalyzer implements CharsetAnalyzerInterface
+final readonly class PostgreSQLCharsetAnalyzer implements CharsetAnalyzerInterface
 {
-    private const RECOMMENDED_ENCODING = 'UTF8';
+    private const string RECOMMENDED_ENCODING = 'UTF8';
 
-    private const PROBLEMATIC_ENCODINGS = ['SQL_ASCII', 'LATIN1', 'WIN1252'];
+    private const array PROBLEMATIC_ENCODINGS = ['SQL_ASCII', 'LATIN1', 'WIN1252'];
 
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        private Connection $connection,
+        private SuggestionFactory $suggestionFactory,
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 

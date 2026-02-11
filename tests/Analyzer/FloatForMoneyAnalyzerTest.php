@@ -51,16 +51,8 @@ final class FloatForMoneyAnalyzerTest extends TestCase
         // Assert: Product entity has float for price
         $issuesArray = $issues->toArray();
         self::assertGreaterThan(0, count($issuesArray));
-
-        // Find the price issue
-        $priceIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'Product') &&
-                str_contains($issue->getDescription(), 'price')) {
-                $priceIssue = $issue;
-                break;
-            }
-        }
+        $priceIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'Product') &&
+            str_contains((string) $issue->getDescription(), 'price'));
 
         self::assertNotNull($priceIssue, 'Should detect float used for Product::$price');
         self::assertEquals('integrity', $priceIssue->getCategory());
@@ -82,7 +74,7 @@ final class FloatForMoneyAnalyzerTest extends TestCase
         // Product might have price and potentially other money fields
         $productIssues = array_filter(
             $issues->toArray(),
-            fn ($issue): bool => str_contains($issue->getDescription(), 'Product'),
+            fn ($issue): bool => str_contains((string) $issue->getDescription(), 'Product'),
         );
 
         self::assertGreaterThan(0, count($productIssues));
@@ -120,7 +112,7 @@ final class FloatForMoneyAnalyzerTest extends TestCase
         // Assert: Invoice uses decimal - should NOT be flagged
         $invoiceIssues = array_filter(
             $issues->toArray(),
-            fn ($issue): bool => str_contains($issue->getDescription(), 'Invoice'),
+            fn ($issue): bool => str_contains((string) $issue->getDescription(), 'Invoice'),
         );
 
         self::assertCount(0, $invoiceIssues, 'Invoice uses decimal types, should not be flagged');
@@ -139,21 +131,12 @@ final class FloatForMoneyAnalyzerTest extends TestCase
         // (Unless User has float fields with money-like names)
         $userIssues = array_filter(
             $issues->toArray(),
-            fn ($issue): bool => str_contains($issue->getDescription(), 'User') &&
-                         !str_contains($issue->getDescription(), 'sensitive') &&
-                         str_contains(strtolower($issue->getDescription()), 'float'),
+            fn ($issue): bool => str_contains((string) $issue->getDescription(), 'User') &&
+                         !str_contains((string) $issue->getDescription(), 'sensitive') &&
+                         str_contains(strtolower((string) $issue->getDescription()), 'float'),
         );
-
-        // User should not have float money field issues
-        // (rating, score etc are OK to be float)
-        $hasMoneyIssue = false;
-        foreach ($userIssues as $issue) {
-            if (str_contains(strtolower($issue->getDescription()), 'money') ||
-                str_contains(strtolower($issue->getDescription()), 'monetary')) {
-                $hasMoneyIssue = true;
-                break;
-            }
-        }
+        $hasMoneyIssue = array_any($userIssues, fn($issue) => str_contains(strtolower((string) $issue->getDescription()), 'money') ||
+            str_contains(strtolower((string) $issue->getDescription()), 'monetary'));
 
         self::assertFalse($hasMoneyIssue, 'User entity should not have money-related float issues');
     }
@@ -230,7 +213,7 @@ final class FloatForMoneyAnalyzerTest extends TestCase
         // Assert: Should detect based on field name containing money patterns
         $moneyPatternIssues = array_filter(
             $issues->toArray(),
-            fn ($issue): bool => (bool) preg_match('/(price|amount|cost|total|balance|fee)/i', $issue->getDescription()),
+            fn ($issue): bool => (bool) preg_match('/(price|amount|cost|total|balance|fee)/i', (string) $issue->getDescription()),
         );
 
         self::assertGreaterThan(0, count($moneyPatternIssues));

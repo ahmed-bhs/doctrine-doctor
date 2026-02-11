@@ -34,7 +34,7 @@ ob_start();
 
     <div class="recommended-fix">
         <h3>Use NULLIF()</h3>
-        <pre><code class="language-sql"><?= htmlspecialchars($safe_division) ?></code></pre>
+        <pre><code class="language-sql"><?= htmlspecialchars((string) $safe_division) ?></code></pre>
         <p><code>NULLIF(<?= htmlspecialchars($divisor) ?>, 0)</code> returns <code>NULL</code> when divisor is 0.</p>
     </div>
 

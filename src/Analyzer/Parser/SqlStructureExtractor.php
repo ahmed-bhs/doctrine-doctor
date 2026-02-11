@@ -46,32 +46,17 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Parser\Interface\QueryNormalizerInterface;
  */
 class SqlStructureExtractor
 {
-    private JoinExtractorInterface $joinExtractor;
-
-    private QueryNormalizerInterface $queryNormalizer;
-
-    private PatternDetectorInterface $patternDetector;
-
-    private ConditionAnalyzerInterface $conditionAnalyzer;
-
-    private PerformanceAnalyzerInterface $performanceAnalyzer;
-
-    private AggregationAnalyzerInterface $aggregationAnalyzer;
+    private readonly PatternDetectorInterface $patternDetector;
 
     public function __construct(
-        ?JoinExtractorInterface $joinExtractor = null,
-        ?QueryNormalizerInterface $queryNormalizer = null,
+        private readonly ?JoinExtractorInterface $joinExtractor = new SqlJoinExtractor(),
+        private readonly ?QueryNormalizerInterface $queryNormalizer = new SqlQueryNormalizer(),
         ?PatternDetectorInterface $patternDetector = null,
-        ?ConditionAnalyzerInterface $conditionAnalyzer = null,
-        ?PerformanceAnalyzerInterface $performanceAnalyzer = null,
-        ?AggregationAnalyzerInterface $aggregationAnalyzer = null,
+        private readonly ?ConditionAnalyzerInterface $conditionAnalyzer = new SqlConditionAnalyzer(),
+        private readonly ?PerformanceAnalyzerInterface $performanceAnalyzer = new SqlPerformanceAnalyzer(),
+        private readonly ?AggregationAnalyzerInterface $aggregationAnalyzer = new SqlAggregationAnalyzer(),
     ) {
-        $this->joinExtractor = $joinExtractor ?? new SqlJoinExtractor();
-        $this->queryNormalizer = $queryNormalizer ?? new SqlQueryNormalizer();
         $this->patternDetector = $patternDetector ?? new SqlPatternDetector($this->joinExtractor instanceof SqlJoinExtractor ? $this->joinExtractor : null);
-        $this->conditionAnalyzer = $conditionAnalyzer ?? new SqlConditionAnalyzer();
-        $this->performanceAnalyzer = $performanceAnalyzer ?? new SqlPerformanceAnalyzer();
-        $this->aggregationAnalyzer = $aggregationAnalyzer ?? new SqlAggregationAnalyzer();
     }
 
     // ==================== JOIN EXTRACTOR DELEGATION ====================

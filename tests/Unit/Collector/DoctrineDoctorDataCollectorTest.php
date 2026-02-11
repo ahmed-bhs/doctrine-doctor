@@ -38,7 +38,6 @@ final class DoctrineDoctorDataCollectorTest extends TestCase
         // Use reflection to access private method
         $reflection = new ReflectionClass($collector);
         $method = $reflection->getMethod('filterQueriesByPaths');
-        $method->setAccessible(true);
 
         $filtered = $method->invoke($collector, $queries, $excludePaths);
 
@@ -225,7 +224,6 @@ final class DoctrineDoctorDataCollectorTest extends TestCase
         $collector = $this->createDataCollector();
         $reflection = new ReflectionClass($collector);
         $method = $reflection->getMethod('isQueryFromExcludedPaths');
-        $method->setAccessible(true);
 
         $query = ['sql' => 'SELECT * FROM users', 'backtrace' => null];
         $result = $method->invoke($collector, $query, ['vendor/']);
@@ -239,7 +237,6 @@ final class DoctrineDoctorDataCollectorTest extends TestCase
         $collector = $this->createDataCollector();
         $reflection = new ReflectionClass($collector);
         $method = $reflection->getMethod('isQueryFromExcludedPaths');
-        $method->setAccessible(true);
 
         $query = [
             'sql' => 'SELECT * FROM users',

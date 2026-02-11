@@ -55,7 +55,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     /**
      * Common field names for blameable.
      */
-    private const BLAMEABLE_FIELD_PATTERNS = [
+    private const array BLAMEABLE_FIELD_PATTERNS = [
         'createdBy',
         'created_by',
         'creator',
@@ -72,7 +72,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     /**
      * Common User entity names.
      */
-    private const USER_ENTITY_PATTERNS = [
+    private const array USER_ENTITY_PATTERNS = [
         'User',
         'Account',
         'Admin',
@@ -81,22 +81,10 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly ?LoggerInterface $logger = null,
     ) {
     }
 

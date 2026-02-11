@@ -100,9 +100,7 @@ abstract class DatabaseTestCase extends TestCase
     {
         $schemaTool = new SchemaTool($this->entityManager);
         $metadata = array_map(
-            function ($entity) {
-                return $this->entityManager->getClassMetadata($entity);
-            },
+            $this->entityManager->getClassMetadata(...),
             $entities,
         );
 
@@ -194,14 +192,7 @@ abstract class DatabaseTestCase extends TestCase
      */
     protected function assertQueryContains(string $pattern, string $message = ''): void
     {
-        $found = false;
-        foreach ($this->queryLogger->getRawQueries() as $query) {
-            if (str_contains(strtolower($query['sql']), strtolower($pattern))) {
-                $found = true;
-                break;
-            }
-        }
-
+        $found = array_any($this->queryLogger->getRawQueries(), fn($query) => str_contains(strtolower((string) $query['sql']), strtolower($pattern)));
         $message = $message ?: 'No query found containing pattern: ' . $pattern;
         self::assertTrue($found, $message);
     }

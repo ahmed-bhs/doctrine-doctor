@@ -34,7 +34,7 @@ public function onCreate(): void
     $this-><?php echo $e($fieldName); ?> = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 }
 
-public function get<?php echo ucfirst($fieldName); ?>Display(string $userTimezone): string
+public function get<?php echo ucfirst((string) $fieldName); ?>Display(string $userTimezone): string
 {
     return $this-><?php echo $e($fieldName); ?>
         ->setTimezone(new \DateTimeZone($userTimezone))

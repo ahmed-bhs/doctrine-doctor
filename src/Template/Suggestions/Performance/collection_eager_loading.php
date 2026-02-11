@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
-$lcCollectionField = lcfirst($collectionField);
+$lcCollectionField = lcfirst((string) $collectionField);
 
 ob_start();
 ?>

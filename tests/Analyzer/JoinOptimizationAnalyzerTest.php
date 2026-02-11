@@ -221,9 +221,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
 
         // Assert: Should NOT detect unused JOIN
         $issuesArray = $issues->toArray();
-        $unusedIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'Unused');
-        });
+        $unusedIssues = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getTitle(), 'Unused'));
 
         self::assertCount(0, $unusedIssues, 'Should NOT flag JOIN that is actually used');
     }
@@ -338,7 +336,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
 
             if (strlen($longQuery) > 200) {
                 self::assertStringContainsString('...', $data['query'], 'Long queries should be truncated');
-                self::assertLessThan(210, strlen($data['query']), 'Truncated query should be ~200 chars + ...');
+                self::assertLessThan(210, strlen((string) $data['query']), 'Truncated query should be ~200 chars + ...');
             }
         }
     }
@@ -365,15 +363,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
         // Assert
         $issuesArray = $issues->toArray();
         self::assertGreaterThan(0, count($issuesArray));
-
-        // Find "Too Many JOINs" issue (not "Unused JOIN")
-        $tooManyIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getTitle(), 'Too Many JOINs')) {
-                $tooManyIssue = $issue;
-                break;
-            }
-        }
+        $tooManyIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), 'Too Many JOINs'));
 
         self::assertNotNull($tooManyIssue, 'Should have "Too Many JOINs" issue');
         $data = $tooManyIssue->getData();
@@ -409,15 +399,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
         // Assert
         $issuesArray = $issues->toArray();
         self::assertGreaterThan(0, count($issuesArray));
-
-        // Find "Too Many JOINs" issue
-        $tooManyIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getTitle(), 'Too Many JOINs')) {
-                $tooManyIssue = $issue;
-                break;
-            }
-        }
+        $tooManyIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), 'Too Many JOINs'));
 
         self::assertNotNull($tooManyIssue, 'Should have "Too Many JOINs" issue');
         $data = $tooManyIssue->getData();
@@ -565,9 +547,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
 
         // Filter for multi-step hydration issues
-        $multiStepIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'Multiple Collection JOINs');
-        });
+        $multiStepIssues = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getTitle(), 'Multiple Collection JOINs'));
 
         // Note: This test may not detect the issue if the tables are not recognized as collections
         // in the test entity manager. The analyzer requires proper entity metadata.
@@ -590,9 +570,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
 
         // Assert: Should NOT detect multi-step hydration issue with only 1 collection JOIN
         $issuesArray = $issues->toArray();
-        $multiStepIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'Multiple Collection JOINs');
-        });
+        $multiStepIssues = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getTitle(), 'Multiple Collection JOINs'));
 
         self::assertCount(0, $multiStepIssues, 'Should NOT flag single collection JOIN');
     }
@@ -614,9 +592,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
 
         // Assert: Multi-step hydration is specifically for LEFT JOINs
         $issuesArray = $issues->toArray();
-        $multiStepIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'Multiple Collection JOINs');
-        });
+        $multiStepIssues = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getTitle(), 'Multiple Collection JOINs'));
 
         self::assertCount(0, $multiStepIssues, 'Should NOT flag INNER JOINs for multi-step hydration');
     }
@@ -638,9 +614,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
 
         // Assert
         $issuesArray = $issues->toArray();
-        $multiStepIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'Multiple Collection JOINs');
-        });
+        $multiStepIssues = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getTitle(), 'Multiple Collection JOINs'));
 
         // Note: Detection depends on entity metadata - may not always trigger
         self::assertGreaterThanOrEqual(0, count($multiStepIssues), 'Analyzer should process query');
@@ -674,9 +648,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
 
         // Assert
         $issuesArray = $issues->toArray();
-        $multiStepIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'Multiple Collection JOINs');
-        });
+        $multiStepIssues = array_filter($issuesArray, static fn($issue) => str_contains((string) $issue->getTitle(), 'Multiple Collection JOINs'));
 
         // Note: Detection depends on entity metadata - may not always trigger
         self::assertGreaterThanOrEqual(0, count($multiStepIssues), 'Analyzer should process query');

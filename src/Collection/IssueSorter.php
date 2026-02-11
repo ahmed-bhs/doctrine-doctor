@@ -17,21 +17,18 @@ use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
  * Provides sorting capabilities for IssueCollection.
  * Follows Single Responsibility Principle.
  */
-final class IssueSorter
+final readonly class IssueSorter
 {
     /**
      * Severity levels in order of importance (3-level system).
      */
-    private const SEVERITY_ORDER = [
+    private const array SEVERITY_ORDER = [
         'critical' => 0,
         'warning'  => 1,
         'info'     => 2,
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
         private IssueCollection $issueCollection,
     ) {
     }

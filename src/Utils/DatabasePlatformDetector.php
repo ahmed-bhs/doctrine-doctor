@@ -29,10 +29,7 @@ use Webmozart\Assert\Assert;
 class DatabasePlatformDetector
 {
     public function __construct(
-        /**
-         * @readonly
-         */
-        private Connection $connection,
+        private readonly Connection $connection,
     ) {
     }
 
@@ -81,7 +78,7 @@ class DatabasePlatformDetector
     public function getPlatformName(): string
     {
         $platform = $this->connection->getDatabasePlatform();
-        $platformClass = get_class($platform);
+        $platformClass = $platform::class;
 
         // Use class name string comparison for compatibility with all Doctrine DBAL versions
         if ($platform instanceof PostgreSQLPlatform) {

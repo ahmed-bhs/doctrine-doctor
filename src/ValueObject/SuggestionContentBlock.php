@@ -28,31 +28,25 @@ use Webmozart\Assert\Assert;
  */
 final class SuggestionContentBlock
 {
-    public const TYPE_TEXT = 'text';
+    public const string TYPE_TEXT = 'text';
 
-    public const TYPE_CODE = 'code';
+    public const string TYPE_CODE = 'code';
 
-    public const TYPE_HEADING = 'heading';
+    public const string TYPE_HEADING = 'heading';
 
-    public const TYPE_LIST = 'list';
+    public const string TYPE_LIST = 'list';
 
-    public const TYPE_WARNING = 'warning';
+    public const string TYPE_WARNING = 'warning';
 
-    public const TYPE_INFO = 'info';
+    public const string TYPE_INFO = 'info';
 
-    public const TYPE_LINK = 'link';
+    public const string TYPE_LINK = 'link';
 
-    public const TYPE_COMPARISON = 'comparison';
+    public const string TYPE_COMPARISON = 'comparison';
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private string $type,
-        /**
-         * @readonly
-         */
-        private string|array $content,
+        private readonly string $type,
+        private readonly string|array $content,
         /**
          * @readonly
          */

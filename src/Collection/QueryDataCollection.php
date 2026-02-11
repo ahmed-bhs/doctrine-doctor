@@ -227,8 +227,8 @@ final class QueryDataCollection extends AbstractCollection
 
     /**
      * Sort by execution time (slowest first).
-     * @deprecated Use sortByExecutionTimeDescending() or sortByExecutionTimeAscending() instead
      */
+    #[\Deprecated(message: 'Use sortByExecutionTimeDescending() or sortByExecutionTimeAscending() instead')]
     public function sortByExecutionTime(): self
     {
         return $this->sortByExecutionTimeDescending();

@@ -483,10 +483,10 @@ final class GetReferenceAnalyzerTest extends TestCase
     public function it_detects_lazy_loading_from_backtrace(): void
     {
         $backtrace = [
-            ['class' => 'Doctrine\ORM\Persisters\Entity\BasicEntityPersister', 'function' => 'executeQuery'],
-            ['class' => 'Doctrine\ORM\Persisters\Entity\BasicEntityPersister', 'function' => 'loadOneToManyCollection'],
-            ['class' => 'Doctrine\ORM\UnitOfWork', 'function' => 'loadCollection'],
-            ['class' => 'Doctrine\ORM\PersistentCollection', 'function' => 'initialize'],
+            ['class' => \Doctrine\ORM\Persisters\Entity\BasicEntityPersister::class, 'function' => 'executeQuery'],
+            ['class' => \Doctrine\ORM\Persisters\Entity\BasicEntityPersister::class, 'function' => 'loadOneToManyCollection'],
+            ['class' => \Doctrine\ORM\UnitOfWork::class, 'function' => 'loadCollection'],
+            ['class' => \Doctrine\ORM\PersistentCollection::class, 'function' => 'initialize'],
         ];
 
         $queries = QueryDataBuilder::create()
@@ -553,8 +553,8 @@ final class GetReferenceAnalyzerTest extends TestCase
     public function it_detects_lazy_loading_with_persistent_collection(): void
     {
         $backtrace = [
-            ['class' => 'Doctrine\ORM\PersistentCollection', 'function' => 'initialize'],
-            ['class' => 'Doctrine\Common\Collections\AbstractLazyCollection', 'function' => 'containsKey'],
+            ['class' => \Doctrine\ORM\PersistentCollection::class, 'function' => 'initialize'],
+            ['class' => \Doctrine\Common\Collections\AbstractLazyCollection::class, 'function' => 'containsKey'],
         ];
 
         $queries = QueryDataBuilder::create()
@@ -576,7 +576,7 @@ final class GetReferenceAnalyzerTest extends TestCase
     public function it_provides_appropriate_severity_for_lazy_loading(): void
     {
         $backtrace = [
-            ['class' => 'Doctrine\ORM\UnitOfWork', 'function' => 'loadCollection'],
+            ['class' => \Doctrine\ORM\UnitOfWork::class, 'function' => 'loadCollection'],
         ];
 
         $queries = QueryDataBuilder::create()

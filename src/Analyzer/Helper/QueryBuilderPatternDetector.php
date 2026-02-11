@@ -28,7 +28,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 class QueryBuilderPatternDetector
 {
     public function __construct(
-        private SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+        private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
     ) {
     }
 

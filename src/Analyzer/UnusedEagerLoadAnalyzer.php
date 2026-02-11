@@ -51,34 +51,18 @@ use Webmozart\Assert\Assert;
 class UnusedEagerLoadAnalyzer implements AnalyzerInterface
 {
     /** @var int Threshold for detecting over-eager loading (collection JOINs only) */
-    private const MULTIPLE_COLLECTION_JOINS_THRESHOLD = 2;
+    private const int MULTIPLE_COLLECTION_JOINS_THRESHOLD = 2;
 
     /** @var string Issue type identifier */
-    private const ISSUE_TYPE = 'unused_eager_load';
-
-    private SqlStructureExtractor $sqlExtractor;
+    private const string ISSUE_TYPE = 'unused_eager_load';
 
     /**
      * @var array<string, ClassMetadata>|null Cached metadata map
      */
     private ?array $metadataMapCache = null;
 
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        ?SqlStructureExtractor $sqlExtractor = null,
-    ) {
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly IssueFactoryInterface $issueFactory, private readonly SuggestionFactory $suggestionFactory, private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

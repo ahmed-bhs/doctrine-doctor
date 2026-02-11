@@ -21,12 +21,12 @@ use Doctrine\DBAL\Connection;
  * PostgreSQL-specific collation analyzer.
  * Detects issues with collation configuration ("C" vs locale-aware, ICU vs libc).
  */
-final class PostgreSQLCollationAnalyzer implements CollationAnalyzerInterface
+final readonly class PostgreSQLCollationAnalyzer implements CollationAnalyzerInterface
 {
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        private Connection $connection,
+        private SuggestionFactory $suggestionFactory,
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 

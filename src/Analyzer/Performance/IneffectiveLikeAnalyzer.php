@@ -41,24 +41,21 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
      * Pattern to detect LIKE with leading wildcard.
      * Matches: LIKE '%...', LIKE "-%...", etc.
      */
-    private const LIKE_LEADING_WILDCARD_PATTERN = '/\bLIKE\s+([\'"])(%[^\'\"]+)\1/i';
+    private const string LIKE_LEADING_WILDCARD_PATTERN = '/\bLIKE\s+([\'"])(%[^\'\"]+)\1/i';
 
     /**
      * Minimum execution time (ms) to report an issue.
      * Queries faster than this are likely on small tables where LIKE performance is negligible.
      */
-    private const MIN_EXECUTION_TIME_THRESHOLD = 5.0;
+    private const float MIN_EXECUTION_TIME_THRESHOLD = 5.0;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactory $suggestionFactory,
         /**
          * @readonly
          * Minimum execution time in ms to report. Set to 0 to always report.
          */
-        private float $minExecutionTimeThreshold = self::MIN_EXECUTION_TIME_THRESHOLD,
+        private readonly float $minExecutionTimeThreshold = self::MIN_EXECUTION_TIME_THRESHOLD,
     ) {
     }
 

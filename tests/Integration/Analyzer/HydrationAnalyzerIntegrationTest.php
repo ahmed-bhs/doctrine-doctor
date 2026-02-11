@@ -25,9 +25,9 @@ use PHPUnit\Framework\Attributes\Test;
 
 final class HydrationAnalyzerIntegrationTest extends DatabaseTestCase
 {
-    private const ROW_THRESHOLD = 100;
+    private const int ROW_THRESHOLD = 100;
 
-    private const CRITICAL_THRESHOLD = 1000;
+    private const int CRITICAL_THRESHOLD = 1000;
 
     private HydrationAnalyzer $hydrationAnalyzer;
 

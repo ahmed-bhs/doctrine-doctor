@@ -32,7 +32,7 @@ class InjectionPatternDetector
     /**
      * Safe enum/status values that shouldn't be flagged as injection risks.
      */
-    private const SAFE_LITERAL_VALUES = [
+    private const array SAFE_LITERAL_VALUES = [
         'active', 'inactive', 'pending', 'completed', 'cancelled', 'deleted',
         'published', 'draft', 'archived', 'suspended', 'approved', 'rejected',
         'enabled', 'disabled', 'open', 'closed', 'processing', 'shipped',
@@ -102,12 +102,7 @@ class InjectionPatternDetector
     public function hasNumericValueInQuotes(string $sql, array $parsedData = []): bool
     {
         if (!empty($parsedData['literals'])) {
-            foreach ($parsedData['literals'] as $value) {
-                if ($this->isSuspiciousNumericValue($value)) {
-                    return true;
-                }
-            }
-            return false;
+            return array_any($parsedData['literals'], fn($value) => $this->isSuspiciousNumericValue($value));
         }
 
         if (1 !== preg_match("/['\"]([^'\"]*\d+[^'\"]*)['\"]/", $sql, $matches)) {
@@ -191,12 +186,7 @@ class InjectionPatternDetector
     public function hasLiteralStringInWhere(string $sql, array $parsedData = []): bool
     {
         if (!empty($parsedData['literals'])) {
-            foreach ($parsedData['literals'] as $value) {
-                if ($this->isSuspiciousLiteralValue($value)) {
-                    return true;
-                }
-            }
-            return false;
+            return array_any($parsedData['literals'], fn($value) => $this->isSuspiciousLiteralValue($value));
         }
 
         if (1 !== preg_match("/WHERE\s+[^=]+\s*=\s*'([^'?:]+)'/i", $sql, $matches)) {
@@ -218,7 +208,7 @@ class InjectionPatternDetector
         if (!empty($parsedData['parsed'])) {
             $suspiciousLiterals = array_filter(
                 $parsedData['literals'] ?? [],
-                fn (string $v) => $this->isSuspiciousLiteralValue($v),
+                $this->isSuspiciousLiteralValue(...),
             );
 
             return count($suspiciousLiterals) >= 2;

@@ -42,7 +42,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
      * Entities that typically benefit from UUIDs.
      * These are often exposed in APIs or need distribution.
      */
-    private const UUID_CANDIDATE_ENTITIES = [
+    private const array UUID_CANDIDATE_ENTITIES = [
         'User',
         'Session',
         'Token',
@@ -51,14 +51,8 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 
@@ -159,14 +153,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function isUuidCandidate(ClassMetadata $classMetadata): bool
     {
         $shortName = $classMetadata->getReflectionClass()->getShortName();
-
-        foreach (self::UUID_CANDIDATE_ENTITIES as $candidate) {
-            if (str_contains($shortName, $candidate)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::UUID_CANDIDATE_ENTITIES, fn($candidate) => str_contains($shortName, (string) $candidate));
     }
 
     /**

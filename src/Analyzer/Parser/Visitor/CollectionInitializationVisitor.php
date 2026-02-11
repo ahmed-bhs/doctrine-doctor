@@ -53,11 +53,11 @@ final class CollectionInitializationVisitor extends NodeVisitorAbstract
     /**
      * Collection class names that we consider valid.
      */
-    private const COLLECTION_CLASSES = [
+    private const array COLLECTION_CLASSES = [
         'ArrayCollection',
         'Collection',
-        'Doctrine\Common\Collections\ArrayCollection',
-        'Doctrine\Common\Collections\Collection',
+        \Doctrine\Common\Collections\ArrayCollection::class,
+        \Doctrine\Common\Collections\Collection::class,
     ];
 
     private bool $hasInitialization = false;

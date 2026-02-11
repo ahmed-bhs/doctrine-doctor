@@ -92,9 +92,7 @@ final class IssueData
     public static function fromArray(array $data): self
     {
         $queries = array_map(
-            function ($queryData) {
-                return QueryData::fromArray($queryData);
-            },
+            QueryData::fromArray(...),
             $data['queries'] ?? [],
         );
 
