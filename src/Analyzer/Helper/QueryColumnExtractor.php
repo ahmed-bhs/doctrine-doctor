@@ -23,15 +23,10 @@ use Webmozart\Assert\Assert;
  * - More robust parsing (handles subqueries, complex SQL)
  * - Avoids false positives from SQL keywords
  */
-final class QueryColumnExtractor
+final readonly class QueryColumnExtractor
 {
-    private SqlStructureExtractor $sqlExtractor;
-
-    public function __construct(
-        ?SqlStructureExtractor $sqlExtractor = null,
-    ) {
-        // Dependency injection with fallback for backwards compatibility
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+    public function __construct(private ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
+    {
     }
 
     /**

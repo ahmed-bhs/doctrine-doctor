@@ -17,21 +17,18 @@ use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
  * Provides statistical analysis and grouping capabilities for IssueCollection.
  * Follows Single Responsibility Principle.
  */
-final class IssueStatistics
+final readonly class IssueStatistics
 {
     /**
      * Severity levels in order of importance.
      */
-    private const SEVERITY_ORDER = [
+    private const array SEVERITY_ORDER = [
         'critical' => 0,
         'warning'  => 1,
         'info'     => 2,
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
         private IssueCollection $issueCollection,
     ) {
     }

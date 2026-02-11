@@ -26,13 +26,13 @@ use ReflectionClass;
  * - Nested traits (traits using other traits)
  * - Initialization method calls (e.g., $this->initializeTranslationsCollection())
  */
-final class TraitCollectionInitializationDetector
+final readonly class TraitCollectionInitializationDetector
 {
-    private readonly PhpCodeParser $phpCodeParser;
+    private PhpCodeParser $phpCodeParser;
 
     public function __construct(
         ?PhpCodeParser $phpCodeParser = null,
-        private readonly ?LoggerInterface $logger = null,
+        private ?LoggerInterface $logger = null,
     ) {
         $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
     }

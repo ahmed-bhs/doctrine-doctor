@@ -21,12 +21,12 @@ use Doctrine\DBAL\Connection;
  * PostgreSQL-specific performance configuration analyzer.
  * Detects issues with shared_buffers, work_mem, and synchronous_commit.
  */
-final class PostgreSQLPerformanceConfigAnalyzer implements PerformanceConfigAnalyzerInterface
+final readonly class PostgreSQLPerformanceConfigAnalyzer implements PerformanceConfigAnalyzerInterface
 {
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        private Connection $connection,
+        private SuggestionFactory $suggestionFactory,
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 

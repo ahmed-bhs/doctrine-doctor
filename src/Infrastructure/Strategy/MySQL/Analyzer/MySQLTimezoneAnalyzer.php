@@ -23,12 +23,12 @@ use Doctrine\DBAL\Connection;
  * MySQL-specific timezone analyzer.
  * Detects mismatches between MySQL, PHP, and system timezone configuration.
  */
-final class MySQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
+final readonly class MySQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
 {
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        private Connection $connection,
+        private SuggestionFactory $suggestionFactory,
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 

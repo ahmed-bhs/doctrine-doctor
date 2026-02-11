@@ -50,7 +50,7 @@ class MissingEmbeddableOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\A
      * Each pattern defines field names that commonly appear together.
      * @var array<string, array{required: array<string>, optional: array<string>}>
      */
-    private const EMBEDDABLE_PATTERNS = [
+    private const array EMBEDDABLE_PATTERNS = [
         'Money' => [
             'required' => ['amount', 'currency'],
             'optional' => [],
@@ -86,18 +86,9 @@ class MissingEmbeddableOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\A
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 
@@ -140,9 +131,7 @@ class MissingEmbeddableOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\A
         $issues       = [];
         $fieldNames   = array_keys($classMetadata->fieldMappings);
         $fieldLowerMap = array_combine(
-            array_map(function ($fieldName) {
-                return strtolower($fieldName);
-            }, $fieldNames),
+            array_map(strtolower(...), $fieldNames),
             $fieldNames,
         );
 

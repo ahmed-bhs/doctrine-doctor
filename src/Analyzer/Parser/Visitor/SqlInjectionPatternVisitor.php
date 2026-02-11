@@ -50,13 +50,13 @@ use PhpParser\NodeVisitorAbstract;
 final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
 {
     /** @var array<string> SQL keywords to detect SQL queries */
-    private const SQL_KEYWORDS = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'FROM', 'WHERE'];
+    private const array SQL_KEYWORDS = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'FROM', 'WHERE'];
 
     /** @var array<string> SQL execution methods */
-    private const SQL_EXECUTION_METHODS = ['executeQuery', 'executeStatement', 'exec', 'query', 'prepare', 'createNativeQuery'];
+    private const array SQL_EXECUTION_METHODS = ['executeQuery', 'executeStatement', 'exec', 'query', 'prepare', 'createNativeQuery'];
 
     /** @var array<string> User input sources */
-    private const USER_INPUT_SOURCES = ['_GET', '_POST', '_REQUEST', '_COOKIE', '_SERVER'];
+    private const array USER_INPUT_SOURCES = ['_GET', '_POST', '_REQUEST', '_COOKIE', '_SERVER'];
 
     private bool $hasConcatenation = false;
 

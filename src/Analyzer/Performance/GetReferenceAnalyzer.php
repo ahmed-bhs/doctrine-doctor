@@ -28,28 +28,8 @@ use Webmozart\Assert\Assert;
 
 class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    private CachedSqlStructureExtractor $sqlExtractor;
-
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private int $threshold = 2,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
-        ?CachedSqlStructureExtractor $sqlExtractor = null,
-    ) {
-        $this->sqlExtractor = $sqlExtractor ?? new CachedSqlStructureExtractor();
+    public function __construct(private readonly IssueFactoryInterface $issueFactory, private readonly SuggestionFactory $suggestionFactory, private readonly int $threshold = 2, private readonly ?LoggerInterface $logger = null, private readonly ?CachedSqlStructureExtractor $sqlExtractor = new CachedSqlStructureExtractor())
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -97,9 +77,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                 }
 
                 // Calculate total count across all tables
-                $totalCount = array_sum(array_map(function ($queries) {
-                    return count($queries);
-                }, $simpleSelectQueries));
+                $totalCount = array_sum(array_map(count(...), $simpleSelectQueries));
 
                 $this->logger?->info('[GetReferenceAnalyzer] Summary', [
                     'examined' => $queriesExamined,
@@ -269,14 +247,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         ];
 
         Assert::isIterable($patterns, '$patterns must be iterable');
-
-        foreach ($patterns as $pattern) {
-            if (1 === preg_match($pattern, $sql)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($patterns, fn($pattern) => 1 === preg_match($pattern, $sql));
     }
 
     private function extractTableName(string $sql): ?string

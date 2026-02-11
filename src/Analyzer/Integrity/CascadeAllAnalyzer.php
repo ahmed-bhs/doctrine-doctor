@@ -44,7 +44,7 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
     /**
      * Entity patterns that are typically independent.
      */
-    private const INDEPENDENT_PATTERNS = [
+    private const array INDEPENDENT_PATTERNS = [
         'User', 'Customer', 'Account', 'Member', 'Client',
         'Company', 'Organization', 'Team', 'Department',
         'Product', 'Category', 'Brand', 'Tag',
@@ -52,18 +52,9 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -225,13 +216,7 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 
     private function isIndependentEntity(string $entityClass): bool
     {
-        foreach (self::INDEPENDENT_PATTERNS as $pattern) {
-            if (str_contains($entityClass, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::INDEPENDENT_PATTERNS, fn($pattern) => str_contains($entityClass, (string) $pattern));
     }
 
     private function getAssociationType(array|object $mapping): string

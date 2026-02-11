@@ -45,7 +45,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     /**
      * SQL reserved keywords that should be avoided or quoted.
      */
-    private const SQL_RESERVED_KEYWORDS = [
+    private const array SQL_RESERVED_KEYWORDS = [
         'user', 'order', 'group', 'table', 'key', 'index', 'select', 'insert',
         'update', 'delete', 'from', 'where', 'join', 'left', 'right', 'inner',
         'outer', 'on', 'as', 'and', 'or', 'not', 'null', 'like', 'in', 'between',
@@ -55,20 +55,11 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         'references', 'check', 'unique', 'transaction', 'commit', 'rollback',
     ];
 
-    /**
-     * @readonly
-     */
-    private NamingConventionHelper $helper;
+    private readonly NamingConventionHelper $helper;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
         $this->helper = new NamingConventionHelper();
     }
@@ -363,7 +354,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
             }
 
             // Check 1: Should start with idx_
-            if (!str_starts_with($indexName, 'idx_')) {
+            if (!str_starts_with((string) $indexName, 'idx_')) {
                 $columns       = $index->columns ?? [];
                 $suggestedName = 'idx_' . implode('_', $columns);
 
@@ -413,7 +404,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
             }
 
             // Check: Should start with uniq_
-            if (!str_starts_with($constraintName, 'uniq_')) {
+            if (!str_starts_with((string) $constraintName, 'uniq_')) {
                 $columns       = $constraint->columns ?? [];
                 $suggestedName = 'uniq_' . implode('_', $columns);
 

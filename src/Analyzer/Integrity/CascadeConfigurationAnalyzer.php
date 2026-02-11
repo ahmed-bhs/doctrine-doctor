@@ -33,28 +33,19 @@ use Webmozart\Assert\Assert;
 class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     // Entities that should typically have cascade persist/remove (composition)
-    private const TYPICAL_COMPOSED_PATTERNS = [
+    private const array TYPICAL_COMPOSED_PATTERNS = [
         'Item', 'Line', 'Detail', 'Entry', 'Component', 'Part',
     ];
 
     // Entities that should NOT have cascade remove (independent entities)
-    private const INDEPENDENT_ENTITY_PATTERNS = [
+    private const array INDEPENDENT_ENTITY_PATTERNS = [
         'User', 'Customer', 'Account', 'Company', 'Organization',
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -167,25 +158,12 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         }
 
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? '';
-
-        foreach (self::TYPICAL_COMPOSED_PATTERNS as $pattern) {
-            if (false !== stripos((string) $targetEntity, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::TYPICAL_COMPOSED_PATTERNS, fn($pattern) => false !== stripos((string) $targetEntity, (string) $pattern));
     }
 
     private function isIndependentEntity(string $entityClass): bool
     {
-        foreach (self::INDEPENDENT_ENTITY_PATTERNS as $pattern) {
-            if (false !== stripos($entityClass, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::INDEPENDENT_ENTITY_PATTERNS, fn($pattern) => false !== stripos($entityClass, (string) $pattern));
     }
 
     private function checkCascadeAll(string $entityClass, string $fieldName, array|object $mapping): IntegrityIssue

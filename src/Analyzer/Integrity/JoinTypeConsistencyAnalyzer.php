@@ -43,27 +43,15 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      *
      * This specific pattern is kept as regex because it's a very specific Doctrine internal pattern.
      */
-    private const DOCTRINE_PAGINATOR_PATTERN = '/SELECT\s+COUNT\(\*\).*?FROM\s*\(\s*SELECT\s+DISTINCT.*?dctrn_(result|table)/is';
-
-    private SqlStructureExtractor $sqlExtractor;
+    private const string DOCTRINE_PAGINATOR_PATTERN = '/SELECT\s+COUNT\(\*\).*?FROM\s*\(\s*SELECT\s+DISTINCT.*?dctrn_(result|table)/is';
 
     /**
      * @var array<string, ClassMetadata>|null Cached metadata map
      */
     private ?array $metadataMapCache = null;
 
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        ?SqlStructureExtractor $sqlExtractor = null,
-    ) {
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly SuggestionFactory $suggestionFactory, private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

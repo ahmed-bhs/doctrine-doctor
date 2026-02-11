@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 
 final class InsecureRandomVisitorTest extends TestCase
 {
-    private const INSECURE_FUNCTIONS = ['rand', 'mt_rand', 'uniqid', 'time', 'microtime'];
+    private const array INSECURE_FUNCTIONS = ['rand', 'mt_rand', 'uniqid', 'time', 'microtime'];
 
     public function test_detects_direct_rand_call(): void
     {
@@ -203,7 +203,7 @@ final class InsecureRandomVisitorTest extends TestCase
      */
     private function detectInsecureCalls(string $code): array
     {
-        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $parser = new ParserFactory()->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
         self::assertIsArray($ast, 'Parser should return an array');
 

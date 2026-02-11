@@ -42,6 +42,7 @@ class EntityManagerMetadataDecorator extends EntityManagerDecorator
      *
      * @phpstan-ignore-next-line Return type intentionally more specific than interface
      */
+    #[\Override]
     public function getMetadataFactory(): \Doctrine\ORM\Mapping\ClassMetadataFactory
     {
         if (null === $this->filteredFactory) {

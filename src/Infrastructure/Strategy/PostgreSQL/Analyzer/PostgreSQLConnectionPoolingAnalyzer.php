@@ -21,14 +21,14 @@ use Doctrine\DBAL\Connection;
  * PostgreSQL-specific connection pooling analyzer.
  * Detects issues with max_connections, timeouts, and idle connections.
  */
-final class PostgreSQLConnectionPoolingAnalyzer implements ConnectionPoolingAnalyzerInterface
+final readonly class PostgreSQLConnectionPoolingAnalyzer implements ConnectionPoolingAnalyzerInterface
 {
-    private const RECOMMENDED_MIN_CONNECTIONS = 100;
+    private const int RECOMMENDED_MIN_CONNECTIONS = 100;
 
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        private Connection $connection,
+        private SuggestionFactory $suggestionFactory,
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 

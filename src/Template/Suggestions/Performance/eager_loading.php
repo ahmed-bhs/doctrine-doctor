@@ -42,7 +42,7 @@ ob_start();
     ->getResult();
 
 foreach ($entities as $entity) {
-    $entity->get<?php echo ucfirst($relation); ?>(); // Already loaded
+    $entity->get<?php echo ucfirst((string) $relation); ?>(); // Already loaded
 }
 // 1 query instead of <?php echo $queryCount; ?></code></pre>
     </div>

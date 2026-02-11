@@ -21,18 +21,9 @@ use Doctrine\DBAL\ParameterType;
 class QueryLoggingStatement implements Statement
 {
     public function __construct(
-        /**
-         * @readonly
-         */
-        private Statement $wrappedStatement,
-        /**
-         * @readonly
-         */
-        private string $sql,
-        /**
-         * @readonly
-         */
-        private SimpleQueryLogger $simpleQueryLogger,
+        private readonly Statement $wrappedStatement,
+        private readonly string $sql,
+        private readonly SimpleQueryLogger $simpleQueryLogger,
     ) {
     }
 

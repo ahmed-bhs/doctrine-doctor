@@ -36,18 +36,9 @@ use Symfony\Component\Yaml\Yaml;
 class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     public function __construct(
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private string $projectDir,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly string $projectDir,
+        private readonly ?LoggerInterface $logger = null,
     ) {
     }
 

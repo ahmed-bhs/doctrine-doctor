@@ -151,7 +151,7 @@ final class PropertyTypeMismatchAnalyzerTest extends TestCase
 
         $descriptionIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'description'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'description'),
         );
 
         self::assertCount(0, $descriptionIssues, 'Nullable fields should accept NULL');
@@ -251,7 +251,7 @@ final class PropertyTypeMismatchAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $priceIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'price'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'price'),
         );
 
         self::assertCount(0, $priceIssues, 'String type for decimal columns should be accepted');
@@ -286,7 +286,7 @@ final class PropertyTypeMismatchAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $quantityIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'quantity'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'quantity'),
         );
 
         self::assertCount(0, $quantityIssues, 'Integer type for integer columns should be accepted');
@@ -321,8 +321,8 @@ final class PropertyTypeMismatchAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $stringIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'name') ||
-                          str_contains($issue->getDescription(), 'sku'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'name') ||
+                          str_contains((string) $issue->getDescription(), 'sku'),
         );
 
         self::assertCount(0, $stringIssues, 'String type for string columns should be accepted');

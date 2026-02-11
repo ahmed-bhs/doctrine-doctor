@@ -53,9 +53,9 @@ Assert::isIterable($entities, '$entities must be iterable');
 foreach ($entities as $entity) {
     <?php if ($hasLimit): ?>
     // Counting or partial access still loads entire collection
-    echo count($entity->get<?php echo ucfirst($relation); ?>()); // Full collection loaded!
+    echo count($entity->get<?php echo ucfirst((string) $relation); ?>()); // Full collection loaded!
     <?php else: ?>
-    foreach ($entity->get<?php echo ucfirst($relation); ?>() as $item) { // Collection loaded here!
+    foreach ($entity->get<?php echo ucfirst((string) $relation); ?>() as $item) { // Collection loaded here!
         // Process items...
     }
     <?php endif; ?>
@@ -78,13 +78,13 @@ Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
     // COUNT query instead of loading all items!
-    echo count($entity->get<?php echo ucfirst($relation); ?>());
+    echo count($entity->get<?php echo ucfirst((string) $relation); ?>());
 
     // LIMIT query instead of loading all items!
-    $first3 = $entity->get<?php echo ucfirst($relation); ?>()->slice(0, 3);
+    $first3 = $entity->get<?php echo ucfirst((string) $relation); ?>()->slice(0, 3);
 
     // EXISTS query instead of loading all items!
-    if ($entity->get<?php echo ucfirst($relation); ?>()->contains($someItem)) {
+    if ($entity->get<?php echo ucfirst((string) $relation); ?>()->contains($someItem)) {
         // ...
     }
 }
@@ -100,8 +100,8 @@ use Doctrine\ORM\Mapping as ORM;
 private Collection $<?php echo $e($relation); ?>;
 
 // Optimized for:
-$count = $entity->get<?php echo ucfirst($relation); ?>()->count(); // COUNT query only
-$first5 = $entity->get<?php echo ucfirst($relation); ?>()->slice(0, 5); // LIMIT query only</code></pre>
+$count = $entity->get<?php echo ucfirst((string) $relation); ?>()->count(); // COUNT query only
+$first5 = $entity->get<?php echo ucfirst((string) $relation); ?>()->slice(0, 5); // LIMIT query only</code></pre>
     </div>
     <?php endif; ?>
 
@@ -119,7 +119,7 @@ $entities = $entityManager
 Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
-    foreach ($entity->get<?php echo ucfirst($relation); ?>() as $item) { // Already loaded!
+    foreach ($entity->get<?php echo ucfirst((string) $relation); ?>() as $item) { // Already loaded!
         // Process items...
     }
 }
@@ -132,7 +132,7 @@ foreach ($entities as $entity) {
 /**
  * @return array<mixed>
  */
-public function findAllWith<?php echo ucfirst($relation); ?>(): array
+public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
 {
     return $this->createQueryBuilder('e')
         ->leftJoin('e.<?php echo $e($relation); ?>', 'r')

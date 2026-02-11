@@ -45,21 +45,12 @@ use Webmozart\Assert\Assert;
  */
 class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    private PhpCodeParser $phpCodeParser;
+    private readonly PhpCodeParser $phpCodeParser;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly ?LoggerInterface $logger = null,
         ?PhpCodeParser $phpCodeParser = null,
     ) {
         $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
@@ -273,14 +264,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         ];
 
         Assert::isIterable($entityManagerTypes, '$entityManagerTypes must be iterable');
-
-        foreach ($entityManagerTypes as $entityManagerType) {
-            if (str_contains($typeName, $entityManagerType)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($entityManagerTypes, fn($entityManagerType) => str_contains($typeName, (string) $entityManagerType));
     }
 
     private function isEntityManagerPropertyName(string $propertyName): bool

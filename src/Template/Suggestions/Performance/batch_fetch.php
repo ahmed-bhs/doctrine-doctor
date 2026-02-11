@@ -46,7 +46,7 @@ $entities = $repository->findAll();
 Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
-    echo $entity->get<?php echo ucfirst($relation); ?>()->getName(); // Proxy initialized here!
+    echo $entity->get<?php echo ucfirst((string) $relation); ?>()->getName(); // Proxy initialized here!
 }
 // Result: <?php echo $queryCount; ?> queries instead of 1</code></pre>
     </div>
@@ -66,7 +66,7 @@ $entities = $repository->findAll();
 Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
-    echo $entity->get<?php echo ucfirst($relation); ?>()->getName(); // Batched!
+    echo $entity->get<?php echo ucfirst((string) $relation); ?>()->getName(); // Batched!
 }
 // Result: Approx <?php echo (int) ceil($queryCount / 10); ?> queries (10 proxies per query)</code></pre>
     </div>
@@ -85,7 +85,7 @@ $entities = $entityManager
 Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
-    echo $entity->get<?php echo ucfirst($relation); ?>()->getName(); // Already loaded!
+    echo $entity->get<?php echo ucfirst((string) $relation); ?>()->getName(); // Already loaded!
 }
 // Result: 1 query total</code></pre>
     </div>
@@ -96,7 +96,7 @@ foreach ($entities as $entity) {
 /**
  * @return array<mixed>
  */
-public function findAllWith<?php echo ucfirst($relation); ?>(): array
+public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
 {
     return $this->createQueryBuilder('e')
         ->leftJoin('e.<?php echo $e($relation); ?>', 'r')

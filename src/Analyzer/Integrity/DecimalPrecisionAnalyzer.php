@@ -36,7 +36,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     /**
      * Recommended configurations for common decimal use cases.
      */
-    private const RECOMMENDED_CONFIGS = [
+    private const array RECOMMENDED_CONFIGS = [
         'money'      => ['precision' => 19, 'scale' => 4], // Supports multi-currency with high precision
         'percentage' => ['precision' => 5, 'scale' => 2], // 0.00 to 100.00
         'quantity'   => ['precision' => 10, 'scale' => 2], // Product quantities
@@ -44,18 +44,9 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 
@@ -222,14 +213,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $fieldLower    = strtolower($fieldName);
 
         Assert::isIterable($moneyPatterns, '$moneyPatterns must be iterable');
-
-        foreach ($moneyPatterns as $moneyPattern) {
-            if (str_contains($fieldLower, $moneyPattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($moneyPatterns, fn($moneyPattern) => str_contains($fieldLower, (string) $moneyPattern));
     }
 
     private function isPercentageField(string $fieldName): bool
@@ -238,14 +222,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $fieldLower         = strtolower($fieldName);
 
         Assert::isIterable($percentagePatterns, '$percentagePatterns must be iterable');
-
-        foreach ($percentagePatterns as $percentagePattern) {
-            if (str_contains($fieldLower, $percentagePattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($percentagePatterns, fn($percentagePattern) => str_contains($fieldLower, (string) $percentagePattern));
     }
 
     private function createInsufficientPrecisionIssue(

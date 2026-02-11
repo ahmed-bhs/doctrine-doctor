@@ -39,16 +39,13 @@ use Webmozart\Assert\Assert;
 class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     /** @var int Threshold for flush count in a single transaction */
-    private const MAX_FLUSH_PER_TRANSACTION = 1;
+    private const int MAX_FLUSH_PER_TRANSACTION = 1;
 
     /** @var float Maximum transaction duration in seconds */
-    private const MAX_TRANSACTION_DURATION = 1.0;
+    private const float MAX_TRANSACTION_DURATION = 1.0;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
+        private readonly IssueFactoryInterface $issueFactory,
     ) {
     }
 

@@ -67,7 +67,7 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $queryCacheIssues = array_filter(
             $issues,
             fn ($issue) =>
-            str_contains($issue->getTitle(), 'Query Cache'),
+            str_contains((string) $issue->getTitle(), 'Query Cache'),
         );
 
         self::assertCount(1, $queryCacheIssues, 'Should detect query cache enabled');
@@ -103,7 +103,7 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $queryCacheIssues = array_filter(
             $issues,
             fn ($issue) =>
-            str_contains($issue->getTitle(), 'Query Cache'),
+            str_contains((string) $issue->getTitle(), 'Query Cache'),
         );
 
         self::assertCount(0, $queryCacheIssues, 'Should not detect query cache when OFF');
@@ -135,7 +135,7 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $flushLogIssues = array_filter(
             $issues,
             fn ($issue) =>
-            str_contains($issue->getTitle(), 'InnoDB full ACID'),
+            str_contains((string) $issue->getTitle(), 'InnoDB full ACID'),
         );
 
         self::assertCount(1, $flushLogIssues, 'Should detect innodb_flush_log_at_trx_commit = 1');
@@ -169,7 +169,7 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $binlogIssues = array_filter(
             $issues,
             fn ($issue) =>
-            str_contains($issue->getTitle(), 'Binary logging'),
+            str_contains((string) $issue->getTitle(), 'Binary logging'),
         );
 
         self::assertCount(1, $binlogIssues, 'Should detect binary logging enabled');
@@ -203,7 +203,7 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $bufferPoolIssues = array_filter(
             $issues,
             fn ($issue) =>
-            str_contains($issue->getTitle(), 'buffer pool'),
+            str_contains((string) $issue->getTitle(), 'buffer pool'),
         );
 
         self::assertCount(1, $bufferPoolIssues, 'Should detect buffer pool < 128MB');
@@ -237,7 +237,7 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         $bufferPoolIssues = array_filter(
             $issues,
             fn ($issue) =>
-            str_contains($issue->getTitle(), 'buffer pool'),
+            str_contains((string) $issue->getTitle(), 'buffer pool'),
         );
 
         self::assertCount(1, $bufferPoolIssues, 'Should detect buffer pool < 128MB');

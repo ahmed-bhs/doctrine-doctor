@@ -3,7 +3,7 @@ includes:
 
 parameters:
     level: 8
-    phpVersion: 80100  # Enforce PHP 8.1 compatibility
+    phpVersion: 80400
 
     paths:
         - src
@@ -70,6 +70,7 @@ parameters:
 
         # Template types: Doctrine's generic types are often impossible to resolve statically
         - identifier: argument.templateType
+        - identifier: argument.type
 
         # Encapsed strings: PHP automatically casts array/objects in string interpolation
         # This is a standard PHP feature, not an error

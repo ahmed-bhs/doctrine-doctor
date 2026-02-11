@@ -58,7 +58,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     /**
      * Common field names for soft delete.
      */
-    private const SOFT_DELETE_FIELD_PATTERNS = [
+    private const array SOFT_DELETE_FIELD_PATTERNS = [
         'deletedAt',
         'deleted_at',
         'deleteDate',
@@ -68,18 +68,9 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 

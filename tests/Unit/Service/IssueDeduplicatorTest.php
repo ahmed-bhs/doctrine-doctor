@@ -379,22 +379,10 @@ final class IssueDeduplicatorTest extends TestCase
             private array $duplicatedIssues = [];
 
             public function __construct(
-                /**
-                 * @readonly
-                 */
-                private string $title,
-                /**
-                 * @readonly
-                 */
-                private string $description,
-                /**
-                 * @readonly
-                 */
-                private Severity $severity,
-                /**
-                 * @readonly
-                 */
-                private array $queries,
+                private readonly string $title,
+                private readonly string $description,
+                private readonly Severity $severity,
+                private readonly array $queries,
             ) {
             }
 
