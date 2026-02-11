@@ -127,6 +127,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                                 'entity' => 'Entity',
                                 'relation' => 'relation',
                                 'query_count' => $totalCount,
+                                'trigger_location' => null,
                             ],
                             suggestionMetadata: new SuggestionMetadata(
                                 type: SuggestionType::performance(),
