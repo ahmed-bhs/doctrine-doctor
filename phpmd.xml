@@ -112,7 +112,8 @@
 
     <rule ref="rulesets/cleancode.xml/DuplicatedArrayKey"/>
     <rule ref="rulesets/cleancode.xml/ErrorControlOperator"/>
-    <rule ref="rulesets/cleancode.xml/MissingImport"/>
+    <!-- Disabled: false positives on native PHP attributes like #[\Override] in PHPMD 3.x -->
+    <!-- <rule ref="rulesets/cleancode.xml/MissingImport"/> -->
     <rule ref="rulesets/cleancode.xml/UndefinedVariable"/>
     <rule ref="rulesets/cleancode.xml/IfStatementAssignment"/>
 
