@@ -469,14 +469,8 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             }
         };
 
-        $memoryLimit = self::getMemoryLimitBytes();
         $allIssues = [];
-        $originalLimit = ini_get('memory_limit');
-
-        $safeLimit = $memoryLimit + (128 * 1048576);
-        ini_set('memory_limit', (string) $safeLimit);
-
-        $memoryThreshold = (int) ($memoryLimit * 0.70);
+        $memoryThreshold = (int) (self::getMemoryLimitBytes() * 0.70);
 
         foreach ($analyzers as $analyzer) {
             if (memory_get_usage(true) >= $memoryThreshold) {
@@ -503,8 +497,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                 $dataCollectorLogger->logErrorIfDebugEnabled('Analyzer failed: ' . $analyzer::class, $e);
             }
         }
-
-        ini_set('memory_limit', $originalLimit ?: '512M');
 
         $issuesCollection = IssueCollection::fromArray($allIssues);
         unset($allIssues);
