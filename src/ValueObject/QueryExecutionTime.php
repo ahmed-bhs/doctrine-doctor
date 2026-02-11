@@ -18,12 +18,9 @@ use Webmozart\Assert\Assert;
  * Value Object representing query execution time.
  * Handles time conversions and comparisons.
  */
-final class QueryExecutionTime implements \Stringable
+final readonly class QueryExecutionTime implements \Stringable
 {
     private function __construct(
-        /**
-         * @readonly
-         */
         private float $milliseconds,
     ) {
         Assert::greaterThanEq($milliseconds, 0, 'Execution time cannot be negative, got %s');

@@ -36,20 +36,8 @@ use Webmozart\Assert\Assert;
  */
 class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    private QueryBuilderPatternDetector $patternDetector;
-
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        ?QueryBuilderPatternDetector $patternDetector = null,
-    ) {
-        $this->patternDetector = $patternDetector ?? new QueryBuilderPatternDetector();
+    public function __construct(private readonly IssueFactoryInterface $issueFactory, private readonly SuggestionFactory $suggestionFactory, private readonly ?QueryBuilderPatternDetector $patternDetector = new QueryBuilderPatternDetector())
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

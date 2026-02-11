@@ -123,6 +123,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     /**
      * Check if SQL is a SELECT query (cached).
      */
+    #[\Override]
     public function isSelectQuery(string $sql): bool
     {
         $key = md5($sql);
@@ -144,6 +145,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
      *
      * @return array{table: string, foreignKey: string}|null
      */
+    #[\Override]
     public function detectNPlusOnePattern(string $sql): ?array
     {
         $key = md5($sql);
@@ -163,6 +165,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     /**
      * Detect lazy loading pattern (cached).
      */
+    #[\Override]
     public function detectLazyLoadingPattern(string $sql): ?string
     {
         $key = md5($sql);
@@ -182,6 +185,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     /**
      * Detect partial collection load (cached).
      */
+    #[\Override]
     public function detectPartialCollectionLoad(string $sql): bool
     {
         $key = md5($sql);
@@ -203,6 +207,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
      *
      * @return array{table: string, foreignKey: string}|null
      */
+    #[\Override]
     public function detectNPlusOneFromJoin(string $sql): ?array
     {
         $key = md5($sql);
@@ -222,6 +227,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     /**
      * Normalize SQL query (cached).
      */
+    #[\Override]
     public function normalizeQuery(string $sql): string
     {
         $key = md5($sql);
@@ -241,6 +247,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     /**
      * Check if SQL has subquery (cached).
      */
+    #[\Override]
     public function hasSubquery(string $sql): bool
     {
         $key = md5($sql);
@@ -260,6 +267,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     /**
      * Check if SQL has ORDER BY (cached).
      */
+    #[\Override]
     public function hasOrderBy(string $sql): bool
     {
         $key = md5($sql);
@@ -281,6 +289,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
      *
      * @return array<string>
      */
+    #[\Override]
     public function extractOrderByColumnNames(string $sql): array
     {
         $key = md5($sql);
@@ -300,6 +309,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     /**
      * Check if SQL has GROUP BY (cached).
      */
+    #[\Override]
     public function hasGroupBy(string $sql): bool
     {
         $key = md5($sql);
@@ -321,6 +331,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
      *
      * @return array<string>
      */
+    #[\Override]
     public function extractGroupByColumns(string $sql): array
     {
         $key = md5($sql);
@@ -340,6 +351,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     /**
      * Check if SQL has leading wildcard LIKE (cached).
      */
+    #[\Override]
     public function hasLeadingWildcardLike(string $sql): bool
     {
         $key = md5($sql);
@@ -359,6 +371,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     /**
      * Check if SQL has DISTINCT (cached).
      */
+    #[\Override]
     public function hasDistinct(string $sql): bool
     {
         $key = md5($sql);
@@ -378,6 +391,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     /**
      * Check if SQL has JOINs (cached).
      */
+    #[\Override]
     public function hasJoins(string $sql): bool
     {
         $key = md5($sql);
@@ -397,6 +411,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     /**
      * Check if SQL has complex WHERE conditions (cached).
      */
+    #[\Override]
     public function hasComplexWhereConditions(string $sql): bool
     {
         $key = md5($sql);

@@ -97,9 +97,9 @@ final class CollectionEmptyAccessAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $collectionIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Uninitialized Collection')
-                && str_contains($issue->getTitle(), 'BlogPostWithoutCollectionInit')
-                && str_contains($issue->getTitle(), '$comments'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Uninitialized Collection')
+                && str_contains((string) $issue->getTitle(), 'BlogPostWithoutCollectionInit')
+                && str_contains((string) $issue->getTitle(), '$comments'),
         );
 
         self::assertNotEmpty($collectionIssues, 'Should detect uninitialized collections');
@@ -139,9 +139,9 @@ final class CollectionEmptyAccessAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $goodEntityIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'BlogPost')
-                && !str_contains($issue->getTitle(), 'WithoutCollectionInit')
-                && str_contains($issue->getTitle(), 'Uninitialized'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'BlogPost')
+                && !str_contains((string) $issue->getTitle(), 'WithoutCollectionInit')
+                && str_contains((string) $issue->getTitle(), 'Uninitialized'),
         );
 
         self::assertCount(0, $goodEntityIssues, 'Should NOT flag correctly initialized collections');
@@ -174,7 +174,7 @@ final class CollectionEmptyAccessAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $collectionIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Uninitialized Collection'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Uninitialized Collection'),
         );
 
         self::assertNotEmpty($collectionIssues, 'Should have issues to check severity');
@@ -214,7 +214,7 @@ final class CollectionEmptyAccessAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $collectionIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Uninitialized Collection'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Uninitialized Collection'),
         );
 
         if (!empty($collectionIssues)) {
@@ -250,7 +250,7 @@ final class CollectionEmptyAccessAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $productIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Product'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Product'),
         );
 
         self::assertCount(0, $productIssues, 'Should NOT flag entity without collections');
@@ -299,7 +299,7 @@ final class CollectionEmptyAccessAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $postIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'BlogPostWithoutCollectionInit'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'BlogPostWithoutCollectionInit'),
         );
 
         self::assertGreaterThanOrEqual(1, count($postIssues), 'Should detect at least one uninitialized collection');
@@ -383,7 +383,7 @@ final class CollectionEmptyAccessAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $collectionIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Uninitialized Collection'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Uninitialized Collection'),
         );
 
         self::assertGreaterThanOrEqual(2, count($collectionIssues), 'Should detect uninitialized collections in multiple entities');
@@ -416,7 +416,7 @@ final class CollectionEmptyAccessAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $collectionIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Uninitialized Collection'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Uninitialized Collection'),
         );
 
         if (!empty($collectionIssues)) {

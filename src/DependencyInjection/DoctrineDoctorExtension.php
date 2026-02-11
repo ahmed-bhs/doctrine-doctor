@@ -60,6 +60,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         }
     }
 
+    #[\Override]
     public function getAlias(): string
     {
         return 'doctrine_doctor';

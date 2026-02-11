@@ -40,8 +40,8 @@ ob_start();
     </div>
 
     <div class="entities-lists">
-        <p><strong>UUID entities:</strong> <?php if (!empty($uuid_entities)): ?><?php foreach (array_slice($uuid_entities, 0, 3) as $entity): ?><code><?= htmlspecialchars($entity) ?></code> <?php endforeach; ?><?php if (count($uuid_entities) > 3): ?>... +<?= count($uuid_entities) - 3 ?><?php endif; ?><?php endif; ?></p>
-        <p><strong>Auto-increment:</strong> <?php if (!empty($auto_increment_entities)): ?><?php foreach (array_slice($auto_increment_entities, 0, 3) as $entity): ?><code><?= htmlspecialchars($entity) ?></code> <?php endforeach; ?><?php if (count($auto_increment_entities) > 3): ?>... +<?= count($auto_increment_entities) - 3 ?><?php endif; ?><?php endif; ?></p>
+        <p><strong>UUID entities:</strong> <?php if (!empty($uuid_entities)): ?><?php foreach (array_slice($uuid_entities, 0, 3) as $entity): ?><code><?= htmlspecialchars((string) $entity) ?></code> <?php endforeach; ?><?php if (count($uuid_entities) > 3): ?>... +<?= count($uuid_entities) - 3 ?><?php endif; ?><?php endif; ?></p>
+        <p><strong>Auto-increment:</strong> <?php if (!empty($auto_increment_entities)): ?><?php foreach (array_slice($auto_increment_entities, 0, 3) as $entity): ?><code><?= htmlspecialchars((string) $entity) ?></code> <?php endforeach; ?><?php if (count($auto_increment_entities) > 3): ?>... +<?= count($auto_increment_entities) - 3 ?><?php endif; ?><?php endif; ?></p>
     </div>
 </div>
 

@@ -43,7 +43,7 @@ final class SensitiveDataExposureVisitor extends NodeVisitorAbstract
     /**
      * Serialization functions that expose entire object.
      */
-    private const SERIALIZATION_FUNCTIONS = ['json_encode', 'serialize'];
+    private const array SERIALIZATION_FUNCTIONS = ['json_encode', 'serialize'];
 
     private bool $exposesEntireObject = false;
 

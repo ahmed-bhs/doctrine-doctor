@@ -50,18 +50,9 @@ use Webmozart\Assert\Assert;
 class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     public function __construct(
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private SqlStructureExtractor $sqlExtractor,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SqlStructureExtractor $sqlExtractor,
     ) {
     }
 

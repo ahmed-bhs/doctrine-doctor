@@ -73,9 +73,9 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $timestampIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'timestamp') ||
-                          str_contains(strtolower($issue->getTitle()), 'createdat') ||
-                          str_contains(strtolower($issue->getTitle()), 'updatedat'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'timestamp') ||
+                          str_contains(strtolower((string) $issue->getTitle()), 'createdat') ||
+                          str_contains(strtolower((string) $issue->getTitle()), 'updatedat'),
         );
 
         self::assertNotEmpty($timestampIssues, 'Should detect timestamp issues');
@@ -102,8 +102,8 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $mutableIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'mutable') &&
-                          str_contains($issue->getTitle(), 'ProductWithBadTimestamps'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'mutable') &&
+                          str_contains((string) $issue->getTitle(), 'ProductWithBadTimestamps'),
         );
 
         self::assertNotEmpty($mutableIssues, 'Should detect mutable DateTime in timestamp fields');
@@ -129,8 +129,8 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $nullableIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'nullable') &&
-                          str_contains(strtolower($issue->getTitle()), 'creation'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'nullable') &&
+                          str_contains(strtolower((string) $issue->getTitle()), 'creation'),
         );
 
         self::assertNotEmpty($nullableIssues, 'Should detect nullable createdAt fields');
@@ -155,8 +155,8 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $setterIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'setter') &&
-                          str_contains($issue->getTitle(), 'ProductWithBadTimestamps'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'setter') &&
+                          str_contains((string) $issue->getTitle(), 'ProductWithBadTimestamps'),
         );
 
         self::assertNotEmpty($setterIssues, 'Should detect public setters on timestamp fields');
@@ -185,8 +185,8 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $timezoneIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'inconsistent') &&
-                          str_contains(strtolower($issue->getTitle()), 'timezone'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'inconsistent') &&
+                          str_contains(strtolower((string) $issue->getTitle()), 'timezone'),
         );
 
         self::assertCount(1, $timezoneIssues, 'Should detect exactly ONE timezone inconsistency issue');
@@ -215,7 +215,7 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $timezoneIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'timezone'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'timezone'),
         );
 
         // The fixture set contains mixed datetime/datetimetz types, so we expect a warning
@@ -235,7 +235,7 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $goodEntityIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'ProductWithGoodTimestamps'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'ProductWithGoodTimestamps'),
         );
 
         self::assertCount(0, $goodEntityIssues, 'Should NOT flag correct timestamp configuration');
@@ -254,7 +254,7 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $timestampIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'ProductWithBadTimestamps'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'ProductWithBadTimestamps'),
         );
 
         if (!empty($timestampIssues)) {
@@ -281,8 +281,8 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $userIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'User') &&
-                          str_contains(strtolower($issue->getTitle()), 'timestamp'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'User') &&
+                          str_contains(strtolower((string) $issue->getTitle()), 'timestamp'),
         );
 
         self::assertCount(0, $userIssues, 'Should NOT flag entity without timestamp fields');
@@ -301,7 +301,7 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $articleIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'ProductWithBadTimestamps'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'ProductWithBadTimestamps'),
         );
 
         self::assertGreaterThanOrEqual(2, count($articleIssues), 'Should detect multiple issues on ProductWithBadTimestamps');
@@ -371,7 +371,7 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         // Mutable DateTime should be WARNING
         $mutableIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'mutable'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'mutable'),
         );
         if (!empty($mutableIssues)) {
             $issue = reset($mutableIssues);
@@ -382,7 +382,7 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         // Nullable createdAt should be WARNING
         $nullableIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'nullable'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'nullable'),
         );
         if (!empty($nullableIssues)) {
             $issue = reset($nullableIssues);
@@ -393,7 +393,7 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         // Public setter should be INFO
         $setterIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'setter'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'setter'),
         );
         if (!empty($setterIssues)) {
             $issue = reset($setterIssues);
@@ -404,8 +404,8 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         // Timezone inconsistency should be WARNING (only if there's a mix)
         $timezoneIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'inconsistent') &&
-                          str_contains(strtolower($issue->getTitle()), 'timezone'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'inconsistent') &&
+                          str_contains(strtolower((string) $issue->getTitle()), 'timezone'),
         );
         if (!empty($timezoneIssues)) {
             $issue = reset($timezoneIssues);
@@ -427,7 +427,7 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $timestampIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'ProductWithBadTimestamps'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'ProductWithBadTimestamps'),
         );
 
         if (!empty($timestampIssues)) {

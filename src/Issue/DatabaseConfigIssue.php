@@ -26,6 +26,7 @@ class DatabaseConfigIssue extends AbstractIssue
         ], $data));
     }
 
+    #[\Override]
     public function getType(): string
     {
         return 'Database Config';

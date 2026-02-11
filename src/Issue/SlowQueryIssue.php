@@ -30,6 +30,7 @@ class SlowQueryIssue extends AbstractIssue
         ], $data));
     }
 
+    #[\Override]
     public function getType(): string
     {
         return 'Slow Query';

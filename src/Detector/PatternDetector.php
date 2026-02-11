@@ -16,10 +16,7 @@ use Webmozart\Assert\Assert;
 class PatternDetector implements DetectorInterface
 {
     public function __construct(
-        /**
-         * @readonly
-         */
-        private string $pattern,
+        private readonly string $pattern,
     ) {
     }
 

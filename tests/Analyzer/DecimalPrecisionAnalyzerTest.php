@@ -50,14 +50,8 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
 
         // Assert: Should detect missing precision/scale
         $issuesArray = $issues->toArray();
-        $missingPrecisionIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'priceWithoutPrecision') &&
-                str_contains($issue->getDescription(), 'without explicit precision/scale')) {
-                $missingPrecisionIssue = $issue;
-                break;
-            }
-        }
+        $missingPrecisionIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'priceWithoutPrecision') &&
+            str_contains((string) $issue->getDescription(), 'without explicit precision/scale'));
 
         self::assertNotNull($missingPrecisionIssue, 'Should detect missing precision/scale');
         self::assertEquals('configuration', $missingPrecisionIssue->getCategory());
@@ -76,14 +70,8 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
 
         // Assert: Should detect insufficient precision for money
         $issuesArray = $issues->toArray();
-        $insufficientPrecisionIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'amount') &&
-                str_contains($issue->getDescription(), 'insufficient')) {
-                $insufficientPrecisionIssue = $issue;
-                break;
-            }
-        }
+        $insufficientPrecisionIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'amount') &&
+            str_contains((string) $issue->getDescription(), 'insufficient'));
 
         self::assertNotNull($insufficientPrecisionIssue, 'Should detect insufficient precision for money field');
         self::assertEquals('configuration', $insufficientPrecisionIssue->getCategory());
@@ -102,14 +90,8 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
 
         // Assert: Should detect unusual scale
         $issuesArray = $issues->toArray();
-        $unusualScaleIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'cost') &&
-                str_contains($issue->getDescription(), 'unusual')) {
-                $unusualScaleIssue = $issue;
-                break;
-            }
-        }
+        $unusualScaleIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'cost') &&
+            str_contains((string) $issue->getDescription(), 'unusual'));
 
         self::assertNotNull($unusualScaleIssue, 'Should detect unusual scale for money field');
         self::assertEquals('configuration', $unusualScaleIssue->getCategory());
@@ -128,14 +110,8 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
 
         // Assert: Should detect excessive precision
         $issuesArray = $issues->toArray();
-        $excessivePrecisionIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'measurementValue') &&
-                str_contains($issue->getDescription(), 'very high')) {
-                $excessivePrecisionIssue = $issue;
-                break;
-            }
-        }
+        $excessivePrecisionIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'measurementValue') &&
+            str_contains((string) $issue->getDescription(), 'very high'));
 
         self::assertNotNull($excessivePrecisionIssue, 'Should detect excessive precision');
         self::assertEquals('configuration', $excessivePrecisionIssue->getCategory());
@@ -154,14 +130,8 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
 
         // Assert: Should detect insufficient precision for percentage
         $issuesArray = $issues->toArray();
-        $percentageIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'discountPercentage') &&
-                str_contains($issue->getDescription(), 'insufficient')) {
-                $percentageIssue = $issue;
-                break;
-            }
-        }
+        $percentageIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'discountPercentage') &&
+            str_contains((string) $issue->getDescription(), 'insufficient'));
 
         self::assertNotNull($percentageIssue, 'Should detect insufficient precision for percentage field');
         self::assertEquals('configuration', $percentageIssue->getCategory());
@@ -180,13 +150,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
 
         // Assert: Should not flag correctPrice
         $issuesArray = $issues->toArray();
-        $correctPriceIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'correctPrice')) {
-                $correctPriceIssue = $issue;
-                break;
-            }
-        }
+        $correctPriceIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'correctPrice'));
 
         self::assertNull($correctPriceIssue, 'Should not flag correctly configured decimal field');
     }
@@ -204,7 +168,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $invoiceIssues = array_filter(
             $issuesArray,
-            fn ($issue): bool => str_contains($issue->getDescription(), 'Invoice'),
+            fn ($issue): bool => str_contains((string) $issue->getDescription(), 'Invoice'),
         );
 
         self::assertCount(0, $invoiceIssues, 'Invoice entity should not be flagged');
@@ -222,15 +186,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
         // Assert: Should have suggestions
         $issuesArray = $issues->toArray();
         self::assertGreaterThan(0, count($issuesArray));
-
-        // Find any issue with suggestion
-        $issueWithSuggestion = null;
-        foreach ($issuesArray as $issue) {
-            if (null !== $issue->getSuggestion()) {
-                $issueWithSuggestion = $issue;
-                break;
-            }
-        }
+        $issueWithSuggestion = array_find($issuesArray, fn($issue) => null !== $issue->getSuggestion());
 
         self::assertNotNull($issueWithSuggestion, 'Should provide suggestions');
         self::assertNotNull($issueWithSuggestion->getSuggestion());
@@ -249,7 +205,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $moneyFieldIssues = array_filter(
             $issuesArray,
-            fn ($issue): bool => (bool) preg_match('/(price|amount|cost|total|balance|fee)/i', $issue->getDescription()),
+            fn ($issue): bool => (bool) preg_match('/(price|amount|cost|total|balance|fee)/i', (string) $issue->getDescription()),
         );
 
         self::assertGreaterThan(0, count($moneyFieldIssues), 'Should detect money fields by name pattern');
@@ -268,7 +224,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $percentageFieldIssues = array_filter(
             $issuesArray,
-            fn ($issue): bool => (bool) preg_match('/(percent|percentage|rate|ratio)/i', $issue->getDescription()),
+            fn ($issue): bool => (bool) preg_match('/(percent|percentage|rate|ratio)/i', (string) $issue->getDescription()),
         );
 
         self::assertGreaterThan(0, count($percentageFieldIssues), 'Should detect percentage fields by name pattern');
@@ -347,7 +303,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $productBadDecimalIssues = array_filter(
             $issuesArray,
-            fn ($issue): bool => str_contains($issue->getDescription(), 'ProductWithBadDecimals'),
+            fn ($issue): bool => str_contains((string) $issue->getDescription(), 'ProductWithBadDecimals'),
         );
 
         // Should have at least 5 issues: missing precision, insufficient precision,

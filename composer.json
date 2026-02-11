@@ -46,30 +46,32 @@
     "source": "https://github.com/ahmed-bhs/doctrine-doctor"
   },
   "require": {
-    "php": "^8.2",
-    "doctrine/doctrine-bundle": "^2.12",
-    "doctrine/orm": "^2.10|^3.0|^4.0",
+    "php": "^8.4",
+    "doctrine/doctrine-bundle": "^3.0",
+    "doctrine/orm": "^3.0|^4.0",
     "nikic/php-parser": "^5.6",
     "phpmyadmin/sql-parser": "^6.0",
     "symfony/framework-bundle": "^6.0|^7.0",
-    "webmozart/assert": "^1.11"
+    "webmozart/assert": "^1.12"
   },
   "require-dev": {
-    "phpunit/phpunit": "^10.0",
-    "symfony/var-dumper": "^6.0|^7.0",
-    "symfony/var-exporter": "^6.4|^7.0",
-    "symfony/stopwatch": "^6.0|^7.0",
-    "twig/twig": "^3.0",
+    "bitbag/coding-standard": "^3.0",
     "deptrac/deptrac": "^4.2",
+    "php-parallel-lint/php-parallel-lint": "^1.4",
+    "pdepend/pdepend": "3.x-dev",
+    "phpmd/phpmd": "3.x-dev",
+    "phpstan/extension-installer": "^1.4",
     "phpstan/phpstan": "^2.1",
     "phpstan/phpstan-doctrine": "^2.0",
-    "phpstan/phpstan-symfony": "^2.0",
     "phpstan/phpstan-phpunit": "^2.0",
-    "phpstan/extension-installer": "^1.4",
+    "phpstan/phpstan-symfony": "^2.0",
+    "phpunit/phpunit": "^10.0",
+    "rector/rector": "^2.3",
+    "symfony/stopwatch": "^6.0|^7.0",
+    "symfony/var-dumper": "^6.0|^7.0",
+    "symfony/var-exporter": "^6.4|^7.0",
     "symplify/easy-coding-standard": "^12.6",
-    "bitbag/coding-standard": "^3.0",
-    "php-parallel-lint/php-parallel-lint": "^1.4",
-    "phpmd/phpmd": "^2.15"
+    "twig/twig": "^3.0"
   },
   "autoload": {
     "psr-4": {
@@ -88,9 +90,11 @@
     "lint": "parallel-lint src tests",
     "phpstan": "phpstan analyse --memory-limit=1G",
     "phpstan:baseline": "phpstan analyse --generate-baseline --memory-limit=1G",
-    "phpmd": "phpmd src text phpmd.xml",
-    "phpmd:html": "phpmd src html phpmd.xml --reportfile phpmd-report.html",
-    "phpmd:xml": "phpmd src xml phpmd.xml --reportfile phpmd-report.xml",
+    "phpmd": "phpmd analyze src --format=text --ruleset=phpmd.xml",
+    "phpmd:html": "phpmd analyze src --format=html --ruleset=phpmd.xml > phpmd-report.html",
+    "phpmd:xml": "phpmd analyze src --format=xml --ruleset=phpmd.xml > phpmd-report.xml",
+    "rector": "rector process --dry-run",
+    "rector:fix": "rector process",
     "ecs": "ecs check",
     "ecs:fix": "ecs check --fix",
     "deptrac": "deptrac analyse --config-file=deptrac.yaml",
@@ -155,7 +159,7 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-main": "1.x-dev"
+      "dev-main": "2.x-dev"
     },
     "symfony": {
       "allow-contrib": false,

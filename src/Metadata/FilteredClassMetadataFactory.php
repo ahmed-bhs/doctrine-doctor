@@ -37,6 +37,7 @@ class FilteredClassMetadataFactory extends BaseClassMetadataFactory
      *
      * @return ClassMetadata[]
      */
+    #[\Override]
     public function getAllMetadata(): array
     {
         // Delegate to EntityMetadataProvider (which has built-in caching)
@@ -47,26 +48,31 @@ class FilteredClassMetadataFactory extends BaseClassMetadataFactory
     // Passthrough methods to decorated factory
     // ========================================================================
 
+    #[\Override]
     public function getMetadataFor(string $className): ClassMetadata
     {
         return $this->decoratedFactory->getMetadataFor($className);
     }
 
+    #[\Override]
     public function isTransient(string $className): bool
     {
         return $this->decoratedFactory->isTransient($className);
     }
 
+    #[\Override]
     public function setReflectionService(\Doctrine\Persistence\Mapping\ReflectionService $reflectionService): void
     {
         $this->decoratedFactory->setReflectionService($reflectionService);
     }
 
+    #[\Override]
     public function hasMetadataFor(string $className): bool
     {
         return $this->decoratedFactory->hasMetadataFor($className);
     }
 
+    #[\Override]
     public function setMetadataFor(string $className, $class): void
     {
         $this->decoratedFactory->setMetadataFor($className, $class);

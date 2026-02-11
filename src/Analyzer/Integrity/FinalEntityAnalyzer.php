@@ -39,14 +39,8 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
     private array $checkedEntities = [];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
     ) {
     }
 

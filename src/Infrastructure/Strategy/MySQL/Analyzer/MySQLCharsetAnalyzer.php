@@ -22,14 +22,14 @@ use Doctrine\DBAL\Connection;
  * MySQL-specific charset analyzer.
  * Detects issues with utf8 vs utf8mb4 charset configuration.
  */
-final class MySQLCharsetAnalyzer implements CharsetAnalyzerInterface
+final readonly class MySQLCharsetAnalyzer implements CharsetAnalyzerInterface
 {
-    private const RECOMMENDED_CHARSET = 'utf8mb4';
+    private const string RECOMMENDED_CHARSET = 'utf8mb4';
 
     /**
      * System/framework tables that can be ignored for charset issues.
      */
-    private const SYSTEM_TABLES = [
+    private const array SYSTEM_TABLES = [
         'doctrine_migration_versions',
         'migration_versions',
         'migrations',
@@ -41,9 +41,9 @@ final class MySQLCharsetAnalyzer implements CharsetAnalyzerInterface
     ];
 
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        private Connection $connection,
+        private SuggestionFactory $suggestionFactory,
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 
@@ -143,14 +143,7 @@ final class MySQLCharsetAnalyzer implements CharsetAnalyzerInterface
         $tableNames = array_column($tables, 'TABLE_NAME');
 
         // Filter out system tables
-        return array_filter($tableNames, function (string $tableName): bool {
-            foreach (self::SYSTEM_TABLES as $systemTable) {
-                if (str_contains(strtolower($tableName), strtolower($systemTable))) {
-                    return false;
-                }
-            }
-            return true;
-        });
+        return array_filter($tableNames, fn(string $tableName): bool => array_all(self::SYSTEM_TABLES, fn($systemTable) => !str_contains(strtolower($tableName), strtolower((string) $systemTable))));
     }
 
     /**
