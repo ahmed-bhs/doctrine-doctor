@@ -474,7 +474,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $originalLimit = ini_get('memory_limit');
 
         $safeLimit = $memoryLimit + (128 * 1048576);
-        @ini_set('memory_limit', (string) $safeLimit);
+        ini_set('memory_limit', (string) $safeLimit);
 
         $memoryThreshold = (int) ($memoryLimit * 0.70);
 
@@ -504,7 +504,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             }
         }
 
-        @ini_set('memory_limit', $originalLimit ?: '512M');
+        ini_set('memory_limit', $originalLimit ?: '512M');
 
         $issuesCollection = IssueCollection::fromArray($allIssues);
         unset($allIssues);
