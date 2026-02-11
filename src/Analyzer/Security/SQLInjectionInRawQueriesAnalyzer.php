@@ -188,7 +188,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         ];
 
         Assert::isIterable($patterns, '$patterns must be iterable');
-        return array_any($patterns, fn($pattern) => 1 === preg_match($pattern, $sql));
+        return array_any($patterns, fn ($pattern) => 1 === preg_match($pattern, $sql));
     }
 
     /**
@@ -307,7 +307,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
      */
     private function usesSqlExecution(string $source): bool
     {
-        return array_any(self::SQL_EXECUTION_METHODS, fn($sqlMethod) => str_contains($source, (string) $sqlMethod));
+        return array_any(self::SQL_EXECUTION_METHODS, fn ($sqlMethod) => str_contains($source, (string) $sqlMethod));
     }
 
     private function createConcatenationIssue(

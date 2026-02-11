@@ -67,25 +67,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     ) {
     }
 
-    private static function getMemoryLimitBytes(): int
-    {
-        $limit = ini_get('memory_limit');
-
-        if ('-1' === $limit || false === $limit) {
-            return \PHP_INT_MAX;
-        }
-
-        $value = (int) $limit;
-        $unit = strtolower(substr(trim($limit), -1));
-
-        return match ($unit) {
-            'g' => $value * 1024 * 1024 * 1024,
-            'm' => $value * 1024 * 1024,
-            'k' => $value * 1024,
-            default => $value,
-        };
-    }
-
     /**
      * @SuppressWarnings(UnusedFormalParameter)
      */
@@ -130,44 +111,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
     public function lateCollect(): void
     {
-    }
-
-    private function runAnalysis(): void
-    {
-        $this->stopwatch?->start('doctrine_doctor.analysis', 'doctrine_doctor_profiling');
-
-        SqlNormalizationCache::warmUp($this->data['timeline_queries']);
-        CachedSqlStructureExtractor::warmUp($this->data['timeline_queries']);
-
-        $this->data['issues'] = $this->analyzeQueriesLazy(
-            $this->analyzers,
-            $this->dataCollectorHelpers->dataCollectorLogger,
-            $this->dataCollectorHelpers->issueDeduplicator,
-        );
-
-        $analysisEvent = $this->stopwatch?->stop('doctrine_doctor.analysis');
-
-        if ($analysisEvent instanceof StopwatchEvent) {
-            $this->data['profiler_overhead']['analysis_time_ms'] = $analysisEvent->getDuration();
-            $this->data['profiler_overhead']['total_time_ms']    = $analysisEvent->getDuration();
-        }
-
-        if ($this->showDebugInfo) {
-            $analyzersList = [];
-
-            foreach ($this->analyzers as $analyzer) {
-                $analyzersList[] = $analyzer::class;
-            }
-
-            $this->data['debug_data'] = [
-                'total_queries'             => count($this->data['timeline_queries']),
-                'doctrine_collector_exists' => true,
-                'analyzers_count'           => count($analyzersList),
-                'analyzers_list'            => $analyzersList,
-                'query_time_stats'          => $this->dataCollectorHelpers->queryStatsCalculator->calculateStats($this->data['timeline_queries']),
-                'profiler_overhead_ms'      => $this->data['profiler_overhead']['total_time_ms'],
-            ];
-        }
     }
 
     public function getName(): string
@@ -432,6 +375,63 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             'db_info_time_ms'  => 0,
             'total_time_ms'    => 0,
         ];
+    }
+
+    private static function getMemoryLimitBytes(): int
+    {
+        $limit = ini_get('memory_limit');
+
+        if ('-1' === $limit || false === $limit) {
+            return \PHP_INT_MAX;
+        }
+
+        $value = (int) $limit;
+        $unit = strtolower(substr(trim($limit), -1));
+
+        return match ($unit) {
+            'g' => $value * 1024 * 1024 * 1024,
+            'm' => $value * 1024 * 1024,
+            'k' => $value * 1024,
+            default => $value,
+        };
+    }
+
+    private function runAnalysis(): void
+    {
+        $this->stopwatch?->start('doctrine_doctor.analysis', 'doctrine_doctor_profiling');
+
+        SqlNormalizationCache::warmUp($this->data['timeline_queries']);
+        CachedSqlStructureExtractor::warmUp($this->data['timeline_queries']);
+
+        $this->data['issues'] = $this->analyzeQueriesLazy(
+            $this->analyzers,
+            $this->dataCollectorHelpers->dataCollectorLogger,
+            $this->dataCollectorHelpers->issueDeduplicator,
+        );
+
+        $analysisEvent = $this->stopwatch?->stop('doctrine_doctor.analysis');
+
+        if ($analysisEvent instanceof StopwatchEvent) {
+            $this->data['profiler_overhead']['analysis_time_ms'] = $analysisEvent->getDuration();
+            $this->data['profiler_overhead']['total_time_ms']    = $analysisEvent->getDuration();
+        }
+
+        if ($this->showDebugInfo) {
+            $analyzersList = [];
+
+            foreach ($this->analyzers as $analyzer) {
+                $analyzersList[] = $analyzer::class;
+            }
+
+            $this->data['debug_data'] = [
+                'total_queries'             => count($this->data['timeline_queries']),
+                'doctrine_collector_exists' => true,
+                'analyzers_count'           => count($analyzersList),
+                'analyzers_list'            => $analyzersList,
+                'query_time_stats'          => $this->dataCollectorHelpers->queryStatsCalculator->calculateStats($this->data['timeline_queries']),
+                'profiler_overhead_ms'      => $this->data['profiler_overhead']['total_time_ms'],
+            ];
+        }
     }
 
     /**

@@ -64,7 +64,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
 
         // Assert: Should detect rand() usage
         $issuesArray = $issues->toArray();
-        $randIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'generateApiToken') &&
+        $randIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'generateApiToken') &&
             str_contains((string) $issue->getDescription(), 'rand'));
 
         self::assertNotNull($randIssue, 'Should detect rand() in API token generation');
@@ -105,7 +105,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
 
         // Assert: Should detect uniqid() usage
         $issuesArray = $issues->toArray();
-        $uniqidIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'uniqid'));
+        $uniqidIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'uniqid'));
 
         self::assertNotNull($uniqidIssue, 'Should detect uniqid() in secret generation');
         self::assertEquals('critical', $uniqidIssue->getSeverity()->value);
@@ -160,7 +160,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
 
         // Assert: Should detect weak hash pattern
         $issuesArray = $issues->toArray();
-        $weakHashIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), 'Weak hash-based randomness'));
+        $weakHashIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getTitle(), 'Weak hash-based randomness'));
 
         self::assertNotNull($weakHashIssue, 'Should detect md5(rand()) pattern');
         self::assertEquals('critical', $weakHashIssue->getSeverity()->value);

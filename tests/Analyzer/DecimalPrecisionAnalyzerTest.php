@@ -50,7 +50,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
 
         // Assert: Should detect missing precision/scale
         $issuesArray = $issues->toArray();
-        $missingPrecisionIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'priceWithoutPrecision') &&
+        $missingPrecisionIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'priceWithoutPrecision') &&
             str_contains((string) $issue->getDescription(), 'without explicit precision/scale'));
 
         self::assertNotNull($missingPrecisionIssue, 'Should detect missing precision/scale');
@@ -70,7 +70,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
 
         // Assert: Should detect insufficient precision for money
         $issuesArray = $issues->toArray();
-        $insufficientPrecisionIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'amount') &&
+        $insufficientPrecisionIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'amount') &&
             str_contains((string) $issue->getDescription(), 'insufficient'));
 
         self::assertNotNull($insufficientPrecisionIssue, 'Should detect insufficient precision for money field');
@@ -90,7 +90,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
 
         // Assert: Should detect unusual scale
         $issuesArray = $issues->toArray();
-        $unusualScaleIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'cost') &&
+        $unusualScaleIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'cost') &&
             str_contains((string) $issue->getDescription(), 'unusual'));
 
         self::assertNotNull($unusualScaleIssue, 'Should detect unusual scale for money field');
@@ -110,7 +110,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
 
         // Assert: Should detect excessive precision
         $issuesArray = $issues->toArray();
-        $excessivePrecisionIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'measurementValue') &&
+        $excessivePrecisionIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'measurementValue') &&
             str_contains((string) $issue->getDescription(), 'very high'));
 
         self::assertNotNull($excessivePrecisionIssue, 'Should detect excessive precision');
@@ -130,7 +130,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
 
         // Assert: Should detect insufficient precision for percentage
         $issuesArray = $issues->toArray();
-        $percentageIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'discountPercentage') &&
+        $percentageIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'discountPercentage') &&
             str_contains((string) $issue->getDescription(), 'insufficient'));
 
         self::assertNotNull($percentageIssue, 'Should detect insufficient precision for percentage field');
@@ -150,7 +150,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
 
         // Assert: Should not flag correctPrice
         $issuesArray = $issues->toArray();
-        $correctPriceIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'correctPrice'));
+        $correctPriceIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'correctPrice'));
 
         self::assertNull($correctPriceIssue, 'Should not flag correctly configured decimal field');
     }
@@ -186,7 +186,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
         // Assert: Should have suggestions
         $issuesArray = $issues->toArray();
         self::assertGreaterThan(0, count($issuesArray));
-        $issueWithSuggestion = array_find($issuesArray, fn($issue) => null !== $issue->getSuggestion());
+        $issueWithSuggestion = array_find($issuesArray, fn ($issue) => null !== $issue->getSuggestion());
 
         self::assertNotNull($issueWithSuggestion, 'Should provide suggestions');
         self::assertNotNull($issueWithSuggestion->getSuggestion());

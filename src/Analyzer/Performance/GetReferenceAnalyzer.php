@@ -28,8 +28,13 @@ use Webmozart\Assert\Assert;
 
 class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    public function __construct(private readonly IssueFactoryInterface $issueFactory, private readonly SuggestionFactory $suggestionFactory, private readonly int $threshold = 2, private readonly ?LoggerInterface $logger = null, private readonly ?CachedSqlStructureExtractor $sqlExtractor = new CachedSqlStructureExtractor())
-    {
+    public function __construct(
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly int $threshold = 2,
+        private readonly ?LoggerInterface $logger = null,
+        private readonly CachedSqlStructureExtractor $sqlExtractor = new CachedSqlStructureExtractor(),
+    ) {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -248,7 +253,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         ];
 
         Assert::isIterable($patterns, '$patterns must be iterable');
-        return array_any($patterns, fn($pattern) => 1 === preg_match($pattern, $sql));
+        return array_any($patterns, fn ($pattern) => 1 === preg_match($pattern, $sql));
     }
 
     private function extractTableName(string $sql): ?string

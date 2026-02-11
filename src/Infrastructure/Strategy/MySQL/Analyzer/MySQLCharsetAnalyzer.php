@@ -143,7 +143,7 @@ final readonly class MySQLCharsetAnalyzer implements CharsetAnalyzerInterface
         $tableNames = array_column($tables, 'TABLE_NAME');
 
         // Filter out system tables
-        return array_filter($tableNames, fn(string $tableName): bool => array_all(self::SYSTEM_TABLES, fn($systemTable) => !str_contains(strtolower($tableName), strtolower((string) $systemTable))));
+        return array_filter($tableNames, fn (string $tableName): bool => array_all(self::SYSTEM_TABLES, fn ($systemTable) => !str_contains(strtolower($tableName), strtolower((string) $systemTable))));
     }
 
     /**

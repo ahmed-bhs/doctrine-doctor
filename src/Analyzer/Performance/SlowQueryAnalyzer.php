@@ -26,7 +26,7 @@ class SlowQueryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInt
         private readonly IssueFactoryInterface $issueFactory,
         private readonly SuggestionFactory $suggestionFactory,
         private readonly int $threshold = 100,
-        private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+        private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
     ) {
         Assert::greaterThan($threshold, 0, 'Threshold must be positive, got %s');
         Assert::lessThan($threshold, 100000, 'Threshold seems unreasonably high (>100s), got %s ms');

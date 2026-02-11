@@ -153,7 +153,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function isUuidCandidate(ClassMetadata $classMetadata): bool
     {
         $shortName = $classMetadata->getReflectionClass()->getShortName();
-        return array_any(self::UUID_CANDIDATE_ENTITIES, fn($candidate) => str_contains($shortName, (string) $candidate));
+        return array_any(self::UUID_CANDIDATE_ENTITIES, fn ($candidate) => str_contains($shortName, (string) $candidate));
     }
 
     /**

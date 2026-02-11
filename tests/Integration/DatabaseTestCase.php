@@ -192,7 +192,7 @@ abstract class DatabaseTestCase extends TestCase
      */
     protected function assertQueryContains(string $pattern, string $message = ''): void
     {
-        $found = array_any($this->queryLogger->getRawQueries(), fn($query) => str_contains(strtolower((string) $query['sql']), strtolower($pattern)));
+        $found = array_any($this->queryLogger->getRawQueries(), fn ($query) => str_contains(strtolower((string) $query['sql']), strtolower($pattern)));
         $message = $message ?: 'No query found containing pattern: ' . $pattern;
         self::assertTrue($found, $message);
     }

@@ -186,7 +186,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
      */
     private function isNonForeignKeyField(string $lowerFieldName): bool
     {
-        return array_any(self::NON_FK_PATTERNS, fn($pattern) => $this->containsAsWholeWord($lowerFieldName, $pattern));
+        return array_any(self::NON_FK_PATTERNS, fn ($pattern) => $this->containsAsWholeWord($lowerFieldName, $pattern));
     }
 
     /**
@@ -266,7 +266,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         $associations = $classMetadata->getAssociationNames();
 
         Assert::isIterable($associations, '$associations must be iterable');
-        return array_any($associations, fn($association) => strtolower((string) $association) === strtolower($baseName));
+        return array_any($associations, fn ($association) => strtolower((string) $association) === strtolower($baseName));
     }
 
     /**

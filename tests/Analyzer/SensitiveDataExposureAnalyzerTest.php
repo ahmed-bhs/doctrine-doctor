@@ -85,7 +85,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
 
         // Assert: Should detect __toString() exposure
         $issuesArray = $issues->toArray();
-        $toStringIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), '__toString()'));
+        $toStringIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getTitle(), '__toString()'));
 
         self::assertNotNull($toStringIssue, 'Should detect __toString() exposing sensitive data');
         self::assertEquals('critical', $toStringIssue->getSeverity()->value);
@@ -103,7 +103,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
 
         // Assert: Should detect jsonSerialize() exposure
         $issuesArray = $issues->toArray();
-        $jsonIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), 'jsonSerialize()'));
+        $jsonIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getTitle(), 'jsonSerialize()'));
 
         self::assertNotNull($jsonIssue, 'Should detect jsonSerialize() exposing sensitive data');
         self::assertEquals('critical', $jsonIssue->getSeverity()->value);
@@ -121,7 +121,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
 
         // Assert: Should detect toArray() exposure
         $issuesArray = $issues->toArray();
-        $toArrayIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), 'toArray()'));
+        $toArrayIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getTitle(), 'toArray()'));
 
         self::assertNotNull($toArrayIssue, 'Should detect toArray() exposing sensitive data');
         self::assertEquals('critical', $toArrayIssue->getSeverity()->value);
@@ -299,7 +299,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
 
         // Assert: Should provide suggestion for __toString()
         $issuesArray = $issues->toArray();
-        $toStringIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), '__toString()'));
+        $toStringIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getTitle(), '__toString()'));
 
         if (null !== $toStringIssue) {
             $suggestion = $toStringIssue->getSuggestion();
@@ -319,7 +319,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
 
         // Assert: Should provide suggestion for jsonSerialize()
         $issuesArray = $issues->toArray();
-        $jsonIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), 'jsonSerialize()'));
+        $jsonIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getTitle(), 'jsonSerialize()'));
 
         if (null !== $jsonIssue) {
             $suggestion = $jsonIssue->getSuggestion();

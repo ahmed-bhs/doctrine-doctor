@@ -37,8 +37,14 @@ use Webmozart\Assert\Assert;
  */
 class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    public function __construct(private readonly SuggestionFactory $suggestionFactory, private readonly Connection $connection, private readonly ?MissingIndexAnalyzerConfig $missingIndexAnalyzerConfig = new MissingIndexAnalyzerConfig(), private readonly ?DatabasePlatformDetector $databasePlatformDetector = null, private readonly ?LoggerInterface $logger = null, private readonly ?QueryColumnExtractor $queryColumnExtractor = new QueryColumnExtractor())
-    {
+    public function __construct(
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly Connection $connection,
+        private readonly MissingIndexAnalyzerConfig $missingIndexAnalyzerConfig = new MissingIndexAnalyzerConfig(),
+        private readonly ?DatabasePlatformDetector $databasePlatformDetector = null,
+        private readonly ?LoggerInterface $logger = null,
+        private readonly QueryColumnExtractor $queryColumnExtractor = new QueryColumnExtractor(),
+    ) {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -48,7 +54,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                if (!($this->missingIndexAnalyzerConfig->enabled ?? true)) {
+                if (!$this->missingIndexAnalyzerConfig->enabled) {
                     return;
                 }
 
@@ -130,7 +136,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             $pattern      = $this->normalizeQuery($queryArray->sql);
             $isRepetitive = $queryPatterns[$pattern]['count'] >= 3;
 
-            if ($executionTime >= $this->missingIndexAnalyzerConfig?->slowQueryThreshold) {
+            if ($executionTime >= $this->missingIndexAnalyzerConfig->slowQueryThreshold) {
                 $slowQueries = $debugStats['slow_queries'];
                 Assert::integer($slowQueries);
                 $debugStats['slow_queries'] = $slowQueries + 1;
@@ -273,7 +279,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                 'key'                => $row['key'] ?? 'NULL',
                 'rows'               => $row['rows'] ?? 0,
                 'should_suggest'     => $shouldSuggest,
-                'min_rows_threshold' => $this->missingIndexAnalyzerConfig?->minRowsScanned,
+                'min_rows_threshold' => $this->missingIndexAnalyzerConfig->minRowsScanned,
             ];
             $debugStats['should_suggest_decisions'] = $decisionsTyped;
         }
@@ -303,9 +309,9 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
      */
     private function finalizeDebugStats(array $debugStats): void
     {
-        $debugStats['threshold_ms']     = $this->missingIndexAnalyzerConfig?->slowQueryThreshold;
-        $debugStats['min_rows_scanned'] = $this->missingIndexAnalyzerConfig?->minRowsScanned;
-        $debugStats['explain_enabled']  = $this->missingIndexAnalyzerConfig?->enabled;
+        $debugStats['threshold_ms']     = $this->missingIndexAnalyzerConfig->slowQueryThreshold;
+        $debugStats['min_rows_scanned'] = $this->missingIndexAnalyzerConfig->minRowsScanned;
+        $debugStats['explain_enabled']  = $this->missingIndexAnalyzerConfig->enabled;
 
         if (isset($debugStats['explain_errors']) && is_array($debugStats['explain_errors']) && count($debugStats['explain_errors']) > 0) {
             $this->logger?->error('MissingIndexAnalyzer encountered EXPLAIN errors', [
@@ -492,7 +498,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         }
 
         if (in_array($type, ['REF', 'RANGE'], true) && null !== $key) {
-            return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
+            return $rows >= $this->missingIndexAnalyzerConfig->minRowsScanned;
         }
 
         $isFullTableScan = 'ALL' === $type;
@@ -502,18 +508,18 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $hasPossibleKeysButNotUsed = null === $key && null !== $possibleKeys;
 
         if ($isFullTableScan) {
-            return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
+            return $rows >= $this->missingIndexAnalyzerConfig->minRowsScanned;
         }
 
         if ($isFullIndexScan && null === $possibleKeys) {
-            return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
+            return $rows >= $this->missingIndexAnalyzerConfig->minRowsScanned;
         }
 
         if ($hasPossibleKeysButNotUsed) {
-            return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
+            return $rows >= $this->missingIndexAnalyzerConfig->minRowsScanned;
         }
 
-        return $rows >= $this->missingIndexAnalyzerConfig?->minRowsScanned;
+        return $rows >= $this->missingIndexAnalyzerConfig->minRowsScanned;
     }
 
     private function calculateSeverity(array $explainRow): Severity
@@ -619,6 +625,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
      */
     private function extractColumnsFromQuery(string $sql, string $targetTable): array
     {
-        return $this->queryColumnExtractor?->extractColumns($sql, $targetTable) ?? [];
+        return $this->queryColumnExtractor->extractColumns($sql, $targetTable);
     }
 }

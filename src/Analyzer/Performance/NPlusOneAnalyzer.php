@@ -41,8 +41,13 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
      */
     private ?array $tableToEntityCache = null;
 
-    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly IssueFactoryInterface $issueFactory, private readonly SuggestionFactory $suggestionFactory, private readonly int $threshold = 5, private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
-    {
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly int $threshold = 5,
+        private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+    ) {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -552,7 +557,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         if (null === $backtrace) {
             return false;
         }
-        return array_any($backtrace, fn($frame) => isset($frame['file']) && is_string($frame['file']) && str_contains($frame['file'], '/vendor/'));
+        return array_any($backtrace, fn ($frame) => isset($frame['file']) && is_string($frame['file']) && str_contains($frame['file'], '/vendor/'));
     }
 
     /**

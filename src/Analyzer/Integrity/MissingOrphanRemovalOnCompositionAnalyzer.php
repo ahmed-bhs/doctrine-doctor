@@ -156,7 +156,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements \AhmedBhs\DoctrineDoc
 
     private function hasCompositionName(string $entityClass): bool
     {
-        return array_any(self::COMPOSITION_CHILD_PATTERNS, fn($pattern) => str_contains($entityClass, (string) $pattern));
+        return array_any(self::COMPOSITION_CHILD_PATTERNS, fn ($pattern) => str_contains($entityClass, (string) $pattern));
     }
 
     /**

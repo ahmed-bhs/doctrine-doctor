@@ -30,8 +30,10 @@ use Webmozart\Assert\Assert;
  */
 final readonly class DatabaseInfoCollector
 {
-    public function __construct(private LoggerInterface $logger, private ?DataCollectorConfig $dataCollectorConfig = new DataCollectorConfig())
-    {
+    public function __construct(
+        private LoggerInterface $logger,
+        private DataCollectorConfig $dataCollectorConfig = new DataCollectorConfig(),
+    ) {
     }
 
     /**

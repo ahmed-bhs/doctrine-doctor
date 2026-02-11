@@ -108,7 +108,7 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         foreach ($queryDataCollection as $query) {
             $sql      = $query->sql;
             $upperSql = strtoupper($sql);
-            $hasAggregation = array_any(self::AGGREGATION_FUNCTIONS, fn($func) => str_contains($upperSql, (string) $func));
+            $hasAggregation = array_any(self::AGGREGATION_FUNCTIONS, fn ($func) => str_contains($upperSql, (string) $func));
 
             $hasGroupBy = str_contains($upperSql, 'GROUP BY');
 

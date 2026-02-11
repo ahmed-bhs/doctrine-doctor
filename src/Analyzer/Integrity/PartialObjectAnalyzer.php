@@ -147,7 +147,7 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     private function isWriteOperation(string $sql): bool
     {
         $upperSql = strtoupper($sql);
-        return array_any(self::WRITE_PATTERNS, fn($pattern) => str_contains($upperSql, (string) $pattern));
+        return array_any(self::WRITE_PATTERNS, fn ($pattern) => str_contains($upperSql, (string) $pattern));
     }
 
     /**

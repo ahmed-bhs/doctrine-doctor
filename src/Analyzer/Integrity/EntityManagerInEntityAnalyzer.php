@@ -264,7 +264,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         ];
 
         Assert::isIterable($entityManagerTypes, '$entityManagerTypes must be iterable');
-        return array_any($entityManagerTypes, fn($entityManagerType) => str_contains($typeName, (string) $entityManagerType));
+        return array_any($entityManagerTypes, fn ($entityManagerType) => str_contains($typeName, (string) $entityManagerType));
     }
 
     private function isEntityManagerPropertyName(string $propertyName): bool

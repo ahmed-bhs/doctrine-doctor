@@ -49,12 +49,12 @@ class SqlStructureExtractor
     private readonly PatternDetectorInterface $patternDetector;
 
     public function __construct(
-        private readonly ?JoinExtractorInterface $joinExtractor = new SqlJoinExtractor(),
-        private readonly ?QueryNormalizerInterface $queryNormalizer = new SqlQueryNormalizer(),
+        private readonly JoinExtractorInterface $joinExtractor = new SqlJoinExtractor(),
+        private readonly QueryNormalizerInterface $queryNormalizer = new SqlQueryNormalizer(),
         ?PatternDetectorInterface $patternDetector = null,
-        private readonly ?ConditionAnalyzerInterface $conditionAnalyzer = new SqlConditionAnalyzer(),
-        private readonly ?PerformanceAnalyzerInterface $performanceAnalyzer = new SqlPerformanceAnalyzer(),
-        private readonly ?AggregationAnalyzerInterface $aggregationAnalyzer = new SqlAggregationAnalyzer(),
+        private readonly ConditionAnalyzerInterface $conditionAnalyzer = new SqlConditionAnalyzer(),
+        private readonly PerformanceAnalyzerInterface $performanceAnalyzer = new SqlPerformanceAnalyzer(),
+        private readonly AggregationAnalyzerInterface $aggregationAnalyzer = new SqlAggregationAnalyzer(),
     ) {
         $this->patternDetector = $patternDetector ?? new SqlPatternDetector($this->joinExtractor instanceof SqlJoinExtractor ? $this->joinExtractor : null);
     }

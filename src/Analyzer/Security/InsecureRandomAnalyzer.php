@@ -190,7 +190,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     {
         $lowerMethodName = strtolower($methodName);
         $lowerSource     = strtolower($source);
-        return array_any(self::SENSITIVE_CONTEXTS, fn($context) => str_contains($lowerMethodName, (string) $context) || str_contains($lowerSource, (string) $context));
+        return array_any(self::SENSITIVE_CONTEXTS, fn ($context) => str_contains($lowerMethodName, (string) $context) || str_contains($lowerSource, (string) $context));
     }
 
     private function createInsecureRandomIssue(

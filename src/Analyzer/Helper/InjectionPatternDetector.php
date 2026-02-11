@@ -102,7 +102,7 @@ class InjectionPatternDetector
     public function hasNumericValueInQuotes(string $sql, array $parsedData = []): bool
     {
         if (!empty($parsedData['literals'])) {
-            return array_any($parsedData['literals'], fn($value) => $this->isSuspiciousNumericValue($value));
+            return array_any($parsedData['literals'], fn ($value) => $this->isSuspiciousNumericValue($value));
         }
 
         if (1 !== preg_match("/['\"]([^'\"]*\d+[^'\"]*)['\"]/", $sql, $matches)) {
@@ -186,7 +186,7 @@ class InjectionPatternDetector
     public function hasLiteralStringInWhere(string $sql, array $parsedData = []): bool
     {
         if (!empty($parsedData['literals'])) {
-            return array_any($parsedData['literals'], fn($value) => $this->isSuspiciousLiteralValue($value));
+            return array_any($parsedData['literals'], fn ($value) => $this->isSuspiciousLiteralValue($value));
         }
 
         if (1 !== preg_match("/WHERE\s+[^=]+\s*=\s*'([^'?:]+)'/i", $sql, $matches)) {

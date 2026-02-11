@@ -51,7 +51,7 @@ final class FloatForMoneyAnalyzerTest extends TestCase
         // Assert: Product entity has float for price
         $issuesArray = $issues->toArray();
         self::assertGreaterThan(0, count($issuesArray));
-        $priceIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'Product') &&
+        $priceIssue = array_find($issuesArray, fn ($issue) => str_contains((string) $issue->getDescription(), 'Product') &&
             str_contains((string) $issue->getDescription(), 'price'));
 
         self::assertNotNull($priceIssue, 'Should detect float used for Product::$price');
@@ -135,7 +135,7 @@ final class FloatForMoneyAnalyzerTest extends TestCase
                          !str_contains((string) $issue->getDescription(), 'sensitive') &&
                          str_contains(strtolower((string) $issue->getDescription()), 'float'),
         );
-        $hasMoneyIssue = array_any($userIssues, fn($issue) => str_contains(strtolower((string) $issue->getDescription()), 'money') ||
+        $hasMoneyIssue = array_any($userIssues, fn ($issue) => str_contains(strtolower((string) $issue->getDescription()), 'money') ||
             str_contains(strtolower((string) $issue->getDescription()), 'monetary'));
 
         self::assertFalse($hasMoneyIssue, 'User entity should not have money-related float issues');

@@ -166,13 +166,13 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
 
         // Check if it has currency field (strong indicator)
         Assert::isIterable($fieldNames, '$fieldNames must be iterable');
-        return array_any($fieldNames, fn($fieldName) => str_contains(strtolower((string) $fieldName), 'currency'));
+        return array_any($fieldNames, fn ($fieldName) => str_contains(strtolower((string) $fieldName), 'currency'));
     }
 
     private function isMoneyField(string $fieldName): bool
     {
         $fieldLower = strtolower($fieldName);
-        return array_any(self::MONEY_FIELD_PATTERNS, fn($pattern) => str_contains($fieldLower, (string) $pattern));
+        return array_any(self::MONEY_FIELD_PATTERNS, fn ($pattern) => str_contains($fieldLower, (string) $pattern));
     }
 
     /**
