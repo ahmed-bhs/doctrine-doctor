@@ -42,7 +42,7 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     /**
      * Field names that typically represent monetary values.
      */
-    private const MONEY_FIELD_PATTERNS = [
+    private const array MONEY_FIELD_PATTERNS = [
         'price',
         'amount',
         'cost',
@@ -74,7 +74,7 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
      * Field names that are NOT monetary (hours, quantities, ratios, coefficients).
      * These are legitimate uses of float/double.
      */
-    private const NON_MONEY_FIELD_PATTERNS = [
+    private const array NON_MONEY_FIELD_PATTERNS = [
         // Time tracking (hours, not money)
         'hours',
         'timeentries',
@@ -109,7 +109,7 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     /**
      * Entity name patterns that suggest financial/monetary context.
      */
-    private const MONEY_ENTITY_PATTERNS = [
+    private const array MONEY_ENTITY_PATTERNS = [
         'invoice',
         'order',
         'payment',
@@ -126,18 +126,9 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 
@@ -224,40 +215,19 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     private function isMoneyField(string $fieldName): bool
     {
         $fieldLower = strtolower($fieldName);
-
-        foreach (self::MONEY_FIELD_PATTERNS as $pattern) {
-            if (str_contains($fieldLower, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::MONEY_FIELD_PATTERNS, fn($pattern) => str_contains($fieldLower, (string) $pattern));
     }
 
     private function isNonMoneyField(string $fieldName): bool
     {
         $fieldLower = strtolower($fieldName);
-
-        foreach (self::NON_MONEY_FIELD_PATTERNS as $pattern) {
-            if (str_contains($fieldLower, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::NON_MONEY_FIELD_PATTERNS, fn($pattern) => str_contains($fieldLower, (string) $pattern));
     }
 
     private function isMoneyEntity(string $className): bool
     {
         $classLower = strtolower($className);
-
-        foreach (self::MONEY_ENTITY_PATTERNS as $pattern) {
-            if (str_contains($classLower, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::MONEY_ENTITY_PATTERNS, fn($pattern) => str_contains($classLower, (string) $pattern));
     }
 
     private function isGenericNumberField(string $fieldName): bool

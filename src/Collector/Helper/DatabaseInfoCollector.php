@@ -28,19 +28,10 @@ use Webmozart\Assert\Assert;
  * Helper for collecting database information.
  * Extracted from DoctrineDoctorDataCollector to reduce complexity.
  */
-final class DatabaseInfoCollector
+final readonly class DatabaseInfoCollector
 {
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private LoggerInterface $logger,
-        /**
-         * @readonly
-         */
-        private ?DataCollectorConfig $dataCollectorConfig = null,
-    ) {
-        $this->dataCollectorConfig = $dataCollectorConfig ?? new DataCollectorConfig();
+    public function __construct(private LoggerInterface $logger, private ?DataCollectorConfig $dataCollectorConfig = new DataCollectorConfig())
+    {
     }
 
     /**

@@ -48,7 +48,7 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
     /**
      * Field names that suggest money/monetary values in embeddables.
      */
-    private const MONEY_FIELD_PATTERNS = [
+    private const array MONEY_FIELD_PATTERNS = [
         'amount',
         'value',
         'price',
@@ -59,18 +59,9 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 
@@ -175,27 +166,13 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
 
         // Check if it has currency field (strong indicator)
         Assert::isIterable($fieldNames, '$fieldNames must be iterable');
-
-        foreach ($fieldNames as $fieldName) {
-            if (str_contains(strtolower($fieldName), 'currency')) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($fieldNames, fn($fieldName) => str_contains(strtolower((string) $fieldName), 'currency'));
     }
 
     private function isMoneyField(string $fieldName): bool
     {
         $fieldLower = strtolower($fieldName);
-
-        foreach (self::MONEY_FIELD_PATTERNS as $pattern) {
-            if (str_contains($fieldLower, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::MONEY_FIELD_PATTERNS, fn($pattern) => str_contains($fieldLower, (string) $pattern));
     }
 
     /**

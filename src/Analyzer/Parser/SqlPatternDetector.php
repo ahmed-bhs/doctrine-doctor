@@ -25,13 +25,10 @@ use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
  * This class focuses solely on pattern detection (N+1, lazy loading, write operations),
  * following the Single Responsibility Principle.
  */
-final class SqlPatternDetector implements PatternDetectorInterface
+final readonly class SqlPatternDetector implements PatternDetectorInterface
 {
-    private SqlJoinExtractor $joinExtractor;
-
-    public function __construct(?SqlJoinExtractor $joinExtractor = null)
+    public function __construct(private ?SqlJoinExtractor $joinExtractor = new SqlJoinExtractor())
     {
-        $this->joinExtractor = $joinExtractor ?? new SqlJoinExtractor();
     }
 
     public function detectNPlusOnePattern(string $sql): ?array

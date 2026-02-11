@@ -37,12 +37,12 @@ ob_start();
     <h4>Problem: Multi-Level Relationship Access in Loop</h4>
     <div class="query-item">
         <pre><code class="language-php">// BAD: Nested relationship access causes exponential queries
-$<?php echo lcfirst($entities[0]); ?>s = $repository->findAll();
+$<?php echo lcfirst((string) $entities[0]); ?>s = $repository->findAll();
 
-foreach ($<?php echo lcfirst($entities[0]); ?>s as $<?php echo lcfirst($entities[0]); ?>) {
+foreach ($<?php echo lcfirst((string) $entities[0]); ?>s as $<?php echo lcfirst((string) $entities[0]); ?>) {
     // Level 1: Accessing <?php echo $entities[1] ?? 'relation'; ?>
 
-    echo $<?php echo lcfirst($entities[0]); ?>->get<?php echo $entities[1] ?? 'Relation'; ?>()
+    echo $<?php echo lcfirst((string) $entities[0]); ?>->get<?php echo $entities[1] ?? 'Relation'; ?>()
 <?php if (isset($entities[2])): ?>
         // Level 2: Accessing <?php echo $entities[2]; ?> through <?php echo $entities[1]; ?>
 
@@ -56,7 +56,7 @@ foreach ($<?php echo lcfirst($entities[0]); ?>s as $<?php echo lcfirst($entities
         ->getName();
 }
 
-// Result for 100 <?php echo lcfirst($entities[0]); ?>s:
+// Result for 100 <?php echo lcfirst((string) $entities[0]); ?>s:
 // - 100 queries for <?php echo $entities[1] ?? 'relations'; ?>
 
 <?php if (isset($entities[2])): ?>
@@ -74,21 +74,21 @@ foreach ($<?php echo lcfirst($entities[0]); ?>s as $<?php echo lcfirst($entities
     <div class="query-item">
         <pre><code class="language-php">// GOOD: Eager load entire chain with nested JOINs
 $query = $em->createQuery('
-    SELECT <?php echo strtolower($entities[0][0]); ?><?php foreach (array_slice($entities, 1) as $i => $entity): ?>, <?php echo strtolower($entity[0]); ?><?php endforeach; ?>
+    SELECT <?php echo strtolower((string) $entities[0][0]); ?><?php foreach (array_slice($entities, 1) as $i => $entity): ?>, <?php echo strtolower((string) $entity[0]); ?><?php endforeach; ?>
 
-    FROM App\Entity\<?php echo $e($entities[0]); ?> <?php echo strtolower($entities[0][0]); ?>
+    FROM App\Entity\<?php echo $e($entities[0]); ?> <?php echo strtolower((string) $entities[0][0]); ?>
 
     <?php foreach (array_slice($entities, 1) as $i => $entity): ?>
-LEFT JOIN <?php echo strtolower($entities[$i][0]); ?>.<?php echo lcfirst($entity); ?> <?php echo strtolower($entity[0]); ?>
+LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirst((string) $entity); ?> <?php echo strtolower((string) $entity[0]); ?>
 
     <?php endforeach; ?>
 ');
 
-$<?php echo lcfirst($entities[0]); ?>s = $query->getResult();
+$<?php echo lcfirst((string) $entities[0]); ?>s = $query->getResult();
 
 // Now access the chain without any extra queries:
-foreach ($<?php echo lcfirst($entities[0]); ?>s as $<?php echo lcfirst($entities[0]); ?>) {
-    echo $<?php echo lcfirst($entities[0]); ?>->get<?php echo $entities[1] ?? 'Relation'; ?>()
+foreach ($<?php echo lcfirst((string) $entities[0]); ?>s as $<?php echo lcfirst((string) $entities[0]); ?>) {
+    echo $<?php echo lcfirst((string) $entities[0]); ?>->get<?php echo $entities[1] ?? 'Relation'; ?>()
 <?php if (isset($entities[2])): ?>
         ->get<?php echo $entities[2]; ?>()
 <?php endif; ?>
@@ -109,17 +109,17 @@ foreach ($<?php echo lcfirst($entities[0]); ?>s as $<?php echo lcfirst($entities
  */
 public function findAllWithNested<?php echo $entities[1] ?? 'Relations'; ?>(): array
 {
-    return $this->createQueryBuilder('<?php echo strtolower($entities[0][0]); ?>')
+    return $this->createQueryBuilder('<?php echo strtolower((string) $entities[0][0]); ?>')
 <?php foreach (array_slice($entities, 1) as $i => $entity): ?>
-        ->leftJoin('<?php echo strtolower($entities[$i][0]); ?>.<?php echo lcfirst($entity); ?>', '<?php echo strtolower($entity[0]); ?>')
-        ->addSelect('<?php echo strtolower($entity[0]); ?>')
+        ->leftJoin('<?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirst((string) $entity); ?>', '<?php echo strtolower((string) $entity[0]); ?>')
+        ->addSelect('<?php echo strtolower((string) $entity[0]); ?>')
 <?php endforeach; ?>
         ->getQuery()
         ->getResult();
 }
 
 // Usage:
-$<?php echo lcfirst($entities[0]); ?>s = $repository->findAllWithNested<?php echo $entities[1] ?? 'Relations'; ?>();
+$<?php echo lcfirst((string) $entities[0]); ?>s = $repository->findAllWithNested<?php echo $entities[1] ?? 'Relations'; ?>();
 // Result: 1 query with all nested relations loaded!</code></pre>
     </div>
 
@@ -149,7 +149,7 @@ class <?php echo $e($entities[1]); ?>
 <?php endif; ?>
 
 // Now queries are batched at each level:
-// 100 <?php echo lcfirst($entities[0]); ?>s → ~10 queries for level 1, ~10 for level 2
+// 100 <?php echo lcfirst((string) $entities[0]); ?>s → ~10 queries for level 1, ~10 for level 2
 // Total: ~<?php echo (int) ceil($queryCount / 10) * $depth; ?> queries instead of <?php echo $queryCount * $depth; ?>!</code></pre>
     </div>
 
@@ -158,15 +158,15 @@ class <?php echo $e($entities[1]); ?>
         <pre><code class="language-php">// BEST for read-only data: Use custom DTO with single query
 $results = $em->createQuery('
     SELECT NEW App\DTO\<?php echo $e($entities[0]); ?>DTO(
-        <?php echo strtolower($entities[0][0]); ?>.id,
-        <?php echo strtolower($entities[0][0]); ?>.title,
-        <?php echo isset($entities[1]) ? strtolower($entities[1][0]) : 'r'; ?>.name,
-        <?php echo isset($entities[2]) ? strtolower($entities[2][0]) : 'c'; ?>.name
+        <?php echo strtolower((string) $entities[0][0]); ?>.id,
+        <?php echo strtolower((string) $entities[0][0]); ?>.title,
+        <?php echo isset($entities[1]) ? strtolower((string) $entities[1][0]) : 'r'; ?>.name,
+        <?php echo isset($entities[2]) ? strtolower((string) $entities[2][0]) : 'c'; ?>.name
     )
-    FROM App\Entity\<?php echo $e($entities[0]); ?> <?php echo strtolower($entities[0][0]); ?>
+    FROM App\Entity\<?php echo $e($entities[0]); ?> <?php echo strtolower((string) $entities[0][0]); ?>
 
     <?php foreach (array_slice($entities, 1) as $i => $entity): ?>
-LEFT JOIN <?php echo strtolower($entities[$i][0]); ?>.<?php echo lcfirst($entity); ?> <?php echo strtolower($entity[0]); ?>
+LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirst((string) $entity); ?> <?php echo strtolower((string) $entity[0]); ?>
 
     <?php endforeach; ?>
 ')->getResult();

@@ -54,26 +54,11 @@ use Webmozart\Assert\Assert;
 class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private SqlStructureExtractor $sqlExtractor,
-        /**
-         * @readonly
-         */
-        private int $maxJoinsRecommended = 5,
-        /**
-         * @readonly
-         */
-        private int $maxJoinsCritical = 8,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SqlStructureExtractor $sqlExtractor,
+        private readonly int $maxJoinsRecommended = 5,
+        private readonly int $maxJoinsCritical = 8,
     ) {
     }
 
@@ -515,7 +500,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         }
 
         preg_match_all('/(?:\w+\.)?(\w+)\s*=/', $onClause, $matches);
-        $columnsInOnClause = array_map('strtolower', $matches[1]);
+        $columnsInOnClause = array_map(strtolower(...), $matches[1]);
 
         if ([] === $columnsInOnClause) {
             return null;
@@ -548,7 +533,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                     continue;
                 }
 
-                $columnNameLower = strtolower($columnName);
+                $columnNameLower = strtolower((string) $columnName);
 
                 if (in_array($columnNameLower, $columnsInOnClause, true)) {
                     ++$matchedColumns;

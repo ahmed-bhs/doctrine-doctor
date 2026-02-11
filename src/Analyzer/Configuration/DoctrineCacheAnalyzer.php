@@ -44,29 +44,17 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     /**
      * Cache implementation class names.
      */
-    private const ARRAY_CACHE_CLASSES = [
+    private const array ARRAY_CACHE_CLASSES = [
         'Doctrine\Common\Cache\ArrayCache',
         'Doctrine\Common\Cache\Cache',
-        'Symfony\Component\Cache\Adapter\ArrayAdapter',
+        \Symfony\Component\Cache\Adapter\ArrayAdapter::class,
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private string $environment = 'prod',
-        /**
-         * @readonly
-         */
-        private ?string $projectDir = null,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly string $environment = 'prod',
+        private readonly ?string $projectDir = null,
     ) {
     }
 
@@ -203,7 +191,7 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                     );
                 }
             }
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return $issues;
         }
 

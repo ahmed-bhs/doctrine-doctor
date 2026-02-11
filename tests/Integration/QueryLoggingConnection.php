@@ -22,14 +22,8 @@ use Webmozart\Assert\Assert;
 class QueryLoggingConnection implements DriverConnection
 {
     public function __construct(
-        /**
-         * @readonly
-         */
-        private DriverConnection $driverConnection,
-        /**
-         * @readonly
-         */
-        private SimpleQueryLogger $simpleQueryLogger,
+        private readonly DriverConnection $driverConnection,
+        private readonly SimpleQueryLogger $simpleQueryLogger,
     ) {
     }
 

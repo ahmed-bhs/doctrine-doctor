@@ -137,7 +137,7 @@ final class ColumnTypeAnalyzerIntegrationTest extends TestCase
 
         $objectTypeIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getDescription(), 'type "object"'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'type "object"'),
         );
 
         if (count($objectTypeIssues) > 0) {
@@ -159,7 +159,7 @@ final class ColumnTypeAnalyzerIntegrationTest extends TestCase
 
         $arrayTypeIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getDescription(), 'type "array"'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'type "array"'),
         );
 
         if (count($arrayTypeIssues) > 0) {
@@ -181,7 +181,7 @@ final class ColumnTypeAnalyzerIntegrationTest extends TestCase
 
         $simpleArrayIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getDescription(), 'simple_array'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'simple_array'),
         );
 
         if (count($simpleArrayIssues) > 0) {
@@ -202,7 +202,7 @@ final class ColumnTypeAnalyzerIntegrationTest extends TestCase
 
         $enumIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'enum'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'enum'),
         );
 
         if (count($enumIssues) > 0) {
@@ -287,8 +287,8 @@ final class ColumnTypeAnalyzerIntegrationTest extends TestCase
 
         $issuesWithReplacements = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getDescription(), 'Use ') ||
-                         str_contains($issue->getDescription(), 'Consider '),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'Use ') ||
+                         str_contains((string) $issue->getDescription(), 'Consider '),
         );
 
         if (count($issues) > 0) {

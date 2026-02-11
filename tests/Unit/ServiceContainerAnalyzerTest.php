@@ -42,7 +42,7 @@ final class ServiceContainerAnalyzerTest extends TestCase
             }
 
             // Skip the interface itself
-            if ('AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface' === $className) {
+            if (\AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface::class === $className) {
                 continue;
             }
 
@@ -75,7 +75,7 @@ final class ServiceContainerAnalyzerTest extends TestCase
     #[Test]
     public function naming_convention_helper_does_not_implement_analyzer_interface(): void
     {
-        $helperClass = 'AhmedBhs\DoctrineDoctor\Analyzer\Helper\NamingConventionHelper';
+        $helperClass = \AhmedBhs\DoctrineDoctor\Analyzer\Helper\NamingConventionHelper::class;
 
         // Verify the class exists
         self::assertTrue(

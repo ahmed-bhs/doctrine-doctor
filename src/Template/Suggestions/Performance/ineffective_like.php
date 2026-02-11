@@ -32,7 +32,7 @@ ob_start();
     </div>
 
     <div class="pattern-type">
-        <h3>Pattern Type: <?= htmlspecialchars($like_type) ?></h3>
+        <h3>Pattern Type: <?= htmlspecialchars((string) $like_type) ?></h3>
 
         <?php if ('contains search' === $like_type): ?>
         <div class="contains-search">

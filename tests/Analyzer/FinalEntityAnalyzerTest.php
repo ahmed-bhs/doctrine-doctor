@@ -83,7 +83,7 @@ final class FinalEntityAnalyzerTest extends TestCase
 
         $finalLazyIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'FinalEntityWithLazyAssociations'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'FinalEntityWithLazyAssociations'),
         );
 
         // Should detect the final entity with lazy associations
@@ -105,7 +105,7 @@ final class FinalEntityAnalyzerTest extends TestCase
 
         $finalNoAssocIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'FinalEntityWithNoAssociations'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'FinalEntityWithNoAssociations'),
         );
 
         // Should detect the final entity with no associations
@@ -125,7 +125,7 @@ final class FinalEntityAnalyzerTest extends TestCase
 
         $finalEagerIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'FinalEntityWithEagerAssociations'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'FinalEntityWithEagerAssociations'),
         );
 
         // Should detect the final entity with eager associations
@@ -145,7 +145,7 @@ final class FinalEntityAnalyzerTest extends TestCase
 
         $finalIdsIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'FinalEntityWithOnlyIds'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'FinalEntityWithOnlyIds'),
         );
 
         // Should detect the final entity even without object associations
@@ -164,7 +164,7 @@ final class FinalEntityAnalyzerTest extends TestCase
 
         $nonFinalIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'NonFinalEntity'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'NonFinalEntity'),
         );
 
         // Should NOT flag non-final entities

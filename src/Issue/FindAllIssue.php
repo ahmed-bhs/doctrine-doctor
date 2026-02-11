@@ -32,6 +32,7 @@ class FindAllIssue extends AbstractIssue
         parent::__construct($data);
     }
 
+    #[\Override]
     public function getType(): string
     {
         return 'Find All';

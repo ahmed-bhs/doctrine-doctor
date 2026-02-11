@@ -22,20 +22,8 @@ use Webmozart\Assert\Assert;
 
 class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    private InjectionPatternDetector $injectionDetector;
-
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        ?InjectionPatternDetector $injectionDetector = null,
-    ) {
-        $this->injectionDetector = $injectionDetector ?? new InjectionPatternDetector();
+    public function __construct(private readonly IssueFactoryInterface $issueFactory, private readonly SuggestionFactory $suggestionFactory, private readonly ?InjectionPatternDetector $injectionDetector = new InjectionPatternDetector())
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

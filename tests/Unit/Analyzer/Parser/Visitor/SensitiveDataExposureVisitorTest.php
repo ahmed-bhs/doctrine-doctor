@@ -136,7 +136,7 @@ final class SensitiveDataExposureVisitorTest extends TestCase
      */
     private function detectSensitiveExposure(string $code): bool
     {
-        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $parser = new ParserFactory()->createForNewestSupportedVersion();
 
         // Wrap in class context for parser
         $wrappedCode = "<?php\nclass Test {\n" . $code . "\n}\n";

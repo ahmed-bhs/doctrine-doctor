@@ -24,24 +24,18 @@ use Webmozart\Assert\Assert;
 class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     public function __construct(
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
         /**
          * @readonly
          * Threshold adjusted to 7 to avoid overlap with JoinOptimizationAnalyzer (which handles 4-6 JOINs)
          */
-        private int $joinThreshold = 7,
+        private readonly int $joinThreshold = 7,
         /**
          * @readonly
          * Critical threshold for truly excessive eager loading (cartesian product risk)
          */
-        private int $criticalJoinThreshold = 10,
+        private readonly int $criticalJoinThreshold = 10,
     ) {
     }
 

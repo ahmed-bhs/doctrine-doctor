@@ -17,25 +17,13 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
 class GetReferenceSuggestion implements SuggestionInterface
 {
-    /**
-     * @readonly
-     */
-    private string $entity;
+    private readonly string $entity;
 
-    /**
-     * @readonly
-     */
-    private string $table;
+    private readonly string $table;
 
-    /**
-     * @readonly
-     */
-    private int $queryCount;
+    private readonly int $queryCount;
 
-    /**
-     * @readonly
-     */
-    private string $example;
+    private readonly string $example;
 
     public function __construct(array $data)
     {

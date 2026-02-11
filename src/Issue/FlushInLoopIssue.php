@@ -33,6 +33,7 @@ class FlushInLoopIssue extends AbstractIssue
         ], $data));
     }
 
+    #[\Override]
     public function getType(): string
     {
         return 'Flush In Loop';

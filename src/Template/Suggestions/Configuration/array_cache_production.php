@@ -14,7 +14,7 @@ declare(strict_types=1);
 ob_start();
 ?>
 
-<?php echo htmlspecialchars($context->cache_label); ?> is using '<?php echo htmlspecialchars($context->current_config); ?>' in production.
+<?php echo htmlspecialchars((string) $context->cache_label); ?> is using '<?php echo htmlspecialchars((string) $context->current_config); ?>' in production.
 
 <p>This is a common misconfiguration that significantly impacts performance.</p>
 

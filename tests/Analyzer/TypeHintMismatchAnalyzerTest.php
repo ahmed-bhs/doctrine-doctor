@@ -55,7 +55,7 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $invoiceIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'Invoice'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'Invoice'),
         );
 
         self::assertCount(0, $invoiceIssues, 'Invoice entity has correct type hints');
@@ -72,14 +72,8 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
 
         // Assert: Should detect decimal/float mismatch (CRITICAL)
         $issuesArray = $issues->toArray();
-        $priceIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'ProductWithTypeHintIssues') &&
-                str_contains($issue->getDescription(), 'price')) {
-                $priceIssue = $issue;
-                break;
-            }
-        }
+        $priceIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'ProductWithTypeHintIssues') &&
+            str_contains((string) $issue->getDescription(), 'price'));
 
         self::assertNotNull($priceIssue, 'Should detect decimal/float mismatch');
         self::assertEquals('critical', $priceIssue->getSeverity()->value);
@@ -99,14 +93,8 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
 
         // Assert: Should detect integer/string mismatch (WARNING)
         $issuesArray = $issues->toArray();
-        $quantityIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'ProductWithTypeHintIssues') &&
-                str_contains($issue->getDescription(), 'quantity')) {
-                $quantityIssue = $issue;
-                break;
-            }
-        }
+        $quantityIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'ProductWithTypeHintIssues') &&
+            str_contains((string) $issue->getDescription(), 'quantity'));
 
         self::assertNotNull($quantityIssue, 'Should detect integer/string mismatch');
         self::assertEquals('warning', $quantityIssue->getSeverity()->value);
@@ -127,7 +115,7 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $stockIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'stock'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'stock'),
         );
 
         self::assertCount(0, $stockIssues, 'Correct int type hint should not be flagged');
@@ -146,8 +134,8 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $nameIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'ProductWithTypeHintIssues') &&
-                          str_contains($issue->getDescription(), 'name'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'ProductWithTypeHintIssues') &&
+                          str_contains((string) $issue->getDescription(), 'name'),
         );
 
         self::assertCount(0, $nameIssues, 'Correct string type hint should not be flagged');
@@ -166,7 +154,7 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $costIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'cost'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'cost'),
         );
 
         self::assertCount(0, $costIssues, 'Correct string type hint for decimal should not be flagged');
@@ -185,7 +173,7 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $skuIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'sku'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'sku'),
         );
 
         self::assertCount(0, $skuIssues, 'Properties without type hints should be skipped');
@@ -202,13 +190,7 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
 
         // Assert: Should provide suggestion
         $issuesArray = $issues->toArray();
-        $priceIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'price')) {
-                $priceIssue = $issue;
-                break;
-            }
-        }
+        $priceIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'price'));
 
         self::assertNotNull($priceIssue);
         $suggestion = $priceIssue->getSuggestion();
@@ -248,7 +230,7 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $productIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'ProductWithTypeHintIssues'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'ProductWithTypeHintIssues'),
         );
 
         self::assertGreaterThanOrEqual(2, count($productIssues), 'Should detect both price and quantity mismatches');
@@ -293,7 +275,7 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $productIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'ProductWithTypeHintIssues'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'ProductWithTypeHintIssues'),
         );
 
         self::assertGreaterThan(0, count($productIssues));

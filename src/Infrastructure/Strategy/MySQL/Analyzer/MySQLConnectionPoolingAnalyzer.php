@@ -22,16 +22,16 @@ use Doctrine\DBAL\Connection;
  * MySQL-specific connection pooling analyzer.
  * Detects issues with max_connections and connection pool utilization.
  */
-final class MySQLConnectionPoolingAnalyzer implements ConnectionPoolingAnalyzerInterface
+final readonly class MySQLConnectionPoolingAnalyzer implements ConnectionPoolingAnalyzerInterface
 {
-    private const RECOMMENDED_MIN_CONNECTIONS = 100;
+    private const int RECOMMENDED_MIN_CONNECTIONS = 100;
 
-    private const RECOMMENDED_MAX_CONNECTIONS = 500;
+    private const int RECOMMENDED_MAX_CONNECTIONS = 500;
 
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        private Connection $connection,
+        private SuggestionFactory $suggestionFactory,
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 

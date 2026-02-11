@@ -46,13 +46,13 @@ final class PhpCodeParser
      * Prevents memory exhaustion on large codebases.
      * With 1000 entries, memory usage ~20-30MB (acceptable).
      */
-    private const MAX_CACHE_ENTRIES = 1000;
+    private const int MAX_CACHE_ENTRIES = 1000;
 
     /**
      * When cache is full, remove oldest 20% of entries.
      * This reduces cache churn while keeping memory bounded.
      */
-    private const CACHE_EVICTION_RATIO = 0.2;
+    private const float CACHE_EVICTION_RATIO = 0.2;
 
     private readonly Parser $parser;
 
@@ -70,7 +70,7 @@ final class PhpCodeParser
     public function __construct(
         private readonly ?LoggerInterface $logger = null,
     ) {
-        $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $this->parser = new ParserFactory()->createForNewestSupportedVersion();
     }
 
     /**

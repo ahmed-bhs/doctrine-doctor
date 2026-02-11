@@ -99,7 +99,7 @@ PHP;
             // Check that no HTML leaked
             self::assertSame($bufferLevelBefore, ob_get_level(), 'Output buffer level should be unchanged');
 
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Error occurred - this is expected
             // BUT: check that HTML buffer was cleaned
             $bufferLevelAfter = ob_get_level();

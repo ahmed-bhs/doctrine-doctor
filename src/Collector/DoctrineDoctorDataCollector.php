@@ -53,34 +53,17 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     public function __construct(
         /**
          * @var AnalyzerInterface[]
-         * @readonly
          */
-        private iterable $analyzers,
-        /**
-         * @readonly
-         */
-        private ?DoctrineDataCollector $doctrineDataCollector,
-        /**
-         * @readonly
-         */
-        private ?EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private ?Stopwatch $stopwatch,
-        /**
-         * @readonly
-         */
-        private bool $showDebugInfo,
-        /**
-         * @readonly
-         */
-        private DataCollectorHelpers $dataCollectorHelpers,
+        private readonly iterable $analyzers,
+        private readonly ?DoctrineDataCollector $doctrineDataCollector,
+        private readonly ?EntityManagerInterface $entityManager,
+        private readonly ?Stopwatch $stopwatch,
+        private readonly bool $showDebugInfo,
+        private readonly DataCollectorHelpers $dataCollectorHelpers,
         /**
          * @var array<string> Paths to exclude from DBAL query analysis (e.g., ['vendor/', 'var/cache/'])
-         * @readonly
          */
-        private array $excludePaths = ['vendor/'],
+        private readonly array $excludePaths = ['vendor/'],
     ) {
     }
 
@@ -207,6 +190,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      * safe to keep across requests and provide significant performance benefits
      * in worker mode where the same queries are often executed repeatedly.
      */
+    #[\Override]
     public function reset(): void
     {
         ServiceHolder::clearAll();
@@ -241,9 +225,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $issueReconstructor = new IssueReconstructor();
 
         $this->memoizedIssues = array_map(
-            function ($issueData) use ($issueReconstructor) {
-                return $issueReconstructor->reconstructIssue($issueData);
-            },
+            $issueReconstructor->reconstructIssue(...),
             $issuesData,
         );
 
@@ -321,8 +303,8 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     /**
      * Get timeline queries as array (for backward compatibility).
      * Use getTimelineQueries() for better memory efficiency.
-     * @deprecated Use getTimelineQueries() generator for better performance
      */
+    #[\Deprecated(message: 'Use getTimelineQueries() generator for better performance')]
     public function getTimelineQueriesArray(): array
     {
         return iterator_to_array($this->getTimelineQueries());

@@ -17,15 +17,9 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
 class PaginationSuggestion implements SuggestionInterface
 {
-    /**
-     * @readonly
-     */
-    private string $code;
+    private readonly string $code;
 
-    /**
-     * @readonly
-     */
-    private string $description;
+    private readonly string $description;
 
     public function __construct(array $data)
     {

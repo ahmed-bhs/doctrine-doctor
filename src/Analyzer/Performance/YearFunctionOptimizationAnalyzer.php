@@ -41,24 +41,18 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
      * Minimum execution time (ms) to report an issue.
      * Fast queries likely don't need optimization or column is not indexed anyway.
      */
-    private const MIN_EXECUTION_TIME_THRESHOLD = 10.0;
+    private const float MIN_EXECUTION_TIME_THRESHOLD = 10.0;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private ?SqlStructureExtractor $sqlExtractor = null,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
         /**
          * @readonly
          * Minimum execution time in ms to report. Set to 0 to always report.
          */
-        private float $minExecutionTimeThreshold = self::MIN_EXECUTION_TIME_THRESHOLD,
-    ) {
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+        private readonly float $minExecutionTimeThreshold = self::MIN_EXECUTION_TIME_THRESHOLD
+    )
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

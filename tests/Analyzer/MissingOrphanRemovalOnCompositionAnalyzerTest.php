@@ -217,10 +217,10 @@ final class MissingOrphanRemovalOnCompositionAnalyzerTest extends TestCase
         $hasCart = false;
 
         foreach ($entityNames as $entityName) {
-            if (str_contains($entityName, 'OrderWithMissingOrphanRemoval')) {
+            if (str_contains((string) $entityName, 'OrderWithMissingOrphanRemoval')) {
                 $hasOrder = true;
             }
-            if (str_contains($entityName, 'CartWithPartialSignals')) {
+            if (str_contains((string) $entityName, 'CartWithPartialSignals')) {
                 $hasCart = true;
             }
         }
@@ -489,8 +489,8 @@ final class MissingOrphanRemovalOnCompositionAnalyzerTest extends TestCase
             self::assertNotEquals('Unknown', $targetEntity);
 
             // Should be one of our test entities
-            $isValidTarget = str_contains($targetEntity, 'OrderItemMissing') ||
-                             str_contains($targetEntity, 'CartItemPartial');
+            $isValidTarget = str_contains((string) $targetEntity, 'OrderItemMissing') ||
+                             str_contains((string) $targetEntity, 'CartItemPartial');
 
             self::assertTrue($isValidTarget, "Target entity {$targetEntity} should be valid");
         }

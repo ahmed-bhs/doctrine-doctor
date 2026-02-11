@@ -17,25 +17,13 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
 class BulkOperationSuggestion implements SuggestionInterface
 {
-    /**
-     * @readonly
-     */
-    private string $operationType;
+    private readonly string $operationType;
 
-    /**
-     * @readonly
-     */
-    private string $table;
+    private readonly string $table;
 
-    /**
-     * @readonly
-     */
-    private int $queryCount;
+    private readonly int $queryCount;
 
-    /**
-     * @readonly
-     */
-    private string $example;
+    private readonly string $example;
 
     public function __construct(array $data)
     {
@@ -274,9 +262,7 @@ class BulkOperationSuggestion implements SuggestionInterface
         $table = preg_replace('/^(tbl_|tb_)/', '', $table);
         $parts = explode('_', (string) $table);
 
-        return implode('', array_map(function ($part) {
-            return ucfirst($part);
-        }, $parts));
+        return implode('', array_map(ucfirst(...), $parts));
     }
 
     private function calculateGain(): int

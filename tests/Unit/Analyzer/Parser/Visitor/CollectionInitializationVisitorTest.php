@@ -28,7 +28,7 @@ final class CollectionInitializationVisitorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $this->parser = new ParserFactory()->createForNewestSupportedVersion();
     }
 
     // ========================================================================

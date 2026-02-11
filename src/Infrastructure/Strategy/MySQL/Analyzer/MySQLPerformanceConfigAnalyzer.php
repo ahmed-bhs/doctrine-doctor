@@ -22,12 +22,12 @@ use Doctrine\DBAL\Connection;
  * MySQL-specific performance configuration analyzer.
  * Detects suboptimal performance settings like query cache, InnoDB settings, binary logs, buffer pool.
  */
-final class MySQLPerformanceConfigAnalyzer implements PerformanceConfigAnalyzerInterface
+final readonly class MySQLPerformanceConfigAnalyzer implements PerformanceConfigAnalyzerInterface
 {
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        private Connection $connection,
+        private SuggestionFactory $suggestionFactory,
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 
@@ -177,57 +177,57 @@ final class MySQLPerformanceConfigAnalyzer implements PerformanceConfigAnalyzerI
 
     private function getQueryCacheFixCommand(): string
     {
-        return <<<SQL
-            -- In MySQL configuration file (my.cnf or my.ini):
-            [mysqld]
-            query_cache_type = OFF
-            query_cache_size = 0
-
-            -- Or set globally (MySQL 5.7 only, removed in 8.0+):
-            SET GLOBAL query_cache_type = OFF;
-            SET GLOBAL query_cache_size = 0;
-
-            -- Restart MySQL for changes to take effect
-            SQL;
+        return <<<SQL_WRAP
+        -- In MySQL configuration file (my.cnf or my.ini):
+        [mysqld]
+        query_cache_type = OFF
+        query_cache_size = 0
+        
+        -- Or set globally (MySQL 5.7 only, removed in 8.0+):
+        SET GLOBAL query_cache_type = OFF;
+        SET GLOBAL query_cache_size = 0;
+        
+        -- Restart MySQL for changes to take effect
+        SQL_WRAP;
     }
 
     private function getInnoDBFlushLogFixCommand(): string
     {
-        return <<<SQL
-            -- DEVELOPMENT ONLY (NOT for production!)
-            -- In MySQL configuration file (my.cnf or my.ini):
-            [mysqld]
-            innodb_flush_log_at_trx_commit = 2  # Dev only
-
-            -- Or set globally:
-            SET GLOBAL innodb_flush_log_at_trx_commit = 2;
-
-            -- Values:
-            -- 0 = flush every second (fastest, data loss on crash)
-            -- 1 = flush on every commit (slowest, full ACID - use in PRODUCTION)
-            -- 2 = flush on every commit to OS cache, write to disk every second (balanced for dev)
-
-            -- IMPORTANT: Use value 1 in production for data safety!
-            SQL;
+        return <<<SQL_WRAP
+        -- DEVELOPMENT ONLY (NOT for production!)
+        -- In MySQL configuration file (my.cnf or my.ini):
+        [mysqld]
+        innodb_flush_log_at_trx_commit = 2  # Dev only
+        
+        -- Or set globally:
+        SET GLOBAL innodb_flush_log_at_trx_commit = 2;
+        
+        -- Values:
+        -- 0 = flush every second (fastest, data loss on crash)
+        -- 1 = flush on every commit (slowest, full ACID - use in PRODUCTION)
+        -- 2 = flush on every commit to OS cache, write to disk every second (balanced for dev)
+        
+        -- IMPORTANT: Use value 1 in production for data safety!
+        SQL_WRAP;
     }
 
     private function getBinaryLogFixCommand(): string
     {
-        return <<<SQL
-            -- DEVELOPMENT ONLY (binlog needed for replication/backups in production)
-            -- In MySQL configuration file (my.cnf or my.ini):
-            [mysqld]
-            # Comment out or remove the following line:
-            # log_bin = mysql-bin
-            skip-log-bin
-
-            -- Or alternatively (MySQL 8.0.21+):
-            disable_log_bin = 1
-
-            -- Restart MySQL for changes to take effect
-
-            -- Note: In production, keep binlog enabled for backups and replication!
-            SQL;
+        return <<<SQL_WRAP
+        -- DEVELOPMENT ONLY (binlog needed for replication/backups in production)
+        -- In MySQL configuration file (my.cnf or my.ini):
+        [mysqld]
+        # Comment out or remove the following line:
+        # log_bin = mysql-bin
+        skip-log-bin
+        
+        -- Or alternatively (MySQL 8.0.21+):
+        disable_log_bin = 1
+        
+        -- Restart MySQL for changes to take effect
+        
+        -- Note: In production, keep binlog enabled for backups and replication!
+        SQL_WRAP;
     }
 
     private function getBufferPoolSizeFixCommand(int $recommendedBytes): string

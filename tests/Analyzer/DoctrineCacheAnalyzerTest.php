@@ -68,8 +68,8 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $metadataIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Array Cache')
-                && str_contains($issue->getTitle(), 'Metadata'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Array Cache')
+                && str_contains((string) $issue->getTitle(), 'Metadata'),
         );
 
         self::assertNotEmpty($metadataIssues, 'Should detect ArrayCache for metadata');
@@ -99,8 +99,8 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $queryIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Array Cache')
-                && str_contains($issue->getTitle(), 'Query'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Array Cache')
+                && str_contains((string) $issue->getTitle(), 'Query'),
         );
 
         self::assertNotEmpty($queryIssues, 'Should detect ArrayCache for query');
@@ -130,8 +130,8 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $resultIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Array Cache')
-                && str_contains($issue->getTitle(), 'Results'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Array Cache')
+                && str_contains((string) $issue->getTitle(), 'Results'),
         );
 
         self::assertNotEmpty($resultIssues, 'Should detect ArrayCache for result');
@@ -160,8 +160,8 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $filesystemIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Filesystem Cache')
-                && str_contains($issue->getTitle(), 'Metadata'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Filesystem Cache')
+                && str_contains((string) $issue->getTitle(), 'Metadata'),
         );
 
         self::assertNotEmpty($filesystemIssues, 'Should detect FilesystemCache for metadata');
@@ -190,8 +190,8 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $filesystemIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Filesystem Cache')
-                && str_contains($issue->getTitle(), 'Queries'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Filesystem Cache')
+                && str_contains((string) $issue->getTitle(), 'Queries'),
         );
 
         self::assertNotEmpty($filesystemIssues, 'Should detect FilesystemCache for query');
@@ -222,7 +222,7 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $proxyIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Proxy Auto-Generation'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Proxy Auto-Generation'),
         );
 
         self::assertNotEmpty($proxyIssues, 'Should detect proxy auto-generation enabled');
@@ -257,10 +257,10 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
 
         // Check that we have metadata, query, result, and proxy issues
         $titles = array_map(fn ($issue) => $issue->getTitle(), $issuesArray);
-        $hasMeta = array_filter($titles, fn ($t) => str_contains($t, 'Metadata'));
-        $hasQuery = array_filter($titles, fn ($t) => str_contains($t, 'Query'));
-        $hasResult = array_filter($titles, fn ($t) => str_contains($t, 'Result'));
-        $hasProxy = array_filter($titles, fn ($t) => str_contains($t, 'Proxy'));
+        $hasMeta = array_filter($titles, fn ($t) => str_contains((string) $t, 'Metadata'));
+        $hasQuery = array_filter($titles, fn ($t) => str_contains((string) $t, 'Query'));
+        $hasResult = array_filter($titles, fn ($t) => str_contains((string) $t, 'Result'));
+        $hasProxy = array_filter($titles, fn ($t) => str_contains((string) $t, 'Proxy'));
 
         self::assertNotEmpty($hasMeta, 'Should have metadata cache issue');
         self::assertNotEmpty($hasQuery, 'Should have query cache issue');
@@ -498,7 +498,7 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $proxyIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Proxy'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Proxy'),
         );
 
         self::assertNotEmpty($proxyIssues, 'Should detect auto_generate = 1');
@@ -523,7 +523,7 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $proxyIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Proxy'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Proxy'),
         );
 
         self::assertNotEmpty($proxyIssues, 'Should detect auto_generate = 2');
@@ -548,7 +548,7 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $proxyIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Proxy'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Proxy'),
         );
 
         self::assertCount(0, $proxyIssues, 'Should NOT flag when proxy auto-generation is disabled');

@@ -39,7 +39,6 @@ final class DoctrineDoctorExtensionTest extends TestCase
         // Use reflection to access private method
         $reflection = new ReflectionClass($this->extension);
         $method = $reflection->getMethod('classNameToConfigKey');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->extension, $className);
 
@@ -110,11 +109,11 @@ final class DoctrineDoctorExtensionTest extends TestCase
 
             // With full namespace (should extract short name)
             'with_namespace' => [
-                'AhmedBhs\\DoctrineDoctor\\Analyzer\\Performance\\NPlusOneAnalyzer',
+                \AhmedBhs\DoctrineDoctor\Analyzer\Performance\NPlusOneAnalyzer::class,
                 'n_plus_one',
             ],
             'with_namespace_sql' => [
-                'AhmedBhs\\DoctrineDoctor\\Analyzer\\Security\\SQLInjectionInRawQueriesAnalyzer',
+                \AhmedBhs\DoctrineDoctor\Analyzer\Security\SQLInjectionInRawQueriesAnalyzer::class,
                 'sql_injection_in_raw_queries',
             ],
 
@@ -139,7 +138,6 @@ final class DoctrineDoctorExtensionTest extends TestCase
     {
         $reflection = new ReflectionClass($this->extension);
         $method = $reflection->getMethod('classNameToConfigKey');
-        $method->setAccessible(true);
 
         // If a class doesn't have "Analyzer" suffix, it should still work
         $result = $method->invoke($this->extension, 'NPlusOne');
@@ -152,7 +150,6 @@ final class DoctrineDoctorExtensionTest extends TestCase
     {
         $reflection = new ReflectionClass($this->extension);
         $method = $reflection->getMethod('classNameToConfigKey');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->extension, 'CharsetAnalyzer');
 

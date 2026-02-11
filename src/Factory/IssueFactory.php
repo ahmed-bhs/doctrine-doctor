@@ -51,7 +51,7 @@ class IssueFactory implements IssueFactoryInterface
      * Map of issue types to their concrete classes.
      * @var array<string, class-string<AbstractIssue>>
      */
-    private const TYPE_MAP = [
+    private const array TYPE_MAP = [
         'n_plus_one'                         => NPlusOneIssue::class,
         'N+1 Query'                          => NPlusOneIssue::class,
         'missing_index'                      => MissingIndexIssue::class,

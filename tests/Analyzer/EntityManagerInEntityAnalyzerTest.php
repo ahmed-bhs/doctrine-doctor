@@ -45,7 +45,7 @@ final class EntityManagerInEntityAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $constructorIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'constructor'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'constructor'),
         );
 
         self::assertGreaterThan(0, count($constructorIssues));
@@ -70,8 +70,8 @@ final class EntityManagerInEntityAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $usageIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'flush') ||
-                          str_contains($issue->getDescription(), 'persist'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'flush') ||
+                          str_contains((string) $issue->getDescription(), 'persist'),
         );
 
         self::assertGreaterThan(0, count($usageIssues));

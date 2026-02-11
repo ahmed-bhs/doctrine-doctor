@@ -39,13 +39,10 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
      * Pattern to detect incorrect NULL comparisons.
      * Matches: = NULL, != NULL, <> NULL
      */
-    private const NULL_COMPARISON_PATTERN = '/(\w+(?:\.\w+)?)\s*(=|!=|<>)\s*NULL\b/i';
+    private const string NULL_COMPARISON_PATTERN = '/(\w+(?:\.\w+)?)\s*(=|!=|<>)\s*NULL\b/i';
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 

@@ -19,21 +19,12 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
  * Generic code suggestion for code quality improvements.
  * was missing but referenced by multiple analyzers.
  */
-final class CodeSuggestion implements SuggestionInterface
+final readonly class CodeSuggestion implements SuggestionInterface
 {
-    /**
-     * @readonly
-     */
     private string $description;
 
-    /**
-     * @readonly
-     */
     private string $code;
 
-    /**
-     * @readonly
-     */
     private ?string $filePath;
 
     public function __construct(array $data)

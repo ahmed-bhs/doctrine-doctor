@@ -44,26 +44,16 @@ use Webmozart\Assert\Assert;
 class NestedRelationshipN1Analyzer implements AnalyzerInterface
 {
     /** @var int At least 2-level nesting to report */
-    private const MIN_CHAIN_LENGTH = 2;
-
-    private SqlStructureExtractor $sqlExtractor;
+    private const int MIN_CHAIN_LENGTH = 2;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private int $threshold = 3, // Lowered from 5 to detect smaller nested patterns
-        ?SqlStructureExtractor $sqlExtractor = null,
-    ) {
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly int $threshold = 3,
+        // Lowered from 5 to detect smaller nested patterns
+        private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor()
+    )
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -160,9 +150,7 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         if (\count($tablesArray) >= 2) {
             // Build chain from all repeated tables
             // Sort by query count (ascending) to get the likely execution order
-            usort($tablesArray, function (string $tableA, string $tableB) use ($repeatedTables): int {
-                return \count($repeatedTables[$tableA]) <=> \count($repeatedTables[$tableB]);
-            });
+            usort($tablesArray, fn(string $tableA, string $tableB): int => \count($repeatedTables[$tableA]) <=> \count($repeatedTables[$tableB]));
 
             // Reverse to get parent -> child order (more queries first)
             $tablesArray = array_reverse($tablesArray);
@@ -211,7 +199,7 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
             // For nested N+1 detection, this is typically the foreign key
             return $columns[0];
 
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Fallback to regex if parser fails (malformed SQL)
             if (1 === preg_match('/WHERE\s+(\w+)\s*(?:=|IN)\s*[?:\d(]/i', $sql, $matches)) {
                 return strtolower($matches[1]);
@@ -270,7 +258,7 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         $count = $chain['count'];
 
         // Convert tables to entity names (simplified)
-        $entities = array_map(fn ($table) => $this->tableToEntity($table), $tables);
+        $entities = array_map($this->tableToEntity(...), $tables);
 
         return $this->suggestionFactory->createNestedEagerLoading(
             entities: $entities,

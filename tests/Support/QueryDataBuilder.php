@@ -113,7 +113,7 @@ class QueryDataBuilder
     {
         // Convert array data to QueryData objects
         $queryDataObjects = array_map(
-            fn (array $queryData) => \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray($queryData),
+            \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray(...),
             $this->queries,
         );
 

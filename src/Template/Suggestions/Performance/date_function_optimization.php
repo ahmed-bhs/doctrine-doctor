@@ -27,16 +27,16 @@ ob_start();
 
     <div class="original-query">
         <p><strong>Your query:</strong></p>
-        <pre><code class="language-sql">WHERE <?= htmlspecialchars($originalClause) ?></code></pre>
+        <pre><code class="language-sql">WHERE <?= htmlspecialchars((string) $originalClause) ?></code></pre>
     </div>
 
     <div class="problem-description">
-        <p>Using <code><?= htmlspecialchars($function) ?>()</code> on <code><?= htmlspecialchars($field) ?></code> prevents index usage, forcing a full table scan. On 1 million rows: ~5 seconds vs ~50ms with index (100x slower).</p>
+        <p>Using <code><?= htmlspecialchars($function) ?>()</code> on <code><?= htmlspecialchars((string) $field) ?></code> prevents index usage, forcing a full table scan. On 1 million rows: ~5 seconds vs ~50ms with index (100x slower).</p>
     </div>
 
     <div class="optimized-query">
         <h3>Solution: Use Range Comparison</h3>
-        <pre><code class="language-sql">WHERE <?= htmlspecialchars($optimizedClause) ?></code></pre>
+        <pre><code class="language-sql">WHERE <?= htmlspecialchars((string) $optimizedClause) ?></code></pre>
     </div>
 
     <div class="common-examples">

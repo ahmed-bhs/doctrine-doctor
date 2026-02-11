@@ -79,9 +79,9 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $softDeleteIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'SoftDelete') ||
-                          str_contains($issue->getTitle(), 'deletedAt') ||
-                          str_contains($issue->getTitle(), 'removedAt'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'SoftDelete') ||
+                          str_contains((string) $issue->getTitle(), 'deletedAt') ||
+                          str_contains((string) $issue->getTitle(), 'removedAt'),
         );
 
         self::assertNotEmpty($softDeleteIssues, 'Should detect soft delete issues');
@@ -108,9 +108,9 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $notNullableIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'CRITICAL') &&
-                          str_contains($issue->getTitle(), 'Not Nullable') &&
-                          str_contains($issue->getTitle(), 'PostWithBadSoftDelete'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'CRITICAL') &&
+                          str_contains((string) $issue->getTitle(), 'Not Nullable') &&
+                          str_contains((string) $issue->getTitle(), 'PostWithBadSoftDelete'),
         );
 
         self::assertNotEmpty($notNullableIssues, 'Should detect non-nullable deletedAt field');
@@ -136,9 +136,9 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $mutableIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Mutable DateTime') &&
-                          (str_contains($issue->getTitle(), 'ArticleWithMutableDateTime') ||
-                           str_contains($issue->getTitle(), 'PostWithBadSoftDelete')),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Mutable DateTime') &&
+                          (str_contains((string) $issue->getTitle(), 'ArticleWithMutableDateTime') ||
+                           str_contains((string) $issue->getTitle(), 'PostWithBadSoftDelete')),
         );
 
         self::assertNotEmpty($mutableIssues, 'Should detect mutable DateTime in soft delete field');
@@ -163,9 +163,9 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $setterIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Public Setter') &&
-                          (str_contains($issue->getTitle(), 'CommentWithPublicSetter') ||
-                           str_contains($issue->getTitle(), 'PostWithBadSoftDelete')),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Public Setter') &&
+                          (str_contains((string) $issue->getTitle(), 'CommentWithPublicSetter') ||
+                           str_contains((string) $issue->getTitle(), 'PostWithBadSoftDelete')),
         );
 
         self::assertNotEmpty($setterIssues, 'Should detect public setters on soft delete fields');
@@ -190,10 +190,10 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $timezoneIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Missing Timezone') &&
-                          (str_contains($issue->getTitle(), 'PageWithMissingTimezone') ||
-                           str_contains($issue->getTitle(), 'ArticleWithMutableDateTime') ||
-                           str_contains($issue->getTitle(), 'PostWithBadSoftDelete')),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Missing Timezone') &&
+                          (str_contains((string) $issue->getTitle(), 'PageWithMissingTimezone') ||
+                           str_contains((string) $issue->getTitle(), 'ArticleWithMutableDateTime') ||
+                           str_contains((string) $issue->getTitle(), 'PostWithBadSoftDelete')),
         );
 
         self::assertNotEmpty($timezoneIssues, 'Should detect missing timezone on soft delete field');
@@ -218,9 +218,9 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $cascadeIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'CASCADE DELETE Conflict') &&
-                          (str_contains($issue->getTitle(), 'DocumentWithCascadeDelete') ||
-                           str_contains($issue->getTitle(), 'PostWithBadSoftDelete')),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'CASCADE DELETE Conflict') &&
+                          (str_contains((string) $issue->getTitle(), 'DocumentWithCascadeDelete') ||
+                           str_contains((string) $issue->getTitle(), 'PostWithBadSoftDelete')),
         );
 
         self::assertNotEmpty($cascadeIssues, 'Should detect CASCADE DELETE conflicts with soft delete');
@@ -246,7 +246,7 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $goodEntityIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'PostWithGoodSoftDelete'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'PostWithGoodSoftDelete'),
         );
 
         self::assertCount(0, $goodEntityIssues, 'Should NOT flag correct soft delete configuration');
@@ -265,8 +265,8 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $softDeleteIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'SoftDelete') ||
-                          str_contains($issue->getTitle(), 'deletedAt'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'SoftDelete') ||
+                          str_contains((string) $issue->getTitle(), 'deletedAt'),
         );
 
         if (!empty($softDeleteIssues)) {
@@ -294,9 +294,9 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $productIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Product') &&
-                          (str_contains($issue->getTitle(), 'SoftDelete') ||
-                           str_contains($issue->getTitle(), 'deletedAt')),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Product') &&
+                          (str_contains((string) $issue->getTitle(), 'SoftDelete') ||
+                           str_contains((string) $issue->getTitle(), 'deletedAt')),
         );
 
         self::assertCount(0, $productIssues, 'Should NOT flag entity without soft delete fields');
@@ -315,7 +315,7 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $badPostIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'PostWithBadSoftDelete'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'PostWithBadSoftDelete'),
         );
 
         self::assertGreaterThanOrEqual(3, count($badPostIssues), 'Should detect multiple issues on PostWithBadSoftDelete');
@@ -384,8 +384,8 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $criticalIssues = array_filter(
             $issuesArray,
             fn ($issue) => 'critical' === $issue->getSeverity()->value &&
-                          (str_contains($issue->getTitle(), 'Not Nullable') ||
-                           str_contains($issue->getTitle(), 'CASCADE DELETE')),
+                          (str_contains((string) $issue->getTitle(), 'Not Nullable') ||
+                           str_contains((string) $issue->getTitle(), 'CASCADE DELETE')),
         );
 
         self::assertNotEmpty($criticalIssues, 'Should have critical issues');
@@ -409,8 +409,8 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $softDeleteIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'SoftDelete') ||
-                          str_contains($issue->getTitle(), 'deletedAt'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'SoftDelete') ||
+                          str_contains((string) $issue->getTitle(), 'deletedAt'),
         );
 
         self::assertNotEmpty($softDeleteIssues, 'Should have soft delete issues');

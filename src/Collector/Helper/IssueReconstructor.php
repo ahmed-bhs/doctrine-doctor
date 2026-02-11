@@ -25,12 +25,9 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
  * Helper for reconstructing issues from serialized data.
  * Extracted from DoctrineDoctorDataCollector to reduce complexity.
  */
-final class IssueReconstructor
+final readonly class IssueReconstructor
 {
     public function __construct(
-        /**
-         * @readonly
-         */
         private ?SuggestionRendererInterface $templateRenderer = null,
     ) {
     }
@@ -60,7 +57,7 @@ final class IssueReconstructor
         // Reconstruct and attach duplicated issues if any
         if (count($duplicatedIssuesData) > 0) {
             $duplicatedIssues = array_map(
-                fn (array $dupData) => $this->reconstructSimplifiedIssue($dupData),
+                $this->reconstructSimplifiedIssue(...),
                 $duplicatedIssuesData,
             );
             $issue->setDuplicatedIssues($duplicatedIssues);
