@@ -36,7 +36,7 @@ final class PropertyTypeMismatchAnalyzerTest extends TestCase
     protected function setUp(): void
     {
         $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager([
-            __DIR__ . '/../Fixtures/Entity',
+            __DIR__ . '/../Fixtures/Entity/TypeMismatch',
         ]);
 
         $this->analyzer = new PropertyTypeMismatchAnalyzer(
@@ -334,7 +334,7 @@ final class PropertyTypeMismatchAnalyzerTest extends TestCase
     private function createEntityManagerWithSchema(): \Doctrine\ORM\EntityManagerInterface
     {
         $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager([
-            __DIR__ . '/../Fixtures/Entity',
+            __DIR__ . '/../Fixtures/Entity/TypeMismatch',
         ]);
 
         // Create schema ONLY for ProductWithTypeMismatch to avoid conflicts with other test entities
