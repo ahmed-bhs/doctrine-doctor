@@ -52,14 +52,8 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
 
         // Assert: Should detect concatenation in VulnerableRepository::findByNameUnsafe()
         $issuesArray = $issues->toArray();
-        $concatenationIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'findByNameUnsafe') &&
-                str_contains($issue->getDescription(), 'concatenation')) {
-                $concatenationIssue = $issue;
-                break;
-            }
-        }
+        $concatenationIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'findByNameUnsafe') &&
+            str_contains((string) $issue->getDescription(), 'concatenation'));
 
         self::assertNotNull($concatenationIssue, 'Should detect string concatenation SQL injection');
         self::assertEquals('critical', $concatenationIssue->getSeverity()->value);
@@ -80,7 +74,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $interpolationIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'interpolation'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'interpolation'),
         );
 
         self::assertGreaterThan(0, count($interpolationIssues), 'Should detect variable interpolation');
@@ -101,15 +95,9 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
 
         // Assert: Should detect missing parameters in searchUnsafe()
         $issuesArray = $issues->toArray();
-        $missingParamsIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'searchUnsafe') ||
-                (str_contains($issue->getDescription(), 'no parameter binding') ||
-                 str_contains($issue->getDescription(), 'dynamically built'))) {
-                $missingParamsIssue = $issue;
-                break;
-            }
-        }
+        $missingParamsIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'searchUnsafe') ||
+            (str_contains((string) $issue->getDescription(), 'no parameter binding') ||
+             str_contains((string) $issue->getDescription(), 'dynamically built')));
 
         self::assertNotNull($missingParamsIssue, 'Should detect missing parameter binding');
         self::assertEquals('critical', $missingParamsIssue->getSeverity()->value);
@@ -126,13 +114,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
 
         // Assert: Should detect sprintf in findByEmailUnsafe()
         $issuesArray = $issues->toArray();
-        $sprintfIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'sprintf')) {
-                $sprintfIssue = $issue;
-                break;
-            }
-        }
+        $sprintfIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'sprintf'));
 
         self::assertNotNull($sprintfIssue, 'Should detect sprintf SQL injection');
         self::assertEquals('critical', $sprintfIssue->getSeverity()->value);
@@ -152,7 +134,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $entityIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'EntityWithVulnerableMethods'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'EntityWithVulnerableMethods'),
         );
 
         self::assertGreaterThan(0, count($entityIssues), 'Should detect SQL injection in entity methods');
@@ -171,7 +153,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $safeMethodIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'Safe'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'Safe'),
         );
 
         self::assertCount(0, $safeMethodIssues, 'Parameterized queries should not be flagged');
@@ -190,7 +172,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $queryBuilderIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'findByIdSafe'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'findByIdSafe'),
         );
 
         self::assertCount(0, $queryBuilderIssues, 'Query builder should not be flagged');
@@ -253,12 +235,12 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
 
         $repoIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'VulnerableRepository'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'VulnerableRepository'),
         );
 
         $entityIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'EntityWithVulnerableMethods'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'EntityWithVulnerableMethods'),
         );
 
         self::assertGreaterThan(0, count($repoIssues), 'Should check repositories');
@@ -278,7 +260,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $repoIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'VulnerableRepository'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'VulnerableRepository'),
         );
 
         self::assertGreaterThanOrEqual(4, count($repoIssues), 'Should detect all vulnerable methods in repository');

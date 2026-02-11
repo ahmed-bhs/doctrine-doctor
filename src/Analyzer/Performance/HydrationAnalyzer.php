@@ -27,28 +27,8 @@ use Webmozart\Assert\Assert;
 
 class HydrationAnalyzer implements AnalyzerInterface
 {
-    private SqlStructureExtractor $sqlExtractor;
-
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private int $rowThreshold = 99,
-        /**
-         * @readonly
-         */
-        private int $criticalThreshold = 999,
-        ?SqlStructureExtractor $sqlExtractor = null,
-    ) {
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+    public function __construct(private readonly IssueFactoryInterface $issueFactory, private readonly SuggestionFactory $suggestionFactory, private readonly int $rowThreshold = 99, private readonly int $criticalThreshold = 999, private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

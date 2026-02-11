@@ -35,18 +35,9 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     private readonly PhpCodeParser $phpCodeParser;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly ?LoggerInterface $logger = null,
         ?TraitCollectionInitializationDetector $traitDetector = null,
         ?PhpCodeParser $phpCodeParser = null,
     ) {
@@ -144,7 +135,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     {
         // For Doctrine ORM 3.x/4.x: check class name
         if (is_object($mapping)) {
-            $className = get_class($mapping);
+            $className = $mapping::class;
 
             return str_contains($className, 'OneToManyAssociationMapping')
                 || str_contains($className, 'ManyToManyAssociationMapping')

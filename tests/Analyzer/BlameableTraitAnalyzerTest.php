@@ -73,9 +73,9 @@ final class BlameableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $blameableIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Blameable') ||
-                          str_contains($issue->getTitle(), 'createdBy') ||
-                          str_contains($issue->getTitle(), 'updatedBy'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Blameable') ||
+                          str_contains((string) $issue->getTitle(), 'createdBy') ||
+                          str_contains((string) $issue->getTitle(), 'updatedBy'),
         );
 
         self::assertNotEmpty($blameableIssues, 'Should detect blameable issues');
@@ -102,8 +102,8 @@ final class BlameableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $nullableIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'nullable') &&
-                          str_contains(strtolower($issue->getTitle()), 'creator'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'nullable') &&
+                          str_contains(strtolower((string) $issue->getTitle()), 'creator'),
         );
 
         self::assertNotEmpty($nullableIssues, 'Should detect nullable creator fields');
@@ -127,8 +127,8 @@ final class BlameableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $setterIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'setter') &&
-                          str_contains(strtolower($issue->getTitle()), 'blameable'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'setter') &&
+                          str_contains(strtolower((string) $issue->getTitle()), 'blameable'),
         );
 
         self::assertNotEmpty($setterIssues, 'Should detect public setters on blameable fields');
@@ -147,8 +147,8 @@ final class BlameableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $targetIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getTitle()), 'target') &&
-                          str_contains($issue->getTitle(), 'ArticleWithWrongTarget'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'target') &&
+                          str_contains((string) $issue->getTitle(), 'ArticleWithWrongTarget'),
         );
 
         self::assertNotEmpty($targetIssues, 'Should detect wrong target entities');
@@ -167,7 +167,7 @@ final class BlameableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $goodEntityIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'ArticleWithGoodBlameable'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'ArticleWithGoodBlameable'),
         );
 
         self::assertCount(0, $goodEntityIssues, 'Should NOT flag correct blameable configuration');
@@ -186,8 +186,8 @@ final class BlameableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $blameableIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Blameable') ||
-                          str_contains($issue->getTitle(), 'createdBy'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Blameable') ||
+                          str_contains((string) $issue->getTitle(), 'createdBy'),
         );
 
         if (!empty($blameableIssues)) {
@@ -214,7 +214,7 @@ final class BlameableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $articleIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'ArticleWithBadBlameable'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'ArticleWithBadBlameable'),
         );
 
         self::assertGreaterThanOrEqual(1, count($articleIssues), 'Should detect issues on ArticleWithBadBlameable');
@@ -233,9 +233,9 @@ final class BlameableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $productIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Product') &&
-                          (str_contains($issue->getTitle(), 'Blameable') ||
-                           str_contains($issue->getTitle(), 'createdBy')),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Product') &&
+                          (str_contains((string) $issue->getTitle(), 'Blameable') ||
+                           str_contains((string) $issue->getTitle(), 'createdBy')),
         );
 
         // The analyzer now suggests adding blameable trait to entities with timestamp fields

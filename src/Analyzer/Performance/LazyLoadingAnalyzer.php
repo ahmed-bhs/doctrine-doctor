@@ -22,24 +22,8 @@ use Webmozart\Assert\Assert;
 
 class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    private SqlStructureExtractor $sqlExtractor;
-
-    public function __construct(
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private int $threshold = 10,
-        ?SqlStructureExtractor $sqlExtractor = null,
-    ) {
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+    public function __construct(private readonly IssueFactoryInterface $issueFactory, private readonly SuggestionFactory $suggestionFactory, private readonly int $threshold = 10, private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor())
+    {
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
@@ -186,9 +170,7 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         // Convert to PascalCase
         $parts = explode('_', (string) $table);
 
-        return implode('', array_map(function ($part) {
-            return ucfirst($part);
-        }, $parts));
+        return implode('', array_map(ucfirst(...), $parts));
     }
 
     private function inferRelationFromBacktrace(?array $backtrace): string

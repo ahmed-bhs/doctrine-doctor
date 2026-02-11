@@ -48,13 +48,13 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
     /**
      * Common suffixes that indicate foreign key fields.
      */
-    private const FK_SUFFIXES = ['_id', 'Id', '_ID'];
+    private const array FK_SUFFIXES = ['_id', 'Id', '_ID'];
 
     /**
      * Entity name patterns that are likely referenced entities.
      * More conservative list to avoid false positives.
      */
-    private const ENTITY_PATTERNS = [
+    private const array ENTITY_PATTERNS = [
         'user', 'customer', 'account', 'product', 'category',
         'company', 'organization', 'team', 'role', 'permission',
         'author', 'publisher', 'supplier', 'vendor', 'manufacturer',
@@ -66,7 +66,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
      * Patterns that indicate a field is NOT a foreign key.
      * These are typically configuration, counting, or measurement fields.
      */
-    private const NON_FK_PATTERNS = [
+    private const array NON_FK_PATTERNS = [
         'number', 'amount', 'quantity', 'total', 'sum', 'count',
         'days', 'hours', 'minutes', 'seconds', 'duration', 'period',
         'age', 'year', 'month', 'week', 'date', 'time',
@@ -84,14 +84,8 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 
@@ -192,13 +186,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
      */
     private function isNonForeignKeyField(string $lowerFieldName): bool
     {
-        foreach (self::NON_FK_PATTERNS as $pattern) {
-            if ($this->containsAsWholeWord($lowerFieldName, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::NON_FK_PATTERNS, fn($pattern) => $this->containsAsWholeWord($lowerFieldName, $pattern));
     }
 
     /**
@@ -278,14 +266,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         $associations = $classMetadata->getAssociationNames();
 
         Assert::isIterable($associations, '$associations must be iterable');
-
-        foreach ($associations as $association) {
-            if (strtolower($association) === strtolower($baseName)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($associations, fn($association) => strtolower((string) $association) === strtolower($baseName));
     }
 
     /**

@@ -43,12 +43,12 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     /**
      * Minimum number of queries to trigger detection.
      */
-    private const MIN_QUERY_COUNT = 3;
+    private const int MIN_QUERY_COUNT = 3;
 
     /**
      * Keywords that suggest write operations (exclude from detection).
      */
-    private const WRITE_PATTERNS = [
+    private const array WRITE_PATTERNS = [
         'UPDATE',
         'DELETE',
         'INSERT',
@@ -56,10 +56,7 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private int $threshold = 5,
+        private readonly int $threshold = 5,
     ) {
     }
 
@@ -150,14 +147,7 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     private function isWriteOperation(string $sql): bool
     {
         $upperSql = strtoupper($sql);
-
-        foreach (self::WRITE_PATTERNS as $pattern) {
-            if (str_contains($upperSql, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::WRITE_PATTERNS, fn($pattern) => str_contains($upperSql, (string) $pattern));
     }
 
     /**

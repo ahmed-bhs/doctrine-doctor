@@ -16,7 +16,7 @@ $e = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8
 $lastBackslashClass = strrchr($entityClass, '\\');
 $shortClass = false !== $lastBackslashClass ? substr($lastBackslashClass, 1) : $entityClass;
 
-$lastBackslashTarget = strrchr($targetEntity, '\\');
+$lastBackslashTarget = strrchr((string) $targetEntity, '\\');
 $shortTarget = false !== $lastBackslashTarget ? substr($lastBackslashTarget, 1) : $targetEntity;
 
 ob_start();

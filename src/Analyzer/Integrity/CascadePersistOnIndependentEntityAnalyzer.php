@@ -46,7 +46,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
      * Entity patterns that are HIGHLY independent (critical issue).
      * These should NEVER have cascade=persist from other entities.
      */
-    private const CRITICAL_INDEPENDENT_PATTERNS = [
+    private const array CRITICAL_INDEPENDENT_PATTERNS = [
         'User', 'Customer', 'Account', 'Member', 'Client', 'Subscriber',
         'Company', 'Organization', 'Role', 'Permission',
     ];
@@ -55,7 +55,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
      * Entity patterns that are typically independent (warning level).
      * Referenced by multiple entities but might have legitimate cascade cases.
      */
-    private const INDEPENDENT_PATTERNS = [
+    private const array INDEPENDENT_PATTERNS = [
         // Organization
         'Team', 'Department', 'Group',
         // Catalog
@@ -69,14 +69,8 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 
@@ -211,13 +205,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
      */
     private function isCriticallyIndependentEntity(string $entityClass): bool
     {
-        foreach (self::CRITICAL_INDEPENDENT_PATTERNS as $pattern) {
-            if (str_contains($entityClass, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::CRITICAL_INDEPENDENT_PATTERNS, fn($pattern) => str_contains($entityClass, (string) $pattern));
     }
 
     private function createIssue(

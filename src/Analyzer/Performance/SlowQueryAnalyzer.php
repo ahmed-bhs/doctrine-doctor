@@ -22,26 +22,14 @@ use Webmozart\Assert\Assert;
 
 class SlowQueryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    private SqlStructureExtractor $sqlExtractor;
-
     public function __construct(
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private int $threshold = 100,
-        ?SqlStructureExtractor $sqlExtractor = null,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly int $threshold = 100,
+        private readonly ?SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
     ) {
         Assert::greaterThan($threshold, 0, 'Threshold must be positive, got %s');
         Assert::lessThan($threshold, 100000, 'Threshold seems unreasonably high (>100s), got %s ms');
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

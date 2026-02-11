@@ -44,20 +44,14 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements \AhmedBhs\DoctrineDoc
     /**
      * Child entity name patterns that suggest composition.
      */
-    private const COMPOSITION_CHILD_PATTERNS = [
+    private const array COMPOSITION_CHILD_PATTERNS = [
         'Item', 'Line', 'Entry', 'Detail', 'Part', 'Component',
         'Element', 'Record', 'Row', 'Member',
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 
@@ -162,13 +156,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements \AhmedBhs\DoctrineDoc
 
     private function hasCompositionName(string $entityClass): bool
     {
-        foreach (self::COMPOSITION_CHILD_PATTERNS as $pattern) {
-            if (str_contains($entityClass, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::COMPOSITION_CHILD_PATTERNS, fn($pattern) => str_contains($entityClass, (string) $pattern));
     }
 
     /**

@@ -20,18 +20,18 @@ Execution time: <strong><?php echo number_format($executionTime, 2); ?>ms</stron
 <h4>Query</h4>
 <div class="query-item"><?php
 // Detect if code is PHP or SQL
-$isPHP = str_contains($code, '$') || str_contains($code, '->') || str_contains($code, '::');
+$isPHP = str_contains((string) $code, '$') || str_contains((string) $code, '->') || str_contains((string) $code, '::');
 
 if ($isPHP) {
     // Display PHP code without SQL formatting
-    echo '<pre><code class="language-php">' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</code></pre>';
+    echo '<pre><code class="language-php">' . htmlspecialchars((string) $code, ENT_QUOTES, 'UTF-8') . '</code></pre>';
 } else {
     // Display SQL with syntax highlighting
-    echo '<pre><code class="language-sql">' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</code></pre>';
+    echo '<pre><code class="language-sql">' . htmlspecialchars((string) $code, ENT_QUOTES, 'UTF-8') . '</code></pre>';
 }
 ?></div>
 <h4>Suggested Optimization</h4>
-<p><?php echo nl2br(htmlspecialchars($optimization, ENT_QUOTES, 'UTF-8')); ?></p>
+<p><?php echo nl2br(htmlspecialchars((string) $optimization, ENT_QUOTES, 'UTF-8')); ?></p>
 <h4>Common Optimizations</h4>
 <ul>
 <li>Add indexes on WHERE/JOIN columns</li>

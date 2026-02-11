@@ -21,12 +21,12 @@ use Doctrine\DBAL\Connection;
  * PostgreSQL-specific strict mode analyzer.
  * Detects issues with standard_conforming_strings and check_function_bodies.
  */
-final class PostgreSQLStrictModeAnalyzer implements StrictModeAnalyzerInterface
+final readonly class PostgreSQLStrictModeAnalyzer implements StrictModeAnalyzerInterface
 {
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        private Connection $connection,
+        private SuggestionFactory $suggestionFactory,
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 

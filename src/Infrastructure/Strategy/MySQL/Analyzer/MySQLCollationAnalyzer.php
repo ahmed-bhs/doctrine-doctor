@@ -22,20 +22,20 @@ use Doctrine\DBAL\Connection;
  * MySQL-specific collation analyzer.
  * Detects issues with collation configuration and mismatches.
  */
-final class MySQLCollationAnalyzer implements CollationAnalyzerInterface
+final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterface
 {
-    private const RECOMMENDED_COLLATION = 'utf8mb4_unicode_ci';
+    private const string RECOMMENDED_COLLATION = 'utf8mb4_unicode_ci';
 
-    private const SUBOPTIMAL_COLLATIONS = [
+    private const array SUBOPTIMAL_COLLATIONS = [
         'utf8mb4_general_ci',
         'utf8_general_ci',
         'utf8_unicode_ci',
     ];
 
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        private Connection $connection,
+        private SuggestionFactory $suggestionFactory,
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 

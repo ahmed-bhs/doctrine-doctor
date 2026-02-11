@@ -32,18 +32,9 @@ use Webmozart\Assert\Assert;
 class FlushInLoopAnalyzerModern implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     public function __construct(
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private int $flushCountThreshold = 5,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly int $flushCountThreshold = 5,
     ) {
     }
 

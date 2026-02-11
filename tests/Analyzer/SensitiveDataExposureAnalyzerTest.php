@@ -68,7 +68,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $sensitiveIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'UserWithSensitiveData'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'UserWithSensitiveData'),
         );
 
         self::assertGreaterThan(0, count($sensitiveIssues), 'Should detect sensitive fields in UserWithSensitiveData');
@@ -85,13 +85,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
 
         // Assert: Should detect __toString() exposure
         $issuesArray = $issues->toArray();
-        $toStringIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getTitle(), '__toString()')) {
-                $toStringIssue = $issue;
-                break;
-            }
-        }
+        $toStringIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), '__toString()'));
 
         self::assertNotNull($toStringIssue, 'Should detect __toString() exposing sensitive data');
         self::assertEquals('critical', $toStringIssue->getSeverity()->value);
@@ -109,13 +103,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
 
         // Assert: Should detect jsonSerialize() exposure
         $issuesArray = $issues->toArray();
-        $jsonIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getTitle(), 'jsonSerialize()')) {
-                $jsonIssue = $issue;
-                break;
-            }
-        }
+        $jsonIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), 'jsonSerialize()'));
 
         self::assertNotNull($jsonIssue, 'Should detect jsonSerialize() exposing sensitive data');
         self::assertEquals('critical', $jsonIssue->getSeverity()->value);
@@ -133,13 +121,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
 
         // Assert: Should detect toArray() exposure
         $issuesArray = $issues->toArray();
-        $toArrayIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getTitle(), 'toArray()')) {
-                $toArrayIssue = $issue;
-                break;
-            }
-        }
+        $toArrayIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), 'toArray()'));
 
         self::assertNotNull($toArrayIssue, 'Should detect toArray() exposing sensitive data');
         self::assertEquals('critical', $toArrayIssue->getSeverity()->value);
@@ -159,7 +141,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $protectionIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Unprotected sensitive field'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Unprotected sensitive field'),
         );
 
         self::assertGreaterThan(0, count($protectionIssues), 'Should detect unprotected sensitive fields');
@@ -182,7 +164,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $passwordIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'password'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'password'),
         );
 
         self::assertGreaterThan(0, count($passwordIssues), 'Should identify password field');
@@ -201,7 +183,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $apiKeyIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getDescription()), 'apikey'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getDescription()), 'apikey'),
         );
 
         self::assertGreaterThan(0, count($apiKeyIssues), 'Should identify apiKey field');
@@ -220,7 +202,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $tokenIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower($issue->getDescription()), 'token'),
+            fn ($issue) => str_contains(strtolower((string) $issue->getDescription()), 'token'),
         );
 
         self::assertGreaterThan(0, count($tokenIssues), 'Should identify token fields');
@@ -239,8 +221,8 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $protectedEntityIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'UserWithProtectedData') &&
-                          str_contains($issue->getTitle(), 'Unprotected'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'UserWithProtectedData') &&
+                          str_contains((string) $issue->getTitle(), 'Unprotected'),
         );
 
         self::assertCount(0, $protectedEntityIssues, 'Protected fields should not be flagged as unprotected');
@@ -259,8 +241,8 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $toStringIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'UserWithProtectedData') &&
-                          str_contains($issue->getTitle(), '__toString()'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'UserWithProtectedData') &&
+                          str_contains((string) $issue->getTitle(), '__toString()'),
         );
 
         self::assertCount(0, $toStringIssues, 'Safe __toString() should not be flagged');
@@ -279,8 +261,8 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $jsonIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'UserWithProtectedData') &&
-                          str_contains($issue->getTitle(), 'jsonSerialize()'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'UserWithProtectedData') &&
+                          str_contains((string) $issue->getTitle(), 'jsonSerialize()'),
         );
 
         self::assertCount(0, $jsonIssues, 'Safe jsonSerialize() should not be flagged');
@@ -299,8 +281,8 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $toArrayIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'UserWithProtectedData') &&
-                          str_contains($issue->getTitle(), 'toArray()'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'UserWithProtectedData') &&
+                          str_contains((string) $issue->getTitle(), 'toArray()'),
         );
 
         self::assertCount(0, $toArrayIssues, 'Safe toArray() should not be flagged');
@@ -317,13 +299,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
 
         // Assert: Should provide suggestion for __toString()
         $issuesArray = $issues->toArray();
-        $toStringIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getTitle(), '__toString()')) {
-                $toStringIssue = $issue;
-                break;
-            }
-        }
+        $toStringIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), '__toString()'));
 
         if (null !== $toStringIssue) {
             $suggestion = $toStringIssue->getSuggestion();
@@ -343,13 +319,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
 
         // Assert: Should provide suggestion for jsonSerialize()
         $issuesArray = $issues->toArray();
-        $jsonIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getTitle(), 'jsonSerialize()')) {
-                $jsonIssue = $issue;
-                break;
-            }
-        }
+        $jsonIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), 'jsonSerialize()'));
 
         if (null !== $jsonIssue) {
             $suggestion = $jsonIssue->getSuggestion();
@@ -371,7 +341,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $protectionIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'Unprotected'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Unprotected'),
         );
 
         if (count($protectionIssues) > 0) {
@@ -416,7 +386,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $userIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'UserWithSensitiveData'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'UserWithSensitiveData'),
         );
 
         // Expect: 3 methods (toString, jsonSerialize, toArray) + 3 unprotected fields (password, apiKey, secretToken)

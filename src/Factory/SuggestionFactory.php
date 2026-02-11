@@ -36,12 +36,9 @@ use Webmozart\Assert\Assert;
  * @SuppressWarnings("PHPMD.TooManyMethods")
  * @SuppressWarnings("PHPMD.TooManyPublicMethods")
  */
-final class SuggestionFactory
+final readonly class SuggestionFactory
 {
     public function __construct(
-        /**
-         * @readonly
-         */
         private SuggestionRendererInterface $suggestionRenderer,
     ) {
         Assert::isInstanceOf($suggestionRenderer, SuggestionRendererInterface::class);
@@ -421,7 +418,7 @@ final class SuggestionFactory
         Assert::stringNotEmpty($relation, 'Relation name cannot be empty');
         Assert::greaterThan($queryCount, 0, 'Query count must be positive, got %s');
 
-        $counterField = $counterField ?? $relation . 'Count';
+        $counterField ??= $relation . 'Count';
 
         return new ModernSuggestion(
             templateName: 'Performance/denormalization',
@@ -561,8 +558,8 @@ final class SuggestionFactory
 
     /**
      * Create a "Join Fetch" suggestion.
-     * @deprecated Use createEagerLoading() instead. This method is an alias for createEagerLoading().
      */
+    #[\Deprecated(message: 'Use createEagerLoading() instead. This method is an alias for createEagerLoading().')]
     public function createJoinFetch(
         string $entity,
         string $relation,
@@ -731,11 +728,11 @@ final class SuggestionFactory
 
     /**
      * Create a structured suggestion with organized content blocks.
-     * @deprecated Use createFromTemplate() instead. Create a template file in src/Template/Suggestions/
      * @param string                   $title   Suggestion title
      * @param SuggestionContentBlock[] $blocks  Content blocks
      * @param string|null $summary summary
      */
+    #[\Deprecated(message: 'Use createFromTemplate() instead. Create a template file in src/Template/Suggestions/')]
     public function createStructured(
         string $title,
         array $blocks,
@@ -760,8 +757,8 @@ final class SuggestionFactory
 
     /**
      * Create a structured suggestion with a comparison (bad vs good code).
-     * @deprecated Use createFromTemplate() instead. Create a template file in src/Template/Suggestions/
      */
+    #[\Deprecated(message: 'Use createFromTemplate() instead. Create a template file in src/Template/Suggestions/')]
     public function createComparison(
         string $title,
         string $badCode,
@@ -789,8 +786,8 @@ final class SuggestionFactory
 
     /**
      * Create a structured suggestion with multiple options.
-     * @deprecated Use createFromTemplate() instead. Create a template file in src/Template/Suggestions/
      */
+    #[\Deprecated(message: 'Use createFromTemplate() instead. Create a template file in src/Template/Suggestions/')]
     public function createWithOptions(
         string $title,
         string $description,
@@ -840,8 +837,8 @@ final class SuggestionFactory
 
     /**
      * Create a suggestion with documentation links.
-     * @deprecated Use createFromTemplate() instead. Create a template file in src/Template/Suggestions/
      */
+    #[\Deprecated(message: 'Use createFromTemplate() instead. Create a template file in src/Template/Suggestions/')]
     public function createWithDocs(
         string $title,
         string $description,
@@ -1080,9 +1077,7 @@ final class SuggestionFactory
             return '// Unable to generate migration code: table or columns missing.';
         }
 
-        $indexName = 'IDX_' . strtoupper($table) . '_' . implode('_', array_map(function ($column) {
-            return strtoupper($column);
-        }, $columns));
+        $indexName = 'IDX_' . strtoupper($table) . '_' . implode('_', array_map(strtoupper(...), $columns));
         $cols      = implode(', ', $columns);
 
         return sprintf('CREATE INDEX %s ON %s (%s);', $indexName, $table, $cols);

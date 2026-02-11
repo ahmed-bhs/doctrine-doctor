@@ -304,14 +304,7 @@ final class CompositionRelationshipDetector
             'Item', 'Line', 'Entry', 'Detail', 'Part', 'Component',
             'Element', 'Record', 'Row', 'Member', 'Piece',
         ];
-
-        foreach ($compositionPatterns as $pattern) {
-            if (str_ends_with($entityClass, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($compositionPatterns, fn($pattern) => str_ends_with($entityClass, (string) $pattern));
     }
 
     /**
@@ -331,14 +324,7 @@ final class CompositionRelationshipDetector
             'Author', 'Editor', 'Publisher',
             'Country', 'City', 'Region', 'Address',
         ];
-
-        foreach ($independentPatterns as $pattern) {
-            if (str_contains($entityClass, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($independentPatterns, fn($pattern) => str_contains($entityClass, (string) $pattern));
     }
 
     /**

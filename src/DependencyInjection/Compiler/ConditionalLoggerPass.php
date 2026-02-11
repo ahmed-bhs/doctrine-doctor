@@ -60,9 +60,9 @@ final class ConditionalLoggerPass implements CompilerPassInterface
 
         // Also replace in helper services
         $helperServices = [
-            'AhmedBhs\DoctrineDoctor\Collector\Helper\DatabaseInfoCollector',
-            'AhmedBhs\DoctrineDoctor\Collector\Helper\DataCollectorLogger',
-            'AhmedBhs\DoctrineDoctor\Service\Cache\EntityMetadataCache',
+            \AhmedBhs\DoctrineDoctor\Collector\Helper\DatabaseInfoCollector::class,
+            \AhmedBhs\DoctrineDoctor\Collector\Helper\DataCollectorLogger::class,
+            \AhmedBhs\DoctrineDoctor\Service\Cache\EntityMetadataCache::class,
         ];
 
         foreach ($helperServices as $serviceId) {

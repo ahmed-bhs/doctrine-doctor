@@ -357,7 +357,7 @@ final class SqlQueryNormalizerTest extends TestCase
         ];
 
         // When: We normalize all queries
-        $normalized = array_map(fn ($q) => $this->normalizer->normalizeQuery($q), $queries);
+        $normalized = array_map($this->normalizer->normalizeQuery(...), $queries);
 
         // Then: All should produce the same pattern
         $uniquePatterns = array_unique($normalized);

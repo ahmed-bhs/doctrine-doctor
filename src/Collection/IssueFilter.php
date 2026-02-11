@@ -20,21 +20,18 @@ use Webmozart\Assert\Assert;
  * Provides filtering capabilities for IssueCollection.
  * Follows Single Responsibility Principle.
  */
-final class IssueFilter
+final readonly class IssueFilter
 {
     /**
      * Severity levels in order of importance (3-level system).
      */
-    private const SEVERITY_ORDER = [
+    private const array SEVERITY_ORDER = [
         'critical' => 0,
         'warning'  => 1,
         'info'     => 2,
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
         private IssueCollection $issueCollection,
     ) {
     }
@@ -49,9 +46,8 @@ final class IssueFilter
 
     /**
      * Filter issues by severity (backward compatible string version).
-     *
-     * @deprecated Use bySeverityEnum() with Severity enum instead
      */
+    #[\Deprecated(message: 'Use bySeverityEnum() with Severity enum instead')]
     public function bySeverity(string $severity): IssueCollection
     {
         Assert::stringNotEmpty($severity, 'Severity cannot be empty');

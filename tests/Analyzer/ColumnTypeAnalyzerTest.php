@@ -95,8 +95,8 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $objectIssues = array_filter(
             iterator_to_array($issues),
-            fn ($issue) => str_contains($issue->getTitle(), 'EntityWithObjectType')
-                && str_contains($issue->getTitle(), 'object'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithObjectType')
+                && str_contains((string) $issue->getTitle(), 'object'),
         );
 
         // Should detect 2 object type fields: metadata and configuration
@@ -117,8 +117,8 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $arrayIssues = array_filter(
             iterator_to_array($issues),
-            fn ($issue) => str_contains($issue->getTitle(), 'EntityWithArrayType')
-                && str_contains($issue->getTitle(), 'array'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithArrayType')
+                && str_contains((string) $issue->getTitle(), 'array'),
         );
 
         // Should detect 2 array type fields: settings and permissions
@@ -139,8 +139,8 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $simpleArrayIssues = array_filter(
             iterator_to_array($issues),
-            fn ($issue) => str_contains($issue->getTitle(), 'EntityWithSimpleArray')
-                && str_contains($issue->getTitle(), 'simple_array'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithSimpleArray')
+                && str_contains((string) $issue->getTitle(), 'simple_array'),
         );
 
         // Should detect 2 fields with limited length: tags (255) and categories (100)
@@ -162,8 +162,8 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $enumIssues = array_filter(
             iterator_to_array($issues),
-            fn ($issue) => str_contains($issue->getTitle(), 'EntityWithEnumOpportunity')
-                && str_contains($issue->getTitle(), 'enum'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithEnumOpportunity')
+                && str_contains((string) $issue->getTitle(), 'enum'),
         );
 
         // Should suggest enum for fields with few distinct values: status, type, role, priority
@@ -196,7 +196,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $correctTypeIssues = array_filter(
             iterator_to_array($issues),
-            fn ($issue) => str_contains($issue->getTitle(), 'EntityWithCorrectTypes'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithCorrectTypes'),
         );
 
         // Should not detect any issues in entity with correct types
@@ -210,7 +210,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $mixedIssues = array_filter(
             iterator_to_array($issues),
-            fn ($issue) => str_contains($issue->getTitle(), 'EntityWithMixedIssues'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithMixedIssues'),
         );
 
         // Should detect:
@@ -350,7 +350,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $objectTypeIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getDescription(), 'type "object"'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'type "object"'),
         );
 
         self::assertNotEmpty($objectTypeIssues, 'Should detect object type issues');
@@ -369,7 +369,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $arrayTypeIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getDescription(), 'type "array"'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'type "array"'),
         );
 
         self::assertNotEmpty($arrayTypeIssues, 'Should detect array type issues');
@@ -484,7 +484,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $enumIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'enum'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'enum'),
         );
 
         // Should detect enum opportunities based on data analysis (few distinct values)
@@ -503,7 +503,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $enumIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'enum'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'enum'),
         );
 
         // name and description fields should NOT be suggested as enums
@@ -553,8 +553,8 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $enumIssuesForEntity = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'EntityWithEnumOpportunity')
-                && str_contains($issue->getTitle(), 'enum'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithEnumOpportunity')
+                && str_contains((string) $issue->getTitle(), 'enum'),
         );
 
         // Should not suggest enums when there's no data to analyze
@@ -612,8 +612,8 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $enumIssuesForEntity = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'EntityWithEnumOpportunity')
-                && str_contains($issue->getTitle(), 'enum'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithEnumOpportunity')
+                && str_contains((string) $issue->getTitle(), 'enum'),
         );
 
         // Should not suggest enums when there's not enough data
@@ -721,8 +721,8 @@ final class ColumnTypeAnalyzerTest extends TestCase
         // Find object type issues (should be CRITICAL for app code)
         $objectTypeIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'object') &&
-                          str_contains($issue->getTitle(), 'EntityWithObjectType'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'object') &&
+                          str_contains((string) $issue->getTitle(), 'EntityWithObjectType'),
         );
 
         self::assertGreaterThan(0, count($objectTypeIssues), 'Should have object type issues');
@@ -746,7 +746,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
 
         $objectTypeIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getTitle(), 'object'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'object'),
         );
 
         foreach ($objectTypeIssues as $issue) {

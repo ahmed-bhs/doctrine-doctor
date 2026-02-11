@@ -25,7 +25,7 @@ use PHPUnit\Framework\Attributes\Test;
 
 final class SlowQueryAnalyzerIntegrationTest extends DatabaseTestCase
 {
-    private const THRESHOLD_MS = 50;
+    private const int THRESHOLD_MS = 50;
 
     private SlowQueryAnalyzer $slowQueryAnalyzer;
 

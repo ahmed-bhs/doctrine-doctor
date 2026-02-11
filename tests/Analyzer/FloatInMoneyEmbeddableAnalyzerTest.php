@@ -50,13 +50,7 @@ final class FloatInMoneyEmbeddableAnalyzerTest extends TestCase
 
         // Assert: MoneyWithFloat should be detected
         $issuesArray = $issues->toArray();
-        $moneyWithFloatIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'MoneyWithFloat')) {
-                $moneyWithFloatIssue = $issue;
-                break;
-            }
-        }
+        $moneyWithFloatIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'MoneyWithFloat'));
 
         self::assertNotNull($moneyWithFloatIssue, 'Should detect float in MoneyWithFloat embeddable');
         self::assertEquals('integrity', $moneyWithFloatIssue->getCategory());

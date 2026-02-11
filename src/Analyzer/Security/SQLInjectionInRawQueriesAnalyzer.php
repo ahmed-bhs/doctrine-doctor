@@ -34,7 +34,7 @@ use Webmozart\Assert\Assert;
 class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     // Methods that execute SQL
-    private const SQL_EXECUTION_METHODS = [
+    private const array SQL_EXECUTION_METHODS = [
         'executeQuery',
         'executeStatement',
         'exec',
@@ -43,21 +43,12 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         'createNativeQuery',
     ];
 
-    private PhpCodeParser $phpCodeParser;
+    private readonly PhpCodeParser $phpCodeParser;
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
-        /**
-         * @readonly
-         */
-        private ?LoggerInterface $logger = null,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly ?LoggerInterface $logger = null,
         ?PhpCodeParser $phpCodeParser = null,
     ) {
         $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
@@ -197,14 +188,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         ];
 
         Assert::isIterable($patterns, '$patterns must be iterable');
-
-        foreach ($patterns as $pattern) {
-            if (1 === preg_match($pattern, $sql)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($patterns, fn($pattern) => 1 === preg_match($pattern, $sql));
     }
 
     /**
@@ -323,13 +307,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
      */
     private function usesSqlExecution(string $source): bool
     {
-        foreach (self::SQL_EXECUTION_METHODS as $sqlMethod) {
-            if (str_contains($source, $sqlMethod)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::SQL_EXECUTION_METHODS, fn($sqlMethod) => str_contains($source, (string) $sqlMethod));
     }
 
     private function createConcatenationIssue(

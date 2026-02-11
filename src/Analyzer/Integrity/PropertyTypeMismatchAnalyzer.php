@@ -38,14 +38,8 @@ use Webmozart\Assert\Assert;
 class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
     ) {
     }
 

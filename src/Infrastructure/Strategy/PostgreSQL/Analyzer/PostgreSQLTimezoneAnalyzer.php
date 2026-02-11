@@ -22,12 +22,12 @@ use Doctrine\DBAL\Connection;
  * PostgreSQL-specific timezone analyzer.
  * Detects timezone mismatches and TIMESTAMP without timezone usage.
  */
-final class PostgreSQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
+final readonly class PostgreSQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
 {
     public function __construct(
-        private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
-        private readonly DatabasePlatformDetector $databasePlatformDetector,
+        private Connection $connection,
+        private SuggestionFactory $suggestionFactory,
+        private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
 

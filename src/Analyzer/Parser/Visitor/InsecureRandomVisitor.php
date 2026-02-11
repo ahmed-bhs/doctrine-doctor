@@ -42,7 +42,7 @@ final class InsecureRandomVisitor extends NodeVisitorAbstract
     /**
      * Weak hash functions that shouldn't be used with weak randomness.
      */
-    private const WEAK_HASH_FUNCTIONS = ['md5', 'sha1'];
+    private const array WEAK_HASH_FUNCTIONS = ['md5', 'sha1'];
 
     /**
      * @var array<array{type: string, function: string, line: int}>
@@ -111,7 +111,7 @@ final class InsecureRandomVisitor extends NodeVisitorAbstract
             return false;
         }
 
-        return in_array(strtolower($functionName), array_map('strtolower', $this->insecureFunctions), true);
+        return in_array(strtolower($functionName), array_map(strtolower(...), $this->insecureFunctions), true);
     }
 
     /**
@@ -145,7 +145,7 @@ final class InsecureRandomVisitor extends NodeVisitorAbstract
             return false;
         }
 
-        return in_array(strtolower($randomFunction), array_map('strtolower', $this->insecureFunctions), true);
+        return in_array(strtolower($randomFunction), array_map(strtolower(...), $this->insecureFunctions), true);
     }
 
     /**

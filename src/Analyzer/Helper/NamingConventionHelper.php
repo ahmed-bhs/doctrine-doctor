@@ -20,7 +20,7 @@ final class NamingConventionHelper
     /**
      * Common singular to plural mappings.
      */
-    private const PLURAL_EXCEPTIONS = [
+    private const array PLURAL_EXCEPTIONS = [
         'person' => 'people',
         'child'  => 'children',
         'man'    => 'men',

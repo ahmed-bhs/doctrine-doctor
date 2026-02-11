@@ -64,14 +64,8 @@ final class InsecureRandomAnalyzerTest extends TestCase
 
         // Assert: Should detect rand() usage
         $issuesArray = $issues->toArray();
-        $randIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'generateApiToken') &&
-                str_contains($issue->getDescription(), 'rand')) {
-                $randIssue = $issue;
-                break;
-            }
-        }
+        $randIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'generateApiToken') &&
+            str_contains((string) $issue->getDescription(), 'rand'));
 
         self::assertNotNull($randIssue, 'Should detect rand() in API token generation');
         self::assertEquals('critical', $randIssue->getSeverity()->value);
@@ -91,7 +85,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $mtRandIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'mt_rand'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'mt_rand'),
         );
 
         self::assertGreaterThan(0, count($mtRandIssues), 'Should detect mt_rand() usage');
@@ -111,13 +105,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
 
         // Assert: Should detect uniqid() usage
         $issuesArray = $issues->toArray();
-        $uniqidIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getDescription(), 'uniqid')) {
-                $uniqidIssue = $issue;
-                break;
-            }
-        }
+        $uniqidIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getDescription(), 'uniqid'));
 
         self::assertNotNull($uniqidIssue, 'Should detect uniqid() in secret generation');
         self::assertEquals('critical', $uniqidIssue->getSeverity()->value);
@@ -136,7 +124,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $timeIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'generatePasswordResetCode'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'generatePasswordResetCode'),
         );
 
         self::assertGreaterThan(0, count($timeIssues), 'Should detect time() in password reset');
@@ -155,7 +143,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $microtimeIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'generateCsrfToken'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'generateCsrfToken'),
         );
 
         self::assertGreaterThan(0, count($microtimeIssues), 'Should detect microtime() in CSRF token');
@@ -172,13 +160,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
 
         // Assert: Should detect weak hash pattern
         $issuesArray = $issues->toArray();
-        $weakHashIssue = null;
-        foreach ($issuesArray as $issue) {
-            if (str_contains($issue->getTitle(), 'Weak hash-based randomness')) {
-                $weakHashIssue = $issue;
-                break;
-            }
-        }
+        $weakHashIssue = array_find($issuesArray, fn($issue) => str_contains((string) $issue->getTitle(), 'Weak hash-based randomness'));
 
         self::assertNotNull($weakHashIssue, 'Should detect md5(rand()) pattern');
         self::assertEquals('critical', $weakHashIssue->getSeverity()->value);
@@ -198,7 +180,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $entityIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'EntityWithInsecureRandom'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'EntityWithInsecureRandom'),
         );
 
         // Should detect: token, reset, secret, password, csrf, session, verification
@@ -218,7 +200,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $secureIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'generateSecureToken'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'generateSecureToken'),
         );
 
         self::assertCount(0, $secureIssues, 'random_bytes() should not be flagged');
@@ -237,7 +219,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $secureIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'generateSecureCode'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'generateSecureCode'),
         );
 
         self::assertCount(0, $secureIssues, 'random_int() should not be flagged');
@@ -256,7 +238,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $colorIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'generateRandomColor'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'generateRandomColor'),
         );
 
         self::assertCount(0, $colorIssues, 'rand() for non-security purposes should not be flagged');
@@ -362,7 +344,7 @@ final class InsecureRandomAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $entityIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'EntityWithInsecureRandom'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'EntityWithInsecureRandom'),
         );
 
         self::assertGreaterThanOrEqual(7, count($entityIssues), 'Should detect all 7+ insecure methods');

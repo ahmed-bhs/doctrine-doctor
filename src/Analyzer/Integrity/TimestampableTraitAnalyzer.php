@@ -62,7 +62,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     /**
      * Common field names for timestamps.
      */
-    private const TIMESTAMP_FIELD_PATTERNS = [
+    private const array TIMESTAMP_FIELD_PATTERNS = [
         'createdAt',
         'created_at',
         'createDate',
@@ -83,7 +83,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
      * Remote timestamp fields (from external systems).
      * These can legitimately be nullable (data not yet synced).
      */
-    private const REMOTE_TIMESTAMP_PATTERNS = [
+    private const array REMOTE_TIMESTAMP_PATTERNS = [
         'remote',
         'external',
         'synced',
@@ -93,18 +93,9 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     ];
 
     public function __construct(
-        /**
-         * @readonly
-         */
-        private EntityManagerInterface $entityManager,
-        /**
-         * @readonly
-         */
-        private IssueFactoryInterface $issueFactory,
-        /**
-         * @readonly
-         */
-        private SuggestionFactory $suggestionFactory,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
+        private readonly SuggestionFactory $suggestionFactory,
     ) {
     }
 
@@ -316,14 +307,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function isRemoteTimestamp(string $fieldName): bool
     {
         $fieldLower = strtolower($fieldName);
-
-        foreach (self::REMOTE_TIMESTAMP_PATTERNS as $pattern) {
-            if (str_contains($fieldLower, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::REMOTE_TIMESTAMP_PATTERNS, fn($pattern) => str_contains($fieldLower, (string) $pattern));
     }
 
     /**

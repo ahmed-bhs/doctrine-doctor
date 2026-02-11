@@ -44,7 +44,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
     /**
      * Entity patterns that are typically independent.
      */
-    private const INDEPENDENT_PATTERNS = [
+    private const array INDEPENDENT_PATTERNS = [
         'User', 'Customer', 'Account', 'Member', 'Client',
         'Company', 'Organization', 'Team', 'Department',
         'Product', 'Category', 'Brand', 'Tag',
@@ -53,9 +53,9 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
     ];
 
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private SuggestionFactory $suggestionFactory,
-        private ?LoggerInterface $logger = null,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SuggestionFactory $suggestionFactory,
+        private readonly ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -403,14 +403,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
     private function hasAllCascadeOperations(array $cascade): bool
     {
         $requiredOperations = ['persist', 'remove', 'refresh', 'detach'];
-
-        foreach ($requiredOperations as $operation) {
-            if (!in_array($operation, $cascade, true)) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($requiredOperations, fn($operation) => in_array($operation, $cascade, true));
     }
 
     private function determineSeverityForAll(array|object $mapping): Severity
