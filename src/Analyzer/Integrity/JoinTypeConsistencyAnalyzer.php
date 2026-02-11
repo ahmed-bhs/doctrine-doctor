@@ -318,10 +318,8 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Performance/left_join_with_not_null',
             context: [
-                'table_name' => $tableName,
-                'alias' => $alias,
+                'entity' => $tableName,
                 'field' => $field,
-                'original_query' => $sql,
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
