@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Analyzer\Performance\JoinOptimizationAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\BlogPost;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Product;
@@ -19,9 +21,6 @@ use AhmedBhs\DoctrineDoctor\Tests\Integration\DatabaseTestCase;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use PHPUnit\Framework\Attributes\Test;
 
-/**
- * Integration test for JoinOptimizationAnalyzer - JOIN Performance.
- */
 final class JoinOptimizationAnalyzerIntegrationTest extends DatabaseTestCase
 {
     private JoinOptimizationAnalyzer $joinOptimizationAnalyzer;
@@ -36,12 +35,15 @@ final class JoinOptimizationAnalyzerIntegrationTest extends DatabaseTestCase
 
         $this->createSchema([User::class, Product::class, BlogPost::class]);
 
+        $sqlExtractor = new SqlStructureExtractor();
+        $collectionJoinDetector = new CollectionJoinDetector($this->entityManager, $sqlExtractor);
+
         $this->joinOptimizationAnalyzer = new JoinOptimizationAnalyzer(
-            $this->entityManager,
+            $collectionJoinDetector,
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
-            new \AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor(),
-            5,  // maxJoinsRecommended (default)
-            8,  // maxJoinsCritical (default)
+            $sqlExtractor,
+            5,
+            8,
         );
     }
 
