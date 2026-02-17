@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Analyzer\Performance\JoinOptimizationAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
@@ -31,12 +33,16 @@ final class JoinOptimizationAnalyzerTest extends TestCase
 
     protected function setUp(): void
     {
+        $sqlExtractor = new SqlStructureExtractor();
+        $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager();
+        $collectionJoinDetector = new CollectionJoinDetector($entityManager, $sqlExtractor);
+
         $this->analyzer = new JoinOptimizationAnalyzer(
-            PlatformAnalyzerTestHelper::createTestEntityManager(),
+            $collectionJoinDetector,
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
-            new \AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor(),
-            5,  // maxJoinsRecommended (default)
-            8,  // maxJoinsCritical (default)
+            $sqlExtractor,
+            5,
+            8,
         );
     }
 
@@ -461,6 +467,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
         self::assertEquals('JOIN Optimization Analyzer', $name);
         self::assertStringContainsString('JOIN', $description);
         self::assertStringContainsString('NOT NULL', $description);
+        self::assertStringNotContainsString('multiple collection', strtolower($description));
     }
 
     #[Test]
@@ -528,10 +535,8 @@ final class JoinOptimizationAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_detects_multiple_collection_joins_requiring_multi_step_hydration(): void
+    public function it_does_not_detect_collection_join_issues(): void
     {
-        // Arrange: Query with 2 LEFT JOINs on collection-valued associations
-        // This creates O(n^2) hydration complexity due to cartesian product
         $queries = QueryDataBuilder::create()
             ->addQuery('SELECT * FROM a')
             ->addQuery('SELECT * FROM b')
@@ -540,127 +545,11 @@ final class JoinOptimizationAnalyzerTest extends TestCase
                 'LEFT JOIN session s2_ ON u0_.id = s2_.user_id')
             ->build();
 
-        // Act
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert
         $issuesArray = $issues->toArray();
+        $cartesianIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Collection JOINs') || str_contains((string) $issue->getTitle(), 'Cartesian'));
 
-        // Filter for multi-step hydration issues
-        $multiStepIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Multiple Collection JOINs'));
-
-        // Note: This test may not detect the issue if the tables are not recognized as collections
-        // in the test entity manager. The analyzer requires proper entity metadata.
-        self::assertGreaterThanOrEqual(0, count($multiStepIssues));
-    }
-
-    #[Test]
-    public function it_does_not_flag_single_collection_join(): void
-    {
-        // Arrange: Query with only 1 LEFT JOIN on collection
-        $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM a')
-            ->addQuery('SELECT * FROM b')
-            ->addQuery('SELECT u0_.id, s1_.id FROM user u0_ ' .
-                'LEFT JOIN social_account s1_ ON u0_.id = s1_.user_id')
-            ->build();
-
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert: Should NOT detect multi-step hydration issue with only 1 collection JOIN
-        $issuesArray = $issues->toArray();
-        $multiStepIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Multiple Collection JOINs'));
-
-        self::assertCount(0, $multiStepIssues, 'Should NOT flag single collection JOIN');
-    }
-
-    #[Test]
-    public function it_does_not_flag_inner_joins_for_multi_step(): void
-    {
-        // Arrange: Query with multiple INNER JOINs (not LEFT JOINs)
-        $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM a')
-            ->addQuery('SELECT * FROM b')
-            ->addQuery('SELECT u0_.id FROM user u0_ ' .
-                'INNER JOIN social_account s1_ ON u0_.id = s1_.user_id ' .
-                'INNER JOIN session s2_ ON u0_.id = s2_.user_id')
-            ->build();
-
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert: Multi-step hydration is specifically for LEFT JOINs
-        $issuesArray = $issues->toArray();
-        $multiStepIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Multiple Collection JOINs'));
-
-        self::assertCount(0, $multiStepIssues, 'Should NOT flag INNER JOINs for multi-step hydration');
-    }
-
-    #[Test]
-    public function it_provides_multi_step_hydration_suggestion(): void
-    {
-        // Arrange: Query with multiple collection JOINs
-        $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM a')
-            ->addQuery('SELECT * FROM b')
-            ->addQuery('SELECT u0_.id, s1_.id, s2_.id FROM user u0_ ' .
-                'LEFT JOIN social_account s1_ ON u0_.id = s1_.user_id ' .
-                'LEFT JOIN session s2_ ON u0_.id = s2_.user_id')
-            ->build();
-
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert
-        $issuesArray = $issues->toArray();
-        $multiStepIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Multiple Collection JOINs'));
-
-        // Note: Detection depends on entity metadata - may not always trigger
-        self::assertGreaterThanOrEqual(0, count($multiStepIssues), 'Analyzer should process query');
-
-        if (count($multiStepIssues) > 0) {
-            $issue = array_values($multiStepIssues)[0];
-            self::assertNotNull($issue->getSuggestion(), 'Should provide multi-step hydration suggestion');
-
-            $data = $issue->getData();
-            self::assertArrayHasKey('join_count', $data);
-            self::assertArrayHasKey('tables', $data);
-            self::assertArrayHasKey('complexity', $data);
-        }
-    }
-
-    #[Test]
-    public function it_escalates_severity_for_three_or_more_collection_joins(): void
-    {
-        // Arrange: Query with 3 LEFT JOINs on collections (O(n^3) complexity!)
-        $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM a')
-            ->addQuery('SELECT * FROM b')
-            ->addQuery('SELECT u0_.id FROM user u0_ ' .
-                'LEFT JOIN social_account s1_ ON u0_.id = s1_.user_id ' .
-                'LEFT JOIN session s2_ ON u0_.id = s2_.user_id ' .
-                'LEFT JOIN notification n3_ ON u0_.id = n3_.user_id')
-            ->build();
-
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert
-        $issuesArray = $issues->toArray();
-        $multiStepIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Multiple Collection JOINs'));
-
-        // Note: Detection depends on entity metadata - may not always trigger
-        self::assertGreaterThanOrEqual(0, count($multiStepIssues), 'Analyzer should process query');
-
-        if (count($multiStepIssues) > 0) {
-            $issue = array_values($multiStepIssues)[0];
-            $data = $issue->getData();
-
-            // 3+ collection JOINs should be critical
-            if ($data['join_count'] >= 3) {
-                self::assertEquals('critical', $data['severity'], '3+ collection JOINs should be critical');
-            }
-        }
+        self::assertCount(0, $cartesianIssues, 'Collection JOIN detection is now handled by CartesianProductAnalyzer');
     }
 }

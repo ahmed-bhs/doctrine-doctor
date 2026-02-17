@@ -383,13 +383,27 @@ services:
         tags:
             - { name: doctrine_doctor.analyzer }
 
+    AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
+
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\JoinOptimizationAnalyzer:
         arguments:
+            $collectionJoinDetector: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector'
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
-            $entityManager: '@doctrine_doctor.entity_manager'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
             $maxJoinsRecommended: '%doctrine_doctor.analyzers.join_optimization.max_joins_recommended%'
             $maxJoinsCritical: '%doctrine_doctor.analyzers.join_optimization.max_joins_critical%'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Performance\CartesianProductAnalyzer:
+        arguments:
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactory'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
+            $collectionJoinDetector: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector'
         tags:
             - { name: doctrine_doctor.analyzer }
 
