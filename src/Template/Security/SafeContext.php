@@ -107,13 +107,18 @@ final class SafeContext implements ArrayAccess
 
     /**
      * ArrayAccess: Get escaped value.
+     * Returns null for missing keys to support safe array destructuring.
      * @return mixed Escaped value
      */
     public function offsetGet(mixed $offset): mixed
     {
         Assert::string($offset, 'Offset must be string, got %s');
 
-        return $this->__get($offset);
+        if (!array_key_exists($offset, $this->data)) {
+            return null;
+        }
+
+        return $this->escape($this->data[$offset]);
     }
 
     /**
