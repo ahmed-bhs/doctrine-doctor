@@ -400,10 +400,12 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\CartesianProductAnalyzer:
         arguments:
-            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactory'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
             $collectionJoinDetector: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector'
+            $logger: '@?logger'
+            $n1CollectionThreshold: '%doctrine_doctor.analyzers.cartesian_product.n1_collection_threshold%'
         tags:
             - { name: doctrine_doctor.analyzer }
 
