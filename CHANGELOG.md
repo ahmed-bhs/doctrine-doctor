@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0-beta.3]
+## [2.0.0] - 2026-02-20
 
 ### Breaking Changes
 
@@ -16,12 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `doctrine/orm` ^3.0|^4.0 (drop ^2.x)
 - `webmozart/assert` ^1.12
 
-### Removed
+### Added
 
-- PHP 8.2 / 8.3 support
-- `doctrine/doctrine-bundle` ^2.x support
-- `doctrine/orm` ^2.x support
-- CI jobs for PHP 8.2 and 8.3
+- CartesianProductAnalyzer: dedicated O(n^m) detection for queries with multiple unrelated JOINs
+
+### Fixed
+
+- Profiler suggestion rendering: inject `PhpTemplateRenderer` into `IssueReconstructor` so template rendering works after Symfony profiler deserialization
+- `SafeContext::offsetGet()` now returns `null` for missing keys instead of throwing, enabling safe array destructuring in templates with optional context variables
+- Nullable constructor parameters causing 93 PHPStan errors
+- Missing `trigger_location` in `eager_loading` template
+- Wrong key in `left_join_with_not_null` template (`table_name` -> `entity`)
+- Segfault in FrankenPHP worker mode
+- N+1 collection-aware suggestions with trigger location
 
 ### Changed
 
@@ -30,13 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `ini_set('memory_limit')` runtime manipulation
 - CI: PHP 8.4 only
 
-### Fixed
+### Removed
 
-- Nullable constructor parameters causing 93 PHPStan errors
-- Missing `trigger_location` in `eager_loading` template
-- Wrong key in `left_join_with_not_null` template (`table_name` -> `entity`)
-- Segfault in FrankenPHP worker mode
-- N+1 collection-aware suggestions with trigger location
+- PHP 8.2 / 8.3 support
+- `doctrine/doctrine-bundle` ^2.x support
+- `doctrine/orm` ^2.x support
 
 ### Performance
 
