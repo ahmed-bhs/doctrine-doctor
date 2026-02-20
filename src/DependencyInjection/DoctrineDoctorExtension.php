@@ -109,6 +109,8 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
 
         $containerBuilder->setParameter('doctrine_doctor.analyzers.join_optimization.max_joins_recommended', $analyzers['join_optimization']['max_joins_recommended']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.join_optimization.max_joins_critical', $analyzers['join_optimization']['max_joins_critical']);
+
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.cartesian_product.n1_collection_threshold', $analyzers['cartesian_product']['n1_collection_threshold']);
     }
 
     private function disableAllAnalyzers(ContainerBuilder $containerBuilder): void

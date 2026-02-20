@@ -129,6 +129,8 @@ class IssueFactory implements IssueFactoryInterface
         'setMaxResults with Collection Join' => PerformanceIssue::class,
         'cartesian_product'                  => PerformanceIssue::class,
         'Cartesian Product'                  => PerformanceIssue::class,
+        'cartesian_product_risk'             => PerformanceIssue::class,
+        'Cartesian Product Risk'             => PerformanceIssue::class,
         'unused_eager_load'                  => PerformanceIssue::class,
         'Unused Eager Load'                  => PerformanceIssue::class,
         'nested_n_plus_one'                  => NPlusOneIssue::class,

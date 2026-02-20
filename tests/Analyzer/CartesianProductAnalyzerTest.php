@@ -200,4 +200,166 @@ final class CartesianProductAnalyzerTest extends TestCase
 
         self::assertCount(0, $cartesianIssues);
     }
+
+    #[Test]
+    public function it_detects_cartesian_product_risk_from_n1_collections(): void
+    {
+        $builder = QueryDataBuilder::create();
+        for ($i = 1; $i <= 5; $i++) {
+            $builder->addQuery(
+                'SELECT k0_.id, k0_.name FROM keyword k0_ ' .
+                'INNER JOIN resource_keyword rk1_ ON k0_.id = rk1_.keyword_id ' .
+                'WHERE rk1_.resource_id = ?',
+            );
+            $builder->addQuery(
+                'SELECT t0_.id, t0_.name FROM topic t0_ ' .
+                'INNER JOIN resource_topic rt1_ ON t0_.id = rt1_.topic_id ' .
+                'WHERE rt1_.resource_id = ?',
+            );
+            $builder->addQuery(
+                'SELECT o0_.id, o0_.name FROM organization o0_ ' .
+                'INNER JOIN resource_organization ro1_ ON o0_.id = ro1_.organization_id ' .
+                'WHERE ro1_.resource_id = ?',
+            );
+        }
+
+        $issues = $this->analyzer->analyze($builder->build());
+
+        $issuesArray = $issues->toArray();
+        $riskIssues = array_filter(
+            $issuesArray,
+            static fn ($issue) => str_contains((string) $issue->getTitle(), 'Cartesian Product Risk'),
+        );
+
+        self::assertCount(1, $riskIssues);
+
+        $issue = array_values($riskIssues)[0];
+        self::assertStringContainsString('3 Collections', $issue->getTitle());
+        self::assertStringContainsString('resource', $issue->getTitle());
+        self::assertStringContainsString('Multi-Step Hydration', $issue->getTitle());
+        self::assertEquals('warning', $issue->getSeverity()->value);
+        self::assertNotNull($issue->getSuggestion());
+    }
+
+    #[Test]
+    public function it_ignores_n1_collections_below_threshold(): void
+    {
+        $builder = QueryDataBuilder::create();
+        for ($i = 1; $i <= 2; $i++) {
+            $builder->addQuery(
+                'SELECT k0_.id FROM keyword k0_ ' .
+                'INNER JOIN resource_keyword rk1_ ON k0_.id = rk1_.keyword_id ' .
+                'WHERE rk1_.resource_id = ?',
+            );
+            $builder->addQuery(
+                'SELECT t0_.id FROM topic t0_ ' .
+                'INNER JOIN resource_topic rt1_ ON t0_.id = rt1_.topic_id ' .
+                'WHERE rt1_.resource_id = ?',
+            );
+        }
+
+        $issues = $this->analyzer->analyze($builder->build());
+
+        $issuesArray = $issues->toArray();
+        $riskIssues = array_filter(
+            $issuesArray,
+            static fn ($issue) => str_contains((string) $issue->getTitle(), 'Cartesian Product Risk'),
+        );
+
+        self::assertCount(0, $riskIssues);
+    }
+
+    #[Test]
+    public function it_ignores_single_collection_n1_group(): void
+    {
+        $builder = QueryDataBuilder::create();
+        for ($i = 1; $i <= 5; $i++) {
+            $builder->addQuery(
+                'SELECT k0_.id FROM keyword k0_ ' .
+                'INNER JOIN resource_keyword rk1_ ON k0_.id = rk1_.keyword_id ' .
+                'WHERE rk1_.resource_id = ?',
+            );
+        }
+
+        $issues = $this->analyzer->analyze($builder->build());
+
+        $issuesArray = $issues->toArray();
+        $riskIssues = array_filter(
+            $issuesArray,
+            static fn ($issue) => str_contains((string) $issue->getTitle(), 'Cartesian Product Risk'),
+        );
+
+        self::assertCount(0, $riskIssues);
+    }
+
+    #[Test]
+    public function it_detects_risk_from_simple_where_pattern(): void
+    {
+        $builder = QueryDataBuilder::create();
+        for ($i = 1; $i <= 4; $i++) {
+            $builder->addQuery(
+                'SELECT t0_.id, t0_.content FROM keyword_translation t0_ WHERE t0_.translatable_id = ?',
+            );
+            $builder->addQuery(
+                'SELECT t0_.id, t0_.content FROM topic_translation t0_ WHERE t0_.translatable_id = ?',
+            );
+        }
+
+        $issues = $this->analyzer->analyze($builder->build());
+
+        $issuesArray = $issues->toArray();
+        $riskIssues = array_filter(
+            $issuesArray,
+            static fn ($issue) => str_contains((string) $issue->getTitle(), 'Cartesian Product Risk'),
+        );
+
+        self::assertCount(1, $riskIssues);
+
+        $issue = array_values($riskIssues)[0];
+        self::assertStringContainsString('2 Collections', $issue->getTitle());
+        self::assertStringContainsString('translatable', $issue->getTitle());
+    }
+
+    #[Test]
+    public function it_detects_risk_with_custom_threshold(): void
+    {
+        $renderer = new InMemoryTemplateRenderer();
+        $suggestionFactory = new SuggestionFactory($renderer);
+        $issueFactory = new IssueFactory();
+        $sqlExtractor = new SqlStructureExtractor();
+        $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager();
+        $collectionJoinDetector = new CollectionJoinDetector($entityManager, $sqlExtractor);
+
+        $analyzer = new CartesianProductAnalyzer(
+            $issueFactory,
+            $suggestionFactory,
+            $sqlExtractor,
+            $collectionJoinDetector,
+            n1CollectionThreshold: 2,
+        );
+
+        $builder = QueryDataBuilder::create();
+        for ($i = 1; $i <= 2; $i++) {
+            $builder->addQuery(
+                'SELECT k0_.id FROM keyword k0_ ' .
+                'INNER JOIN resource_keyword rk1_ ON k0_.id = rk1_.keyword_id ' .
+                'WHERE rk1_.resource_id = ?',
+            );
+            $builder->addQuery(
+                'SELECT t0_.id FROM topic t0_ ' .
+                'INNER JOIN resource_topic rt1_ ON t0_.id = rt1_.topic_id ' .
+                'WHERE rt1_.resource_id = ?',
+            );
+        }
+
+        $issues = $analyzer->analyze($builder->build());
+
+        $issuesArray = $issues->toArray();
+        $riskIssues = array_filter(
+            $issuesArray,
+            static fn ($issue) => str_contains((string) $issue->getTitle(), 'Cartesian Product Risk'),
+        );
+
+        self::assertCount(1, $riskIssues);
+    }
 }
