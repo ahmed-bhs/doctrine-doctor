@@ -55,7 +55,6 @@
     "webmozart/assert": "^1.12 || ^2.0"
   },
   "require-dev": {
-    "bitbag/coding-standard": "^3.0",
     "deptrac/deptrac": "^4.2",
     "php-parallel-lint/php-parallel-lint": "^1.4",
     "pdepend/pdepend": "3.x-dev",
