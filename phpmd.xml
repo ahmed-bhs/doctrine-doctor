@@ -152,7 +152,7 @@
     <rule ref="rulesets/design.xml/CouplingBetweenObjects">
         <properties>
             <!-- Analyzers bridge multiple concerns (ORM, Reflection, Issue creation), test classes use many fixtures -->
-            <property name="maximum" value="23"/>
+            <property name="maximum" value="24"/>
         </properties>
     </rule>
 

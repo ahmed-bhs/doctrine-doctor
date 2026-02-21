@@ -31,9 +31,9 @@ use Webmozart\Assert\Assert;
 
 class CartesianProductAnalyzer implements AnalyzerInterface
 {
-    private LoggerInterface $logger;
-
     private const DEFAULT_N1_COLLECTION_THRESHOLD = 3;
+
+    private LoggerInterface $logger;
 
     public function __construct(
         private readonly IssueFactoryInterface $issueFactory,
