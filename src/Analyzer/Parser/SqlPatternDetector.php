@@ -27,11 +27,9 @@ use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
  */
 final readonly class SqlPatternDetector implements PatternDetectorInterface
 {
-    private SqlJoinExtractor $joinExtractor;
-
-    public function __construct(?SqlJoinExtractor $joinExtractor = null)
-    {
-        $this->joinExtractor = $joinExtractor ?? new SqlJoinExtractor();
+    public function __construct(
+        private SqlJoinExtractor $joinExtractor = new SqlJoinExtractor(),
+    ) {
     }
 
     public function detectNPlusOnePattern(string $sql): ?array
