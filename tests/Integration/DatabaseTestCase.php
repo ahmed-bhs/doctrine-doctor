@@ -87,6 +87,9 @@ abstract class DatabaseTestCase extends TestCase
             paths: [__DIR__ . '/../Fixtures/Entity'],
             isDevMode: true,
         );
+        if (method_exists($configuration, 'enableNativeLazyObjects')) {
+            $configuration->enableNativeLazyObjects(true);
+        }
 
         return new EntityManager($this->connection, $configuration);
     }
