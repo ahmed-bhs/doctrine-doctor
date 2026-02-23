@@ -112,7 +112,12 @@
 
             {% if issue.getSuggestion() %}
                 <div id="{{ prefix }}-suggestion-{{ loop_index }}" class="dd-collapsible suggestion-container hidden">
-                    {{ issue.getSuggestion().getCode()|raw }}
+                    {% set suggestionCode = issue.getSuggestion().getCode() %}
+                    {% if '<div' in suggestionCode or '<p' in suggestionCode or '<ul' in suggestionCode or '<h' in suggestionCode or '<table' in suggestionCode %}
+                        {{ suggestionCode|raw }}
+                    {% else %}
+                        <pre><code>{{ suggestionCode }}</code></pre>
+                    {% endif %}
                 </div>
             {% endif %}
 
