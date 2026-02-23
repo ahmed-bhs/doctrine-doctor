@@ -20,10 +20,10 @@ use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\FinalEntityTest\FinalEntityWit
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\FinalEntityTest\FinalEntityWithNoAssociations;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\FinalEntityTest\FinalEntityWithOnlyIds;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\FinalEntityTest\NonFinalEntity;
+use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMSetup;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -45,10 +45,7 @@ final class FinalEntityAnalyzerTest extends TestCase
     protected function setUp(): void
     {
         // Create in-memory entity manager with specific fixtures
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [__DIR__ . '/../Fixtures/Entity/FinalEntityTest'],
-            isDevMode: true,
-        );
+        $configuration = PlatformAnalyzerTestHelper::createTestConfiguration([__DIR__ . '/../Fixtures/Entity/FinalEntityTest']);
 
         $connection = DriverManager::getConnection([
             'driver' => 'pdo_sqlite',
@@ -294,10 +291,7 @@ final class FinalEntityAnalyzerTest extends TestCase
     public function it_handles_empty_metadata_gracefully(): void
     {
         // Create entity manager with no entities
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [__DIR__ . '/../Fixtures/NonExistentPath'],
-            isDevMode: true,
-        );
+        $configuration = PlatformAnalyzerTestHelper::createTestConfiguration([__DIR__ . '/../Fixtures/NonExistentPath']);
 
         $connection = DriverManager::getConnection([
             'driver' => 'pdo_sqlite',
@@ -412,10 +406,7 @@ final class FinalEntityAnalyzerTest extends TestCase
     public function it_handles_metadata_loading_errors_gracefully(): void
     {
         // Create entity manager with invalid configuration
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [],
-            isDevMode: true,
-        );
+        $configuration = PlatformAnalyzerTestHelper::createTestConfiguration([]);
 
         $connection = DriverManager::getConnection([
             'driver' => 'pdo_sqlite',

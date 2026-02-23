@@ -25,11 +25,9 @@ use Webmozart\Assert\Assert;
  */
 final readonly class QueryColumnExtractor
 {
-    private SqlStructureExtractor $sqlExtractor;
-
-    public function __construct(?SqlStructureExtractor $sqlExtractor = null)
-    {
-        $this->sqlExtractor = $sqlExtractor ?? new SqlStructureExtractor();
+    public function __construct(
+        private SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+    ) {
     }
 
     /**

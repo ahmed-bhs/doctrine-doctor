@@ -4,9 +4,9 @@
 
 **Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler**
 
-[![PHP 8.2+](https://img.shields.io/badge/PHP-8.2+-777BB4.svg?logo=php&logoColor=white)](https://php.net)
-[![Symfony 6.0+ | 7.x](https://img.shields.io/badge/Symfony-6.0%2B%20%7C%207.x-000000.svg?logo=symfony&logoColor=white)](https://symfony.com)
-[![Doctrine ORM](https://img.shields.io/badge/Doctrine-2.10%2B%20%7C%203.x%20%7C%204.x-FC6A31.svg?logo=doctrine&logoColor=white)](https://www.doctrine-project.org)
+[![PHP 8.4+](https://img.shields.io/badge/PHP-8.4+-777BB4.svg?logo=php&logoColor=white)](https://php.net)
+[![Symfony 6.x | 7.x | 8.x](https://img.shields.io/badge/Symfony-6.x%20%7C%207.x%20%7C%208.x-000000.svg?logo=symfony&logoColor=white)](https://symfony.com)
+[![Doctrine ORM](https://img.shields.io/badge/Doctrine-3.x%20%7C%204.x-FC6A31.svg?logo=doctrine&logoColor=white)](https://www.doctrine-project.org)
 [![License MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/ahmed-bhs/doctrine-doctor/workflows/CI/badge.svg)](https://github.com/ahmed-bhs/doctrine-doctor/actions)
 [![PHPStan Level 8](https://img.shields.io/badge/PHPStan-Level%208-brightgreen.svg)](https://phpstan.org)
@@ -17,15 +17,20 @@
 <tr>
 <td width="50%" valign="top">
 
-**Why Runtime Analysis?**
+<b>Why Runtime Analysis?</b>
 
-Unlike static analysis tools (PHPStan, Psalm) that analyze code without execution, Doctrine Doctor:
+<p>Unlike static analysis tools (PHPStan, Psalm) that analyze code without execution, Doctrine Doctor:</p>
 
-- **Detects runtime-only issues**: N+1 queries, actual query performance, missing indexes on real database
-- **Analyzes real execution context**: Actual parameter values, data volumes, execution plans
-- **Integrated into your workflow**: Results appear directly in Symfony Web Profiler during development
-  - 📍 **Backtrace**: Points to exact template line
-  - 💡 **Suggestion**: Use `->addSelect(..)` to eager load authors
+<ul>
+<li><b>Detects runtime-only issues</b>: N+1 queries, actual query performance, missing indexes on real database</li>
+<li><b>Analyzes real execution context</b>: Actual parameter values, data volumes, execution plans</li>
+<li><b>Integrated into your workflow</b>: Results appear directly in Symfony Web Profiler during development
+  <ul>
+  <li>&#x1F4CD; Backtrace: Points to exact template line</li>
+  <li>&#x1F4A1; Suggestion: Use <code>->addSelect(..)</code> to eager load authors</li>
+  </ul>
+</li>
+</ul>
 
 </td>
 <td width="50%" align="center" valign="top" style="background: url('https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo-thumbnail.png') no-repeat center; background-size: contain;">
@@ -103,43 +108,24 @@ doctrine:
 
 <table>
 <tr>
-<td width="33%" align="center">**Problem**</td>
-<td width="33%" align="center">**Detection**</td>
-<td width="33%" align="center">**Solution**</td>
+<td width="50%" align="center"><b>Before — 100 queries</b></td>
+<td width="50%" align="center"><b>After — 1 query</b></td>
 </tr>
 <tr>
-<td width="33%" valign="top">
-
-**Template triggers lazy loading**
+<td>
 
 ```php
-// Controller
-$users = $repository
-    ->findAll();
+$users = $repository->findAll();
+```
 
-// Template
+```twig
 {% for user in users %}
     {{ user.profile.bio }}
 {% endfor %}
 ```
 
-_Triggers 100 queries_
-
 </td>
-<td width="33%" valign="top">
-
-**Doctrine Doctor detects N+1**
-
-100 queries instead of 1
-
-Shows exact query count, execution time, and suggests eager loading
-
-_Real-time detection_
-
-</td>
-<td width="33%" valign="top">
-
-**Eager load with JOIN**
+<td>
 
 ```php
 $users = $repository
@@ -150,7 +136,13 @@ $users = $repository
     ->getResult();
 ```
 
-_Single query_
+</td>
+</tr>
+<tr>
+<td colspan="2">
+
+**Doctrine Doctor detects the N+1 pattern at runtime** — reports query count,
+execution time, points to the exact template line, and suggests eager loading with `addSelect()`.
 
 </td>
 </tr>
