@@ -21,7 +21,6 @@ use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\OrderWithEmbeddables;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ProductWithScatteredMoney;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMSetup;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -37,10 +36,7 @@ final class EmbeddableAnalyzersIntegrationTest extends TestCase
     protected function setUp(): void
     {
         // Create a real EntityManager with test entities
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [__DIR__ . '/../Fixtures'],
-            isDevMode: true,
-        );
+        $configuration = PlatformAnalyzerTestHelper::createTestConfiguration([__DIR__ . '/../Fixtures']);
 
         $connection = DriverManager::getConnection([
             'driver' => 'pdo_sqlite',

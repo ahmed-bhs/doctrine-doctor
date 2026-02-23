@@ -16,10 +16,10 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\TwigTemplateRenderer;
+use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMSetup;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Twig\Environment;
@@ -42,10 +42,7 @@ final class CollectionInitializationAnalyzerIntegrationTest extends TestCase
         }
 
         // Create in-memory EntityManager with only metadata (no DB needed)
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [__DIR__ . '/../../Fixtures/Entity'],
-            isDevMode: true,
-        );
+        $configuration = PlatformAnalyzerTestHelper::createTestConfiguration([__DIR__ . '/../../Fixtures/Entity']);
 
         // Create connection first, then EntityManager
         $connection = DriverManager::getConnection([

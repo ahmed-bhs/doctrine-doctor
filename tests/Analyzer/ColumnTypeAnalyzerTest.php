@@ -22,10 +22,10 @@ use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithEnumO
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithMixedIssues;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithObjectType;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithSimpleArray;
+use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMSetup;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Twig\Environment;
@@ -49,10 +49,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
     protected function setUp(): void
     {
         // Create in-memory entity manager with specific fixtures
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [__DIR__ . '/../Fixtures/Entity/ColumnTypeTest'],
-            isDevMode: true,
-        );
+        $configuration = PlatformAnalyzerTestHelper::createTestConfiguration([__DIR__ . '/../Fixtures/Entity/ColumnTypeTest']);
 
         $connection = DriverManager::getConnection([
             'driver' => 'pdo_sqlite',
@@ -285,10 +282,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
     public function it_handles_empty_metadata_gracefully(): void
     {
         // Create entity manager with no entities
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [__DIR__ . '/../Fixtures/NonExistentPath'],
-            isDevMode: true,
-        );
+        $configuration = PlatformAnalyzerTestHelper::createTestConfiguration([__DIR__ . '/../Fixtures/NonExistentPath']);
 
         $connection = DriverManager::getConnection([
             'driver' => 'pdo_sqlite',
@@ -519,10 +513,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
     public function it_does_not_suggest_enum_for_empty_tables(): void
     {
         // Create a fresh entity manager with empty tables
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [__DIR__ . '/../Fixtures/Entity/ColumnTypeTest'],
-            isDevMode: true,
-        );
+        $configuration = PlatformAnalyzerTestHelper::createTestConfiguration([__DIR__ . '/../Fixtures/Entity/ColumnTypeTest']);
 
         $connection = DriverManager::getConnection([
             'driver' => 'pdo_sqlite',
@@ -565,10 +556,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
     public function it_does_not_suggest_enum_when_not_enough_data(): void
     {
         // Create entity manager with minimal data (less than 10 rows)
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [__DIR__ . '/../Fixtures/Entity/ColumnTypeTest'],
-            isDevMode: true,
-        );
+        $configuration = PlatformAnalyzerTestHelper::createTestConfiguration([__DIR__ . '/../Fixtures/Entity/ColumnTypeTest']);
 
         $connection = DriverManager::getConnection([
             'driver' => 'pdo_sqlite',
