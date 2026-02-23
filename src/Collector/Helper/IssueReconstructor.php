@@ -38,21 +38,22 @@ final readonly class IssueReconstructor
     public function reconstructIssue(array $issueData): IssueInterface
     {
         $issueClass = $issueData['class'];
+
+        if (!is_string($issueClass) || !class_exists($issueClass) || !is_subclass_of($issueClass, IssueInterface::class)) {
+            throw new \InvalidArgumentException(sprintf('Invalid issue class: %s', is_string($issueClass) ? $issueClass : get_debug_type($issueClass)));
+        }
+
         $suggestion = null;
 
         if (isset($issueData['suggestion']) && is_array($issueData['suggestion'])) {
             $suggestion = $this->reconstructSuggestion($issueData['suggestion']);
         }
 
-        // Extract duplicated issues before passing to constructor
         $duplicatedIssuesData = $issueData['duplicatedIssues'] ?? [];
 
-        // Remove 'class', 'suggestion', and 'duplicatedIssues' from issueData before passing to constructor
         unset($issueData['class'], $issueData['suggestion'], $issueData['duplicatedIssues']);
 
-        // Reconstruct the issue object
         $issue = new $issueClass(array_merge($issueData, ['suggestion' => $suggestion]));
-        assert($issue instanceof IssueInterface, 'Issue class must implement IssueInterface');
 
         // Reconstruct and attach duplicated issues if any
         if (count($duplicatedIssuesData) > 0) {
@@ -96,22 +97,22 @@ final readonly class IssueReconstructor
     private function reconstructSuggestion(array $suggestionData): SuggestionInterface
     {
         $suggestionClass = $suggestionData['class'];
+
+        if (!is_string($suggestionClass) || !class_exists($suggestionClass) || !is_subclass_of($suggestionClass, SuggestionInterface::class)) {
+            throw new \InvalidArgumentException(sprintf('Invalid suggestion class: %s', is_string($suggestionClass) ? $suggestionClass : get_debug_type($suggestionClass)));
+        }
+
         unset($suggestionData['class']);
 
-        // Special handling for ModernSuggestion
         if (ModernSuggestion::class === $suggestionClass) {
             return $this->reconstructModernSuggestion($suggestionData);
         }
 
-        // Special handling for StructuredSuggestion
         if (StructuredSuggestion::class === $suggestionClass) {
             return StructuredSuggestion::fromArray($suggestionData);
         }
 
-        // For legacy suggestions, pass the array directly
-        $suggestion = new $suggestionClass($suggestionData);
-        assert($suggestion instanceof SuggestionInterface, 'Suggestion class must implement SuggestionInterface');
-        return $suggestion;
+        return new $suggestionClass($suggestionData);
     }
 
     /**
