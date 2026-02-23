@@ -31,19 +31,16 @@ use Webmozart\Assert\Assert;
 
 class CartesianProductAnalyzer implements AnalyzerInterface
 {
-    private const DEFAULT_N1_COLLECTION_THRESHOLD = 3;
-
-    private LoggerInterface $logger;
+    private const int DEFAULT_N1_COLLECTION_THRESHOLD = 3;
 
     public function __construct(
         private readonly IssueFactoryInterface $issueFactory,
         private readonly SuggestionFactory $suggestionFactory,
         private readonly SqlStructureExtractor $sqlExtractor,
         private readonly CollectionJoinDetector $collectionJoinDetector,
-        ?LoggerInterface $logger = null,
+        private readonly LoggerInterface $logger = new NullLogger(),
         private readonly int $n1CollectionThreshold = self::DEFAULT_N1_COLLECTION_THRESHOLD,
     ) {
-        $this->logger = $logger ?? new NullLogger();
     }
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection

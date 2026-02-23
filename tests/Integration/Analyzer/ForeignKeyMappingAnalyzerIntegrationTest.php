@@ -16,10 +16,10 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\TwigTemplateRenderer;
+use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMSetup;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Twig\Environment;
@@ -40,10 +40,7 @@ final class ForeignKeyMappingAnalyzerIntegrationTest extends TestCase
             self::markTestSkipped('PDO SQLite extension is not available');
         }
 
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
-            paths: [__DIR__ . '/../../Fixtures/Entity'],
-            isDevMode: true,
-        );
+        $configuration = PlatformAnalyzerTestHelper::createTestConfiguration([__DIR__ . '/../../Fixtures/Entity']);
 
         $connection = DriverManager::getConnection([
             'driver' => 'pdo_sqlite',

@@ -157,19 +157,23 @@ class PlatformAnalyzerTestHelper
         }
     }
 
-    /**
-     * Create a real EntityManager for testing with SQLite in-memory.
-     * Perfect for testing analyzers that need entity metadata.
-     */
-    public static function createTestEntityManager(?array $entityPaths = null): EntityManager
+    public static function createTestConfiguration(?array $entityPaths = null): \Doctrine\ORM\Configuration
     {
-        $connection = self::createSQLiteConnection();
-
-        // Simple configuration for tests
         $configuration = ORMSetup::createAttributeMetadataConfiguration(
             paths: $entityPaths ?? [__DIR__ . '/../Fixtures/Entity'],
             isDevMode: true,
         );
+        if (method_exists($configuration, 'enableNativeLazyObjects')) {
+            $configuration->enableNativeLazyObjects(true);
+        }
+
+        return $configuration;
+    }
+
+    public static function createTestEntityManager(?array $entityPaths = null): EntityManager
+    {
+        $connection = self::createSQLiteConnection();
+        $configuration = self::createTestConfiguration($entityPaths);
 
         return new EntityManager($connection, $configuration);
     }
