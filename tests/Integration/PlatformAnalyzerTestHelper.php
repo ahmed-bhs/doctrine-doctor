@@ -15,6 +15,7 @@ use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\PlatformAnalysisStrategyFactory;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionRendererInterface;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\PhpTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\TwigTemplateRenderer;
@@ -101,7 +102,7 @@ class PlatformAnalyzerTestHelper
     /**
      * Create real SuggestionFactory with template renderer.
      */
-    public static function createSuggestionFactory(): SuggestionFactory
+    public static function createSuggestionFactory(): SuggestionFactoryInterface
     {
         return new SuggestionFactory(self::createTemplateRenderer());
     }

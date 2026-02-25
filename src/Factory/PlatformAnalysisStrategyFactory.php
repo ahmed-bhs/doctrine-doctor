@@ -26,7 +26,7 @@ class PlatformAnalysisStrategyFactory
 {
     public function __construct(
         private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }

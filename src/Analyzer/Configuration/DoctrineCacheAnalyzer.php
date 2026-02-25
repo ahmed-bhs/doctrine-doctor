@@ -13,7 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Configuration;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\ConfigurationIssue;
 use Doctrine\ORM\Cache\CacheConfiguration;
 use Doctrine\ORM\Cache\CacheFactory;
@@ -52,7 +52,7 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly string $environment = 'prod',
         private readonly ?string $projectDir = null,
     ) {
