@@ -13,7 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
@@ -85,7 +85,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
     ) {
     }
 

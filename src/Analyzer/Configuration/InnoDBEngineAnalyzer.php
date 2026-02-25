@@ -13,7 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Configuration;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use Doctrine\DBAL\Connection;
@@ -32,7 +32,7 @@ class InnoDBEngineAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 {
     public function __construct(
         private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly ?DatabasePlatformDetector $databasePlatformDetector = null,
         private readonly ?LoggerInterface $logger = null,
     ) {

@@ -15,7 +15,7 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -25,7 +25,7 @@ class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 {
     public function __construct(
         private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         /**
          * @readonly
          * Threshold adjusted to 7 to avoid overlap with JoinOptimizationAnalyzer (which handles 4-6 JOINs)

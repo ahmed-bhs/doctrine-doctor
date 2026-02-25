@@ -14,7 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Security;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\SecurityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -47,7 +47,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly ?LoggerInterface $logger = null,
         ?PhpCodeParser $phpCodeParser = null,
     ) {

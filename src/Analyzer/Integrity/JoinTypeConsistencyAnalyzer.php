@@ -15,7 +15,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -52,7 +52,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
     ) {
     }

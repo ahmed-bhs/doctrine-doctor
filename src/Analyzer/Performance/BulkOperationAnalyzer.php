@@ -18,7 +18,7 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use Psr\Log\LoggerInterface;
 use Webmozart\Assert\Assert;
@@ -27,7 +27,7 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
 {
     public function __construct(
         private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly int $threshold = 20,
         private readonly ?LoggerInterface $logger = null,
         private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),

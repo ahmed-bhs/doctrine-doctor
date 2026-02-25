@@ -14,7 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -82,7 +82,7 @@ final readonly class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDocto
     public function __construct(
         private EntityManagerInterface $entityManager,
         private IssueFactoryInterface $issueFactory,
-        private SuggestionFactory $suggestionFactory,
+        private SuggestionFactoryInterface $suggestionFactory,
     ) {
     }
 

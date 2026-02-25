@@ -14,7 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Configuration;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\PlatformAnalysisStrategyFactory;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use Doctrine\DBAL\Connection;
@@ -43,7 +43,7 @@ class StrictModeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 {
     public function __construct(
         private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly ?DatabasePlatformDetector $databasePlatformDetector = null,
         private ?PlatformAnalysisStrategyFactory $platformAnalysisStrategyFactory = null,
         private readonly ?LoggerInterface $logger = null,

@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\MySQL\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\ConnectionPoolingAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
@@ -30,7 +30,7 @@ final readonly class MySQLConnectionPoolingAnalyzer implements ConnectionPooling
 
     public function __construct(
         private Connection $connection,
-        private SuggestionFactory $suggestionFactory,
+        private SuggestionFactoryInterface $suggestionFactory,
         private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
