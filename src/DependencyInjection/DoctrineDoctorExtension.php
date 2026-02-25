@@ -23,6 +23,13 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
 {
     public function prepend(ContainerBuilder $container): void
     {
+        $configs = $container->getExtensionConfig($this->getAlias());
+        $config  = $this->processConfiguration(new Configuration(), $configs);
+
+        if (!$config['enabled']) {
+            return;
+        }
+
         if ($container->hasExtension('twig')) {
             $container->prependExtensionConfig('twig', [
                 'paths' => [
@@ -37,6 +44,10 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $configuration = new Configuration();
         $config        = $this->processConfiguration($configuration, $configs);
 
+        if (!$config['enabled']) {
+            return;
+        }
+
         $this->registerGlobalParameters($container, $config);
         $this->registerAnalyzerParameters($container, $config);
 
@@ -45,12 +56,6 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
             new FileLocator(__DIR__ . '/../../config'),
         );
         $yamlFileLoader->load('services.yaml');
-
-        if (!$config['enabled']) {
-            $this->disableAllAnalyzers($container);
-
-            return;
-        }
 
         $this->disableAnalyzers($container, $config);
 
@@ -111,15 +116,6 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $containerBuilder->setParameter('doctrine_doctor.analyzers.join_optimization.max_joins_critical', $analyzers['join_optimization']['max_joins_critical']);
 
         $containerBuilder->setParameter('doctrine_doctor.analyzers.cartesian_product.n1_collection_threshold', $analyzers['cartesian_product']['n1_collection_threshold']);
-    }
-
-    private function disableAllAnalyzers(ContainerBuilder $containerBuilder): void
-    {
-        $containerBuilder->getDefinition(DoctrineDoctorDataCollector::class)->clearTag('data_collector');
-
-        foreach (array_keys($containerBuilder->findTaggedServiceIds('doctrine_doctor.analyzer')) as $id) {
-            $containerBuilder->removeDefinition($id);
-        }
     }
 
     /**
