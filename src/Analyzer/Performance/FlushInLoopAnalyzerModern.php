@@ -16,7 +16,7 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use Webmozart\Assert\Assert;
 
 /**
@@ -33,7 +33,7 @@ class FlushInLoopAnalyzerModern implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
 {
     public function __construct(
         private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly int $flushCountThreshold = 5,
     ) {
     }

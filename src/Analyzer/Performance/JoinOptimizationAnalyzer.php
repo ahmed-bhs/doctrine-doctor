@@ -15,7 +15,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -28,7 +28,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
 {
     public function __construct(
         private readonly CollectionJoinDetector $collectionJoinDetector,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly SqlStructureExtractor $sqlExtractor,
         private readonly int $maxJoinsRecommended = 5,
         private readonly int $maxJoinsCritical = 8,

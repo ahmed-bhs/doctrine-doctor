@@ -36,7 +36,7 @@ use Webmozart\Assert\Assert;
  * @SuppressWarnings("PHPMD.TooManyMethods")
  * @SuppressWarnings("PHPMD.TooManyPublicMethods")
  */
-final readonly class SuggestionFactory
+final readonly class SuggestionFactory implements SuggestionFactoryInterface
 {
     public function __construct(
         private SuggestionRendererInterface $suggestionRenderer,

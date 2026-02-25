@@ -15,7 +15,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Helper\TraitCollectionInitializationDetecto
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use Doctrine\ORM\EntityManagerInterface;
@@ -36,7 +36,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly ?LoggerInterface $logger = null,
         ?TraitCollectionInitializationDetector $traitDetector = null,
         ?PhpCodeParser $phpCodeParser = null,

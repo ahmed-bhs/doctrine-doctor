@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\PostgreSQL;
 
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\CharsetAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\CollationAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\ConnectionPoolingAnalyzerInterface;
@@ -53,7 +53,7 @@ class PostgreSQLAnalysisStrategy implements PlatformAnalysisStrategy
 
     public function __construct(
         private readonly Connection $connection,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly DatabasePlatformDetector $databasePlatformDetector,
         ?CharsetAnalyzerInterface $charsetAnalyzer = null,
         ?CollationAnalyzerInterface $collationAnalyzer = null,

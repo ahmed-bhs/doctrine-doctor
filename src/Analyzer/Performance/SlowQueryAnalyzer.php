@@ -16,7 +16,7 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use Webmozart\Assert\Assert;
 
@@ -24,7 +24,7 @@ class SlowQueryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInt
 {
     public function __construct(
         private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactory $suggestionFactory,
+        private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly int $threshold = 100,
         private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
     ) {

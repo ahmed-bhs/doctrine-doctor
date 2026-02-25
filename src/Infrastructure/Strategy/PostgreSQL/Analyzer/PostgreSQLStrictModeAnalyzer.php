@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\PostgreSQL\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\StrictModeAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
@@ -25,7 +25,7 @@ final readonly class PostgreSQLStrictModeAnalyzer implements StrictModeAnalyzerI
 {
     public function __construct(
         private Connection $connection,
-        private SuggestionFactory $suggestionFactory,
+        private SuggestionFactoryInterface $suggestionFactory,
         private DatabasePlatformDetector $databasePlatformDetector,
     ) {
     }
