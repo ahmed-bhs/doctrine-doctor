@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-02-25
+
+### Fixed
+
+- Early return in extension when bundle is disabled: no longer registers Twig paths or loads services unnecessarily (by @ClementDuverge in #43)
+
+### Added
+
+- Tests for extension enabled/disabled behavior (#44)
+
+## [2.1.0] - 2026-02-24
+
+### Fixed
+
+- Wrap plain text suggestions in `<pre><code>` to prevent entity encoding
+- Enable native lazy objects for Doctrine ORM test EntityManager
+
+### Added
+
+- Symfony 8 compatibility
+
+### Changed
+
+- Widen `webmozart/assert` constraint to support v2.x
+- Remove unused `bitbag/coding-standard` dependency
+
 ## [2.0.0] - 2026-02-20
 
 ### Breaking Changes
