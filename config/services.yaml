@@ -102,8 +102,7 @@ services:
     AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface:
         class: AhmedBhs\DoctrineDoctor\Factory\IssueFactory
 
-    AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface:
-        class: AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory
+    AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory: ~
 
     AhmedBhs\DoctrineDoctor\Factory\PlatformAnalysisStrategyFactory: ~
 
@@ -143,7 +142,7 @@ services:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'
             $threshold: '%doctrine_doctor.analyzers.n_plus_one.threshold%'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
@@ -157,7 +156,7 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $connection: '@doctrine.dbal.default_connection'
             $missingIndexAnalyzerConfig: '@AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzerConfig'
             $logger: '@?logger'
@@ -167,14 +166,14 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\SlowQueryAnalyzer:
         arguments:
             $threshold: '%doctrine_doctor.analyzers.slow_query.threshold%'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
 
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\HydrationAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $rowThreshold: '%doctrine_doctor.analyzers.hydration.row_threshold%'
             $criticalThreshold: '%doctrine_doctor.analyzers.hydration.critical_threshold%'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
@@ -185,13 +184,13 @@ services:
         arguments:
             $joinThreshold: '%doctrine_doctor.analyzers.eager_loading.join_threshold%'
             $criticalJoinThreshold: '%doctrine_doctor.analyzers.eager_loading.critical_join_threshold%'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\EntityManagerClearAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $batchSizeThreshold: '%doctrine_doctor.analyzers.entity_manager_clear.batch_size_threshold%'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
@@ -199,7 +198,7 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\GetReferenceAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $threshold: '%doctrine_doctor.analyzers.get_reference.threshold%'
             $logger: '@?logger'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
@@ -209,27 +208,27 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzer:
         arguments:
             $flushCountThreshold: '%doctrine_doctor.analyzers.flush_in_loop.flush_count_threshold%'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\LazyLoadingAnalyzer:
         arguments:
             $threshold: '%doctrine_doctor.analyzers.lazy_loading.threshold%'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
 
     AhmedBhs\DoctrineDoctor\Analyzer\Security\DQLInjectionAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\BulkOperationAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $threshold: '%doctrine_doctor.analyzers.bulk_operation.threshold%'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
@@ -237,7 +236,7 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\FindAllAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $threshold: '%doctrine_doctor.analyzers.find_all.threshold%'
             $logger: '@?logger'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
@@ -263,7 +262,7 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Configuration\InnoDBEngineAnalyzer:
         arguments:
             $connection: '@doctrine.dbal.default_connection'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $databasePlatformDetector: '@AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector'
             $logger: '@?logger'
         tags:
@@ -286,7 +285,7 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeConfigurationAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
             $logger: '@?logger'
         tags:
@@ -294,7 +293,7 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Security\SensitiveDataExposureAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
             $logger: '@?logger'
         tags:
@@ -302,7 +301,7 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Security\InsecureRandomAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
             $logger: '@?logger'
         tags:
@@ -310,7 +309,7 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Security\SQLInjectionInRawQueriesAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
             $logger: '@?logger'
         tags:
@@ -318,7 +317,7 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\ForeignKeyMappingAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
         tags:
             - { name: doctrine_doctor.analyzer }
@@ -331,13 +330,13 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\DTOHydrationAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeAllAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
             $logger: '@?logger'
         tags:
@@ -345,14 +344,14 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadePersistOnIndependentEntityAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
         tags:
             - { name: doctrine_doctor.analyzer }
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MissingOrphanRemovalOnCompositionAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
         tags:
             - { name: doctrine_doctor.analyzer }
@@ -365,7 +364,7 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\BidirectionalConsistencyAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
         tags:
             - { name: doctrine_doctor.analyzer }
@@ -373,14 +372,14 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OrphanRemovalWithoutCascadeRemoveAnalyzer:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OnDeleteCascadeMismatchAnalyzer:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -392,7 +391,7 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\JoinOptimizationAnalyzer:
         arguments:
             $collectionJoinDetector: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
             $maxJoinsRecommended: '%doctrine_doctor.analyzers.join_optimization.max_joins_recommended%'
             $maxJoinsCritical: '%doctrine_doctor.analyzers.join_optimization.max_joins_critical%'
@@ -402,7 +401,7 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\CartesianProductAnalyzer:
         arguments:
             $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
             $collectionJoinDetector: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector'
             $logger: '@?logger'
@@ -412,7 +411,7 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Configuration\AutoGenerateProxyClassesAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $projectDir: '%kernel.project_dir%'
             $logger: '@?logger'
         tags:
@@ -429,31 +428,31 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\NamingConventionAnalyzer:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\QueryBuilderBestPracticesAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\TypeHintMismatchAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\FloatForMoneyAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\DecimalPrecisionAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -490,7 +489,7 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\SetMaxResultsWithCollectionJoinAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
         tags:
             - { name: doctrine_doctor.analyzer }
@@ -500,7 +499,7 @@ services:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'
             $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -508,6 +507,6 @@ services:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'
             $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
