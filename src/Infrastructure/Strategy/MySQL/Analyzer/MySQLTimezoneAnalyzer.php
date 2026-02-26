@@ -16,6 +16,8 @@ use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\TimezoneAnalyzerIn
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
 
@@ -145,12 +147,21 @@ final readonly class MySQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
                 $phpTimezone,
             ),
             'severity'   => Severity::warning(),
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'MySQL time_zone',
-                currentValue: 'SYSTEM',
-                recommendedValue: $phpTimezone,
-                description: 'Set explicit timezone to match PHP application timezone',
-                fixCommand: $this->getTimezoneFixCommand($phpTimezone),
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'MySQL time_zone',
+                    'current_value' => 'SYSTEM',
+                    'recommended_value' => $phpTimezone,
+                    'description' => 'Set explicit timezone to match PHP application timezone',
+                    'fix_command' => $this->getTimezoneFixCommand($phpTimezone),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],
@@ -172,12 +183,21 @@ final readonly class MySQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
                 $phpTz,
             ),
             'severity'   => Severity::critical(),
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Timezone configuration',
-                currentValue: sprintf('MySQL: %s, PHP: %s', $mysqlTz, $phpTz),
-                recommendedValue: sprintf('Both use: %s', $phpTz),
-                description: 'Synchronize MySQL and PHP timezones to prevent datetime bugs',
-                fixCommand: $this->getTimezoneFixCommand($phpTz),
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'Timezone configuration',
+                    'current_value' => sprintf('MySQL: %s, PHP: %s', $mysqlTz, $phpTz),
+                    'recommended_value' => sprintf('Both use: %s', $phpTz),
+                    'description' => 'Synchronize MySQL and PHP timezones to prevent datetime bugs',
+                    'fix_command' => $this->getTimezoneFixCommand($phpTz),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],
@@ -192,12 +212,21 @@ final readonly class MySQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
                 'This prevents timezone conversions with CONVERT_TZ() and named timezones. ' .
                 'You can only use offset-based timezones like "+00:00" which is inflexible.',
             'severity'   => Severity::warning(),
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'MySQL timezone tables',
-                currentValue: 'Not loaded',
-                recommendedValue: 'Loaded',
-                description: 'Load timezone tables to enable timezone conversions',
-                fixCommand: $this->getTimezoneTablesLoadCommand(),
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'MySQL timezone tables',
+                    'current_value' => 'Not loaded',
+                    'recommended_value' => 'Loaded',
+                    'description' => 'Load timezone tables to enable timezone conversions',
+                    'fix_command' => $this->getTimezoneTablesLoadCommand(),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],

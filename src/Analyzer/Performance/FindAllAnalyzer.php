@@ -19,6 +19,9 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Psr\Log\LoggerInterface;
 use Webmozart\Assert\Assert;
 
@@ -47,9 +50,18 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                         $rowCount = $this->estimateRowCount($queryData);
 
                         if ($rowCount > $this->threshold) {
-                            $suggestion = $this->suggestionFactory->createPagination(
-                                method: 'findAll',
-                                resultCount: $rowCount,
+                            $suggestion = $this->suggestionFactory->createFromTemplate(
+                                templateName: 'Performance/pagination',
+                                context: [
+                                    'method' => 'findAll',
+                                    'result_count' => $rowCount,
+                                ],
+                                suggestionMetadata: new SuggestionMetadata(
+                                    type: SuggestionType::performance(),
+                                    severity: Severity::warning(),
+                                    title: sprintf('Missing Pagination: %s returned %d results', 'findAll', $rowCount),
+                                    tags: ['performance', 'pagination', 'memory'],
+                                ),
                             );
 
                             $issueData = new IssueData(

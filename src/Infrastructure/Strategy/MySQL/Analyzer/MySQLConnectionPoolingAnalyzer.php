@@ -16,6 +16,8 @@ use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\ConnectionPoolingA
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -51,12 +53,21 @@ final readonly class MySQLConnectionPoolingAnalyzer implements ConnectionPooling
                     self::RECOMMENDED_MIN_CONNECTIONS,
                 ),
                 'severity' => Severity::warning(),
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'max_connections',
-                    currentValue: (string) $maxConnections,
-                    recommendedValue: (string) self::RECOMMENDED_MIN_CONNECTIONS,
-                    description: 'Increase to handle more concurrent connections',
-                    fixCommand: $this->getMaxConnectionsFixCommand(self::RECOMMENDED_MIN_CONNECTIONS),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'max_connections',
+                        'current_value' => (string) $maxConnections,
+                        'recommended_value' => (string) self::RECOMMENDED_MIN_CONNECTIONS,
+                        'description' => 'Increase to handle more concurrent connections',
+                        'fix_command' => $this->getMaxConnectionsFixCommand(self::RECOMMENDED_MIN_CONNECTIONS),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -77,12 +88,21 @@ final readonly class MySQLConnectionPoolingAnalyzer implements ConnectionPooling
                     $maxConnections,
                 ),
                 'severity'   => $utilizationPercent > 90 ? Severity::critical() : Severity::warning(),
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'max_connections',
-                    currentValue: (string) $maxConnections,
-                    recommendedValue: (string) min($maxConnections * 2, self::RECOMMENDED_MAX_CONNECTIONS),
-                    description: 'Increase to prevent connection errors during peak load',
-                    fixCommand: $this->getMaxConnectionsFixCommand(min($maxConnections * 2, self::RECOMMENDED_MAX_CONNECTIONS)),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'max_connections',
+                        'current_value' => (string) $maxConnections,
+                        'recommended_value' => (string) min($maxConnections * 2, self::RECOMMENDED_MAX_CONNECTIONS),
+                        'description' => 'Increase to prevent connection errors during peak load',
+                        'fix_command' => $this->getMaxConnectionsFixCommand(min($maxConnections * 2, self::RECOMMENDED_MAX_CONNECTIONS)),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],

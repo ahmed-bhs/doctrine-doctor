@@ -15,6 +15,9 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\StrictModeAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -43,12 +46,21 @@ final readonly class PostgreSQLStrictModeAnalyzer implements StrictModeAnalyzerI
                     'This enables legacy backslash escaping which can cause SQL injection vulnerabilities. ' .
                     'PostgreSQL (9.1+) uses standard-compliant string escaping by default.',
                 'severity'   => 'critical',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'standard_conforming_strings',
-                    currentValue: 'off',
-                    recommendedValue: 'on',
-                    description: 'Enable standard-compliant string escaping for security',
-                    fixCommand: "-- In postgresql.conf:\nstandard_conforming_strings = on\n\n-- Or set globally:\nALTER DATABASE your_db SET standard_conforming_strings = on;",
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'standard_conforming_strings',
+                        'current_value' => 'off',
+                        'recommended_value' => 'on',
+                        'description' => 'Enable standard-compliant string escaping for security',
+                        'fix_command' => "-- In postgresql.conf:\nstandard_conforming_strings = on\n\n-- Or set globally:\nALTER DATABASE your_db SET standard_conforming_strings = on;",
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -63,12 +75,21 @@ final readonly class PostgreSQLStrictModeAnalyzer implements StrictModeAnalyzerI
                     'This skips validation when creating functions, allowing invalid code to be stored. ' .
                     'Recommended to enable for catching errors early.',
                 'severity'   => 'warning',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'check_function_bodies',
-                    currentValue: 'off',
-                    recommendedValue: 'on',
-                    description: 'Enable function validation to catch errors during creation',
-                    fixCommand: "-- In postgresql.conf:\ncheck_function_bodies = on\n\n-- Or set globally:\nALTER DATABASE your_db SET check_function_bodies = on;",
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'check_function_bodies',
+                        'current_value' => 'off',
+                        'recommended_value' => 'on',
+                        'description' => 'Enable function validation to catch errors during creation',
+                        'fix_command' => "-- In postgresql.conf:\ncheck_function_bodies = on\n\n-- Or set globally:\nALTER DATABASE your_db SET check_function_bodies = on;",
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],

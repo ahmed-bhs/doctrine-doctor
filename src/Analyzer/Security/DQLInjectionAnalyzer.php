@@ -18,6 +18,9 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Webmozart\Assert\Assert;
 
 class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
@@ -74,10 +77,19 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                     $queryObjects = array_column(array_slice($criticalQueries, 0, 10), 'query');
                     $firstQuery   = $criticalQueries[0]['query']->sql ?? '';
 
-                    $suggestion = $this->suggestionFactory->createDQLInjection(
-                        query: $firstQuery,
-                        vulnerableParameters: $indicators,
-                        riskLevel: 'critical',
+                    $suggestion = $this->suggestionFactory->createFromTemplate(
+                        templateName: 'Security/dql_injection',
+                        context: [
+                            'query' => $firstQuery,
+                            'vulnerable_parameters' => $indicators,
+                            'risk_level' => 'critical',
+                        ],
+                        suggestionMetadata: new SuggestionMetadata(
+                            type: SuggestionType::security(),
+                            severity: Severity::critical(),
+                            title: 'DQL Injection Vulnerability Detected',
+                            tags: ['security', 'injection', 'dql'],
+                        ),
                     );
 
                     $issueData = new IssueData(
@@ -113,10 +125,19 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                     $queryObjects = array_column(array_slice($highRiskQueries, 0, 10), 'query');
                     $firstQuery   = $highRiskQueries[0]['query']->sql ?? '';
 
-                    $suggestion = $this->suggestionFactory->createDQLInjection(
-                        query: $firstQuery,
-                        vulnerableParameters: $indicators,
-                        riskLevel: 'warning',
+                    $suggestion = $this->suggestionFactory->createFromTemplate(
+                        templateName: 'Security/dql_injection',
+                        context: [
+                            'query' => $firstQuery,
+                            'vulnerable_parameters' => $indicators,
+                            'risk_level' => 'warning',
+                        ],
+                        suggestionMetadata: new SuggestionMetadata(
+                            type: SuggestionType::security(),
+                            severity: Severity::critical(),
+                            title: 'DQL Injection Vulnerability Detected',
+                            tags: ['security', 'injection', 'dql'],
+                        ),
                     );
 
                     $issueData = new IssueData(

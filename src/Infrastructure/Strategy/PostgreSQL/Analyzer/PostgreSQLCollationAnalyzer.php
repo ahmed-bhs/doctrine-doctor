@@ -15,6 +15,9 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\CollationAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -96,21 +99,30 @@ final readonly class PostgreSQLCollationAnalyzer implements CollationAnalyzerInt
                 $collation,
             ),
             'severity'   => 'warning',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Database collation',
-                currentValue: $collation,
-                recommendedValue: 'en_US.UTF-8 (or your locale)',
-                description: 'Recreate database with locale-aware collation',
-                fixCommand: sprintf(
-                    "-- Collation cannot be changed after creation. Dump and recreate:\n\n" .
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'Database collation',
+                    'current_value' => $collation,
+                    'recommended_value' => 'en_US.UTF-8 (or your locale)',
+                    'description' => 'Recreate database with locale-aware collation',
+                    'fix_command' => sprintf(
+                        "-- Collation cannot be changed after creation. Dump and recreate:\n\n" .
                     "pg_dump -U user %s > backup.sql\n" .
                     "DROP DATABASE %s;\n" .
                     "CREATE DATABASE %s ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8';\n" .
                     'psql -U user %s < backup.sql',
-                    $databaseName,
-                    $databaseName,
-                    $databaseName,
-                    $databaseName,
+                        $databaseName,
+                        $databaseName,
+                        $databaseName,
+                        $databaseName,
+                    ),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
                 ),
             ),
             'backtrace' => null,
@@ -130,12 +142,21 @@ final readonly class PostgreSQLCollationAnalyzer implements CollationAnalyzerInt
                 $ctype,
             ),
             'severity'   => 'info',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Collation/Ctype',
-                currentValue: sprintf('LC_COLLATE=%s, LC_CTYPE=%s', $collation, $ctype),
-                recommendedValue: 'Both should match (e.g., both en_US.UTF-8)',
-                description: 'Use matching collation and ctype when creating databases',
-                fixCommand: "-- For future databases:\nCREATE DATABASE newdb ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8';",
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'Collation/Ctype',
+                    'current_value' => sprintf('LC_COLLATE=%s, LC_CTYPE=%s', $collation, $ctype),
+                    'recommended_value' => 'Both should match (e.g., both en_US.UTF-8)',
+                    'description' => 'Use matching collation and ctype when creating databases',
+                    'fix_command' => "-- For future databases:\nCREATE DATABASE newdb ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8';",
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],
@@ -212,12 +233,21 @@ final readonly class PostgreSQLCollationAnalyzer implements CollationAnalyzerInt
                 count($mismatches),
             ),
             'severity'   => 'warning',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Foreign key collations',
-                currentValue: 'Mismatched collations',
-                recommendedValue: 'Matching collations',
-                description: 'Alter columns to use matching collations',
-                fixCommand: "-- Example fix (adjust data type as needed):\nALTER TABLE child_table ALTER COLUMN child_column TYPE varchar(255) COLLATE \"en_US.UTF-8\";",
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'Foreign key collations',
+                    'current_value' => 'Mismatched collations',
+                    'recommended_value' => 'Matching collations',
+                    'description' => 'Alter columns to use matching collations',
+                    'fix_command' => "-- Example fix (adjust data type as needed):\nALTER TABLE child_table ALTER COLUMN child_column TYPE varchar(255) COLLATE \"en_US.UTF-8\";",
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],
@@ -267,12 +297,21 @@ final readonly class PostgreSQLCollationAnalyzer implements CollationAnalyzerInt
                 '- Deterministic versions (no breaking changes)' . "\n" .
                 'Consider using ICU for new databases.',
             'severity'   => 'info',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Collation provider',
-                currentValue: 'libc',
-                recommendedValue: 'ICU',
-                description: 'Use ICU collations for new databases',
-                fixCommand: "-- For new databases (PostgreSQL 15+):\nCREATE DATABASE newdb LOCALE_PROVIDER = icu ICU_LOCALE = 'en-US';",
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'Collation provider',
+                    'current_value' => 'libc',
+                    'recommended_value' => 'ICU',
+                    'description' => 'Use ICU collations for new databases',
+                    'fix_command' => "-- For new databases (PostgreSQL 15+):\nCREATE DATABASE newdb LOCALE_PROVIDER = icu ICU_LOCALE = 'en-US';",
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],

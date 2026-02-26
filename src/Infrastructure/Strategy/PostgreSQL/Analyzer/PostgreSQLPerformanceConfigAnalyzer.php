@@ -15,6 +15,9 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\PerformanceConfigAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -48,12 +51,21 @@ final readonly class PostgreSQLPerformanceConfigAnalyzer implements PerformanceC
                     $sharedBuffersMB,
                 ),
                 'severity'   => $sharedBuffers < 67108864 ? 'warning' : 'info', // < 64MB = warning
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'shared_buffers',
-                    currentValue: sprintf('%dMB', $sharedBuffersMB),
-                    recommendedValue: '256MB (for dev) / 25% RAM (for prod)',
-                    description: 'Increase shared_buffers for better performance',
-                    fixCommand: $this->getSharedBuffersFixCommand(268435456), // 256MB
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'shared_buffers',
+                        'current_value' => sprintf('%dMB', $sharedBuffersMB),
+                        'recommended_value' => '256MB (for dev) / 25% RAM (for prod)',
+                        'description' => 'Increase shared_buffers for better performance',
+                        'fix_command' => $this->getSharedBuffersFixCommand(268435456), // 256MB,
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -76,12 +88,21 @@ final readonly class PostgreSQLPerformanceConfigAnalyzer implements PerformanceC
                     $workMemMB,
                 ),
                 'severity'   => $workMem < 2097152 ? 'warning' : 'info', // < 2MB = warning
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'work_mem',
-                    currentValue: sprintf('%.1fMB', $workMemMB),
-                    recommendedValue: '8MB (for web apps)',
-                    description: 'Increase work_mem to reduce temp file usage',
-                    fixCommand: $this->getWorkMemFixCommand(8388608), // 8MB
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'work_mem',
+                        'current_value' => sprintf('%.1fMB', $workMemMB),
+                        'recommended_value' => '8MB (for web apps)',
+                        'description' => 'Increase work_mem to reduce temp file usage',
+                        'fix_command' => $this->getWorkMemFixCommand(8388608), // 8MB,
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -99,12 +120,21 @@ final readonly class PostgreSQLPerformanceConfigAnalyzer implements PerformanceC
                     'In development, you can safely use "off" for 10x faster writes. ' .
                     'Note: Keep "on" in production for data safety.',
                 'severity'   => 'info',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'synchronous_commit',
-                    currentValue: 'on (full durability)',
-                    recommendedValue: 'off (for dev only)',
-                    description: 'Disable synchronous_commit in development for faster writes',
-                    fixCommand: $this->getSynchronousCommitFixCommand(),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'synchronous_commit',
+                        'current_value' => 'on (full durability)',
+                        'recommended_value' => 'off (for dev only)',
+                        'description' => 'Disable synchronous_commit in development for faster writes',
+                        'fix_command' => $this->getSynchronousCommitFixCommand(),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],

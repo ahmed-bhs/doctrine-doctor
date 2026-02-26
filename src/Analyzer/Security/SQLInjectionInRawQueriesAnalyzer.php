@@ -17,6 +17,9 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\SecurityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
@@ -202,10 +205,19 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $code .= "\$sql = 'SELECT * FROM table WHERE column = :value';\n";
         $code .= "\$result = \$connection->executeQuery(\$sql, ['value' => \$userInput]);\n";
 
-        return $this->suggestionFactory->createCodeSuggestion(
-            description: 'Use parameterized queries with bound parameters',
-            code: $code,
-            filePath: 'Runtime Query',
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'description' => 'Use parameterized queries with bound parameters',
+                'code' => $code,
+                'file_path' => 'Runtime Query',
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: Severity::info(),
+                title: 'Code Quality Suggestion',
+                tags: ['code-quality'],
+            ),
         );
     }
 
@@ -491,10 +503,19 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 ";
         $code .= '    ->executeQuery();';
 
-        return $this->suggestionFactory->createCodeSuggestion(
-            description: 'Use parameterized queries with bound parameters',
-            code: $code,
-            filePath: $this->getFileLocation($reflectionMethod),
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'description' => 'Use parameterized queries with bound parameters',
+                'code' => $code,
+                'file_path' => $this->getFileLocation($reflectionMethod),
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: Severity::info(),
+                title: 'Code Quality Suggestion',
+                tags: ['code-quality'],
+            ),
         );
     }
 
@@ -529,10 +550,19 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 ";
         $code .= sprintf('$connection->%s($sql, [\'id\' => $id], [\'id\' => ' . \PDO::class . '::PARAM_INT]);', $sqlMethod);
 
-        return $this->suggestionFactory->createCodeSuggestion(
-            description: 'Add parameter binding to prevent SQL injection',
-            code: $code,
-            filePath: $this->getFileLocation($reflectionMethod),
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'description' => 'Add parameter binding to prevent SQL injection',
+                'code' => $code,
+                'file_path' => $this->getFileLocation($reflectionMethod),
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: Severity::info(),
+                title: 'Code Quality Suggestion',
+                tags: ['code-quality'],
+            ),
         );
     }
 
