@@ -38,9 +38,9 @@ class IntegrityIssue extends AbstractIssue
         return 'Integrity';
     }
 
-    public function getCategory(): string
+    public function getCategory(): IssueCategory
     {
-        return IssueCategory::INTEGRITY->value;
+        return IssueCategory::INTEGRITY;
     }
 }
 

@@ -113,7 +113,7 @@ final class EagerLoadingAnalyzerIntegrationTest extends DatabaseTestCase
         self::assertGreaterThan(0, count($issueCollection), 'Should detect excessive JOINs');
 
         $issue = $issueCollection->toArray()[0];
-        self::assertEquals('performance', $issue->getCategory());
+        self::assertEquals('performance', $issue->getCategory()->value);
         self::assertStringContainsString('JOIN', (string) $issue->getTitle());
     }
 
@@ -313,7 +313,7 @@ final class EagerLoadingAnalyzerIntegrationTest extends DatabaseTestCase
         // The query has multiple JOINs which can cause issues
         if (count($issueCollection) > 0) {
             $issue = $issueCollection->toArray()[0];
-            self::assertEquals('performance', $issue->getCategory());
+            self::assertEquals('performance', $issue->getCategory()->value);
         }
     }
 

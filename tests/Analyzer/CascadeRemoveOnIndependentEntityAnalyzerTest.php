@@ -345,7 +345,7 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $issue = reset($issuesArray);
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
-        self::assertEquals('integrity', $issue->getCategory());
+        self::assertEquals('integrity', $issue->getCategory()->value);
     }
 
     #[Test]

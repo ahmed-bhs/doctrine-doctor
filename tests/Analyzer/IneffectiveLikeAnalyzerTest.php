@@ -85,7 +85,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         self::assertStringContainsString('leading wildcard', $issue->getDescription());
         self::assertStringContainsString('%John%', $issue->getDescription());
         self::assertStringContainsString('contains search', $issue->getDescription());
-        self::assertEquals('performance', $issue->getCategory());
+        self::assertEquals('performance', $issue->getCategory()->value);
     }
 
     #[Test]

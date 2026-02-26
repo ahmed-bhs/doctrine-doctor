@@ -30,10 +30,20 @@ enum IssueType: string
     case MISSING_INDEX = 'missing_index';
     case FIND_ALL = 'find_all';
     case GET_REFERENCE = 'get_reference';
+    case CARTESIAN_PRODUCT = 'cartesian_product';
+    case CARTESIAN_PRODUCT_RISK = 'cartesian_product_risk';
+    case UNUSED_EAGER_LOAD = 'unused_eager_load';
+    case NESTED_N_PLUS_ONE = 'nested_n_plus_one';
+    case AGGREGATION_WITH_INNER_JOIN = 'aggregation_with_inner_join';
 
     // Security issues
     case SECURITY = 'security';
     case DQL_INJECTION = 'dql_injection';
+    case QUERY_BUILDER_SQL_INJECTION = 'query_builder_sql_injection';
+    case UNESCAPED_LIKE = 'unescaped_like';
+    case INCORRECT_NULL_COMPARISON = 'incorrect_null_comparison';
+    case EMPTY_IN_CLAUSE = 'empty_in_clause';
+    case MISSING_PARAMETERS = 'missing_parameters';
 
     // Integrity issues
     case INTEGRITY = 'integrity';
@@ -45,10 +55,56 @@ enum IssueType: string
     case DQL_VALIDATION = 'dql_validation';
     case REPOSITORY_INVALID_FIELD = 'repository_invalid_field';
     case ENTITY_MANAGER_CLEAR = 'entity_manager_clear';
+    case FLOAT_FOR_MONEY = 'float_for_money';
+    case TYPE_HINT_MISMATCH = 'type_hint_mismatch';
+    case INTEGRITY_GENERIC = 'integrity_generic';
+    case INTEGRITY_INCORRECT_NULL_COMPARISON = 'integrity_incorrect_null_comparison';
+    case LEFT_JOIN_WITH_NOT_NULL = 'left_join_with_not_null';
+    case CASCADE_REMOVE_SET_NULL = 'cascade_remove_set_null';
+    case ONDELETE_CASCADE_NO_ORM = 'ondelete_cascade_no_orm';
+    case ORPHAN_REMOVAL_NO_PERSIST = 'orphan_removal_no_persist';
+    case ORPHAN_REMOVAL_NULLABLE_FK = 'orphan_removal_nullable_fk';
+    case MISSING_EMBEDDABLE_OPPORTUNITY = 'missing_embeddable_opportunity';
+    case EMBEDDABLE_MUTABILITY = 'embeddable_mutability';
+    case EMBEDDABLE_WITHOUT_VALUE_OBJECT_METHODS = 'embeddable_without_value_object_methods';
+    case FLOAT_IN_MONEY_EMBEDDABLE = 'float_in_money_embeddable';
+    case MISSING_BLAMEABLE_TRAIT_OPPORTUNITY = 'missing_blameable_trait_opportunity';
+    case TIMESTAMPABLE_MUTABLE_DATETIME = 'timestampable_mutable_datetime';
+    case TIMESTAMPABLE_NULLABLE_CREATED_AT = 'timestampable_nullable_created_at';
+    case TIMESTAMPABLE_PUBLIC_SETTER = 'timestampable_public_setter';
+    case BLAMEABLE_NULLABLE_CREATED_BY = 'blameable_nullable_created_by';
+    case BLAMEABLE_PUBLIC_SETTER = 'blameable_public_setter';
+    case SOFT_DELETE_MUTABLE_DATETIME = 'soft_delete_mutable_datetime';
+    case SOFT_DELETE_PUBLIC_SETTER = 'soft_delete_public_setter';
+    case AUTO_INCREMENT_EDUCATIONAL = 'auto_increment_educational';
+    case UUID_V4_PERFORMANCE = 'uuid_v4_performance';
+    case MIXED_ID_STRATEGIES = 'mixed_id_strategies';
+    case ENTITY_DETACHED_MODIFICATION = 'entity_detached_modification';
+    case ENTITY_NEW_IN_ASSOCIATION = 'entity_new_in_association';
+    case ENTITY_REQUIRED_FIELD_NULL = 'entity_required_field_null';
+    case ENTITY_REQUIRED_ASSOCIATION_NULL = 'entity_required_association_null';
+    case ENTITY_REMOVED_ACCESS = 'entity_removed_access';
+    case ENTITY_REMOVED_IN_ASSOCIATION = 'entity_removed_in_association';
+    case ENTITY_DETACHED_IN_ASSOCIATION = 'entity_detached_in_association';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';
     case TRANSACTION_BOUNDARY = 'transaction_boundary';
+    case DECIMAL_MISSING_PRECISION = 'decimal_missing_precision';
+    case DECIMAL_INSUFFICIENT_PRECISION = 'decimal_insufficient_precision';
+    case DECIMAL_EXCESSIVE_PRECISION = 'decimal_excessive_precision';
+    case DECIMAL_UNUSUAL_SCALE = 'decimal_unusual_scale';
+    case TIMESTAMPABLE_MISSING_TIMEZONE = 'timestampable_missing_timezone';
+    case TIMESTAMPABLE_MISSING_TIMEZONE_GLOBAL = 'timestampable_missing_timezone_global';
+    case TIMESTAMPABLE_TIMEZONE_INCONSISTENCY = 'timestampable_timezone_inconsistency';
+    case BLAMEABLE_WRONG_TARGET = 'blameable_wrong_target';
+    case SOFT_DELETE_NOT_NULLABLE = 'soft_delete_not_nullable';
+    case SOFT_DELETE_MISSING_TIMEZONE = 'soft_delete_missing_timezone';
+    case SOFT_DELETE_CASCADE_CONFLICT = 'soft_delete_cascade_conflict';
+    case TRANSACTION_NESTED = 'transaction_nested';
+    case TRANSACTION_MULTIPLE_FLUSH = 'transaction_multiple_flush';
+    case TRANSACTION_UNCLOSED = 'transaction_unclosed';
+    case TRANSACTION_TOO_LONG = 'transaction_too_long';
 
     /**
      * Create from string value (for backward compatibility).

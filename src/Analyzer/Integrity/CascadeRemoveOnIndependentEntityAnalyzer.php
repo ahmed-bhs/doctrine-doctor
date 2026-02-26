@@ -360,6 +360,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $cascade        = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
+        /** @var IntegrityIssue $codeQualityIssue */
         $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity'           => $entityClass,
             'field'            => $fieldName,
@@ -399,6 +400,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $cascade        = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
+        /** @var IntegrityIssue $codeQualityIssue */
         $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity'           => $entityClass,
             'field'            => $fieldName,
@@ -427,6 +429,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
 
         return $codeQualityIssue;
     }
+
 
     /**
      * Get association type constant in a version-agnostic way.

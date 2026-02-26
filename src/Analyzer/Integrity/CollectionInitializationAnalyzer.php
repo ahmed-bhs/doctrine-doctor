@@ -183,7 +183,8 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
         $targetEntity   = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
-        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        /** @var IntegrityIssue $issue */
+        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'title'       => 'Missing constructor for collection initialization in ' . $shortClassName,
             'description' => sprintf(
                 'Entity "%s" has a collection property "$%s" (relation to %s) but no constructor. ' .
@@ -212,6 +213,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             'backtrace' => null,
             'queries'   => [],
         ]);
+        return $issue;
     }
 
     private function createUninitializedCollectionIssue(
@@ -223,7 +225,8 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
         $targetEntity   = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
-        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        /** @var IntegrityIssue $issue */
+        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'title'       => sprintf('Uninitialized collection in %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Entity "%s" has a collection property "$%s" (relation to %s) that is not initialized in the constructor. ' .
@@ -255,7 +258,9 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             ],
             'queries' => [],
         ]);
+        return $issue;
     }
+
 
     /**
      * Check if any class in the hierarchy has a constructor.

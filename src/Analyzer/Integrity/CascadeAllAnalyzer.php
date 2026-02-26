@@ -135,6 +135,7 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             $severity     = $this->determineSeverity($associationMapping);
             $targetEntity = $associationMapping['targetEntity'] ?? 'Unknown';
 
+            /** @var IntegrityIssue $issue */
             $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
                 'entity'           => $entityClass,
                 'field'            => $fieldName,
@@ -289,6 +290,7 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             ),
         );
     }
+
 
     /**
      * Check if cascade array contains all cascade operations.
