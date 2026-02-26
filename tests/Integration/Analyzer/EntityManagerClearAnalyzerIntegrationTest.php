@@ -71,7 +71,7 @@ final class EntityManagerClearAnalyzerIntegrationTest extends DatabaseTestCase
         self::assertGreaterThan(0, count($issueCollection), 'Should detect batch operations without clear()');
 
         $issue = $issueCollection->toArray()[0];
-        self::assertEquals('performance', $issue->getCategory());
+        self::assertEquals('performance', $issue->getCategory()->value);
         self::assertStringContainsString('Memory Leak', (string) $issue->getTitle());
     }
 

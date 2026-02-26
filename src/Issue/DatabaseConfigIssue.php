@@ -32,8 +32,8 @@ class DatabaseConfigIssue extends AbstractIssue
         return 'Database Config';
     }
 
-    public function getCategory(): string
+    public function getCategory(): IssueCategory
     {
-        return IssueCategory::CONFIGURATION->value;
+        return IssueCategory::CONFIGURATION;
     }
 }

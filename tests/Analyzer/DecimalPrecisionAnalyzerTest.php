@@ -54,7 +54,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
             str_contains((string) $issue->getDescription(), 'without explicit precision/scale'));
 
         self::assertNotNull($missingPrecisionIssue, 'Should detect missing precision/scale');
-        self::assertEquals('configuration', $missingPrecisionIssue->getCategory());
+        self::assertEquals('configuration', $missingPrecisionIssue->getCategory()->value);
         self::assertEquals('warning', $missingPrecisionIssue->getSeverity()->value);
         self::assertStringContainsString('database defaults', strtolower($missingPrecisionIssue->getDescription()));
     }
@@ -74,7 +74,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
             str_contains((string) $issue->getDescription(), 'insufficient'));
 
         self::assertNotNull($insufficientPrecisionIssue, 'Should detect insufficient precision for money field');
-        self::assertEquals('configuration', $insufficientPrecisionIssue->getCategory());
+        self::assertEquals('configuration', $insufficientPrecisionIssue->getCategory()->value);
         self::assertEquals('warning', $insufficientPrecisionIssue->getSeverity()->value);
         self::assertStringContainsString('money', strtolower($insufficientPrecisionIssue->getDescription()));
     }
@@ -94,7 +94,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
             str_contains((string) $issue->getDescription(), 'unusual'));
 
         self::assertNotNull($unusualScaleIssue, 'Should detect unusual scale for money field');
-        self::assertEquals('configuration', $unusualScaleIssue->getCategory());
+        self::assertEquals('configuration', $unusualScaleIssue->getCategory()->value);
         self::assertEquals('info', $unusualScaleIssue->getSeverity()->value);
         self::assertStringContainsString('scale=3', $unusualScaleIssue->getDescription());
     }
@@ -114,7 +114,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
             str_contains((string) $issue->getDescription(), 'very high'));
 
         self::assertNotNull($excessivePrecisionIssue, 'Should detect excessive precision');
-        self::assertEquals('configuration', $excessivePrecisionIssue->getCategory());
+        self::assertEquals('configuration', $excessivePrecisionIssue->getCategory()->value);
         self::assertEquals('info', $excessivePrecisionIssue->getSeverity()->value);
         self::assertStringContainsString('waste storage', strtolower($excessivePrecisionIssue->getDescription()));
     }
@@ -134,7 +134,7 @@ final class DecimalPrecisionAnalyzerTest extends TestCase
             str_contains((string) $issue->getDescription(), 'insufficient'));
 
         self::assertNotNull($percentageIssue, 'Should detect insufficient precision for percentage field');
-        self::assertEquals('configuration', $percentageIssue->getCategory());
+        self::assertEquals('configuration', $percentageIssue->getCategory()->value);
         self::assertEquals('warning', $percentageIssue->getSeverity()->value);
         self::assertStringContainsString('percentage', strtolower($percentageIssue->getDescription()));
     }

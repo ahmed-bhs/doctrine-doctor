@@ -85,7 +85,7 @@ final class QueryBuilderBestPracticesAnalyzerTest extends TestCase
         $issue = $issues->toArray()[0];
         self::assertEquals('Incorrect NULL Comparison', $issue->getTitle());
         // Note: IssueFactory returns 'security' category for all issues
-        self::assertEquals('security', $issue->getCategory());
+        self::assertEquals('security', $issue->getCategory()->value);
         self::assertEquals('warning', $issue->getSeverity()->value);
         self::assertStringContainsString('IS NULL', $issue->getDescription());
     }

@@ -517,7 +517,7 @@ final class NPlusOneAnalyzerTest extends TestCase
 
         // Assert
         $issuesArray = $issues->toArray();
-        self::assertEquals('performance', $issuesArray[0]->getCategory());
+        self::assertEquals('performance', $issuesArray[0]->getCategory()->value);
     }
 
     #[Test]

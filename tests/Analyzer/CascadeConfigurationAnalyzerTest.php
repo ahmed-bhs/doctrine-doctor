@@ -273,7 +273,7 @@ final class CascadeConfigurationAnalyzerTest extends TestCase
         $issue = reset($issuesArray);
 
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
-        self::assertEquals('integrity', $issue->getCategory());
+        self::assertEquals('integrity', $issue->getCategory()->value);
     }
 
     #[Test]
