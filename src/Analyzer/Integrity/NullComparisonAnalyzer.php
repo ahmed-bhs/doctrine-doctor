@@ -15,6 +15,8 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
@@ -43,6 +45,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
 
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
+        private readonly ?IssueFactoryInterface $issueFactory = null,
     ) {
     }
 
@@ -140,7 +143,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         $correctSyntax = $this->getCorrectSyntax($field, $operator);
 
         $issueData = new IssueData(
-            type: 'incorrect_null_comparison',
+            type: 'integrity_incorrect_null_comparison',
             title: 'Incorrect NULL Comparison',
             description: sprintf(
                 "Found '%s' in query. Comparing to NULL with '%s' does not work as expected in SQL. " .
@@ -155,7 +158,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             backtrace: $backtrace,
         );
 
-        return new IntegrityIssue($issueData->toArray());
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
     }
 
     /**

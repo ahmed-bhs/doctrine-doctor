@@ -14,6 +14,8 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CompositionRelationshipDetector;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
@@ -51,6 +53,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         ?CompositionRelationshipDetector $compositionDetector = null,
+        private readonly ?IssueFactoryInterface $issueFactory = null,
     ) {
         // Dependency Injection with fallback for backwards compatibility
         $this->compositionDetector = $compositionDetector ?? new CompositionRelationshipDetector($entityManager);
@@ -357,7 +360,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $cascade        = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
-        $codeQualityIssue = new IntegrityIssue([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToOne',
@@ -396,7 +399,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $cascade        = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
-        $codeQualityIssue = new IntegrityIssue([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToMany',
