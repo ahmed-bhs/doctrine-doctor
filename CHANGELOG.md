@@ -7,16 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Performance
+## [1.0.4] - 2026-02-26
 
-- **80% faster GetReferenceAnalyzer** with SQL parsing cache (159ms → 31ms)
-- Added cache for `hasJoins()` and `hasComplexWhereConditions()` in CachedSqlStructureExtractor
-- Optimized cache warmup to process only unique SQL patterns (283x reduction for duplicate queries)
+### Fixed
 
-### SEO
-
-- Added comprehensive keywords for better discoverability on Packagist and GitHub
-- Improved package description for search engines
+- Early return in DoctrineDoctorExtension when bundle is disabled (no services loaded, no twig paths registered)
+- Validate class types before instantiation in IssueReconstructor (closes #31)
+- Wrap plain text suggestions in `<pre><code>` to prevent HTML entity encoding in profiler
+- Isolate PropertyTypeMismatchAnalyzer test fixtures to avoid false positives from unrelated entities
+- Fix SafeContext test to match offsetGet null-return design for missing keys
 
 ## [1.0.0] - Initial Release
 
