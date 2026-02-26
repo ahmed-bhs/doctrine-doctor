@@ -15,6 +15,8 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Helper\NamingConventionHelper;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
@@ -60,6 +62,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
+        private readonly ?IssueFactoryInterface $issueFactory = null,
     ) {
         $this->helper = new NamingConventionHelper();
     }
@@ -447,7 +450,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $suggestedName,
         string $severity = 'warning',
     ): IntegrityIssue {
-        $codeQualityIssue = new IntegrityIssue([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
             'entity' => $entityClass,
             'table_name' => $tableName,
             'violation_type' => $violationType,
@@ -470,7 +473,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $suggestedName,
         string $severity = 'warning',
     ): IntegrityIssue {
-        $codeQualityIssue = new IntegrityIssue([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
             'entity' => $entityClass,
             'column_name' => $columnName,
             'field_name' => $fieldName,
@@ -493,7 +496,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $violationType,
         string $suggestedName,
     ): IntegrityIssue {
-        $codeQualityIssue = new IntegrityIssue([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
             'entity' => $entityClass,
             'fk_column' => $columnName,
             'association' => $assocName,
@@ -517,7 +520,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $suggestedName,
         string $severity = 'info',
     ): IntegrityIssue {
-        $codeQualityIssue = new IntegrityIssue([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
             'entity' => $entityClass,
             'table_name' => $tableName,
             'index_name' => $indexName,
