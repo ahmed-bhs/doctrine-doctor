@@ -42,7 +42,7 @@ final class BulkOperationAnalyzerTest extends TestCase
         // Arrange: 25 individual UPDATE queries (above threshold of 20)
         $builder = QueryDataBuilder::create();
         for ($i = 1; $i <= 25; $i++) {
-            $builder->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 5.0);
+            $builder->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 0.005);
         }
         $queries = $builder->build();
 
@@ -66,7 +66,7 @@ final class BulkOperationAnalyzerTest extends TestCase
         // Arrange: 30 individual DELETE queries
         $builder = QueryDataBuilder::create();
         for ($i = 1; $i <= 30; $i++) {
-            $builder->addQuery("DELETE FROM posts WHERE id = {$i}", 3.0);
+            $builder->addQuery("DELETE FROM posts WHERE id = {$i}", 0.003);
         }
         $queries = $builder->build();
 
@@ -89,7 +89,7 @@ final class BulkOperationAnalyzerTest extends TestCase
         // Arrange: Only 15 UPDATE queries (below threshold of 20)
         $builder = QueryDataBuilder::create();
         for ($i = 1; $i <= 15; $i++) {
-            $builder->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 5.0);
+            $builder->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 0.005);
         }
         $queries = $builder->build();
 
@@ -106,10 +106,10 @@ final class BulkOperationAnalyzerTest extends TestCase
         // Arrange: 25 UPDATEs on 'users' and 22 UPDATEs on 'posts'
         $builder = QueryDataBuilder::create();
         for ($i = 1; $i <= 25; $i++) {
-            $builder->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 5.0);
+            $builder->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 0.005);
         }
         for ($i = 1; $i <= 22; $i++) {
-            $builder->addQuery("UPDATE posts SET published = 1 WHERE id = {$i}", 4.0);
+            $builder->addQuery("UPDATE posts SET published = 1 WHERE id = {$i}", 0.004);
         }
         $queries = $builder->build();
 
@@ -137,10 +137,10 @@ final class BulkOperationAnalyzerTest extends TestCase
         // Arrange: 22 UPDATEs and 21 DELETEs on same table
         $builder = QueryDataBuilder::create();
         for ($i = 1; $i <= 22; $i++) {
-            $builder->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 5.0);
+            $builder->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 0.005);
         }
         for ($i = 51; $i <= 71; $i++) {
-            $builder->addQuery("DELETE FROM users WHERE id = {$i}", 3.0);
+            $builder->addQuery("DELETE FROM users WHERE id = {$i}", 0.003);
         }
         $queries = $builder->build();
 
@@ -158,7 +158,7 @@ final class BulkOperationAnalyzerTest extends TestCase
         // Arrange
         $builder = QueryDataBuilder::create();
         for ($i = 1; $i <= 25; $i++) {
-            $builder->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 5.0);
+            $builder->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 0.005);
         }
         $queries = $builder->build();
 
@@ -192,7 +192,7 @@ final class BulkOperationAnalyzerTest extends TestCase
         // Arrange: Many SELECT queries (should be ignored)
         $builder = QueryDataBuilder::create();
         for ($i = 1; $i <= 30; $i++) {
-            $builder->addQuery("SELECT * FROM users WHERE id = {$i}", 2.0);
+            $builder->addQuery("SELECT * FROM users WHERE id = {$i}", 0.002);
         }
         $queries = $builder->build();
 

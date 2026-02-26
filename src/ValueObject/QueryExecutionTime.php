@@ -20,6 +20,8 @@ use Webmozart\Assert\Assert;
  */
 final readonly class QueryExecutionTime implements \Stringable
 {
+    public const int MS_PER_SECOND = 1000;
+
     private function __construct(
         private float $milliseconds,
     ) {
@@ -42,7 +44,7 @@ final readonly class QueryExecutionTime implements \Stringable
 
     public static function fromSeconds(float $seconds): self
     {
-        return new self($seconds * 1000);
+        return new self($seconds * self::MS_PER_SECOND);
     }
 
     public function inMilliseconds(): float
@@ -52,7 +54,7 @@ final readonly class QueryExecutionTime implements \Stringable
 
     public function inSeconds(): float
     {
-        return $this->milliseconds / 1000;
+        return $this->milliseconds / self::MS_PER_SECOND;
     }
 
     public function isSlow(float $thresholdMs = 100.0): bool
@@ -81,7 +83,7 @@ final readonly class QueryExecutionTime implements \Stringable
 
     public function format(): string
     {
-        if ($this->milliseconds >= 1000) {
+        if ($this->milliseconds >= self::MS_PER_SECOND) {
             return sprintf('%.2fs', $this->inSeconds());
         }
 
