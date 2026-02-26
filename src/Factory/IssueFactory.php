@@ -182,6 +182,14 @@ class IssueFactory implements IssueFactoryInterface
     }
 
     /**
+     * @param array<string, mixed> $data
+     */
+    public function createIntegrityFromArray(array $data): IntegrityIssue
+    {
+        return new IntegrityIssue($data);
+    }
+
+    /**
      * Check if a type is supported.
      */
     public function supports(string $type): bool
