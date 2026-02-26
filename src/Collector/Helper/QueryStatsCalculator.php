@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Collector\Helper;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
+
 /**
  * Helper for calculating query time statistics.
  * Extracted from DoctrineDoctorDataCollector to reduce complexity.
@@ -27,7 +29,7 @@ final class QueryStatsCalculator
         }
 
         $times          = array_map(fn (array $query): float => (float) ($query['executionMS'] ?? 0), $queries);
-        $convertedTimes = array_map(fn (float $time): float => $time > 0 && $time < 1 ? $time * 1000 : $time, $times);
+        $convertedTimes = array_map(fn (float $time): float => $time * QueryExecutionTime::MS_PER_SECOND, $times);
 
         return [
             'total_queries'     => count($queries),

@@ -69,7 +69,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: YEAR() with = operator
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 150.0)
+            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 0.150)
             ->build();
 
         // Act
@@ -89,7 +89,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: MONTH() function
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE MONTH(created_at) = 12', 80.0)
+            ->addQuery('SELECT * FROM orders WHERE MONTH(created_at) = 12', 0.080)
             ->build();
 
         // Act
@@ -107,7 +107,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: DAY() function
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE DAY(created_at) = 15', 80.0)
+            ->addQuery('SELECT * FROM orders WHERE DAY(created_at) = 15', 0.080)
             ->build();
 
         // Act
@@ -124,7 +124,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: DATE() function
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM orders WHERE DATE(created_at) = '2023-01-15'", 120.0)
+            ->addQuery("SELECT * FROM orders WHERE DATE(created_at) = '2023-01-15'", 0.120)
             ->build();
 
         // Act
@@ -142,7 +142,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: HOUR() function
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM logs WHERE HOUR(created_at) = 14', 90.0)
+            ->addQuery('SELECT * FROM logs WHERE HOUR(created_at) = 14', 0.090)
             ->build();
 
         // Act
@@ -159,7 +159,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: MINUTE() function
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM logs WHERE MINUTE(created_at) = 30', 70.0)
+            ->addQuery('SELECT * FROM logs WHERE MINUTE(created_at) = 30', 0.070)
             ->build();
 
         // Act
@@ -176,7 +176,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: Field with table alias (o.created_at)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders o WHERE YEAR(o.created_at) = 2023', 130.0)
+            ->addQuery('SELECT * FROM orders o WHERE YEAR(o.created_at) = 2023', 0.130)
             ->build();
 
         // Act
@@ -193,7 +193,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: Query with multiple date functions
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023 AND MONTH(updated_at) = 12', 200.0)
+            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023 AND MONTH(updated_at) = 12', 0.200)
             ->build();
 
         // Act
@@ -208,9 +208,9 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: Same YEAR() function used multiple times
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 100.0)
-            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 100.0)
-            ->addQuery('SELECT * FROM invoices WHERE YEAR(created_at) = 2023', 100.0)
+            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 0.100)
+            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 0.100)
+            ->addQuery('SELECT * FROM invoices WHERE YEAR(created_at) = 2023', 0.100)
             ->build();
 
         // Act
@@ -225,8 +225,8 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: Different year values
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 100.0)
-            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2024', 100.0)
+            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 0.100)
+            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2024', 0.100)
             ->build();
 
         // Act
@@ -241,7 +241,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: Query taking > 100ms
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 150.0)
+            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 0.150)
             ->build();
 
         // Act
@@ -259,7 +259,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: Query taking <= 100ms
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 50.0)
+            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 0.050)
             ->build();
 
         // Act
@@ -276,8 +276,8 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: lowercase function names
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE year(created_at) = 2023', 100.0)
-            ->addQuery('SELECT * FROM orders WHERE month(created_at) = 12', 100.0)
+            ->addQuery('SELECT * FROM orders WHERE year(created_at) = 2023', 0.100)
+            ->addQuery('SELECT * FROM orders WHERE month(created_at) = 12', 0.100)
             ->build();
 
         // Act
@@ -317,7 +317,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: YEAR() with >= operator
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) >= 2023', 100.0)
+            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) >= 2023', 0.100)
             ->build();
 
         // Act
@@ -334,7 +334,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: YEAR() with < operator
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) < 2023', 100.0)
+            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) < 2023', 0.100)
             ->build();
 
         // Act
@@ -349,7 +349,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: YEAR() with != operator
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) != 2023', 100.0)
+            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) != 2023', 0.100)
             ->build();
 
         // Act
@@ -364,7 +364,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 100.0)
+            ->addQuery('SELECT * FROM orders WHERE YEAR(created_at) = 2023', 0.100)
             ->build();
 
         // Act
@@ -393,7 +393,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     {
         // Arrange: DATE() function
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM orders WHERE DATE(created_at) = '2023-01-15'", 100.0)
+            ->addQuery("SELECT * FROM orders WHERE DATE(created_at) = '2023-01-15'", 0.100)
             ->build();
 
         // Act
@@ -423,7 +423,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
                 'LEFT JOIN customers c ON o.customer_id = c.id ' .
                 'WHERE YEAR(o.created_at) = 2023 AND c.status = "active" ' .
                 'ORDER BY o.created_at DESC',
-                180.0,
+                0.180,
             )
             ->build();
 

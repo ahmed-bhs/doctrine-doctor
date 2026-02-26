@@ -70,7 +70,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Contains search pattern (most problematic)
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%'", 100.0)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%'", 0.100)
             ->build();
 
         // Act
@@ -93,7 +93,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Ends-with search pattern
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE email LIKE '%@example.com'", 80.0)
+            ->addQuery("SELECT * FROM users WHERE email LIKE '%@example.com'", 0.080)
             ->build();
 
         // Act
@@ -113,7 +113,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()
             ->addQuery(
                 "SELECT * FROM users WHERE name LIKE '%John%' OR email LIKE '%@example.com'",
-                200.0,
+                0.200,
             )
             ->build();
 
@@ -129,9 +129,9 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Multiple queries using same LIKE pattern
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%' AND status = 'active'", 100.0)
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%' AND city = 'Paris'", 100.0)
-            ->addQuery("SELECT * FROM posts WHERE title LIKE '%John%'", 100.0)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%' AND status = 'active'", 0.100)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%' AND city = 'Paris'", 0.100)
+            ->addQuery("SELECT * FROM posts WHERE title LIKE '%John%'", 0.100)
             ->build();
 
         // Act
@@ -146,8 +146,8 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Different LIKE patterns
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%'", 100.0)
-            ->addQuery("SELECT * FROM users WHERE email LIKE '%@example.com'", 100.0)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%'", 0.100)
+            ->addQuery("SELECT * FROM users WHERE email LIKE '%@example.com'", 0.100)
             ->build();
 
         // Act
@@ -162,7 +162,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Query taking > 200ms
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%search%'", 250.0)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%search%'", 0.250)
             ->build();
 
         // Act
@@ -180,7 +180,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Query taking >= 100ms (critical threshold)
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%search%'", 100.0)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%search%'", 0.100)
             ->build();
 
         // Act
@@ -197,7 +197,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Query taking < 100ms - pattern still problematic despite good performance
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%search%'", 30.0)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%search%'", 0.030)
             ->build();
 
         // Act
@@ -214,7 +214,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: lowercase 'like'
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name like '%John%'", 100.0)
+            ->addQuery("SELECT * FROM users WHERE name like '%John%'", 0.100)
             ->build();
 
         // Act
@@ -229,7 +229,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Pattern with double quotes
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE name LIKE "%John%"', 100.0)
+            ->addQuery('SELECT * FROM users WHERE name LIKE "%John%"', 0.100)
             ->build();
 
         // Act
@@ -252,7 +252,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
             ->addQueryWithBacktrace(
                 "SELECT * FROM users WHERE name LIKE '%search%'",
                 $backtrace,
-                100.0,
+                0.100,
             )
             ->build();
 
@@ -271,8 +271,8 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Queries without LIKE patterns
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE status = 'active'", 100.0)
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%'", 100.0)
+            ->addQuery("SELECT * FROM users WHERE status = 'active'", 0.100)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%'", 0.100)
             ->build();
 
         // Act
@@ -287,7 +287,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Use < 100ms to get WARNING severity
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%'", 99.0)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%'", 0.099)
             ->build();
 
         // Act
@@ -319,7 +319,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: %pattern%
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%'", 100.0)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%John%'", 0.100)
             ->build();
 
         // Act
@@ -335,7 +335,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: %pattern (no trailing wildcard)
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE email LIKE '%@domain.com'", 100.0)
+            ->addQuery("SELECT * FROM users WHERE email LIKE '%@domain.com'", 0.100)
             ->build();
 
         // Act
@@ -356,7 +356,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
                 "LEFT JOIN posts p ON u.id = p.user_id " .
                 "WHERE u.name LIKE '%John%' AND u.status = 'active' " .
                 "ORDER BY u.created_at DESC",
-                150.0,
+                0.150,
             )
             ->build();
 
@@ -377,7 +377,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
             ->addQuery(
                 "SELECT name, COUNT(*) as cnt FROM users " .
                 "GROUP BY name HAVING name LIKE '%Smith%'",
-                100.0,
+                0.100,
             )
             ->build();
 
@@ -409,7 +409,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         // Arrange: Very fast query (< 10ms) - excellent current performance
         // BUT: pattern is still problematic (prevents index usage)
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%voyage%'", 1.15) // 1.15ms - excellent
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%voyage%'", 0.00115) // 1.15ms - excellent
             ->build();
 
         // Act
@@ -432,7 +432,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         // Arrange: Acceptable query (10-50ms) - worth monitoring
         // Pattern is still problematic (prevents index usage)
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM products WHERE name LIKE '%test%'", 35.5) // 35.5ms - acceptable
+            ->addQuery("SELECT * FROM products WHERE name LIKE '%test%'", 0.0355) // 35.5ms - acceptable
             ->build();
 
         // Act
@@ -453,7 +453,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Concerning query (50-100ms) - still below critical threshold
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM orders WHERE notes LIKE '%urgent%'", 75.0) // 75ms - concerning
+            ->addQuery("SELECT * FROM orders WHERE notes LIKE '%urgent%'", 0.075) // 75ms - concerning
             ->build();
 
         // Act
@@ -476,7 +476,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Slow query (>= 100ms) - immediate action required
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM products WHERE description LIKE '%search%'", 250.0) // 250ms - critical
+            ->addQuery("SELECT * FROM products WHERE description LIKE '%search%'", 0.250) // 250ms - critical
             ->build();
 
         // Act
@@ -499,15 +499,15 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
     {
         // Arrange: Two categories - fast (< 100ms) and slow (>= 100ms)
         $fastQuery = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%fast%'", 5.0)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%fast%'", 0.005)
             ->build();
 
         $mediumQuery = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%medium%'", 60.0)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%medium%'", 0.060)
             ->build();
 
         $slowQuery = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name LIKE '%slow%'", 150.0)
+            ->addQuery("SELECT * FROM users WHERE name LIKE '%slow%'", 0.150)
             ->build();
 
         // Act

@@ -43,7 +43,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name, price) VALUES ('Product {$i}', 19.99)", 2.0);
+            $queries->addQuery("INSERT INTO products (name, price) VALUES ('Product {$i}', 19.99)", 0.002);
         }
 
         // Act
@@ -66,7 +66,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 22; $i++) {
-            $queries->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 1.5);
+            $queries->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 0.002);
         }
 
         // Act
@@ -88,7 +88,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 30; $i++) {
-            $queries->addQuery("DELETE FROM temp_data WHERE id = {$i}", 1.0);
+            $queries->addQuery("DELETE FROM temp_data WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -110,7 +110,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 15; $i++) {
-            $queries->addQuery("INSERT INTO products (name, price) VALUES ('Product {$i}', 19.99)", 2.0);
+            $queries->addQuery("INSERT INTO products (name, price) VALUES ('Product {$i}', 19.99)", 0.002);
         }
 
         // Act
@@ -127,11 +127,11 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
         }
 
         // Act
@@ -155,7 +155,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
 
             // Add 15 unrelated queries between each operation (exceeds maxGap of 10)
             for ($j = 1; $j <= 15; $j++) {
@@ -177,7 +177,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
 
             // Add 5 unrelated queries (within maxGap)
             for ($j = 1; $j <= 5; $j++) {
@@ -201,7 +201,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
 
         // 20 close operations (70% of 25 = 17.5, so this should pass)
         for ($i = 1; $i <= 20; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
             if ($i <= 20) { // @phpstan-ignore-line Always true but kept for clarity
                 $queries->addQuery("SELECT 1", 0.1);  // Small gap
             }
@@ -212,7 +212,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
             for ($j = 1; $j <= 15; $j++) {
                 $queries->addQuery("SELECT * FROM other_table WHERE id = {$j}", 0.5);
             }
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -230,7 +230,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -250,7 +250,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -276,7 +276,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -297,7 +297,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -320,7 +320,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
             $queries->addQueryWithBacktrace(
                 "INSERT INTO products (name) VALUES ('Product {$i}')",
                 [['file' => 'ProductImporter.php', 'line' => 42 + $i]],
-                2.0,
+                0.002,
             );
         }
 
@@ -344,7 +344,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -382,7 +382,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 50; $i++) {
-            $queries->addQuery("SELECT * FROM products WHERE id = {$i}", 1.0);
+            $queries->addQuery("SELECT * FROM products WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -480,7 +480,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -504,7 +504,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -529,7 +529,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
 
         // Only 30 operations (below high threshold)
         for ($i = 1; $i <= 30; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -550,7 +550,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
             $queries->addQueryWithBacktrace(
                 "INSERT INTO products (sku, name, price, stock) VALUES ('SKU{$i}', 'Product {$i}', 19.99, 100)",
                 [['file' => 'CsvImporter.php', 'line' => 87]],
-                2.5,
+                0.003,
             );
         }
 
@@ -573,15 +573,15 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("INSERT INTO logs (message) VALUES ('Log {$i}')", 1.0);
+            $queries->addQuery("INSERT INTO logs (message) VALUES ('Log {$i}')", 0.001);
         }
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("UPDATE logs SET processed = 1 WHERE id = {$i}", 1.0);
+            $queries->addQuery("UPDATE logs SET processed = 1 WHERE id = {$i}", 0.001);
         }
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("DELETE FROM logs WHERE id = {$i}", 1.0);
+            $queries->addQuery("DELETE FROM logs WHERE id = {$i}", 0.001);
         }
 
         // Act

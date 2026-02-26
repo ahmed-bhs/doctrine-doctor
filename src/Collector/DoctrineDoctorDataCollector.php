@@ -17,11 +17,10 @@ use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Collector\Helper\DataCollectorLogger;
-use AhmedBhs\DoctrineDoctor\Collector\Helper\IssueReconstructor;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
-use AhmedBhs\DoctrineDoctor\Template\Renderer\PhpTemplateRenderer;
+use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
 use Doctrine\Bundle\DoctrineBundle\DataCollector\DoctrineDataCollector;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -166,10 +165,8 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
         $issuesData = $this->data['issues'] ?? [];
 
-        $issueReconstructor = new IssueReconstructor(new PhpTemplateRenderer());
-
         $this->memoizedIssues = array_map(
-            $issueReconstructor->reconstructIssue(...),
+            $this->dataCollectorHelpers->issueReconstructor->reconstructIssue(...),
             $issuesData,
         );
 
@@ -283,12 +280,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $rawSql = $query['sql'] ?? '';
             $sql = is_string($rawSql) ? $rawSql : '';
             $executionTime = (float) ($query['executionMS'] ?? 0.0);
-
-            if ($executionTime > 0 && $executionTime < 1) {
-                $executionMs = $executionTime * 1000;
-            } else {
-                $executionMs = $executionTime;
-            }
+            $executionMs = $executionTime * QueryExecutionTime::MS_PER_SECOND;
 
             if (!isset($grouped[$sql])) {
                 $grouped[$sql] = [
