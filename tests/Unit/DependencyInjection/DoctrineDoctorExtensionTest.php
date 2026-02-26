@@ -11,11 +11,14 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\DependencyInjection;
 
+use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\DoctrineDoctorExtension;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Extension\Extension;
 
 /**
  * Unit tests for DoctrineDoctorExtension.
@@ -157,5 +160,93 @@ final class DoctrineDoctorExtensionTest extends TestCase
         $result = $method->invoke($this->extension, 'CharsetAnalyzer');
 
         self::assertSame('charset', $result);
+    }
+
+    #[Test]
+    public function it_does_not_load_services_when_disabled(): void
+    {
+        $container = new ContainerBuilder();
+        $this->extension->load([['enabled' => false]], $container);
+
+        self::assertFalse($container->hasParameter('doctrine_doctor.enabled'));
+        self::assertFalse($container->hasDefinition(DoctrineDoctorDataCollector::class));
+    }
+
+    #[Test]
+    public function it_loads_services_when_enabled(): void
+    {
+        $container = new ContainerBuilder();
+        $this->extension->load([['enabled' => true]], $container);
+
+        self::assertTrue($container->hasParameter('doctrine_doctor.enabled'));
+        self::assertTrue($container->getParameter('doctrine_doctor.enabled'));
+        self::assertTrue($container->hasDefinition(DoctrineDoctorDataCollector::class));
+    }
+
+    #[Test]
+    public function it_removes_a_single_disabled_analyzer(): void
+    {
+        $container = new ContainerBuilder();
+        $this->extension->load([[
+            'enabled' => true,
+            'analyzers' => [
+                'n_plus_one' => ['enabled' => false],
+            ],
+        ]], $container);
+
+        self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Performance\NPlusOneAnalyzer::class));
+        self::assertTrue($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Performance\SlowQueryAnalyzer::class));
+    }
+
+    #[Test]
+    public function it_does_not_register_twig_paths_when_disabled(): void
+    {
+        $container = $this->createContainerWithTwig(false);
+
+        $this->extension->prepend($container);
+
+        self::assertFalse($this->hasTwigDoctrineDoctorPath($container));
+    }
+
+    #[Test]
+    public function it_registers_twig_paths_when_enabled(): void
+    {
+        $container = $this->createContainerWithTwig(true);
+
+        $this->extension->prepend($container);
+
+        self::assertTrue($this->hasTwigDoctrineDoctorPath($container));
+    }
+
+    private function createContainerWithTwig(bool $enabled): ContainerBuilder
+    {
+        $container = new ContainerBuilder();
+        $twigExtension = new class() extends Extension {
+            public function load(array $configs, ContainerBuilder $container): void
+            {
+            }
+
+            public function getAlias(): string
+            {
+                return 'twig';
+            }
+        };
+        $container->registerExtension($twigExtension);
+        $container->prependExtensionConfig('doctrine_doctor', ['enabled' => $enabled]);
+
+        return $container;
+    }
+
+    private function hasTwigDoctrineDoctorPath(ContainerBuilder $container): bool
+    {
+        foreach ($container->getExtensionConfig('twig') as $config) {
+            foreach ($config['paths'] ?? [] as $namespace) {
+                if ('doctrine_doctor' === $namespace) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
