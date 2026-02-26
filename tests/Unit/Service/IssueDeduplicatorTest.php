@@ -16,6 +16,7 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
 use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use PHPUnit\Framework\Attributes\Test;
@@ -406,9 +407,9 @@ final class IssueDeduplicatorTest extends TestCase
                 return $this->severity;
             }
 
-            public function getCategory(): string
+            public function getCategory(): IssueCategory
             {
-                return 'performance';
+                return IssueCategory::PERFORMANCE;
             }
 
             public function getSuggestion(): ?SuggestionInterface
@@ -438,7 +439,7 @@ final class IssueDeduplicatorTest extends TestCase
                     'title' => $this->title,
                     'description' => $this->description,
                     'severity' => $this->severity->value,
-                    'category' => $this->getCategory(),
+                    'category' => $this->getCategory()->value,
                     'queries' => $this->queries,
                 ];
             }

@@ -36,8 +36,8 @@ class SlowQueryIssue extends AbstractIssue
         return 'Slow Query';
     }
 
-    public function getCategory(): string
+    public function getCategory(): IssueCategory
     {
-        return IssueCategory::PERFORMANCE->value;
+        return IssueCategory::PERFORMANCE;
     }
 }

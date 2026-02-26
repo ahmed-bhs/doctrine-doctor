@@ -13,9 +13,9 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
@@ -179,7 +179,8 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $cascade = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $severity = $this->determineSeverityForAll($mapping);
 
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        /** @var IntegrityIssue $issue */
+        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'field' => $fieldName,
             'association_type' => $this->getAssociationType($mapping),
@@ -213,7 +214,8 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $shortTargetName = $this->getShortClassName($targetEntity);
 
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        /** @var IntegrityIssue $issue */
+        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'field' => $fieldName,
             'target_entity' => $targetEntity,
@@ -254,7 +256,8 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $shortClassName = $this->getShortClassName($entityClass);
         $shortTargetName = $this->getShortClassName($targetEntity);
 
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        /** @var IntegrityIssue $issue */
+        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'field' => $fieldName,
             'target_entity' => $targetEntity,
@@ -292,7 +295,8 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $shortClassName = $this->getShortClassName($entityClass);
         $shortTargetName = $this->getShortClassName($targetEntity);
 
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        /** @var IntegrityIssue $issue */
+        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'field' => $fieldName,
             'target_entity' => $targetEntity,

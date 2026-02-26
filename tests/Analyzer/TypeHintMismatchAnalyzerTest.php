@@ -77,7 +77,7 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
 
         self::assertNotNull($priceIssue, 'Should detect decimal/float mismatch');
         self::assertEquals('critical', $priceIssue->getSeverity()->value);
-        self::assertEquals('integrity', $priceIssue->getCategory());
+        self::assertEquals('integrity', $priceIssue->getCategory()->value);
         self::assertStringContainsString('decimal', $priceIssue->getDescription());
         self::assertStringContainsString('float', $priceIssue->getDescription());
     }

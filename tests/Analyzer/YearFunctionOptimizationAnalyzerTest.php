@@ -81,7 +81,7 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
         self::assertEquals('YEAR() Function Prevents Index Usage', $issue->getTitle());
         self::assertStringContainsString('YEAR(created_at)', $issue->getDescription());
         self::assertStringContainsString('BETWEEN', $issue->getDescription());
-        self::assertEquals('performance', $issue->getCategory());
+        self::assertEquals('performance', $issue->getCategory()->value);
     }
 
     #[Test]
