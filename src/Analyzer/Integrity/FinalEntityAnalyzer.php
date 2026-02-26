@@ -112,7 +112,7 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
 
         $issueData = new IssueData(
             type: 'final_entity',
-            title: sprintf('Final Entity Detected: %s', $this->getShortClassName($entityClass)),
+            title: sprintf('Final Entity Detected: %s', \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass)),
             description: $description,
             severity: $this->calculateSeverity($classMetadata),
             suggestion: null,
@@ -127,7 +127,7 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
      */
     private function buildDescription(string $entityClass, \ReflectionClass $reflectionClass, ClassMetadata $classMetadata): string
     {
-        $shortName = $this->getShortClassName($entityClass);
+        $shortName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
 
         $description = sprintf(
             "Entity class %s is marked as 'final', which prevents Doctrine from creating proxy classes.
@@ -163,7 +163,7 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                     "  - %s (-> %s)
 ",
                     $assocName,
-                    $this->getShortClassName($targetEntity),
+                    \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity),
                 );
             }
 
@@ -244,10 +244,4 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
     /**
      * Get short class name without namespace.
      */
-    private function getShortClassName(string $fqcn): string
-    {
-        $parts = explode('\\', $fqcn);
-
-        return end($parts);
-    }
 }

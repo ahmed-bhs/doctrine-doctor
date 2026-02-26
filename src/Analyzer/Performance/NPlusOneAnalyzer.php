@@ -426,9 +426,9 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             $mappedBy = MappingHelper::getString($parentMapping, 'mappedBy');
             if ($mappedBy === $matchedFieldName) {
                 return [
-                    'parentEntity' => $this->getShortClassName($targetEntityClass),
+                    'parentEntity' => \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntityClass),
                     'collectionField' => $parentFieldName,
-                    'childEntity' => $this->getShortClassName($childEntityClass),
+                    'childEntity' => \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($childEntityClass),
                 ];
             }
         }
@@ -507,7 +507,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         }
 
         if (\is_string($class) && \is_string($function)) {
-            return $this->getShortClassName($class) . '::' . $function . '()';
+            return \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($class) . '::' . $function . '()';
         }
 
         return \is_string($function) ? $function . '()' : null;
@@ -516,13 +516,6 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
     private function camelCaseToSnakeCase(string $string): string
     {
         return strtolower((string) preg_replace('/[A-Z]/', '_$0', lcfirst($string)));
-    }
-
-    private function getShortClassName(string $fqcn): string
-    {
-        $parts = explode('\\', $fqcn);
-
-        return end($parts);
     }
 
     /**
