@@ -197,7 +197,7 @@ class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         string $entityClass,
         string $propertyName,
     ): IssueInterface {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
 
         $description = sprintf(
             "Collection property %s::\$%s is not initialized.\n\n",
@@ -249,12 +249,5 @@ class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         );
 
         return $this->issueFactory->create($issueData);
-    }
-
-    private function getShortClassName(string $fqcn): string
-    {
-        $parts = explode('\\', $fqcn);
-
-        return end($parts);
     }
 }

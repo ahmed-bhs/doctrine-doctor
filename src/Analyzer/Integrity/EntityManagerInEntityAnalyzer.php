@@ -14,9 +14,9 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -279,9 +279,9 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
     private function createEntityManagerInConstructorIssue(string $entityClass, \ReflectionMethod $reflectionMethod): IntegrityIssue
     {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
 
-        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'title'       => 'EntityManager injected in entity constructor: ' . $shortClassName,
             'description' => sprintf(
                 'Entity "%s" has EntityManager injected in constructor.' . "
@@ -313,10 +313,10 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
     private function createEntityManagerPropertyIssue(string $entityClass, \ReflectionProperty $reflectionProperty): IntegrityIssue
     {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
         $propertyName   = $reflectionProperty->getName();
 
-        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'title'       => sprintf('EntityManager property in entity: %s::$%s', $shortClassName, $propertyName),
             'description' => sprintf(
                 'Entity "%s" has EntityManager as property "$%s".' . "
@@ -347,10 +347,10 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
     private function createEntityManagerUsageIssue(string $entityClass, \ReflectionMethod $reflectionMethod): IntegrityIssue
     {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
         $methodName     = $reflectionMethod->getName();
 
-        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'title'       => sprintf('EntityManager usage in entity method: %s::%s()', $shortClassName, $methodName),
             'description' => sprintf(
                 'Entity "%s" uses EntityManager in method "%s()".' . "
@@ -386,7 +386,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
     private function createEntityManagerSuggestion(string $entityClass, string $location, ?string $methodName = null): SuggestionInterface
     {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
 
         $badCode = match ($location) {
             'constructor' => <<<PHP
@@ -494,12 +494,5 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             ],
             $suggestionMetadata,
         );
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 }

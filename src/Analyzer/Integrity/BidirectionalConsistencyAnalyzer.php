@@ -13,9 +13,9 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
@@ -325,7 +325,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         // Create synthetic backtrace
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity'             => $entityClass,
             'field'              => $fieldName,
             'target_entity'      => $targetEntity,
@@ -426,8 +426,8 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         array $inconsistency,
     ): SuggestionInterface {
         $type            = $inconsistency['type'];
-        $shortClassName  = $this->getShortClassName($entityClass);
-        $shortTargetName = $this->getShortClassName($targetEntity);
+        $shortClassName  = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortTargetName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity);
 
         return match ($type) {
             'orphan_removal_nullable_fk' => $this->createOrphanRemovalNullableSuggestion(
@@ -547,13 +547,6 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 tags: ['bidirectional', 'cascade', 'ondelete'],
             ),
         );
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 
     /**

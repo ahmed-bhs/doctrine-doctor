@@ -13,9 +13,9 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
@@ -128,7 +128,7 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements \AhmedBhs\DoctrineDoc
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $cascade      = MappingHelper::getArray($mapping, 'cascade') ?? [];
 
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity'         => $entityClass,
             'field'          => $fieldName,
             'target_entity'  => $targetEntity,
@@ -158,8 +158,8 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements \AhmedBhs\DoctrineDoc
     {
         $targetEntity    = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $cascade         = MappingHelper::getArray($mapping, 'cascade') ?? [];
-        $shortClassName  = $this->getShortClassName($entityClass);
-        $shortTargetName = $this->getShortClassName($targetEntity);
+        $shortClassName  = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortTargetName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity);
         $mappedBy        = MappingHelper::getString($mapping, 'mappedBy') ?? 'parent';
 
         $currentCascade = [] === $cascade
@@ -182,13 +182,6 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements \AhmedBhs\DoctrineDoc
                 tags: ['orphan-removal', 'cascade', 'configuration'],
             ),
         );
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 
     /**

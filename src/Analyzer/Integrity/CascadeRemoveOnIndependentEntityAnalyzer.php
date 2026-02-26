@@ -360,7 +360,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $cascade        = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToOne',
@@ -380,7 +380,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
                 'cascade' => '"remove"',
                 'type' => 'ManyToOne',
                 'target' => $targetEntity,
-                'shortClass' => $this->getShortClassName($entityClass),
+                'shortClass' => \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass),
                 'refCount' => (string) $referenceCount,
             ],
         );
@@ -399,7 +399,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $cascade        = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToMany',
@@ -419,20 +419,13 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
                 'cascade' => '"remove"',
                 'type' => 'ManyToMany',
                 'target' => $targetEntity,
-                'shortClass' => $this->getShortClassName($entityClass),
+                'shortClass' => \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass),
                 'refCount' => (string) $referenceCount,
             ],
         );
         $codeQualityIssue->setMessage($message);
 
         return $codeQualityIssue;
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 
     /**

@@ -14,9 +14,9 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\NamingConventionHelper;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
@@ -450,7 +450,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $suggestedName,
         string $severity = 'warning',
     ): IntegrityIssue {
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'table_name' => $tableName,
             'violation_type' => $violationType,
@@ -473,7 +473,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $suggestedName,
         string $severity = 'warning',
     ): IntegrityIssue {
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'column_name' => $columnName,
             'field_name' => $fieldName,
@@ -496,7 +496,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $violationType,
         string $suggestedName,
     ): IntegrityIssue {
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'fk_column' => $columnName,
             'association' => $assocName,
@@ -520,7 +520,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $suggestedName,
         string $severity = 'info',
     ): IntegrityIssue {
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'table_name' => $tableName,
             'index_name' => $indexName,
@@ -650,7 +650,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
 
     private function buildTableNamingSuggestion(string $current, string $suggested, string $entityClass): SuggestionInterface
     {
-        $shortClass = $this->getShortClassName($entityClass);
+        $shortClass = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
 
         return $this->suggestionFactory->createFromTemplate(
             'naming_convention_table',
@@ -670,7 +670,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
 
     private function buildColumnNamingSuggestion(string $current, string $suggested, string $fieldName, string $entityClass): SuggestionInterface
     {
-        $shortClass = $this->getShortClassName($entityClass);
+        $shortClass = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
 
         return $this->suggestionFactory->createFromTemplate(
             'naming_convention_column',
@@ -691,7 +691,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
 
     private function buildFKNamingSuggestion(string $current, string $suggested, string $assocName, string $entityClass): SuggestionInterface
     {
-        $shortClass = $this->getShortClassName($entityClass);
+        $shortClass = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
 
         return $this->suggestionFactory->createFromTemplate(
             'naming_convention_fk',
@@ -725,12 +725,5 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                 tags: ['naming', 'convention', 'index', 'refactoring'],
             ),
         );
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 }

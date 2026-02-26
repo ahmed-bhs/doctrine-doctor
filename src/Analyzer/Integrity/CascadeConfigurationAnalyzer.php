@@ -13,9 +13,9 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
@@ -174,15 +174,15 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
     private function checkCascadeAll(string $entityClass, string $fieldName, array|object $mapping): IntegrityIssue
     {
-        $shortClassName = $this->getShortClassName($entityClass);
-        $targetEntity   = $this->getShortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $targetEntity   = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
         // Create synthetic backtrace
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
         // Check if target is an independent entity
         if ($this->isIndependentEntity(MappingHelper::getString($mapping, 'targetEntity') ?? '')) {
-            return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+            return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
                 'title'       => sprintf('Dangerous cascade="all" in %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Entity "%s" has cascade="all" on property "$%s" (relation to %s). ' .
@@ -202,7 +202,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             ]);
         }
 
-        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'title'       => sprintf('Overuse of cascade="all" in %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Entity "%s" uses cascade="all" on property "$%s" (relation to %s). ' .
@@ -229,13 +229,13 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             return null;
         }
 
-        $shortClassName  = $this->getShortClassName($entityClass);
-        $targetShortName = $this->getShortClassName($targetEntity);
+        $shortClassName  = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $targetShortName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity);
 
         // Create synthetic backtrace
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'title'       => 'Dangerous cascade remove on independent entity ' . $targetShortName,
             'description' => sprintf(
                 'Entity "%s" has cascade remove on property "$%s" pointing to independent entity "%s". ' .
@@ -261,13 +261,13 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
         // If no cascade at all, suggest adding it for composition
         if ([] === $cascade) {
-            $shortClassName = $this->getShortClassName($entityClass);
-            $targetEntity   = $this->getShortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
+            $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+            $targetEntity   = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
             // Create synthetic backtrace
             $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-            return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
+            return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
                 'title'       => sprintf('Missing cascade on composition relationship %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Entity "%s" has a composition relationship with "%s" (property "$%s") but no cascaconfiguration. ' .
@@ -290,7 +290,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
     private function createCascadeAllSuggestion(string $entityClass, string $fieldName, array|object $mapping): SuggestionInterface
     {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
         $isComposition  = $this->isCompositionRelationship($mapping);
 
         $recommendedCascade = $isComposition ? '["persist", "remove"]' : '["persist"]';
@@ -299,11 +299,14 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
 ";
         $mappedBy = MappingHelper::getString($mapping, 'mappedBy') ?? 'parent';
+        $targetEntityName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(
+            MappingHelper::getString($mapping, 'targetEntity') ?? '',
+        );
 
         if ($this->isAttribute()) {
             $code .= "#[OneToMany(
 ";
-            $code .= "    targetEntity: {$this->getShortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? '')},
+            $code .= "    targetEntity: {$targetEntityName},
 ";
             $code .= "    mappedBy: '{$mappedBy}',
 ";
@@ -316,7 +319,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 ";
             $code .= " * @ORM\OneToMany(
 ";
-            $code .= " *     targetEntity=\"{MappingHelper::getString({$mapping}, 'targetEntity')}\",
+            $code .= " *     targetEntity=\"{$targetEntityName}\",
 ";
             $code .= " *     mappedBy=\"{$mappedBy}\",
 ";
@@ -352,8 +355,11 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
     private function createRemoveCascadeRemoveSuggestion(string $entityClass, string $fieldName, array|object $mapping): SuggestionInterface
     {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
         $mappedBy       = MappingHelper::getString($mapping, 'mappedBy') ?? 'parent';
+        $targetEntityName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(
+            MappingHelper::getString($mapping, 'targetEntity') ?? '',
+        );
 
         $code = "// In {$shortClassName} class:
 
@@ -364,7 +370,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         if ($this->isAttribute()) {
             $code .= "#[OneToMany(
 ";
-            $code .= "    targetEntity: {$this->getShortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? '')},
+            $code .= "    targetEntity: {$targetEntityName},
 ";
             $code .= "    mappedBy: '{$mappedBy}'
 ";
@@ -377,7 +383,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 ";
             $code .= " * @ORM\OneToMany(
 ";
-            $code .= " *     targetEntity=\"{MappingHelper::getString({$mapping}, 'targetEntity')}\",
+            $code .= " *     targetEntity=\"{$targetEntityName}\",
 ";
             $code .= " *     mappedBy=\"{$mappedBy}\"
 ";
@@ -409,8 +415,11 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
     private function createAddCascadeSuggestion(string $entityClass, string $fieldName, array|object $mapping): SuggestionInterface
     {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
         $mappedBy       = MappingHelper::getString($mapping, 'mappedBy') ?? 'parent';
+        $targetEntityName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(
+            MappingHelper::getString($mapping, 'targetEntity') ?? '',
+        );
 
         $code = "// In {$shortClassName} class:
 
@@ -419,7 +428,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         if ($this->isAttribute()) {
             $code .= "#[OneToMany(
 ";
-            $code .= "    targetEntity: {$this->getShortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? '')},
+            $code .= "    targetEntity: {$targetEntityName},
 ";
             $code .= "    mappedBy: '{$mappedBy}',
 ";
@@ -467,13 +476,6 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         // Simple heuristic: check if we're using PHP 8 attributes vs annotations
         // In practice, this would need more sophisticated detection
         return PHP_VERSION_ID >= 80000;
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 
     /**

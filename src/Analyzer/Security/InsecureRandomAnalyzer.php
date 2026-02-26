@@ -202,7 +202,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         string $function,
         \ReflectionMethod $reflectionMethod,
     ): SecurityIssue {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
 
         $description = sprintf(
             'Method "%s::%s()" uses insecure random function "%s()" for security-sensitive operations. ' .
@@ -232,7 +232,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         string $methodName,
         \ReflectionMethod $reflectionMethod,
     ): SecurityIssue {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
 
         $description = sprintf(
             'Method "%s::%s()" combines weak random functions with hashing (e.g., md5(rand())). ' .
@@ -261,7 +261,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         string $insecureFunction,
         \ReflectionMethod $reflectionMethod,
     ): SuggestionInterface {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
 
         $code = "// In {$shortClassName}::{$methodName}():
 
@@ -381,12 +381,5 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         }
 
         return implode('', array_slice($source, $startLine - 1, $endLine - $startLine + 1));
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 }
