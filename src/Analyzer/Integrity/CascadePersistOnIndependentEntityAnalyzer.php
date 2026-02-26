@@ -225,7 +225,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
         // Create synthetic backtrace from entity reflection
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => $type,

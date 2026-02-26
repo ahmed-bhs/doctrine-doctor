@@ -108,6 +108,7 @@ class IssueFactory implements IssueFactoryInterface
         // Code quality issues
         'float_for_money'                => IntegrityIssue::class,
         'Float for Money'                => IntegrityIssue::class,
+        'integrity_generic'              => IntegrityIssue::class,
         'type_hint_mismatch'             => IntegrityIssue::class,
         'Type Hint Mismatch'             => IntegrityIssue::class,
         'decimal_missing_precision'      => ConfigurationIssue::class,
@@ -186,14 +187,6 @@ class IssueFactory implements IssueFactoryInterface
         }
 
         return new $issueClass($data);
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function createIntegrityFromArray(array $data): IntegrityIssue
-    {
-        return new IntegrityIssue($data);
     }
 
     /**

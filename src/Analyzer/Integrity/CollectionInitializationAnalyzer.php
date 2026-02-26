@@ -183,7 +183,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $shortClassName = $this->getShortClassName($entityClass);
         $targetEntity   = $this->getShortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'title'       => 'Missing constructor for collection initialization in ' . $shortClassName,
             'description' => sprintf(
                 'Entity "%s" has a collection property "$%s" (relation to %s) but no constructor. ' .
@@ -223,7 +223,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $shortClassName = $this->getShortClassName($entityClass);
         $targetEntity   = $this->getShortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'title'       => sprintf('Uninitialized collection in %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Entity "%s" has a collection property "$%s" (relation to %s) that is not initialized in the constructor. ' .

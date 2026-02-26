@@ -231,7 +231,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements \AhmedBhs\DoctrineDoc
         // Create synthetic backtrace
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'entity'             => $entityClass,
             'field'              => $fieldName,
             'target_entity'      => $targetEntity,
