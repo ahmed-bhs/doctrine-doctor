@@ -395,7 +395,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
                 'JOIN table4 t4 ON t3.id = t4.t3_id ' .
                 'JOIN table5 t5 ON t4.id = t5.t4_id ' .
                 'JOIN table6 t6 ON t5.id = t6.t5_id',
-                250.5,  // 250.5ms execution time
+                0.2505,
             )
             ->build();
 

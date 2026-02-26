@@ -38,19 +38,19 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
         // 1 query for articles, N queries for authors, N queries for countries
         $collection = QueryDataBuilder::create()
             // Load articles
-            ->addQuery('SELECT * FROM articles', 10.0)
+            ->addQuery('SELECT * FROM articles', 0.010)
             // N+1 for authors (10 articles)
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 5.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.005)
             // N+1 for countries (5 unique authors)
-            ->addQuery('SELECT * FROM countries WHERE id = 10', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 11', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 12', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 13', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 14', 3.0)
+            ->addQuery('SELECT * FROM countries WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 12', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 13', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 14', 0.003)
             ->build();
 
         $issues = $this->analyzer->analyze($collection);
@@ -68,18 +68,18 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
         // Simulates: $articles->getAuthor()->getCountry()->getContinent()
         // 3 levels of nesting
         $collection = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM articles', 10.0)
+            ->addQuery('SELECT * FROM articles', 0.010)
             // Level 1: authors
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 5.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
             // Level 2: countries
-            ->addQuery('SELECT * FROM countries WHERE id = 10', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 11', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 12', 3.0)
+            ->addQuery('SELECT * FROM countries WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 12', 0.003)
             // Level 3: continents
-            ->addQuery('SELECT * FROM continents WHERE id = 100', 2.0)
-            ->addQuery('SELECT * FROM continents WHERE id = 101', 2.0)
+            ->addQuery('SELECT * FROM continents WHERE id = 100', 0.002)
+            ->addQuery('SELECT * FROM continents WHERE id = 101', 0.002)
             ->build();
 
         $issues = $this->analyzer->analyze($collection);
@@ -95,10 +95,10 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
     {
         // Just a regular N+1 (not nested) - should not be detected by this analyzer
         $collection = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM articles', 10.0)
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 5.0)
+            ->addQuery('SELECT * FROM articles', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
             ->build();
 
         $issues = $this->analyzer->analyze($collection);
@@ -112,28 +112,28 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
     {
         // Deep nesting (3 levels) should have higher severity
         $collection = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM articles', 10.0)
+            ->addQuery('SELECT * FROM articles', 0.010)
             // Level 1
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 5.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 6', 0.005)
             // Level 2
-            ->addQuery('SELECT * FROM countries WHERE id = 10', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 11', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 12', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 13', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 14', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 15', 3.0)
+            ->addQuery('SELECT * FROM countries WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 12', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 13', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 14', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 15', 0.003)
             // Level 3
-            ->addQuery('SELECT * FROM continents WHERE id = 100', 2.0)
-            ->addQuery('SELECT * FROM continents WHERE id = 101', 2.0)
-            ->addQuery('SELECT * FROM continents WHERE id = 102', 2.0)
-            ->addQuery('SELECT * FROM continents WHERE id = 103', 2.0)
-            ->addQuery('SELECT * FROM continents WHERE id = 104', 2.0)
-            ->addQuery('SELECT * FROM continents WHERE id = 105', 2.0)
+            ->addQuery('SELECT * FROM continents WHERE id = 100', 0.002)
+            ->addQuery('SELECT * FROM continents WHERE id = 101', 0.002)
+            ->addQuery('SELECT * FROM continents WHERE id = 102', 0.002)
+            ->addQuery('SELECT * FROM continents WHERE id = 103', 0.002)
+            ->addQuery('SELECT * FROM continents WHERE id = 104', 0.002)
+            ->addQuery('SELECT * FROM continents WHERE id = 105', 0.002)
             ->build();
 
         $issues = $this->analyzer->analyze($collection);
@@ -152,13 +152,13 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
     public function it_creates_suggestion_for_nested_eager_loading(): void
     {
         $collection = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM articles', 10.0)
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 5.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 10', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 11', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 12', 3.0)
+            ->addQuery('SELECT * FROM articles', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM countries WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 12', 0.003)
             ->build();
 
         $issues = $this->analyzer->analyze($collection);
@@ -176,9 +176,9 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
     public function it_ignores_non_select_queries(): void
     {
         $collection = QueryDataBuilder::create()
-            ->addQuery('UPDATE articles SET title = ?', 10.0)
-            ->addQuery('INSERT INTO users VALUES (?)', 5.0)
-            ->addQuery('DELETE FROM countries WHERE id = ?', 3.0)
+            ->addQuery('UPDATE articles SET title = ?', 0.010)
+            ->addQuery('INSERT INTO users VALUES (?)', 0.005)
+            ->addQuery('DELETE FROM countries WHERE id = ?', 0.003)
             ->build();
 
         $issues = $this->analyzer->analyze($collection);
@@ -201,14 +201,14 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
     {
         // Tests that the analyzer correctly identifies the chain: articles -> users -> countries
         $collection = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM articles', 10.0)
+            ->addQuery('SELECT * FROM articles', 0.010)
             // Need at least 3 queries per table to meet threshold
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 5.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 10', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 11', 3.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 12', 3.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM countries WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 12', 0.003)
             ->build();
 
         $issues = $this->analyzer->analyze($collection);

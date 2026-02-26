@@ -43,8 +43,8 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 6; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);  // Simulates flush boundary
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);  // Simulates flush boundary
         }
 
         // Act
@@ -66,8 +66,8 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 4; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -84,8 +84,8 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 6; $i++) {
-            $queries->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 2.0);
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 0.002);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -106,12 +106,12 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
             $queries->addQueryWithBacktrace(
                 "INSERT INTO users (name) VALUES ('User')",
                 [['file' => 'UserService.php', 'line' => 100 + $i]],  // Different line each iteration
-                2.0,
+                0.002,
             );
             $queries->addQueryWithBacktrace(
                 "SELECT * FROM users WHERE id = ?",
                 [['file' => 'UserService.php', 'line' => 101 + $i]],
-                1.0,
+                0.001,
             );
         }
 
@@ -130,8 +130,8 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 6; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -153,9 +153,9 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         for ($i = 1; $i <= 6; $i++) {
             // 15 operations before each flush
             for ($j = 1; $j <= 15; $j++) {
-                $queries->addQuery("INSERT INTO users (name) VALUES ('User {$j}')", 2.0);
+                $queries->addQuery("INSERT INTO users (name) VALUES ('User {$j}')", 0.002);
             }
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -172,8 +172,8 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 6; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -198,8 +198,8 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 6; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -229,9 +229,9 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
             $queries->addQueryWithBacktrace(
                 "INSERT INTO users (name) VALUES ('User {$i}')",
                 [['file' => 'UserService.php', 'line' => 100]],
-                2.0,
+                0.002,
             );
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -253,8 +253,8 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 50; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -275,8 +275,8 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 6; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -296,8 +296,8 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 6; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -330,7 +330,7 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -347,9 +347,9 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 100; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
         }
-        $queries->addQuery("SELECT COUNT(*) FROM users", 1.0);
+        $queries->addQuery("SELECT COUNT(*) FROM users", 0.001);
 
         // Act
         $issues = $this->analyzer->analyze($queries->build());
@@ -365,8 +365,8 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 6; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -385,11 +385,11 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
 
         for ($i = 1; $i <= 6; $i++) {
             if (0 === $i % 2) {
-                $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
+                $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
             } else {
-                $queries->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 2.0);
+                $queries->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 0.002);
             }
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -407,9 +407,9 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 6; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
-            $queries->addQuery("UPDATE users SET created_at = NOW() WHERE id = {$i}", 1.0);
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery("UPDATE users SET created_at = NOW() WHERE id = {$i}", 0.001);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -430,8 +430,8 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 6; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 2.0);
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 1.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
         // Act

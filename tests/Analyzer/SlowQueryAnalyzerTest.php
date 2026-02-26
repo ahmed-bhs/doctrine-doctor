@@ -40,7 +40,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange: Query with 150ms execution time (above 100ms threshold)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE name = ?', 150.0)
+            ->addQuery('SELECT * FROM users WHERE name = ?', 0.150)
             ->build();
 
         // Act
@@ -60,7 +60,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange: Query with 50ms execution time (below 100ms threshold)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = ?', 50.0)
+            ->addQuery('SELECT * FROM users WHERE id = ?', 0.050)
             ->build();
 
         // Act
@@ -75,7 +75,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange: Query with exactly 100ms (at threshold)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 100.0)
+            ->addQuery('SELECT * FROM users', 0.100)
             ->build();
 
         // Act
@@ -91,9 +91,9 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange: Multiple slow queries
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE email = ?', 150.0)
-            ->addQuery('SELECT * FROM orders WHERE total > 100', 200.0)
-            ->addQuery('SELECT * FROM products WHERE price < 50', 120.0)
+            ->addQuery('SELECT * FROM users WHERE email = ?', 0.150)
+            ->addQuery('SELECT * FROM orders WHERE total > 100', 0.200)
+            ->addQuery('SELECT * FROM products WHERE price < 50', 0.120)
             ->build();
 
         // Act
@@ -109,10 +109,10 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange: Mix of fast and slow queries
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 10.0)  // Fast
-            ->addQuery('SELECT * FROM orders', 200.0)  // Slow
-            ->addQuery('SELECT * FROM products WHERE id = 2', 20.0)  // Fast
-            ->addQuery('SELECT * FROM categories', 150.0)  // Slow
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.010)  // Fast
+            ->addQuery('SELECT * FROM orders', 0.200)  // Slow
+            ->addQuery('SELECT * FROM products WHERE id = 2', 0.020)  // Fast
+            ->addQuery('SELECT * FROM categories', 0.150)  // Slow
             ->build();
 
         // Act
@@ -134,8 +134,8 @@ final class SlowQueryAnalyzerTest extends TestCase
         );
 
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 150.0)  // Below 200ms
-            ->addQuery('SELECT * FROM orders', 250.0)  // Above 200ms
+            ->addQuery('SELECT * FROM users', 0.150)  // Below 200ms
+            ->addQuery('SELECT * FROM orders', 0.250)  // Above 200ms
             ->build();
 
         // Act
@@ -151,7 +151,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM products', 123.45)
+            ->addQuery('SELECT * FROM products', 0.12345)
             ->build();
 
         // Act
@@ -170,7 +170,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 150.0)
+            ->addQuery('SELECT * FROM users', 0.150)
             ->build();
 
         // Act
@@ -189,7 +189,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE name = ?', 150.0)
+            ->addQuery('SELECT * FROM users WHERE name = ?', 0.150)
             ->build();
 
         // Act
@@ -208,7 +208,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 150.0)
+            ->addQuery('SELECT * FROM users', 0.150)
             ->build();
 
         // Act
@@ -235,7 +235,7 @@ final class SlowQueryAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()
             ->addQuery(
                 'SELECT * FROM users WHERE id IN (SELECT user_id FROM orders)',
-                150.0,
+                0.150,
             )
             ->build();
 
@@ -255,7 +255,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange: Query with ORDER BY
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users ORDER BY created_at DESC', 150.0)
+            ->addQuery('SELECT * FROM users ORDER BY created_at DESC', 0.150)
             ->build();
 
         // Act
@@ -275,7 +275,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange: Query with GROUP BY
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT category_id, COUNT(*) FROM products GROUP BY category_id', 150.0)
+            ->addQuery('SELECT category_id, COUNT(*) FROM products GROUP BY category_id', 0.150)
             ->build();
 
         // Act
@@ -295,7 +295,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange: Query with leading wildcard LIKE
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE email LIKE '%@example.com'", 150.0)
+            ->addQuery("SELECT * FROM users WHERE email LIKE '%@example.com'", 0.150)
             ->build();
 
         // Act
@@ -314,7 +314,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange: Query with SELECT DISTINCT
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT DISTINCT category_id FROM products', 150.0)
+            ->addQuery('SELECT DISTINCT category_id FROM products', 0.150)
             ->build();
 
         // Act
@@ -333,7 +333,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange: Simple query without specific patterns
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = ?', 150.0)
+            ->addQuery('SELECT * FROM users WHERE id = ?', 0.150)
             ->build();
 
         // Act
@@ -355,7 +355,7 @@ final class SlowQueryAnalyzerTest extends TestCase
             ->addQueryWithBacktrace(
                 'SELECT * FROM users',
                 [['file' => 'UserRepository.php', 'line' => 42]],
-                150.0,
+                0.150,
             )
             ->build();
 
@@ -376,7 +376,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM slow_table', 200.0)
+            ->addQuery('SELECT * FROM slow_table', 0.200)
             ->build();
 
         // Act
@@ -408,7 +408,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 150.0)
+            ->addQuery('SELECT * FROM users', 0.150)
             ->build();
 
         // Act
@@ -463,7 +463,7 @@ final class SlowQueryAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 150.0)
+            ->addQuery('SELECT * FROM users', 0.150)
             ->build();
 
         // Act

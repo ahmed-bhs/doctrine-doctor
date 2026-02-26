@@ -46,16 +46,16 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: 10 identical queries (above threshold of 5)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 10.5)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 11.2)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 9.8)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 10.1)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 10.9)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 11.5)
-            ->addQuery('SELECT * FROM users WHERE id = 7', 10.3)
-            ->addQuery('SELECT * FROM users WHERE id = 8', 9.9)
-            ->addQuery('SELECT * FROM users WHERE id = 9', 10.7)
-            ->addQuery('SELECT * FROM users WHERE id = 10', 11.1)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.011)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.011)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.011)
+            ->addQuery('SELECT * FROM users WHERE id = 6', 0.011)
+            ->addQuery('SELECT * FROM users WHERE id = 7', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 8', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 9', 0.011)
+            ->addQuery('SELECT * FROM users WHERE id = 10', 0.011)
             ->build();
 
         // Act
@@ -75,10 +75,10 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Only 4 similar queries (below threshold of 5)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 10.5)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 11.2)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 9.8)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 10.1)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.011)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.011)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.010)
             ->build();
 
         // Act
@@ -93,12 +93,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Queries with different parameters but same pattern
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM posts WHERE user_id = 1", 5.0)
-            ->addQuery("SELECT * FROM posts WHERE user_id = 2", 5.1)
-            ->addQuery("SELECT * FROM posts WHERE user_id = 3", 5.2)
-            ->addQuery("SELECT * FROM posts WHERE user_id = 4", 5.3)
-            ->addQuery("SELECT * FROM posts WHERE user_id = 5", 5.4)
-            ->addQuery("SELECT * FROM posts WHERE user_id = 6", 5.5)
+            ->addQuery("SELECT * FROM posts WHERE user_id = 1", 0.005)
+            ->addQuery("SELECT * FROM posts WHERE user_id = 2", 0.005)
+            ->addQuery("SELECT * FROM posts WHERE user_id = 3", 0.005)
+            ->addQuery("SELECT * FROM posts WHERE user_id = 4", 0.005)
+            ->addQuery("SELECT * FROM posts WHERE user_id = 5", 0.005)
+            ->addQuery("SELECT * FROM posts WHERE user_id = 6", 0.005)
             ->build();
 
         // Act
@@ -117,12 +117,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Queries with different string values
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name = 'Alice'", 5.0)
-            ->addQuery("SELECT * FROM users WHERE name = 'Bob'", 5.1)
-            ->addQuery("SELECT * FROM users WHERE name = 'Charlie'", 5.2)
-            ->addQuery("SELECT * FROM users WHERE name = 'David'", 5.3)
-            ->addQuery("SELECT * FROM users WHERE name = 'Eve'", 5.4)
-            ->addQuery("SELECT * FROM users WHERE name = 'Frank'", 5.5)
+            ->addQuery("SELECT * FROM users WHERE name = 'Alice'", 0.005)
+            ->addQuery("SELECT * FROM users WHERE name = 'Bob'", 0.005)
+            ->addQuery("SELECT * FROM users WHERE name = 'Charlie'", 0.005)
+            ->addQuery("SELECT * FROM users WHERE name = 'David'", 0.005)
+            ->addQuery("SELECT * FROM users WHERE name = 'Eve'", 0.005)
+            ->addQuery("SELECT * FROM users WHERE name = 'Frank'", 0.005)
             ->build();
 
         // Act
@@ -139,12 +139,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Queries with different IN clause contents
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM posts WHERE id IN (1, 2, 3)", 5.0)
-            ->addQuery("SELECT * FROM posts WHERE id IN (4, 5)", 5.1)
-            ->addQuery("SELECT * FROM posts WHERE id IN (6, 7, 8, 9)", 5.2)
-            ->addQuery("SELECT * FROM posts WHERE id IN (10)", 5.3)
-            ->addQuery("SELECT * FROM posts WHERE id IN (11, 12)", 5.4)
-            ->addQuery("SELECT * FROM posts WHERE id IN (13, 14, 15)", 5.5)
+            ->addQuery("SELECT * FROM posts WHERE id IN (1, 2, 3)", 0.005)
+            ->addQuery("SELECT * FROM posts WHERE id IN (4, 5)", 0.005)
+            ->addQuery("SELECT * FROM posts WHERE id IN (6, 7, 8, 9)", 0.005)
+            ->addQuery("SELECT * FROM posts WHERE id IN (10)", 0.005)
+            ->addQuery("SELECT * FROM posts WHERE id IN (11, 12)", 0.005)
+            ->addQuery("SELECT * FROM posts WHERE id IN (13, 14, 15)", 0.005)
             ->build();
 
         // Act
@@ -161,12 +161,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: 6 queries with 10ms each = 60ms total
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 10.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 10.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 10.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 10.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 10.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 10.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 6', 0.010)
             ->build();
 
         // Act
@@ -185,12 +185,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: 6 queries (above threshold) but low execution time
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 1.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 1.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 1.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 1.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 1.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 1.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.001)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.001)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.001)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.001)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.001)
+            ->addQuery('SELECT * FROM users WHERE id = 6', 0.001)
             ->build();
 
         // Act
@@ -209,7 +209,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 12; $i++) {
-            $queries->addQuery("SELECT * FROM posts WHERE user_id = {$i}", 10.0);
+            $queries->addQuery("SELECT * FROM posts WHERE user_id = {$i}", 0.010);
         }
 
         // Act
@@ -227,7 +227,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 5.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.005);
         }
 
         // Act
@@ -243,12 +243,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: 6 queries with 200ms each = 1200ms total (> 1000ms)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 200.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 200.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 200.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 200.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 200.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 200.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.200)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.200)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.200)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.200)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.200)
+            ->addQuery('SELECT * FROM users WHERE id = 6', 0.200)
             ->build();
 
         // Act
@@ -264,12 +264,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: 6 queries with 100ms each = 600ms total (> 500ms but < 700ms)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 100.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 100.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 100.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 100.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 100.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 100.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.100)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.100)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.100)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.100)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.100)
+            ->addQuery('SELECT * FROM users WHERE id = 6', 0.100)
             ->build();
 
         // Act
@@ -285,12 +285,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Pattern matching "WHERE t0.xxx_id = ?"
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM comments t0 WHERE t0.post_id = 1', 5.0)
-            ->addQuery('SELECT * FROM comments t0 WHERE t0.post_id = 2', 5.0)
-            ->addQuery('SELECT * FROM comments t0 WHERE t0.post_id = 3', 5.0)
-            ->addQuery('SELECT * FROM comments t0 WHERE t0.post_id = 4', 5.0)
-            ->addQuery('SELECT * FROM comments t0 WHERE t0.post_id = 5', 5.0)
-            ->addQuery('SELECT * FROM comments t0 WHERE t0.post_id = 6', 5.0)
+            ->addQuery('SELECT * FROM comments t0 WHERE t0.post_id = 1', 0.005)
+            ->addQuery('SELECT * FROM comments t0 WHERE t0.post_id = 2', 0.005)
+            ->addQuery('SELECT * FROM comments t0 WHERE t0.post_id = 3', 0.005)
+            ->addQuery('SELECT * FROM comments t0 WHERE t0.post_id = 4', 0.005)
+            ->addQuery('SELECT * FROM comments t0 WHERE t0.post_id = 5', 0.005)
+            ->addQuery('SELECT * FROM comments t0 WHERE t0.post_id = 6', 0.005)
             ->build();
 
         // Act
@@ -311,12 +311,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Simple SELECT with foreign key
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT id, title FROM posts WHERE author_id = 1', 5.0)
-            ->addQuery('SELECT id, title FROM posts WHERE author_id = 2', 5.0)
-            ->addQuery('SELECT id, title FROM posts WHERE author_id = 3', 5.0)
-            ->addQuery('SELECT id, title FROM posts WHERE author_id = 4', 5.0)
-            ->addQuery('SELECT id, title FROM posts WHERE author_id = 5', 5.0)
-            ->addQuery('SELECT id, title FROM posts WHERE author_id = 6', 5.0)
+            ->addQuery('SELECT id, title FROM posts WHERE author_id = 1', 0.005)
+            ->addQuery('SELECT id, title FROM posts WHERE author_id = 2', 0.005)
+            ->addQuery('SELECT id, title FROM posts WHERE author_id = 3', 0.005)
+            ->addQuery('SELECT id, title FROM posts WHERE author_id = 4', 0.005)
+            ->addQuery('SELECT id, title FROM posts WHERE author_id = 5', 0.005)
+            ->addQuery('SELECT id, title FROM posts WHERE author_id = 6', 0.005)
             ->build();
 
         // Act
@@ -336,20 +336,20 @@ final class NPlusOneAnalyzerTest extends TestCase
         // Arrange: Two different N+1 patterns
         $queries = QueryDataBuilder::create()
             // Pattern 1: Loading posts by user_id (6 times)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 1', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 2', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 3', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 4', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 5', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 6', 5.0)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 1', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 2', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 3', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 4', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 5', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 6', 0.005)
             // Pattern 2: Loading comments by post_id (7 times)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 1', 3.0)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 2', 3.0)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 3', 3.0)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 4', 3.0)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 5', 3.0)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 6', 3.0)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 7', 3.0)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 1', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 2', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 3', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 4', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 5', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 6', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 7', 0.003)
             ->build();
 
         // Act
@@ -381,12 +381,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 5.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 6', 0.005)
             ->build();
 
         // Act
@@ -408,12 +408,12 @@ final class NPlusOneAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()
             ->addQueryWithBacktrace('SELECT * FROM users WHERE id = 1', [
                 ['file' => 'UserRepository.php', 'line' => 42],
-            ], 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 5.0)
+            ], 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 6', 0.005)
             ->build();
 
         // Act
@@ -434,12 +434,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Same query with different whitespace
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
-            ->addQuery('SELECT   *   FROM   users   WHERE   id = 2', 5.0)
-            ->addQuery("SELECT * \n FROM users \n WHERE id = 3", 5.0)
-            ->addQuery("SELECT *\tFROM\tusers\tWHERE\tid = 4", 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 5.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT   *   FROM   users   WHERE   id = 2', 0.005)
+            ->addQuery("SELECT * \n FROM users \n WHERE id = 3", 0.005)
+            ->addQuery("SELECT *\tFROM\tusers\tWHERE\tid = 4", 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 6', 0.005)
             ->build();
 
         // Act
@@ -469,7 +469,7 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Only one query
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
             ->build();
 
         // Act
@@ -484,12 +484,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: All different query patterns
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 5.0)
-            ->addQuery('SELECT * FROM posts', 5.0)
-            ->addQuery('SELECT * FROM comments', 5.0)
-            ->addQuery('INSERT INTO logs VALUES (1)', 5.0)
-            ->addQuery('UPDATE settings SET value = 1', 5.0)
-            ->addQuery('DELETE FROM cache WHERE id = 1', 5.0)
+            ->addQuery('SELECT * FROM users', 0.005)
+            ->addQuery('SELECT * FROM posts', 0.005)
+            ->addQuery('SELECT * FROM comments', 0.005)
+            ->addQuery('INSERT INTO logs VALUES (1)', 0.005)
+            ->addQuery('UPDATE settings SET value = 1', 0.005)
+            ->addQuery('DELETE FROM cache WHERE id = 1', 0.005)
             ->build();
 
         // Act
@@ -504,12 +504,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 5.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 6', 0.005)
             ->build();
 
         // Act
@@ -554,12 +554,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Proxy N+1 pattern (ManyToOne/OneToOne) - WHERE id = ?
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 5.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 6', 0.005)
             ->build();
 
         // Act
@@ -584,12 +584,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Collection N+1 pattern (OneToMany/ManyToMany) - WHERE foreign_key_id = ?
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM posts WHERE user_id = 1', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 2', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 3', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 4', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 5', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 6', 5.0)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 1', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 2', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 3', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 4', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 5', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 6', 0.005)
             ->build();
 
         // Act
@@ -613,12 +613,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Collection N+1 with LIMIT (partial access) - suggests EXTRA_LAZY
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM posts WHERE user_id = 1 LIMIT 5', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 2 LIMIT 5', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 3 LIMIT 5', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 4 LIMIT 5', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 5 LIMIT 5', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 6 LIMIT 5', 5.0)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 1 LIMIT 5', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 2 LIMIT 5', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 3 LIMIT 5', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 4 LIMIT 5', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 5 LIMIT 5', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 6 LIMIT 5', 0.005)
             ->build();
 
         // Act
@@ -647,13 +647,13 @@ final class NPlusOneAnalyzerTest extends TestCase
         // Proxy N+1: WHERE id = ?
         $proxyQueries = QueryDataBuilder::create();
         for ($i = 1; $i <= 8; ++$i) {
-            $proxyQueries->addQuery("SELECT * FROM users WHERE id = {$i}", 5.0);
+            $proxyQueries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.005);
         }
 
         // Collection N+1: WHERE foreign_key_id = ?
         $collectionQueries = QueryDataBuilder::create();
         for ($i = 1; $i <= 8; ++$i) {
-            $collectionQueries->addQuery("SELECT * FROM posts WHERE user_id = {$i}", 5.0);
+            $collectionQueries->addQuery("SELECT * FROM posts WHERE user_id = {$i}", 0.005);
         }
 
         // Act
@@ -683,19 +683,19 @@ final class NPlusOneAnalyzerTest extends TestCase
         // Arrange: Two different relations with similar SQL structure
         $queries = QueryDataBuilder::create()
             // User->posts relation
-            ->addQuery('SELECT * FROM posts WHERE user_id = 1', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 2', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 3', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 4', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 5', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 6', 5.0)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 1', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 2', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 3', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 4', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 5', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 6', 0.005)
             // Post->comments relation (different foreign key, should be separate issue)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 1', 3.0)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 2', 3.0)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 3', 3.0)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 4', 3.0)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 5', 3.0)
-            ->addQuery('SELECT * FROM comments WHERE post_id = 6', 3.0)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 1', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 2', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 3', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 4', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 5', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE post_id = 6', 0.003)
             ->build();
 
         // Act
@@ -728,12 +728,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Proxy N+1
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 4', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 5', 5.0)
-            ->addQuery('SELECT * FROM users WHERE id = 6', 5.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 4', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 5', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 6', 0.005)
             ->build();
 
         // Act
@@ -765,12 +765,12 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Arrange: Collection N+1 with foreign key (NOT primary key)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM posts WHERE user_id = 1', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 2', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 3', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 4', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 5', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE user_id = 6', 5.0)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 1', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 2', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 3', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 4', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 5', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE user_id = 6', 0.005)
             ->build();
 
         // Act
@@ -788,7 +788,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         // Arrange: 12 queries (LOW severity threshold)
         $queries = QueryDataBuilder::create();
         for ($i = 1; $i <= 12; ++$i) {
-            $queries->addQuery("SELECT * FROM posts WHERE user_id = {$i}", 5.0);
+            $queries->addQuery("SELECT * FROM posts WHERE user_id = {$i}", 0.005);
         }
 
         // Act
@@ -806,7 +806,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         // Arrange: 17 queries (MEDIUM severity threshold)
         $queries = QueryDataBuilder::create();
         for ($i = 1; $i <= 17; ++$i) {
-            $queries->addQuery("SELECT * FROM posts WHERE user_id = {$i}", 5.0);
+            $queries->addQuery("SELECT * FROM posts WHERE user_id = {$i}", 0.005);
         }
 
         // Act
@@ -824,7 +824,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         // Arrange: 25 queries (CRITICAL severity threshold in 3-level system)
         $queries = QueryDataBuilder::create();
         for ($i = 1; $i <= 25; ++$i) {
-            $queries->addQuery("SELECT * FROM posts WHERE user_id = {$i}", 5.0);
+            $queries->addQuery("SELECT * FROM posts WHERE user_id = {$i}", 0.005);
         }
 
         // Act
@@ -842,7 +842,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         // Arrange: 35 queries (CRITICAL severity threshold)
         $queries = QueryDataBuilder::create();
         for ($i = 1; $i <= 35; ++$i) {
-            $queries->addQuery("SELECT * FROM posts WHERE user_id = {$i}", 5.0);
+            $queries->addQuery("SELECT * FROM posts WHERE user_id = {$i}", 0.005);
         }
 
         // Act
@@ -860,7 +860,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         // Arrange: 16 proxy queries with 1.3x multiplier = 20.8 → CRITICAL (3-level system)
         $queries = QueryDataBuilder::create();
         for ($i = 1; $i <= 16; ++$i) {
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 5.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.005);
         }
 
         // Act
@@ -880,7 +880,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         for ($i = 1; $i <= 10; ++$i) {
             $queries->addQuery(
                 "INSERT INTO orders (id, status, total, created_at, user_id, customer_id) VALUES ({$i}, 'pending', 100.0, '2025-01-01', 1, 1)",
-                5.0,
+                0.005,
             );
         }
 
@@ -900,7 +900,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         for ($i = 1; $i <= 10; ++$i) {
             $queries->addQuery(
                 "UPDATE orders SET status = 'processed' WHERE id = {$i}",
-                5.0,
+                0.005,
             );
         }
 
@@ -920,7 +920,7 @@ final class NPlusOneAnalyzerTest extends TestCase
         for ($i = 1; $i <= 10; ++$i) {
             $queries->addQuery(
                 "DELETE FROM orders WHERE id = {$i}",
-                5.0,
+                0.005,
             );
         }
 

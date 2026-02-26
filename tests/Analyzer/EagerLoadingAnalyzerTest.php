@@ -48,7 +48,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN comments c ON c.post_id = p.id
                 JOIN likes l ON l.comment_id = c.id
                 JOIN tags t ON t.post_id = p.id',
-                50.0,
+                0.050,
             )
             ->build();
 
@@ -74,7 +74,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN posts p ON p.user_id = u.id
                 JOIN comments c ON c.post_id = p.id
                 JOIN likes l ON l.comment_id = c.id',
-                20.0,
+                0.020,
             )
             ->build();
 
@@ -97,7 +97,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN d ON d.c_id = c.id
                 JOIN e ON e.d_id = d.id
                 JOIN f ON f.e_id = e.id',
-                50.0,
+                0.050,
             )
             ->build();
 
@@ -124,7 +124,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN g ON g.f_id = f.id
                 JOIN h ON h.g_id = g.id
                 JOIN i ON i.h_id = h.id',
-                100.0,
+                0.100,
             )
             ->build();
 
@@ -148,7 +148,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 LEFT JOIN comments c ON c.post_id = p.id
                 LEFT OUTER JOIN likes l ON l.comment_id = c.id
                 RIGHT JOIN tags t ON t.post_id = p.id',
-                50.0,
+                0.050,
             )
             ->build();
 
@@ -172,7 +172,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 CROSS JOIN comments
                 CROSS JOIN likes
                 CROSS JOIN tags',
-                100.0,
+                0.100,
             )
             ->build();
 
@@ -196,7 +196,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN comments ON comments.post_id = posts.id
                 Join likes ON likes.comment_id = comments.id
                 jOiN tags ON tags.post_id = posts.id',
-                50.0,
+                0.050,
             )
             ->build();
 
@@ -220,7 +220,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN comments ON comments.post_id = posts.id
                 JOIN likes ON likes.comment_id = comments.id
                 JOIN tags ON tags.post_id = posts.id',
-                50.0,
+                0.050,
             )
             ->build();
 
@@ -250,7 +250,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN comments ON comments.post_id = posts.id
                 JOIN likes ON likes.comment_id = comments.id
                 JOIN tags ON tags.post_id = posts.id',
-                50.0,
+                0.050,
             )
             ->build();
 
@@ -275,7 +275,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN comments ON comments.post_id = posts.id
                 JOIN likes ON likes.comment_id = comments.id
                 JOIN tags ON tags.post_id = posts.id',
-                50.0,
+                0.050,
             )
             ->build();
 
@@ -302,7 +302,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN likes ON likes.comment_id = comments.id
                 JOIN tags ON tags.post_id = posts.id',
                 [['file' => 'UserRepository.php', 'line' => 123]],
-                50.0,
+                0.050,
             )
             ->build();
 
@@ -329,7 +329,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN comments ON comments.post_id = posts.id
                 JOIN likes ON likes.comment_id = comments.id
                 JOIN tags ON tags.post_id = posts.id',
-                50.0,
+                0.050,
             )
             ->addQuery(
                 'SELECT * FROM products
@@ -337,7 +337,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN suppliers ON suppliers.id = products.supplier_id
                 JOIN inventory ON inventory.product_id = products.id
                 JOIN warehouses ON warehouses.id = inventory.warehouse_id',
-                60.0,
+                0.060,
             )
             ->build();
 
@@ -364,7 +364,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                     ON likes.comment_id = comments.id
                 JOIN tags
                     ON tags.post_id = posts.id",
-                50.0,
+                0.050,
             )
             ->build();
 
@@ -389,7 +389,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN comments ON comments.post_id = posts.id
                 JOIN likes ON likes.comment_id = comments.id
                 JOIN tags ON tags.post_id = posts.id",
-                50.0,
+                0.050,
             )
             ->build();
 
@@ -421,10 +421,10 @@ final class EagerLoadingAnalyzerTest extends TestCase
     {
         // Arrange: Queries without JOINs
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = ?', 5.0)
-            ->addQuery('INSERT INTO logs VALUES (?)', 2.0)
-            ->addQuery('UPDATE settings SET value = ?', 3.0)
-            ->addQuery('DELETE FROM cache WHERE expired = 1', 1.0)
+            ->addQuery('SELECT * FROM users WHERE id = ?', 0.005)
+            ->addQuery('INSERT INTO logs VALUES (?)', 0.002)
+            ->addQuery('UPDATE settings SET value = ?', 0.003)
+            ->addQuery('DELETE FROM cache WHERE expired = 1', 0.001)
             ->build();
 
         // Act
@@ -445,7 +445,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN comments ON comments.post_id = posts.id
                 JOIN likes ON likes.comment_id = comments.id
                 JOIN tags ON tags.post_id = posts.id',
-                50.0,
+                0.050,
             )
             ->build();
 
@@ -474,7 +474,7 @@ final class EagerLoadingAnalyzerTest extends TestCase
                 JOIN i ON i.h_id = h.id
                 JOIN j ON j.i_id = i.id
                 JOIN k ON k.j_id = j.id',
-                200.0,
+                0.200,
             )
             ->build();
 

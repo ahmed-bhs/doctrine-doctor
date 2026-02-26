@@ -56,7 +56,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_detects_order_by_without_limit(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 100.0)
+            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 0.100)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -111,7 +111,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_detects_multiple_order_by_columns(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY status ASC, created_at DESC', 150.0)
+            ->addQuery('SELECT * FROM orders ORDER BY status ASC, created_at DESC', 0.150)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -126,7 +126,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_sets_critical_severity_for_slow_queries(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 600.0)
+            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 0.600)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -142,7 +142,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_sets_warning_severity_for_moderate_queries(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 200.0)
+            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 0.200)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -158,7 +158,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_sets_info_severity_for_fast_queries(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 50.0)
+            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 0.050)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -174,9 +174,9 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_deduplicates_same_order_by_clause(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE status = "pending" ORDER BY created_at DESC', 100.0)
-            ->addQuery('SELECT * FROM orders WHERE status = "completed" ORDER BY created_at DESC', 100.0)
-            ->addQuery('SELECT * FROM orders WHERE user_id = 5 ORDER BY created_at DESC', 100.0)
+            ->addQuery('SELECT * FROM orders WHERE status = "pending" ORDER BY created_at DESC', 0.100)
+            ->addQuery('SELECT * FROM orders WHERE status = "completed" ORDER BY created_at DESC', 0.100)
+            ->addQuery('SELECT * FROM orders WHERE user_id = 5 ORDER BY created_at DESC', 0.100)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -189,9 +189,9 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_detects_different_order_by_clauses(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 100.0)
-            ->addQuery('SELECT * FROM orders ORDER BY status ASC', 100.0)
-            ->addQuery('SELECT * FROM orders ORDER BY total DESC', 100.0)
+            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 0.100)
+            ->addQuery('SELECT * FROM orders ORDER BY status ASC', 0.100)
+            ->addQuery('SELECT * FROM orders ORDER BY total DESC', 0.100)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -207,7 +207,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
             ->addQueryWithBacktrace(
                 'SELECT * FROM orders ORDER BY created_at DESC',
                 [['file' => 'OrderRepository.php', 'line' => 42]],
-                100.0,
+                0.100,
             )
             ->build();
 
@@ -225,7 +225,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_handles_case_insensitive_order_by(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders order by created_at desc', 100.0)
+            ->addQuery('SELECT * FROM orders order by created_at desc', 0.100)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -251,7 +251,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_provides_suggestion(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 100.0)
+            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 0.100)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -268,7 +268,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_includes_execution_time_in_description(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 250.5)
+            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 0.2505)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -297,7 +297,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
         $analyzer = new OrderByWithoutLimitAnalyzer($suggestionFactory);
 
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 100.0)
+            ->addQuery('SELECT * FROM orders ORDER BY created_at DESC', 0.100)
             ->build();
 
         $issues = $analyzer->analyze($queries);
@@ -327,7 +327,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_handles_order_by_with_complex_expressions(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY CASE WHEN status = "urgent" THEN 1 ELSE 2 END, created_at DESC', 150.0)
+            ->addQuery('SELECT * FROM orders ORDER BY CASE WHEN status = "urgent" THEN 1 ELSE 2 END, created_at DESC', 0.150)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -342,7 +342,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_handles_order_by_with_table_aliases(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT o.* FROM orders o ORDER BY o.created_at DESC', 100.0)
+            ->addQuery('SELECT o.* FROM orders o ORDER BY o.created_at DESC', 0.100)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -354,7 +354,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     public function it_handles_order_by_with_function_calls(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY LOWER(customer_name) ASC', 100.0)
+            ->addQuery('SELECT * FROM orders ORDER BY LOWER(customer_name) ASC', 0.100)
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -370,21 +370,21 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
     {
         // Test exactly 500ms (should be critical)
         $queries1 = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY id', 501.0)
+            ->addQuery('SELECT * FROM orders ORDER BY id', 0.501)
             ->build();
         $issues1 = $this->analyzer->analyze($queries1);
         self::assertEquals('critical', $issues1->toArray()[0]->getData()['severity']);
 
         // Test exactly 100ms (should be info)
         $queries2 = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY id', 100.0)
+            ->addQuery('SELECT * FROM orders ORDER BY id', 0.100)
             ->build();
         $issues2 = $this->analyzer->analyze($queries2);
         self::assertEquals('info', $issues2->toArray()[0]->getData()['severity']);
 
         // Test 101ms (should be warning)
         $queries3 = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders ORDER BY id', 101.0)
+            ->addQuery('SELECT * FROM orders ORDER BY id', 0.101)
             ->build();
         $issues3 = $this->analyzer->analyze($queries3);
         self::assertEquals('warning', $issues3->toArray()[0]->getData()['severity']);
@@ -405,7 +405,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
             ->addQueryWithBacktrace(
                 'SELECT s0_.id AS id_0 FROM sylius_taxon s0_ INNER JOIN sylius_taxon_translation s1_ ON s0_.id = s1_.translatable_id WHERE s0_.enabled = ? AND s1_.slug = ? AND s1_.locale = ? ORDER BY s0_.id ASC',
                 $backtrace,
-                5.0, // Fast query < 10ms - should be skipped
+                0.005, // Fast query < 10ms - should be skipped
             )
             ->build();
 
@@ -428,7 +428,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
             ->addQueryWithBacktrace(
                 'SELECT * FROM users ORDER BY id ASC',
                 $backtrace,
-                15.0, // Slow enough to be flagged
+                0.015, // Slow enough to be flagged
             )
             ->build();
 
@@ -458,7 +458,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
             ->addQueryWithBacktrace(
                 'SELECT * FROM orders ORDER BY created_at DESC',
                 $backtrace,
-                50.0, // Moderate speed
+                0.050, // Moderate speed
             )
             ->build();
 
@@ -488,7 +488,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
             ->addQueryWithBacktrace(
                 'SELECT * FROM users WHERE username = ? ORDER BY id',
                 $backtrace,
-                5.0, // Fast - should be skipped
+                0.005, // Fast - should be skipped
             )
             ->build();
 
@@ -511,7 +511,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
             ->addQueryWithBacktrace(
                 'SELECT * FROM products ORDER BY name',
                 $backtrace,
-                120.0, // Very slow
+                0.120, // Very slow
             )
             ->build();
 
@@ -539,7 +539,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
             ->addQueryWithBacktrace(
                 'SELECT * FROM orders ORDER BY created_at DESC',
                 $backtrace,
-                550.0, // Very slow
+                0.550, // Very slow
             )
             ->build();
 
@@ -567,7 +567,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
             ->addQueryWithBacktrace(
                 'SELECT * FROM users ORDER BY created_at DESC',
                 $backtrace,
-                80.0,
+                0.080,
             )
             ->build();
 

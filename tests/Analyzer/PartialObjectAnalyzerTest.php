@@ -39,12 +39,12 @@ final class PartialObjectAnalyzerTest extends TestCase
     {
         // Arrange: 6 identical full entity queries (above threshold of 5)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 10.0)
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 11.0)
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 12.0)
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 13.0)
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 14.0)
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 15.0)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.01)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.011)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.012)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.013)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.014)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.015)
             ->build();
 
         // Act
@@ -64,10 +64,10 @@ final class PartialObjectAnalyzerTest extends TestCase
     {
         // Arrange: Only 4 identical queries (below threshold of 5)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 10.0)
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 11.0)
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 12.0)
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 13.0)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.01)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.011)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.012)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.013)
             ->build();
 
         // Act
@@ -82,12 +82,12 @@ final class PartialObjectAnalyzerTest extends TestCase
     {
         // Arrange: Queries already using PARTIAL (no issue)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT PARTIAL u.{id, username} FROM User u', 10.0)
-            ->addQuery('SELECT PARTIAL u.{id, username} FROM User u', 11.0)
-            ->addQuery('SELECT PARTIAL u.{id, username} FROM User u', 12.0)
-            ->addQuery('SELECT PARTIAL u.{id, username} FROM User u', 13.0)
-            ->addQuery('SELECT PARTIAL u.{id, username} FROM User u', 14.0)
-            ->addQuery('SELECT PARTIAL u.{id, username} FROM User u', 15.0)
+            ->addQuery('SELECT PARTIAL u.{id, username} FROM User u', 0.01)
+            ->addQuery('SELECT PARTIAL u.{id, username} FROM User u', 0.011)
+            ->addQuery('SELECT PARTIAL u.{id, username} FROM User u', 0.012)
+            ->addQuery('SELECT PARTIAL u.{id, username} FROM User u', 0.013)
+            ->addQuery('SELECT PARTIAL u.{id, username} FROM User u', 0.014)
+            ->addQuery('SELECT PARTIAL u.{id, username} FROM User u', 0.015)
             ->build();
 
         // Act
@@ -102,12 +102,12 @@ final class PartialObjectAnalyzerTest extends TestCase
     {
         // Arrange: Queries selecting specific fields (array hydration pattern)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u.id, u.username, u.email FROM User u', 10.0)
-            ->addQuery('SELECT u.id, u.username, u.email FROM User u', 11.0)
-            ->addQuery('SELECT u.id, u.username, u.email FROM User u', 12.0)
-            ->addQuery('SELECT u.id, u.username, u.email FROM User u', 13.0)
-            ->addQuery('SELECT u.id, u.username, u.email FROM User u', 14.0)
-            ->addQuery('SELECT u.id, u.username, u.email FROM User u', 15.0)
+            ->addQuery('SELECT u.id, u.username, u.email FROM User u', 0.01)
+            ->addQuery('SELECT u.id, u.username, u.email FROM User u', 0.011)
+            ->addQuery('SELECT u.id, u.username, u.email FROM User u', 0.012)
+            ->addQuery('SELECT u.id, u.username, u.email FROM User u', 0.013)
+            ->addQuery('SELECT u.id, u.username, u.email FROM User u', 0.014)
+            ->addQuery('SELECT u.id, u.username, u.email FROM User u', 0.015)
             ->build();
 
         // Act
@@ -122,12 +122,12 @@ final class PartialObjectAnalyzerTest extends TestCase
     {
         // Arrange: Mix of full entity reads and write operations
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 10.0)
-            ->addQuery('UPDATE User u SET u.status = ? WHERE u.id = ?', 5.0)
-            ->addQuery('DELETE FROM User u WHERE u.id = ?', 3.0)
-            ->addQuery('INSERT INTO User (name) VALUES (?)', 2.0)
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 11.0)
-            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 12.0)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.01)
+            ->addQuery('UPDATE User u SET u.status = ? WHERE u.id = ?', 0.005)
+            ->addQuery('DELETE FROM User u WHERE u.id = ?', 0.003)
+            ->addQuery('INSERT INTO User (name) VALUES (?)', 0.002)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.011)
+            ->addQuery('SELECT u FROM User u WHERE u.status = ?', 0.012)
             ->build();
 
         // Act
@@ -155,8 +155,8 @@ final class PartialObjectAnalyzerTest extends TestCase
     {
         // Arrange: Only 2 queries (below MIN_QUERY_COUNT of 3)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u FROM User u', 10.0)
-            ->addQuery('SELECT u FROM User u', 11.0)
+            ->addQuery('SELECT u FROM User u', 0.01)
+            ->addQuery('SELECT u FROM User u', 0.011)
             ->build();
 
         // Act
@@ -171,14 +171,14 @@ final class PartialObjectAnalyzerTest extends TestCase
     {
         // Arrange: 8 queries (moderate usage)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT p FROM Product p', 10.0)
-            ->addQuery('SELECT p FROM Product p', 11.0)
-            ->addQuery('SELECT p FROM Product p', 12.0)
-            ->addQuery('SELECT p FROM Product p', 13.0)
-            ->addQuery('SELECT p FROM Product p', 14.0)
-            ->addQuery('SELECT p FROM Product p', 15.0)
-            ->addQuery('SELECT p FROM Product p', 16.0)
-            ->addQuery('SELECT p FROM Product p', 17.0)
+            ->addQuery('SELECT p FROM Product p', 0.01)
+            ->addQuery('SELECT p FROM Product p', 0.011)
+            ->addQuery('SELECT p FROM Product p', 0.012)
+            ->addQuery('SELECT p FROM Product p', 0.013)
+            ->addQuery('SELECT p FROM Product p', 0.014)
+            ->addQuery('SELECT p FROM Product p', 0.015)
+            ->addQuery('SELECT p FROM Product p', 0.016)
+            ->addQuery('SELECT p FROM Product p', 0.017)
             ->build();
 
         // Act
@@ -198,7 +198,7 @@ final class PartialObjectAnalyzerTest extends TestCase
         // Arrange: 15 queries (heavy usage - above 10)
         $queryBuilder = QueryDataBuilder::create();
         for ($i = 0; $i < 15; $i++) {
-            $queryBuilder->addQuery('SELECT o FROM Order o', 10.0 + $i);
+            $queryBuilder->addQuery('SELECT o FROM Order o', 0.010 + $i / 1000);
         }
         $queries = $queryBuilder->build();
 
@@ -220,19 +220,19 @@ final class PartialObjectAnalyzerTest extends TestCase
         // Arrange: Two different query patterns, each above threshold
         $queries = QueryDataBuilder::create()
             // Pattern 1: User queries (6 times)
-            ->addQuery('SELECT u FROM User u WHERE u.id = 1', 10.0)
-            ->addQuery('SELECT u FROM User u WHERE u.id = 2', 11.0)
-            ->addQuery('SELECT u FROM User u WHERE u.id = 3', 12.0)
-            ->addQuery('SELECT u FROM User u WHERE u.id = 4', 13.0)
-            ->addQuery('SELECT u FROM User u WHERE u.id = 5', 14.0)
-            ->addQuery('SELECT u FROM User u WHERE u.id = 6', 15.0)
+            ->addQuery('SELECT u FROM User u WHERE u.id = 1', 0.01)
+            ->addQuery('SELECT u FROM User u WHERE u.id = 2', 0.011)
+            ->addQuery('SELECT u FROM User u WHERE u.id = 3', 0.012)
+            ->addQuery('SELECT u FROM User u WHERE u.id = 4', 0.013)
+            ->addQuery('SELECT u FROM User u WHERE u.id = 5', 0.014)
+            ->addQuery('SELECT u FROM User u WHERE u.id = 6', 0.015)
             // Pattern 2: Product queries (6 times)
-            ->addQuery('SELECT p FROM Product p WHERE p.id = 1', 20.0)
-            ->addQuery('SELECT p FROM Product p WHERE p.id = 2', 21.0)
-            ->addQuery('SELECT p FROM Product p WHERE p.id = 3', 22.0)
-            ->addQuery('SELECT p FROM Product p WHERE p.id = 4', 23.0)
-            ->addQuery('SELECT p FROM Product p WHERE p.id = 5', 24.0)
-            ->addQuery('SELECT p FROM Product p WHERE p.id = 6', 25.0)
+            ->addQuery('SELECT p FROM Product p WHERE p.id = 1', 0.02)
+            ->addQuery('SELECT p FROM Product p WHERE p.id = 2', 0.021)
+            ->addQuery('SELECT p FROM Product p WHERE p.id = 3', 0.022)
+            ->addQuery('SELECT p FROM Product p WHERE p.id = 4', 0.023)
+            ->addQuery('SELECT p FROM Product p WHERE p.id = 5', 0.024)
+            ->addQuery('SELECT p FROM Product p WHERE p.id = 6', 0.025)
             ->build();
 
         // Act
@@ -247,7 +247,7 @@ final class PartialObjectAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u FROM User u', 10.0)
+            ->addQuery('SELECT u FROM User u', 0.01)
             ->build();
 
         // Act
@@ -279,12 +279,12 @@ final class PartialObjectAnalyzerTest extends TestCase
     {
         // Arrange: 6 queries above threshold
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u FROM User u', 10.0)
-            ->addQuery('SELECT u FROM User u', 11.0)
-            ->addQuery('SELECT u FROM User u', 12.0)
-            ->addQuery('SELECT u FROM User u', 13.0)
-            ->addQuery('SELECT u FROM User u', 14.0)
-            ->addQuery('SELECT u FROM User u', 15.0)
+            ->addQuery('SELECT u FROM User u', 0.01)
+            ->addQuery('SELECT u FROM User u', 0.011)
+            ->addQuery('SELECT u FROM User u', 0.012)
+            ->addQuery('SELECT u FROM User u', 0.013)
+            ->addQuery('SELECT u FROM User u', 0.014)
+            ->addQuery('SELECT u FROM User u', 0.015)
             ->build();
 
         // Act
@@ -310,12 +310,12 @@ final class PartialObjectAnalyzerTest extends TestCase
     {
         // Arrange: SELECT * queries
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE status = ?', 10.0)
-            ->addQuery('SELECT * FROM users WHERE status = ?', 11.0)
-            ->addQuery('SELECT * FROM users WHERE status = ?', 12.0)
-            ->addQuery('SELECT * FROM users WHERE status = ?', 13.0)
-            ->addQuery('SELECT * FROM users WHERE status = ?', 14.0)
-            ->addQuery('SELECT * FROM users WHERE status = ?', 15.0)
+            ->addQuery('SELECT * FROM users WHERE status = ?', 0.01)
+            ->addQuery('SELECT * FROM users WHERE status = ?', 0.011)
+            ->addQuery('SELECT * FROM users WHERE status = ?', 0.012)
+            ->addQuery('SELECT * FROM users WHERE status = ?', 0.013)
+            ->addQuery('SELECT * FROM users WHERE status = ?', 0.014)
+            ->addQuery('SELECT * FROM users WHERE status = ?', 0.015)
             ->build();
 
         // Act
@@ -333,9 +333,9 @@ final class PartialObjectAnalyzerTest extends TestCase
 
         // Only 3 queries (exactly at threshold)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u FROM User u', 10.0)
-            ->addQuery('SELECT u FROM User u', 11.0)
-            ->addQuery('SELECT u FROM User u', 12.0)
+            ->addQuery('SELECT u FROM User u', 0.01)
+            ->addQuery('SELECT u FROM User u', 0.011)
+            ->addQuery('SELECT u FROM User u', 0.012)
             ->build();
 
         // Act

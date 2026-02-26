@@ -39,7 +39,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         // Query with JOIN but alias 'u' never used in SELECT/WHERE/ORDER BY
         $sql = 'SELECT a.id, a.title FROM article a LEFT JOIN user u ON u.id = a.author_id';
 
-        $collection = QueryDataBuilder::create()->addQuery($sql, 10.0)->build();
+        $collection = QueryDataBuilder::create()->addQuery($sql, 0.010)->build();
 
         $issues = $this->analyzer->analyze($collection);
 
@@ -57,7 +57,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
             . 'LEFT JOIN user u ON u.id = a.author_id '
             . 'LEFT JOIN category c ON c.id = a.category_id';
 
-        $collection = QueryDataBuilder::create()->addQuery($sql, 10.0)->build();
+        $collection = QueryDataBuilder::create()->addQuery($sql, 0.010)->build();
 
         $issues = $this->analyzer->analyze($collection);
 
@@ -72,7 +72,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         // 'u' is used in SELECT
         $sql = 'SELECT a.id, u.name FROM article a LEFT JOIN user u ON u.id = a.author_id';
 
-        $collection = QueryDataBuilder::create()->addQuery($sql, 10.0)->build();
+        $collection = QueryDataBuilder::create()->addQuery($sql, 0.010)->build();
 
         $issues = $this->analyzer->analyze($collection);
 
@@ -88,7 +88,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
             . 'LEFT JOIN tag t ON t.id = a.tag_id '
             . 'LEFT JOIN comment cm ON cm.article_id = a.id';
 
-        $collection = QueryDataBuilder::create()->addQuery($sql, 10.0)->build();
+        $collection = QueryDataBuilder::create()->addQuery($sql, 0.010)->build();
 
         $issues = $this->analyzer->analyze($collection);
 
@@ -113,7 +113,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
             . 'LEFT JOIN category c ON c.id = a.category_id '
             . 'LEFT JOIN tag t ON t.id = a.tag_id';
 
-        $collection = QueryDataBuilder::create()->addQuery($sql, 10.0)->build();
+        $collection = QueryDataBuilder::create()->addQuery($sql, 0.010)->build();
 
         $issues = $this->analyzer->analyze($collection);
 
@@ -129,7 +129,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
     {
         $sql = 'SELECT a.id, a.title FROM article a';
 
-        $collection = QueryDataBuilder::create()->addQuery($sql, 10.0)->build();
+        $collection = QueryDataBuilder::create()->addQuery($sql, 0.010)->build();
 
         $issues = $this->analyzer->analyze($collection);
 
@@ -141,7 +141,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
     {
         $sql = 'UPDATE article a LEFT JOIN user u ON u.id = a.author_id SET a.title = ?';
 
-        $collection = QueryDataBuilder::create()->addQuery($sql, 10.0)->build();
+        $collection = QueryDataBuilder::create()->addQuery($sql, 0.010)->build();
 
         $issues = $this->analyzer->analyze($collection);
 
@@ -153,7 +153,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
     {
         $sql = 'SELECT a.id FROM article a LEFT JOIN user u ON u.id = a.author_id';
 
-        $collection = QueryDataBuilder::create()->addQuery($sql, 10.0)->build();
+        $collection = QueryDataBuilder::create()->addQuery($sql, 0.010)->build();
 
         $issues = $this->analyzer->analyze($collection);
 
