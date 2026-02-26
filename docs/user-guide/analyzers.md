@@ -109,7 +109,15 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 - **Impact**: 30-70% memory reduction, faster hydration, reduced bandwidth
 - **Example**: `SELECT a FROM Article a JOIN a.author` but never uses author data
 
-#### 3.2.8 FlushInLoopAnalyzerModern
+#### 3.2.8 CartesianProductAnalyzer
+
+- **Severity**: Critical
+- **Purpose**: Detects cartesian product risks caused by joining multiple collections
+- **Detection**: Correlates multi-collection JOIN patterns with grouped N+1 collection behavior
+- **Impact**: Prevents row explosion, duplicate hydration, memory spikes, and severe slowdowns
+- **Example**: Joining multiple to-many associations in one query creates `N x M` result multiplication
+
+#### 3.2.9 FlushInLoopAnalyzerModern
 
 - **Severity**: Critical
 - **Purpose**: Modern implementation of flush-in-loop detection using factory pattern
@@ -136,6 +144,7 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 | QueryCachingOpportunityAnalyzer | Cache statistics | 50-90% reduction | — |
 | EntityManagerClearAnalyzer | Memory usage | Memory leak prevention | `batch_size_threshold: 100` |
 | JoinOptimizationAnalyzer | JOIN complexity | Query simplification | `max_joins: 5` |
+| CartesianProductAnalyzer | Multi-collection JOIN analysis | Prevent row explosion | `n1_collection_threshold: 3` |
 | JoinTypeConsistencyAnalyzer | JOIN + WHERE patterns | Semantic clarity | — |
 | SetMaxResultsWithCollectionJoinAnalyzer | LIMIT + JOIN | Incorrect results | — |
 | PartialObjectAnalyzer | SELECT clause | Memory reduction | `threshold: 5` |
@@ -322,21 +331,43 @@ class Customer {
 - **Purpose**: Detects timezone handling issues in datetime fields
 - **Recommendation**: Use DateTimeImmutable with UTC timezone
 
-#### 6.1.2 Gedmo Extension Analyzers
+#### 6.1.2 TimestampableTraitAnalyzer
 
-- **TimestampableTraitAnalyzer**: Validates timestampable trait configuration
-- **BlameableTraitAnalyzer**: Ensures proper user tracking setup
-- **SoftDeleteableTraitAnalyzer**: Validates soft delete configuration
+- **Purpose**: Validates timestampable trait configuration and automatic timestamp updates
+- **Recommendation**: Ensure `createdAt`/`updatedAt` fields are mapped and lifecycle updates are consistent
 
-#### 6.1.3 Database Configuration
+#### 6.1.3 BlameableTraitAnalyzer
 
-- **CharsetAnalyzer**: Detects charset issues (recommends UTF8MB4)
-- **CollationAnalyzer**: Validates collation settings for proper sorting
-  - MySQL/MariaDB: Detects utf8mb4_general_ci vs utf8mb4_unicode_ci, collation mismatches
-  - PostgreSQL: Detects "C" collation issues, libc vs ICU collations, FK collation mismatches
-  - Platform-specific recommendations for optimal sorting accuracy
-- **StrictModeAnalyzer**: Ensures MySQL strict mode is enabled
-- **InnoDBEngineAnalyzer**: Validates InnoDB storage engine usage
+- **Purpose**: Ensures proper user-tracking field configuration for blameable traits
+- **Recommendation**: Use compatible user/entity mappings and nullable strategy where lifecycle demands it
+
+#### 6.1.4 SoftDeleteableTraitAnalyzer
+
+- **Purpose**: Validates soft delete trait configuration and deleted-at semantics
+- **Recommendation**: Align filter usage, `deletedAt` mapping, and query expectations across the app
+
+#### 6.1.5 CharsetAnalyzer
+
+- **Purpose**: Detects charset issues (recommends UTF8MB4)
+- **Recommendation**: Standardize on `utf8mb4` to avoid truncation and multi-byte character loss
+
+#### 6.1.6 CollationAnalyzer
+
+- **Purpose**: Validates collation settings for proper sorting and comparisons
+- **Detection Notes**:
+  - MySQL/MariaDB: detects `utf8mb4_general_ci` vs `utf8mb4_unicode_ci` mismatches
+  - PostgreSQL: detects `"C"` collation issues, libc vs ICU differences, FK collation mismatches
+- **Recommendation**: Use consistent, platform-appropriate collations across related tables/columns
+
+#### 6.1.7 StrictModeAnalyzer
+
+- **Purpose**: Ensures MySQL strict mode is enabled
+- **Recommendation**: Enable strict mode to fail fast on invalid/truncated data instead of silent coercion
+
+#### 6.1.8 InnoDBEngineAnalyzer
+
+- **Purpose**: Validates InnoDB storage engine usage
+- **Recommendation**: Prefer InnoDB for transactions, row-level locking, and foreign key support
 
 ### 6.2 Configuration Summary
 
