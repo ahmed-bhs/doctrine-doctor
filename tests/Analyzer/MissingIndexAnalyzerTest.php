@@ -56,7 +56,7 @@ final class MissingIndexAnalyzerTest extends TestCase
         );
 
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE name = ?', 100.0)
+            ->addQuery('SELECT * FROM users WHERE name = ?', 0.100)
             ->build();
 
         // Act
@@ -84,9 +84,9 @@ final class MissingIndexAnalyzerTest extends TestCase
     {
         // Arrange: Only non-SELECT queries
         $queries = QueryDataBuilder::create()
-            ->addQuery('INSERT INTO users (name) VALUES (?)', 10.0)
-            ->addQuery('UPDATE users SET status = ?', 10.0)
-            ->addQuery('DELETE FROM users WHERE id = ?', 10.0)
+            ->addQuery('INSERT INTO users (name) VALUES (?)', 0.010)
+            ->addQuery('UPDATE users SET status = ?', 0.010)
+            ->addQuery('DELETE FROM users WHERE id = ?', 0.010)
             ->build();
 
         // Act
@@ -101,7 +101,7 @@ final class MissingIndexAnalyzerTest extends TestCase
     {
         // Arrange: SELECT query (may or may not generate issues depending on EXPLAIN result)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE name = ?', 100.0)
+            ->addQuery('SELECT * FROM users WHERE name = ?', 0.100)
             ->build();
 
         // Act
@@ -117,7 +117,7 @@ final class MissingIndexAnalyzerTest extends TestCase
     {
         // Arrange: Query above slow query threshold (50ms)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM products WHERE price > 100', 60.0)
+            ->addQuery('SELECT * FROM products WHERE price > 100', 0.060)
             ->build();
 
         // Act
@@ -132,7 +132,7 @@ final class MissingIndexAnalyzerTest extends TestCase
     {
         // Arrange: Fast query (below threshold) executed only once
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = ?', 10.0)
+            ->addQuery('SELECT * FROM users WHERE id = ?', 0.010)
             ->build();
 
         // Act
@@ -147,9 +147,9 @@ final class MissingIndexAnalyzerTest extends TestCase
     {
         // Arrange: Same query repeated 3+ times (even if fast)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE status = ?', 10.0)
-            ->addQuery('SELECT * FROM users WHERE status = ?', 10.0)
-            ->addQuery('SELECT * FROM users WHERE status = ?', 10.0)
+            ->addQuery('SELECT * FROM users WHERE status = ?', 0.010)
+            ->addQuery('SELECT * FROM users WHERE status = ?', 0.010)
+            ->addQuery('SELECT * FROM users WHERE status = ?', 0.010)
             ->build();
 
         // Act
@@ -164,9 +164,9 @@ final class MissingIndexAnalyzerTest extends TestCase
     {
         // Arrange: Same query with different literals should be treated as same pattern
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name = 'Alice'", 10.0)
-            ->addQuery("SELECT * FROM users WHERE name = 'Bob'", 10.0)
-            ->addQuery("SELECT * FROM users WHERE name = 'Charlie'", 10.0)
+            ->addQuery("SELECT * FROM users WHERE name = 'Alice'", 0.010)
+            ->addQuery("SELECT * FROM users WHERE name = 'Bob'", 0.010)
+            ->addQuery("SELECT * FROM users WHERE name = 'Charlie'", 0.010)
             ->build();
 
         // Act
@@ -192,7 +192,7 @@ final class MissingIndexAnalyzerTest extends TestCase
         );
 
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 150.0)  // Below 200ms threshold
+            ->addQuery('SELECT * FROM users', 0.150)  // Below 200ms threshold
             ->build();
 
         // Act
@@ -229,7 +229,7 @@ final class MissingIndexAnalyzerTest extends TestCase
             ->addQueryWithBacktrace(
                 'SELECT * FROM users WHERE email = ?',
                 [['file' => 'UserRepository.php', 'line' => 42]],
-                100.0,
+                0.100,
             )
             ->build();
 
@@ -247,7 +247,7 @@ final class MissingIndexAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()
             ->addQuery(
                 'SELECT * FROM users WHERE id = ? AND status = ?',
-                100.0,
+                0.100,
             )
             ->build();
 
@@ -263,9 +263,9 @@ final class MissingIndexAnalyzerTest extends TestCase
     {
         // Arrange: Same query pattern with different parameters
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM orders WHERE user_id = ?', 15.0)
-            ->addQuery('SELECT * FROM orders WHERE user_id = ?', 15.0)
-            ->addQuery('SELECT * FROM orders WHERE user_id = ?', 15.0)
+            ->addQuery('SELECT * FROM orders WHERE user_id = ?', 0.015)
+            ->addQuery('SELECT * FROM orders WHERE user_id = ?', 0.015)
+            ->addQuery('SELECT * FROM orders WHERE user_id = ?', 0.015)
             ->build();
 
         // Act
@@ -284,7 +284,7 @@ final class MissingIndexAnalyzerTest extends TestCase
                 'SELECT u.*, p.* FROM users u
                  JOIN profiles p ON p.user_id = u.id
                  WHERE u.status = ?',
-                100.0,
+                0.100,
             )
             ->build();
 
@@ -302,7 +302,7 @@ final class MissingIndexAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()
             ->addQuery(
                 'SELECT * FROM users WHERE id IN (SELECT user_id FROM orders WHERE total > 100)',
-                100.0,
+                0.100,
             )
             ->build();
 
@@ -318,7 +318,7 @@ final class MissingIndexAnalyzerTest extends TestCase
     {
         // Arrange: Query with IN clause
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id IN (1, 2, 3, 4, 5)', 100.0)
+            ->addQuery('SELECT * FROM users WHERE id IN (1, 2, 3, 4, 5)', 0.100)
             ->build();
 
         // Act
@@ -333,9 +333,9 @@ final class MissingIndexAnalyzerTest extends TestCase
     {
         // Arrange: Same query with different whitespace
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE status = 'active'", 10.0)
-            ->addQuery("SELECT  *  FROM  users  WHERE  status = 'active'", 10.0)
-            ->addQuery("SELECT*FROM users WHERE status='active'", 10.0)
+            ->addQuery("SELECT * FROM users WHERE status = 'active'", 0.010)
+            ->addQuery("SELECT  *  FROM  users  WHERE  status = 'active'", 0.010)
+            ->addQuery("SELECT*FROM users WHERE status='active'", 0.010)
             ->build();
 
         // Act
@@ -350,10 +350,10 @@ final class MissingIndexAnalyzerTest extends TestCase
     {
         // Arrange: Mix of SELECT and non-SELECT
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = ?', 100.0)
-            ->addQuery('INSERT INTO logs VALUES (?)', 10.0)
-            ->addQuery('SELECT * FROM orders WHERE status = ?', 100.0)
-            ->addQuery('UPDATE users SET last_login = NOW()', 10.0)
+            ->addQuery('SELECT * FROM users WHERE id = ?', 0.100)
+            ->addQuery('INSERT INTO logs VALUES (?)', 0.010)
+            ->addQuery('SELECT * FROM orders WHERE status = ?', 0.100)
+            ->addQuery('UPDATE users SET last_login = NOW()', 0.010)
             ->build();
 
         // Act

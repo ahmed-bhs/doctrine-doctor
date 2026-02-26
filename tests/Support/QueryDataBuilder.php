@@ -77,9 +77,9 @@ class QueryDataBuilder
     }
 
     /**
-     * Add a slow query (execution time > 1000ms).
+     * Add a slow query (execution time > 1s).
      */
-    public function addSlowQuery(string $sql, float $executionTime = 1500.0): self
+    public function addSlowQuery(string $sql, float $executionTime = 1.5): self
     {
         return $this->addQuery($sql, $executionTime);
     }
@@ -89,7 +89,7 @@ class QueryDataBuilder
      */
     public function addFrequentQuery(string $sql, int $executionCount = 100): self
     {
-        return $this->addQuery($sql, 10.0, $executionCount);
+        return $this->addQuery($sql, 0.010, $executionCount);
     }
 
     /**

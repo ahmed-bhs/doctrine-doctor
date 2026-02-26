@@ -41,7 +41,8 @@ final class FindAllAnalyzerTest extends TestCase
     {
         // Arrange: SELECT * without WHERE, returning 150 rows
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 50.0, 150)
+            ->addQuery('SELECT * FROM users', 0.050, 150)
+
             ->build();
 
         // Act
@@ -62,7 +63,8 @@ final class FindAllAnalyzerTest extends TestCase
     {
         // Arrange: SELECT with WHERE but no LIMIT, returning 200 rows
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM posts WHERE status = "published"', 80.0, 200)
+            ->addQuery('SELECT * FROM posts WHERE status = "published"', 0.080, 200)
+
             ->build();
 
         // Act
@@ -80,7 +82,8 @@ final class FindAllAnalyzerTest extends TestCase
         // Arrange: SELECT * returning exactly 99 rows (at threshold, should not trigger)
         // Note: Analyzer uses strict > not >=
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 10.0, 99)
+            ->addQuery('SELECT * FROM users', 0.010, 99)
+
             ->build();
 
         // Act
@@ -95,7 +98,8 @@ final class FindAllAnalyzerTest extends TestCase
     {
         // Arrange: SELECT with LIMIT clause
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users LIMIT 10', 5.0, 10)
+            ->addQuery('SELECT * FROM users LIMIT 10', 0.005, 10)
+
             ->build();
 
         // Act
@@ -110,7 +114,8 @@ final class FindAllAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 50.0, 150)
+            ->addQuery('SELECT * FROM users', 0.050, 150)
+
             ->build();
 
         // Act
@@ -129,7 +134,8 @@ final class FindAllAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 50.0, 150)
+            ->addQuery('SELECT * FROM users', 0.050, 150)
+
             ->build();
 
         // Act
@@ -159,8 +165,8 @@ final class FindAllAnalyzerTest extends TestCase
     {
         // Arrange: UPDATE/DELETE queries
         $queries = QueryDataBuilder::create()
-            ->addQuery('UPDATE users SET status = "active"', 10.0)
-            ->addQuery('DELETE FROM posts', 5.0)
+            ->addQuery('UPDATE users SET status = "active"', 0.010)
+            ->addQuery('DELETE FROM posts', 0.005)
             ->build();
 
         // Act
@@ -175,8 +181,10 @@ final class FindAllAnalyzerTest extends TestCase
     {
         // Arrange: Multiple SELECT * queries above threshold
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 50.0, 150)
-            ->addQuery('SELECT * FROM posts', 60.0, 200)
+            ->addQuery('SELECT * FROM users', 0.050, 150)
+
+            ->addQuery('SELECT * FROM posts', 0.060, 200)
+
             ->build();
 
         // Act
