@@ -15,6 +15,9 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\TimezoneAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
 
@@ -106,12 +109,21 @@ final readonly class PostgreSQLTimezoneAnalyzer implements TimezoneAnalyzerInter
                 $phpTz,
             ),
             'severity'   => 'critical',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Timezone configuration',
-                currentValue: sprintf('PostgreSQL: %s, PHP: %s', $pgTz, $phpTz),
-                recommendedValue: 'Both use UTC',
-                description: 'Synchronize PostgreSQL and PHP timezones',
-                fixCommand: $this->getTimezoneFixCommand($phpTz),
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'Timezone configuration',
+                    'current_value' => sprintf('PostgreSQL: %s, PHP: %s', $pgTz, $phpTz),
+                    'recommended_value' => 'Both use UTC',
+                    'description' => 'Synchronize PostgreSQL and PHP timezones',
+                    'fix_command' => $this->getTimezoneFixCommand($phpTz),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],
@@ -126,12 +138,21 @@ final readonly class PostgreSQLTimezoneAnalyzer implements TimezoneAnalyzerInter
                 'This is ambiguous and can change if the server timezone changes. ' .
                 'Explicitly set to UTC or a named timezone (e.g., "America/New_York").',
             'severity'   => 'warning',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'PostgreSQL timezone',
-                currentValue: 'localtime',
-                recommendedValue: 'UTC',
-                description: 'Set explicit timezone',
-                fixCommand: $this->getTimezoneFixCommand('UTC'),
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'PostgreSQL timezone',
+                    'current_value' => 'localtime',
+                    'recommended_value' => 'UTC',
+                    'description' => 'Set explicit timezone',
+                    'fix_command' => $this->getTimezoneFixCommand('UTC'),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],
@@ -202,12 +223,21 @@ final readonly class PostgreSQLTimezoneAnalyzer implements TimezoneAnalyzerInter
                 $tableStr,
             ),
             'severity'   => 'critical',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'TIMESTAMP columns',
-                currentValue: 'timestamp without time zone',
-                recommendedValue: 'timestamp with time zone (TIMESTAMPTZ)',
-                description: 'Convert to TIMESTAMPTZ for proper timezone handling',
-                fixCommand: implode("\n\n", $fixCommands) . "\n\n-- In Doctrine, use:\n#[Column(type: 'datetimetz')]",
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'TIMESTAMP columns',
+                    'current_value' => 'timestamp without time zone',
+                    'recommended_value' => 'timestamp with time zone (TIMESTAMPTZ)',
+                    'description' => 'Convert to TIMESTAMPTZ for proper timezone handling',
+                    'fix_command' => implode("\n\n", $fixCommands) . "\n\n-- In Doctrine, use:\n#[Column(type: 'datetimetz')]",
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],

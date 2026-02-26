@@ -18,6 +18,9 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Webmozart\Assert\Assert;
 
 class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
@@ -44,11 +47,27 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
 
                 foreach ($lazyLoadPatterns as $lazyLoadPattern) {
                     if ($lazyLoadPattern['count'] >= $this->threshold) {
-                        // Use factory to create suggestion (new architecture)
-                        $suggestion = $this->suggestionFactory->createEagerLoading(
-                            entity: $lazyLoadPattern['entity'],
-                            relation: $lazyLoadPattern['relation'],
-                            queryCount: $lazyLoadPattern['count'],
+                        $queryCount = $lazyLoadPattern['count'];
+                        $severity = match (true) {
+                            $queryCount > 100 => Severity::critical(),
+                            $queryCount > 20 => Severity::warning(),
+                            default => Severity::info(),
+                        };
+
+                        $suggestion = $this->suggestionFactory->createFromTemplate(
+                            templateName: 'Performance/eager_loading',
+                            context: [
+                                'entity' => $lazyLoadPattern['entity'],
+                                'relation' => $lazyLoadPattern['relation'],
+                                'query_count' => $queryCount,
+                                'trigger_location' => null,
+                            ],
+                            suggestionMetadata: new SuggestionMetadata(
+                                type: SuggestionType::performance(),
+                                severity: $severity,
+                                title: sprintf('N+1 Query Problem: %d queries for %s.%s', $queryCount, $lazyLoadPattern['entity'], $lazyLoadPattern['relation']),
+                                tags: ['performance', 'doctrine', 'eager-loading', 'n+1'],
+                            ),
                         );
 
                         $issueData = new IssueData(

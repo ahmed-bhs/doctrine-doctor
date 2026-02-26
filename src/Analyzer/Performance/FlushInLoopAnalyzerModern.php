@@ -17,6 +17,9 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Webmozart\Assert\Assert;
 
 /**
@@ -53,11 +56,25 @@ class FlushInLoopAnalyzerModern implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
 
                 foreach ($flushPatterns as $flushPattern) {
                     if ($flushPattern['flush_count'] >= $this->flushCountThreshold) {
-                        //  NEW: Use factory to create suggestion
-                        // No need to know about suggestion internals!
-                        $suggestion = $this->suggestionFactory->createFlushInLoop(
-                            flushCount: $flushPattern['flush_count'],
-                            operationsBetweenFlush: $flushPattern['operations_between_flush'],
+                        $flushCount = $flushPattern['flush_count'];
+                        $severity = match (true) {
+                            $flushCount > 50 => Severity::critical(),
+                            $flushCount > 20 => Severity::warning(),
+                            default => Severity::info(),
+                        };
+
+                        $suggestion = $this->suggestionFactory->createFromTemplate(
+                            templateName: 'Performance/flush_in_loop',
+                            context: [
+                                'flush_count' => $flushCount,
+                                'operations_between_flush' => $flushPattern['operations_between_flush'],
+                            ],
+                            suggestionMetadata: new SuggestionMetadata(
+                                type: SuggestionType::performance(),
+                                severity: $severity,
+                                title: sprintf('Performance Anti-Pattern: %d flush() calls in loop', $flushCount),
+                                tags: ['performance', 'doctrine', 'flush', 'batch'],
+                            ),
                         );
 
                         $issueData = new IssueData(

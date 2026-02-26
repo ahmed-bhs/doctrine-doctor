@@ -16,6 +16,8 @@ use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\CharsetAnalyzerInt
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -70,12 +72,21 @@ final readonly class MySQLCharsetAnalyzer implements CharsetAnalyzerInterface
                     $dbCharset,
                 ),
                 'severity' => Severity::warning(),
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'Database charset',
-                    currentValue: $dbCharset,
-                    recommendedValue: self::RECOMMENDED_CHARSET,
-                    description: 'utf8mb4 supports all Unicode characters including emojis',
-                    fixCommand: sprintf('ALTER DATABASE `%s` CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;', $databaseName),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'Database charset',
+                        'current_value' => $dbCharset,
+                        'recommended_value' => self::RECOMMENDED_CHARSET,
+                        'description' => 'utf8mb4 supports all Unicode characters including emojis',
+                        'fix_command' => sprintf('ALTER DATABASE `%s` CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;', $databaseName),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -99,12 +110,21 @@ final readonly class MySQLCharsetAnalyzer implements CharsetAnalyzerInterface
                     $tableList,
                 ),
                 'severity'   => count($problematicTables) > 10 ? Severity::critical() : Severity::warning(),
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'Table charset',
-                    currentValue: 'utf8/utf8mb3',
-                    recommendedValue: self::RECOMMENDED_CHARSET,
-                    description: 'Convert all tables to utf8mb4',
-                    fixCommand: $this->getTableConversionCommand($problematicTables),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'Table charset',
+                        'current_value' => 'utf8/utf8mb3',
+                        'recommended_value' => self::RECOMMENDED_CHARSET,
+                        'description' => 'Convert all tables to utf8mb4',
+                        'fix_command' => $this->getTableConversionCommand($problematicTables),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],

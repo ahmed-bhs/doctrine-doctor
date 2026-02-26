@@ -135,10 +135,19 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
             'severity'    => 'critical',
             'category'    => 'security',
             'queries'     => [$queryData],
-            'suggestion'  => $this->suggestionFactory->createSQLInjection(
-                className: 'Repository',
-                methodName: 'query',
-                vulnerabilityType: 'String concatenation in WHERE clause',
+            'suggestion'  => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Security/sql_injection',
+                context: [
+                    'class_name' => 'Repository',
+                    'method_name' => 'query',
+                    'vulnerability_type' => 'String concatenation in WHERE clause',
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::security(),
+                    severity: Severity::critical(),
+                    title: sprintf('SQL Injection Risk in %s::%s()', 'Repository', 'query'),
+                    tags: ['security', 'sql-injection', 'database'],
+                ),
             ),
         ]);
     }
@@ -271,9 +280,11 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
             'severity'    => 'warning',
             'category'    => 'security',
             'queries'     => [$queryData],
-            'suggestion'  => $this->suggestionFactory->createCodeSuggestion(
-                description: 'Escape LIKE wildcards in user input',
-                code: <<<'PHP'
+            'suggestion'  => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Integrity/code_suggestion',
+                context: [
+                    'description' => 'Escape LIKE wildcards in user input',
+                    'code' => <<<'PHP'
                     // BAD
                     $qb->where($qb->expr()->like('u.name', ':name'))
                        ->setParameter('name', '%' . $userInput . '%');
@@ -290,6 +301,14 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                         return addcslashes($value, '%_');
                     }
                     PHP,
+                    'file_path' => null,
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::integrity(),
+                    severity: Severity::info(),
+                    title: 'Code Quality Suggestion',
+                    tags: ['code-quality'],
+                ),
             ),
         ]);
     }
@@ -303,9 +322,11 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
             'severity'    => 'critical',
             'category'    => 'integrity',
             'queries'     => [$queryData],
-            'suggestion'  => $this->suggestionFactory->createCodeSuggestion(
-                description: 'Set all query parameters',
-                code: <<<'PHP'
+            'suggestion'  => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Integrity/code_suggestion',
+                context: [
+                    'description' => 'Set all query parameters',
+                    'code' => <<<'PHP'
                     // BAD
                     $qb->where('u.id = :id')
                        ->andWhere('u.status = :status')
@@ -325,6 +346,14 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                            'status' => $status,
                        ]);
                     PHP,
+                    'file_path' => null,
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::integrity(),
+                    severity: Severity::info(),
+                    title: 'Code Quality Suggestion',
+                    tags: ['code-quality'],
+                ),
             ),
         ]);
     }

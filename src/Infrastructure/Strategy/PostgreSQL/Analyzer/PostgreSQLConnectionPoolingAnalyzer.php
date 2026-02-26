@@ -15,6 +15,9 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\ConnectionPoolingAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -51,12 +54,21 @@ final readonly class PostgreSQLConnectionPoolingAnalyzer implements ConnectionPo
                     self::RECOMMENDED_MIN_CONNECTIONS,
                 ),
                 'severity'   => 'warning',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'max_connections',
-                    currentValue: (string) $maxConnections,
-                    recommendedValue: (string) self::RECOMMENDED_MIN_CONNECTIONS,
-                    description: 'Increase max_connections or use pgbouncer for pooling',
-                    fixCommand: $this->getMaxConnectionsFixCommand(self::RECOMMENDED_MIN_CONNECTIONS),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'max_connections',
+                        'current_value' => (string) $maxConnections,
+                        'recommended_value' => (string) self::RECOMMENDED_MIN_CONNECTIONS,
+                        'description' => 'Increase max_connections or use pgbouncer for pooling',
+                        'fix_command' => $this->getMaxConnectionsFixCommand(self::RECOMMENDED_MIN_CONNECTIONS),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -78,12 +90,21 @@ final readonly class PostgreSQLConnectionPoolingAnalyzer implements ConnectionPo
                     $maxConnections,
                 ),
                 'severity'   => $utilizationPercent > 90 ? 'critical' : 'warning',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'Connection pooling',
-                    currentValue: sprintf('%d active / %d max', $currentConnections, $maxConnections),
-                    recommendedValue: 'Use pgbouncer',
-                    description: 'Implement connection pooling to reduce resource usage',
-                    fixCommand: $this->getPgbouncerRecommendation(),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'Connection pooling',
+                        'current_value' => sprintf('%d active / %d max', $currentConnections, $maxConnections),
+                        'recommended_value' => 'Use pgbouncer',
+                        'description' => 'Implement connection pooling to reduce resource usage',
+                        'fix_command' => $this->getPgbouncerRecommendation(),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -101,12 +122,21 @@ final readonly class PostgreSQLConnectionPoolingAnalyzer implements ConnectionPo
                     '- Connection pool exhaustion' . "\n" .
                     '- Memory leaks in long-running transactions',
                 'severity'   => 'critical',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'idle_in_transaction_session_timeout',
-                    currentValue: '0 (disabled)',
-                    recommendedValue: '300000 (5 minutes)',
-                    description: 'Set timeout to automatically kill idle transactions',
-                    fixCommand: $this->getIdleInTransactionTimeoutFixCommand(),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'idle_in_transaction_session_timeout',
+                        'current_value' => '0 (disabled)',
+                        'recommended_value' => '300000 (5 minutes)',
+                        'description' => 'Set timeout to automatically kill idle transactions',
+                        'fix_command' => $this->getIdleInTransactionTimeoutFixCommand(),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -121,12 +151,21 @@ final readonly class PostgreSQLConnectionPoolingAnalyzer implements ConnectionPo
                     'Long-running queries can block the database and exhaust resources. ' .
                     'Recommended: 30-60 seconds for web apps.',
                 'severity'   => 'warning',
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'statement_timeout',
-                    currentValue: '0 (disabled)',
-                    recommendedValue: '30000 (30 seconds)',
-                    description: 'Set timeout to prevent runaway queries',
-                    fixCommand: $this->getStatementTimeoutFixCommand(),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'statement_timeout',
+                        'current_value' => '0 (disabled)',
+                        'recommended_value' => '30000 (30 seconds)',
+                        'description' => 'Set timeout to prevent runaway queries',
+                        'fix_command' => $this->getStatementTimeoutFixCommand(),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -242,12 +281,21 @@ final readonly class PostgreSQLConnectionPoolingAnalyzer implements ConnectionPo
                 count($idleConnections),
             ),
             'severity'   => 'info',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Idle connections',
-                currentValue: sprintf('%d idle connections', count($idleConnections)),
-                recommendedValue: 'Use connection pooling',
-                description: 'Implement pgbouncer to reduce idle connections',
-                fixCommand: $this->getPgbouncerRecommendation(),
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'Idle connections',
+                    'current_value' => sprintf('%d idle connections', count($idleConnections)),
+                    'recommended_value' => 'Use connection pooling',
+                    'description' => 'Implement pgbouncer to reduce idle connections',
+                    'fix_command' => $this->getPgbouncerRecommendation(),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],
