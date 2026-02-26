@@ -257,7 +257,7 @@ class OnDeleteCascadeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     ): IntegrityIssue {
         $severity = $this->determineSeverity($mismatch['type']);
 
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'entity'        => $entityClass,
             'field'         => $fieldName,
             'mismatch_type' => $mismatch['type'],

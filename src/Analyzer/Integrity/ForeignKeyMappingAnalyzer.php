@@ -288,10 +288,11 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
 
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray([
+            'type'          => 'integrity_generic',
             'entity'        => $entityClass,
             'field'         => $fieldName,
-            'type'          => $type,
+            'field_type'    => $type,
             'target_entity' => $targetEntity,
             'backtrace'     => $backtrace,
         ]);

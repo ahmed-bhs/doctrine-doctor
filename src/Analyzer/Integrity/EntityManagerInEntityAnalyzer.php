@@ -281,7 +281,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
     {
         $shortClassName = $this->getShortClassName($entityClass);
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'title'       => 'EntityManager injected in entity constructor: ' . $shortClassName,
             'description' => sprintf(
                 'Entity "%s" has EntityManager injected in constructor.' . "
@@ -316,7 +316,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         $shortClassName = $this->getShortClassName($entityClass);
         $propertyName   = $reflectionProperty->getName();
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'title'       => sprintf('EntityManager property in entity: %s::$%s', $shortClassName, $propertyName),
             'description' => sprintf(
                 'Entity "%s" has EntityManager as property "$%s".' . "
@@ -350,7 +350,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         $shortClassName = $this->getShortClassName($entityClass);
         $methodName     = $reflectionMethod->getName();
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'title'       => sprintf('EntityManager usage in entity method: %s::%s()', $shortClassName, $methodName),
             'description' => sprintf(
                 'Entity "%s" uses EntityManager in method "%s()".' . "

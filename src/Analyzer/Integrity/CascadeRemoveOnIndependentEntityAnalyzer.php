@@ -360,7 +360,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $cascade        = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToOne',
@@ -399,7 +399,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $cascade        = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToMany',

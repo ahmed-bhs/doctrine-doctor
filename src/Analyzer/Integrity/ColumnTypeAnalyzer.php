@@ -218,7 +218,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             );
         }
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'title'       => sprintf(
                 'Problematic column type "%s" in %s::$%s%s',
                 $type,
@@ -268,7 +268,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         $length = $mapping['length'] ?? 255;
 
         if ($length <= self::SIMPLE_ARRAY_MAX_LENGTH) {
-            return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+            return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
                 'title'       => sprintf('simple_array type with limited length in %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Field "%s::$%s" uses "simple_array" type with length=%d. ' .
@@ -334,7 +334,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 
         $shortClassName = $this->getShortClassName($entityClass);
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'title'       => sprintf('Consider using native enum for %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Field "%s::$%s" has only %d distinct values across %d rows (%.1f%% uniqueness). ' .

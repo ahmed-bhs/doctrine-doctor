@@ -182,7 +182,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
         // Check if target is an independent entity
         if ($this->isIndependentEntity(MappingHelper::getString($mapping, 'targetEntity') ?? '')) {
-            return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+            return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
                 'title'       => sprintf('Dangerous cascade="all" in %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Entity "%s" has cascade="all" on property "$%s" (relation to %s). ' .
@@ -202,7 +202,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             ]);
         }
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'title'       => sprintf('Overuse of cascade="all" in %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Entity "%s" uses cascade="all" on property "$%s" (relation to %s). ' .
@@ -235,7 +235,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         // Create synthetic backtrace
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'title'       => 'Dangerous cascade remove on independent entity ' . $targetShortName,
             'description' => sprintf(
                 'Entity "%s" has cascade remove on property "$%s" pointing to independent entity "%s". ' .
@@ -267,7 +267,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             // Create synthetic backtrace
             $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-            return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
+            return ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
                 'title'       => sprintf('Missing cascade on composition relationship %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Entity "%s" has a composition relationship with "%s" (property "$%s") but no cascaconfiguration. ' .
