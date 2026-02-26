@@ -196,6 +196,30 @@ final class DoctrineDoctorExtensionTest extends TestCase
     }
 
     #[Test]
+    public function it_removes_analyzers_with_generated_config_keys(): void
+    {
+        $container = new ContainerBuilder();
+        $this->extension->load([[
+            'enabled' => true,
+            'analyzers' => [
+                'sql_injection_in_raw_queries' => ['enabled' => false],
+                'cascade_persist_on_independent_entity' => ['enabled' => false],
+                'missing_orphan_removal_on_composition' => ['enabled' => false],
+                'cascade_remove_on_independent_entity' => ['enabled' => false],
+                'orphan_removal_without_cascade_remove' => ['enabled' => false],
+                'on_delete_cascade_mismatch' => ['enabled' => false],
+            ],
+        ]], $container);
+
+        self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Security\SQLInjectionInRawQueriesAnalyzer::class));
+        self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadePersistOnIndependentEntityAnalyzer::class));
+        self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MissingOrphanRemovalOnCompositionAnalyzer::class));
+        self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeRemoveOnIndependentEntityAnalyzer::class));
+        self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OrphanRemovalWithoutCascadeRemoveAnalyzer::class));
+        self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OnDeleteCascadeMismatchAnalyzer::class));
+    }
+
+    #[Test]
     public function it_does_not_register_twig_paths_when_disabled(): void
     {
         $container = $this->createContainerWithTwig(false);
