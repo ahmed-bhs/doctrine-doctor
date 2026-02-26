@@ -40,9 +40,9 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Same query executed 3 times (minimum threshold)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 10.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 10.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 10.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.010)
             ->build();
 
         // Act
@@ -60,7 +60,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         // Arrange: Same query executed 5 times (warning threshold)
         $queries = QueryDataBuilder::create();
         for ($i = 1; $i <= 5; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 10.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.010);
         }
 
         // Act
@@ -78,7 +78,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         // Arrange: Same query executed 10 times (critical threshold)
         $queries = QueryDataBuilder::create();
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("SELECT * FROM products WHERE id = {$i}", 10.0);
+            $queries->addQuery("SELECT * FROM products WHERE id = {$i}", 0.010);
         }
 
         // Act
@@ -96,8 +96,8 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Same query executed only 2 times (below threshold of 3)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 10.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 10.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.010)
             ->build();
 
         // Act
@@ -112,9 +112,9 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Same query structure with different values
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE id = 1", 10.0)
-            ->addQuery("SELECT * FROM users WHERE id = 2", 10.0)
-            ->addQuery("SELECT * FROM users WHERE id = 3", 10.0)
+            ->addQuery("SELECT * FROM users WHERE id = 1", 0.010)
+            ->addQuery("SELECT * FROM users WHERE id = 2", 0.010)
+            ->addQuery("SELECT * FROM users WHERE id = 3", 0.010)
             ->build();
 
         // Act
@@ -130,9 +130,9 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Same query with different string literals
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE name = 'Alice'", 10.0)
-            ->addQuery("SELECT * FROM users WHERE name = 'Bob'", 10.0)
-            ->addQuery("SELECT * FROM users WHERE name = 'Charlie'", 10.0)
+            ->addQuery("SELECT * FROM users WHERE name = 'Alice'", 0.010)
+            ->addQuery("SELECT * FROM users WHERE name = 'Bob'", 0.010)
+            ->addQuery("SELECT * FROM users WHERE name = 'Charlie'", 0.010)
             ->build();
 
         // Act
@@ -148,9 +148,9 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Same query with different IN clause values
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE id IN (1, 2, 3)", 10.0)
-            ->addQuery("SELECT * FROM users WHERE id IN (4, 5, 6)", 10.0)
-            ->addQuery("SELECT * FROM users WHERE id IN (7, 8, 9)", 10.0)
+            ->addQuery("SELECT * FROM users WHERE id IN (1, 2, 3)", 0.010)
+            ->addQuery("SELECT * FROM users WHERE id IN (4, 5, 6)", 0.010)
+            ->addQuery("SELECT * FROM users WHERE id IN (7, 8, 9)", 0.010)
             ->build();
 
         // Act
@@ -166,7 +166,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Query on 'countries' table (static table)
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM countries WHERE code = ?', 10.0)
+            ->addQuery('SELECT * FROM countries WHERE code = ?', 0.010)
             ->build();
 
         // Act
@@ -183,7 +183,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Query on 'currencies' table
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM currencies WHERE code = ?', 10.0)
+            ->addQuery('SELECT * FROM currencies WHERE code = ?', 0.010)
             ->build();
 
         // Act
@@ -200,7 +200,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Query on 'languages' table
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM languages ORDER BY name', 10.0)
+            ->addQuery('SELECT * FROM languages ORDER BY name', 0.010)
             ->build();
 
         // Act
@@ -217,7 +217,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Query joining static table
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users JOIN countries ON users.country_id = countries.id', 10.0)
+            ->addQuery('SELECT * FROM users JOIN countries ON users.country_id = countries.id', 0.010)
             ->build();
 
         // Act
@@ -234,9 +234,9 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Multiple queries on same static table
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM countries WHERE id = 1', 10.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 2', 10.0)
-            ->addQuery('SELECT * FROM countries WHERE id = 3', 10.0)
+            ->addQuery('SELECT * FROM countries WHERE id = 1', 0.010)
+            ->addQuery('SELECT * FROM countries WHERE id = 2', 0.010)
+            ->addQuery('SELECT * FROM countries WHERE id = 3', 0.010)
             ->build();
 
         // Act
@@ -255,11 +255,11 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
 
         // Frequent query on regular table
         for ($i = 1; $i <= 5; $i++) {
-            $queries->addQuery("SELECT * FROM orders WHERE id = {$i}", 10.0);
+            $queries->addQuery("SELECT * FROM orders WHERE id = {$i}", 0.010);
         }
 
         // Query on static table
-        $queries->addQuery('SELECT * FROM countries WHERE code = ?', 10.0);
+        $queries->addQuery('SELECT * FROM countries WHERE code = ?', 0.010);
 
         // Act
         $issues = $this->analyzer->analyze($queries->build());
@@ -274,9 +274,9 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Same query executed 3 times with different execution times
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE id = 1', 10.0)
-            ->addQuery('SELECT * FROM users WHERE id = 2', 15.0)
-            ->addQuery('SELECT * FROM users WHERE id = 3', 20.0)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.015)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.020)
             ->build();
 
         // Act
@@ -294,7 +294,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         // Arrange
         $queries = QueryDataBuilder::create();
         for ($i = 1; $i <= 3; $i++) {
-            $queries->addQuery("SELECT * FROM products WHERE id = {$i}", 10.0);
+            $queries->addQuery("SELECT * FROM products WHERE id = {$i}", 0.010);
         }
 
         // Act
@@ -311,7 +311,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Query on static table
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM countries', 10.0)
+            ->addQuery('SELECT * FROM countries', 0.010)
             ->build();
 
         // Act
@@ -332,7 +332,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
             $queries->addQueryWithBacktrace(
                 "SELECT * FROM users WHERE id = {$i}",
                 [['file' => 'UserRepository.php', 'line' => 42]],
-                10.0,
+                0.010,
             );
         }
 
@@ -367,7 +367,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         // Arrange
         $queries = QueryDataBuilder::create();
         for ($i = 1; $i <= 3; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 10.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.010);
         }
 
         // Act
@@ -384,7 +384,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         // Arrange
         $queries = QueryDataBuilder::create();
         for ($i = 1; $i <= 3; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 10.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.010);
         }
 
         // Act
@@ -403,7 +403,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM countries', 10.0)
+            ->addQuery('SELECT * FROM countries', 0.010)
             ->build();
 
         // Act
@@ -425,12 +425,12 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
 
         // Pattern 1: users table
         for ($i = 1; $i <= 3; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 10.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.010);
         }
 
         // Pattern 2: products table
         for ($i = 1; $i <= 3; $i++) {
-            $queries->addQuery("SELECT * FROM products WHERE id = {$i}", 10.0);
+            $queries->addQuery("SELECT * FROM products WHERE id = {$i}", 0.010);
         }
 
         // Act
@@ -446,7 +446,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Query on 'settings' table
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM settings WHERE key = ?', 10.0)
+            ->addQuery('SELECT * FROM settings WHERE key = ?', 0.010)
             ->build();
 
         // Act
@@ -463,7 +463,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Query on 'roles' table
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM roles', 10.0)
+            ->addQuery('SELECT * FROM roles', 0.010)
             ->build();
 
         // Act
@@ -480,7 +480,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
     {
         // Arrange: Query on 'categories' table
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM categories', 10.0)
+            ->addQuery('SELECT * FROM categories', 0.010)
             ->build();
 
         // Act
@@ -516,7 +516,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         // Arrange: Same UPDATE query executed 5 times
         $queries = QueryDataBuilder::create();
         for ($i = 1; $i <= 5; $i++) {
-            $queries->addQuery('UPDATE users SET status = ? WHERE id = ?', 10.0);
+            $queries->addQuery('UPDATE users SET status = ? WHERE id = ?', 0.010);
         }
 
         // Act
@@ -532,7 +532,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         // Arrange: Same DELETE query executed 4 times
         $queries = QueryDataBuilder::create();
         for ($i = 1; $i <= 4; $i++) {
-            $queries->addQuery('DELETE FROM sessions WHERE expired_at < ?', 10.0);
+            $queries->addQuery('DELETE FROM sessions WHERE expired_at < ?', 0.010);
         }
 
         // Act
@@ -550,17 +550,17 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
 
         // 5 SELECT queries (should trigger suggestion)
         for ($i = 1; $i <= 5; $i++) {
-            $queries->addQuery("SELECT * FROM products WHERE id = {$i}", 10.0);
+            $queries->addQuery("SELECT * FROM products WHERE id = {$i}", 0.010);
         }
 
         // 5 INSERT queries (should NOT trigger suggestion)
         for ($i = 1; $i <= 5; $i++) {
-            $queries->addQuery('INSERT INTO orders (status, total) VALUES (?, ?)', 10.0);
+            $queries->addQuery('INSERT INTO orders (status, total) VALUES (?, ?)', 0.010);
         }
 
         // 5 UPDATE queries (should NOT trigger suggestion)
         for ($i = 1; $i <= 5; $i++) {
-            $queries->addQuery('UPDATE users SET last_login = ? WHERE id = ?', 10.0);
+            $queries->addQuery('UPDATE users SET last_login = ? WHERE id = ?', 0.010);
         }
 
         // Act
@@ -582,7 +582,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         // Arrange: INSERT query on static table
         // This should not trigger suggestion because INSERTs cannot be cached
         $queries = QueryDataBuilder::create()
-            ->addQuery('INSERT INTO countries (code, name) VALUES (?, ?)', 10.0)
+            ->addQuery('INSERT INTO countries (code, name) VALUES (?, ?)', 0.010)
             ->build();
 
         // Act

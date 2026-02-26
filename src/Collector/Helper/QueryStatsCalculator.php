@@ -27,7 +27,7 @@ final class QueryStatsCalculator
         }
 
         $times          = array_map(fn (array $query): float => (float) ($query['executionMS'] ?? 0), $queries);
-        $convertedTimes = array_map(fn (float $time): float => $time > 0 && $time < 1 ? $time * 1000 : $time, $times);
+        $convertedTimes = array_map(fn (float $time): float => $time * 1000, $times);
 
         return [
             'total_queries'     => count($queries),

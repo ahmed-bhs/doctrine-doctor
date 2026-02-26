@@ -43,7 +43,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 15; $i++) {
-            $queries->addQuery("SELECT t0.id, t0.name FROM users t0 WHERE t0.id = ?", 5.0);
+            $queries->addQuery("SELECT t0.id, t0.name FROM users t0 WHERE t0.id = ?", 0.005);
         }
 
         // Act
@@ -65,7 +65,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 9; $i++) {
-            $queries->addQuery("SELECT t0.id, t0.name FROM users t0 WHERE t0.id = ?", 5.0);
+            $queries->addQuery("SELECT t0.id, t0.name FROM users t0 WHERE t0.id = ?", 0.005);
         }
 
         // Act
@@ -84,11 +84,11 @@ final class LazyLoadingAnalyzerTest extends TestCase
         // Pattern variations that should all be detected
         for ($i = 1; $i <= 12; $i++) {
             if (0 === $i % 3) {
-                $queries->addQuery("SELECT * FROM posts WHERE posts.id = ?", 5.0);
+                $queries->addQuery("SELECT * FROM posts WHERE posts.id = ?", 0.005);
             } elseif (1 === $i % 3) {
-                $queries->addQuery("SELECT t0.* FROM posts t0 WHERE t0.id = ?", 5.0);
+                $queries->addQuery("SELECT t0.* FROM posts t0 WHERE t0.id = ?", 0.005);
             } else {
-                $queries->addQuery("SELECT p.id, p.title FROM posts p WHERE p.id = ?", 5.0);
+                $queries->addQuery("SELECT p.id, p.title FROM posts p WHERE p.id = ?", 0.005);
             }
         }
 
@@ -109,12 +109,12 @@ final class LazyLoadingAnalyzerTest extends TestCase
 
         // 12 queries on users table
         for ($i = 1; $i <= 12; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = ?", 0.005);
         }
 
         // 11 queries on posts table
         for ($i = 1; $i <= 11; $i++) {
-            $queries->addQuery("SELECT * FROM posts WHERE id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM posts WHERE id = ?", 0.005);
         }
 
         // Act
@@ -148,13 +148,13 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 15; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = ?", 0.005);
             // Interleave with many other queries (creates large gaps)
-            $queries->addQuery("SELECT * FROM logs WHERE date > ?", 1.0);
-            $queries->addQuery("SELECT * FROM settings WHERE key = ?", 1.0);
-            $queries->addQuery("SELECT * FROM cache WHERE id = ?", 1.0);
-            $queries->addQuery("SELECT COUNT(*) FROM stats", 1.0);
-            $queries->addQuery("UPDATE counters SET value = ?", 1.0);
+            $queries->addQuery("SELECT * FROM logs WHERE date > ?", 0.001);
+            $queries->addQuery("SELECT * FROM settings WHERE key = ?", 0.001);
+            $queries->addQuery("SELECT * FROM cache WHERE id = ?", 0.001);
+            $queries->addQuery("SELECT COUNT(*) FROM stats", 0.001);
+            $queries->addQuery("UPDATE counters SET value = ?", 0.001);
         }
 
         // Act
@@ -171,10 +171,10 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 12; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = ?", 0.005);
             // Small gap: only 1-2 queries between
             if (0 === $i % 3) {
-                $queries->addQuery("SELECT * FROM other_table WHERE x = ?", 1.0);
+                $queries->addQuery("SELECT * FROM other_table WHERE x = ?", 0.001);
             }
         }
 
@@ -193,7 +193,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("SELECT * FROM blog_posts WHERE id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM blog_posts WHERE id = ?", 0.005);
         }
 
         // Act
@@ -214,7 +214,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("SELECT * FROM tbl_users WHERE id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM tbl_users WHERE id = ?", 0.005);
         }
 
         // Act
@@ -242,7 +242,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
                     ['function' => 'getComments', 'class' => 'Post'],
                     ['function' => 'render', 'class' => 'Controller'],
                 ],
-                5.0,
+                0.005,
             );
         }
 
@@ -264,7 +264,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("SELECT * FROM posts WHERE id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM posts WHERE id = ?", 0.005);
         }
 
         // Act
@@ -287,7 +287,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = ?", 0.005);
         }
 
         // Act
@@ -308,7 +308,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = ?", 0.005);
         }
 
         // Act
@@ -331,7 +331,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
             $queries->addQueryWithBacktrace(
                 "SELECT * FROM users WHERE id = ?",
                 [['file' => 'UserController.php', 'line' => 42]],
-                5.0,
+                0.005,
             );
         }
 
@@ -355,7 +355,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 50; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = ?", 0.005);
         }
 
         // Act
@@ -388,12 +388,12 @@ final class LazyLoadingAnalyzerTest extends TestCase
     {
         // Arrange: Various queries that are NOT lazy loading patterns
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 5.0)
-            ->addQuery('SELECT * FROM posts WHERE title = ?', 5.0)
-            ->addQuery('INSERT INTO logs VALUES (?)', 5.0)
-            ->addQuery('UPDATE settings SET value = ?', 5.0)
-            ->addQuery('DELETE FROM cache WHERE expired = 1', 5.0)
-            ->addQuery('SELECT COUNT(*) FROM stats', 5.0)
+            ->addQuery('SELECT * FROM users', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE title = ?', 0.005)
+            ->addQuery('INSERT INTO logs VALUES (?)', 0.005)
+            ->addQuery('UPDATE settings SET value = ?', 0.005)
+            ->addQuery('DELETE FROM cache WHERE expired = 1', 0.005)
+            ->addQuery('SELECT COUNT(*) FROM stats', 0.005)
             ->build();
 
         // Act
@@ -411,7 +411,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
 
         for ($i = 1; $i <= 15; $i++) {
             // Different WHERE conditions (not id = ?)
-            $queries->addQuery("SELECT * FROM users WHERE name = ?", 5.0);
+            $queries->addQuery("SELECT * FROM users WHERE name = ?", 0.005);
         }
 
         // Act
@@ -428,7 +428,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("SELECT * FROM users WHERE id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = ?", 0.005);
         }
 
         // Act
@@ -446,7 +446,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("SELECT u.* FROM users u WHERE u.id = ?", 5.0);
+            $queries->addQuery("SELECT u.* FROM users u WHERE u.id = ?", 0.005);
         }
 
         // Act
@@ -465,9 +465,9 @@ final class LazyLoadingAnalyzerTest extends TestCase
 
         // These are NOT lazy loading - they're queries filtering by foreign keys
         for ($i = 1; $i <= 15; $i++) {
-            $queries->addQuery("SELECT * FROM orders WHERE user_id = ?", 5.0);
-            $queries->addQuery("SELECT * FROM posts WHERE author_id = ?", 5.0);
-            $queries->addQuery("SELECT t0.* FROM product_variant t0 WHERE t0.product_id = ?", 5.0);
+            $queries->addQuery("SELECT * FROM orders WHERE user_id = ?", 0.005);
+            $queries->addQuery("SELECT * FROM posts WHERE author_id = ?", 0.005);
+            $queries->addQuery("SELECT t0.* FROM product_variant t0 WHERE t0.product_id = ?", 0.005);
         }
 
         // Act

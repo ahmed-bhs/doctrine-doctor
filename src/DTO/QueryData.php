@@ -67,19 +67,7 @@ class QueryData
     public static function fromArray(array $data): self
     {
         $rawExecutionTime = $data['executionMS'] ?? 0.0;
-        $executionTime = is_numeric($rawExecutionTime) ? (float) $rawExecutionTime : 0.0;
-
-        // IMPORTANT: Despite the field name 'executionMS', Symfony's Doctrine middleware
-        // actually stores duration in SECONDS (see Symfony\Bridge\Doctrine\Middleware\Debug\Query::getDuration()).
-        // However, some contexts (tests, legacy code) may already provide milliseconds.
-        // Heuristic: values between 0 and 1 are likely seconds, values >= 1 are likely milliseconds.
-        if ($executionTime > 0 && $executionTime < 1) {
-            // Likely in seconds, convert to milliseconds
-            $executionMs = $executionTime * 1000;
-        } else {
-            // Already in milliseconds
-            $executionMs = $executionTime;
-        }
+        $executionTimeInSeconds = is_numeric($rawExecutionTime) ? (float) $rawExecutionTime : 0.0;
 
         // Handle both 'rowCount' and 'row_count' (Doctrine inconsistency)
         $rowCount = $data['rowCount'] ?? $data['row_count'] ?? null;
@@ -103,7 +91,7 @@ class QueryData
 
         return new self(
             sql: is_string($sql) ? $sql : '',
-            executionTime: QueryExecutionTime::fromMilliseconds($executionMs),
+            executionTime: QueryExecutionTime::fromSeconds($executionTimeInSeconds),
             params: $params,
             backtrace: $validBacktrace,
             rowCount: null !== $rowCount && is_numeric($rowCount) ? (int) $rowCount : null,
