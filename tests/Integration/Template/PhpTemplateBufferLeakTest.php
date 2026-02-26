@@ -31,9 +31,12 @@ final class PhpTemplateBufferLeakTest extends TestCase
 {
     private string $templateDirectory;
 
+    private int $initialOutputBufferLevel = 0;
+
     protected function setUp(): void
     {
         parent::setUp();
+        $this->initialOutputBufferLevel = ob_get_level();
 
         // Create temporary template directory
         $this->templateDirectory = sys_get_temp_dir() . '/doctrine_doctor_test_templates_' . uniqid();
@@ -50,7 +53,7 @@ final class PhpTemplateBufferLeakTest extends TestCase
         }
 
         // Clean any remaining output buffers
-        while (ob_get_level() > 0) {
+        while (ob_get_level() > $this->initialOutputBufferLevel) {
             ob_end_clean();
         }
 

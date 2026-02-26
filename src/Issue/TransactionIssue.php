@@ -30,8 +30,8 @@ class TransactionIssue extends AbstractIssue
         parent::__construct($data);
     }
 
-    public function getCategory(): string
+    public function getCategory(): IssueCategory
     {
-        return IssueCategory::INTEGRITY->value;
+        return IssueCategory::INTEGRITY;
     }
 }

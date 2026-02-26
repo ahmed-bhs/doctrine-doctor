@@ -23,6 +23,7 @@ use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Product;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\DatabaseTestCase;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -416,8 +417,11 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         self::assertNotEmpty($softDeleteIssues, 'Should have soft delete issues');
 
         foreach ($softDeleteIssues as $issue) {
-            $category = $issue->getCategory();
-            self::assertContains($category, ['configuration', 'integrity'], 'Category should be valid');
+            self::assertContains(
+                $issue->getCategory(),
+                [IssueCategory::CONFIGURATION, IssueCategory::INTEGRITY],
+                'Category should be valid',
+            );
         }
     }
 }

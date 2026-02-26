@@ -70,7 +70,7 @@ final class SQLInjectionInRawQueriesAnalyzerIntegrationTest extends DatabaseTest
 
         if (count($issues) > 0) {
             $issue = $issues->toArray()[0];
-            self::assertEquals('security', $issue->getCategory());
+            self::assertEquals('security', $issue->getCategory()->value);
         }
     }
 
