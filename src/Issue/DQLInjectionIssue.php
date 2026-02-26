@@ -40,8 +40,8 @@ class DQLInjectionIssue extends AbstractIssue
         ], $data));
     }
 
-    public function getCategory(): string
+    public function getCategory(): IssueCategory
     {
-        return IssueCategory::SECURITY->value;
+        return IssueCategory::SECURITY;
     }
 }

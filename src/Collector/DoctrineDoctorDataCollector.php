@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Collector\Helper\DataCollectorLogger;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
 use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
 use Doctrine\Bundle\DoctrineBundle\DataCollector\DoctrineDataCollector;
 use Doctrine\ORM\EntityManagerInterface;
@@ -178,16 +179,17 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      *  OPTIMIZED: Uses IssueCollection for lazy filtering
      * @return IssueInterface[]
      */
-    public function getIssuesByCategory(string $category): array
+    public function getIssuesByCategory(string|IssueCategory $category): array
     {
+        $normalizedCategory = is_string($category) ? IssueCategory::fromString($category) : $category;
         $issueCollection = IssueCollection::fromArray($this->getIssues());
 
-        $filtered = $issueCollection->filter(function (IssueInterface $issue) use ($category): bool {
+        $filtered = $issueCollection->filter(function (IssueInterface $issue) use ($normalizedCategory): bool {
             if (!method_exists($issue, 'getCategory')) {
                 return false;
             }
 
-            return $issue->getCategory() === $category;
+            return $issue->getCategory() === $normalizedCategory;
         });
 
         return $filtered->toArray();
@@ -196,7 +198,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     /**
      * Get count of issues by category.
      */
-    public function getIssueCountByCategory(string $category): int
+    public function getIssueCountByCategory(string|IssueCategory $category): int
     {
         return count($this->getIssuesByCategory($category));
     }

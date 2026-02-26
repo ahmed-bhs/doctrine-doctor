@@ -14,9 +14,9 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
@@ -158,7 +158,9 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             backtrace: $backtrace,
         );
 
-        return ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
+        /** @var IntegrityIssue $issue */
+        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
+        return $issue;
     }
 
     /**
