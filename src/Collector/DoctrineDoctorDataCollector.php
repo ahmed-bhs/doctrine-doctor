@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Collector\Helper\DataCollectorLogger;
 use AhmedBhs\DoctrineDoctor\Collector\Helper\IssueReconstructor;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\PhpTemplateRenderer;
 use Doctrine\Bundle\DoctrineBundle\DataCollector\DoctrineDataCollector;
@@ -283,7 +284,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $rawSql = $query['sql'] ?? '';
             $sql = is_string($rawSql) ? $rawSql : '';
             $executionTime = (float) ($query['executionMS'] ?? 0.0);
-            $executionMs = $executionTime * 1000;
+            $executionMs = $executionTime * QueryExecutionTime::MS_PER_SECOND;
 
             if (!isset($grouped[$sql])) {
                 $grouped[$sql] = [
