@@ -89,7 +89,7 @@ final class BulkOperationAnalyzerIntegrationTest extends DatabaseTestCase
 
         if (count($issueCollection) > 0) {
             $issue = $issueCollection->toArray()[0];
-            self::assertEquals('performance', $issue->getCategory());
+            self::assertEquals('performance', $issue->getCategory()->value);
             self::assertStringContainsString('UPDATE', (string) $issue->getTitle());
         }
     }

@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Issue;
 
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 
 interface IssueInterface
@@ -26,14 +27,8 @@ interface IssueInterface
 
     /**
      * Get the category of this issue for profiler organization.
-     * Must return one of the IssueCategory constants:
-     * - IssueCategory::PERFORMANCE
-     * - IssueCategory::SECURITY
-     * - IssueCategory::INTEGRITY
-     * - IssueCategory::CONFIGURATION
-     * @return string One of the IssueCategory constants
      */
-    public function getCategory(): string;
+    public function getCategory(): IssueCategory;
 
     public function getSuggestion(): ?SuggestionInterface;
 

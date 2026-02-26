@@ -71,7 +71,7 @@ final class DQLInjectionAnalyzerIntegrationTest extends DatabaseTestCase
         self::assertGreaterThan(0, count($issueCollection), 'Should detect SQL injection risk');
 
         $issue = $issueCollection->toArray()[0];
-        self::assertEquals('security', $issue->getCategory());
+        self::assertEquals('security', $issue->getCategory()->value);
         self::assertStringContainsString('injection', strtolower((string) $issue->getTitle()));
         self::assertEquals('critical', $issue->getSeverity()->value);
     }

@@ -102,7 +102,7 @@ final class NPlusOneAnalyzerIntegrationTest extends DatabaseTestCase
         self::assertCount(1, $issuesArray, 'Should detect ONE N+1 pattern');
 
         $issue = $issuesArray[0];
-        self::assertEquals('performance', $issue->getCategory());
+        self::assertEquals('performance', $issue->getCategory()->value);
         self::assertStringContainsString('N+1', (string) $issue->getTitle());
 
         // We expect 1 query for posts + N queries for comments
@@ -193,7 +193,7 @@ final class NPlusOneAnalyzerIntegrationTest extends DatabaseTestCase
         self::assertGreaterThan(0, count($issueCollection), 'Should detect N+1 issue');
 
         $issue = $issueCollection->toArray()[0];
-        self::assertEquals('performance', $issue->getCategory());
+        self::assertEquals('performance', $issue->getCategory()->value);
         self::assertStringContainsString('N+1', (string) $issue->getTitle());
     }
 
