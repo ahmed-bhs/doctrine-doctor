@@ -143,7 +143,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         $correctSyntax = $this->getCorrectSyntax($field, $operator);
 
         $issueData = new IssueData(
-            type: 'incorrect_null_comparison',
+            type: 'integrity_incorrect_null_comparison',
             title: 'Incorrect NULL Comparison',
             description: sprintf(
                 "Found '%s' in query. Comparing to NULL with '%s' does not work as expected in SQL. " .
@@ -158,7 +158,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             backtrace: $backtrace,
         );
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray($issueData->toArray());
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
     }
 
     /**

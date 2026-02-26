@@ -233,7 +233,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             backtrace: $this->createEntityBacktrace($classMetadata),
         );
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray($issueData->toArray());
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
     }
 
     /**
@@ -259,7 +259,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             backtrace: $this->createEntityBacktrace($classMetadata),
         );
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray($issueData->toArray());
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
     }
 
     /**
@@ -282,7 +282,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             queries: [],
         );
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray($issueData->toArray());
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
     }
 
     /**

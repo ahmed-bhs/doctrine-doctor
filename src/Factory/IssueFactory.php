@@ -122,6 +122,7 @@ class IssueFactory implements IssueFactoryInterface
         'query_builder_sql_injection' => DQLInjectionIssue::class,
         'unescaped_like'              => DQLInjectionIssue::class,
         'incorrect_null_comparison'   => DQLInjectionIssue::class,
+        'integrity_incorrect_null_comparison' => IntegrityIssue::class,
         'empty_in_clause'             => DQLInjectionIssue::class,
         'missing_parameters'          => DQLInjectionIssue::class,
         // Performance issues
@@ -135,6 +136,8 @@ class IssueFactory implements IssueFactoryInterface
         'Unused Eager Load'                  => PerformanceIssue::class,
         'nested_n_plus_one'                  => NPlusOneIssue::class,
         'Nested N+1'                         => NPlusOneIssue::class,
+        'left_join_with_not_null'            => IntegrityIssue::class,
+        'aggregation_with_inner_join'        => PerformanceIssue::class,
         // Embeddable issues
         'missing_embeddable_opportunity'              => IntegrityIssue::class,
         'embeddable_mutability'                       => IntegrityIssue::class,
@@ -156,6 +159,10 @@ class IssueFactory implements IssueFactoryInterface
         'soft_delete_public_setter'                   => IntegrityIssue::class,
         'soft_delete_missing_timezone'                => ConfigurationIssue::class,
         'soft_delete_cascade_conflict'                => ConfigurationIssue::class,
+        // Primary key strategy advisory issues
+        'auto_increment_educational'                  => IntegrityIssue::class,
+        'uuid_v4_performance'                         => IntegrityIssue::class,
+        'mixed_id_strategies'                         => IntegrityIssue::class,
     ];
 
     public function create(IssueData $issueData): IssueInterface

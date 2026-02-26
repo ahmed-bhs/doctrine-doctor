@@ -247,7 +247,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             backtrace: $backtrace,
         );
 
-        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray($issueData->toArray());
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
     }
 
     /**
