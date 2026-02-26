@@ -14,6 +14,8 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
@@ -48,6 +50,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
+        private readonly ?IssueFactoryInterface $issueFactory = null,
         private readonly ?LoggerInterface $logger = null,
     ) {
     }
@@ -179,7 +182,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
         // Check if target is an independent entity
         if ($this->isIndependentEntity(MappingHelper::getString($mapping, 'targetEntity') ?? '')) {
-            return new IntegrityIssue([
+            return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
                 'title'       => sprintf('Dangerous cascade="all" in %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Entity "%s" has cascade="all" on property "$%s" (relation to %s). ' .
@@ -199,7 +202,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             ]);
         }
 
-        return new IntegrityIssue([
+        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
             'title'       => sprintf('Overuse of cascade="all" in %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Entity "%s" uses cascade="all" on property "$%s" (relation to %s). ' .
@@ -232,7 +235,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         // Create synthetic backtrace
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-        return new IntegrityIssue([
+        return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
             'title'       => 'Dangerous cascade remove on independent entity ' . $targetShortName,
             'description' => sprintf(
                 'Entity "%s" has cascade remove on property "$%s" pointing to independent entity "%s". ' .
@@ -264,7 +267,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             // Create synthetic backtrace
             $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
-            return new IntegrityIssue([
+            return ($this->issueFactory ?? new IssueFactory())->createIntegrityFromArray([
                 'title'       => sprintf('Missing cascade on composition relationship %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Entity "%s" has a composition relationship with "%s" (property "$%s") but no cascaconfiguration. ' .

@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Factory;
 
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 
 /**
@@ -30,4 +31,12 @@ interface IssueFactoryInterface
      * @param array<string, mixed> $data
      */
     public function createFromArray(array $data): IssueInterface;
+
+    /**
+     * Create a generic integrity issue from legacy array format.
+     * Use this for analyzers that intentionally emit IntegrityIssue regardless of "type".
+     *
+     * @param array<string, mixed> $data
+     */
+    public function createIntegrityFromArray(array $data): IntegrityIssue;
 }
