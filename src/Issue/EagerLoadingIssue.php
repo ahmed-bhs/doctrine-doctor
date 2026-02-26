@@ -30,8 +30,8 @@ class EagerLoadingIssue extends AbstractIssue
         ], $data));
     }
 
-    public function getCategory(): string
+    public function getCategory(): IssueCategory
     {
-        return IssueCategory::PERFORMANCE->value;
+        return IssueCategory::PERFORMANCE;
     }
 }

@@ -450,6 +450,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $suggestedName,
         string $severity = 'warning',
     ): IntegrityIssue {
+        /** @var IntegrityIssue $codeQualityIssue */
         $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'table_name' => $tableName,
@@ -473,6 +474,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $suggestedName,
         string $severity = 'warning',
     ): IntegrityIssue {
+        /** @var IntegrityIssue $codeQualityIssue */
         $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'column_name' => $columnName,
@@ -496,6 +498,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $violationType,
         string $suggestedName,
     ): IntegrityIssue {
+        /** @var IntegrityIssue $codeQualityIssue */
         $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'fk_column' => $columnName,
@@ -520,6 +523,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $suggestedName,
         string $severity = 'info',
     ): IntegrityIssue {
+        /** @var IntegrityIssue $codeQualityIssue */
         $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'table_name' => $tableName,
@@ -726,4 +730,5 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
             ),
         );
     }
+
 }

@@ -39,8 +39,8 @@ class FlushInLoopIssue extends AbstractIssue
         return 'Flush In Loop';
     }
 
-    public function getCategory(): string
+    public function getCategory(): IssueCategory
     {
-        return IssueCategory::PERFORMANCE->value;
+        return IssueCategory::PERFORMANCE;
     }
 }

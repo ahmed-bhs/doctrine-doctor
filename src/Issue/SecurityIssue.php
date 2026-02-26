@@ -35,8 +35,8 @@ class SecurityIssue extends AbstractIssue
         return 'Security';
     }
 
-    public function getCategory(): string
+    public function getCategory(): IssueCategory
     {
-        return IssueCategory::SECURITY->value;
+        return IssueCategory::SECURITY;
     }
 }

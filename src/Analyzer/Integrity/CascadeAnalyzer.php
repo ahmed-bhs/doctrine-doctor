@@ -179,6 +179,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $cascade = MappingHelper::getArray($mapping, 'cascade') ?? [];
         $severity = $this->determineSeverityForAll($mapping);
 
+        /** @var IntegrityIssue $issue */
         $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'field' => $fieldName,
@@ -213,6 +214,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $shortTargetName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity);
 
+        /** @var IntegrityIssue $issue */
         $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'field' => $fieldName,
@@ -254,6 +256,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
         $shortTargetName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity);
 
+        /** @var IntegrityIssue $issue */
         $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'field' => $fieldName,
@@ -292,6 +295,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
         $shortTargetName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity);
 
+        /** @var IntegrityIssue $issue */
         $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity' => $entityClass,
             'field' => $fieldName,
@@ -476,6 +480,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $refCount = $referenceCountMap[$entityClass] ?? 0;
         return $refCount >= 3;
     }
+
 
     /**
      * @param array<ClassMetadata<object>> $allMetadata

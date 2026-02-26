@@ -128,6 +128,7 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements \AhmedBhs\DoctrineDoc
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $cascade      = MappingHelper::getArray($mapping, 'cascade') ?? [];
 
+        /** @var IntegrityIssue $codeQualityIssue */
         $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
             'entity'         => $entityClass,
             'field'          => $fieldName,
@@ -183,6 +184,7 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements \AhmedBhs\DoctrineDoc
             ),
         );
     }
+
 
     /**
      * Get association type constant in a version-agnostic way.
