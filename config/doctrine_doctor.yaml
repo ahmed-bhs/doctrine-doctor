@@ -71,6 +71,88 @@ doctrine_doctor:
             enabled: true
             threshold: 20  # Minimum number of UPDATE/DELETE to suggest bulk operations
 
+        # findAll() Usage Detection
+        find_all:
+            enabled: true
+            threshold: 99  # Maximum number of rows before flagging as issue
+
+        # Database / ORM Configuration Checks
+        strict_mode:
+            enabled: true
+
+        charset:
+            enabled: true
+
+        inno_db_engine:
+            enabled: true
+
+        connection_pooling:
+            enabled: true
+
+        doctrine_cache:
+            enabled: true
+
+        # Entity / Mapping Best Practices
+        collection_initialization:
+            enabled: true
+
+        cascade_configuration:
+            enabled: true
+
+        foreign_key_mapping:
+            enabled: true
+
+        partial_object:
+            enabled: true
+            threshold: 5  # Minimum number of queries to trigger detection
+
+        dto_hydration:
+            enabled: true
+
+        cascade_all:
+            enabled: true
+
+        cascade_persist_on_independent_entity:
+            enabled: true
+
+        missing_orphan_removal_on_composition:
+            enabled: true
+
+        cascade_remove_on_independent_entity:
+            enabled: true
+
+        bidirectional_consistency:
+            enabled: true
+
+        orphan_removal_without_cascade_remove:
+            enabled: true
+
+        on_delete_cascade_mismatch:
+            enabled: true
+
+        cartesian_product:
+            enabled: true
+            n1_collection_threshold: 3  # Minimum N+1 queries per collection to consider a risk group
+
+        naming_convention:
+            enabled: true
+
+        missing_embeddable_opportunity:
+            enabled: true
+
+        blameable_trait:
+            enabled: true
+
+        # Security / Data Protection
+        insecure_random:
+            enabled: true
+
+        sensitive_data_exposure:
+            enabled: true
+
+        sql_injection_in_raw_queries:
+            enabled: true
+
         # JOIN Optimization Detection
         join_optimization:
             enabled: true
