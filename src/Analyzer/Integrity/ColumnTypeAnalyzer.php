@@ -16,6 +16,8 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
@@ -223,14 +225,23 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             ),
             'description' => $description,
             'severity'    => $severity,
-            'suggestion'  => $this->suggestionFactory->createCodeSuggestion(
-                description: $isVendor
-                    ? sprintf('Vendor entity - consider creating local override or opening vendor issue')
-                    : sprintf('Replace "%s" type with "%s"', $type, $typeInfo['replacement']),
-                code: $isVendor
-                    ? $this->generateVendorOverrideCode($entityClass, $fieldName, $type, $typeInfo['replacement'])
-                    : $this->generateTypeReplacementCode($entityClass, $fieldName, $type),
-                filePath: $entityClass,
+            'suggestion'  => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Integrity/code_suggestion',
+                context: [
+                    'description' => $isVendor
+                        ? sprintf('Vendor entity - consider creating local override or opening vendor issue')
+                        : sprintf('Replace "%s" type with "%s"', $type, $typeInfo['replacement']),
+                    'code' => $isVendor
+                        ? $this->generateVendorOverrideCode($entityClass, $fieldName, $type, $typeInfo['replacement'])
+                        : $this->generateTypeReplacementCode($entityClass, $fieldName, $type),
+                    'file_path' => $entityClass,
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::integrity(),
+                    severity: Severity::info(),
+                    title: 'Code Quality Suggestion',
+                    tags: ['code-quality'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],
@@ -265,10 +276,19 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                     $length,
                 ),
                 'severity'   => 'info',
-                'suggestion' => $this->suggestionFactory->createCodeSuggestion(
-                    description: 'Replace simple_array with json type',
-                    code: $this->generateSimpleArrayMigrationCode($entityClass, $fieldName),
-                    filePath: $entityClass,
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Integrity/code_suggestion',
+                    context: [
+                        'description' => 'Replace simple_array with json type',
+                        'code' => $this->generateSimpleArrayMigrationCode($entityClass, $fieldName),
+                        'file_path' => $entityClass,
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::integrity(),
+                        severity: Severity::info(),
+                        title: 'Code Quality Suggestion',
+                        tags: ['code-quality'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -324,10 +344,19 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                 $analysis['ratio'] * 100,
             ),
             'severity'   => 'info',
-            'suggestion' => $this->suggestionFactory->createCodeSuggestion(
-                description: 'Migrate to PHP 8.1+ native enum',
-                code: $this->generateEnumMigrationCode($entityClass, $fieldName),
-                filePath: $entityClass,
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Integrity/code_suggestion',
+                context: [
+                    'description' => 'Migrate to PHP 8.1+ native enum',
+                    'code' => $this->generateEnumMigrationCode($entityClass, $fieldName),
+                    'file_path' => $entityClass,
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::integrity(),
+                    severity: Severity::info(),
+                    title: 'Code Quality Suggestion',
+                    tags: ['code-quality'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],

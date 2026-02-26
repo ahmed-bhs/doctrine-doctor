@@ -18,6 +18,9 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Webmozart\Assert\Assert;
 
 class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
@@ -48,9 +51,24 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                     Assert::numeric($operationsBetweenFlush);
 
                     if ($flushCount >= $this->flushCountThreshold) {
-                        $suggestion = $this->suggestionFactory->createFlushInLoop(
-                            flushCount: $flushCount,
-                            operationsBetweenFlush: (float) $operationsBetweenFlush,
+                        $severity = match (true) {
+                            $flushCount > 50 => Severity::critical(),
+                            $flushCount > 20 => Severity::warning(),
+                            default => Severity::info(),
+                        };
+
+                        $suggestion = $this->suggestionFactory->createFromTemplate(
+                            templateName: 'Performance/flush_in_loop',
+                            context: [
+                                'flush_count' => $flushCount,
+                                'operations_between_flush' => (float) $operationsBetweenFlush,
+                            ],
+                            suggestionMetadata: new SuggestionMetadata(
+                                type: SuggestionType::performance(),
+                                severity: $severity,
+                                title: sprintf('Performance Anti-Pattern: %d flush() calls in loop', $flushCount),
+                                tags: ['performance', 'doctrine', 'flush', 'batch'],
+                            ),
                         );
 
                         $queries = $flushPattern['queries'] ?? [];

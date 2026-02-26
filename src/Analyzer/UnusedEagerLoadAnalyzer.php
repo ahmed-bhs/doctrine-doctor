@@ -20,6 +20,8 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Webmozart\Assert\Assert;
@@ -276,17 +278,49 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
     {
         $tables = array_map(fn ($join) => $join['table'], $unusedJoins);
         $aliases = array_map(fn ($join) => $join['alias'] ?? 'unknown', $unusedJoins);
+        $count = \count($tables);
 
-        return $this->suggestionFactory->createUnusedEagerLoad(
-            unusedTables: $tables,
-            unusedAliases: $aliases,
+        $severity = match (true) {
+            $count >= 3 => Severity::critical(),
+            $count >= 2 => Severity::warning(),
+            default => Severity::info(),
+        };
+
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Performance/unused_eager_load',
+            context: [
+                'unused_tables' => $tables,
+                'unused_aliases' => $aliases,
+                'count' => $count,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $severity,
+                title: sprintf('Remove %d Unused Eager Load(s)', $count),
+                tags: ['performance', 'doctrine', 'eager-loading', 'memory', 'waste'],
+            ),
         );
     }
 
     private function createOverEagerSuggestion(int $joinCount): ?SuggestionInterface
     {
-        return $this->suggestionFactory->createOverEagerLoading(
-            joinCount: $joinCount,
+        $severity = match (true) {
+            $joinCount >= 5 => Severity::critical(),
+            $joinCount >= 4 => Severity::warning(),
+            default => Severity::info(),
+        };
+
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Performance/over_eager_loading',
+            context: [
+                'join_count' => $joinCount,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $severity,
+                title: sprintf('Over-Eager Loading: %d JOINs Cause Data Duplication', $joinCount),
+                tags: ['performance', 'doctrine', 'eager-loading', 'data-duplication', 'memory'],
+            ),
         );
     }
 

@@ -18,6 +18,9 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Webmozart\Assert\Assert;
 
 class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
@@ -87,9 +90,18 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                                 $queryDetails[] = $queryData;
                             }
 
-                            $suggestion = $this->suggestionFactory->createBatchOperation(
-                                table: $table,
-                                operationCount: $count,
+                            $suggestion = $this->suggestionFactory->createFromTemplate(
+                                templateName: 'Performance/batch_operation',
+                                context: [
+                                    'table' => $table,
+                                    'operation_count' => $count,
+                                ],
+                                suggestionMetadata: new SuggestionMetadata(
+                                    type: SuggestionType::performance(),
+                                    severity: Severity::warning(),
+                                    title: sprintf('Memory Leak Risk: %d operations without clear()', $count),
+                                    tags: ['performance', 'memory', 'batch'],
+                                ),
                             );
 
                             $issueData = new IssueData(

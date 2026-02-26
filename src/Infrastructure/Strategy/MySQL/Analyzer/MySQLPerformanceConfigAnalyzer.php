@@ -16,6 +16,8 @@ use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\PerformanceConfigA
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -50,12 +52,21 @@ final readonly class MySQLPerformanceConfigAnalyzer implements PerformanceConfig
                     $queryCacheType,
                 ),
                 'severity' => Severity::critical(),
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'query_cache_type',
-                    currentValue: $queryCacheType,
-                    recommendedValue: 'OFF',
-                    description: 'Disable deprecated query cache for better performance',
-                    fixCommand: $this->getQueryCacheFixCommand(),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'query_cache_type',
+                        'current_value' => $queryCacheType,
+                        'recommended_value' => 'OFF',
+                        'description' => 'Disable deprecated query cache for better performance',
+                        'fix_command' => $this->getQueryCacheFixCommand(),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -73,12 +84,21 @@ final readonly class MySQLPerformanceConfigAnalyzer implements PerformanceConfig
                     'In development, you can safely use value 2 for 10x faster writes. ' .
                     'Note: Keep value 1 in production for data safety.',
                 'severity' => Severity::info(),
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'innodb_flush_log_at_trx_commit',
-                    currentValue: '1 (full ACID)',
-                    recommendedValue: '2 (for dev only)',
-                    description: 'Set to 2 in development for faster performance',
-                    fixCommand: $this->getInnoDBFlushLogFixCommand(),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'innodb_flush_log_at_trx_commit',
+                        'current_value' => '1 (full ACID)',
+                        'recommended_value' => '2 (for dev only)',
+                        'description' => 'Set to 2 in development for faster performance',
+                        'fix_command' => $this->getInnoDBFlushLogFixCommand(),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -93,12 +113,21 @@ final readonly class MySQLPerformanceConfigAnalyzer implements PerformanceConfig
                     'Binary logs are used for replication and point-in-time recovery, but waste disk space in development. ' .
                     'Unless you are testing replication, disable binlog in dev environments.',
                 'severity' => Severity::info(),
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'log_bin',
-                    currentValue: 'ON',
-                    recommendedValue: 'OFF (for dev)',
-                    description: 'Disable binary logging in development to save disk space',
-                    fixCommand: $this->getBinaryLogFixCommand(),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'log_bin',
+                        'current_value' => 'ON',
+                        'recommended_value' => 'OFF (for dev)',
+                        'description' => 'Disable binary logging in development to save disk space',
+                        'fix_command' => $this->getBinaryLogFixCommand(),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],
@@ -121,12 +150,21 @@ final readonly class MySQLPerformanceConfigAnalyzer implements PerformanceConfig
                     $bufferPoolMB,
                 ),
                 'severity'   => $bufferPoolSize < 67108864 ? Severity::warning() : Severity::info(), // < 64MB = warning
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'innodb_buffer_pool_size',
-                    currentValue: sprintf('%dMB', $bufferPoolMB),
-                    recommendedValue: '512MB (for dev) / 50-70% RAM (for prod)',
-                    description: 'Increase buffer pool size for better performance',
-                    fixCommand: $this->getBufferPoolSizeFixCommand(536870912), // 512MB
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'innodb_buffer_pool_size',
+                        'current_value' => sprintf('%dMB', $bufferPoolMB),
+                        'recommended_value' => '512MB (for dev) / 50-70% RAM (for prod)',
+                        'description' => 'Increase buffer pool size for better performance',
+                        'fix_command' => $this->getBufferPoolSizeFixCommand(536870912), // 512MB,
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],

@@ -17,6 +17,9 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\SecurityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
@@ -328,10 +331,19 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
 ";
         $code .= '}';
 
-        return $this->suggestionFactory->createCodeSuggestion(
-            description: 'Replace with cryptographically secure random generator',
-            code: $code,
-            filePath: $this->getFileLocation($reflectionMethod),
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'description' => 'Replace with cryptographically secure random generator',
+                'code' => $code,
+                'file_path' => $this->getFileLocation($reflectionMethod),
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: Severity::info(),
+                title: 'Code Quality Suggestion',
+                tags: ['code-quality'],
+            ),
         );
     }
 

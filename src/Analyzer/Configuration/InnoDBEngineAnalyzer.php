@@ -16,6 +16,9 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 
@@ -78,12 +81,21 @@ class InnoDBEngineAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                                 $tableList,
                             ),
                             'severity'   => count($nonInnoDBTables) > 5 ? 'critical' : 'warning',
-                            'suggestion' => $this->suggestionFactory->createConfiguration(
-                                setting: 'Table engine',
-                                currentValue: implode(', ', $engineList),
-                                recommendedValue: 'InnoDB',
-                                description: 'InnoDB provides ACID transactions, foreign keys, and better crash recovery',
-                                fixCommand: $this->getConversionCommand($nonInnoDBTables),
+                            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                                templateName: 'Configuration/configuration',
+                                context: [
+                                    'setting' => 'Table engine',
+                                    'current_value' => implode(', ', $engineList),
+                                    'recommended_value' => 'InnoDB',
+                                    'description' => 'InnoDB provides ACID transactions, foreign keys, and better crash recovery',
+                                    'fix_command' => $this->getConversionCommand($nonInnoDBTables),
+                                ],
+                                suggestionMetadata: new SuggestionMetadata(
+                                    type: SuggestionType::configuration(),
+                                    severity: Severity::info(),
+                                    title: 'Configuration Issue: Table engine',
+                                    tags: ['configuration', 'settings'],
+                                ),
                             ),
                             'backtrace' => null,
                             'queries'   => [],

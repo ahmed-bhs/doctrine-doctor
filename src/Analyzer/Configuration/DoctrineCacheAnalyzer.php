@@ -15,6 +15,9 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\ConfigurationIssue;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\Cache\CacheConfiguration;
 use Doctrine\ORM\Cache\CacheFactory;
 use Doctrine\ORM\Configuration;
@@ -225,7 +228,27 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
             "Performance impact: " . $performanceImpact,
         );
 
-        $suggestion = $this->suggestionFactory->createArrayCacheProduction($cacheType, $currentConfig);
+        $cacheLabel = match ($cacheType) {
+            'metadata' => 'Metadata Cache',
+            'query' => 'Query Cache',
+            'result' => 'Result Cache',
+            'second_level' => 'Second Level Cache',
+            default => 'Cache',
+        };
+        $suggestion = $this->suggestionFactory->createFromTemplate(
+            templateName: 'Configuration/array_cache_production',
+            context: [
+                'cache_type' => $cacheType,
+                'current_config' => $currentConfig,
+                'cache_label' => $cacheLabel,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::configuration(),
+                severity: 'metadata' === $cacheType ? Severity::critical() : Severity::warning(),
+                title: sprintf('ArrayCache in Production (%s)', $cacheLabel),
+                tags: ['configuration', 'cache', 'performance'],
+            ),
+        );
 
         $configurationIssue->setSuggestion($suggestion);
 
@@ -372,7 +395,16 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                 'This should be disabled in production (set to false).',
             );
 
-            $suggestion = $this->suggestionFactory->createProxyAutoGenerate();
+            $suggestion = $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/proxy_auto_generate',
+                context: [],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::critical(),
+                    title: 'Proxy Auto-Generation Enabled in Production',
+                    tags: ['configuration', 'proxy', 'performance'],
+                ),
+            );
 
             $configurationIssue->setSuggestion($suggestion);
 
@@ -466,7 +498,27 @@ class DoctrineCacheAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         $configurationIssue->setTitle($title);
         $configurationIssue->setMessage($message . ' Performance impact: ' . $performanceImpact);
 
-        $suggestion = $this->suggestionFactory->createArrayCacheProduction($cacheType, $currentConfig);
+        $cacheLabel = match ($cacheType) {
+            'metadata' => 'Metadata Cache',
+            'query' => 'Query Cache',
+            'result' => 'Result Cache',
+            'second_level' => 'Second Level Cache',
+            default => 'Cache',
+        };
+        $suggestion = $this->suggestionFactory->createFromTemplate(
+            templateName: 'Configuration/array_cache_production',
+            context: [
+                'cache_type' => $cacheType,
+                'current_config' => $currentConfig,
+                'cache_label' => $cacheLabel,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::configuration(),
+                severity: 'metadata' === $cacheType ? Severity::critical() : Severity::warning(),
+                title: sprintf('ArrayCache in Production (%s)', $cacheLabel),
+                tags: ['configuration', 'cache', 'performance'],
+            ),
+        );
 
         $configurationIssue->setSuggestion($suggestion);
 

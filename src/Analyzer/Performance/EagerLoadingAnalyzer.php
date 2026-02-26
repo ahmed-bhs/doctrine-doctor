@@ -19,6 +19,8 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Webmozart\Assert\Assert;
 
 class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
@@ -118,16 +120,24 @@ class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $suggestions[] = "SELECT NEW App\DTO\EntityDTO(e.id, e.name, r.title)";
         $suggestions[] = 'FROM Entity e JOIN e.relation r';
 
-        return $this->suggestionFactory->createQueryOptimization(
-            code: implode("
-", $suggestions),
-            optimization: sprintf(
-                'Excessive JOINs (%d) might indicate over-fetching data through eager loading. ' .
-                'This can significantly impact query performance and memory usage.',
-                $joinCount,
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Performance/query_optimization',
+            context: [
+                'code' => implode("\n", $suggestions),
+                'optimization' => sprintf(
+                    'Excessive JOINs (%d) might indicate over-fetching data through eager loading. ' .
+                    'This can significantly impact query performance and memory usage.',
+                    $joinCount,
+                ),
+                'execution_time' => 0.0,
+                'threshold' => $this->joinThreshold,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: Severity::info(),
+                title: sprintf('Slow Query: %.2fms', 0.0),
+                tags: ['performance', 'query', 'optimization'],
             ),
-            executionTime: 0.0,
-            threshold: $this->joinThreshold,
         );
     }
 }

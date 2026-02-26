@@ -18,6 +18,9 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
@@ -188,10 +191,20 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 $targetEntity,
             ),
             'severity'   => 'critical',
-            'suggestion' => $this->suggestionFactory->createCollectionInitialization(
-                entityClass: $this->getShortClassName($entityClass),
-                fieldName: $fieldName,
-                hasConstructor: false,
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Integrity/collection_initialization',
+                context: [
+                    'entity_class' => $this->getShortClassName($entityClass),
+                    'field_name' => $fieldName,
+                    'has_constructor' => false,
+                    'backtrace' => null,
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::integrity(),
+                    severity: Severity::critical(),
+                    title: sprintf('Uninitialized Collection: %s::$%s', $this->getShortClassName($entityClass), $fieldName),
+                    tags: ['code-quality', 'doctrine', 'collection'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],
@@ -218,11 +231,20 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 $targetEntity,
             ),
             'severity'   => 'critical',
-            'suggestion' => $this->suggestionFactory->createCollectionInitialization(
-                entityClass: $this->getShortClassName($entityClass),
-                fieldName: $fieldName,
-                hasConstructor: true,
-                backtrace: sprintf('%s:%d', $reflectionMethod->getFileName() ?: 'unknown', $reflectionMethod->getStartLine() ?: 0),
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Integrity/collection_initialization',
+                context: [
+                    'entity_class' => $this->getShortClassName($entityClass),
+                    'field_name' => $fieldName,
+                    'has_constructor' => true,
+                    'backtrace' => sprintf('%s:%d', $reflectionMethod->getFileName() ?: 'unknown', $reflectionMethod->getStartLine() ?: 0),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::integrity(),
+                    severity: Severity::critical(),
+                    title: sprintf('Uninitialized Collection: %s::$%s', $this->getShortClassName($entityClass), $fieldName),
+                    tags: ['code-quality', 'doctrine', 'collection'],
+                ),
             ),
             'backtrace' => [
                 'file' => $reflectionMethod->getFileName() ?: 'unknown',

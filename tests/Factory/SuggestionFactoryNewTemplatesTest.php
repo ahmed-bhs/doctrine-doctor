@@ -13,15 +13,12 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Factory;
 
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\PhpTemplateRenderer;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Test for new suggestion factory methods based on article insights:
- * - Denormalization (counter fields)
- * - GROUP BY aggregation
- * - Updated Extra Lazy with all methods
- */
 final class SuggestionFactoryNewTemplatesTest extends TestCase
 {
     private SuggestionFactory $factory;
@@ -35,14 +32,22 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
     #[Test]
     public function it_creates_denormalization_suggestion(): void
     {
-        // Act
-        $suggestion = $this->factory->createDenormalization(
-            entity: 'Article',
-            relation: 'comments',
-            queryCount: 15,
+        $suggestion = $this->factory->createFromTemplate(
+            templateName: 'Performance/denormalization',
+            context: [
+                'entity' => 'Article',
+                'relation' => 'comments',
+                'query_count' => 15,
+                'counter_field' => 'commentsCount',
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: Severity::info(),
+                title: 'Denormalization Opportunity: 15 count() queries for Article.comments',
+                tags: ['performance', 'doctrine', 'denormalization', 'counter', 'aggregation'],
+            ),
         );
 
-        // Assert
         self::assertNotNull($suggestion);
         self::assertStringContainsString('Denormalization', $suggestion->getCode());
         self::assertStringContainsString('commentsCount', $suggestion->getCode());
@@ -53,15 +58,22 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
     #[Test]
     public function it_creates_denormalization_suggestion_with_custom_counter_field(): void
     {
-        // Act
-        $suggestion = $this->factory->createDenormalization(
-            entity: 'Article',
-            relation: 'comments',
-            queryCount: 10,
-            counterField: 'totalComments',
+        $suggestion = $this->factory->createFromTemplate(
+            templateName: 'Performance/denormalization',
+            context: [
+                'entity' => 'Article',
+                'relation' => 'comments',
+                'query_count' => 10,
+                'counter_field' => 'totalComments',
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: Severity::info(),
+                title: 'Denormalization Opportunity',
+                tags: ['performance', 'doctrine', 'denormalization'],
+            ),
         );
 
-        // Assert
         self::assertNotNull($suggestion);
         self::assertStringContainsString('totalComments', $suggestion->getCode());
     }
@@ -69,14 +81,21 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
     #[Test]
     public function it_creates_group_by_aggregation_suggestion(): void
     {
-        // Act
-        $suggestion = $this->factory->createGroupByAggregation(
-            entity: 'Article',
-            relation: 'comments',
-            queryCount: 20,
+        $suggestion = $this->factory->createFromTemplate(
+            templateName: 'Performance/group_by_aggregation',
+            context: [
+                'entity' => 'Article',
+                'relation' => 'comments',
+                'query_count' => 20,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: Severity::warning(),
+                title: 'GROUP BY Opportunity: 20 queries for Article.comments aggregation',
+                tags: ['performance', 'doctrine', 'group-by', 'aggregation', 'n+1'],
+            ),
         );
 
-        // Assert
         self::assertNotNull($suggestion);
         self::assertStringContainsString('GROUP BY', $suggestion->getCode());
         self::assertStringContainsString('COUNT', $suggestion->getCode());
@@ -87,14 +106,22 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
     #[Test]
     public function it_includes_trade_offs_in_denormalization(): void
     {
-        // Act
-        $suggestion = $this->factory->createDenormalization(
-            entity: 'Article',
-            relation: 'comments',
-            queryCount: 10,
+        $suggestion = $this->factory->createFromTemplate(
+            templateName: 'Performance/denormalization',
+            context: [
+                'entity' => 'Article',
+                'relation' => 'comments',
+                'query_count' => 10,
+                'counter_field' => 'commentsCount',
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: Severity::info(),
+                title: 'Denormalization Opportunity',
+                tags: ['performance', 'doctrine', 'denormalization'],
+            ),
         );
 
-        // Assert
         $code = $suggestion->getCode();
         self::assertStringContainsString('Trade-offs', $code);
         self::assertStringContainsString('Pros:', $code);
@@ -106,14 +133,21 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
     #[Test]
     public function it_includes_trade_offs_in_group_by(): void
     {
-        // Act
-        $suggestion = $this->factory->createGroupByAggregation(
-            entity: 'Article',
-            relation: 'comments',
-            queryCount: 10,
+        $suggestion = $this->factory->createFromTemplate(
+            templateName: 'Performance/group_by_aggregation',
+            context: [
+                'entity' => 'Article',
+                'relation' => 'comments',
+                'query_count' => 10,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: Severity::info(),
+                title: 'GROUP BY Opportunity',
+                tags: ['performance', 'doctrine', 'group-by'],
+            ),
         );
 
-        // Assert
         $code = $suggestion->getCode();
         self::assertStringContainsString('Trade-offs', $code);
         self::assertStringContainsString('Single query', $code);
@@ -123,14 +157,22 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
     #[Test]
     public function it_includes_lifecycle_callbacks_option_in_denormalization(): void
     {
-        // Act
-        $suggestion = $this->factory->createDenormalization(
-            entity: 'Article',
-            relation: 'comments',
-            queryCount: 10,
+        $suggestion = $this->factory->createFromTemplate(
+            templateName: 'Performance/denormalization',
+            context: [
+                'entity' => 'Article',
+                'relation' => 'comments',
+                'query_count' => 10,
+                'counter_field' => 'commentsCount',
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: Severity::info(),
+                title: 'Denormalization Opportunity',
+                tags: ['performance', 'doctrine', 'denormalization'],
+            ),
         );
 
-        // Assert
         self::assertStringContainsString('Lifecycle Callbacks', $suggestion->getCode());
         self::assertStringContainsString('PrePersist', $suggestion->getCode());
         self::assertStringContainsString('PreUpdate', $suggestion->getCode());
@@ -139,14 +181,22 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
     #[Test]
     public function it_includes_database_trigger_option_in_denormalization(): void
     {
-        // Act
-        $suggestion = $this->factory->createDenormalization(
-            entity: 'Article',
-            relation: 'comments',
-            queryCount: 10,
+        $suggestion = $this->factory->createFromTemplate(
+            templateName: 'Performance/denormalization',
+            context: [
+                'entity' => 'Article',
+                'relation' => 'comments',
+                'query_count' => 10,
+                'counter_field' => 'commentsCount',
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: Severity::info(),
+                title: 'Denormalization Opportunity',
+                tags: ['performance', 'doctrine', 'denormalization'],
+            ),
         );
 
-        // Assert
         self::assertStringContainsString('Database Trigger', $suggestion->getCode());
         self::assertStringContainsString('CREATE TRIGGER', $suggestion->getCode());
     }
@@ -154,14 +204,21 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
     #[Test]
     public function it_includes_repository_method_in_group_by(): void
     {
-        // Act
-        $suggestion = $this->factory->createGroupByAggregation(
-            entity: 'Article',
-            relation: 'comments',
-            queryCount: 10,
+        $suggestion = $this->factory->createFromTemplate(
+            templateName: 'Performance/group_by_aggregation',
+            context: [
+                'entity' => 'Article',
+                'relation' => 'comments',
+                'query_count' => 10,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: Severity::info(),
+                title: 'GROUP BY Opportunity',
+                tags: ['performance', 'doctrine', 'group-by'],
+            ),
         );
 
-        // Assert
         self::assertStringContainsString('Query Builder', $suggestion->getCode());
         self::assertStringContainsString('Repository', $suggestion->getCode());
         self::assertStringContainsString('createQueryBuilder', $suggestion->getCode());
@@ -170,14 +227,21 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
     #[Test]
     public function it_includes_multiple_aggregations_example_in_group_by(): void
     {
-        // Act
-        $suggestion = $this->factory->createGroupByAggregation(
-            entity: 'Article',
-            relation: 'comments',
-            queryCount: 10,
+        $suggestion = $this->factory->createFromTemplate(
+            templateName: 'Performance/group_by_aggregation',
+            context: [
+                'entity' => 'Article',
+                'relation' => 'comments',
+                'query_count' => 10,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: Severity::info(),
+                title: 'GROUP BY Opportunity',
+                tags: ['performance', 'doctrine', 'group-by'],
+            ),
         );
 
-        // Assert
         self::assertStringContainsString('Multiple Aggregations', $suggestion->getCode());
         self::assertStringContainsString('SUM', $suggestion->getCode());
         self::assertStringContainsString('MAX', $suggestion->getCode());
@@ -186,34 +250,49 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
     #[Test]
     public function it_calculates_performance_improvement_for_denormalization(): void
     {
-        // Act
-        $suggestion = $this->factory->createDenormalization(
-            entity: 'Article',
-            relation: 'comments',
-            queryCount: 20,
+        $suggestion = $this->factory->createFromTemplate(
+            templateName: 'Performance/denormalization',
+            context: [
+                'entity' => 'Article',
+                'relation' => 'comments',
+                'query_count' => 20,
+                'counter_field' => 'commentsCount',
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: Severity::warning(),
+                title: 'Denormalization Opportunity: 20 count() queries for Article.comments',
+                tags: ['performance', 'doctrine', 'denormalization'],
+            ),
         );
 
-        // Assert
         $code = $suggestion->getCode();
         self::assertStringContainsString('Expected Performance Improvement', $code);
-        self::assertStringContainsString('20', $code); // query count
-        self::assertStringContainsString('0 queries', $code); // after optimization
+        self::assertStringContainsString('20', $code);
+        self::assertStringContainsString('0 queries', $code);
     }
 
     #[Test]
     public function it_calculates_performance_improvement_for_group_by(): void
     {
-        // Act
-        $suggestion = $this->factory->createGroupByAggregation(
-            entity: 'Article',
-            relation: 'comments',
-            queryCount: 25,
+        $suggestion = $this->factory->createFromTemplate(
+            templateName: 'Performance/group_by_aggregation',
+            context: [
+                'entity' => 'Article',
+                'relation' => 'comments',
+                'query_count' => 25,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: Severity::warning(),
+                title: 'GROUP BY Opportunity: 25 queries for Article.comments aggregation',
+                tags: ['performance', 'doctrine', 'group-by'],
+            ),
         );
 
-        // Assert
         $code = $suggestion->getCode();
         self::assertStringContainsString('Expected Performance Improvement', $code);
-        self::assertStringContainsString('25', $code); // query count
-        self::assertStringContainsString('1 query', $code); // after optimization
+        self::assertStringContainsString('25', $code);
+        self::assertStringContainsString('1 query', $code);
     }
 }

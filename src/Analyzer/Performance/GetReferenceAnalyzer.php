@@ -164,9 +164,18 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                         );
                     } else {
                         // Explicit find() - recommend getReference()
-                        $suggestion = $this->suggestionFactory->createGetReference(
-                            entity: 'entities',
-                            occurrences: $totalCount,
+                        $suggestion = $this->suggestionFactory->createFromTemplate(
+                            templateName: 'Performance/get_reference',
+                            context: [
+                                'entity' => 'entities',
+                                'occurrences' => $totalCount,
+                            ],
+                            suggestionMetadata: new SuggestionMetadata(
+                                type: SuggestionType::bestPractice(),
+                                severity: Severity::info(),
+                                title: sprintf('Use getReference() for %s (%d occurrences)', 'entities', $totalCount),
+                                tags: ['best-practice', 'performance', 'doctrine'],
+                            ),
                         );
 
                         $issueData = new IssueData(

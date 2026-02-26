@@ -21,6 +21,8 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Webmozart\Assert\Assert;
 
 /**
@@ -259,10 +261,27 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         // Convert tables to entity names (simplified)
         $entities = array_map($this->tableToEntity(...), $tables);
 
-        return $this->suggestionFactory->createNestedEagerLoading(
-            entities: $entities,
-            depth: $depth,
-            queryCount: $count,
+        $totalImpact = $depth * $count;
+        $severity = match (true) {
+            $totalImpact >= 50 || $depth >= 4 => Severity::critical(),
+            $totalImpact >= 20 || $depth >= 2 => Severity::warning(),
+            default => Severity::info(),
+        };
+
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Performance/nested_eager_loading',
+            context: [
+                'entities' => $entities,
+                'depth' => $depth,
+                'query_count' => $count,
+                'chain' => implode(' → ', $entities),
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::performance(),
+                severity: $severity,
+                title: sprintf('Nested N+1: %d Queries Across %d-Level Chain', $count, $depth),
+                tags: ['performance', 'doctrine', 'n+1', 'nested', 'eager-loading'],
+            ),
         );
     }
 

@@ -16,6 +16,8 @@ use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\CharsetAnalyzerInt
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -121,22 +123,31 @@ final readonly class PostgreSQLCharsetAnalyzer implements CharsetAnalyzerInterfa
             'title'       => sprintf('Database using problematic encoding: %s', $encoding),
             'description' => $description,
             'severity'    => 'SQL_ASCII' === $encoding ? Severity::critical() : Severity::warning(),
-            'suggestion'  => $this->suggestionFactory->createConfiguration(
-                setting: 'Database encoding',
-                currentValue: $encoding,
-                recommendedValue: self::RECOMMENDED_ENCODING,
-                description: 'Recreate database with UTF8 encoding',
-                fixCommand: sprintf(
-                    "-- Encoding cannot be changed after database creation.\n" .
+            'suggestion'  => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'Database encoding',
+                    'current_value' => $encoding,
+                    'recommended_value' => self::RECOMMENDED_ENCODING,
+                    'description' => 'Recreate database with UTF8 encoding',
+                    'fix_command' => sprintf(
+                        "-- Encoding cannot be changed after database creation.\n" .
                     "-- You must dump, drop, recreate, and restore:\n\n" .
                     "pg_dump -U user %s > backup.sql\n" .
                     "DROP DATABASE %s;\n" .
                     "CREATE DATABASE %s ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8';\n" .
                     'psql -U user %s < backup.sql',
-                    $databaseName,
-                    $databaseName,
-                    $databaseName,
-                    $databaseName,
+                        $databaseName,
+                        $databaseName,
+                        $databaseName,
+                        $databaseName,
+                    ),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
                 ),
             ),
             'backtrace' => null,
@@ -156,12 +167,21 @@ final readonly class PostgreSQLCharsetAnalyzer implements CharsetAnalyzerInterfa
                 $clientEncoding,
             ),
             'severity'   => 'warning',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'client_encoding',
-                currentValue: $clientEncoding,
-                recommendedValue: $serverEncoding,
-                description: 'Set client_encoding to match server_encoding',
-                fixCommand: "-- In postgresql.conf or per-connection:\nSET client_encoding = '{$serverEncoding}';\n\n-- In Doctrine DBAL:\ndoctrine:\n    dbal:\n        options:\n            client_encoding: '{$serverEncoding}'",
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'client_encoding',
+                    'current_value' => $clientEncoding,
+                    'recommended_value' => $serverEncoding,
+                    'description' => 'Set client_encoding to match server_encoding',
+                    'fix_command' => "-- In postgresql.conf or per-connection:\nSET client_encoding = '{$serverEncoding}';\n\n-- In Doctrine DBAL:\ndoctrine:\n    dbal:\n        options:\n            client_encoding: '{$serverEncoding}'",
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],
@@ -184,16 +204,25 @@ final readonly class PostgreSQLCharsetAnalyzer implements CharsetAnalyzerInterfa
                 $templateList,
             ),
             'severity'   => 'warning',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Template database encoding',
-                currentValue: 'Problematic encodings',
-                recommendedValue: 'UTF8',
-                description: 'Recreate template1 with UTF8 encoding',
-                fixCommand: "-- Recreate template1 (requires superuser):\n" .
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'Template database encoding',
+                    'current_value' => 'Problematic encodings',
+                    'recommended_value' => 'UTF8',
+                    'description' => 'Recreate template1 with UTF8 encoding',
+                    'fix_command' => "-- Recreate template1 (requires superuser):\n" .
                     "UPDATE pg_database SET datistemplate = FALSE WHERE datname = 'template1';\n" .
                     "DROP DATABASE template1;\n" .
                     "CREATE DATABASE template1 WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';\n" .
                     "UPDATE pg_database SET datistemplate = TRUE WHERE datname = 'template1';",
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],

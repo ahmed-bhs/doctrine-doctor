@@ -17,6 +17,9 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
@@ -324,12 +327,23 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
         $code .= sprintf('private Collection $%s;', $fieldName);
 
-        return $this->suggestionFactory->createCodeSuggestion(
-            description: $isComposition
-                ? 'Replace cascade="all" with explicit cascade options for composition'
-                : 'Replace cascade="all" with cascade="persist" only',
-            code: $code,
-            filePath: $entityClass,
+        $description = $isComposition
+            ? 'Replace cascade="all" with explicit cascade options for composition'
+            : 'Replace cascade="all" with cascade="persist" only';
+
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'description' => $description,
+                'code' => $code,
+                'file_path' => $entityClass,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: Severity::info(),
+                title: 'Code Quality Suggestion',
+                tags: ['code-quality'],
+            ),
         );
     }
 
@@ -374,10 +388,19 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
         $code .= sprintf('private Collection $%s;', $fieldName);
 
-        return $this->suggestionFactory->createCodeSuggestion(
-            description: 'Remove cascade remove to prevent accidental data loss',
-            code: $code,
-            filePath: $entityClass,
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'description' => 'Remove cascade remove to prevent accidental data loss',
+                'code' => $code,
+                'file_path' => $entityClass,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: Severity::info(),
+                title: 'Code Quality Suggestion',
+                tags: ['code-quality'],
+            ),
         );
     }
 
@@ -420,10 +443,19 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
         $code .= sprintf('private Collection $%s;', $fieldName);
 
-        return $this->suggestionFactory->createCodeSuggestion(
-            description: 'Add cascade persist and remove for composition relationship',
-            code: $code,
-            filePath: $entityClass,
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'description' => 'Add cascade persist and remove for composition relationship',
+                'code' => $code,
+                'file_path' => $entityClass,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: Severity::info(),
+                title: 'Code Quality Suggestion',
+                tags: ['code-quality'],
+            ),
         );
     }
 

@@ -17,6 +17,9 @@ use AhmedBhs\DoctrineDoctor\Factory\PlatformAnalysisStrategyFactory;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 
@@ -116,12 +119,21 @@ class StrictModeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                         'You can insert invalid foreign keys, orphan records, etc. ' .
                         'ALWAYS enable foreign_keys in SQLite.',
                     'severity'   => 'critical',
-                    'suggestion' => $this->suggestionFactory->createConfiguration(
-                        setting: 'foreign_keys',
-                        currentValue: 'OFF',
-                        recommendedValue: 'ON',
-                        description: 'Enable foreign key enforcement',
-                        fixCommand: $this->getSQLiteForeignKeysFixCommand(),
+                    'suggestion' => $this->suggestionFactory->createFromTemplate(
+                        templateName: 'Configuration/configuration',
+                        context: [
+                            'setting' => 'foreign_keys',
+                            'current_value' => 'OFF',
+                            'recommended_value' => 'ON',
+                            'description' => 'Enable foreign key enforcement',
+                            'fix_command' => $this->getSQLiteForeignKeysFixCommand(),
+                        ],
+                        suggestionMetadata: new SuggestionMetadata(
+                            type: SuggestionType::configuration(),
+                            severity: Severity::info(),
+                            title: 'Configuration Issue: foreign_keys',
+                            tags: ['configuration', 'settings'],
+                        ),
                     ),
                     'backtrace' => null,
                     'queries'   => [],

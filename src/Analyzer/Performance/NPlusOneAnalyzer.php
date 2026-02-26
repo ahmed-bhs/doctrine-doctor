@@ -23,6 +23,8 @@ use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Webmozart\Assert\Assert;
 
@@ -223,11 +225,21 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             $lazyTable = $this->sqlExtractor->detectLazyLoadingPattern($sql);
             if (null !== $lazyTable) {
                 $entity = $this->tableToEntity($lazyTable);
-                return $this->suggestionFactory->createBatchFetch(
-                    entity: $entity,
-                    relation: 'relation',
-                    queryCount: $queryCount,
-                    triggerLocation: $triggerLocation,
+                $severity = $this->calculateEagerLoadingSeverity($queryCount);
+                return $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Performance/batch_fetch',
+                    context: [
+                        'entity' => $entity,
+                        'relation' => 'relation',
+                        'query_count' => $queryCount,
+                        'trigger_location' => $triggerLocation,
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::performance(),
+                        severity: $severity,
+                        title: sprintf('Proxy N+1 Query: %d queries for %s.%s', $queryCount, $entity, 'relation'),
+                        tags: ['performance', 'doctrine', 'batch-fetch', 'n+1', 'proxy'],
+                    ),
                 );
             }
         }
@@ -244,45 +256,92 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         $entity   = $this->tableToEntity($pattern['table']);
         $relation = $this->underscoreToCamelCase($pattern['foreignKey']);
 
+        $severity = $this->calculateEagerLoadingSeverity($queryCount);
+
         if ('collection' === $type['type'] && !$type['hasLimit']) {
             $collectionOwner = $this->resolveCollectionOwner($pattern['table'], $pattern['foreignKey']);
             if (null !== $collectionOwner) {
-                return $this->suggestionFactory->createCollectionEagerLoading(
-                    parentEntity: $collectionOwner['parentEntity'],
-                    collectionField: $collectionOwner['collectionField'],
-                    childEntity: $collectionOwner['childEntity'],
-                    queryCount: $queryCount,
-                    triggerLocation: $triggerLocation,
+                return $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Performance/collection_eager_loading',
+                    context: [
+                        'parent_entity' => $collectionOwner['parentEntity'],
+                        'collection_field' => $collectionOwner['collectionField'],
+                        'child_entity' => $collectionOwner['childEntity'],
+                        'query_count' => $queryCount,
+                        'trigger_location' => $triggerLocation,
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::performance(),
+                        severity: $severity,
+                        title: sprintf('Collection N+1: %d queries loading %s::$%s', $queryCount, $collectionOwner['parentEntity'], $collectionOwner['collectionField']),
+                        tags: ['performance', 'doctrine', 'collection', 'n+1', 'eager-loading'],
+                    ),
                 );
             }
         }
 
         return match ($type['type']) {
-            'proxy' => $this->suggestionFactory->createBatchFetch(
-                entity: $entity,
-                relation: $relation,
-                queryCount: $queryCount,
-                triggerLocation: $triggerLocation,
+            'proxy' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Performance/batch_fetch',
+                context: [
+                    'entity' => $entity,
+                    'relation' => $relation,
+                    'query_count' => $queryCount,
+                    'trigger_location' => $triggerLocation,
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::performance(),
+                    severity: $severity,
+                    title: sprintf('Proxy N+1 Query: %d queries for %s.%s', $queryCount, $entity, $relation),
+                    tags: ['performance', 'doctrine', 'batch-fetch', 'n+1', 'proxy'],
+                ),
             ),
             'collection' => $type['hasLimit']
-                ? $this->suggestionFactory->createExtraLazy(
-                    entity: $entity,
-                    relation: $relation,
-                    queryCount: $queryCount,
-                    hasLimit: true,
-                    triggerLocation: $triggerLocation,
+                ? $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Performance/extra_lazy',
+                    context: [
+                        'entity' => $entity,
+                        'relation' => $relation,
+                        'query_count' => $queryCount,
+                        'has_limit' => true,
+                        'trigger_location' => $triggerLocation,
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::performance(),
+                        severity: $severity,
+                        title: sprintf('Collection N+1 Query: %d queries for %s.%s', $queryCount, $entity, $relation),
+                        tags: ['performance', 'doctrine', 'extra-lazy', 'n+1', 'collection'],
+                    ),
                 )
-                : $this->suggestionFactory->createEagerLoading(
-                    entity: $entity,
-                    relation: $relation,
-                    queryCount: $queryCount,
-                    triggerLocation: $triggerLocation,
+                : $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Performance/eager_loading',
+                    context: [
+                        'entity' => $entity,
+                        'relation' => $relation,
+                        'query_count' => $queryCount,
+                        'trigger_location' => $triggerLocation,
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::performance(),
+                        severity: $severity,
+                        title: sprintf('N+1 Query Problem: %d queries for %s.%s', $queryCount, $entity, $relation),
+                        tags: ['performance', 'doctrine', 'eager-loading', 'n+1'],
+                    ),
                 ),
-            default => $this->suggestionFactory->createEagerLoading(
-                entity: $entity,
-                relation: $relation,
-                queryCount: $queryCount,
-                triggerLocation: $triggerLocation,
+            default => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Performance/eager_loading',
+                context: [
+                    'entity' => $entity,
+                    'relation' => $relation,
+                    'query_count' => $queryCount,
+                    'trigger_location' => $triggerLocation,
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::performance(),
+                    severity: $severity,
+                    title: sprintf('N+1 Query Problem: %d queries for %s.%s', $queryCount, $entity, $relation),
+                    tags: ['performance', 'doctrine', 'eager-loading', 'n+1'],
+                ),
             ),
         };
     }
@@ -495,6 +554,19 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         }
 
         // INFO: Below threshold but worth noting
+        return Severity::info();
+    }
+
+    private function calculateEagerLoadingSeverity(int $queryCount): Severity
+    {
+        if ($queryCount > 100) {
+            return Severity::critical();
+        }
+
+        if ($queryCount > 20) {
+            return Severity::warning();
+        }
+
         return Severity::info();
     }
 

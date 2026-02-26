@@ -16,6 +16,8 @@ use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\CollationAnalyzerI
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -158,12 +160,21 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
             'title'       => sprintf('%s using collation: %s (performance vs accuracy trade-off)', ucfirst($level), $currentCollation),
             'description' => $description,
             'severity' => Severity::info(), // INFO instead of WARNING (it's a valid choice)
-            'suggestion'  => $this->suggestionFactory->createConfiguration(
-                setting: ucfirst($level) . ' collation',
-                currentValue: $currentCollation,
-                recommendedValue: self::RECOMMENDED_COLLATION,
-                description: 'utf8mb4_unicode_ci provides accurate Unicode sorting. Only change if multilingual sorting is important.',
-                fixCommand: $fixCommand,
+            'suggestion'  => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => ucfirst($level) . ' collation',
+                    'current_value' => $currentCollation,
+                    'recommended_value' => self::RECOMMENDED_COLLATION,
+                    'description' => 'utf8mb4_unicode_ci provides accurate Unicode sorting. Only change if multilingual sorting is important.',
+                    'fix_command' => $fixCommand,
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],
@@ -230,14 +241,23 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
             'title'       => sprintf('%d tables with different collation than database', count($tables)),
             'description' => $description,
             'severity'   => $severity,
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Table collations',
-                currentValue: $isHomogeneous ? $commonCollation : 'Mixed collations',
-                recommendedValue: $dbCollation,
-                description: $isHomogeneous
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'Table collations',
+                    'current_value' => $isHomogeneous ? $commonCollation : 'Mixed collations',
+                    'recommended_value' => $dbCollation,
+                    'description' => $isHomogeneous
                     ? 'Tables use consistent collation, only different from database default'
                     : 'Unify table collations to match database default for consistent behavior',
-                fixCommand: implode("\n", $fixCommands),
+                    'fix_command' => implode("\n", $fixCommands),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],
@@ -291,12 +311,21 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
                 count($mismatches),
             ),
             'severity' => Severity::critical(),
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'Foreign key collations',
-                currentValue: 'Mismatched collations',
-                recommendedValue: 'Matching collations',
-                description: 'Foreign key columns MUST have the same collation as their referenced columns for optimal JOIN performance',
-                fixCommand: implode("\n", $fixCommands),
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'Foreign key collations',
+                    'current_value' => 'Mismatched collations',
+                    'recommended_value' => 'Matching collations',
+                    'description' => 'Foreign key columns MUST have the same collation as their referenced columns for optimal JOIN performance',
+                    'fix_command' => implode("\n", $fixCommands),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],

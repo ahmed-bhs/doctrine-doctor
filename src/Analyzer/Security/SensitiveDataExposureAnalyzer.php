@@ -17,6 +17,9 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\SecurityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
@@ -423,10 +426,19 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 ";
         $code .= '}';
 
-        return $this->suggestionFactory->createCodeSuggestion(
-            description: 'Rewrite __toString() to only expose non-sensitive data',
-            code: $code,
-            filePath: $this->getFileLocation($reflectionMethod),
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'description' => 'Rewrite __toString() to only expose non-sensitive data',
+                'code' => $code,
+                'file_path' => $this->getFileLocation($reflectionMethod),
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: Severity::info(),
+                title: 'Code Quality Suggestion',
+                tags: ['code-quality'],
+            ),
         );
     }
 
@@ -468,10 +480,19 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 ";
         $code .= '}';
 
-        return $this->suggestionFactory->createCodeSuggestion(
-            description: 'Remove sensitive fields from jsonSerialize()',
-            code: $code,
-            filePath: $this->getFileLocation($reflectionMethod),
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'description' => 'Remove sensitive fields from jsonSerialize()',
+                'code' => $code,
+                'file_path' => $this->getFileLocation($reflectionMethod),
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: Severity::info(),
+                title: 'Code Quality Suggestion',
+                tags: ['code-quality'],
+            ),
         );
     }
 
@@ -511,10 +532,19 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 ";
         $code .= '}';
 
-        return $this->suggestionFactory->createCodeSuggestion(
-            description: 'Remove sensitive fields from toArray()',
-            code: $code,
-            filePath: $this->getFileLocation($reflectionMethod),
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'description' => 'Remove sensitive fields from toArray()',
+                'code' => $code,
+                'file_path' => $this->getFileLocation($reflectionMethod),
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: Severity::info(),
+                title: 'Code Quality Suggestion',
+                tags: ['code-quality'],
+            ),
         );
     }
 
@@ -566,10 +596,19 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 ";
         $code .= sprintf('private $%s;', $fieldName);
 
-        return $this->suggestionFactory->createCodeSuggestion(
-            description: 'Add serialization protection and sensitive parameter attributes',
-            code: $code,
-            filePath: $entityClass,
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'description' => 'Add serialization protection and sensitive parameter attributes',
+                'code' => $code,
+                'file_path' => $entityClass,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: Severity::info(),
+                title: 'Code Quality Suggestion',
+                tags: ['code-quality'],
+            ),
         );
     }
 

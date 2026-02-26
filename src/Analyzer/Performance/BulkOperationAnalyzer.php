@@ -20,6 +20,9 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Psr\Log\LoggerInterface;
 use Webmozart\Assert\Assert;
 
@@ -51,9 +54,18 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
 
                 foreach ($bulkOperations as $bulkOperation) {
                     if ($bulkOperation['count'] >= $this->threshold) {
-                        $suggestion = $this->suggestionFactory->createBatchOperation(
-                            table: $bulkOperation['table'],
-                            operationCount: $bulkOperation['count'],
+                        $suggestion = $this->suggestionFactory->createFromTemplate(
+                            templateName: 'Performance/batch_operation',
+                            context: [
+                                'table' => $bulkOperation['table'],
+                                'operation_count' => $bulkOperation['count'],
+                            ],
+                            suggestionMetadata: new SuggestionMetadata(
+                                type: SuggestionType::performance(),
+                                severity: Severity::warning(),
+                                title: sprintf('Memory Leak Risk: %d operations without clear()', $bulkOperation['count']),
+                                tags: ['performance', 'memory', 'batch'],
+                            ),
                         );
 
                         $issueData = new IssueData(

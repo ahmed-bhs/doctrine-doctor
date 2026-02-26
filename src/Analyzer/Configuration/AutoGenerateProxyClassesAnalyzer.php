@@ -15,6 +15,9 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Yaml\Yaml;
 
@@ -279,12 +282,21 @@ class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 $mode,
             ),
             'severity'   => 'critical',
-            'suggestion' => $this->suggestionFactory->createConfiguration(
-                setting: 'auto_generate_proxy_classes (PRODUCTION)',
-                currentValue: $mode,
-                recommendedValue: 'false (AUTOGENERATE_NEVER)',
-                description: 'Disable proxy auto-generation in production for better performance',
-                fixCommand: $this->getFixCommand(),
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'auto_generate_proxy_classes (PRODUCTION)',
+                    'current_value' => $mode,
+                    'recommended_value' => 'false (AUTOGENERATE_NEVER)',
+                    'description' => 'Disable proxy auto-generation in production for better performance',
+                    'fix_command' => $this->getFixCommand(),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: sprintf('Configuration Issue: %s', 'auto_generate_proxy_classes (PRODUCTION)'),
+                    tags: ['configuration', 'settings'],
+                ),
             ),
             'backtrace' => null,
             'queries'   => [],

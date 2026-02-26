@@ -16,6 +16,8 @@ use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\StrictModeAnalyzer
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -53,12 +55,21 @@ final readonly class MySQLStrictModeAnalyzer implements StrictModeAnalyzerInterf
                     implode(', ', $missingModes),
                 ),
                 'severity'   => count($missingModes) >= 3 ? Severity::critical() : Severity::warning(),
-                'suggestion' => $this->suggestionFactory->createConfiguration(
-                    setting: 'sql_mode',
-                    currentValue: $sqlMode,
-                    recommendedValue: implode(',', self::RECOMMENDED_SQL_MODES),
-                    description: 'Add missing modes to prevent data corruption and ensure data integrity',
-                    fixCommand: $this->getFixCommand($sqlMode, $missingModes),
+                'suggestion' => $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Configuration/configuration',
+                    context: [
+                        'setting' => 'sql_mode',
+                        'current_value' => $sqlMode,
+                        'recommended_value' => implode(',', self::RECOMMENDED_SQL_MODES),
+                        'description' => 'Add missing modes to prevent data corruption and ensure data integrity',
+                        'fix_command' => $this->getFixCommand($sqlMode, $missingModes),
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::configuration(),
+                        severity: Severity::info(),
+                        title: 'Configuration Issue',
+                        tags: ['configuration', 'settings'],
+                    ),
                 ),
                 'backtrace' => null,
                 'queries'   => [],

@@ -18,6 +18,9 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Webmozart\Assert\Assert;
 
 class SlowQueryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
@@ -48,12 +51,26 @@ class SlowQueryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInt
                 foreach ($slowQueries as $slowQuery) {
                     $executionTimeMs = $slowQuery->executionTime->inMilliseconds();
 
-                    // Use factory to create suggestion (new architecture)
-                    $suggestion = $this->suggestionFactory->createQueryOptimization(
-                        code: $slowQuery->sql,
-                        optimization: $this->analyzeQueryOptimizations($slowQuery->sql),
-                        executionTime: $executionTimeMs,
-                        threshold: $this->threshold,
+                    $severity = match (true) {
+                        $executionTimeMs > 1000 => Severity::critical(),
+                        $executionTimeMs > 500 => Severity::warning(),
+                        default => Severity::info(),
+                    };
+
+                    $suggestion = $this->suggestionFactory->createFromTemplate(
+                        templateName: 'Performance/query_optimization',
+                        context: [
+                            'code' => $slowQuery->sql,
+                            'optimization' => $this->analyzeQueryOptimizations($slowQuery->sql),
+                            'execution_time' => $executionTimeMs,
+                            'threshold' => $this->threshold,
+                        ],
+                        suggestionMetadata: new SuggestionMetadata(
+                            type: SuggestionType::performance(),
+                            severity: $severity,
+                            title: sprintf('Slow Query: %.2fms', $executionTimeMs),
+                            tags: ['performance', 'query', 'optimization'],
+                        ),
                     );
 
                     $issueData = new IssueData(
