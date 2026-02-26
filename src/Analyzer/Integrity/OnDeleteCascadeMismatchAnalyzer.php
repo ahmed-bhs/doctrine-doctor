@@ -14,6 +14,8 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
@@ -45,6 +47,7 @@ class OnDeleteCascadeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
+        private readonly ?IssueFactoryInterface $issueFactory = null,
     ) {
     }
 
@@ -254,7 +257,7 @@ class OnDeleteCascadeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     ): IntegrityIssue {
         $severity = $this->determineSeverity($mismatch['type']);
 
-        $codeQualityIssue = new IntegrityIssue([
+        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic', 
             'entity'        => $entityClass,
             'field'         => $fieldName,
             'mismatch_type' => $mismatch['type'],

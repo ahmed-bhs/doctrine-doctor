@@ -14,6 +14,8 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
@@ -53,6 +55,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
+        private readonly ?IssueFactoryInterface $issueFactory = null,
     ) {
     }
 
@@ -230,7 +233,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             backtrace: $this->createEntityBacktrace($classMetadata),
         );
 
-        return new IntegrityIssue($issueData->toArray());
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
     }
 
     /**
@@ -256,7 +259,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             backtrace: $this->createEntityBacktrace($classMetadata),
         );
 
-        return new IntegrityIssue($issueData->toArray());
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
     }
 
     /**
@@ -279,7 +282,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             queries: [],
         );
 
-        return new IntegrityIssue($issueData->toArray());
+        return ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
     }
 
     /**
