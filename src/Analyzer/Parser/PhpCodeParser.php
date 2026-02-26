@@ -70,7 +70,7 @@ final class PhpCodeParser
     public function __construct(
         private readonly ?LoggerInterface $logger = null,
     ) {
-        $this->parser = new ParserFactory()->createForNewestSupportedVersion();
+        $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
     }
 
     /**
