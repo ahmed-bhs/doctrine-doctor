@@ -283,12 +283,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $rawSql = $query['sql'] ?? '';
             $sql = is_string($rawSql) ? $rawSql : '';
             $executionTime = (float) ($query['executionMS'] ?? 0.0);
-
-            if ($executionTime > 0 && $executionTime < 1) {
-                $executionMs = $executionTime * 1000;
-            } else {
-                $executionMs = $executionTime;
-            }
+            $executionMs = $executionTime * 1000;
 
             if (!isset($grouped[$sql])) {
                 $grouped[$sql] = [
