@@ -42,6 +42,43 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
                 ->arrayNode('analyzers')
+                    ->beforeNormalization()
+                        ->ifTrue(static fn (mixed $value): bool => \is_array($value))
+                        ->then(static function (array $analyzers): array {
+                            $legacyKeyMap = [
+                                'sql_injection_raw_queries' => 'sql_injection_in_raw_queries',
+                                'cascade_persist_independent' => 'cascade_persist_on_independent_entity',
+                                'missing_orphan_removal' => 'missing_orphan_removal_on_composition',
+                                'cascade_remove_independent' => 'cascade_remove_on_independent_entity',
+                                'orphan_removal_no_cascade' => 'orphan_removal_without_cascade_remove',
+                                'ondelete_mismatch' => 'on_delete_cascade_mismatch',
+                            ];
+
+                            foreach ($legacyKeyMap as $legacyKey => $newKey) {
+                                if (!\array_key_exists($legacyKey, $analyzers)) {
+                                    continue;
+                                }
+
+                                if (\function_exists('trigger_deprecation')) {
+                                    \trigger_deprecation(
+                                        'ahmed-bhs/doctrine-doctor',
+                                        '2.x',
+                                        'The analyzer config key "%s" is deprecated; use "%s" instead.',
+                                        $legacyKey,
+                                        $newKey,
+                                    );
+                                }
+
+                                if (!\array_key_exists($newKey, $analyzers)) {
+                                    $analyzers[$newKey] = $analyzers[$legacyKey];
+                                }
+
+                                unset($analyzers[$legacyKey]);
+                            }
+
+                            return $analyzers;
+                        })
+                    ->end()
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->arrayNode('n_plus_one')
@@ -287,7 +324,7 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end()
-                        ->arrayNode('sql_injection_raw_queries')
+                        ->arrayNode('sql_injection_in_raw_queries')
                             ->addDefaultsIfNotSet()
                             ->children()
                                 ->booleanNode('enabled')
@@ -337,7 +374,7 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end()
-                        ->arrayNode('cascade_persist_independent')
+                        ->arrayNode('cascade_persist_on_independent_entity')
                             ->addDefaultsIfNotSet()
                             ->children()
                                 ->booleanNode('enabled')
@@ -346,7 +383,7 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end()
-                        ->arrayNode('missing_orphan_removal')
+                        ->arrayNode('missing_orphan_removal_on_composition')
                             ->addDefaultsIfNotSet()
                             ->children()
                                 ->booleanNode('enabled')
@@ -355,7 +392,7 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end()
-                        ->arrayNode('cascade_remove_independent')
+                        ->arrayNode('cascade_remove_on_independent_entity')
                             ->addDefaultsIfNotSet()
                             ->children()
                                 ->booleanNode('enabled')
@@ -373,7 +410,7 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end()
-                        ->arrayNode('orphan_removal_no_cascade')
+                        ->arrayNode('orphan_removal_without_cascade_remove')
                             ->addDefaultsIfNotSet()
                             ->children()
                                 ->booleanNode('enabled')
@@ -382,7 +419,7 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end()
-                        ->arrayNode('ondelete_mismatch')
+                        ->arrayNode('on_delete_cascade_mismatch')
                             ->addDefaultsIfNotSet()
                             ->children()
                                 ->booleanNode('enabled')
