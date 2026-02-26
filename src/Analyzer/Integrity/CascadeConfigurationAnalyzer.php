@@ -307,11 +307,14 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
 ";
         $mappedBy = MappingHelper::getString($mapping, 'mappedBy') ?? 'parent';
+        $targetEntityName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(
+            MappingHelper::getString($mapping, 'targetEntity') ?? '',
+        );
 
         if ($this->isAttribute()) {
             $code .= "#[OneToMany(
 ";
-            $code .= "    targetEntity: {\AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(MappingHelper::getString({$mapping}, 'targetEntity') ?? '')},
+            $code .= "    targetEntity: {$targetEntityName},
 ";
             $code .= "    mappedBy: '{$mappedBy}',
 ";
@@ -324,7 +327,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 ";
             $code .= " * @ORM\OneToMany(
 ";
-            $code .= " *     targetEntity=\"{MappingHelper::getString({$mapping}, 'targetEntity')}\",
+            $code .= " *     targetEntity=\"{$targetEntityName}\",
 ";
             $code .= " *     mappedBy=\"{$mappedBy}\",
 ";
@@ -362,6 +365,9 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
     {
         $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
         $mappedBy       = MappingHelper::getString($mapping, 'mappedBy') ?? 'parent';
+        $targetEntityName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(
+            MappingHelper::getString($mapping, 'targetEntity') ?? '',
+        );
 
         $code = "// In {$shortClassName} class:
 
@@ -372,7 +378,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         if ($this->isAttribute()) {
             $code .= "#[OneToMany(
 ";
-            $code .= "    targetEntity: {\AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(MappingHelper::getString({$mapping}, 'targetEntity') ?? '')},
+            $code .= "    targetEntity: {$targetEntityName},
 ";
             $code .= "    mappedBy: '{$mappedBy}'
 ";
@@ -385,7 +391,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 ";
             $code .= " * @ORM\OneToMany(
 ";
-            $code .= " *     targetEntity=\"{MappingHelper::getString({$mapping}, 'targetEntity')}\",
+            $code .= " *     targetEntity=\"{$targetEntityName}\",
 ";
             $code .= " *     mappedBy=\"{$mappedBy}\"
 ";
@@ -419,6 +425,9 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
     {
         $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
         $mappedBy       = MappingHelper::getString($mapping, 'mappedBy') ?? 'parent';
+        $targetEntityName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(
+            MappingHelper::getString($mapping, 'targetEntity') ?? '',
+        );
 
         $code = "// In {$shortClassName} class:
 
@@ -427,7 +436,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         if ($this->isAttribute()) {
             $code .= "#[OneToMany(
 ";
-            $code .= "    targetEntity: {\AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(MappingHelper::getString({$mapping}, 'targetEntity') ?? '')},
+            $code .= "    targetEntity: {$targetEntityName},
 ";
             $code .= "    mappedBy: '{$mappedBy}',
 ";
