@@ -103,7 +103,7 @@ final class GetReferenceAnalyzerIntegrationTest extends DatabaseTestCase
         self::assertGreaterThan(0, count($issueCollection), 'Should detect unnecessary find() queries');
 
         $issue = $issueCollection->toArray()[0];
-        self::assertEquals('performance', $issue->getCategory());
+        self::assertEquals('performance', $issue->getCategory()->value);
         self::assertStringContainsString('find()', (string) $issue->getTitle());
     }
 
