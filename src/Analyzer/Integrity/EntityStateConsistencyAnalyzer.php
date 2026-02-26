@@ -97,9 +97,9 @@ class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
             $cascade = \is_array($mapping['cascade'] ?? null) ? $mapping['cascade'] : [];
 
             if (!\in_array('persist', $cascade, true)) {
-                $shortName = $this->getShortClassName($classMetadata->getName());
+                $shortName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($classMetadata->getName());
                 $targetEntity = $mapping['targetEntity'] ?? '';
-                $targetShort = $this->getShortClassName(\is_string($targetEntity) ? $targetEntity : '');
+                $targetShort = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(\is_string($targetEntity) ? $targetEntity : '');
 
                 $description = sprintf(
                     "Required association %s::\$%s targets %s without cascade persist.\n\n",
@@ -136,12 +136,5 @@ class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         }
 
         return $issues;
-    }
-
-    private function getShortClassName(string $fqcn): string
-    {
-        $parts = explode('\\', $fqcn);
-
-        return end($parts);
     }
 }

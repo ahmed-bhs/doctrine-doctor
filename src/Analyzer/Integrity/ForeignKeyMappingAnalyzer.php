@@ -13,9 +13,9 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
@@ -334,7 +334,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
 
         foreach ($allMetadata as $metadata) {
             $className = $metadata->getName();
-            $shortName = strtolower($this->getShortClassName($className));
+            $shortName = strtolower(\AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($className));
 
             if ($shortName === $baseNameLower) {
                 return $className;
@@ -347,12 +347,6 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
     /**
      * Get short class name (without namespace).
      */
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
-    }
 
     /**
      * Create suggestion interface for fixing the issue.
@@ -371,7 +365,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Integrity/foreign_key_primitive',
             context: [
-                'entity_class'     => $this->getShortClassName($entityClass),
+                'entity_class'     => \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass),
                 'field_name'       => $fieldName,
                 'target_entity'    => $targetEntity ?? 'Unknown',
                 'association_type' => 'ManyToOne',

@@ -241,7 +241,7 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             return $this->createIssue(
                 $classMetadata->getName(),
                 $assocName,
-                sprintf('%s (non-nullable)', $this->getShortClassName($targetEntity)),
+                sprintf('%s (non-nullable)', \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity)),
                 sprintf('?%s (nullable)', $propertyType->getName()),
                 Severity::warning(),
             );
@@ -272,7 +272,7 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         $backingTypeName = $backingType->getName();
 
         if ($backingTypeName !== $expectedPhpType && 'mixed' !== $expectedPhpType) {
-            $shortEnum = $this->getShortClassName($enumClass);
+            $shortEnum = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($enumClass);
 
             return $this->createIssue(
                 $entityClass,
@@ -327,7 +327,7 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         string $actualType,
         Severity $severity,
     ): IssueInterface {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
 
         $description = sprintf(
             "Property %s::\$%s has type mismatch:\n",
@@ -357,12 +357,5 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         );
 
         return $this->issueFactory->create($issueData);
-    }
-
-    private function getShortClassName(string $fqcn): string
-    {
-        $parts = explode('\\', $fqcn);
-
-        return end($parts);
     }
 }

@@ -327,7 +327,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $methodName,
         \ReflectionMethod $reflectionMethod,
     ): SecurityIssue {
-        $shortClassName = $this->getShortClassName($className);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($className);
 
         $description = sprintf(
             'Method "%s::%s()" uses string concatenation to build SQL queries. ' .
@@ -356,7 +356,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $methodName,
         \ReflectionMethod $reflectionMethod,
     ): SecurityIssue {
-        $shortClassName = $this->getShortClassName($className);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($className);
 
         $description = sprintf(
             'Method "%s::%s()" uses variable interpolation in SQL query strings. ' .
@@ -385,7 +385,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $sqlMethod,
         \ReflectionMethod $reflectionMethod,
     ): SecurityIssue {
-        $shortClassName = $this->getShortClassName($className);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($className);
 
         $description = sprintf(
             'Method "%s::%s()" calls %s() with a dynamically built SQL query but no parameter binding. ' .
@@ -415,7 +415,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $methodName,
         \ReflectionMethod $reflectionMethod,
     ): SecurityIssue {
-        $shortClassName = $this->getShortClassName($className);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($className);
 
         $description = sprintf(
             'Method "%s::%s()" uses sprintf() to format SQL queries with user input. ' .
@@ -443,7 +443,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $methodName,
         \ReflectionMethod $reflectionMethod,
     ): SuggestionInterface {
-        $shortClassName = $this->getShortClassName($className);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($className);
 
         $code = "// In {$shortClassName}::{$methodName}():
 
@@ -525,7 +525,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $sqlMethod,
         \ReflectionMethod $reflectionMethod,
     ): SuggestionInterface {
-        $shortClassName = $this->getShortClassName($className);
+        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($className);
 
         $code = "// In {$shortClassName}::{$methodName}():
 
@@ -588,13 +588,6 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         }
 
         return implode('', array_slice($source, $startLine - 1, $endLine - $startLine + 1));
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 
     private function getFileLocation(\ReflectionMethod $reflectionMethod): string
