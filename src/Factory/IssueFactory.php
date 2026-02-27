@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Factory;
 
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
-use AhmedBhs\DoctrineDoctor\Issue\AbstractIssue;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use InvalidArgumentException;
@@ -24,8 +23,12 @@ use InvalidArgumentException;
  */
 class IssueFactory implements IssueFactoryInterface
 {
-    /** @var array<string, class-string<AbstractIssue>>|null */
-    private static ?array $typeMap = null;
+    private readonly IssueTypeRegistryInterface $issueTypeRegistry;
+
+    public function __construct(?IssueTypeRegistryInterface $issueTypeRegistry = null)
+    {
+        $this->issueTypeRegistry = $issueTypeRegistry ?? new FilesystemIssueTypeRegistry();
+    }
 
     public function create(IssueData $issueData): IssueInterface
     {
@@ -41,7 +44,7 @@ class IssueFactory implements IssueFactoryInterface
         $type = $rawType instanceof IssueType ? $rawType->value : (is_string($rawType) ? $rawType : 'unknown');
 
         // Find the concrete class for this issue type
-        $typeMap = $this->getTypeMap();
+        $typeMap = $this->issueTypeRegistry->getTypeMap();
         $issueClass = $typeMap[$type] ?? null;
 
         if (null === $issueClass) {
@@ -56,7 +59,7 @@ class IssueFactory implements IssueFactoryInterface
      */
     public function supports(string $type): bool
     {
-        return isset($this->getTypeMap()[$type]);
+        return $this->issueTypeRegistry->supports($type);
     }
 
     /**
@@ -65,64 +68,6 @@ class IssueFactory implements IssueFactoryInterface
      */
     public function getSupportedTypes(): array
     {
-        return array_keys($this->getTypeMap());
-    }
-
-    /**
-     * Build and cache the map of type => issue class from issue class declarations.
-     *
-     * @return array<string, class-string<AbstractIssue>>
-     */
-    private function getTypeMap(): array
-    {
-        if (null !== self::$typeMap) {
-            return self::$typeMap;
-        }
-
-        $map = [];
-        foreach ($this->discoverIssueClasses() as $issueClass) {
-            foreach ($issueClass::supportedTypes() as $type) {
-                if (isset($map[$type]) && $map[$type] !== $issueClass) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Duplicate issue type mapping for "%s": %s and %s',
-                        $type,
-                        $map[$type],
-                        $issueClass,
-                    ));
-                }
-
-                $map[$type] = $issueClass;
-            }
-        }
-
-        self::$typeMap = $map;
-
-        return self::$typeMap;
-    }
-
-    /**
-     * @return list<class-string<AbstractIssue>>
-     */
-    private function discoverIssueClasses(): array
-    {
-        $issueClasses = [];
-        $issueFiles = glob(__DIR__ . '/../Issue/*Issue.php') ?: [];
-
-        foreach ($issueFiles as $issueFile) {
-            $className = pathinfo($issueFile, PATHINFO_FILENAME);
-            $fqcn = 'AhmedBhs\\DoctrineDoctor\\Issue\\' . $className;
-
-            if (!class_exists($fqcn)) {
-                continue;
-            }
-
-            if (!is_subclass_of($fqcn, AbstractIssue::class)) {
-                continue;
-            }
-
-            $issueClasses[] = $fqcn;
-        }
-
-        return $issueClasses;
+        return $this->issueTypeRegistry->getSupportedTypes();
     }
 }
