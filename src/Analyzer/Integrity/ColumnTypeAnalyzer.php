@@ -711,5 +711,4 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 
         return $code;
     }
-
 }
