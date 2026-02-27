@@ -44,7 +44,6 @@ class DQLInjectionIssue extends AbstractIssue
     {
         return [
             IssueType::DQL_INJECTION->value,
-            'Security Vulnerability',
             IssueType::QUERY_BUILDER_SQL_INJECTION->value,
             IssueType::UNESCAPED_LIKE->value,
             IssueType::INCORRECT_NULL_COMPARISON->value,

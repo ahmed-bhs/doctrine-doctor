@@ -37,7 +37,6 @@ class GetReferenceIssue extends AbstractIssue
     {
         return [
             IssueType::GET_REFERENCE->value,
-            'Inefficient Entity Loading',
         ];
     }
 

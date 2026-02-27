@@ -38,7 +38,6 @@ class TransactionIssue extends AbstractIssue
             IssueType::TRANSACTION_MULTIPLE_FLUSH->value,
             IssueType::TRANSACTION_UNCLOSED->value,
             IssueType::TRANSACTION_TOO_LONG->value,
-            'Transaction Boundary Issue',
         ];
     }
 

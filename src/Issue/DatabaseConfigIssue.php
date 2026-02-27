@@ -30,7 +30,6 @@ class DatabaseConfigIssue extends AbstractIssue
     {
         return [
             IssueType::CONFIGURATION->value,
-            'Database Configuration Issue',
         ];
     }
 

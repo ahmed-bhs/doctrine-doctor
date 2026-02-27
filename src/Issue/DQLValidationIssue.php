@@ -33,7 +33,6 @@ class DQLValidationIssue extends AbstractIssue
     {
         return [
             IssueType::DQL_VALIDATION->value,
-            'DQL Validation Error',
         ];
     }
 

@@ -36,7 +36,6 @@ class EntityManagerClearIssue extends AbstractIssue
     {
         return [
             IssueType::ENTITY_MANAGER_CLEAR->value,
-            'Memory Leak Risk',
         ];
     }
 

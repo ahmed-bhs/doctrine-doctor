@@ -36,7 +36,6 @@ class FindAllIssue extends AbstractIssue
     {
         return [
             IssueType::FIND_ALL->value,
-            'findAll() Usage',
         ];
     }
 
