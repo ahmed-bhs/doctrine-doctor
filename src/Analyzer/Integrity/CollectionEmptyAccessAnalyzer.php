@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -37,6 +38,8 @@ use Webmozart\Assert\Assert;
  */
 class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly IssueFactoryInterface $issueFactory,
@@ -197,7 +200,7 @@ class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         string $entityClass,
         string $propertyName,
     ): IssueInterface {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $description = sprintf(
             "Collection property %s::\$%s is not initialized.\n\n",

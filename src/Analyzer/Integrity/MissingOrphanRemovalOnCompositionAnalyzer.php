@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
@@ -43,6 +44,8 @@ use Webmozart\Assert\Assert;
  */
 class MissingOrphanRemovalOnCompositionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     /**
      * Child entity name patterns that suggest composition.
      */
@@ -294,8 +297,8 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements \AhmedBhs\DoctrineDoc
     ): SuggestionInterface {
         $targetEntity    = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $cascade         = MappingHelper::getArray($mapping, 'cascade') ?? [];
-        $shortClassName  = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
-        $shortTargetName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity);
+        $shortClassName  = $this->shortClassName($entityClass);
+        $shortTargetName = $this->shortClassName($targetEntity);
         $mappedBy        = MappingHelper::getString($mapping, 'mappedBy') ?? 'parent';
 
         $currentCascade = [] === $cascade

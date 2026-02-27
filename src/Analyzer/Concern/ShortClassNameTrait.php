@@ -9,15 +9,11 @@
 
 declare(strict_types=1);
 
-namespace AhmedBhs\DoctrineDoctor\Helper;
+namespace AhmedBhs\DoctrineDoctor\Analyzer\Concern;
 
-final class ClassNameHelper
+trait ShortClassNameTrait
 {
-    private function __construct()
-    {
-    }
-
-    public static function shortName(string $className): string
+    protected function shortClassName(string $className): string
     {
         $parts = explode('\\', $className);
 
