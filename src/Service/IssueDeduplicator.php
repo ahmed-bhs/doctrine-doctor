@@ -151,11 +151,11 @@ final class IssueDeduplicator
         // - "N+1 Query Detected: 35 queries"
         // - "Frequent Query Executed 35 Times"
         // - "Lazy Loading in Loop: 35 queries"
-        if (false === preg_match('/(\d+)\s+(?:queries?|executions?|times?|rows?)/i', $title, $matches)) {
+        if (1 !== preg_match('/(\d+)\s+(?:queries?|executions?|times?|rows?)/i', $title, $matches)) {
             return null;
         }
 
-        if (!isset($matches[1]) || null === $entityOrTable) {
+        if (null === $entityOrTable) {
             return null;
         }
 
@@ -212,46 +212,36 @@ final class IssueDeduplicator
     private function extractEntityOrTable(string $title, string $description, string $sql): ?string
     {
         // Try entity name first (e.g., "BillLine", "SubscriptionLine")
-        if (false !== preg_match('/(?:entity|class|Entity)\s+["\']?([A-Z]\w+)["\']?/i', $title, $matches)) {
-            if (isset($matches[1])) {
-                return $matches[1];
-            }
+        if (1 === preg_match('/(?:entity|class|Entity)\s+["\']?([A-Z]\w+)["\']?/i', $title, $matches)) {
+            return $matches[1];
         }
 
-        if (false !== preg_match('/(?:entity|class|Entity)\s+["\']?([A-Z]\w+)["\']?/i', $description, $matches)) {
-            if (isset($matches[1])) {
-                return $matches[1];
-            }
+        if (1 === preg_match('/(?:entity|class|Entity)\s+["\']?([A-Z]\w+)["\']?/i', $description, $matches)) {
+            return $matches[1];
         }
 
         // Try table name in title (e.g., "table 'categories'", "on categories")
-        if (false !== preg_match('/(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $title, $matches)) {
-            if (isset($matches[1]) && !in_array(strtolower($matches[1]), ['table', 'from', 'join', 'on', 'static'], true)) {
-                return $matches[1];
-            }
+        if (1 === preg_match('/(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $title, $matches)
+            && !in_array(strtolower($matches[1]), ['table', 'from', 'join', 'on', 'static'], true)) {
+            return $matches[1];
         }
 
         // Try table name in description
-        if (false !== preg_match('/(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $description, $matches)) {
-            if (isset($matches[1]) && !in_array(strtolower($matches[1]), ['table', 'from', 'join', 'on', 'static'], true)) {
-                return $matches[1];
-            }
+        if (1 === preg_match('/(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $description, $matches)
+            && !in_array(strtolower($matches[1]), ['table', 'from', 'join', 'on', 'static'], true)) {
+            return $matches[1];
         }
 
         // Extract from SQL - try to get the main table
         if ('' !== $sql) {
             // Try FROM clause first
-            if (false !== preg_match('/FROM\s+(\w+)/i', $sql, $matches)) {
-                if (isset($matches[1])) {
-                    return $matches[1];
-                }
+            if (1 === preg_match('/FROM\s+(\w+)/i', $sql, $matches)) {
+                return $matches[1];
             }
 
             // Try WHERE clause for table reference (e.g., "WHERE T0.ID = ?")
-            if (false !== preg_match('/WHERE\s+T\d+\.ID\s*=.*?FROM\s+(\w+)/is', $sql, $matches)) {
-                if (isset($matches[1])) {
-                    return $matches[1];
-                }
+            if (1 === preg_match('/WHERE\s+T\d+\.ID\s*=.*?FROM\s+(\w+)/is', $sql, $matches)) {
+                return $matches[1];
             }
         }
 
