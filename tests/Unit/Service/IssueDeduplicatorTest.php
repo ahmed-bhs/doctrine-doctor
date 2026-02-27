@@ -262,6 +262,29 @@ final class IssueDeduplicatorTest extends TestCase
     }
 
     #[Test]
+    public function it_does_not_group_repeated_query_signature_when_title_has_no_count(): void
+    {
+        $issue1 = $this->createIssue(
+            'N+1 Query detected on BillLine',
+            'N+1 without explicit count',
+            Severity::CRITICAL,
+            [new QueryData('SELECT * FROM bill_line WHERE id = ?', QueryExecutionTime::fromMilliseconds(40.0))],
+        );
+
+        $issue2 = $this->createIssue(
+            'Lazy Loading in Loop on BillLine',
+            'Lazy loading without explicit count',
+            Severity::WARNING,
+            [new QueryData('SELECT * FROM bill_line WHERE user_id = ?', QueryExecutionTime::fromMilliseconds(35.0))],
+        );
+
+        $deduplicated = $this->deduplicator->deduplicate(IssueCollection::fromArray([$issue1, $issue2]));
+
+        // Without a numeric count in titles, repeated-query signature must not collapse these issues.
+        self::assertCount(2, $deduplicated);
+    }
+
+    #[Test]
     public function it_handles_query_data_objects_instead_of_arrays(): void
     {
         // Arrange - This tests the actual runtime behavior where getQueries() returns QueryData objects
