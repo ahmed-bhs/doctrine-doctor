@@ -38,7 +38,7 @@ final class PrimaryKeyStrategyAnalyzerTest extends TestCase
         $this->primaryKeyStrategyAnalyzer = new PrimaryKeyStrategyAnalyzer(
             $this->entityManager,
             $suggestionFactory,
-        new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 
