@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Service;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
+use AhmedBhs\DoctrineDoctor\Issue\DeduplicatableIssueInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Webmozart\Assert\Assert;
@@ -351,7 +352,7 @@ final class IssueDeduplicator
         }
 
         // Attach duplicates to the best issue
-        if (null !== $bestIssue && count($duplicates) > 0) {
+        if (null !== $bestIssue && count($duplicates) > 0 && $bestIssue instanceof DeduplicatableIssueInterface) {
             $bestIssue->setDuplicatedIssues($duplicates);
         }
 
