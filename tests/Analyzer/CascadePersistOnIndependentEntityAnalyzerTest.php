@@ -46,7 +46,7 @@ final class CascadePersistOnIndependentEntityAnalyzerTest extends TestCase
         $this->analyzer = new CascadePersistOnIndependentEntityAnalyzer(
             $entityManager,
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
-        new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 

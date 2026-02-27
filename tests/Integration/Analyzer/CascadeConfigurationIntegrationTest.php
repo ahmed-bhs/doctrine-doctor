@@ -55,13 +55,13 @@ final class CascadeConfigurationIntegrationTest extends DatabaseTestCase
         $this->cascadePersistOnIndependentEntityAnalyzer = new CascadePersistOnIndependentEntityAnalyzer(
             $this->entityManager,
             $suggestionFactory,
-        new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
 
         $this->missingOrphanRemovalOnCompositionAnalyzer = new MissingOrphanRemovalOnCompositionAnalyzer(
             $this->entityManager,
             $suggestionFactory,
-        new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
 
         // Create schema
