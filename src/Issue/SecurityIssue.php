@@ -29,12 +29,6 @@ class SecurityIssue extends AbstractIssue
         ], $data));
     }
 
-    #[\Override]
-    public function getType(): string
-    {
-        return 'Security';
-    }
-
     public function getCategory(): IssueCategory
     {
         return IssueCategory::SECURITY;
