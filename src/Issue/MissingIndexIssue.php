@@ -31,6 +31,14 @@ class MissingIndexIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::MISSING_INDEX->value,
+            'Missing Index',
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::PERFORMANCE;

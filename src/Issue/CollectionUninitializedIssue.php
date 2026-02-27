@@ -29,6 +29,14 @@ class CollectionUninitializedIssue extends AbstractIssue
         parent::__construct($data);
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::COLLECTION_UNINITIALIZED->value,
+            'Uninitialized Collection',
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::INTEGRITY;
