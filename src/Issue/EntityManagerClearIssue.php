@@ -32,6 +32,14 @@ class EntityManagerClearIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::ENTITY_MANAGER_CLEAR->value,
+            'Memory Leak Risk',
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::PERFORMANCE;

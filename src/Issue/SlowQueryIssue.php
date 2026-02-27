@@ -30,6 +30,14 @@ class SlowQueryIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::SLOW_QUERY->value,
+            'Slow Query',
+        ];
+    }
+
     #[\Override]
     public function getType(): string
     {

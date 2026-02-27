@@ -34,6 +34,14 @@ class LazyLoadingIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::LAZY_LOADING->value,
+            'Lazy Loading in Loop',
+        ];
+    }
+
     #[\Override]
     public function getType(): string
     {

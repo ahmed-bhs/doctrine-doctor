@@ -29,6 +29,14 @@ class RepositoryFieldValidationIssue extends AbstractIssue
         parent::__construct($data);
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::REPOSITORY_INVALID_FIELD->value,
+            'Invalid Field in Repository Method',
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::INTEGRITY;

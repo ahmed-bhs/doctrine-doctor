@@ -32,6 +32,14 @@ class FindAllIssue extends AbstractIssue
         parent::__construct($data);
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::FIND_ALL->value,
+            'findAll() Usage',
+        ];
+    }
+
     #[\Override]
     public function getType(): string
     {
