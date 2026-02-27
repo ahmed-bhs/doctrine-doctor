@@ -136,7 +136,7 @@ final class CascadeConfigurationAnalyzerIntegrationTest extends TestCase
         $entityManager = $this->entityManager;
         $suggestionFactory = new SuggestionFactory($this->createTwigRenderer());
 
-        return new CascadeConfigurationAnalyzer($entityManager, $suggestionFactory);
+        return new CascadeConfigurationAnalyzer($entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer

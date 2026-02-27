@@ -14,10 +14,10 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -45,7 +45,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
 
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
-        private readonly ?IssueFactoryInterface $issueFactory = null,
+        private readonly IssueFactoryInterface $issueFactory,
     ) {
     }
 
@@ -143,7 +143,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         $correctSyntax = $this->getCorrectSyntax($field, $operator);
 
         $issueData = new IssueData(
-            type: 'integrity_incorrect_null_comparison',
+            type: IssueType::INTEGRITY_INCORRECT_NULL_COMPARISON->value,
             title: 'Incorrect NULL Comparison',
             description: sprintf(
                 "Found '%s' in query. Comparing to NULL with '%s' does not work as expected in SQL. " .
@@ -159,7 +159,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         );
 
         /** @var IntegrityIssue $issue */
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
+        $issue = $this->issueFactory->createFromArray($issueData->toArray());
         return $issue;
     }
 

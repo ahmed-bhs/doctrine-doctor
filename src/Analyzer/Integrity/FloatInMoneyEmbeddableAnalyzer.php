@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -205,7 +206,7 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'float_in_money_embeddable',
+            'type' => IssueType::FLOAT_IN_MONEY_EMBEDDABLE->value,
             'title'       => sprintf('Float in Money Embeddable: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'critical',

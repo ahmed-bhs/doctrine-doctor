@@ -49,6 +49,7 @@ final class OrphanRemovalWithoutCascadeRemoveAnalyzerTest extends TestCase
         $this->analyzer = new OrphanRemovalWithoutCascadeRemoveAnalyzer(
             $entityManager,
             PlatformAnalyzerTestHelper::createSuggestionFactory(), // @phpstan-ignore-line argument.type
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 

@@ -136,7 +136,7 @@ final class EntityManagerInEntityAnalyzerIntegrationTest extends TestCase
         $em = $this->entityManager;
         $suggestionFactory = new SuggestionFactory($this->createTwigRenderer());
 
-        return new EntityManagerInEntityAnalyzer($em, $suggestionFactory);
+        return new EntityManagerInEntityAnalyzer($em, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer

@@ -42,6 +42,7 @@ final class OnDeleteCascadeMismatchAnalyzerTest extends TestCase
         $this->analyzer = new OnDeleteCascadeMismatchAnalyzer(
             $entityManager,
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 

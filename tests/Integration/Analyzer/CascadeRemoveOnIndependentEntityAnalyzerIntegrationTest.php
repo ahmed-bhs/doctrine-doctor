@@ -131,6 +131,6 @@ final class CascadeRemoveOnIndependentEntityAnalyzerIntegrationTest extends Test
     {
         $entityManager = $this->entityManager;
 
-        return new CascadeRemoveOnIndependentEntityAnalyzer($entityManager);
+        return new CascadeRemoveOnIndependentEntityAnalyzer($entityManager, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 }

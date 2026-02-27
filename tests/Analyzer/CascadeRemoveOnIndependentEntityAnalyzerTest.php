@@ -45,6 +45,7 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
 
         $this->analyzer = new CascadeRemoveOnIndependentEntityAnalyzer(
             $entityManager,
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 

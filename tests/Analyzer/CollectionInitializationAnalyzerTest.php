@@ -83,6 +83,7 @@ final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
         $this->analyzer = new CollectionInitializationAnalyzer(
             $this->entityManager,
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 

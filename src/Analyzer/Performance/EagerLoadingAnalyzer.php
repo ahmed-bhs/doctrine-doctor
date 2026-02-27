@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -56,7 +57,7 @@ class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
                     if ($joinCount >= $this->joinThreshold) {
                         $issueData = new IssueData(
-                            type: 'eager_loading',
+                            type: IssueType::EAGER_LOADING->value,
                             title: sprintf('Excessive Eager Loading: %d JOINs', $joinCount),
                             description: DescriptionHighlighter::highlight(
                                 'Query contains {count} JOINs which may cause cartesian product issues (threshold: {threshold})',

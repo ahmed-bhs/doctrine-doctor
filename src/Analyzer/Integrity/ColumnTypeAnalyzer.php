@@ -11,12 +11,13 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -37,6 +38,8 @@ use Webmozart\Assert\Assert;
  */
 class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     // Deprecated/problematic types
     private const array PROBLEMATIC_TYPES = [
         'object' => [
@@ -57,7 +60,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
-        private readonly ?IssueFactoryInterface $issueFactory = null,
+        private readonly IssueFactoryInterface $issueFactory,
         private readonly ?LoggerInterface $logger = null,
     ) {
     }
@@ -189,7 +192,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         string $type,
         array $typeInfo,
     ): IntegrityIssue {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
         $isVendor = $this->isVendorEntity($entityClass);
 
         // Adjust severity and message for vendor entities
@@ -219,7 +222,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         }
 
         /** @var IntegrityIssue $issue */
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => sprintf(
                 'Problematic column type "%s" in %s::$%s%s',
                 $type,
@@ -258,7 +261,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         string $fieldName,
         array $mapping,
     ): ?IntegrityIssue {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         // simple_array stores as comma-separated string
         // Issues:
@@ -271,7 +274,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 
         if ($length <= self::SIMPLE_ARRAY_MAX_LENGTH) {
             /** @var IntegrityIssue $issue */
-            $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+            $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
                 'title'       => sprintf('simple_array type with limited length in %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Field "%s::$%s" uses "simple_array" type with length=%d. ' .
@@ -336,10 +339,10 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             return null;
         }
 
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         /** @var IntegrityIssue $issue */
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => sprintf('Consider using native enum for %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Field "%s::$%s" has only %d distinct values across %d rows (%.1f%% uniqueness). ' .
@@ -433,7 +436,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         string $fieldName,
         string $oldType,
     ): string {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $code = "// In {$shortClassName} entity:
 
@@ -512,7 +515,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 
     private function generateSimpleArrayMigrationCode(string $entityClass, string $fieldName): string
     {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $code = "// In {$shortClassName} entity:
 
@@ -566,7 +569,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 
     private function generateEnumMigrationCode(string $entityClass, string $fieldName): string
     {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
         $enumName       = ucfirst($fieldName) . 'Enum';
 
         $code = "// Step 1: Create the enum
@@ -688,7 +691,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         string $oldType,
         string $newType,
     ): string {
-        $vendorShortName = $this->getShortClassName($vendorEntityClass);
+        $vendorShortName = $this->shortClassName($vendorEntityClass);
 
         $code = "Vendor entity - cannot modify directly.
 
@@ -710,12 +713,5 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 ";
 
         return $code;
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 }

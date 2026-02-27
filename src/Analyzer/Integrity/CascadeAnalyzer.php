@@ -11,15 +11,16 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -43,6 +44,8 @@ use Psr\Log\LoggerInterface;
  */
 class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     /**
      * Entity patterns that are typically independent.
      */
@@ -57,7 +60,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
-        private readonly ?IssueFactoryInterface $issueFactory = null,
+        private readonly IssueFactoryInterface $issueFactory,
         private readonly ?LoggerInterface $logger = null,
     ) {
     }
@@ -180,7 +183,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $severity = $this->determineSeverityForAll($mapping);
 
         /** @var IntegrityIssue $issue */
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity' => $entityClass,
             'field' => $fieldName,
             'association_type' => $this->getAssociationType($mapping),
@@ -212,10 +215,10 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         array $referenceCountMap,
     ): IntegrityIssue {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
-        $shortTargetName = $this->getShortClassName($targetEntity);
+        $shortTargetName = $this->shortClassName($targetEntity);
 
         /** @var IntegrityIssue $issue */
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity' => $entityClass,
             'field' => $fieldName,
             'target_entity' => $targetEntity,
@@ -231,7 +234,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             "Field {field} in entity {class} has \"remove\" on ManyToOne relation to {target}. " .
             "Deleting a %s will also delete the {target}, which may be referenced by other entities.\n\n" .
             "{target} is referenced by %d entities.",
-            $this->getShortClassName($entityClass),
+            $this->shortClassName($entityClass),
             $refCount,
         );
 
@@ -253,11 +256,11 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         array $referenceCountMap,
     ): IntegrityIssue {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
-        $shortClassName = $this->getShortClassName($entityClass);
-        $shortTargetName = $this->getShortClassName($targetEntity);
+        $shortClassName = $this->shortClassName($entityClass);
+        $shortTargetName = $this->shortClassName($targetEntity);
 
         /** @var IntegrityIssue $issue */
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity' => $entityClass,
             'field' => $fieldName,
             'target_entity' => $targetEntity,
@@ -292,11 +295,11 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         array $referenceCountMap,
     ): IntegrityIssue {
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
-        $shortClassName = $this->getShortClassName($entityClass);
-        $shortTargetName = $this->getShortClassName($targetEntity);
+        $shortClassName = $this->shortClassName($entityClass);
+        $shortTargetName = $this->shortClassName($targetEntity);
 
         /** @var IntegrityIssue $issue */
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity' => $entityClass,
             'field' => $fieldName,
             'target_entity' => $targetEntity,
@@ -326,7 +329,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
     {
         $type = $this->getAssociationType($mapping);
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
         $isIndependent = $this->isIndependentEntity($targetEntity, []);
 
         return $this->suggestionFactory->createFromTemplate(
@@ -361,7 +364,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::critical(),
-                title: sprintf('Remove cascade="remove" from %s::$%s', $this->getShortClassName($entityClass), $fieldName),
+                title: sprintf('Remove cascade="remove" from %s::$%s', $this->shortClassName($entityClass), $fieldName),
                 tags: ['cascade', 'critical', 'data-loss'],
             ),
         );
@@ -379,7 +382,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::warning(),
-                title: sprintf('Remove cascade="remove" from %s::$%s', $this->getShortClassName($entityClass), $fieldName),
+                title: sprintf('Remove cascade="remove" from %s::$%s', $this->shortClassName($entityClass), $fieldName),
                 tags: ['cascade', 'independent-entity'],
             ),
         );
@@ -397,7 +400,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::warning(),
-                title: sprintf('Remove cascade="persist" from %s::$%s', $this->getShortClassName($entityClass), $fieldName),
+                title: sprintf('Remove cascade="persist" from %s::$%s', $this->shortClassName($entityClass), $fieldName),
                 tags: ['cascade', 'independent-entity', 'duplicates'],
             ),
         );
@@ -479,12 +482,6 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         // Also consider entities referenced by many others as independent
         $refCount = $referenceCountMap[$entityClass] ?? 0;
         return $refCount >= 3;
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-        return end($parts);
     }
 
     /**

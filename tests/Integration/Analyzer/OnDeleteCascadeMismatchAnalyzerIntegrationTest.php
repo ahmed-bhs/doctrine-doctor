@@ -133,7 +133,7 @@ final class OnDeleteCascadeMismatchAnalyzerIntegrationTest extends TestCase
         $twigTemplateRenderer = $this->createTwigRenderer();
         $suggestionFactory = new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory($twigTemplateRenderer);
 
-        return new OnDeleteCascadeMismatchAnalyzer($entityManager, $suggestionFactory);
+        return new OnDeleteCascadeMismatchAnalyzer($entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer

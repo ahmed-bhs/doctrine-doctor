@@ -11,12 +11,14 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\CodeSuggestion;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -37,6 +39,8 @@ use Webmozart\Assert\Assert;
  */
 class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly IssueFactoryInterface $issueFactory,
@@ -197,7 +201,7 @@ class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         string $entityClass,
         string $propertyName,
     ): IssueInterface {
-        $shortClassName = $this->getShortClassName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $description = sprintf(
             "Collection property %s::\$%s is not initialized.\n\n",
@@ -237,7 +241,7 @@ class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         );
 
         $issueData = new IssueData(
-            type: 'collection_uninitialized',
+            type: IssueType::COLLECTION_UNINITIALIZED->value,
             title: sprintf('Uninitialized Collection: %s::\$%s', $shortClassName, $propertyName),
             description: $description,
             severity: Severity::critical(),
@@ -249,12 +253,5 @@ class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         );
 
         return $this->issueFactory->create($issueData);
-    }
-
-    private function getShortClassName(string $fqcn): string
-    {
-        $parts = explode('\\', $fqcn);
-
-        return end($parts);
     }
 }

@@ -11,11 +11,13 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -31,6 +33,8 @@ use Webmozart\Assert\Assert;
  */
 class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly IssueFactoryInterface $issueFactory,
@@ -97,9 +101,9 @@ class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
             $cascade = \is_array($mapping['cascade'] ?? null) ? $mapping['cascade'] : [];
 
             if (!\in_array('persist', $cascade, true)) {
-                $shortName = $this->getShortClassName($classMetadata->getName());
+                $shortName = $this->shortClassName($classMetadata->getName());
                 $targetEntity = $mapping['targetEntity'] ?? '';
-                $targetShort = $this->getShortClassName(\is_string($targetEntity) ? $targetEntity : '');
+                $targetShort = $this->shortClassName(\is_string($targetEntity) ? $targetEntity : '');
 
                 $description = sprintf(
                     "Required association %s::\$%s targets %s without cascade persist.\n\n",
@@ -123,7 +127,7 @@ class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
                 $description .= "   \$em->flush();\n";
 
                 $issueData = new IssueData(
-                    type: 'entity_new_in_association',
+                    type: IssueType::ENTITY_NEW_IN_ASSOCIATION->value,
                     title: sprintf('Required Association Without Cascade: %s::$%s', $shortName, $assocName),
                     description: $description,
                     severity: Severity::warning(),
@@ -136,12 +140,5 @@ class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         }
 
         return $issues;
-    }
-
-    private function getShortClassName(string $fqcn): string
-    {
-        $parts = explode('\\', $fqcn);
-
-        return end($parts);
     }
 }

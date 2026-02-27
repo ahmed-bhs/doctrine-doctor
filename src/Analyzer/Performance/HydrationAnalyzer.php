@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -64,7 +65,7 @@ class HydrationAnalyzer implements AnalyzerInterface
                     if ($rowCount > $this->rowThreshold) {
                         // Any query returning more than threshold is a hydration concern
                         $issueData = new IssueData(
-                            type: 'hydration',
+                            type: IssueType::HYDRATION->value,
                             title: sprintf('Excessive Hydration: %d rows', $rowCount),
                             description: DescriptionHighlighter::highlight(
                                 'Query {action} {count} rows which may cause significant hydration overhead (threshold: {threshold})',

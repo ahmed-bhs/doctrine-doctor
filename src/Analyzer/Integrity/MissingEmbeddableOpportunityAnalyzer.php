@@ -17,6 +17,7 @@ use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -215,7 +216,7 @@ class MissingEmbeddableOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\A
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'missing_embeddable_opportunity',
+            'type' => IssueType::MISSING_EMBEDDABLE_OPPORTUNITY->value,
             'title'       => sprintf('Missing %s Embeddable: %s', $embeddableName, $shortClassName),
             'description' => $description,
             'severity'    => 'info',

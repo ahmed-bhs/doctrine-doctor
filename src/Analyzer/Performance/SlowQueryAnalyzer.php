@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -74,7 +75,7 @@ class SlowQueryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInt
                     );
 
                     $issueData = new IssueData(
-                        type: 'slow_query',
+                        type: IssueType::SLOW_QUERY->value,
                         title: sprintf('Slow Query: %.2fms', $executionTimeMs),
                         description: DescriptionHighlighter::highlight(
                             'Query execution time ({time}ms) exceeds threshold ({threshold}ms)',
