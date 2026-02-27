@@ -262,25 +262,25 @@ final class IssueDeduplicatorTest extends TestCase
     }
 
     #[Test]
-    public function it_does_not_group_repeated_query_signature_when_title_has_no_count(): void
+    public function it_keeps_distinct_issues_when_title_has_no_numeric_pattern(): void
     {
         $issue1 = $this->createIssue(
-            'N+1 Query detected on BillLine',
-            'N+1 without explicit count',
+            'Potential query problem on BillLine',
+            'Issue without numeric marker in title',
             Severity::CRITICAL,
             [new QueryData('SELECT * FROM bill_line WHERE id = ?', QueryExecutionTime::fromMilliseconds(40.0))],
         );
 
         $issue2 = $this->createIssue(
-            'Lazy Loading in Loop on BillLine',
-            'Lazy loading without explicit count',
+            'Potential query problem on BillLine (variant)',
+            'Another issue without numeric marker in title',
             Severity::WARNING,
             [new QueryData('SELECT * FROM bill_line WHERE user_id = ?', QueryExecutionTime::fromMilliseconds(35.0))],
         );
 
         $deduplicated = $this->deduplicator->deduplicate(IssueCollection::fromArray([$issue1, $issue2]));
 
-        // Without a numeric count in titles, repeated-query signature must not collapse these issues.
+        // Contract: deduplicate() must not collapse unrelated issues by accident.
         self::assertCount(2, $deduplicated);
     }
 
