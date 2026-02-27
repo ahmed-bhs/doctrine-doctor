@@ -262,6 +262,29 @@ final class IssueDeduplicatorTest extends TestCase
     }
 
     #[Test]
+    public function it_keeps_distinct_issues_when_title_has_no_numeric_pattern(): void
+    {
+        $issue1 = $this->createIssue(
+            'Potential query problem on BillLine',
+            'Issue without numeric marker in title',
+            Severity::CRITICAL,
+            [new QueryData('SELECT * FROM bill_line WHERE id = ?', QueryExecutionTime::fromMilliseconds(40.0))],
+        );
+
+        $issue2 = $this->createIssue(
+            'Potential query problem on BillLine (variant)',
+            'Another issue without numeric marker in title',
+            Severity::WARNING,
+            [new QueryData('SELECT * FROM bill_line WHERE user_id = ?', QueryExecutionTime::fromMilliseconds(35.0))],
+        );
+
+        $deduplicated = $this->deduplicator->deduplicate(IssueCollection::fromArray([$issue1, $issue2]));
+
+        // Contract: deduplicate() must not collapse unrelated issues by accident.
+        self::assertCount(2, $deduplicated);
+    }
+
+    #[Test]
     public function it_handles_query_data_objects_instead_of_arrays(): void
     {
         // Arrange - This tests the actual runtime behavior where getQueries() returns QueryData objects
