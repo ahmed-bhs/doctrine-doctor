@@ -29,6 +29,13 @@ class PropertyTypeMismatchIssue extends AbstractIssue
         parent::__construct($data);
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::PROPERTY_TYPE_MISMATCH->value,
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::INTEGRITY;

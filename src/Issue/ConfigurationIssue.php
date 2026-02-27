@@ -31,6 +31,23 @@ class ConfigurationIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::DECIMAL_MISSING_PRECISION->value,
+            IssueType::DECIMAL_INSUFFICIENT_PRECISION->value,
+            IssueType::DECIMAL_EXCESSIVE_PRECISION->value,
+            IssueType::DECIMAL_UNUSUAL_SCALE->value,
+            IssueType::TIMESTAMPABLE_MISSING_TIMEZONE->value,
+            IssueType::TIMESTAMPABLE_MISSING_TIMEZONE_GLOBAL->value,
+            IssueType::TIMESTAMPABLE_TIMEZONE_INCONSISTENCY->value,
+            IssueType::BLAMEABLE_WRONG_TARGET->value,
+            IssueType::SOFT_DELETE_NOT_NULLABLE->value,
+            IssueType::SOFT_DELETE_MISSING_TIMEZONE->value,
+            IssueType::SOFT_DELETE_CASCADE_CONFLICT->value,
+        ];
+    }
+
     #[\Override]
     public function getType(): string
     {

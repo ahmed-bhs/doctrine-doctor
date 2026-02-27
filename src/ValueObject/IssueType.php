@@ -35,6 +35,7 @@ enum IssueType: string
     case UNUSED_EAGER_LOAD = 'unused_eager_load';
     case NESTED_N_PLUS_ONE = 'nested_n_plus_one';
     case AGGREGATION_WITH_INNER_JOIN = 'aggregation_with_inner_join';
+    case SET_MAX_RESULTS_WITH_COLLECTION_JOIN = 'setMaxResults_with_collection_join';
 
     // Security issues
     case SECURITY = 'security';

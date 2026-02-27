@@ -31,6 +31,18 @@ class PerformanceIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::PERFORMANCE->value,
+            IssueType::SET_MAX_RESULTS_WITH_COLLECTION_JOIN->value,
+            IssueType::CARTESIAN_PRODUCT->value,
+            IssueType::CARTESIAN_PRODUCT_RISK->value,
+            IssueType::UNUSED_EAGER_LOAD->value,
+            IssueType::AGGREGATION_WITH_INNER_JOIN->value,
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::PERFORMANCE;

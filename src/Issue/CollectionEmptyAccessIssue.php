@@ -29,6 +29,13 @@ class CollectionEmptyAccessIssue extends AbstractIssue
         parent::__construct($data);
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::COLLECTION_EMPTY_ACCESS->value,
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::INTEGRITY;

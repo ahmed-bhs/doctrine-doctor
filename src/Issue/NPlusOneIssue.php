@@ -30,6 +30,14 @@ class NPlusOneIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::N_PLUS_ONE->value,
+            IssueType::NESTED_N_PLUS_ONE->value,
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::PERFORMANCE;

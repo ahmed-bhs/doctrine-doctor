@@ -30,6 +30,17 @@ class TransactionIssue extends AbstractIssue
         parent::__construct($data);
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::TRANSACTION_BOUNDARY->value,
+            IssueType::TRANSACTION_NESTED->value,
+            IssueType::TRANSACTION_MULTIPLE_FLUSH->value,
+            IssueType::TRANSACTION_UNCLOSED->value,
+            IssueType::TRANSACTION_TOO_LONG->value,
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::INTEGRITY;
