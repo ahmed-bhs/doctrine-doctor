@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -31,6 +32,8 @@ use Webmozart\Assert\Assert;
  */
 class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly IssueFactoryInterface $issueFactory,
@@ -97,9 +100,9 @@ class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
             $cascade = \is_array($mapping['cascade'] ?? null) ? $mapping['cascade'] : [];
 
             if (!\in_array('persist', $cascade, true)) {
-                $shortName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($classMetadata->getName());
+                $shortName = $this->shortClassName($classMetadata->getName());
                 $targetEntity = $mapping['targetEntity'] ?? '';
-                $targetShort = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(\is_string($targetEntity) ? $targetEntity : '');
+                $targetShort = $this->shortClassName(\is_string($targetEntity) ? $targetEntity : '');
 
                 $description = sprintf(
                     "Required association %s::\$%s targets %s without cascade persist.\n\n",

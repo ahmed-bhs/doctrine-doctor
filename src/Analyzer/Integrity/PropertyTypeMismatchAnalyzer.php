@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -37,6 +38,8 @@ use Webmozart\Assert\Assert;
  */
 class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly IssueFactoryInterface $issueFactory,
@@ -241,7 +244,7 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             return $this->createIssue(
                 $classMetadata->getName(),
                 $assocName,
-                sprintf('%s (non-nullable)', \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity)),
+                sprintf('%s (non-nullable)', $this->shortClassName($targetEntity)),
                 sprintf('?%s (nullable)', $propertyType->getName()),
                 Severity::warning(),
             );
@@ -272,7 +275,7 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         $backingTypeName = $backingType->getName();
 
         if ($backingTypeName !== $expectedPhpType && 'mixed' !== $expectedPhpType) {
-            $shortEnum = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($enumClass);
+            $shortEnum = $this->shortClassName($enumClass);
 
             return $this->createIssue(
                 $entityClass,
@@ -327,7 +330,7 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         string $actualType,
         Severity $severity,
     ): IssueInterface {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $description = sprintf(
             "Property %s::\$%s has type mismatch:\n",

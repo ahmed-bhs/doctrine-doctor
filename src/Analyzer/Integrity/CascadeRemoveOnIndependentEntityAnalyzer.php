@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CompositionRelationshipDetector;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -37,6 +38,8 @@ use Webmozart\Assert\Assert;
  */
 class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     /**
      * Entity patterns that are typically independent.
      */
@@ -381,7 +384,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
                 'cascade' => '"remove"',
                 'type' => 'ManyToOne',
                 'target' => $targetEntity,
-                'shortClass' => \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass),
+                'shortClass' => $this->shortClassName($entityClass),
                 'refCount' => (string) $referenceCount,
             ],
         );
@@ -421,7 +424,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
                 'cascade' => '"remove"',
                 'type' => 'ManyToMany',
                 'target' => $targetEntity,
-                'shortClass' => \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass),
+                'shortClass' => $this->shortClassName($entityClass),
                 'refCount' => (string) $referenceCount,
             ],
         );

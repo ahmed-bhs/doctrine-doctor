@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -30,6 +31,8 @@ use Webmozart\Assert\Assert;
 
 class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     private const int QUERY_COUNT_WARNING_THRESHOLD = 10;
 
     private const float EXECUTION_TIME_WARNING_THRESHOLD = 500.0;
@@ -426,9 +429,9 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             $mappedBy = MappingHelper::getString($parentMapping, 'mappedBy');
             if ($mappedBy === $matchedFieldName) {
                 return [
-                    'parentEntity' => \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntityClass),
+                    'parentEntity' => $this->shortClassName($targetEntityClass),
                     'collectionField' => $parentFieldName,
-                    'childEntity' => \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($childEntityClass),
+                    'childEntity' => $this->shortClassName($childEntityClass),
                 ];
             }
         }
@@ -507,7 +510,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         }
 
         if (\is_string($class) && \is_string($function)) {
-            return \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($class) . '::' . $function . '()';
+            return $this->shortClassName($class) . '::' . $function . '()';
         }
 
         return \is_string($function) ? $function . '()' : null;

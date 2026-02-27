@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
@@ -47,6 +48,8 @@ use Webmozart\Assert\Assert;
  */
 class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     /**
      * Common suffixes that indicate foreign key fields.
      */
@@ -335,7 +338,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
 
         foreach ($allMetadata as $metadata) {
             $className = $metadata->getName();
-            $shortName = strtolower(\AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($className));
+            $shortName = strtolower($this->shortClassName($className));
 
             if ($shortName === $baseNameLower) {
                 return $className;
@@ -366,7 +369,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Integrity/foreign_key_primitive',
             context: [
-                'entity_class'     => \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass),
+                'entity_class'     => $this->shortClassName($entityClass),
                 'field_name'       => $fieldName,
                 'target_entity'    => $targetEntity ?? 'Unknown',
                 'association_type' => 'ManyToOne',
