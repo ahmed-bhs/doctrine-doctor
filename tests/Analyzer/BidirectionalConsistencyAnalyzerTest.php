@@ -41,7 +41,7 @@ final class BidirectionalConsistencyAnalyzerTest extends TestCase
         $this->analyzer = new BidirectionalConsistencyAnalyzer(
             $entityManager,
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
-        new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 

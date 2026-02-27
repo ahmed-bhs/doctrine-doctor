@@ -49,7 +49,7 @@ final class MissingOrphanRemovalOnCompositionAnalyzerTest extends TestCase
         $this->analyzer = new MissingOrphanRemovalOnCompositionAnalyzer(
             $entityManager,
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
-        new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 
