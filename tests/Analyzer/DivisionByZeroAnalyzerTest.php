@@ -124,7 +124,7 @@ final class DivisionByZeroAnalyzerTest extends TestCase
         // Assert
         self::assertCount(1, $issues);
         $issue = $issues->toArray()[0];
-        self::assertEquals('Security', $issue->getType());
+        self::assertEquals('division_by_zero', $issue->getType());
         self::assertEquals('security', $issue->getCategory()->value);
         self::assertEquals('critical', $issue->getSeverity()->value);
         self::assertStringContainsString('revenue / quantity', $issue->getDescription());
@@ -144,7 +144,7 @@ final class DivisionByZeroAnalyzerTest extends TestCase
         // Assert
         self::assertCount(2, $issues);
         $types = array_map(fn ($issue) => $issue->getType(), $issues->toArray());
-        self::assertEquals(['Security', 'Security'], $types);
+        self::assertEquals(['division_by_zero', 'division_by_zero'], $types);
     }
 
     #[Test]
