@@ -29,6 +29,14 @@ class DQLValidationIssue extends AbstractIssue
         parent::__construct($data);
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::DQL_VALIDATION->value,
+            'DQL Validation Error',
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::INTEGRITY;

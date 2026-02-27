@@ -32,6 +32,39 @@ class IntegrityIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::INTEGRITY->value,
+            IssueType::INTEGRITY_GENERIC->value,
+            IssueType::TYPE_HINT_MISMATCH->value,
+            'Type Hint Mismatch',
+            IssueType::FLOAT_FOR_MONEY->value,
+            'Float for Money',
+            IssueType::CASCADE_REMOVE_SET_NULL->value,
+            IssueType::ONDELETE_CASCADE_NO_ORM->value,
+            IssueType::ORPHAN_REMOVAL_NO_PERSIST->value,
+            IssueType::ORPHAN_REMOVAL_NULLABLE_FK->value,
+            IssueType::INTEGRITY_INCORRECT_NULL_COMPARISON->value,
+            IssueType::LEFT_JOIN_WITH_NOT_NULL->value,
+            IssueType::MISSING_EMBEDDABLE_OPPORTUNITY->value,
+            IssueType::EMBEDDABLE_MUTABILITY->value,
+            IssueType::EMBEDDABLE_WITHOUT_VALUE_OBJECT_METHODS->value,
+            IssueType::FLOAT_IN_MONEY_EMBEDDABLE->value,
+            IssueType::MISSING_BLAMEABLE_TRAIT_OPPORTUNITY->value,
+            IssueType::TIMESTAMPABLE_MUTABLE_DATETIME->value,
+            IssueType::TIMESTAMPABLE_NULLABLE_CREATED_AT->value,
+            IssueType::TIMESTAMPABLE_PUBLIC_SETTER->value,
+            IssueType::BLAMEABLE_NULLABLE_CREATED_BY->value,
+            IssueType::BLAMEABLE_PUBLIC_SETTER->value,
+            IssueType::SOFT_DELETE_MUTABLE_DATETIME->value,
+            IssueType::SOFT_DELETE_PUBLIC_SETTER->value,
+            IssueType::AUTO_INCREMENT_EDUCATIONAL->value,
+            IssueType::UUID_V4_PERFORMANCE->value,
+            IssueType::MIXED_ID_STRATEGIES->value,
+        ];
+    }
+
     #[\Override]
     public function getType(): string
     {

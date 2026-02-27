@@ -75,6 +75,17 @@ abstract class AbstractIssue implements DeduplicatableIssueInterface
         $this->data = $data;
     }
 
+    /**
+     * Declares all issue type identifiers handled by this issue class.
+     * Child classes should override to register their supported types.
+     *
+     * @return list<string>
+     */
+    public static function supportedTypes(): array
+    {
+        return [];
+    }
+
     public function getType(): string
     {
         return $this->type;

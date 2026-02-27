@@ -33,6 +33,14 @@ class GetReferenceIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::GET_REFERENCE->value,
+            'Inefficient Entity Loading',
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::PERFORMANCE;
