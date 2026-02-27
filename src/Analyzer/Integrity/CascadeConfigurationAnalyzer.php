@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
@@ -37,6 +38,8 @@ use Webmozart\Assert\Assert;
  */
 class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     // Entities that should typically have cascade persist/remove (composition)
     private const array TYPICAL_COMPOSED_PATTERNS = [
         'Item', 'Line', 'Detail', 'Entry', 'Component', 'Part',
@@ -174,8 +177,8 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
     private function checkCascadeAll(string $entityClass, string $fieldName, array|object $mapping): IntegrityIssue
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
-        $targetEntity   = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
+        $shortClassName = $this->shortClassName($entityClass);
+        $targetEntity   = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
         // Create synthetic backtrace
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
@@ -233,8 +236,8 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             return null;
         }
 
-        $shortClassName  = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
-        $targetShortName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity);
+        $shortClassName  = $this->shortClassName($entityClass);
+        $targetShortName = $this->shortClassName($targetEntity);
 
         // Create synthetic backtrace
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
@@ -267,8 +270,8 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
         // If no cascade at all, suggest adding it for composition
         if ([] === $cascade) {
-            $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
-            $targetEntity   = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
+            $shortClassName = $this->shortClassName($entityClass);
+            $targetEntity   = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
             // Create synthetic backtrace
             $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
@@ -298,7 +301,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
     private function createCascadeAllSuggestion(string $entityClass, string $fieldName, array|object $mapping): SuggestionInterface
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
         $isComposition  = $this->isCompositionRelationship($mapping);
 
         $recommendedCascade = $isComposition ? '["persist", "remove"]' : '["persist"]';
@@ -307,7 +310,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
 ";
         $mappedBy = MappingHelper::getString($mapping, 'mappedBy') ?? 'parent';
-        $targetEntityName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(
+        $targetEntityName = $this->shortClassName(
             MappingHelper::getString($mapping, 'targetEntity') ?? '',
         );
 
@@ -363,9 +366,9 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
     private function createRemoveCascadeRemoveSuggestion(string $entityClass, string $fieldName, array|object $mapping): SuggestionInterface
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
         $mappedBy       = MappingHelper::getString($mapping, 'mappedBy') ?? 'parent';
-        $targetEntityName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(
+        $targetEntityName = $this->shortClassName(
             MappingHelper::getString($mapping, 'targetEntity') ?? '',
         );
 
@@ -423,9 +426,9 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
     private function createAddCascadeSuggestion(string $entityClass, string $fieldName, array|object $mapping): SuggestionInterface
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
         $mappedBy       = MappingHelper::getString($mapping, 'mappedBy') ?? 'parent';
-        $targetEntityName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(
+        $targetEntityName = $this->shortClassName(
             MappingHelper::getString($mapping, 'targetEntity') ?? '',
         );
 

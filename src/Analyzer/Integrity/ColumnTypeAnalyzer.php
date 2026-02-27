@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
@@ -37,6 +38,8 @@ use Webmozart\Assert\Assert;
  */
 class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     // Deprecated/problematic types
     private const array PROBLEMATIC_TYPES = [
         'object' => [
@@ -189,7 +192,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         string $type,
         array $typeInfo,
     ): IntegrityIssue {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
         $isVendor = $this->isVendorEntity($entityClass);
 
         // Adjust severity and message for vendor entities
@@ -258,7 +261,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         string $fieldName,
         array $mapping,
     ): ?IntegrityIssue {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         // simple_array stores as comma-separated string
         // Issues:
@@ -336,7 +339,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             return null;
         }
 
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         /** @var IntegrityIssue $issue */
         $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
@@ -433,7 +436,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         string $fieldName,
         string $oldType,
     ): string {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $code = "// In {$shortClassName} entity:
 
@@ -512,7 +515,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 
     private function generateSimpleArrayMigrationCode(string $entityClass, string $fieldName): string
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $code = "// In {$shortClassName} entity:
 
@@ -566,7 +569,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 
     private function generateEnumMigrationCode(string $entityClass, string $fieldName): string
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
         $enumName       = ucfirst($fieldName) . 'Enum';
 
         $code = "// Step 1: Create the enum
@@ -688,7 +691,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         string $oldType,
         string $newType,
     ): string {
-        $vendorShortName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($vendorEntityClass);
+        $vendorShortName = $this->shortClassName($vendorEntityClass);
 
         $code = "Vendor entity - cannot modify directly.
 

@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Security;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -35,6 +36,8 @@ use Webmozart\Assert\Assert;
  */
 class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     private const array SENSITIVE_PATTERNS = [
         'password',
         'passwd',
@@ -242,7 +245,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                     'Entity "%s" has a __toString() method that serializes the entire object. ' .
                     'This entity contains sensitive fields (%s) that will be exposed in logs, ' .
                     'error messages, and debug output. This is a critical security vulnerability.',
-                    \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass),
+                    $this->shortClassName($entityClass),
                     implode(', ', array_map(fn (string $field): string => '$' . $field, $sensitiveFields)),
                 ),
                 'severity'   => 'critical',
@@ -280,7 +283,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                     'Entity "%s" exposes sensitive fields in jsonSerialize(): %s. ' .
                     'These fields will be included in JSON API responses, potentially exposing ' .
                     'passwords, tokens, or other sensitive data to clients.',
-                    \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass),
+                    $this->shortClassName($entityClass),
                     implode(', ', array_map(fn (string $field): string => '$' . $field, $exposedFields)),
                 ),
                 'severity'   => 'critical',
@@ -318,7 +321,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                     'Entity "%s" exposes sensitive fields in toArray(): %s. ' .
                     'This method is often used for serialization, logging, or API responses, ' .
                     'which can leak sensitive data.',
-                    \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass),
+                    $this->shortClassName($entityClass),
                     implode(', ', array_map(fn (string $field): string => '$' . $field, $exposedFields)),
                 ),
                 'severity'   => 'critical',
@@ -370,7 +373,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
             if (!$hasProtection) {
                 return new SecurityIssue([
-                    'title'       => sprintf('Unprotected sensitive field: %s::$%s', \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass), $fieldName),
+                    'title'       => sprintf('Unprotected sensitive field: %s::$%s', $this->shortClassName($entityClass), $fieldName),
                     'description' => sprintf(
                         'The sensitive field "$%s" in entity "%s" lacks serialization protection. ' .
                         'Without @JsonIgnore or #[Ignore] annotations, this field will be included in ' .
@@ -378,7 +381,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                         '#[SensitiveParameter] on setter methods to prevent values from appearing in stack traces. ' .
                         'Add appropriate annotations to prevent data leakage.',
                         $fieldName,
-                        \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass),
+                        $this->shortClassName($entityClass),
                     ),
                     'severity'   => 'warning',
                     'suggestion' => $this->createProtectionSuggestion($entityClass, $fieldName),
@@ -397,7 +400,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
     private function createToStringSuggestion(string $entityClass, \ReflectionMethod $reflectionMethod): SuggestionInterface
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $code = "// In {$shortClassName} class:
 
@@ -447,7 +450,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         \ReflectionMethod $reflectionMethod,
         array $exposedFields,
     ): SuggestionInterface {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $code = "// In {$shortClassName} class:
 
@@ -501,7 +504,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         \ReflectionMethod $reflectionMethod,
         array $exposedFields,
     ): SuggestionInterface {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $code = "// In {$shortClassName} class:
 
@@ -550,7 +553,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
     private function createProtectionSuggestion(string $entityClass, string $fieldName): SuggestionInterface
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
         $capitalizedFieldName = ucfirst($fieldName);
 
         $code = "// In {$shortClassName} class:

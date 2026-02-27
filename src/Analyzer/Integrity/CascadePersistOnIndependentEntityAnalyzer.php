@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
@@ -44,6 +45,8 @@ use Webmozart\Assert\Assert;
  */
 class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     /**
      * Entity patterns that are HIGHLY independent (critical issue).
      * These should NEVER have cascade=persist from other entities.
@@ -339,8 +342,8 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
         int $referenceCount,
     ): SuggestionInterface {
         $targetEntity    = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
-        $shortClassName  = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
-        $shortTargetName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity);
+        $shortClassName  = $this->shortClassName($entityClass);
+        $shortTargetName = $this->shortClassName($targetEntity);
         $type            = $this->getAssociationType($mapping);
 
         return $this->suggestionFactory->createFromTemplate(

@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\TraitCollectionInitializationDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -35,6 +36,8 @@ use Webmozart\Assert\Assert;
  */
 class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     private readonly TraitCollectionInitializationDetector $traitDetector;
 
     private readonly PhpCodeParser $phpCodeParser;
@@ -180,8 +183,8 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 
     private function createMissingConstructorIssue(string $entityClass, string $fieldName, array|object $mapping): IntegrityIssue
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
-        $targetEntity   = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
+        $shortClassName = $this->shortClassName($entityClass);
+        $targetEntity   = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
         /** @var IntegrityIssue $issue */
         $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
@@ -198,7 +201,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             'suggestion' => $this->suggestionFactory->createFromTemplate(
                 templateName: 'Integrity/collection_initialization',
                 context: [
-                    'entity_class' => \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass),
+                    'entity_class' => $this->shortClassName($entityClass),
                     'field_name' => $fieldName,
                     'has_constructor' => false,
                     'backtrace' => null,
@@ -206,7 +209,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::critical(),
-                    title: sprintf('Uninitialized Collection: %s::$%s', \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass), $fieldName),
+                    title: sprintf('Uninitialized Collection: %s::$%s', $this->shortClassName($entityClass), $fieldName),
                     tags: ['code-quality', 'doctrine', 'collection'],
                 ),
             ),
@@ -222,8 +225,8 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         array|object $mapping,
         \ReflectionMethod $reflectionMethod,
     ): IntegrityIssue {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
-        $targetEntity   = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
+        $shortClassName = $this->shortClassName($entityClass);
+        $targetEntity   = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
         /** @var IntegrityIssue $issue */
         $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
@@ -240,7 +243,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             'suggestion' => $this->suggestionFactory->createFromTemplate(
                 templateName: 'Integrity/collection_initialization',
                 context: [
-                    'entity_class' => \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass),
+                    'entity_class' => $this->shortClassName($entityClass),
                     'field_name' => $fieldName,
                     'has_constructor' => true,
                     'backtrace' => sprintf('%s:%d', $reflectionMethod->getFileName() ?: 'unknown', $reflectionMethod->getStartLine() ?: 0),
@@ -248,7 +251,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::critical(),
-                    title: sprintf('Uninitialized Collection: %s::$%s', \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass), $fieldName),
+                    title: sprintf('Uninitialized Collection: %s::$%s', $this->shortClassName($entityClass), $fieldName),
                     tags: ['code-quality', 'doctrine', 'collection'],
                 ),
             ),

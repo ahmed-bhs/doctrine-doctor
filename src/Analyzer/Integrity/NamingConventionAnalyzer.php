@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\NamingConventionHelper;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -44,6 +45,8 @@ use Webmozart\Assert\Assert;
  */
 class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     /**
      * SQL reserved keywords that should be avoided or quoted.
      */
@@ -654,7 +657,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
 
     private function buildTableNamingSuggestion(string $current, string $suggested, string $entityClass): SuggestionInterface
     {
-        $shortClass = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClass = $this->shortClassName($entityClass);
 
         return $this->suggestionFactory->createFromTemplate(
             'naming_convention_table',
@@ -674,7 +677,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
 
     private function buildColumnNamingSuggestion(string $current, string $suggested, string $fieldName, string $entityClass): SuggestionInterface
     {
-        $shortClass = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClass = $this->shortClassName($entityClass);
 
         return $this->suggestionFactory->createFromTemplate(
             'naming_convention_column',
@@ -695,7 +698,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
 
     private function buildFKNamingSuggestion(string $current, string $suggested, string $assocName, string $entityClass): SuggestionInterface
     {
-        $shortClass = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClass = $this->shortClassName($entityClass);
 
         return $this->suggestionFactory->createFromTemplate(
             'naming_convention_fk',

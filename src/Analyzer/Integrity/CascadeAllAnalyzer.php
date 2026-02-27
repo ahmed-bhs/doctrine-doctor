@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
@@ -43,6 +44,8 @@ use Webmozart\Assert\Assert;
  */
 class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     /**
      * Entity patterns that are typically independent.
      */
@@ -240,8 +243,8 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
     {
         $type            = $this->getAssociationType($mapping);
         $targetEntity    = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
-        $shortClassName  = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
-        $shortTargetName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($targetEntity);
+        $shortClassName  = $this->shortClassName($entityClass);
+        $shortTargetName = $this->shortClassName($targetEntity);
 
         $isIndependent = $this->isIndependentEntity($targetEntity);
 

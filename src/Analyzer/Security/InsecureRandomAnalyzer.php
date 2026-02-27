@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Security;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -34,6 +35,8 @@ use Webmozart\Assert\Assert;
  */
 class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     // Insecure functions that should not be used for security
     private const array INSECURE_FUNCTIONS = [
         'rand',
@@ -202,7 +205,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         string $function,
         \ReflectionMethod $reflectionMethod,
     ): SecurityIssue {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $description = sprintf(
             'Method "%s::%s()" uses insecure random function "%s()" for security-sensitive operations. ' .
@@ -232,7 +235,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         string $methodName,
         \ReflectionMethod $reflectionMethod,
     ): SecurityIssue {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $description = sprintf(
             'Method "%s::%s()" combines weak random functions with hashing (e.g., md5(rand())). ' .
@@ -261,7 +264,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         string $insecureFunction,
         \ReflectionMethod $reflectionMethod,
     ): SuggestionInterface {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $code = "// In {$shortClassName}::{$methodName}():
 

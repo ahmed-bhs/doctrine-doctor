@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -47,6 +48,8 @@ use Webmozart\Assert\Assert;
  */
 class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     private readonly PhpCodeParser $phpCodeParser;
 
     public function __construct(
@@ -279,7 +282,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
     private function createEntityManagerInConstructorIssue(string $entityClass, \ReflectionMethod $reflectionMethod): IntegrityIssue
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         /** @var IntegrityIssue $issue */
         $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
@@ -315,7 +318,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
     private function createEntityManagerPropertyIssue(string $entityClass, \ReflectionProperty $reflectionProperty): IntegrityIssue
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
         $propertyName   = $reflectionProperty->getName();
 
         /** @var IntegrityIssue $issue */
@@ -351,7 +354,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
     private function createEntityManagerUsageIssue(string $entityClass, \ReflectionMethod $reflectionMethod): IntegrityIssue
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
         $methodName     = $reflectionMethod->getName();
 
         /** @var IntegrityIssue $issue */
@@ -392,7 +395,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
     private function createEntityManagerSuggestion(string $entityClass, string $location, ?string $methodName = null): SuggestionInterface
     {
-        $shortClassName = \AhmedBhs\DoctrineDoctor\Helper\ClassNameHelper::shortName($entityClass);
+        $shortClassName = $this->shortClassName($entityClass);
 
         $badCode = match ($location) {
             'constructor' => <<<PHP
