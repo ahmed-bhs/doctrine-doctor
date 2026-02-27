@@ -68,6 +68,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
         $this->analyzer = new ColumnTypeAnalyzer(
             $this->entityManager,
             $this->createSuggestionFactory(),
+        new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 
@@ -293,6 +294,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
         $analyzer = new ColumnTypeAnalyzer(
             $emptyEm,
             $this->createSuggestionFactory(),
+        new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
 
         $issues = $analyzer->analyze(QueryDataCollection::empty());
@@ -538,6 +540,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
         $analyzer = new ColumnTypeAnalyzer(
             $emptyEm,
             $this->createSuggestionFactory(),
+        new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
 
         $issues = iterator_to_array($analyzer->analyze(QueryDataCollection::empty()));
@@ -594,6 +597,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
         $analyzer = new ColumnTypeAnalyzer(
             $minimalEm,
             $this->createSuggestionFactory(),
+        new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
 
         $issues = iterator_to_array($analyzer->analyze(QueryDataCollection::empty()));

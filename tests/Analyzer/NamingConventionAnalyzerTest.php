@@ -44,6 +44,7 @@ final class NamingConventionAnalyzerTest extends TestCase
         $this->analyzer = new NamingConventionAnalyzer(
             $entityManager,
             PlatformAnalyzerTestHelper::createSuggestionFactory(), // @phpstan-ignore-line argument.type
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 

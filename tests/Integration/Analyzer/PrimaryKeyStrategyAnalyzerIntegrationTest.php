@@ -135,7 +135,7 @@ final class PrimaryKeyStrategyAnalyzerIntegrationTest extends TestCase
         $entityManager = $this->entityManager;
         $suggestionFactory = new SuggestionFactory($this->createTwigRenderer());
 
-        return new PrimaryKeyStrategyAnalyzer($entityManager, $suggestionFactory);
+        return new PrimaryKeyStrategyAnalyzer($entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer

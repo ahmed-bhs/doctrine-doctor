@@ -15,7 +15,6 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CompositionRelationshipDetector;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
@@ -55,10 +54,10 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
         ?CompositionRelationshipDetector $compositionDetector = null,
-        private readonly ?IssueFactoryInterface $issueFactory = null,
     ) {
-        // Dependency Injection with fallback for backwards compatibility
+        // Keep detector overrideable in tests while defaulting to concrete implementation.
         $this->compositionDetector = $compositionDetector ?? new CompositionRelationshipDetector($entityManager);
     }
 
@@ -364,7 +363,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToOne',
@@ -404,7 +403,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToMany',
