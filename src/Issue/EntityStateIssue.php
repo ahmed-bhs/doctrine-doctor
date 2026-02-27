@@ -30,6 +30,20 @@ class EntityStateIssue extends AbstractIssue
         parent::__construct($data);
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::ENTITY_STATE->value,
+            IssueType::ENTITY_DETACHED_MODIFICATION->value,
+            IssueType::ENTITY_NEW_IN_ASSOCIATION->value,
+            IssueType::ENTITY_REQUIRED_FIELD_NULL->value,
+            IssueType::ENTITY_REQUIRED_ASSOCIATION_NULL->value,
+            IssueType::ENTITY_REMOVED_ACCESS->value,
+            IssueType::ENTITY_REMOVED_IN_ASSOCIATION->value,
+            IssueType::ENTITY_DETACHED_IN_ASSOCIATION->value,
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::INTEGRITY;
