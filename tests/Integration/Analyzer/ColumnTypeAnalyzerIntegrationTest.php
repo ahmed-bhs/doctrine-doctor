@@ -342,7 +342,7 @@ final class ColumnTypeAnalyzerIntegrationTest extends TestCase
         $entityManager = $this->entityManager;
         $suggestionFactory = new SuggestionFactory($this->createPhpRenderer());
 
-        return new ColumnTypeAnalyzer($entityManager, $suggestionFactory);
+        return new ColumnTypeAnalyzer($entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     private function createPhpRenderer(): PhpTemplateRenderer

@@ -136,7 +136,7 @@ final class ForeignKeyMappingAnalyzerIntegrationTest extends TestCase
         $entityManager = $this->entityManager;
         $suggestionFactory = new SuggestionFactory($this->createTwigRenderer());
 
-        return new ForeignKeyMappingAnalyzer($entityManager, $suggestionFactory);
+        return new ForeignKeyMappingAnalyzer($entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer

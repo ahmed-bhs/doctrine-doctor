@@ -125,7 +125,7 @@ final class JoinTypeConsistencyAnalyzerIntegrationTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $suggestionFactory = new SuggestionFactory($this->createTwigRenderer());
 
-        return new JoinTypeConsistencyAnalyzer($entityManager, $suggestionFactory);
+        return new JoinTypeConsistencyAnalyzer($entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer

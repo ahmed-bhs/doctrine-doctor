@@ -133,7 +133,7 @@ final class MissingOrphanRemovalOnCompositionAnalyzerIntegrationTest extends Tes
         $entityManager = $this->entityManager;
         $suggestionFactory = new SuggestionFactory($this->createTwigRenderer());
 
-        return new MissingOrphanRemovalOnCompositionAnalyzer($entityManager, $suggestionFactory);
+        return new MissingOrphanRemovalOnCompositionAnalyzer($entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer

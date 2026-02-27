@@ -42,6 +42,7 @@ final class CascadeConfigurationAnalyzerTest extends TestCase
         $this->analyzer = new CascadeConfigurationAnalyzer(
             $entityManager,
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
+        new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 
