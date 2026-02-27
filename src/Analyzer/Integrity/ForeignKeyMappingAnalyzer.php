@@ -11,15 +11,16 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -47,6 +48,8 @@ use Webmozart\Assert\Assert;
  */
 class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     /**
      * Common suffixes that indicate foreign key fields.
      */
@@ -88,7 +91,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
-        private readonly ?IssueFactoryInterface $issueFactory = null,
+        private readonly IssueFactoryInterface $issueFactory,
     ) {
     }
 
@@ -289,8 +292,8 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray([
-            'type'          => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray([
+            'type' => IssueType::INTEGRITY_GENERIC->value,
             'entity'        => $entityClass,
             'field'         => $fieldName,
             'field_type'    => $type,
@@ -335,7 +338,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
 
         foreach ($allMetadata as $metadata) {
             $className = $metadata->getName();
-            $shortName = strtolower($this->getShortClassName($className));
+            $shortName = strtolower($this->shortClassName($className));
 
             if ($shortName === $baseNameLower) {
                 return $className;
@@ -348,12 +351,6 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
     /**
      * Get short class name (without namespace).
      */
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
-    }
 
     /**
      * Create suggestion interface for fixing the issue.
@@ -372,7 +369,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Integrity/foreign_key_primitive',
             context: [
-                'entity_class'     => $this->getShortClassName($entityClass),
+                'entity_class'     => $this->shortClassName($entityClass),
                 'field_name'       => $fieldName,
                 'target_entity'    => $targetEntity ?? 'Unknown',
                 'association_type' => 'ManyToOne',

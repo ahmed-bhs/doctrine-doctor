@@ -11,15 +11,16 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -43,10 +44,12 @@ use Webmozart\Assert\Assert;
  */
 class OrphanRemovalWithoutCascadeRemoveAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
-        private readonly ?IssueFactoryInterface $issueFactory = null,
+        private readonly IssueFactoryInterface $issueFactory,
     ) {
     }
 
@@ -129,7 +132,7 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements \AhmedBhs\DoctrineDoc
         $cascade      = MappingHelper::getArray($mapping, 'cascade') ?? [];
 
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity'         => $entityClass,
             'field'          => $fieldName,
             'target_entity'  => $targetEntity,
@@ -159,8 +162,8 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements \AhmedBhs\DoctrineDoc
     {
         $targetEntity    = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $cascade         = MappingHelper::getArray($mapping, 'cascade') ?? [];
-        $shortClassName  = $this->getShortClassName($entityClass);
-        $shortTargetName = $this->getShortClassName($targetEntity);
+        $shortClassName  = $this->shortClassName($entityClass);
+        $shortTargetName = $this->shortClassName($targetEntity);
         $mappedBy        = MappingHelper::getString($mapping, 'mappedBy') ?? 'parent';
 
         $currentCascade = [] === $cascade
@@ -183,13 +186,6 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements \AhmedBhs\DoctrineDoc
                 tags: ['orphan-removal', 'cascade', 'configuration'],
             ),
         );
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 
     /**

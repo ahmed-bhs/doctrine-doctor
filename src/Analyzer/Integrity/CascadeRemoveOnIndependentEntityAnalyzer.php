@@ -11,14 +11,15 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CompositionRelationshipDetector;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Webmozart\Assert\Assert;
@@ -37,6 +38,8 @@ use Webmozart\Assert\Assert;
  */
 class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     /**
      * Entity patterns that are typically independent.
      */
@@ -52,10 +55,10 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly IssueFactoryInterface $issueFactory,
         ?CompositionRelationshipDetector $compositionDetector = null,
-        private readonly ?IssueFactoryInterface $issueFactory = null,
     ) {
-        // Dependency Injection with fallback for backwards compatibility
+        // Keep detector overrideable in tests while defaulting to concrete implementation.
         $this->compositionDetector = $compositionDetector ?? new CompositionRelationshipDetector($entityManager);
     }
 
@@ -361,7 +364,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToOne',
@@ -381,7 +384,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
                 'cascade' => '"remove"',
                 'type' => 'ManyToOne',
                 'target' => $targetEntity,
-                'shortClass' => $this->getShortClassName($entityClass),
+                'shortClass' => $this->shortClassName($entityClass),
                 'refCount' => (string) $referenceCount,
             ],
         );
@@ -401,7 +404,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToMany',
@@ -421,20 +424,13 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
                 'cascade' => '"remove"',
                 'type' => 'ManyToMany',
                 'target' => $targetEntity,
-                'shortClass' => $this->getShortClassName($entityClass),
+                'shortClass' => $this->shortClassName($entityClass),
                 'refCount' => (string) $referenceCount,
             ],
         );
         $codeQualityIssue->setMessage($message);
 
         return $codeQualityIssue;
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 
     /**

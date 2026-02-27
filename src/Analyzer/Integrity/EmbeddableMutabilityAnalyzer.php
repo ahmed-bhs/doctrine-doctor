@@ -17,6 +17,7 @@ use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -249,7 +250,7 @@ class EmbeddableMutabilityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'embeddable_mutability',
+            'type' => IssueType::EMBEDDABLE_MUTABILITY->value,
             'title'       => sprintf('Mutable Embeddable: %s', $shortClassName),
             'description' => $description,
             'severity'    => 'warning',

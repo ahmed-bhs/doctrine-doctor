@@ -17,6 +17,7 @@ use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -178,7 +179,7 @@ class EmbeddableWithoutValueObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\A
         );
 
         return $this->issueFactory->createFromArray([
-            'type' => 'embeddable_without_value_object_methods',
+            'type' => IssueType::EMBEDDABLE_WITHOUT_VALUE_OBJECT_METHODS->value,
             'title' => sprintf('Incomplete Value Object: %s', $shortClassName),
             'description' => $description,
             'severity' => 'info',

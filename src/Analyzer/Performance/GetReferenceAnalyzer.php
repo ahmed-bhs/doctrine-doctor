@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -143,7 +144,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                         );
 
                         $issueData = new IssueData(
-                            type: 'lazy_loading',
+                            type: IssueType::LAZY_LOADING->value,
                             title: sprintf('Lazy Loading Detected: %d queries triggered', $totalCount),
                             description: DescriptionHighlighter::highlight(
                                 'Detected {count} lazy loading queries across {tableCount} table(s): {tables}. ' .
@@ -179,7 +180,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                         );
 
                         $issueData = new IssueData(
-                            type: 'get_reference',
+                            type: IssueType::GET_REFERENCE->value,
                             title: sprintf('Inefficient Entity Loading: %d find() queries detected', $totalCount),
                             description: DescriptionHighlighter::highlight(
                                 'Detected {count} simple SELECT by ID queries across {tableCount} table(s): {tables}. ' .

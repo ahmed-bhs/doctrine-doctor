@@ -11,15 +11,16 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -44,10 +45,12 @@ use Webmozart\Assert\Assert;
  */
 class OnDeleteCascadeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
-        private readonly ?IssueFactoryInterface $issueFactory = null,
+        private readonly IssueFactoryInterface $issueFactory,
     ) {
     }
 
@@ -258,7 +261,7 @@ class OnDeleteCascadeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         $severity = $this->determineSeverity($mismatch['type']);
 
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity'        => $entityClass,
             'field'         => $fieldName,
             'mismatch_type' => $mismatch['type'],
@@ -341,8 +344,8 @@ class OnDeleteCascadeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         string $fieldName,
         array $mismatch,
     ): SuggestionInterface {
-        $shortClassName  = $this->getShortClassName($entityClass);
-        $shortTargetName = $this->getShortClassName($mismatch['target_entity']);
+        $shortClassName  = $this->shortClassName($entityClass);
+        $shortTargetName = $this->shortClassName($mismatch['target_entity']);
 
         $ormCascade = $mismatch['orm_cascade'];
         $dbOnDelete = $mismatch['db_on_delete'];
@@ -368,12 +371,5 @@ class OnDeleteCascadeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
                 tags: ['cascade', 'onDelete', 'configuration', 'data-integrity'],
             ),
         );
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 }

@@ -40,6 +40,7 @@ final class BidirectionalConsistencyAnalyzerIntegrationTest extends DatabaseTest
         $this->bidirectionalConsistencyAnalyzer = new BidirectionalConsistencyAnalyzer(
             $this->entityManager,
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
 
         $this->createSchema([User::class, BlogPost::class, Comment::class]);

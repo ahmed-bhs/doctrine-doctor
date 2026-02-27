@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Security;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -36,6 +37,8 @@ use Webmozart\Assert\Assert;
  */
 class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     // Methods that execute SQL
     private const array SQL_EXECUTION_METHODS = [
         'executeQuery',
@@ -327,7 +330,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $methodName,
         \ReflectionMethod $reflectionMethod,
     ): SecurityIssue {
-        $shortClassName = $this->getShortClassName($className);
+        $shortClassName = $this->shortClassName($className);
 
         $description = sprintf(
             'Method "%s::%s()" uses string concatenation to build SQL queries. ' .
@@ -356,7 +359,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $methodName,
         \ReflectionMethod $reflectionMethod,
     ): SecurityIssue {
-        $shortClassName = $this->getShortClassName($className);
+        $shortClassName = $this->shortClassName($className);
 
         $description = sprintf(
             'Method "%s::%s()" uses variable interpolation in SQL query strings. ' .
@@ -385,7 +388,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $sqlMethod,
         \ReflectionMethod $reflectionMethod,
     ): SecurityIssue {
-        $shortClassName = $this->getShortClassName($className);
+        $shortClassName = $this->shortClassName($className);
 
         $description = sprintf(
             'Method "%s::%s()" calls %s() with a dynamically built SQL query but no parameter binding. ' .
@@ -415,7 +418,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $methodName,
         \ReflectionMethod $reflectionMethod,
     ): SecurityIssue {
-        $shortClassName = $this->getShortClassName($className);
+        $shortClassName = $this->shortClassName($className);
 
         $description = sprintf(
             'Method "%s::%s()" uses sprintf() to format SQL queries with user input. ' .
@@ -443,7 +446,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $methodName,
         \ReflectionMethod $reflectionMethod,
     ): SuggestionInterface {
-        $shortClassName = $this->getShortClassName($className);
+        $shortClassName = $this->shortClassName($className);
 
         $code = "// In {$shortClassName}::{$methodName}():
 
@@ -525,7 +528,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         string $sqlMethod,
         \ReflectionMethod $reflectionMethod,
     ): SuggestionInterface {
-        $shortClassName = $this->getShortClassName($className);
+        $shortClassName = $this->shortClassName($className);
 
         $code = "// In {$shortClassName}::{$methodName}():
 
@@ -588,13 +591,6 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         }
 
         return implode('', array_slice($source, $startLine - 1, $endLine - $startLine + 1));
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 
     private function getFileLocation(\ReflectionMethod $reflectionMethod): string

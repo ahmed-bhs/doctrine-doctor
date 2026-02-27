@@ -11,11 +11,13 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -34,6 +36,8 @@ use Webmozart\Assert\Assert;
  */
 class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     /** @var array<string, bool> Cache of checked entities to avoid duplicate issues */
     /** @var array<mixed> */
     private array $checkedEntities = [];
@@ -111,8 +115,8 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         $description = $this->buildDescription($entityClass, $reflectionClass, $classMetadata);
 
         $issueData = new IssueData(
-            type: 'final_entity',
-            title: sprintf('Final Entity Detected: %s', $this->getShortClassName($entityClass)),
+            type: IssueType::FINAL_ENTITY->value,
+            title: sprintf('Final Entity Detected: %s', $this->shortClassName($entityClass)),
             description: $description,
             severity: $this->calculateSeverity($classMetadata),
             suggestion: null,
@@ -127,7 +131,7 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
      */
     private function buildDescription(string $entityClass, \ReflectionClass $reflectionClass, ClassMetadata $classMetadata): string
     {
-        $shortName = $this->getShortClassName($entityClass);
+        $shortName = $this->shortClassName($entityClass);
 
         $description = sprintf(
             "Entity class %s is marked as 'final', which prevents Doctrine from creating proxy classes.
@@ -163,7 +167,7 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                     "  - %s (-> %s)
 ",
                     $assocName,
-                    $this->getShortClassName($targetEntity),
+                    $this->shortClassName($targetEntity),
                 );
             }
 
@@ -244,10 +248,4 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
     /**
      * Get short class name without namespace.
      */
-    private function getShortClassName(string $fqcn): string
-    {
-        $parts = explode('\\', $fqcn);
-
-        return end($parts);
-    }
 }

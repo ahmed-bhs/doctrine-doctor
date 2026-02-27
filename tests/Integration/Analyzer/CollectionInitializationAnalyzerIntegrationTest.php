@@ -58,7 +58,7 @@ final class CollectionInitializationAnalyzerIntegrationTest extends TestCase
     {
         $twigTemplateRenderer = $this->createTwigRenderer();
         $suggestionFactory = new SuggestionFactory($twigTemplateRenderer);
-        $collectionInitializationAnalyzer = new CollectionInitializationAnalyzer($this->entityManager, $suggestionFactory);
+        $collectionInitializationAnalyzer = new CollectionInitializationAnalyzer($this->entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
 
         $issues = $collectionInitializationAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -75,7 +75,7 @@ final class CollectionInitializationAnalyzerIntegrationTest extends TestCase
     {
         $twigTemplateRenderer = $this->createTwigRenderer();
         $suggestionFactory = new SuggestionFactory($twigTemplateRenderer);
-        $collectionInitializationAnalyzer = new CollectionInitializationAnalyzer($this->entityManager, $suggestionFactory);
+        $collectionInitializationAnalyzer = new CollectionInitializationAnalyzer($this->entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
 
         // Analyze without errors
         $issues = $collectionInitializationAnalyzer->analyze(QueryDataCollection::empty());
@@ -147,7 +147,7 @@ final class CollectionInitializationAnalyzerIntegrationTest extends TestCase
     {
         $suggestionFactory = new SuggestionFactory($this->createTwigRenderer());
 
-        return new CollectionInitializationAnalyzer($this->entityManager, $suggestionFactory);
+        return new CollectionInitializationAnalyzer($this->entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer

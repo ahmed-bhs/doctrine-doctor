@@ -11,15 +11,16 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\TraitCollectionInitializationDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -35,6 +36,8 @@ use Webmozart\Assert\Assert;
  */
 class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     private readonly TraitCollectionInitializationDetector $traitDetector;
 
     private readonly PhpCodeParser $phpCodeParser;
@@ -42,7 +45,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
-        private readonly ?IssueFactoryInterface $issueFactory = null,
+        private readonly IssueFactoryInterface $issueFactory,
         private readonly ?LoggerInterface $logger = null,
         ?TraitCollectionInitializationDetector $traitDetector = null,
         ?PhpCodeParser $phpCodeParser = null,
@@ -180,11 +183,11 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 
     private function createMissingConstructorIssue(string $entityClass, string $fieldName, array|object $mapping): IntegrityIssue
     {
-        $shortClassName = $this->getShortClassName($entityClass);
-        $targetEntity   = $this->getShortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
+        $shortClassName = $this->shortClassName($entityClass);
+        $targetEntity   = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
         /** @var IntegrityIssue $issue */
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => 'Missing constructor for collection initialization in ' . $shortClassName,
             'description' => sprintf(
                 'Entity "%s" has a collection property "$%s" (relation to %s) but no constructor. ' .
@@ -198,7 +201,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             'suggestion' => $this->suggestionFactory->createFromTemplate(
                 templateName: 'Integrity/collection_initialization',
                 context: [
-                    'entity_class' => $this->getShortClassName($entityClass),
+                    'entity_class' => $this->shortClassName($entityClass),
                     'field_name' => $fieldName,
                     'has_constructor' => false,
                     'backtrace' => null,
@@ -206,7 +209,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::critical(),
-                    title: sprintf('Uninitialized Collection: %s::$%s', $this->getShortClassName($entityClass), $fieldName),
+                    title: sprintf('Uninitialized Collection: %s::$%s', $this->shortClassName($entityClass), $fieldName),
                     tags: ['code-quality', 'doctrine', 'collection'],
                 ),
             ),
@@ -222,11 +225,11 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         array|object $mapping,
         \ReflectionMethod $reflectionMethod,
     ): IntegrityIssue {
-        $shortClassName = $this->getShortClassName($entityClass);
-        $targetEntity   = $this->getShortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
+        $shortClassName = $this->shortClassName($entityClass);
+        $targetEntity   = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
         /** @var IntegrityIssue $issue */
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => sprintf('Uninitialized collection in %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Entity "%s" has a collection property "$%s" (relation to %s) that is not initialized in the constructor. ' .
@@ -240,7 +243,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             'suggestion' => $this->suggestionFactory->createFromTemplate(
                 templateName: 'Integrity/collection_initialization',
                 context: [
-                    'entity_class' => $this->getShortClassName($entityClass),
+                    'entity_class' => $this->shortClassName($entityClass),
                     'field_name' => $fieldName,
                     'has_constructor' => true,
                     'backtrace' => sprintf('%s:%d', $reflectionMethod->getFileName() ?: 'unknown', $reflectionMethod->getStartLine() ?: 0),
@@ -248,7 +251,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::critical(),
-                    title: sprintf('Uninitialized Collection: %s::$%s', $this->getShortClassName($entityClass), $fieldName),
+                    title: sprintf('Uninitialized Collection: %s::$%s', $this->shortClassName($entityClass), $fieldName),
                     tags: ['code-quality', 'doctrine', 'collection'],
                 ),
             ),
@@ -259,13 +262,6 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             'queries' => [],
         ]);
         return $issue;
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 
     /**

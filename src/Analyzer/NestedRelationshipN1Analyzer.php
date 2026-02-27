@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -239,7 +240,7 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         $description .= "\n- Total impact: " . ($count * $depth) . ' queries!';
 
         return new IssueData(
-            type: 'nested_n_plus_one',
+            type: IssueType::NESTED_N_PLUS_ONE->value,
             title: "Nested N+1: {$count} Queries Across {$depth}-Level Chain",
             description: $description,
             severity: $this->calculateNestedSeverity($depth, $count),

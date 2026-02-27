@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -302,7 +303,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'soft_delete_not_nullable',
+            'type' => IssueType::SOFT_DELETE_NOT_NULLABLE->value,
             'title'       => sprintf('CRITICAL: deletedAt Not Nullable: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'critical',
@@ -332,7 +333,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'soft_delete_mutable_datetime',
+            'type' => IssueType::SOFT_DELETE_MUTABLE_DATETIME->value,
             'title'       => sprintf('Mutable DateTime in SoftDelete: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
@@ -362,7 +363,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'soft_delete_public_setter',
+            'type' => IssueType::SOFT_DELETE_PUBLIC_SETTER->value,
             'title'       => sprintf('Public Setter on SoftDelete: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
@@ -392,7 +393,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'soft_delete_missing_timezone',
+            'type' => IssueType::SOFT_DELETE_MISSING_TIMEZONE->value,
             'title'       => sprintf('Missing Timezone: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'info',
@@ -423,7 +424,7 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'soft_delete_cascade_conflict',
+            'type' => IssueType::SOFT_DELETE_CASCADE_CONFLICT->value,
             'title'       => sprintf('CASCADE DELETE Conflict: %s::%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'critical',

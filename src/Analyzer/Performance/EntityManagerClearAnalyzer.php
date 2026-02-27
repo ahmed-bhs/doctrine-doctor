@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -105,7 +106,7 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                             );
 
                             $issueData = new IssueData(
-                                type: 'entity_manager_clear',
+                                type: IssueType::ENTITY_MANAGER_CLEAR->value,
                                 title: sprintf('Memory Leak Risk: %d operations on %s', $count, $table),
                                 description: DescriptionHighlighter::highlight(
                                     'Detected {count} sequential INSERT/UPDATE/DELETE operations on table {table} without {clearMethod}. ' .

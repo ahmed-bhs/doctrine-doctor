@@ -13,10 +13,10 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -55,7 +55,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
-        private readonly ?IssueFactoryInterface $issueFactory = null,
+        private readonly IssueFactoryInterface $issueFactory,
     ) {
     }
 
@@ -216,7 +216,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         $shortName = $classMetadata->getReflectionClass()->getShortName();
 
         $issueData = new IssueData(
-            type: 'auto_increment_educational',
+            type: IssueType::AUTO_INCREMENT_EDUCATIONAL->value,
             title: sprintf('%s Uses Auto-Increment ID', $shortName),
             description: sprintf(
                 "Entity '%s' uses auto-increment ID strategy. This is fine for most applications, but consider UUIDs if you need: " .
@@ -234,7 +234,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         /** @var IntegrityIssue $issue */
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
+        $issue = $this->issueFactory->createFromArray($issueData->toArray());
         return $issue;
     }
 
@@ -247,7 +247,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         $shortName = $classMetadata->getReflectionClass()->getShortName();
 
         $issueData = new IssueData(
-            type: 'uuid_v4_performance',
+            type: IssueType::UUID_V4_PERFORMANCE->value,
             title: sprintf('%s Uses UUID v4 (Random)', $shortName),
             description: sprintf(
                 "Entity '%s' uses UUID v4 (random generation). Consider UUID v7 instead for better performance. " .
@@ -262,7 +262,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         /** @var IntegrityIssue $issue */
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
+        $issue = $this->issueFactory->createFromArray($issueData->toArray());
         return $issue;
     }
 
@@ -272,7 +272,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function createMixedStrategiesIssue(array $statistics): IntegrityIssue
     {
         $issueData = new IssueData(
-            type: 'mixed_id_strategies',
+            type: IssueType::MIXED_ID_STRATEGIES->value,
             title: 'Mixed Primary Key Strategies Detected',
             description: sprintf(
                 "Your codebase uses both auto-increment (%d entities) and UUIDs (%d entities). " .
@@ -287,7 +287,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         /** @var IntegrityIssue $issue */
-        $issue = ($this->issueFactory ?? new IssueFactory())->createFromArray($issueData->toArray());
+        $issue = $this->issueFactory->createFromArray($issueData->toArray());
         return $issue;
     }
 

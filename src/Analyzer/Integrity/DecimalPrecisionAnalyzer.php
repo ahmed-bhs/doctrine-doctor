@@ -16,6 +16,7 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -142,7 +143,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'decimal_missing_precision',
+            'type' => IssueType::DECIMAL_MISSING_PRECISION->value,
             'title'       => sprintf('Missing Decimal Precision: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
@@ -274,7 +275,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'decimal_insufficient_precision',
+            'type' => IssueType::DECIMAL_INSUFFICIENT_PRECISION->value,
             'title'       => sprintf('Insufficient Decimal Precision: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
@@ -327,7 +328,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'decimal_unusual_scale',
+            'type' => IssueType::DECIMAL_UNUSUAL_SCALE->value,
             'title'       => sprintf('Unusual Decimal Scale: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'info',
@@ -375,7 +376,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'decimal_excessive_precision',
+            'type' => IssueType::DECIMAL_EXCESSIVE_PRECISION->value,
             'title'       => sprintf('Excessive Decimal Precision: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'info',

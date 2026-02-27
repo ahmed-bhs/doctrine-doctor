@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -208,7 +209,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'missing_blameable_trait_opportunity',
+            'type' => IssueType::MISSING_BLAMEABLE_TRAIT_OPPORTUNITY->value,
             'title'       => sprintf('Missing Blameable Trait: %s', $shortClassName),
             'description' => $description,
             'severity'    => 'info',
@@ -427,7 +428,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'blameable_nullable_created_by',
+            'type' => IssueType::BLAMEABLE_NULLABLE_CREATED_BY->value,
             'title'       => sprintf('Nullable Creator Field: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
@@ -458,7 +459,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'blameable_public_setter',
+            'type' => IssueType::BLAMEABLE_PUBLIC_SETTER->value,
             'title'       => sprintf('Public Setter on Blameable: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'info',
@@ -494,7 +495,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'blameable_wrong_target',
+            'type' => IssueType::BLAMEABLE_WRONG_TARGET->value,
             'title'       => sprintf('Wrong Target Entity: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'info',

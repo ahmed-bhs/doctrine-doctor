@@ -136,7 +136,7 @@ final class CascadePersistOnIndependentEntityAnalyzerIntegrationTest extends Tes
         $entityManager = $this->entityManager;
         $suggestionFactory = new SuggestionFactory($this->createTwigRenderer());
 
-        return new CascadePersistOnIndependentEntityAnalyzer($entityManager, $suggestionFactory);
+        return new CascadePersistOnIndependentEntityAnalyzer($entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer

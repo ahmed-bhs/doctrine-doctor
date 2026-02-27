@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -376,7 +377,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'timestampable_mutable_datetime',
+            'type' => IssueType::TIMESTAMPABLE_MUTABLE_DATETIME->value,
             'title'       => sprintf('Mutable DateTime in Timestamp: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
@@ -430,7 +431,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'timestampable_timezone_inconsistency',
+            'type' => IssueType::TIMESTAMPABLE_TIMEZONE_INCONSISTENCY->value,
             'title'       => 'Inconsistent Timezone Usage Detected',
             'description' => $description,
             'severity'    => 'warning', // WARNING for inconsistency
@@ -463,7 +464,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'timestampable_nullable_created_at',
+            'type' => IssueType::TIMESTAMPABLE_NULLABLE_CREATED_AT->value,
             'title'       => sprintf('Nullable Creation Timestamp: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
@@ -494,7 +495,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'timestampable_public_setter',
+            'type' => IssueType::TIMESTAMPABLE_PUBLIC_SETTER->value,
             'title'       => sprintf('Public Setter on Timestamp: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'info',
