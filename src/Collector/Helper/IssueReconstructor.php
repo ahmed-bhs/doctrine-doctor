@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Collector\Helper;
 
+use AhmedBhs\DoctrineDoctor\Issue\DeduplicatableIssueInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\CodeSuggestion;
 use AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion;
@@ -56,7 +57,7 @@ final readonly class IssueReconstructor
         $issue = new $issueClass(array_merge($issueData, ['suggestion' => $suggestion]));
 
         // Reconstruct and attach duplicated issues if any
-        if (count($duplicatedIssuesData) > 0) {
+        if (count($duplicatedIssuesData) > 0 && $issue instanceof DeduplicatableIssueInterface) {
             $duplicatedIssues = array_map(
                 $this->reconstructSimplifiedIssue(...),
                 $duplicatedIssuesData,

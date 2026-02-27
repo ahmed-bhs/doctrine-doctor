@@ -16,7 +16,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Webmozart\Assert\Assert;
 
-abstract class AbstractIssue implements IssueInterface
+abstract class AbstractIssue implements DeduplicatableIssueInterface
 {
     protected string $type;
 
