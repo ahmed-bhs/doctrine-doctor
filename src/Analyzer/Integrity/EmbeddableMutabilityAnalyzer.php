@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -249,7 +251,7 @@ class EmbeddableMutabilityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'embeddable_mutability',
+            'type' => IssueType::EMBEDDABLE_MUTABILITY->value,
             'title'       => sprintf('Mutable Embeddable: %s', $shortClassName),
             'description' => $description,
             'severity'    => 'warning',

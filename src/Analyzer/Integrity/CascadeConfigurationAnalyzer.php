@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -185,7 +187,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         // Check if target is an independent entity
         if ($this->isIndependentEntity(MappingHelper::getString($mapping, 'targetEntity') ?? '')) {
             /** @var IntegrityIssue $issue */
-            $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+            $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
                 'title'       => sprintf('Dangerous cascade="all" in %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Entity "%s" has cascade="all" on property "$%s" (relation to %s). ' .
@@ -207,7 +209,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         }
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => sprintf('Overuse of cascade="all" in %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Entity "%s" uses cascade="all" on property "$%s" (relation to %s). ' .
@@ -242,7 +244,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => 'Dangerous cascade remove on independent entity ' . $targetShortName,
             'description' => sprintf(
                 'Entity "%s" has cascade remove on property "$%s" pointing to independent entity "%s". ' .
@@ -276,7 +278,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
             /** @var IntegrityIssue $issue */
-            $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+            $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
                 'title'       => sprintf('Missing cascade on composition relationship %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
                     'Entity "%s" has a composition relationship with "%s" (property "$%s") but no cascaconfiguration. ' .

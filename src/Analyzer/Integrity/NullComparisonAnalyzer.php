@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -142,7 +144,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         $correctSyntax = $this->getCorrectSyntax($field, $operator);
 
         $issueData = new IssueData(
-            type: 'integrity_incorrect_null_comparison',
+            type: IssueType::INTEGRITY_INCORRECT_NULL_COMPARISON->value,
             title: 'Incorrect NULL Comparison',
             description: sprintf(
                 "Found '%s' in query. Comparing to NULL with '%s' does not work as expected in SQL. " .

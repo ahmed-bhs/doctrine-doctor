@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -114,7 +116,7 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         $description = $this->buildDescription($entityClass, $reflectionClass, $classMetadata);
 
         $issueData = new IssueData(
-            type: 'final_entity',
+            type: IssueType::FINAL_ENTITY->value,
             title: sprintf('Final Entity Detected: %s', $this->shortClassName($entityClass)),
             description: $description,
             severity: $this->calculateSeverity($classMetadata),

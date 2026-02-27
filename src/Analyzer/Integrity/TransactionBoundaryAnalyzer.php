@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -330,7 +332,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
 ";
 
         $issueData = new IssueData(
-            type: 'transaction_nested',
+            type: IssueType::TRANSACTION_NESTED->value,
             title: sprintf('Nested Transaction Detected (Depth: %d)', $depth),
             description: $description,
             severity: Severity::critical(),
@@ -439,7 +441,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
 ";
 
         $issueData = new IssueData(
-            type: 'transaction_multiple_flush',
+            type: IssueType::TRANSACTION_MULTIPLE_FLUSH->value,
             title: sprintf('Multiple Flush in Transaction (%d flushes)', $flushCount),
             description: $description,
             severity: Severity::warning(),
@@ -534,7 +536,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
 ";
 
         $issueData = new IssueData(
-            type: 'transaction_unclosed',
+            type: IssueType::TRANSACTION_UNCLOSED->value,
             title: 'Unclosed Transaction Detected',
             description: $description,
             severity: Severity::critical(),
@@ -625,7 +627,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
 ";
 
         $issueData = new IssueData(
-            type: 'transaction_too_long',
+            type: IssueType::TRANSACTION_TOO_LONG->value,
             title: sprintf('Long Transaction (%.2fs)', $duration),
             description: $description,
             severity: Severity::warning(),

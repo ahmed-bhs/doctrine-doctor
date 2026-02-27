@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -69,7 +71,7 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                         );
 
                         $issueData = new IssueData(
-                            type: 'bulk_operation',
+                            type: IssueType::BULK_OPERATION->value,
                             title: sprintf('Inefficient Bulk Operations: %d %s on %s', $bulkOperation['count'], $bulkOperation['type'], $bulkOperation['table']),
                             description: DescriptionHighlighter::highlight(
                                 'Detected {count} individual {type} queries on table {table}. ' .

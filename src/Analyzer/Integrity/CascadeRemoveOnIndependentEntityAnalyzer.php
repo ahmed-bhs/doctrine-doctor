@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CompositionRelationshipDetector;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -363,7 +365,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToOne',
@@ -403,7 +405,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $referenceCount = $referenceCountMap[$targetEntity] ?? 0;
 
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity'           => $entityClass,
             'field'            => $fieldName,
             'association_type' => 'ManyToMany',

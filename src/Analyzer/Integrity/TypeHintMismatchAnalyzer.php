@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -373,7 +375,7 @@ final readonly class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDocto
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'type_hint_mismatch',
+            'type' => IssueType::TYPE_HINT_MISMATCH->value,
             'title'       => sprintf('Type Mismatch: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => $severity,

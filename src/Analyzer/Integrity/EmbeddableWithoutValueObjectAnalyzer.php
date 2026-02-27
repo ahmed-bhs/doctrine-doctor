@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -178,7 +180,7 @@ class EmbeddableWithoutValueObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\A
         );
 
         return $this->issueFactory->createFromArray([
-            'type' => 'embeddable_without_value_object_methods',
+            'type' => IssueType::EMBEDDABLE_WITHOUT_VALUE_OBJECT_METHODS->value,
             'title' => sprintf('Incomplete Value Object: %s', $shortClassName),
             'description' => $description,
             'severity' => 'info',

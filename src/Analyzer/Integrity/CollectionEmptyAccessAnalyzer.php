@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -240,7 +242,7 @@ class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         );
 
         $issueData = new IssueData(
-            type: 'collection_uninitialized',
+            type: IssueType::COLLECTION_UNINITIALIZED->value,
             title: sprintf('Uninitialized Collection: %s::\$%s', $shortClassName, $propertyName),
             description: $description,
             severity: Severity::critical(),

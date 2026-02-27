@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
@@ -162,7 +164,7 @@ class CartesianProductAnalyzer implements AnalyzerInterface
         $sql = $this->truncateQuery($queryData->sql);
 
         $issueData = new IssueData(
-            type: 'cartesian_product',
+            type: IssueType::CARTESIAN_PRODUCT->value,
             title: sprintf('Cartesian Product: %d Collection JOINs Causing O(n^%d) Hydration', $joinCount, $joinCount),
             description: sprintf(
                 'Query performs %d LEFT JOINs on collection-valued associations (%s). ',
@@ -270,7 +272,7 @@ class CartesianProductAnalyzer implements AnalyzerInterface
         $collectionCount = count($tables);
 
         $issueData = new IssueData(
-            type: 'cartesian_product_risk',
+            type: IssueType::CARTESIAN_PRODUCT_RISK->value,
             title: sprintf(
                 'Cartesian Product Risk: %d Collections on %s (use Multi-Step Hydration)',
                 $collectionCount,
