@@ -34,7 +34,6 @@ class HydrationIssue extends AbstractIssue
     {
         return [
             IssueType::HYDRATION->value,
-            'Excessive Hydration',
         ];
     }
 

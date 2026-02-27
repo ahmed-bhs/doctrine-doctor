@@ -38,7 +38,6 @@ class LazyLoadingIssue extends AbstractIssue
     {
         return [
             IssueType::LAZY_LOADING->value,
-            'Lazy Loading in Loop',
         ];
     }
 

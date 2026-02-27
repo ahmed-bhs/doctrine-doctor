@@ -33,7 +33,6 @@ class FinalEntityIssue extends AbstractIssue
     {
         return [
             IssueType::FINAL_ENTITY->value,
-            'Final Entity Class',
         ];
     }
 

@@ -41,7 +41,6 @@ class EntityStateIssue extends AbstractIssue
             IssueType::ENTITY_REMOVED_ACCESS->value,
             IssueType::ENTITY_REMOVED_IN_ASSOCIATION->value,
             IssueType::ENTITY_DETACHED_IN_ASSOCIATION->value,
-            'Entity State Issue',
         ];
     }
 

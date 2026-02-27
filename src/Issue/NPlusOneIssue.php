@@ -34,9 +34,7 @@ class NPlusOneIssue extends AbstractIssue
     {
         return [
             IssueType::N_PLUS_ONE->value,
-            'N+1 Query',
             IssueType::NESTED_N_PLUS_ONE->value,
-            'Nested N+1',
         ];
     }
 

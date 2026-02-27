@@ -35,7 +35,6 @@ class MissingIndexIssue extends AbstractIssue
     {
         return [
             IssueType::MISSING_INDEX->value,
-            'Missing Index',
         ];
     }
 

@@ -38,7 +38,6 @@ class BulkOperationIssue extends AbstractIssue
     {
         return [
             IssueType::BULK_OPERATION->value,
-            'Inefficient Bulk Operations',
         ];
     }
 

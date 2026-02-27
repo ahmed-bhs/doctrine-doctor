@@ -222,11 +222,11 @@ abstract class AbstractIssue implements DeduplicatableIssueInterface
             return $severity;
         }
 
-        // Normalize legacy severity values to standard ones (5-level system)
+        // Normalize historical severity values to standard ones (5-level system)
         $normalized = match ($severity) {
-            'warning' => 'warning',  // Legacy: warning → medium
-            'error'   => 'warning',    // Legacy: error → high
-            'notice'  => 'info',    // Legacy: notice → info
+            'warning' => 'warning',  // warning -> medium
+            'error'   => 'warning',  // error -> high
+            'notice'  => 'info',     // notice -> info
             default   => $severity, // Keep new levels as-is: info, low, medium, high, critical
         };
 

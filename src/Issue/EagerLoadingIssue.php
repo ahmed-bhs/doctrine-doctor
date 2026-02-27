@@ -34,7 +34,6 @@ class EagerLoadingIssue extends AbstractIssue
     {
         return [
             IssueType::EAGER_LOADING->value,
-            'Excessive Eager Loading',
         ];
     }
 

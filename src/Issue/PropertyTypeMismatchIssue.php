@@ -33,7 +33,6 @@ class PropertyTypeMismatchIssue extends AbstractIssue
     {
         return [
             IssueType::PROPERTY_TYPE_MISMATCH->value,
-            'Property Type Mismatch',
         ];
     }
 

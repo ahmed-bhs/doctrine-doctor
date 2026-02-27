@@ -33,7 +33,6 @@ class CollectionUninitializedIssue extends AbstractIssue
     {
         return [
             IssueType::COLLECTION_UNINITIALIZED->value,
-            'Uninitialized Collection',
         ];
     }
 

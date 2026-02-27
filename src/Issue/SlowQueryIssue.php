@@ -34,7 +34,6 @@ class SlowQueryIssue extends AbstractIssue
     {
         return [
             IssueType::SLOW_QUERY->value,
-            'Slow Query',
         ];
     }
 

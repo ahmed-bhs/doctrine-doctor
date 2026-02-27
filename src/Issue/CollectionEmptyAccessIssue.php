@@ -33,7 +33,6 @@ class CollectionEmptyAccessIssue extends AbstractIssue
     {
         return [
             IssueType::COLLECTION_EMPTY_ACCESS->value,
-            'Unsafe Collection Access',
         ];
     }
 
