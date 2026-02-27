@@ -37,7 +37,6 @@ class FlushInLoopIssue extends AbstractIssue
     {
         return [
             IssueType::FLUSH_IN_LOOP->value,
-            'Performance Anti-Pattern',
         ];
     }
 

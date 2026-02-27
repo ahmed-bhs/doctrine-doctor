@@ -26,7 +26,7 @@ interface IssueFactoryInterface
     public function create(IssueData $issueData): IssueInterface;
 
     /**
-     * Create an issue from legacy array format.
+     * Create an issue from array data.
      * @param array<string, mixed> $data
      */
     public function createFromArray(array $data): IssueInterface;

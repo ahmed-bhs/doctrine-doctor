@@ -38,13 +38,13 @@ final class IssueFactoryTest extends TestCase
     }
 
     #[Test]
-    public function it_creates_issue_from_legacy_alias_mapping(): void
+    public function it_creates_issue_from_transaction_type_mapping(): void
     {
         $factory = new IssueFactory();
 
         $issue = $factory->createFromArray([
-            'type' => 'Transaction Boundary Issue',
-            'title' => 'Transaction Boundary Issue',
+            'type' => IssueType::TRANSACTION_BOUNDARY->value,
+            'title' => 'Transaction Boundary',
             'description' => 'Transaction scope is inconsistent',
             'severity' => 'warning',
         ]);
@@ -59,8 +59,8 @@ final class IssueFactoryTest extends TestCase
         $supportedTypes = $factory->getSupportedTypes();
 
         self::assertContains(IssueType::N_PLUS_ONE->value, $supportedTypes);
-        self::assertContains('N+1 Query', $supportedTypes);
-        self::assertContains('Transaction Boundary Issue', $supportedTypes);
+        self::assertContains(IssueType::TRANSACTION_BOUNDARY->value, $supportedTypes);
+        self::assertContains(IssueType::SET_MAX_RESULTS_WITH_COLLECTION_JOIN->value, $supportedTypes);
     }
 
     #[Test]

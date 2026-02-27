@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -168,7 +169,7 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
         $mainTable = $tables[0] ?? 'entity';
 
         $issueData = new IssueData(
-            type: 'setMaxResults_with_collection_join',
+            type: IssueType::SET_MAX_RESULTS_WITH_COLLECTION_JOIN->value,
             title: 'setMaxResults() with Collection Join Detected',
             description: 'Query uses LIMIT with a fetch-joined collection. This causes LIMIT to apply to SQL rows ' .
             'instead of entities, resulting in partially hydrated collections (silent data loss). ' .

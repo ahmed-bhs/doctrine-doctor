@@ -33,7 +33,6 @@ class RepositoryFieldValidationIssue extends AbstractIssue
     {
         return [
             IssueType::REPOSITORY_INVALID_FIELD->value,
-            'Invalid Field in Repository Method',
         ];
     }
 
