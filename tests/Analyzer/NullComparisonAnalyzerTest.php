@@ -30,6 +30,7 @@ final class NullComparisonAnalyzerTest extends TestCase
     {
         $this->analyzer = new NullComparisonAnalyzer(
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 

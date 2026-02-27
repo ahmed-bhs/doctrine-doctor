@@ -35,7 +35,7 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $renderer = new InMemoryTemplateRenderer();
         $suggestionFactory = new SuggestionFactory($renderer);
-        $this->analyzer = new JoinTypeConsistencyAnalyzer($entityManager, $suggestionFactory);
+        $this->analyzer = new JoinTypeConsistencyAnalyzer($entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     #[Test]

@@ -30,7 +30,7 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $inMemoryTemplateRenderer = new InMemoryTemplateRenderer();
         $suggestionFactory = new SuggestionFactory($inMemoryTemplateRenderer);
-        $this->joinTypeConsistencyAnalyzer = new JoinTypeConsistencyAnalyzer($entityManager, $suggestionFactory);
+        $this->joinTypeConsistencyAnalyzer = new JoinTypeConsistencyAnalyzer($entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     public function test_detects_left_join_with_is_not_null(): void

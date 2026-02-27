@@ -133,6 +133,6 @@ final class OrphanRemovalWithoutCascadeRemoveAnalyzerIntegrationTest extends Tes
         $twigTemplateRenderer = PlatformAnalyzerTestHelper::createTwigTemplateRenderer();
         $suggestionFactory = new \AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory($twigTemplateRenderer);
 
-        return new OrphanRemovalWithoutCascadeRemoveAnalyzer($entityManager, $suggestionFactory);
+        return new OrphanRemovalWithoutCascadeRemoveAnalyzer($entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 }

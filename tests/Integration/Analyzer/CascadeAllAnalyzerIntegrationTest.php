@@ -174,7 +174,7 @@ final class CascadeAllAnalyzerIntegrationTest extends TestCase
         $suggestionFactory = new SuggestionFactory($this->createTwigRenderer());
 
         // No logger provided - errors will be silent unless explicitly passed
-        return new CascadeAllAnalyzer($entityManager, $suggestionFactory);
+        return new CascadeAllAnalyzer($entityManager, $suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     private function createTwigRenderer(): TwigTemplateRenderer
