@@ -261,7 +261,6 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         return $issue;
     }
 
-
     /**
      * Check if any class in the hierarchy has a constructor.
      */

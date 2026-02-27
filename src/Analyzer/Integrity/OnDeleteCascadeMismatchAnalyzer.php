@@ -369,5 +369,4 @@ class OnDeleteCascadeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
             ),
         );
     }
-
 }

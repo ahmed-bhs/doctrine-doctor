@@ -730,5 +730,4 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
             ),
         );
     }
-
 }
