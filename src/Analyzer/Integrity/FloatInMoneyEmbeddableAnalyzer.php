@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -205,7 +207,7 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'float_in_money_embeddable',
+            'type' => IssueType::FLOAT_IN_MONEY_EMBEDDABLE->value,
             'title'       => sprintf('Float in Money Embeddable: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'critical',

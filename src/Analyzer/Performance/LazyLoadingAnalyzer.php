@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -71,7 +73,7 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                         );
 
                         $issueData = new IssueData(
-                            type: 'lazy_loading',
+                            type: IssueType::LAZY_LOADING->value,
                             title: sprintf('Lazy Loading in Loop: %d queries on %s', $lazyLoadPattern['count'], $lazyLoadPattern['entity']),
                             description: DescriptionHighlighter::highlight(
                                 'Detected {count} sequential lazy-loaded queries on entity {entity} (relation: {relation}). ' .

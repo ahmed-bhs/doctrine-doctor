@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\QueryBuilderPatternDetector;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -129,7 +131,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
     private function createSqlInjectionIssue(QueryData $queryData): IssueInterface
     {
         return $this->issueFactory->createFromArray([
-            'type'        => 'query_builder_sql_injection',
+            'type' => IssueType::QUERY_BUILDER_SQL_INJECTION->value,
             'title'       => 'Potential SQL Injection in QueryBuilder',
             'description' => 'The query appears to use string concatenation instead of parameter binding. Always use setParameter() to prevent SQL injection vulnerabilities.',
             'severity'    => 'critical',
@@ -172,7 +174,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'incorrect_null_comparison',
+            'type' => IssueType::INCORRECT_NULL_COMPARISON->value,
             'title'       => 'Incorrect NULL Comparison',
             'description' => 'Using = NULL or != NULL does not work in SQL. Use IS NULL or IS NOT NULL instead, or use $expr->isNull() / $expr->isNotNull() in QueryBuilder.',
             'severity'    => 'warning',
@@ -257,7 +259,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'empty_in_clause',
+            'type' => IssueType::EMPTY_IN_CLAUSE->value,
             'title'       => 'Empty IN() Clause',
             'description' => 'The query contains an empty IN() clause which will cause a SQL syntax error. Always check if the array is empty before using IN().',
             'severity'    => 'critical',
@@ -274,7 +276,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
     private function createUnescapedLikeIssue(QueryData $queryData): IssueInterface
     {
         return $this->issueFactory->createFromArray([
-            'type'        => 'unescaped_like',
+            'type' => IssueType::UNESCAPED_LIKE->value,
             'title'       => 'Potentially Unescaped LIKE Pattern',
             'description' => 'The query uses LIKE with what appears to be concatenated wildcards. User input in LIKE patterns should have % and _ characters escaped to prevent unexpected matching.',
             'severity'    => 'warning',
@@ -316,7 +318,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
     private function createMissingParametersIssue(QueryData $queryData): IssueInterface
     {
         return $this->issueFactory->createFromArray([
-            'type'        => 'missing_parameters',
+            'type' => IssueType::MISSING_PARAMETERS->value,
             'title'       => 'Missing Query Parameters',
             'description' => 'The query contains parameter placeholders (:param) but some parameters are not set with setParameter(). This will cause a runtime error.',
             'severity'    => 'critical',

@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -179,7 +181,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         // Check 1: orphanRemoval=true but nullable FK
         if ($this->hasOrphanRemovalButNullableFK($owningMapping, $inverseMapping)) {
             $inconsistencies[] = [
-                'type'          => 'orphan_removal_nullable_fk',
+                'type' => IssueType::ORPHAN_REMOVAL_NULLABLE_FK->value,
                 'severity'      => 'critical',
                 'inverse_field' => $mappedBy,
             ];
@@ -188,7 +190,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         // Check 2: cascade="remove" but onDelete="SET NULL"
         if ($this->hasCascadeRemoveButSetNull($owningMapping, $inverseMapping)) {
             $inconsistencies[] = [
-                'type'          => 'cascade_remove_set_null',
+                'type' => IssueType::CASCADE_REMOVE_SET_NULL->value,
                 'severity'      => 'warning',
                 'inverse_field' => $mappedBy,
             ];
@@ -197,7 +199,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         // Check 3: orphanRemoval without cascade="persist"
         if ($this->hasOrphanRemovalWithoutCascadePersist($owningMapping)) {
             $inconsistencies[] = [
-                'type'          => 'orphan_removal_no_persist',
+                'type' => IssueType::ORPHAN_REMOVAL_NO_PERSIST->value,
                 'severity'      => 'warning',
                 'inverse_field' => $mappedBy,
             ];
@@ -206,7 +208,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         // Check 4: onDelete="CASCADE" in DB but no cascade in ORM
         if ($this->hasOnDeleteCascadeButNoCascadeORM($owningMapping, $inverseMapping)) {
             $inconsistencies[] = [
-                'type'          => 'ondelete_cascade_no_orm',
+                'type' => IssueType::ONDELETE_CASCADE_NO_ORM->value,
                 'severity'      => 'warning',
                 'inverse_field' => $mappedBy,
             ];
@@ -328,7 +330,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $backtrace = $this->createEntityFieldBacktrace($entityClass, $fieldName);
 
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity'             => $entityClass,
             'field'              => $fieldName,
             'target_entity'      => $targetEntity,

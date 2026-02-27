@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -215,7 +217,7 @@ class MissingEmbeddableOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\A
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'missing_embeddable_opportunity',
+            'type' => IssueType::MISSING_EMBEDDABLE_OPPORTUNITY->value,
             'title'       => sprintf('Missing %s Embeddable: %s', $embeddableName, $shortClassName),
             'description' => $description,
             'severity'    => 'info',

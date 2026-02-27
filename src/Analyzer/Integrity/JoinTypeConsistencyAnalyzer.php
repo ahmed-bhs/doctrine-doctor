@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -230,7 +232,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         $backtrace = $this->extractBacktrace($query);
 
         $issueData = new IssueData(
-            type: 'left_join_with_not_null',
+            type: IssueType::LEFT_JOIN_WITH_NOT_NULL->value,
             title: 'LEFT JOIN with IS NOT NULL Check',
             description: sprintf(
                 "Query uses LEFT JOIN on '%s' but then checks '%s.%s IS NOT NULL'. " .
@@ -288,7 +290,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         }
 
         $issueData = new IssueData(
-            type: 'aggregation_with_inner_join',
+            type: IssueType::AGGREGATION_WITH_INNER_JOIN->value,
             title: $title,
             description: $description,
             severity: $severity,

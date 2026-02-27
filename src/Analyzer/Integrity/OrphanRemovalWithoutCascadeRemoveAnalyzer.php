@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -131,7 +133,7 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements \AhmedBhs\DoctrineDoc
         $cascade      = MappingHelper::getArray($mapping, 'cascade') ?? [];
 
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity'         => $entityClass,
             'field'          => $fieldName,
             'target_entity'  => $targetEntity,

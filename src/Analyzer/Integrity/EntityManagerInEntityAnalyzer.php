@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -284,7 +286,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         $shortClassName = $this->shortClassName($entityClass);
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => 'EntityManager injected in entity constructor: ' . $shortClassName,
             'description' => sprintf(
                 'Entity "%s" has EntityManager injected in constructor.' . "
@@ -321,7 +323,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         $propertyName   = $reflectionProperty->getName();
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => sprintf('EntityManager property in entity: %s::$%s', $shortClassName, $propertyName),
             'description' => sprintf(
                 'Entity "%s" has EntityManager as property "$%s".' . "
@@ -357,7 +359,7 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         $methodName     = $reflectionMethod->getName();
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => sprintf('EntityManager usage in entity method: %s::%s()', $shortClassName, $methodName),
             'description' => sprintf(
                 'Entity "%s" uses EntityManager in method "%s()".' . "

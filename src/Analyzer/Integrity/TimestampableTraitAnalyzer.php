@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -376,7 +378,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'timestampable_mutable_datetime',
+            'type' => IssueType::TIMESTAMPABLE_MUTABLE_DATETIME->value,
             'title'       => sprintf('Mutable DateTime in Timestamp: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
@@ -430,7 +432,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'timestampable_timezone_inconsistency',
+            'type' => IssueType::TIMESTAMPABLE_TIMEZONE_INCONSISTENCY->value,
             'title'       => 'Inconsistent Timezone Usage Detected',
             'description' => $description,
             'severity'    => 'warning', // WARNING for inconsistency
@@ -463,7 +465,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'timestampable_nullable_created_at',
+            'type' => IssueType::TIMESTAMPABLE_NULLABLE_CREATED_AT->value,
             'title'       => sprintf('Nullable Creation Timestamp: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
@@ -494,7 +496,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'timestampable_public_setter',
+            'type' => IssueType::TIMESTAMPABLE_PUBLIC_SETTER->value,
             'title'       => sprintf('Public Setter on Timestamp: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'info',

@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -74,7 +76,7 @@ class SlowQueryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInt
                     );
 
                     $issueData = new IssueData(
-                        type: 'slow_query',
+                        type: IssueType::SLOW_QUERY->value,
                         title: sprintf('Slow Query: %.2fms', $executionTimeMs),
                         description: DescriptionHighlighter::highlight(
                             'Query execution time ({time}ms) exceeds threshold ({threshold}ms)',

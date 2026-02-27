@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -138,7 +140,7 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             $targetEntity = $associationMapping['targetEntity'] ?? 'Unknown';
 
             /** @var IntegrityIssue $issue */
-            $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+            $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
                 'entity'           => $entityClass,
                 'field'            => $fieldName,
                 'association_type' => $this->getAssociationType($associationMapping),

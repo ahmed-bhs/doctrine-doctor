@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -182,7 +184,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $severity = $this->determineSeverityForAll($mapping);
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity' => $entityClass,
             'field' => $fieldName,
             'association_type' => $this->getAssociationType($mapping),
@@ -217,7 +219,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $shortTargetName = $this->shortClassName($targetEntity);
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity' => $entityClass,
             'field' => $fieldName,
             'target_entity' => $targetEntity,
@@ -259,7 +261,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $shortTargetName = $this->shortClassName($targetEntity);
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity' => $entityClass,
             'field' => $fieldName,
             'target_entity' => $targetEntity,
@@ -298,7 +300,7 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         $shortTargetName = $this->shortClassName($targetEntity);
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity' => $entityClass,
             'field' => $fieldName,
             'target_entity' => $targetEntity,

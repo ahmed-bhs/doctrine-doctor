@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -64,7 +66,7 @@ class HydrationAnalyzer implements AnalyzerInterface
                     if ($rowCount > $this->rowThreshold) {
                         // Any query returning more than threshold is a hydration concern
                         $issueData = new IssueData(
-                            type: 'hydration',
+                            type: IssueType::HYDRATION->value,
                             title: sprintf('Excessive Hydration: %d rows', $rowCount),
                             description: DescriptionHighlighter::highlight(
                                 'Query {action} {count} rows which may cause significant hydration overhead (threshold: {threshold})',
