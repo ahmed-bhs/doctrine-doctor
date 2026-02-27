@@ -26,6 +26,13 @@ class DatabaseConfigIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::CONFIGURATION->value,
+        ];
+    }
+
     #[\Override]
     public function getType(): string
     {

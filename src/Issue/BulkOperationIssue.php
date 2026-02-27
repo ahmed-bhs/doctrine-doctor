@@ -34,6 +34,13 @@ class BulkOperationIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::BULK_OPERATION->value,
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::PERFORMANCE;

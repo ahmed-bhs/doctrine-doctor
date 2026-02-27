@@ -29,6 +29,13 @@ class FinalEntityIssue extends AbstractIssue
         parent::__construct($data);
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::FINAL_ENTITY->value,
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::INTEGRITY;

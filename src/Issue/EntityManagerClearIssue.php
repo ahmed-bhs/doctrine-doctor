@@ -32,6 +32,13 @@ class EntityManagerClearIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::ENTITY_MANAGER_CLEAR->value,
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::PERFORMANCE;

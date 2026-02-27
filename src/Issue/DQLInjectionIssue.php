@@ -40,6 +40,18 @@ class DQLInjectionIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::DQL_INJECTION->value,
+            IssueType::QUERY_BUILDER_SQL_INJECTION->value,
+            IssueType::UNESCAPED_LIKE->value,
+            IssueType::INCORRECT_NULL_COMPARISON->value,
+            IssueType::EMPTY_IN_CLAUSE->value,
+            IssueType::MISSING_PARAMETERS->value,
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::SECURITY;

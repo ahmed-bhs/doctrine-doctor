@@ -33,6 +33,13 @@ class FlushInLoopIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::FLUSH_IN_LOOP->value,
+        ];
+    }
+
     #[\Override]
     public function getType(): string
     {

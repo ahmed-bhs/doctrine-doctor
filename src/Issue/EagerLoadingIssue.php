@@ -30,6 +30,13 @@ class EagerLoadingIssue extends AbstractIssue
         ], $data));
     }
 
+    public static function supportedTypes(): array
+    {
+        return [
+            IssueType::EAGER_LOADING->value,
+        ];
+    }
+
     public function getCategory(): IssueCategory
     {
         return IssueCategory::PERFORMANCE;
