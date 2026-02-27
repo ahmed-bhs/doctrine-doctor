@@ -291,7 +291,6 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         );
     }
 
-
     /**
      * Check if cascade array contains all cascade operations.
      * Doctrine ORM expands cascade=['all'] into: ['persist', 'remove', 'refresh', 'detach']

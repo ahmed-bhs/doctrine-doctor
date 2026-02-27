@@ -481,7 +481,6 @@ class CascadeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         return $refCount >= 3;
     }
 
-
     /**
      * @param array<ClassMetadata<object>> $allMetadata
      * @return array<string, int>

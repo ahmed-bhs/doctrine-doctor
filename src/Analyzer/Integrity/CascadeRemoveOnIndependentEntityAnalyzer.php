@@ -430,7 +430,6 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         return $codeQualityIssue;
     }
 
-
     /**
      * Get association type constant in a version-agnostic way.
      * Doctrine ORM 2.x uses 'type' field, 3.x/4.x uses specific mapping classes.

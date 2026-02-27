@@ -501,5 +501,4 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             $suggestionMetadata,
         );
     }
-
 }

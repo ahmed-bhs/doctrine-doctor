@@ -361,7 +361,6 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
         );
     }
 
-
     /**
      * Create synthetic backtrace pointing to entity field.
      * @return array<int, array<string, mixed>>|null
