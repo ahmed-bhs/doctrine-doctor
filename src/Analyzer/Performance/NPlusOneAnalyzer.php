@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
@@ -100,7 +102,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
                         $triggerLocation = $this->extractTriggerLocation($backtrace);
 
                         $issueData = new IssueData(
-                            type: 'n_plus_one',
+                            type: IssueType::N_PLUS_ONE->value,
                             title: sprintf('N+1 Query Detected: %d queries (%s)', $group->count(), $detectedType['type']),
                             description: $this->buildDescription($group->count(), $totalTime, $pattern, $backtrace, $detectedType),
                             severity: $this->calculateSeverity($group->count(), $totalTime, $detectedType['type']),

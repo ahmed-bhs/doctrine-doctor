@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -292,7 +294,7 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
 
         /** @var IntegrityIssue $codeQualityIssue */
         $codeQualityIssue = $this->issueFactory->createFromArray([
-            'type'          => 'integrity_generic',
+            'type' => IssueType::INTEGRITY_GENERIC->value,
             'entity'        => $entityClass,
             'field'         => $fieldName,
             'field_type'    => $type,

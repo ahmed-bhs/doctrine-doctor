@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -215,7 +217,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         $shortName = $classMetadata->getReflectionClass()->getShortName();
 
         $issueData = new IssueData(
-            type: 'auto_increment_educational',
+            type: IssueType::AUTO_INCREMENT_EDUCATIONAL->value,
             title: sprintf('%s Uses Auto-Increment ID', $shortName),
             description: sprintf(
                 "Entity '%s' uses auto-increment ID strategy. This is fine for most applications, but consider UUIDs if you need: " .
@@ -246,7 +248,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         $shortName = $classMetadata->getReflectionClass()->getShortName();
 
         $issueData = new IssueData(
-            type: 'uuid_v4_performance',
+            type: IssueType::UUID_V4_PERFORMANCE->value,
             title: sprintf('%s Uses UUID v4 (Random)', $shortName),
             description: sprintf(
                 "Entity '%s' uses UUID v4 (random generation). Consider UUID v7 instead for better performance. " .
@@ -271,7 +273,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     private function createMixedStrategiesIssue(array $statistics): IntegrityIssue
     {
         $issueData = new IssueData(
-            type: 'mixed_id_strategies',
+            type: IssueType::MIXED_ID_STRATEGIES->value,
             title: 'Mixed Primary Key Strategies Detected',
             description: sprintf(
                 "Your codebase uses both auto-increment (%d entities) and UUIDs (%d entities). " .

@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\CachedSqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -143,7 +145,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                         );
 
                         $issueData = new IssueData(
-                            type: 'lazy_loading',
+                            type: IssueType::LAZY_LOADING->value,
                             title: sprintf('Lazy Loading Detected: %d queries triggered', $totalCount),
                             description: DescriptionHighlighter::highlight(
                                 'Detected {count} lazy loading queries across {tableCount} table(s): {tables}. ' .
@@ -179,7 +181,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                         );
 
                         $issueData = new IssueData(
-                            type: 'get_reference',
+                            type: IssueType::GET_REFERENCE->value,
                             title: sprintf('Inefficient Entity Loading: %d find() queries detected', $totalCount),
                             description: DescriptionHighlighter::highlight(
                                 'Detected {count} simple SELECT by ID queries across {tableCount} table(s): {tables}. ' .

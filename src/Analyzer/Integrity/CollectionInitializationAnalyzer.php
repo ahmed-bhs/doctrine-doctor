@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\TraitCollectionInitializationDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
@@ -186,7 +188,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $targetEntity   = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => 'Missing constructor for collection initialization in ' . $shortClassName,
             'description' => sprintf(
                 'Entity "%s" has a collection property "$%s" (relation to %s) but no constructor. ' .
@@ -228,7 +230,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $targetEntity   = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => sprintf('Uninitialized collection in %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Entity "%s" has a collection property "$%s" (relation to %s) that is not initialized in the constructor. ' .

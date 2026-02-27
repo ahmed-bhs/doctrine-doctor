@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -65,7 +67,7 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                             );
 
                             $issueData = new IssueData(
-                                type: 'find_all',
+                                type: IssueType::FIND_ALL->value,
                                 title: sprintf('Unpaginated Query: findAll() returned %d rows', $rowCount),
                                 description: DescriptionHighlighter::highlight(
                                     'Query without {where} or {limit} clause returned approximately {count} rows. ' .

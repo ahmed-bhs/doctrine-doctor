@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -258,7 +260,7 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'float_for_money',
+            'type' => IssueType::FLOAT_FOR_MONEY->value,
             'title'       => sprintf('Float Used for Money: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'critical',

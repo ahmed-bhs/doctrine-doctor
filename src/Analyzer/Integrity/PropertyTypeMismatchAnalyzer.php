@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -351,7 +353,7 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         $description .= '3. Create a migration to fix the database column type';
 
         $issueData = new IssueData(
-            type: 'property_type_mismatch',
+            type: IssueType::PROPERTY_TYPE_MISMATCH->value,
             title: sprintf('Type Mismatch: %s::\$%s', $shortClassName, $fieldName),
             description: $description,
             severity: $severity,

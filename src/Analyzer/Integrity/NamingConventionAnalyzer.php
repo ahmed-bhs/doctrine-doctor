@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\NamingConventionHelper;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -453,7 +455,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $severity = 'warning',
     ): IntegrityIssue {
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity' => $entityClass,
             'table_name' => $tableName,
             'violation_type' => $violationType,
@@ -477,7 +479,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $severity = 'warning',
     ): IntegrityIssue {
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity' => $entityClass,
             'column_name' => $columnName,
             'field_name' => $fieldName,
@@ -501,7 +503,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $suggestedName,
     ): IntegrityIssue {
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity' => $entityClass,
             'fk_column' => $columnName,
             'association' => $assocName,
@@ -526,7 +528,7 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         string $severity = 'info',
     ): IntegrityIssue {
         /** @var IntegrityIssue $codeQualityIssue */
-        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => 'integrity_generic',
+        $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity' => $entityClass,
             'table_name' => $tableName,
             'index_name' => $indexName,

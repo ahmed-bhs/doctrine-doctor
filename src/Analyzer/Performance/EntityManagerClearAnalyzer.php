@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -105,7 +107,7 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                             );
 
                             $issueData = new IssueData(
-                                type: 'entity_manager_clear',
+                                type: IssueType::ENTITY_MANAGER_CLEAR->value,
                                 title: sprintf('Memory Leak Risk: %d operations on %s', $count, $table),
                                 description: DescriptionHighlighter::highlight(
                                     'Detected {count} sequential INSERT/UPDATE/DELETE operations on table {table} without {clearMethod}. ' .

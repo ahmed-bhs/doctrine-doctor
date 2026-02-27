@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -208,7 +210,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'missing_blameable_trait_opportunity',
+            'type' => IssueType::MISSING_BLAMEABLE_TRAIT_OPPORTUNITY->value,
             'title'       => sprintf('Missing Blameable Trait: %s', $shortClassName),
             'description' => $description,
             'severity'    => 'info',
@@ -427,7 +429,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'blameable_nullable_created_by',
+            'type' => IssueType::BLAMEABLE_NULLABLE_CREATED_BY->value,
             'title'       => sprintf('Nullable Creator Field: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'warning',
@@ -458,7 +460,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'blameable_public_setter',
+            'type' => IssueType::BLAMEABLE_PUBLIC_SETTER->value,
             'title'       => sprintf('Public Setter on Blameable: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'info',
@@ -494,7 +496,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'blameable_wrong_target',
+            'type' => IssueType::BLAMEABLE_WRONG_TARGET->value,
             'title'       => sprintf('Wrong Target Entity: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'info',

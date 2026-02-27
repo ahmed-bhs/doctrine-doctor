@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -56,7 +58,7 @@ class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
                     if ($joinCount >= $this->joinThreshold) {
                         $issueData = new IssueData(
-                            type: 'eager_loading',
+                            type: IssueType::EAGER_LOADING->value,
                             title: sprintf('Excessive Eager Loading: %d JOINs', $joinCount),
                             description: DescriptionHighlighter::highlight(
                                 'Query contains {count} JOINs which may cause cartesian product issues (threshold: {threshold})',

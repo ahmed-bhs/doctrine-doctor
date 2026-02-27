@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Security;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\InjectionPatternDetector;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -93,7 +95,7 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                     );
 
                     $issueData = new IssueData(
-                        type: 'dql_injection',
+                        type: IssueType::DQL_INJECTION->value,
                         title: sprintf('Security Vulnerability: %d queries with SQL injection risks', count($criticalQueries)),
                         description: DescriptionHighlighter::highlight(
                             'Detected {count} queries with CRITICAL injection risk. Indicators: {indicators}. ' .
@@ -141,7 +143,7 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                     );
 
                     $issueData = new IssueData(
-                        type: 'dql_injection',
+                        type: IssueType::DQL_INJECTION->value,
                         title: sprintf('Security Warning: %d queries with potential injection risks', count($highRiskQueries)),
                         description: sprintf(
                             'Detected %d queries with HIGH injection risk. Indicators: %s. ' .

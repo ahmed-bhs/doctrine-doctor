@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -78,7 +80,7 @@ class FlushInLoopAnalyzerModern implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
                         );
 
                         $issueData = new IssueData(
-                            type: 'flush_in_loop',
+                            type: IssueType::FLUSH_IN_LOOP->value,
                             title: sprintf('Performance Anti-Pattern: %d flush() calls in loop', $flushPattern['flush_count']),
                             description: sprintf(
                                 'Detected %d flush() calls with an average of %.1f operations between each flush. ' .

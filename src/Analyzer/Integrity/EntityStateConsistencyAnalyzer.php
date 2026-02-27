@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -126,7 +128,7 @@ class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
                 $description .= "   \$em->flush();\n";
 
                 $issueData = new IssueData(
-                    type: 'entity_new_in_association',
+                    type: IssueType::ENTITY_NEW_IN_ASSOCIATION->value,
                     title: sprintf('Required Association Without Cascade: %s::$%s', $shortName, $assocName),
                     description: $description,
                     severity: Severity::warning(),
