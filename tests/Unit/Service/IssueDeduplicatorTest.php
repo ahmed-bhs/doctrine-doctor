@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Service;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
+use AhmedBhs\DoctrineDoctor\Issue\DeduplicatableIssueInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
@@ -355,6 +356,7 @@ final class IssueDeduplicatorTest extends TestCase
         self::assertCount(1, $deduplicated, 'Should keep only the N+1 issue');
         $bestIssue = $deduplicated->toArray()[0];
         self::assertSame('N+1 Query detected: 212 queries on BillLine', $bestIssue->getTitle());
+        self::assertInstanceOf(DeduplicatableIssueInterface::class, $bestIssue);
 
         // Verify duplicated issues are tracked
         $duplicates = $bestIssue->getDuplicatedIssues();
@@ -376,7 +378,7 @@ final class IssueDeduplicatorTest extends TestCase
         Severity $severity,
         array $queries,
     ): IssueInterface {
-        return new class($title, $description, $severity, $queries) implements IssueInterface {
+        return new class($title, $description, $severity, $queries) implements DeduplicatableIssueInterface {
             private array $duplicatedIssues = [];
 
             public function __construct(
