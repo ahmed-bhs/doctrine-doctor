@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Factory;
 
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueTypeRegistryInterface;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Issue\NPlusOneIssue;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\Issue\TransactionIssue;
@@ -50,6 +51,22 @@ final class IssueFactoryTest extends TestCase
         ]);
 
         self::assertInstanceOf(TransactionIssue::class, $issue);
+    }
+
+    #[Test]
+    public function it_preserves_specific_integrity_issue_type(): void
+    {
+        $factory = new IssueFactory();
+
+        $issue = $factory->createFromArray([
+            'type' => IssueType::FLOAT_FOR_MONEY->value,
+            'title' => 'Float used for money',
+            'description' => 'Money should not use float',
+            'severity' => 'critical',
+        ]);
+
+        self::assertInstanceOf(IntegrityIssue::class, $issue);
+        self::assertSame(IssueType::FLOAT_FOR_MONEY->value, $issue->getType());
     }
 
     #[Test]

@@ -63,12 +63,6 @@ class IntegrityIssue extends AbstractIssue
         ];
     }
 
-    #[\Override]
-    public function getType(): string
-    {
-        return 'Integrity';
-    }
-
     public function getCategory(): IssueCategory
     {
         return IssueCategory::INTEGRITY;

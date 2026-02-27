@@ -80,7 +80,7 @@ final class NullComparisonAnalyzerTest extends TestCase
         // Assert
         self::assertCount(1, $issues);
         $issue = $issues->toArray()[0];
-        self::assertEquals('Integrity', $issue->getType());
+        self::assertEquals('integrity_incorrect_null_comparison', $issue->getType());
         self::assertEquals('integrity', $issue->getCategory()->value);
         self::assertEquals('critical', $issue->getSeverity()->value);
         self::assertStringContainsString('bonus = NULL', $issue->getDescription());
