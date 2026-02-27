@@ -33,6 +33,7 @@ final class EntityManagerInEntityAnalyzerTest extends TestCase
         $this->analyzer = new EntityManagerInEntityAnalyzer(
             $entityManager,
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
         );
     }
 

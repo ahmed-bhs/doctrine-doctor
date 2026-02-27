@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -22,6 +23,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -30,6 +32,8 @@ use Webmozart\Assert\Assert;
 
 class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     private const int QUERY_COUNT_WARNING_THRESHOLD = 10;
 
     private const float EXECUTION_TIME_WARNING_THRESHOLD = 500.0;
@@ -97,7 +101,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
                         $triggerLocation = $this->extractTriggerLocation($backtrace);
 
                         $issueData = new IssueData(
-                            type: 'n_plus_one',
+                            type: IssueType::N_PLUS_ONE->value,
                             title: sprintf('N+1 Query Detected: %d queries (%s)', $group->count(), $detectedType['type']),
                             description: $this->buildDescription($group->count(), $totalTime, $pattern, $backtrace, $detectedType),
                             severity: $this->calculateSeverity($group->count(), $totalTime, $detectedType['type']),
@@ -426,9 +430,9 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             $mappedBy = MappingHelper::getString($parentMapping, 'mappedBy');
             if ($mappedBy === $matchedFieldName) {
                 return [
-                    'parentEntity' => $this->getShortClassName($targetEntityClass),
+                    'parentEntity' => $this->shortClassName($targetEntityClass),
                     'collectionField' => $parentFieldName,
-                    'childEntity' => $this->getShortClassName($childEntityClass),
+                    'childEntity' => $this->shortClassName($childEntityClass),
                 ];
             }
         }
@@ -507,7 +511,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         }
 
         if (\is_string($class) && \is_string($function)) {
-            return $this->getShortClassName($class) . '::' . $function . '()';
+            return $this->shortClassName($class) . '::' . $function . '()';
         }
 
         return \is_string($function) ? $function . '()' : null;
@@ -516,13 +520,6 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
     private function camelCaseToSnakeCase(string $string): string
     {
         return strtolower((string) preg_replace('/[A-Z]/', '_$0', lcfirst($string)));
-    }
-
-    private function getShortClassName(string $fqcn): string
-    {
-        $parts = explode('\\', $fqcn);
-
-        return end($parts);
     }
 
     /**

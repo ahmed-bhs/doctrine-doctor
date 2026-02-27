@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -93,7 +94,7 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                     );
 
                     $issueData = new IssueData(
-                        type: 'dql_injection',
+                        type: IssueType::DQL_INJECTION->value,
                         title: sprintf('Security Vulnerability: %d queries with SQL injection risks', count($criticalQueries)),
                         description: DescriptionHighlighter::highlight(
                             'Detected {count} queries with CRITICAL injection risk. Indicators: {indicators}. ' .
@@ -141,7 +142,7 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                     );
 
                     $issueData = new IssueData(
-                        type: 'dql_injection',
+                        type: IssueType::DQL_INJECTION->value,
                         title: sprintf('Security Warning: %d queries with potential injection risks', count($highRiskQueries)),
                         description: sprintf(
                             'Detected %d queries with HIGH injection risk. Indicators: %s. ' .

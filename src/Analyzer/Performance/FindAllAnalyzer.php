@@ -19,6 +19,7 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -65,7 +66,7 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                             );
 
                             $issueData = new IssueData(
-                                type: 'find_all',
+                                type: IssueType::FIND_ALL->value,
                                 title: sprintf('Unpaginated Query: findAll() returned %d rows', $rowCount),
                                 description: DescriptionHighlighter::highlight(
                                     'Query without {where} or {limit} clause returned approximately {count} rows. ' .

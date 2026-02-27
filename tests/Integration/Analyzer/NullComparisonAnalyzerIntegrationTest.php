@@ -106,6 +106,6 @@ final class NullComparisonAnalyzerIntegrationTest extends TestCase
     private function createAnalyzer(): NullComparisonAnalyzer
     {
         $suggestionFactory = PlatformAnalyzerTestHelper::createSuggestionFactory();
-        return new NullComparisonAnalyzer($suggestionFactory);
+        return new NullComparisonAnalyzer($suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 }

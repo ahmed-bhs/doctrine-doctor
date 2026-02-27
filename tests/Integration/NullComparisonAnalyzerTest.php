@@ -28,7 +28,7 @@ final class NullComparisonAnalyzerTest extends TestCase
     {
         $inMemoryTemplateRenderer = new InMemoryTemplateRenderer();
         $suggestionFactory = new SuggestionFactory($inMemoryTemplateRenderer);
-        $this->nullComparisonAnalyzer = new NullComparisonAnalyzer($suggestionFactory);
+        $this->nullComparisonAnalyzer = new NullComparisonAnalyzer($suggestionFactory, new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory());
     }
 
     public function test_detects_equal_null_comparison(): void

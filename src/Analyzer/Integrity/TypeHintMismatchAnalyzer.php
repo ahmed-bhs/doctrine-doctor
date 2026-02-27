@@ -17,6 +17,7 @@ use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -373,7 +374,7 @@ final readonly class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDocto
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'type_hint_mismatch',
+            'type' => IssueType::TYPE_HINT_MISMATCH->value,
             'title'       => sprintf('Type Mismatch: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => $severity,

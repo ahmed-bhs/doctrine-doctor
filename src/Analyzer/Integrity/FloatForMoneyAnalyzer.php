@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -258,7 +259,7 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         );
 
         return $this->issueFactory->createFromArray([
-            'type'        => 'float_for_money',
+            'type' => IssueType::FLOAT_FOR_MONEY->value,
             'title'       => sprintf('Float Used for Money: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'critical',

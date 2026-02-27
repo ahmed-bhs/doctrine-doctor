@@ -22,6 +22,7 @@ use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -162,7 +163,7 @@ class CartesianProductAnalyzer implements AnalyzerInterface
         $sql = $this->truncateQuery($queryData->sql);
 
         $issueData = new IssueData(
-            type: 'cartesian_product',
+            type: IssueType::CARTESIAN_PRODUCT->value,
             title: sprintf('Cartesian Product: %d Collection JOINs Causing O(n^%d) Hydration', $joinCount, $joinCount),
             description: sprintf(
                 'Query performs %d LEFT JOINs on collection-valued associations (%s). ',
@@ -270,7 +271,7 @@ class CartesianProductAnalyzer implements AnalyzerInterface
         $collectionCount = count($tables);
 
         $issueData = new IssueData(
-            type: 'cartesian_product_risk',
+            type: IssueType::CARTESIAN_PRODUCT_RISK->value,
             title: sprintf(
                 'Cartesian Product Risk: %d Collections on %s (use Multi-Step Hydration)',
                 $collectionCount,
