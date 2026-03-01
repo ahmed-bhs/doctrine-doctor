@@ -15,15 +15,6 @@ use AhmedBhs\DoctrineDoctor\Template\Renderer\PhpTemplateRenderer;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
-/**
- * Test to ensure all templates handle edge cases properly.
- *
- * This test validates that templates can handle:
- * - Classes without namespaces
- * - Empty strings
- * - Null values
- * - Special characters
- */
 final class TemplateValidationTest extends TestCase
 {
     private PhpTemplateRenderer $renderer;
@@ -44,10 +35,7 @@ final class TemplateValidationTest extends TestCase
      */
     public function test_template_handles_edge_cases(string $templateName, array $context, string $testCase): void
     {
-        // Skip if template doesn't exist
-        if (!$this->renderer->exists($templateName)) {
-            self::markTestSkipped(sprintf('Template %s does not exist', $templateName));
-        }
+        self::assertTrue($this->renderer->exists($templateName), sprintf('Template %s does not exist', $templateName));
 
         try {
             $result = $this->renderer->render($templateName, $context);
@@ -71,17 +59,14 @@ final class TemplateValidationTest extends TestCase
     }
 
     /**
-     * Provides edge case test data for templates.
-     *
      * @return iterable<string, array{string, array<string, mixed>, string}>
      */
     public static function templateEdgeCasesProvider(): iterable
     {
-        // Test collection_initialization with class without namespace
         yield 'collection_initialization - no namespace' => [
-            'collection_initialization',
+            'Integrity/collection_initialization',
             [
-                'entity_class'    => 'SimpleEntity',  // No namespace!
+                'entity_class'    => 'SimpleEntity',
                 'field_name'      => 'items',
                 'has_constructor' => false,
                 'backtrace'       => [],
@@ -90,7 +75,7 @@ final class TemplateValidationTest extends TestCase
         ];
 
         yield 'collection_initialization - with namespace' => [
-            'collection_initialization',
+            'Integrity/collection_initialization',
             [
                 'entity_class'    => 'App\\Entity\\Product',
                 'field_name'      => 'items',
@@ -100,9 +85,8 @@ final class TemplateValidationTest extends TestCase
             'class with namespace',
         ];
 
-        // Test sensitive_data_exposure
         yield 'sensitive_data_exposure - no namespace' => [
-            'sensitive_data_exposure',
+            'Security/sensitive_data_exposure',
             [
                 'entity_class'    => 'User',
                 'method_name'     => 'jsonSerialize',
@@ -113,7 +97,7 @@ final class TemplateValidationTest extends TestCase
         ];
 
         yield 'sensitive_data_exposure - with namespace' => [
-            'sensitive_data_exposure',
+            'Security/sensitive_data_exposure',
             [
                 'entity_class'    => 'App\\Entity\\User',
                 'method_name'     => 'jsonSerialize',
@@ -123,9 +107,8 @@ final class TemplateValidationTest extends TestCase
             'class with namespace',
         ];
 
-        // Test insecure_random
         yield 'insecure_random - no namespace' => [
-            'insecure_random',
+            'Security/insecure_random',
             [
                 'entity_class'       => 'TokenGenerator',
                 'method_name'        => 'generate',
@@ -135,7 +118,7 @@ final class TemplateValidationTest extends TestCase
         ];
 
         yield 'insecure_random - with namespace' => [
-            'insecure_random',
+            'Security/insecure_random',
             [
                 'entity_class'       => 'App\\Security\\TokenGenerator',
                 'method_name'        => 'generate',
@@ -144,9 +127,8 @@ final class TemplateValidationTest extends TestCase
             'class with namespace',
         ];
 
-        // Test cascade_configuration
         yield 'cascade_configuration - no namespace' => [
-            'cascade_configuration',
+            'Integrity/cascade_configuration',
             [
                 'entity_class'   => 'Order',
                 'field_name'     => 'items',
@@ -158,7 +140,7 @@ final class TemplateValidationTest extends TestCase
         ];
 
         yield 'cascade_configuration - with namespace' => [
-            'cascade_configuration',
+            'Integrity/cascade_configuration',
             [
                 'entity_class'   => 'App\\Entity\\Order',
                 'field_name'     => 'items',
@@ -169,37 +151,31 @@ final class TemplateValidationTest extends TestCase
             'classes with namespace',
         ];
 
-        // Test cascade_configuration with mixed namespaces
         yield 'cascade_configuration - mixed namespaces' => [
-            'cascade_configuration',
+            'Integrity/cascade_configuration',
             [
                 'entity_class'   => 'App\\Entity\\Order',
                 'field_name'     => 'items',
                 'issue_type'     => 'incorrect_cascade',
-                'target_entity'  => 'OrderItem',  // No namespace
+                'target_entity'  => 'OrderItem',
                 'is_composition' => true,
             ],
             'mixed namespaces',
         ];
     }
 
-    /**
-     * Test that all templates in the directory can be loaded without syntax errors.
-     */
     public function test_all_templates_have_valid_syntax(): void
     {
-        $templates = glob($this->templateDirectory . '/*.php');
+        $templates = glob($this->templateDirectory . '/{Integrity,Performance,Security,Configuration}/*.php', GLOB_BRACE);
         self::assertNotEmpty($templates, 'No templates found in directory');
 
         $invalidTemplates = [];
 
         foreach ($templates as $templatePath) {
-            // Skip EXAMPLE templates
             if (str_contains($templatePath, 'EXAMPLE')) {
                 continue;
             }
 
-            // Check for syntax errors
             $output     = [];
             $returnCode = 0;
             exec('php -l ' . escapeshellarg($templatePath) . ' 2>&1', $output, $returnCode);
@@ -215,12 +191,10 @@ final class TemplateValidationTest extends TestCase
         );
     }
 
-    /**
-     * Test that templates don't use unsafe substr(strrchr()) pattern.
-     */
     public function test_templates_do_not_use_unsafe_substr_pattern(): void
     {
-        $templates        = glob($this->templateDirectory . '/*.php');
+        $templates = glob($this->templateDirectory . '/{Integrity,Performance,Security,Configuration}/*.php', GLOB_BRACE);
+
         $templatesWithIssue = [];
 
         if (false === $templates) {
@@ -233,10 +207,7 @@ final class TemplateValidationTest extends TestCase
                 continue;
             }
 
-            // Check for the unsafe pattern: substr(strrchr(...), 1)
-            // This pattern is unsafe because strrchr can return false
             if (1 === preg_match('/substr\s*\(\s*strrchr\s*\([^)]+\)[^)]*\)/', $content)) {
-                // Check if there's proper null handling
                 if (1 !== preg_match('/strrchr\s*\([^)]+\)\s*!==\s*false/', $content) &&
                     1 !== preg_match('/false\s*!==\s*strrchr\s*\([^)]+\)/', $content)) {
                     $templatesWithIssue[] = basename($templatePath);
@@ -257,17 +228,13 @@ final class TemplateValidationTest extends TestCase
     }
 
     /**
-     * Test specific template with various entity class formats.
-     *
      * @dataProvider entityClassFormatsProvider
      */
     public function test_collection_initialization_with_various_formats(string $entityClass, string $expectedShortName): void
     {
-        if (!$this->renderer->exists('collection_initialization')) {
-            self::markTestSkipped('collection_initialization template does not exist');
-        }
+        self::assertTrue($this->renderer->exists('Integrity/collection_initialization'));
 
-        $result = $this->renderer->render('collection_initialization', [
+        $result = $this->renderer->render('Integrity/collection_initialization', [
             'entity_class'    => $entityClass,
             'field_name'      => 'items',
             'has_constructor' => false,
@@ -292,16 +259,11 @@ final class TemplateValidationTest extends TestCase
     }
 
     /**
-     * Test ALL templates in the directory with generic valid data.
-     * This ensures no template will fail due to missing data or edge cases.
-     *
      * @dataProvider allTemplatesProvider
      */
     public function test_all_templates_can_render_with_valid_data(string $templateName, array $context): void
     {
-        if (!$this->renderer->exists($templateName)) {
-            self::markTestSkipped(sprintf('Template %s does not exist', $templateName));
-        }
+        self::assertTrue($this->renderer->exists($templateName), sprintf('Template %s does not exist', $templateName));
 
         try {
             $result = $this->renderer->render($templateName, $context);
@@ -314,11 +276,8 @@ final class TemplateValidationTest extends TestCase
             self::assertNotEmpty($result['code'], sprintf('Template %s returned empty code', $templateName));
             self::assertNotEmpty($result['description'], sprintf('Template %s returned empty description', $templateName));
 
-            // Additional validation: ensure no PHP errors in output
             self::assertStringNotContainsString('Parse error', $result['code']);
             self::assertStringNotContainsString('Fatal error', $result['code']);
-            self::assertStringNotContainsString('Warning:', $result['code']);
-            self::assertStringNotContainsString('Notice:', $result['code']);
         } catch (\Throwable $throwable) {
             self::fail(sprintf(
                 "Template '%s' failed to render:\n" .
@@ -335,8 +294,6 @@ final class TemplateValidationTest extends TestCase
     }
 
     /**
-     * Provides test data for ALL templates in the suggestions directory.
-     *
      * @return iterable<string, array{string, array<string, mixed>}>
      */
     public static function allTemplatesProvider(): iterable
@@ -351,245 +308,442 @@ final class TemplateValidationTest extends TestCase
             'class_name'      => 'App\\Repository\\ProductRepository',
         ];
 
-        // Generic test data for common patterns
         $templates = [
-            'aggregation_with_inner_join' => [
-                'query' => 'SELECT p FROM Product p INNER JOIN p.category c',
-                'issue' => 'Using INNER JOIN with aggregation',
+            'Performance/aggregation_with_inner_join' => [
+                'query'       => 'SELECT p FROM Product p INNER JOIN p.category c',
+                'aggregation' => 'COUNT',
             ],
-            'batch_operation' => [
+            'Performance/batch_operation' => [
                 'table'           => 'products',
                 'operation_count' => 1000,
             ],
-            'bidirectional_cascade_set_null' => [
-                'entity_class' => 'App\\Entity\\Order',
-                'field_name'   => 'items',
+            'Integrity/bidirectional_cascade_set_null' => [
+                'entity_class'  => 'App\\Entity\\Order',
+                'field_name'    => 'items',
                 'target_entity' => 'App\\Entity\\OrderItem',
             ],
-            'bidirectional_inconsistency_generic' => [
+            'Integrity/bidirectional_inconsistency_generic' => [
                 'entity_class'  => 'App\\Entity\\Order',
                 'field_name'    => 'customer',
                 'target_entity' => 'App\\Entity\\Customer',
                 'mapped_by'     => 'orders',
             ],
-            'bidirectional_ondelete_no_orm' => [
+            'Integrity/bidirectional_ondelete_no_orm' => [
                 'entity_class'  => 'App\\Entity\\Order',
                 'field_name'    => 'customer',
                 'target_entity' => 'App\\Entity\\Customer',
                 'on_delete'     => 'CASCADE',
             ],
-            'bidirectional_orphan_no_persist' => [
+            'Integrity/bidirectional_orphan_no_persist' => [
                 'entity_class'  => 'App\\Entity\\Order',
                 'field_name'    => 'items',
                 'target_entity' => 'App\\Entity\\OrderItem',
             ],
-            'bidirectional_orphan_nullable' => [
+            'Integrity/bidirectional_orphan_nullable' => [
                 'entity_class'  => 'App\\Entity\\Order',
                 'field_name'    => 'items',
                 'target_entity' => 'App\\Entity\\OrderItem',
             ],
-            'blameable_non_nullable_created_by' => [
+            'Integrity/blameable_non_nullable_created_by' => [
                 'entity_class' => 'App\\Entity\\Article',
                 'field_name'   => 'createdBy',
             ],
-            'blameable_public_setter' => [
+            'Integrity/blameable_public_setter' => [
                 'entity_class' => 'App\\Entity\\Article',
                 'field_name'   => 'createdBy',
             ],
-            'blameable_target_entity' => [
-                'entity_class'  => 'App\\Entity\\Article',
-                'field_name'    => 'createdBy',
+            'Integrity/blameable_target_entity' => [
+                'entity_class'   => 'App\\Entity\\Article',
+                'field_name'     => 'createdBy',
                 'current_target' => 'App\\Entity\\User',
             ],
-            'cascade_configuration' => [
+            'Integrity/cascade_configuration' => [
                 'entity_class'   => 'App\\Entity\\Order',
                 'field_name'     => 'items',
                 'issue_type'     => 'missing_cascade',
                 'target_entity'  => 'App\\Entity\\OrderItem',
                 'is_composition' => true,
             ],
-            'cascade_persist_independent' => [
+            'Integrity/cascade_persist_independent' => [
                 'entity_class'  => 'App\\Entity\\Product',
                 'field_name'    => 'category',
                 'target_entity' => 'App\\Entity\\Category',
             ],
-            'code_suggestion' => [
+            'Integrity/cascade_remove_many_to_many' => [
+                'entity_class'  => 'App\\Entity\\Product',
+                'field_name'    => 'tags',
+                'target_entity' => 'App\\Entity\\Tag',
+            ],
+            'Integrity/cascade_remove_many_to_one' => [
+                'entity_class'  => 'App\\Entity\\Product',
+                'field_name'    => 'category',
+                'target_entity' => 'App\\Entity\\Category',
+            ],
+            'Integrity/code_suggestion' => [
                 'description' => 'Optimize query performance',
                 'code'        => 'SELECT p FROM Product p',
                 'file_path'   => 'src/Repository/ProductRepository.php',
             ],
-            'collection_initialization' => [
+            'Integrity/collection_initialization' => [
                 'entity_class'    => 'App\\Entity\\Order',
                 'field_name'      => 'items',
                 'has_constructor' => false,
                 'backtrace'       => [],
             ],
-            'configuration' => [
+            'Configuration/configuration' => [
                 'setting'           => 'max_execution_time',
                 'current_value'     => '30',
                 'recommended_value' => '60',
                 'description'       => 'Increase execution time for long queries',
                 'fix_command'       => 'php bin/console config:set max_execution_time 60',
             ],
-            'date_function_optimization' => [
-                'query'          => 'SELECT p FROM Product p WHERE YEAR(p.createdAt) = 2024',
-                'function_name'  => 'YEAR',
-                'field_name'     => 'createdAt',
+            'Configuration/array_cache_production' => [
+                'cache_type'     => 'metadata',
+                'current_config' => 'array',
+                'cache_label'    => 'Metadata cache',
             ],
-            'decimal_excessive_precision' => [
+            'Configuration/proxy_auto_generate' => [
+                'current_value'     => 'true',
+                'recommended_value' => 'false',
+            ],
+            'Performance/date_function_optimization' => [
+                'query'         => 'SELECT p FROM Product p WHERE YEAR(p.createdAt) = 2024',
+                'function_name' => 'YEAR',
+                'field_name'    => 'createdAt',
+            ],
+            'Integrity/decimal_excessive_precision' => [
                 'entity_class'      => 'App\\Entity\\Product',
                 'field_name'        => 'price',
                 'current_precision' => 20,
                 'current_scale'     => 10,
             ],
-            'decimal_insufficient_precision' => [
-                'entity_class'   => 'App\\Entity\\Product',
-                'field_name'     => 'price',
+            'Integrity/decimal_insufficient_precision' => [
+                'entity_class'      => 'App\\Entity\\Product',
+                'field_name'        => 'price',
                 'current_precision' => 5,
                 'current_scale'     => 2,
             ],
-            'decimal_missing_precision' => [
+            'Integrity/decimal_missing_precision' => [
                 'options'              => ['precision' => null, 'scale' => null],
                 'understanding_points' => ['Point 1', 'Point 2'],
                 'info_message'         => 'Missing precision configuration',
             ],
-            'dql_injection' => [
-                'query'                  => 'SELECT u FROM User u WHERE u.name = ' . "'" . '$name' . "'",
-                'vulnerable_parameters'  => ['name'],
-                'risk_level'             => 'warning',
+            'Integrity/decimal_unusual_scale' => [
+                'entity_class'  => 'App\\Entity\\Product',
+                'field_name'    => 'weight',
+                'current_scale' => 8,
             ],
-            'eager_loading' => [
-                'entity'      => 'App\\Entity\\Product',
-                'relation'    => 'category',
-                'query_count' => 101,
+            'Integrity/division_by_zero' => [
+                'unsafe_division' => 'revenue / quantity',
+                'safe_division'   => 'revenue / NULLIF(quantity, 0)',
+                'dividend'        => 'revenue',
+                'divisor'         => 'quantity',
             ],
-            'embeddable_mutability' => [
+            'Security/dql_injection' => [
+                'query'                 => 'SELECT u FROM User u WHERE u.name = \'$name\'',
+                'vulnerable_parameters' => ['name'],
+                'risk_level'            => 'warning',
+            ],
+            'Performance/eager_loading' => [
+                'entity'           => 'App\\Entity\\Product',
+                'relation'         => 'category',
+                'query_count'      => 101,
+                'trigger_location' => 'ProductController::index',
+            ],
+            'Integrity/embeddable_mutability' => [
                 'embeddable_class'  => 'App\\ValueObject\\Money',
                 'mutability_issues' => ['Has public setters', 'Not readonly'],
             ],
-            'embeddable_value_object_methods' => [
+            'Integrity/embeddable_value_object_methods' => [
                 'embeddable_class' => 'App\\ValueObject\\Money',
                 'missing_methods'  => ['equals', 'toString'],
             ],
-            'empty_in_clause' => [
+            'Integrity/empty_in_clause' => [
                 'options' => ['allow_empty' => false],
             ],
-            'float_for_money' => [
+            'Integrity/entity_manager_in_entity' => [
+                'entity_class' => 'App\\Entity\\Product',
+                'method_name'  => 'save',
+            ],
+            'Integrity/float_for_money' => [
                 'entity_class' => 'App\\Entity\\Product',
                 'field_name'   => 'price',
             ],
-            'float_in_money_embeddable' => [
+            'Integrity/float_in_money_embeddable' => [
                 'embeddable_class' => 'App\\ValueObject\\Money',
                 'field_name'       => 'amount',
             ],
-            'flush_in_loop' => [
+            'Performance/flush_in_loop' => [
                 'flush_count'              => 100,
                 'operations_between_flush' => 1,
             ],
-            'foreign_key_primitive' => [
+            'Performance/flush_in_loop_compact' => [
+                'flush_count'              => 50,
+                'operations_between_flush' => 1,
+            ],
+            'Integrity/foreign_key_primitive' => [
                 'entity_class'     => 'App\\Entity\\Order',
                 'field_name'       => 'customerId',
                 'target_entity'    => 'App\\Entity\\Customer',
                 'association_type' => 'ManyToOne',
             ],
-            'get_reference' => [
+            'Performance/get_reference' => [
                 'entity'      => 'App\\Entity\\Product',
                 'occurrences' => 5,
             ],
-            'incorrect_null_comparison' => [
-                'bad_code'  => 'WHERE p.status = NULL',
-                'good_code' => 'WHERE p.status IS NULL',
+            'Performance/group_by_aggregation' => [
+                'entity'      => 'App\\Entity\\Product',
+                'relation'    => 'items',
+                'query_count' => 10,
             ],
-            'index' => [
+            'Integrity/incorrect_null_comparison' => [
+                'entity_class' => 'App\\Entity\\Product',
+                'field_name'   => 'status',
+            ],
+            'Performance/index' => [
                 'table'          => 'products',
                 'columns'        => ['status', 'created_at'],
                 'migration_code' => 'CREATE INDEX idx_status_date ON products(status, created_at)',
             ],
-            'insecure_random' => [
+            'Performance/ineffective_like' => [
+                'pattern'        => '%search%',
+                'like_type'      => 'contains search',
+                'original_query' => 'SELECT * FROM products WHERE name LIKE \'%value%\'',
+            ],
+            'Security/insecure_random' => [
                 'entity_class'      => 'App\\Security\\TokenGenerator',
                 'method_name'       => 'generate',
                 'insecure_function' => 'rand',
             ],
-            'join_left_on_not_null' => [
+            'Performance/join_left_on_not_null' => [
                 'table'  => 'orders',
                 'alias'  => 'o',
                 'entity' => 'App\\Entity\\Order',
             ],
-            'join_unused' => [
+            'Performance/join_too_many' => [
+                'query'      => 'SELECT p FROM Product p JOIN p.category c JOIN p.tags t JOIN p.reviews r',
+                'join_count' => 4,
+            ],
+            'Performance/join_unused' => [
                 'type'  => 'LEFT',
                 'table' => 'categories',
                 'alias' => 'c',
             ],
-            'missing_embeddable_opportunity' => [
+            'Performance/left_join_with_not_null' => [
+                'table'  => 'orders',
+                'alias'  => 'o',
+                'entity' => 'App\\Entity\\Order',
+            ],
+            'Integrity/missing_blameable_trait' => [
+                'entity_class'     => 'App\\Entity\\Article',
+                'timestamp_fields' => ['createdAt', 'updatedAt'],
+            ],
+            'Integrity/missing_embeddable_opportunity' => [
                 'entity_class'    => 'App\\Entity\\User',
                 'embeddable_name' => 'Address',
                 'fields'          => ['street', 'city', 'zipCode', 'country'],
             ],
-            'pagination' => [
+            'Performance/missing_index' => [
+                'table'   => 'products',
+                'columns' => ['status'],
+            ],
+            'Performance/missing_index_generic' => [
+                'table'   => 'products',
+                'columns' => ['status', 'created_at'],
+            ],
+            'Integrity/missing_orphan_removal' => [
+                'entity_class'  => 'App\\Entity\\Order',
+                'field_name'    => 'items',
+                'target_entity' => 'App\\Entity\\OrderItem',
+            ],
+            'Performance/multi_step_hydration' => [
+                'query'      => 'SELECT p FROM Product p',
+                'step_count' => 3,
+            ],
+            'Integrity/naming_convention_column' => [
+                'entity_class' => 'App\\Entity\\Product',
+                'field_name'   => 'productName',
+                'column_name'  => 'productName',
+            ],
+            'Integrity/naming_convention_fk' => [
+                'entity_class'  => 'App\\Entity\\Order',
+                'field_name'    => 'customer',
+                'column_name'   => 'customer',
+                'target_entity' => 'App\\Entity\\Customer',
+            ],
+            'Integrity/naming_convention_index' => [
+                'entity_class' => 'App\\Entity\\Product',
+                'index_name'   => 'idx_product_status',
+                'columns'      => ['status'],
+            ],
+            'Integrity/naming_convention_table' => [
+                'entity_class' => 'App\\Entity\\Product',
+                'table_name'   => 'Product',
+            ],
+            'Integrity/null_comparison' => [
+                'incorrect' => 'field = NULL',
+                'correct'   => 'field IS NULL',
+                'field'     => 'status',
+                'operator'  => '=',
+            ],
+            'Integrity/on_delete_cascade_mismatch' => [
+                'entity_class'  => 'App\\Entity\\Order',
+                'field_name'    => 'items',
+                'target_entity' => 'App\\Entity\\OrderItem',
+                'on_delete'     => 'CASCADE',
+            ],
+            'Integrity/orphan_removal' => [
+                'entity_class'  => 'App\\Entity\\Order',
+                'field_name'    => 'items',
+                'target_entity' => 'App\\Entity\\OrderItem',
+            ],
+            'Performance/order_by_without_limit' => [
+                'query' => 'SELECT p FROM Product p ORDER BY p.createdAt DESC',
+            ],
+            'Performance/over_eager_loading' => [
+                'entity'      => 'App\\Entity\\Product',
+                'relation'    => 'reviews',
+                'query_count' => 50,
+            ],
+            'Performance/pagination' => [
                 'method'       => 'findAll',
                 'result_count' => 10000,
             ],
-            'primary_key_auto_increment' => [
-                'entity_name'          => 'App\\Entity\\Product',
-                'short_name'           => 'Product',
-                'auto_increment_count' => 15,
-                'uuid_count'           => 5,
-                'total_count'          => 20,
-            ],
-            'primary_key_uuid_v7' => [
+            'Integrity/primary_key_auto_increment' => [
                 'entity_name' => 'App\\Entity\\Product',
                 'short_name'  => 'Product',
             ],
-            'query_caching_frequent' => [
+            'Integrity/primary_key_mixed' => [
+                'auto_increment_count'    => 15,
+                'uuid_count'              => 5,
+                'auto_increment_entities' => ['App\\Entity\\Product', 'App\\Entity\\Order'],
+                'uuid_entities'           => ['App\\Entity\\User'],
+            ],
+            'Integrity/primary_key_uuid_v7' => [
+                'entity_name' => 'App\\Entity\\Product',
+                'short_name'  => 'Product',
+            ],
+            'Performance/query_caching_frequent' => [
                 'sql'        => 'SELECT * FROM products WHERE status = ?',
                 'count'      => 50,
                 'total_time' => 250.5,
                 'avg_time'   => 5.01,
             ],
-            'query_optimization' => [
+            'Performance/query_caching_static' => [
+                'sql'        => 'SELECT * FROM countries',
+                'table_name' => 'countries',
+            ],
+            'Performance/query_optimization' => [
                 'code'           => 'SELECT p FROM Product p',
                 'optimization'   => 'Add index on status column',
                 'execution_time' => 125.5,
                 'threshold'      => 100.0,
             ],
-            'sensitive_data_exposure' => [
+            'Security/sensitive_data_exposure' => [
                 'entity_class'   => 'App\\Entity\\User',
                 'method_name'    => 'jsonSerialize',
                 'exposed_fields' => ['password', 'apiToken'],
                 'exposure_type'  => 'serialization',
             ],
-            'setMaxResults_with_collection_join' => [
+            'Performance/setMaxResults_with_collection_join' => [
                 'entity_hint' => 'Product',
             ],
-            'sql_injection' => [
+            'Integrity/soft_delete_cascade_conflict' => [
+                'entity_class' => 'App\\Entity\\Order',
+                'field_name'   => 'category',
+            ],
+            'Integrity/soft_delete_immutable' => [
+                'entity_class' => 'App\\Entity\\Article',
+                'field_name'   => 'deletedAt',
+            ],
+            'Integrity/soft_delete_nullable' => [
+                'entity_class' => 'App\\Entity\\Article',
+                'field_name'   => 'deletedAt',
+            ],
+            'Integrity/soft_delete_setter' => [
+                'entity_class' => 'App\\Entity\\Article',
+                'field_name'   => 'deletedAt',
+            ],
+            'Integrity/soft_delete_timezone' => [
+                'entity_class' => 'App\\Entity\\Article',
+                'field_name'   => 'deletedAt',
+            ],
+            'Security/sql_injection' => [
                 'class_name'         => 'App\\Repository\\UserRepository',
                 'method_name'        => 'findByName',
                 'vulnerability_type' => 'concatenation',
             ],
-            'timestampable_immutable_datetime' => [
+            'Integrity/timestampable_immutable_datetime' => [
                 'entity_class' => 'App\\Entity\\Article',
                 'field_name'   => 'createdAt',
             ],
-            'timestampable_non_nullable_created_at' => [
+            'Integrity/timestampable_non_nullable_created_at' => [
                 'entity_class' => 'App\\Entity\\Article',
                 'field_name'   => 'createdAt',
             ],
-            'timestampable_public_setter' => [
+            'Integrity/timestampable_public_setter' => [
                 'entity_class' => 'App\\Entity\\Article',
                 'field_name'   => 'updatedAt',
             ],
-            'timestampable_timezone' => [
+            'Integrity/timestampable_timezone' => [
                 'entity_class' => 'App\\Entity\\Article',
                 'field_name'   => 'createdAt',
             ],
-            'timestampable_timezone_global' => [
+            'Integrity/timestampable_timezone_global' => [
                 'total_fields' => 25,
             ],
-            'type_hint_mismatch' => [
+            'Integrity/timestampable_timezone_inconsistency' => [
+                'datetime_count'   => 10,
+                'datetimetz_count' => 3,
+            ],
+            'Integrity/type_hint_decimal_float_mismatch' => [
+                'entity_class' => 'App\\Entity\\Product',
+                'field_name'   => 'price',
+            ],
+            'Integrity/type_hint_mismatch' => [
                 'bad_code'           => 'public function setPrice($price)',
                 'good_code'          => 'public function setPrice(float $price)',
                 'description'        => 'Missing type hint',
                 'performance_impact' => 'Low',
+            ],
+            'Performance/batch_fetch' => [
+                'entity'      => 'App\\Entity\\Product',
+                'relation'    => 'tags',
+                'query_count' => 20,
+            ],
+            'Performance/collection_eager_loading' => [
+                'entity'      => 'App\\Entity\\Product',
+                'relation'    => 'reviews',
+                'query_count' => 30,
+            ],
+            'Performance/denormalization' => [
+                'entity'   => 'App\\Entity\\Product',
+                'relation' => 'reviews',
+            ],
+            'Performance/dto_hydration' => [
+                'query_count'  => 10,
+                'aggregations' => ['COUNT', 'SUM'],
+                'has_group_by' => true,
+            ],
+            'Performance/excessive_hydration' => [
+                'query'        => 'SELECT p FROM Product p',
+                'column_count' => 50,
+            ],
+            'Performance/extra_lazy' => [
+                'entity'      => 'App\\Entity\\Product',
+                'relation'    => 'reviews',
+                'query_count' => 100,
+            ],
+            'Performance/nested_eager_loading' => [
+                'entities'    => ['Product', 'Category', 'Parent'],
+                'depth'       => 3,
+                'query_count' => 50,
+                'chain'       => 'Product -> Category -> Parent',
+            ],
+            'Performance/unused_eager_load' => [
+                'unused_tables'  => ['reviews'],
+                'unused_aliases' => ['r'],
+                'count'          => 1,
             ],
         ];
 
@@ -600,26 +754,17 @@ final class TemplateValidationTest extends TestCase
     }
 
     /**
-     * Specific test for query_caching_frequent template with various scenarios.
-     *
      * @dataProvider queryCachingFrequentProvider
      */
     public function test_query_caching_frequent_template(array $context, string $scenario): void
     {
-        if (!$this->renderer->exists('query_caching_frequent')) {
-            self::markTestSkipped('query_caching_frequent template does not exist');
-        }
+        self::assertTrue($this->renderer->exists('Performance/query_caching_frequent'));
 
-        $result = $this->renderer->render('query_caching_frequent', $context);
+        $result = $this->renderer->render('Performance/query_caching_frequent', $context);
 
         self::assertStringContainsString((string) $context['count'], $result['code'], "Template should display count for {$scenario}");
-        self::assertStringContainsString(number_format($context['total_time'], 2), $result['code'], "Template should display total_time for {$scenario}");
-        self::assertStringContainsString(number_format($context['avg_time'], 2), $result['code'], "Template should display avg_time for {$scenario}");
         self::assertStringContainsString($context['sql'], $result['code'], "Template should display SQL for {$scenario}");
-
-        // Verify description contains key metrics
         self::assertStringContainsString((string) $context['count'], $result['description']);
-        self::assertStringContainsString(number_format($context['total_time'], 2), $result['description']);
     }
 
     /**

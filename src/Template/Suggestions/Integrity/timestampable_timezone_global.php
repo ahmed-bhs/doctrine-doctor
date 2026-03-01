@@ -35,7 +35,7 @@ ob_start();
 
     <h4>When this is acceptable</h4>
     <div class="query-item">
-        <pre><code>Most web applications:
+        <pre><code class="language-bash">Most web applications:
    - Store everything in UTC
    - Convert to user timezone in PHP
    - Simple and works well</code></pre>
@@ -43,7 +43,7 @@ ob_start();
 
     <h4>When to use datetimetz</h4>
     <div class="query-item">
-        <pre><code>Multi-timezone applications:
+        <pre><code class="language-bash">Multi-timezone applications:
    - Users in different timezones
    - Direct SQL reports or BI tools
    - Need to preserve original timezone</code></pre>

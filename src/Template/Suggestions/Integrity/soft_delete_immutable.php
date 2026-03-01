@@ -2,54 +2,47 @@
 
 declare(strict_types=1);
 
-/**
- * @var string $entityClass Entity class name
- * @var string $fieldName   Field name
- */
-
-// Extract context variables
 $entityClass = $context['entity_class'] ?? '';
 $fieldName = $context['field_name'] ?? '';
 
-// Escaping function
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-
+<div class="suggestion-header"><h4>Use DateTimeImmutable for soft delete</h4></div>
 <div class="suggestion-content">
-    <h3>Use DateTimeImmutable for soft delete</h3>
-    <p>
-        <code><?= $fieldName ?></code> uses mutable <code>DateTime</code>. Use <code>DateTimeImmutable</code> instead to prevent accidental modifications to the deletion timestamp.
-    </p>
+<div class="alert alert-warning"><code><?php echo $e($fieldName); ?></code> uses mutable <code>DateTime</code>. Use <code>DateTimeImmutable</code> instead.</div>
 
-    <h3>Fix</h3>
-    <pre><code class="language-php">use Doctrine\ORM\Mapping as ORM;
+<p>DateTimeImmutable prevents accidental modifications to the deletion timestamp.</p>
+
+<h4>Fix</h4>
+<div class="query-item"><pre><code class="language-php">use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-class <?= basename(str_replace('\\', '/', $entityClass)) . "\n" ?>
+class <?php echo $e($shortClass); ?>
+
 {
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $<?= $fieldName ?> = null;
+    private ?\DateTimeImmutable $<?php echo $e($fieldName); ?> = null;
 
     public function delete(): void
     {
-        $this-><?= $fieldName ?> = new \DateTimeImmutable();
+        $this-><?php echo $e($fieldName); ?> = new \DateTimeImmutable();
     }
 
     public function restore(): void
     {
-        $this-><?= $fieldName ?> = null;
+        $this-><?php echo $e($fieldName); ?> = null;
     }
-}</code></pre>
+}</code></pre></div>
 
-    <p>DateTimeImmutable is thread-safe and prevents accidental modifications. Once a deletion time is set, it should never change.</p>
+<p>DateTimeImmutable is thread-safe. Once a deletion time is set, it should never change.</p>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Suggestion',
+    'description' => sprintf('Use DateTimeImmutable for soft delete field %s::%s', $shortClass, $fieldName),
 ];
