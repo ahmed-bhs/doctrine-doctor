@@ -7,15 +7,7 @@ nav_order: 2
 
 # PHP Template Security Guide
 
-{: .no_toc }
-
 This document describes the security features implemented in the PHP template rendering system to prevent XSS (Cross-Site Scripting) and other injection attacks.
-
-## Table of Contents
-{: .no_toc .text-delta }
-
-1. TOC
-{:toc}
 
 ---
 
