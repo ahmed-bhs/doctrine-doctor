@@ -171,16 +171,10 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
         $issueData = new IssueData(
             type: IssueType::SET_MAX_RESULTS_WITH_COLLECTION_JOIN->value,
             title: 'setMaxResults() with Collection Join Detected',
-            description: 'Query uses LIMIT with a fetch-joined collection. This causes LIMIT to apply to SQL rows ' .
-            'instead of entities, resulting in partially hydrated collections (silent data loss). ' .
-            "
-
-Problem: If the main entity has multiple related items, only some will be loaded. " .
-            'For example, if a Pet has 4 pictures and you use setMaxResults(1), only 1 picture ' .
-            "will be loaded instead of 4.
-
-" .
-            "Solution: Use Doctrine's Paginator which executes 2 queries to properly handle collection joins.",
+            description: 'LIMIT is used with a fetch-joined collection.' . "\n" .
+            'Impact: LIMIT is applied to SQL rows, not root entities.' . "\n" .
+            'Impact: Collections can be partially hydrated (silent data loss).' . "\n" .
+            'Impact: Result counts and business behavior can be incorrect.',
             severity: Severity::critical(),
             suggestion: $this->createSuggestion($mainTable),
             queries: [$queryData],
