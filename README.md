@@ -100,7 +100,7 @@ doctrine:
         profiling_collect_backtrace: true
 ```
 
-[Full configuration reference →](docs/CONFIGURATION.md)
+[Full configuration reference →](docs/user-guide/configuration.md)
 
 ---
 
@@ -154,10 +154,10 @@ execution time, points to the exact template line, and suggests eager loading wi
 
 | Document | Description |
 |----------|-------------|
-| [**Full Analyzers List**](docs/ANALYZERS.md) | Complete catalog of all **74 analyzers** covering performance, security, code quality, and configuration - find the perfect analyzer for your specific needs |
-| [**Architecture Guide**](docs/ARCHITECTURE.md) | Deep dive into **system design**, architecture patterns, and technical internals - understand how Doctrine Doctor works under the hood |
-| [**Configuration Reference**](docs/CONFIGURATION.md) | Comprehensive guide to **all configuration options** - customize analyzers, thresholds, and outputs to match your workflow |
-| [**Template Security**](docs/TEMPLATE_SECURITY.md) | Essential **security best practices** for PHP templates - prevent XSS attacks and ensure safe template rendering |
+| [**Full Analyzers List**](docs/user-guide/analyzers.md) | Complete catalog of all **74 analyzers** covering performance, security, code quality, and configuration - find the perfect analyzer for your specific needs |
+| [**Architecture Guide**](docs/advanced/architecture.md) | Deep dive into **system design**, architecture patterns, and technical internals - understand how Doctrine Doctor works under the hood |
+| [**Configuration Reference**](docs/user-guide/configuration.md) | Comprehensive guide to **all configuration options** - customize analyzers, thresholds, and outputs to match your workflow |
+| [**Template Security**](docs/advanced/template-security.md) | Essential **security best practices** for PHP templates - prevent XSS attacks and ensure safe template rendering |
 
 ---
 
