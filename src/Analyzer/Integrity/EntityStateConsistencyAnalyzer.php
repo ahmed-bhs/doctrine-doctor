@@ -106,25 +106,14 @@ class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
                 $targetShort = $this->shortClassName(\is_string($targetEntity) ? $targetEntity : '');
 
                 $description = sprintf(
-                    "Required association %s::\$%s targets %s without cascade persist.\n\n",
+                    "Required association %s::\$%s targets %s without cascade persist.\n",
                     $shortName,
                     $assocName,
                     $targetShort,
                 );
-
-                $description .= "Problem:\n";
-                $description .= "- The association is NOT NULL (required)\n";
-                $description .= "- Without cascade persist, you must manually persist the related entity first\n";
-                $description .= "- Forgetting to persist will cause a foreign key constraint violation\n\n";
-
-                $description .= "Solutions:\n\n";
-                $description .= "1. Add cascade persist:\n";
-                $description .= sprintf("   #[ManyToOne(cascade: ['persist'])]\n");
-                $description .= sprintf("   private %s \$%s;\n\n", $targetShort, $assocName);
-                $description .= "2. Always persist the related entity before flush:\n";
-                $description .= sprintf("   \$em->persist(\$%s);\n", $assocName);
-                $description .= sprintf("   \$entity->set%s(\$%s);\n", ucfirst($assocName), $assocName);
-                $description .= "   \$em->flush();\n";
+                $description .= "Impact: The relation is NOT NULL and requires a managed related entity.\n";
+                $description .= "Impact: Missing manual persist can trigger foreign key constraint violations.\n";
+                $description .= "Impact: Flush may fail unexpectedly in create/update flows.";
 
                 $issueData = new IssueData(
                     type: IssueType::ENTITY_NEW_IN_ASSOCIATION->value,

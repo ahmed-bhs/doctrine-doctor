@@ -132,79 +132,30 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
     private function buildDescription(string $entityClass, \ReflectionClass $reflectionClass, ClassMetadata $classMetadata): string
     {
         $shortName = $this->shortClassName($entityClass);
-
-        $description = sprintf(
-            "Entity class %s is marked as 'final', which prevents Doctrine from creating proxy classes.
-
-",
-            $shortName,
-        );
-
-        $description .= "Why this is a problem:
-";
-        $description .= "- Doctrine uses proxy classes for lazy loading relationships
-";
-        $description .= "- Final classes cannot be extended, preventing proxy creation
-";
-        $description .= "- This will cause runtime errors when accessing lazy-loaded associations
-
-";
+        $description = sprintf("Entity class %s is marked as final.\n", $shortName);
+        $description .= "Impact: Doctrine cannot generate proxy subclasses for lazy loading.\n";
 
         // Check for lazy associations
         $lazyAssociations = $this->findLazyAssociations($classMetadata);
 
         if ([] !== $lazyAssociations) {
             $description .= sprintf(
-                "This entity has %d lazy-loaded association(s) that will fail:
-",
+                "Impact: %d lazy-loaded association(s) may fail at runtime: ",
                 count($lazyAssociations),
             );
 
             Assert::isIterable($lazyAssociations, '$lazyAssociations must be iterable');
-
+            $pairs = [];
             foreach ($lazyAssociations as $assocName => $targetEntity) {
-                $description .= sprintf(
-                    "  - %s (-> %s)
-",
-                    $assocName,
-                    $this->shortClassName($targetEntity),
-                );
+                $pairs[] = sprintf('%s -> %s', $assocName, $this->shortClassName($targetEntity));
             }
-
-            $description .= "
-";
+            $description .= implode(', ', $pairs) . ".\n";
+        } else {
+            $description .= "Impact: Lazy loading is blocked and association loading strategy becomes constrained.\n";
         }
 
-        $description .= "Solution:
-";
-        $description .= "Remove the 'final' keyword from the class definition:
-
-";
-        $description .= sprintf(
-            "  // File: %s
-",
-            $reflectionClass->getFileName() ?: 'unknown',
-        );
-        $description .= sprintf(
-            "  - final class %s { ... }
-",
-            $shortName,
-        );
-        $description .= sprintf(
-            "  + class %s { ... }
-
-",
-            $shortName,
-        );
-
-        $description .= "Alternative (if you need immutability):
-";
-        $description .= "- Mark individual methods as final instead of the class
-";
-        $description .= "- Use readonly properties (PHP 8.1+) for immutability
-";
-
-        return $description . "- Consider using eager loading (fetch=\"EAGER\") if you don't need proxies";
+        $file = $reflectionClass->getFileName() ?: 'unknown';
+        return $description . sprintf("Impact: Check class declaration in %s.", $file);
     }
 
     /**

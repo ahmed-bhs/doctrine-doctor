@@ -189,18 +189,10 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
-            'Money Embeddable %s::$%s uses float/double type which is CRITICAL for financial data. ' .
-            'Floating point arithmetic is imprecise and causes financial discrepancies. ' .
-            "\n\n" .
-            'Best practices for Money Value Objects:' .
-            "\n" .
-            '1. Use integer type to store smallest unit (e.g., cents: 1999 for $19.99)' .
-            "\n" .
-            '2. Or use decimal type mapped to string property' .
-            "\n" .
-            '3. Implement arithmetic methods (add, subtract, multiply) in the Value Object' .
-            "\n" .
-            '4. Make the embeddable immutable (return new instances)',
+            'Money Embeddable %s::$%s uses float/double type.' . "\n" .
+            'Impact: Floating-point arithmetic is imprecise for financial amounts.' . "\n" .
+            'Impact: Rounding drift can cause inconsistent totals and reconciliation gaps.' . "\n" .
+            'Impact: Errors propagate across aggregates, taxes, and reports.',
             $shortClassName,
             $fieldName,
         );
