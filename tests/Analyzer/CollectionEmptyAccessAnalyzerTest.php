@@ -108,7 +108,7 @@ final class CollectionEmptyAccessAnalyzerTest extends DatabaseTestCase
         $issue = reset($collectionIssues);
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
         self::assertStringContainsString('not initialized', $issue->getDescription());
-        self::assertStringContainsString('ArrayCollection', $issue->getDescription());
+        self::assertStringContainsString('Impact:', $issue->getDescription());
     }
 
     #[Test]

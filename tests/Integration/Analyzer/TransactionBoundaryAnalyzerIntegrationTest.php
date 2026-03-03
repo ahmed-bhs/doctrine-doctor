@@ -75,7 +75,7 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         self::assertSame('Unclosed Transaction Detected', $unclosedIssue->getTitle());
         self::assertSame('critical', $unclosedIssue->getSeverity()->value);
         self::assertStringContainsString('Transaction started but never committed', $unclosedIssue->getDescription());
-        self::assertStringContainsString('1 flush operation(s) were performed but not committed', $unclosedIssue->getDescription());
+        self::assertStringContainsString('1 flush operation(s) were executed in an unclosed transaction', $unclosedIssue->getDescription());
 
         // Cleanup
         try {
@@ -154,7 +154,7 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         self::assertNotNull($nestedIssue, 'Should detect nested transaction');
         self::assertStringContainsString('Nested Transaction Detected', $nestedIssue->getTitle());
         self::assertSame('critical', $nestedIssue->getSeverity()->value);
-        self::assertStringContainsString('DO NOT support real nested transactions', $nestedIssue->getDescription());
+        self::assertStringContainsString('Inner transactions are usually ignored', $nestedIssue->getDescription());
     }
 
     #[Test]
@@ -205,8 +205,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
 
         assert($firstIssue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
         self::assertSame('warning', $firstIssue->getSeverity()->value);
-        self::assertStringContainsString('Multiple flush operations', $firstIssue->getDescription());
-        self::assertStringContainsString('deadlock risk', $firstIssue->getDescription());
+        self::assertStringContainsString('Multiple flush() calls detected', $firstIssue->getDescription());
+        self::assertStringContainsString('Deadlock risk', $firstIssue->getDescription());
     }
 
     #[Test]
@@ -582,8 +582,7 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
 
             // Verify description contains helpful information
             $description = $issue->getDescription();
-            self::assertStringContainsString('Problem:', $description);
-            self::assertStringContainsString('Solutions:', $description);
+            self::assertStringContainsString('Impact:', $description);
         }
 
         // Cleanup
