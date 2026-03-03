@@ -17,7 +17,6 @@ use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Collector\Helper\DataCollectorLogger;
-use AhmedBhs\DoctrineDoctor\Collector\Helper\IssueReconstructor;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
@@ -166,9 +165,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         }
 
         $issuesData = $this->data['issues'] ?? [];
-        $issueReconstructor = isset($this->dataCollectorHelpers)
-            ? $this->dataCollectorHelpers->issueReconstructor
-            : new IssueReconstructor();
+        $issueReconstructor = $this->dataCollectorHelpers->issueReconstructor;
 
         $this->memoizedIssues = array_map(
             $issueReconstructor->reconstructIssue(...),
