@@ -37,11 +37,11 @@ ob_start();
 
     <h4>Why is this a problem?</h4>
     <div class="query-item">
-        <pre><code>Mixing datetime types can cause:
-   ✗ Inconsistent data storage
-   ✗ Timezone conversion bugs
-   ✗ Unpredictable query results
-   ✗ Maintenance confusion</code></pre>
+        <pre><code class="language-bash">Mixing datetime types can cause:
+   - Inconsistent data storage
+   - Timezone conversion bugs
+   - Unpredictable query results
+   - Maintenance confusion</code></pre>
     </div>
 
     <h4>Recommended Solution</h4>
@@ -74,26 +74,26 @@ private \DateTimeImmutable $createdAt;
     </div>
 
     <h4>How to decide?</h4>
-    <table class="comparison-table">
+    <table>
         <tr>
             <th>Choose datetime if...</th>
             <th>Choose datetimetz if...</th>
         </tr>
         <tr>
-            <td>✓ Most web applications</td>
-            <td>✓ Need original timezone</td>
+            <td>Most web applications</td>
+            <td>Need original timezone</td>
         </tr>
         <tr>
-            <td>✓ Store all timestamps in UTC</td>
-            <td>✓ Calendar/scheduling app</td>
+            <td>Store all timestamps in UTC</td>
+            <td>Calendar/scheduling app</td>
         </tr>
         <tr>
-            <td>✓ Convert timezone in PHP</td>
-            <td>✓ BI tools query directly</td>
+            <td>Convert timezone in PHP</td>
+            <td>BI tools query directly</td>
         </tr>
         <tr>
-            <td>✓ Simpler code</td>
-            <td>✓ Multi-timezone critical</td>
+            <td>Simpler code</td>
+            <td>Multi-timezone critical</td>
         </tr>
     </table>
 
