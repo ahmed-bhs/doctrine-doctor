@@ -18,12 +18,12 @@ ob_start();
 ?>
 
 <div class="suggestion-content">
-    <h3>createdBy should be NOT NULL</h3>
+    <h4>createdBy should be NOT NULL</h4>
     <p>
         <code><?= $e($fieldName) ?></code> (usually createdBy/author) should be NOT NULL. Every entity must have a creator for proper audit trail. Nullable createdBy makes it impossible to know who created the entity, which breaks accountability and compliance requirements.
     </p>
 
-    <h3>Fix</h3>
+    <h4>Fix</h4>
     <pre><code class="language-php">use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
