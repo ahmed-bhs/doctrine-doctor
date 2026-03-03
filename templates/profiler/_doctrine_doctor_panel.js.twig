@@ -1,0 +1,613 @@
+        if (navigator.clipboard) {
+            document.querySelectorAll('[data-clipboard-text]').forEach(function(button) {
+                button.classList.remove('hidden');
+                button.addEventListener('click', function() {
+                    navigator.clipboard.writeText(button.getAttribute('data-clipboard-text'));
+                })
+            });
+        }
+
+        // Accessible toggle handling for all custom controls
+        (function() {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initToggle);
+            } else {
+                initToggle();
+            }
+
+            function initToggle() {
+                const toggleButtons = document.querySelectorAll('.dd-toggle, button.sf-toggle');
+
+                toggleButtons.forEach(function(button) {
+                    if (button.hasAttribute('data-dd-initialized')) {
+                        return;
+                    }
+
+                    const textElement = button.querySelector('.dd-btn-text') || button;
+                    const originalText = textElement.textContent.trim();
+                    const altText = button.getAttribute('data-toggle-alt-content');
+                    const targetSelector = button.getAttribute('data-toggle-selector');
+
+                    if (!targetSelector) {
+                        return;
+                    }
+
+                    button.setAttribute('data-original-text', originalText);
+                    button.setAttribute('data-alt-text', (altText || '').trim());
+                    button.setAttribute('data-dd-initialized', 'true');
+
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const targetSelector = this.getAttribute('data-toggle-selector');
+                        if (!targetSelector) {
+                            return;
+                        }
+
+                        const targetElement = document.querySelector(targetSelector);
+                        if (!targetElement) {
+                            return;
+                        }
+
+                        const isCurrentlyHidden = targetElement.classList.contains('hidden');
+                        const myOriginalText = this.getAttribute('data-original-text') || '';
+                        const myAltText = this.getAttribute('data-alt-text') || '';
+                        const myTextElement = this.querySelector('.dd-btn-text') || this;
+
+                        if (isCurrentlyHidden) {
+                            targetElement.classList.remove('hidden');
+                            this.classList.add('sf-toggle-on');
+                            this.classList.remove('sf-toggle-off');
+                            this.setAttribute('aria-expanded', 'true');
+                            if (myAltText) {
+                                myTextElement.textContent = myAltText;
+                            }
+                        } else {
+                            targetElement.classList.add('hidden');
+                            this.classList.remove('sf-toggle-on');
+                            this.classList.add('sf-toggle-off');
+                            this.setAttribute('aria-expanded', 'false');
+                            myTextElement.textContent = myOriginalText;
+                        }
+                    }, false);
+                });
+            }
+        })();
+
+        (function() {
+            function compactIssueDescriptions() {
+                var tmp = document.createElement('div');
+
+                function getText(html) {
+                    tmp.innerHTML = html;
+                    return (tmp.textContent || '').replace(/\s+/g, ' ').trim();
+                }
+
+                function compactNode(node) {
+                    if (!node || node.hasAttribute('data-dd-compact')) return;
+                    node.setAttribute('data-dd-compact', 'true');
+
+                    var parts = (node.innerHTML || '')
+                        .split(/<br\s*\/?>/i)
+                        .map(function(p) { return p.trim(); })
+                        .filter(function(p) { return p !== ''; });
+
+                    if (parts.length <= 1) return;
+
+                    var compacted = [];
+
+                    for (var i = 0; i < parts.length; i++) {
+                        var htmlPart = parts[i];
+                        var textPart = getText(htmlPart);
+                        if (!textPart) continue;
+
+                        if (/^(solution|solutions|best practices|possible causes|common causes)\s*:/i.test(textPart)) {
+                            break;
+                        }
+                        if (/^this can cause issues\s*:/i.test(textPart)) {
+                            continue;
+                        }
+
+                        if (/^\s*[-•]\s+/.test(textPart)) {
+                            var bulletHtml = htmlPart.replace(/^\s*[-•]\s*/, '');
+                            compacted.push('Impact: ' + bulletHtml);
+                            continue;
+                        }
+
+                        // Remove trailing recommendation tails for compact display.
+                        htmlPart = htmlPart.replace(/\s+Consider[^.]*\.?$/i, '');
+                        htmlPart = htmlPart.replace(/\s+Use [^.]* instead\.?$/i, '');
+
+                        compacted.push(htmlPart);
+                    }
+
+                    if (compacted.length === 0) return;
+                    node.innerHTML = compacted.slice(0, 4).join('<br>');
+                }
+
+                document.querySelectorAll('.issue-description, .dd-duplicate-description').forEach(compactNode);
+            }
+
+            function ensureLineNumberText(root) {
+                (root || document).querySelectorAll('pre.line-numbers').forEach(function(pre) {
+                    var code = pre.querySelector(':scope > code');
+                    if (!code) return;
+
+                    // Remove legacy/injected Prism nodes inside <code> that can skew counting.
+                    code.querySelectorAll(':scope > .line-numbers-rows, :scope > .line-numbers-sizer').forEach(function(node) {
+                        node.remove();
+                    });
+
+                    var rows = pre.querySelector(':scope > .line-numbers-rows');
+                    if (!rows) {
+                        rows = document.createElement('span');
+                        rows.className = 'line-numbers-rows';
+                        rows.setAttribute('aria-hidden', 'true');
+                        pre.appendChild(rows);
+                    }
+
+                    var raw = code.textContent || '';
+                    var normalized = raw.replace(/\r\n?/g, '\n');
+                    var textCount = normalized === '' ? 1 : normalized.split('\n').length;
+                    var htmlSource = (code.innerHTML || '').replace(/\r\n?/g, '\n');
+                    var htmlCount = htmlSource === '' ? 1 : htmlSource.split('\n').length;
+                    var attrCount = parseInt(pre.getAttribute('data-dd-line-count') || '0', 10) || 0;
+                    var innerTextSource = (code.innerText || '').replace(/\r\n?/g, '\n');
+                    var innerTextCount = innerTextSource === '' ? 1 : innerTextSource.split('\n').length;
+                    // Some highlighted outputs keep an extra logical line only in HTML tokens.
+                    var tokenBreakCount = ((code.innerHTML || '').match(/\n/g) || []).length + 1;
+
+                    var lineCount = Math.max(textCount, htmlCount, innerTextCount, tokenBreakCount, attrCount);
+                    if (lineCount < 1) lineCount = 1;
+
+                    var preStyle = window.getComputedStyle(pre);
+                    var codeStyle = window.getComputedStyle(code);
+                    var prePadTop = parseFloat(preStyle.paddingTop || '0') || 0;
+                    var prePadBottom = parseFloat(preStyle.paddingBottom || '0') || 0;
+                    var lineHeight = parseFloat(codeStyle.lineHeight || '0') || 0;
+                    if (!lineHeight || Number.isNaN(lineHeight)) {
+                        var fontSize = parseFloat(codeStyle.fontSize || '12') || 12;
+                        lineHeight = fontSize * 1.5;
+                    }
+
+                    rows.style.top = prePadTop + 'px';
+                    rows.style.bottom = prePadBottom + 'px';
+
+                    var current = rows.querySelectorAll(':scope > span').length;
+                    if (current !== lineCount) {
+                        rows.innerHTML = '';
+                        for (var i = 0; i < lineCount; i++) {
+                            var span = document.createElement('span');
+                            span.textContent = String(i + 1);
+                            span.style.height = lineHeight + 'px';
+                            span.style.lineHeight = lineHeight + 'px';
+                            rows.appendChild(span);
+                        }
+                    } else {
+                        rows.querySelectorAll(':scope > span').forEach(function(span, index) {
+                            span.textContent = String(index + 1);
+                            span.style.height = lineHeight + 'px';
+                            span.style.lineHeight = lineHeight + 'px';
+                        });
+                    }
+
+                    pre.classList.add('dd-ln-fallback');
+                });
+            }
+
+            function highlightAndAddCopyButtons(container) {
+                var root = container || document;
+                root.querySelectorAll('pre[class*="language-"], .query-item pre').forEach(function(pre) {
+                    pre.classList.add('line-numbers');
+                });
+
+                root.querySelectorAll('pre.line-numbers > code').forEach(function(code) {
+                    var raw = (code.textContent || '').replace(/\r\n?/g, '\n');
+                    var rawCount = raw === '' ? 1 : raw.split('\n').length;
+                    code.parentElement.setAttribute('data-dd-line-count', String(rawCount));
+                });
+
+                if (typeof Prism !== 'undefined' && Prism && typeof Prism.highlightElement === 'function') {
+                    root.querySelectorAll('code[class*="language-"]').forEach(function(block) {
+                        if (!block.classList.contains('prism-highlighted')) {
+                            Prism.highlightElement(block);
+                            block.classList.add('prism-highlighted');
+                        }
+                    });
+                }
+
+                ensureLineNumberText(root);
+
+                root.querySelectorAll('.query-item').forEach(function(item) {
+                    if (item.querySelector('.dd-copy-btn')) return;
+                    var code = item.querySelector('code');
+                    if (!code) return;
+                    var btn = document.createElement('button');
+                    btn.className = 'dd-copy-btn';
+                    btn.textContent = 'Copy';
+                    btn.addEventListener('click', function() {
+                        var text = code.textContent;
+                        navigator.clipboard.writeText(text).then(function() {
+                            btn.textContent = 'Copied!';
+                            btn.classList.add('dd-copied');
+                            setTimeout(function() {
+                                btn.textContent = 'Copy';
+                                btn.classList.remove('dd-copied');
+                            }, 2000);
+                        });
+                    });
+                    item.appendChild(btn);
+                });
+            }
+
+            function initDuplicateDescriptionToggles() {
+                document.querySelectorAll('.dd-desc-toggle').forEach(function(toggle) {
+                    if (toggle.hasAttribute('data-dd-initialized')) return;
+                    toggle.setAttribute('data-dd-initialized', 'true');
+                    toggle.addEventListener('click', function() {
+                        var item = this.closest('.dd-expandable-desc');
+                        if (!item) return;
+                        var shortText = item.querySelector('.dd-desc-short');
+                        var fullText = item.querySelector('.dd-desc-full');
+                        if (!shortText || !fullText) return;
+
+                        var isExpanded = !fullText.classList.contains('hidden');
+                        if (isExpanded) {
+                            shortText.classList.remove('hidden');
+                            fullText.classList.add('hidden');
+                            this.textContent = '...view more';
+                            this.setAttribute('aria-expanded', 'false');
+                        } else {
+                            shortText.classList.add('hidden');
+                            fullText.classList.remove('hidden');
+                            this.textContent = '...view less';
+                            this.setAttribute('aria-expanded', 'true');
+                        }
+                    });
+                });
+            }
+
+            function normalizeDuplicateText(value) {
+                return (value || '').replace(/\s+/g, ' ').trim().toLowerCase();
+            }
+
+            function deduplicateDuplicatePanels() {
+                document.querySelectorAll('.dd-duplicates-content').forEach(function(content) {
+                    var items = Array.prototype.slice.call(content.querySelectorAll('.dd-duplicate-item'));
+                    if (items.length <= 1) return;
+
+                    var seen = new Map();
+                    var removedCount = 0;
+
+                    items.forEach(function(item) {
+                        var titleNode = item.querySelector('.dd-duplicate-title strong');
+                        var title = normalizeDuplicateText(titleNode ? titleNode.textContent : '');
+
+                        var fullDesc = item.querySelector('.dd-desc-full');
+                        var shortDesc = item.querySelector('.dd-desc-short');
+                        var plainDesc = item.querySelector('.dd-duplicate-description');
+                        var description = normalizeDuplicateText(
+                            fullDesc ? fullDesc.textContent : (shortDesc ? shortDesc.textContent : (plainDesc ? plainDesc.textContent : ''))
+                        );
+
+                        var key = title + '||' + description;
+
+                        if (!seen.has(key)) {
+                            seen.set(key, { item: item, count: 1 });
+                            return;
+                        }
+
+                        seen.get(key).count += 1;
+                        item.remove();
+                        removedCount += 1;
+                    });
+
+                    if (removedCount === 0) return;
+
+                    seen.forEach(function(entry) {
+                        if (entry.count <= 1) return;
+                        var title = entry.item.querySelector('.dd-duplicate-title');
+                        if (!title) return;
+                        var countBadge = document.createElement('span');
+                        countBadge.className = 'dd-duplicate-count';
+                        countBadge.textContent = 'x' + entry.count;
+                        title.appendChild(countBadge);
+                    });
+
+                    var panel = content.closest('.dd-duplicates-panel');
+                    var headerStrong = panel ? panel.querySelector('.dd-duplicates-header strong') : null;
+                    if (headerStrong) {
+                        var uniqueCount = content.querySelectorAll('.dd-duplicate-item').length;
+                        var totalCount = uniqueCount + removedCount;
+                        headerStrong.textContent = uniqueCount + ' unique similar issues (' + totalCount + ' total)';
+                    }
+                });
+            }
+
+            function getSeverityWeight(severity) {
+                if (severity === 'critical') return 3;
+                if (severity === 'warning') return 2;
+                return 1;
+            }
+
+            function applyIssueFilters(issueList, controls) {
+                var searchInput = controls.querySelector('[data-filter-search]');
+                var sortSelect = controls.querySelector('[data-filter-sort]');
+                var activeSeverityChip = controls.querySelector('[data-filter-severity].is-active');
+                var severity = activeSeverityChip ? activeSeverityChip.getAttribute('data-filter-severity') : 'all';
+                var query = ((searchInput && searchInput.value) || '').trim().toLowerCase();
+                var sortMode = (sortSelect && sortSelect.value) || 'severity_desc';
+
+                var cards = Array.prototype.slice.call(issueList.querySelectorAll('[data-issue-card="true"]'));
+                cards.forEach(function(card) {
+                    var cardSeverity = card.getAttribute('data-severity') || 'info';
+                    var title = (card.getAttribute('data-title') || '').toLowerCase();
+                    var type = (card.getAttribute('data-type') || '').toLowerCase();
+                    var severityMatch = severity === 'all' || cardSeverity === severity;
+                    var textMatch = !query || title.indexOf(query) !== -1 || type.indexOf(query) !== -1;
+                    card.classList.toggle('dd-filter-hidden', !(severityMatch && textMatch));
+                });
+
+                var visibleCount = cards.filter(function(card) {
+                    return !card.classList.contains('dd-filter-hidden');
+                }).length;
+
+                var meta = controls.querySelector('.dd-issue-meta');
+                if (meta) {
+                    meta.textContent = visibleCount + ' shown / ' + cards.length + ' total';
+                }
+
+                var emptyState = controls.nextElementSibling;
+                if (emptyState && emptyState.classList.contains('dd-filter-empty')) {
+                    emptyState.classList.toggle('hidden', visibleCount !== 0);
+                }
+
+                cards.sort(function(a, b) {
+                    if (sortMode === 'title_asc') {
+                        return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
+                    }
+                    if (sortMode === 'title_desc') {
+                        return (b.getAttribute('data-title') || '').localeCompare(a.getAttribute('data-title') || '');
+                    }
+                    return getSeverityWeight(b.getAttribute('data-severity') || 'info') - getSeverityWeight(a.getAttribute('data-severity') || 'info');
+                }).forEach(function(card) {
+                    issueList.appendChild(card);
+                });
+            }
+
+            function initIssueFilters() {
+                document.querySelectorAll('.dd-issue-controls').forEach(function(controls) {
+                    var key = controls.getAttribute('data-controls-for');
+                    if (!key || controls.hasAttribute('data-dd-initialized')) return;
+                    controls.setAttribute('data-dd-initialized', 'true');
+
+                    var issueList = document.querySelector('.dd-issue-list[data-issue-list="' + key + '"]');
+                    if (!issueList) return;
+
+                    if (!controls.querySelector('.dd-issue-meta')) {
+                        var meta = document.createElement('span');
+                        meta.className = 'dd-issue-meta';
+                        controls.appendChild(meta);
+                    }
+
+                    var emptyState = controls.nextElementSibling;
+                    if (!emptyState || !emptyState.classList.contains('dd-filter-empty')) {
+                        emptyState = document.createElement('div');
+                        emptyState.className = 'dd-filter-empty hidden';
+                        emptyState.textContent = 'No issues match the current filters.';
+                        controls.insertAdjacentElement('afterend', emptyState);
+                    }
+
+                    var searchInput = controls.querySelector('[data-filter-search]');
+                    if (searchInput) {
+                        searchInput.addEventListener('input', function() {
+                            applyIssueFilters(issueList, controls);
+                        });
+                    }
+
+                    controls.querySelectorAll('[data-filter-severity]').forEach(function(chip) {
+                        chip.addEventListener('click', function() {
+                            controls.querySelectorAll('[data-filter-severity]').forEach(function(c) { c.classList.remove('is-active'); });
+                            this.classList.add('is-active');
+                            applyIssueFilters(issueList, controls);
+                        });
+                    });
+
+                    var sortSelect = controls.querySelector('[data-filter-sort]');
+                    if (sortSelect) {
+                        sortSelect.addEventListener('change', function() {
+                            applyIssueFilters(issueList, controls);
+                        });
+                    }
+
+                    var resetButton = controls.querySelector('[data-filter-reset]');
+                    if (resetButton) {
+                        resetButton.addEventListener('click', function() {
+                            if (searchInput) searchInput.value = '';
+                            if (sortSelect) sortSelect.value = 'severity_desc';
+                            controls.querySelectorAll('[data-filter-severity]').forEach(function(c) { c.classList.remove('is-active'); });
+                            var allChip = controls.querySelector('[data-filter-severity="all"]');
+                            if (allChip) allChip.classList.add('is-active');
+                            applyIssueFilters(issueList, controls);
+                        });
+                    }
+
+                    applyIssueFilters(issueList, controls);
+                });
+            }
+
+            function initSuggestionMetaClasses() {
+                document.querySelectorAll('.suggestion-content').forEach(function(content) {
+                    var firstParagraph = content.querySelector(':scope > p');
+                    if (!firstParagraph) return;
+                    firstParagraph.classList.add('dd-suggestion-meta-intro');
+                    var secondParagraph = firstParagraph.nextElementSibling;
+                    if (secondParagraph && secondParagraph.tagName === 'P') {
+                        secondParagraph.classList.add('dd-suggestion-meta-file');
+                    }
+                });
+            }
+
+            function detectActionability(text) {
+                var t = (text || '').toLowerCase();
+                if (/rename|refactor|architecture|value object|embeddable|migration strategy/.test(t)) return 'refactor';
+                if (/schema|migration|column|index|foreign key|nullable|type mismatch|decimal/.test(t)) return 'schema_change';
+                return 'quick_fix';
+            }
+
+            function actionabilityLabel(key) {
+                if (key === 'schema_change') return 'Schema change';
+                if (key === 'refactor') return 'Refactor';
+                return 'Quick fix';
+            }
+
+            function initSuggestionActionabilityChips() {
+                document.querySelectorAll('.suggestion-container').forEach(function(container) {
+                    var header = container.querySelector('.suggestion-header');
+                    if (!header || header.querySelector('.dd-suggestion-actionability')) return;
+                    var parentCard = container.closest('[data-issue-card="true"]');
+                    var title = (parentCard && parentCard.getAttribute('data-title')) || '';
+                    var type = (parentCard && parentCard.getAttribute('data-type')) || '';
+                    var text = title + ' ' + type + ' ' + (container.textContent || '');
+                    var key = detectActionability(text);
+                    var chip = document.createElement('span');
+                    chip.className = 'dd-suggestion-actionability ' + key;
+                    chip.textContent = actionabilityLabel(key);
+                    header.appendChild(chip);
+                });
+            }
+
+            function normalizeTitle(value) {
+                return (value || '')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, ' ')
+                    .trim();
+            }
+
+            function initSuggestionHeaderCompaction() {
+                document.querySelectorAll('.suggestion-container').forEach(function(container) {
+                    var header = container.querySelector('.suggestion-header');
+                    if (!header) return;
+
+                    var h4 = header.querySelector('h4');
+                    if (!h4) return;
+
+                    var suggestionTitle = normalizeTitle(h4.textContent);
+                    if (!suggestionTitle) return;
+
+                    var issueCard = container.closest('[data-issue-card="true"]');
+                    var issueTitle = normalizeTitle(issueCard ? issueCard.getAttribute('data-title') : '');
+
+                    var isRedundant =
+                        issueTitle &&
+                        (suggestionTitle === issueTitle ||
+                         suggestionTitle.indexOf(issueTitle) !== -1 ||
+                         issueTitle.indexOf(suggestionTitle) !== -1);
+
+                    if (isRedundant) {
+                        header.classList.add('is-redundant-title');
+                    }
+                });
+            }
+
+            function wrapSuggestionSteps() {
+                document.querySelectorAll('.suggestion-content').forEach(function(content) {
+                    if (content.hasAttribute('data-stepified')) return;
+                    content.setAttribute('data-stepified', 'true');
+
+                    var headings = Array.prototype.slice.call(content.querySelectorAll(':scope > h4'));
+                    headings.forEach(function(heading) {
+                        if (heading.closest('.dd-suggestion-step')) return;
+                        var section = document.createElement('section');
+                        section.className = 'dd-suggestion-step';
+                        content.insertBefore(section, heading);
+                        section.appendChild(heading);
+
+                        var cursor = section.nextSibling;
+                        while (cursor) {
+                            var next = cursor.nextSibling;
+                            if (cursor.nodeType === 1 && /^(H3|H4)$/.test(cursor.tagName)) break;
+                            section.appendChild(cursor);
+                            cursor = next;
+                        }
+                    });
+
+                    content.querySelectorAll('.dd-suggestion-step .dd-suggestion-meta-intro, .dd-suggestion-step .dd-suggestion-meta-file').forEach(function(node) {
+                        node.classList.remove('dd-suggestion-meta-intro', 'dd-suggestion-meta-file');
+                    });
+                });
+            }
+
+            function initSuggestionDetailsDisclosure() {
+                document.querySelectorAll('.suggestion-content').forEach(function(content) {
+                    if (content.hasAttribute('data-disclosure-ready')) return;
+                    content.setAttribute('data-disclosure-ready', 'true');
+
+                    var steps = Array.prototype.slice.call(content.querySelectorAll(':scope > .dd-suggestion-step'));
+                    if (steps.length <= 2) return;
+
+                    var detailStart = 2;
+                    steps.slice(detailStart).forEach(function(step) {
+                        step.classList.add('hidden');
+                        step.classList.add('dd-suggestion-detail-step');
+                    });
+
+                    var toggleWrap = document.createElement('div');
+                    toggleWrap.className = 'dd-suggestion-details-toggle';
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'dd-btn dd-btn-secondary dd-btn-sm';
+                    btn.textContent = 'Show detailed rationale';
+                    btn.setAttribute('aria-expanded', 'false');
+                    toggleWrap.appendChild(btn);
+                    content.insertBefore(toggleWrap, steps[detailStart]);
+
+                    btn.addEventListener('click', function() {
+                        var expanded = this.getAttribute('aria-expanded') === 'true';
+                        steps.slice(detailStart).forEach(function(step) {
+                            step.classList.toggle('hidden', expanded);
+                        });
+                        this.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+                        this.textContent = expanded ? 'Show detailed rationale' : 'Hide detailed rationale';
+                    });
+                });
+            }
+
+            function init() {
+                if (typeof Prism !== 'undefined') {
+                    Prism.manual = true;
+                    highlightAndAddCopyButtons();
+                }
+
+                compactIssueDescriptions();
+                initDuplicateDescriptionToggles();
+                deduplicateDuplicatePanels();
+                initIssueFilters();
+                initSuggestionMetaClasses();
+                initSuggestionActionabilityChips();
+                initSuggestionHeaderCompaction();
+                wrapSuggestionSteps();
+                initSuggestionDetailsDisclosure();
+
+                document.querySelectorAll('.dd-toggle, button.sf-toggle').forEach(function(button) {
+                    var selector = button.getAttribute('data-toggle-selector');
+                    if (!selector) return;
+                    var target = document.querySelector(selector);
+                    if (!target) return;
+
+                    var observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.attributeName === 'class' && !target.classList.contains('hidden')) {
+                                highlightAndAddCopyButtons(target);
+                            }
+                        });
+                    });
+                    observer.observe(target, { attributes: true });
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();

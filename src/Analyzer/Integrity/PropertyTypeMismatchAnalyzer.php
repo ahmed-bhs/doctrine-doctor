@@ -334,22 +334,13 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         $shortClassName = $this->shortClassName($entityClass);
 
         $description = sprintf(
-            "Property %s::\$%s has type mismatch:\n",
+            "Property %s::\$%s has a type mismatch.\n",
             $shortClassName,
             $fieldName,
         );
-        $description .= sprintf("  Expected: %s\n", $expectedType);
-        $description .= sprintf("  Actual:   %s\n\n", $actualType);
-
-        $description .= "Possible causes:\n";
-        $description .= "- Database column type doesn't match Doctrine mapping\n";
-        $description .= "- Property type hint doesn't match mapping nullable setting\n";
-        $description .= "- Migration changed database type without updating entity\n\n";
-
-        $description .= "Solutions:\n";
-        $description .= "1. Fix the property type annotation in the entity\n";
-        $description .= "2. Update the Doctrine mapping to match the property type\n";
-        $description .= '3. Create a migration to fix the database column type';
+        $description .= sprintf("Impact: Expected %s, actual %s.\n", $expectedType, $actualType);
+        $description .= "Impact: Doctrine may detect false changes and issue unnecessary UPDATE queries.\n";
+        $description .= "Impact: Persisted values can diverge from PHP expectations at runtime.";
 
         $issueData = new IssueData(
             type: IssueType::PROPERTY_TYPE_MISMATCH->value,

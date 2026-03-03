@@ -204,32 +204,14 @@ class CollectionEmptyAccessAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         $shortClassName = $this->shortClassName($entityClass);
 
         $description = sprintf(
-            "Collection property %s::\$%s is not initialized.\n\n",
+            "Collection property %s::\$%s is not initialized.\n",
             $shortClassName,
             $propertyName,
         );
 
-        $description .= "This can cause issues:\n";
-        $description .= "- Accessing the collection will return NULL instead of a Collection object\n";
-        $description .= "- Calling isEmpty(), count(), first(), etc. will fail\n";
-        $description .= "- Adding items to the collection will fail\n\n";
-
-        $description .= "Solution:\n";
-        $description .= "Initialize the collection in the constructor:\n\n";
-        $description .= sprintf(
-            "  // In %s::__construct()\n",
-            $shortClassName,
-        );
-        $description .= sprintf(
-            "  \$this->%s = new ArrayCollection();\n\n",
-            $propertyName,
-        );
-
-        $description .= "Or use PHP 8.1+ property initialization:\n\n";
-        $description .= sprintf(
-            "  private Collection \$%s = new ArrayCollection();\n",
-            $propertyName,
-        );
+        $description .= "Impact: Accessing it may return NULL instead of a Collection object.\n";
+        $description .= "Impact: Calling isEmpty(), count(), first(), or add/remove methods can fail.\n";
+        $description .= "Impact: This can trigger runtime errors in entity business logic.";
 
         $suggestionCode = sprintf(
             "// In %s::__construct():\n\$this->%s = new ArrayCollection();\n\n" .

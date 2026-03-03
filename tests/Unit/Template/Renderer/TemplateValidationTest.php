@@ -767,6 +767,21 @@ final class TemplateValidationTest extends TestCase
         self::assertStringContainsString((string) $context['count'], $result['description']);
     }
 
+    public function test_template_renderer_keeps_apostrophes_readable_in_code_blocks(): void
+    {
+        $result = $this->renderer->render('Performance/query_caching_frequent', [
+            'sql'        => "SELECT * FROM users WHERE last_name = 'O\\'Connor'",
+            'count'      => 10,
+            'total_time' => 120.0,
+            'avg_time'   => 12.0,
+        ]);
+
+        self::assertStringContainsString("last_name = 'O\\'Connor'", $result['code']);
+        self::assertStringNotContainsString('&apos;', $result['code']);
+        self::assertStringNotContainsString('&#039;', $result['code']);
+        self::assertStringNotContainsString('&#39;', $result['code']);
+    }
+
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */

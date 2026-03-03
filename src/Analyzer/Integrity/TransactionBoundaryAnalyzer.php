@@ -251,84 +251,10 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      */
     private function createNestedTransactionIssue(QueryData $queryData, int $depth): IssueInterface
     {
-        $description = sprintf(
-            "Nested transaction detected at depth %d.
-
-",
-            $depth,
-        );
-
-        $description .= "Problem:
-";
-        $description .= "- Most databases (MySQL, PostgreSQL) DO NOT support real nested transactions
-";
-        $description .= "- Inner beginTransaction() is usually ignored
-";
-        $description .= "- Inner commit() commits the OUTER transaction too!
-";
-        $description .= "- This leads to unexpected behavior and data inconsistency
-
-";
-
-        $description .= "Example of the issue:
-";
-        $description .= "  \$conn->beginTransaction(); // Outer
-";
-        $description .= "  // ... some work ...
-";
-        $description .= "  \$conn->beginTransaction(); // Inner - IGNORED!
-";
-        $description .= "  // ... critical work ...
-";
-        $description .= "  \$conn->commit(); // Commits OUTER transaction!
-";
-        $description .= "  // ... more work that should be in transaction ...
-";
-        $description .= "  \$conn->commit(); // Already committed!
-
-";
-
-        $description .= "Solutions:
-
-";
-        $description .= "1. Use single transaction scope:
-";
-        $description .= "   \$conn->beginTransaction();
-";
-        $description .= "   try {
-";
-        $description .= "       // All operations here
-";
-        $description .= "       \$conn->commit();
-";
-        $description .= "   } catch (\Exception \$e) {
-";
-        $description .= "       \$conn->rollback();
-";
-        $description .= "   }
-
-";
-
-        $description .= "2. Use savepoints (if supported):
-";
-        $description .= "   \$conn->beginTransaction();
-";
-        $description .= "   \$conn->createSavepoint('sp1');
-";
-        $description .= "   // ... work ...
-";
-        $description .= "   \$conn->releaseSavepoint('sp1');
-";
-        $description .= "   \$conn->commit();
-
-";
-
-        $description .= "3. Refactor to avoid nesting:
-";
-        $description .= "   - Extract methods that manage their own transactions
-";
-        $description .= "   - Pass transaction scope as parameter
-";
+        $description = sprintf("Nested transaction detected (depth: %d).\n", $depth);
+        $description .= "Impact: Inner transactions are usually ignored on MySQL/PostgreSQL.\n";
+        $description .= "Impact: Inner commit/rollback can affect the outer transaction unexpectedly.\n";
+        $description .= "Impact: This can lead to partial commits and inconsistent data.";
 
         $issueData = new IssueData(
             type: IssueType::TRANSACTION_NESTED->value,
@@ -348,96 +274,10 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      */
     private function createMultipleFlushIssue(QueryData $queryData, int $flushCount): IssueInterface
     {
-        $description = sprintf(
-            "Multiple flush operations (%d) detected within a single transaction.
-
-",
-            $flushCount,
-        );
-
-        $description .= "Problem:
-";
-        $description .= "- Each flush() acquires locks and writes to database
-";
-        $description .= "- Multiple flushes increase deadlock risk exponentially
-";
-        $description .= "- Partial state committed before transaction end
-";
-        $description .= "- Performance overhead from multiple round-trips
-
-";
-
-        $description .= "Example of the problem:
-";
-        $description .= "  \$em->getConnection()->beginTransaction();
-";
-        $description .= "  try {
-";
-        $description .= "      \$user->setEmail('new@email.com');
-";
-        $description .= "      \$em->flush(); // Flush #1 - locks acquired
-";
-        $description .= "      
-";
-        $description .= "      \$order->setStatus('paid');
-";
-        $description .= "      \$em->flush(); // Flush #2 - more locks, deadlock risk!
-";
-        $description .= "      
-";
-        $description .= "      \$em->getConnection()->commit();
-";
-        $description .= "  } catch (\Exception \$e) {
-";
-        $description .= "      \$em->getConnection()->rollback();
-";
-        $description .= "  }
-
-";
-
-        $description .= "Solutions:
-
-";
-        $description .= "1. Single flush at end (RECOMMENDED):
-";
-        $description .= "   \$em->getConnection()->beginTransaction();
-";
-        $description .= "   try {
-";
-        $description .= "       \$user->setEmail('new@email.com');
-";
-        $description .= "       \$order->setStatus('paid');
-";
-        $description .= "       // Only one flush
-";
-        $description .= "       \$em->flush();
-";
-        $description .= "       \$em->getConnection()->commit();
-";
-        $description .= "   } catch (\Exception \$e) {
-";
-        $description .= "       \$em->getConnection()->rollback();
-";
-        $description .= "   }
-
-";
-
-        $description .= "2. If multiple flushes needed, consider:
-";
-        $description .= "   - Splitting into separate transactions
-";
-        $description .= "   - Using events/listeners for side effects
-";
-        $description .= "   - Reviewing transaction scope
-
-";
-
-        $description .= "Performance impact:
-";
-        $description .= sprintf("  - Current: %d round-trips to database
-", $flushCount);
-        $description .= '  - Optimized: 1 round-trip (saves ' . ($flushCount - 1) . " queries)
-";
+        $description = sprintf("Multiple flush() calls detected in one transaction (%d).\n", $flushCount);
+        $description .= "Impact: Each flush adds round-trips and lock acquisitions.\n";
+        $description .= "Impact: Deadlock risk increases and transaction throughput degrades.\n";
+        $description .= sprintf("Impact: At least %d extra flush round-trips were executed.", max(0, $flushCount - 1));
 
         $issueData = new IssueData(
             type: IssueType::TRANSACTION_MULTIPLE_FLUSH->value,
@@ -457,82 +297,14 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      */
     private function createUnclosedTransactionIssue(int $flushCount): IssueInterface
     {
-        $description = "Transaction started but never committed or rolled back.
-
-";
-
-        $description .= "Problem:
-";
-        $description .= "- Database locks remain held
-";
-        $description .= "- Connection cannot be reused
-";
-        $description .= "- Can cause connection pool exhaustion
-";
-        $description .= "- Data changes are lost (auto-rollback on disconnect)
-
-";
-
+        $description = "Transaction started but never committed or rolled back.\n";
+        $description .= "Impact: Locks may stay open and reduce connection availability.\n";
+        $description .= "Impact: Work may be rolled back when the connection closes.\n";
         if ($flushCount > 0) {
-            $description .= sprintf(
-                "WARNING: %d flush operation(s) were performed but not committed!
-",
-                $flushCount,
-            );
-            $description .= "All data changes will be LOST when connection closes.
-
-";
+            $description .= sprintf("Impact: %d flush operation(s) were executed in an unclosed transaction.", $flushCount);
+        } else {
+            $description .= "Impact: This can cause pool exhaustion and timeout chains.";
         }
-
-        $description .= "Example of the problem:
-";
-        $description .= "  \$conn->beginTransaction();
-";
-        $description .= "  \$user->setStatus('active');
-";
-        $description .= "  \$em->flush();
-";
-        $description .= "  // MISSING: \$conn->commit();
-";
-        $description .= "  // Transaction auto-rolled back, data lost!
-
-";
-
-        $description .= "Solutions:
-
-";
-        $description .= "1. Always use try-catch-finally:
-";
-        $description .= "   \$conn->beginTransaction();
-";
-        $description .= "   try {
-";
-        $description .= "       // ... operations ...
-";
-        $description .= "       \$em->flush();
-";
-        $description .= "       \$conn->commit(); // Always commit on success
-";
-        $description .= "   } catch (\Exception \$e) {
-";
-        $description .= "       \$conn->rollback(); // Always rollback on error
-";
-        $description .= "       throw \$e;
-";
-        $description .= "   }
-
-";
-
-        $description .= "2. Use Doctrine's transactional helper:
-";
-        $description .= "   \$em->transactional(function(\$em) {
-";
-        $description .= "       // ... operations ...
-";
-        $description .= "       // Auto commit/rollback
-";
-        $description .= "   });
-";
 
         $issueData = new IssueData(
             type: IssueType::TRANSACTION_UNCLOSED->value,
@@ -552,78 +324,13 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function createLongTransactionIssue(QueryData $queryData, float $duration): IssueInterface
     {
         $description = sprintf(
-            "Transaction held open for %.2f seconds (threshold: %.2fs).
-
-",
+            "Transaction held open for %.2fs (threshold: %.2fs).\n",
             $duration,
             self::MAX_TRANSACTION_DURATION,
         );
-
-        $description .= "Problem:
-";
-        $description .= "- Long transactions increase lock contention
-";
-        $description .= "- Higher risk of deadlocks
-";
-        $description .= "- Blocks other queries waiting for locks
-";
-        $description .= "- Can cause timeout errors
-
-";
-
-        $description .= "Common causes:
-";
-        $description .= "- Heavy computation inside transaction
-";
-        $description .= "- External API calls in transaction scope
-";
-        $description .= "- Loading too much data before commit
-";
-        $description .= "- Unnecessary SELECT queries in transaction
-
-";
-
-        $description .= "Solutions:
-
-";
-        $description .= "1. Move heavy operations outside transaction:
-";
-        $description .= "   // BEFORE transaction
-";
-        $description .= "   \$data = \$this->prepareData(); // Heavy computation
-";
-        $description .= "   \$apiResponse = \$this->callApi(); // External call
-";
-        $description .= "   
-";
-        $description .= "   // THEN transaction
-";
-        $description .= "   \$em->transactional(function() use (\$data) {
-";
-        $description .= "       // Only database operations
-";
-        $description .= "   });
-
-";
-
-        $description .= "2. Reduce transaction scope:
-";
-        $description .= "   - Only include necessary operations
-";
-        $description .= "   - Move SELECT queries before transaction
-";
-        $description .= "   - Defer non-critical updates
-
-";
-
-        $description .= "3. Optimize queries within transaction:
-";
-        $description .= "   - Use indexes properly
-";
-        $description .= "   - Avoid N+1 queries
-";
-        $description .= "   - Batch operations
-";
+        $description .= "Impact: Longer lock retention increases contention and deadlock probability.\n";
+        $description .= "Impact: Concurrent queries can be blocked, causing latency spikes.\n";
+        $description .= "Impact: Timeout and retry pressure may increase under load.";
 
         $issueData = new IssueData(
             type: IssueType::TRANSACTION_TOO_LONG->value,
