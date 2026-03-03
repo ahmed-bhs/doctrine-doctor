@@ -2,27 +2,20 @@
 
 declare(strict_types=1);
 
-/**
- * Suggestion template for ArrayCache in production.
- *
- * Context variables:
- * @var string $cache_type      - Type of cache (metadata, query, result)
- * @var string $current_config  - Current configuration value
- * @var string $cache_label     - Human-readable cache type label
- */
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
-
-<?php echo htmlspecialchars((string) $context->cache_label); ?> is using '<?php echo htmlspecialchars((string) $context->current_config); ?>' in production.
+<div class="suggestion-header"><h4>ArrayCache in production</h4></div>
+<div class="suggestion-content">
+<div class="alert alert-danger"><?php echo $e((string) $context->cache_label); ?> is using '<?php echo $e((string) $context->current_config); ?>' in production.</div>
 
 <p>This is a common misconfiguration that significantly impacts performance.</p>
 
-<h3>Recommended configuration</h3>
-
+<h4>Recommended configuration</h4>
 <p>Use Redis (multi-server) or APCu (single-server):</p>
 
-<pre><code># config/packages/prod/doctrine.yaml
+<div class="query-item"><pre><code class="language-yaml"># config/packages/prod/doctrine.yaml
 doctrine:
     orm:
         metadata_cache_driver:
@@ -44,27 +37,23 @@ framework:
                 default_lifetime: 3600
             doctrine.result_cache_pool:
                 adapter: cache.adapter.redis
-                default_lifetime: 3600
-</code></pre>
+                default_lifetime: 3600</code></pre></div>
 
-<h3>Why this matters</h3>
-
+<h4>Why this matters</h4>
 <ul>
 <li>ArrayCache loses data after each request (no persistence)</li>
 <li>Redis/APCu persists cache across all requests</li>
 <li>Metadata parsing and DQL compilation are expensive operations</li>
 </ul>
 
-<h3>After configuration</h3>
-
+<h4>After configuration</h4>
 <ol>
 <li>Clear cache: <code>php bin/console cache:clear --env=prod</code></li>
 <li>Warm up: <code>php bin/console cache:warmup --env=prod</code></li>
 <li>Monitor cache hit rate in production</li>
 </ol>
-
+</div>
 <?php
-
 $code = ob_get_clean();
 
 return [
