@@ -252,6 +252,31 @@ final class DoctrineDoctorDataCollectorTest extends TestCase
         self::assertFalse($result, 'Invalid backtrace frames should be skipped gracefully');
     }
 
+    #[Test]
+    public function it_can_compute_stats_after_serialization_without_injected_helpers(): void
+    {
+        $collector = $this->createDataCollector();
+        $reflection = new ReflectionClass($collector);
+        $dataProperty = $reflection->getProperty('data');
+        $dataProperty->setAccessible(true);
+        $dataProperty->setValue($collector, [
+            'enabled' => true,
+            'issues' => [],
+            'skipped_analyzers' => 0,
+            'timeline_queries' => [],
+        ]);
+
+        /** @var DoctrineDoctorDataCollector $restored */
+        $restored = unserialize(serialize($collector));
+
+        $stats = $restored->getStats();
+
+        self::assertSame(0, $stats['total_issues']);
+        self::assertSame(0, $stats['critical']);
+        self::assertSame(0, $stats['warning']);
+        self::assertSame(0, $stats['info']);
+    }
+
     /**
      * Helper to create a query with backtrace.
      */
