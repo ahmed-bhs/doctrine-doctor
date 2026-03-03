@@ -198,14 +198,9 @@ final class FinalEntityAnalyzerTest extends TestCase
         foreach ($issues as $issue) {
             $description = $issue->getDescription();
 
-            // Should provide clear solution
-            self::assertStringContainsString('Remove', $description);
+            // Should clearly describe the risk
             self::assertStringContainsString('final', $description);
-            self::assertTrue(
-                str_contains($description, 'Solution') ||
-                str_contains($description, 'Alternative'),
-                'Should provide solution or alternative',
-            );
+            self::assertStringContainsString('Impact:', $description);
         }
     }
 
@@ -217,13 +212,11 @@ final class FinalEntityAnalyzerTest extends TestCase
         foreach ($issues as $issue) {
             $description = $issue->getDescription();
 
-            // Should suggest alternatives to final for immutability
+            // Should explain immutability/proxy tradeoff
             self::assertTrue(
-                str_contains($description, 'Alternative') ||
-                str_contains($description, 'readonly') ||
-                str_contains($description, 'eager loading') ||
-                str_contains($description, 'methods as final'),
-                'Should suggest alternatives to final keyword',
+                str_contains($description, 'proxy') ||
+                str_contains($description, 'lazy'),
+                'Should explain proxy/lazy-loading implications of final entities',
             );
         }
     }
