@@ -1,0 +1,3290 @@
+        /* SQL syntax highlighting - using Doctrine profiler styles */
+        {% if profiler_markup_version >= 3 %}
+        .highlight .keyword   { color: var(--highlight-keyword); font-weight: bold; }
+        .highlight .word      { color: var(--color-text); }
+        .highlight .variable  { color: var(--highlight-variable); }
+        .highlight .symbol    { color: var(--color-text); }
+        .highlight .comment   { color: var(--highlight-comment); }
+        .highlight .string    { color: var(--highlight-string); }
+        .highlight .number    { color: var(--highlight-constant); font-weight: bold; }
+        .highlight .error     { color: var(--highlight-error); }
+        {% endif %}
+
+        .highlight-sql {
+            background: transparent;
+        }
+
+        /* ============================================
+           Issue Card - Modern Design
+           ============================================ */
+
+        .issue-card {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+            transition: box-shadow 0.2s;
+            position: relative; /* Ensure proper stacking context */
+        }
+
+        .issue-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .dd-filter-hidden {
+            display: none !important;
+        }
+
+        .dd-issue-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 16px;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #fff7f3;
+            position: sticky;
+            top: 8px;
+            z-index: 20;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .dd-control-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dd-issue-search {
+            min-width: 220px;
+            padding: 7px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #1f2937;
+            background: #fff;
+        }
+
+        .dd-issue-search:focus {
+            outline: 2px solid rgba(233, 84, 32, 0.25);
+            border-color: #E95420;
+        }
+
+        .dd-chip {
+            border: 1px solid #d1d5db;
+            background: #fff;
+            border-radius: 999px;
+            font-size: 11px;
+            line-height: 1;
+            padding: 7px 10px;
+            cursor: pointer;
+            color: #374151;
+            transition: all 0.18s ease;
+        }
+
+        .dd-chip:hover {
+            border-color: #E95420;
+            color: #7d2f14;
+            background: #fff4ef;
+        }
+
+        .dd-chip.is-active {
+            border-color: #772953;
+            background: #772953;
+            color: #fff;
+        }
+
+        .dd-issue-sort {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 7px 10px;
+            font-size: 12px;
+            background: #fff;
+            color: #1f2937;
+        }
+
+        .dd-issue-meta {
+            margin-left: auto;
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .dd-filter-empty {
+            margin: 8px 0 16px;
+            padding: 12px 14px;
+            border: 1px dashed #d1d5db;
+            border-radius: 8px;
+            background: #fff;
+            color: #4b5563;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .issue-header {
+            padding: 0;
+            border-bottom: 1px solid #e9ecef;
+            border-radius: 8px 8px 0 0; /* Maintain rounded corners on header */
+            overflow: visible; /* Allow tooltips to overflow */
+            position: relative; /* Stacking context */
+        }
+
+        .issue-header.severity-critical {
+            background: linear-gradient(135deg, #fff1f3 0%, #ffe7ea 100%);
+            border-left: 4px solid #C7162B;
+        }
+
+        .issue-header.severity-warning {
+            background: linear-gradient(135deg, #fff6f2 0%, #fff0ea 100%);
+            border-left: 4px solid #E95420;
+        }
+
+        .issue-header.severity-info {
+            background: linear-gradient(135deg, #f8eef4 0%, #f5e9f1 100%);
+            border-left: 4px solid #772953;
+        }
+
+        .issue-header-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .issue-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .issue-badge.badge-critical {
+            background: #C7162B;
+            color: #ffffff;
+        }
+
+        .issue-badge.badge-warning {
+            background: #E95420;
+            color: #ffffff;
+        }
+
+        .issue-badge.badge-info {
+            background: #772953;
+            color: #ffffff;
+        }
+
+        .issue-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .issue-body {
+            padding: 20px;
+            border-radius: 0 0 8px 8px; /* Rounded corners on bottom */
+            overflow: hidden; /* Clip to rounded corners */
+        }
+
+        .issue-description {
+            margin: 0 0 16px 0;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        /* Inline code in descriptions - Simple style */
+        .issue-description code {
+            padding: 2px 5px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 90%;
+            color: #c7254e;
+        }
+
+        /* ============================================
+           Action Buttons - Uniform Design System
+           ============================================ */
+
+        .issue-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 0;
+        }
+
+        .dd-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border: 1px solid;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            background: transparent;
+            font-family: inherit;
+        }
+
+        .dd-btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .dd-btn-primary {
+            background: linear-gradient(135deg, #E95420 0%, #772953 100%);
+            border-color: #E95420;
+            color: #ffffff;
+        }
+
+        .dd-btn-primary:hover {
+            background: linear-gradient(135deg, #C34113 0%, #5E2750 100%);
+            border-color: #C34113;
+            box-shadow: 0 2px 8px rgba(119, 41, 83, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .dd-btn-secondary {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            color: #495057;
+        }
+
+        .dd-btn-secondary:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+            color: #212529;
+        }
+
+        .dd-btn:focus-visible,
+        .dd-chip:focus-visible,
+        .dd-issue-search:focus-visible,
+        .dd-issue-sort:focus-visible,
+        .dd-desc-toggle:focus-visible,
+        .dd-copy-btn:focus-visible,
+        button.link-inverse:focus-visible {
+            outline: 2px solid #E95420;
+            outline-offset: 2px;
+            box-shadow: 0 0 0 3px rgba(233, 84, 32, 0.22);
+        }
+
+        .dd-btn-icon {
+            flex-shrink: 0;
+        }
+
+        .dd-btn-text {
+            flex-shrink: 0;
+        }
+
+        .dd-btn-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 18px;
+            padding: 0 6px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 9px;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .dd-btn-primary .dd-btn-badge {
+            background: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+
+        .dd-btn-chevron {
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .dd-btn.sf-toggle-on .dd-btn-chevron {
+            transform: rotate(180deg);
+        }
+
+        .dd-duplicate-badge.sf-toggle-on .dd-btn-chevron {
+            transform: rotate(180deg);
+        }
+
+        /* ============================================
+           Collapsible Content - Smooth Animations
+           ============================================ */
+
+        .dd-collapsible {
+            margin-top: 12px;
+        }
+
+        /* ============================================
+           Queries List
+           ============================================ */
+
+        .queries-list {
+            padding: 0;
+        }
+
+        .query-item {
+            margin: 8px 0;
+            padding: 0;
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-left: 3px solid #E95420;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .query-item:first-child {
+            margin-top: 0;
+        }
+
+        /* Support pour <pre> et <code> dans query-item */
+        .query-item pre {
+            margin: 0;
+            padding: 12px 14px;
+            background: #f8f9fa;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+
+        .query-item code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        /* Support pour le highlighting SQL dans query-item */
+        .query-item .highlight-sql,
+        .query-item .highlight {
+            display: block;
+            padding: 16px;
+            background: #f8f9fa;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        /* Style amélioré pour query-item dans suggestion-content */
+        .suggestion-content .query-item {
+            margin: 16px 0;
+            border-radius: 6px;
+            border-left: 4px solid #E95420;
+            background: #f6f8fa;
+            overflow: hidden;
+        }
+
+        .suggestion-content .query-item pre {
+            background: transparent;
+            padding: 12px 14px;
+            margin: 0;
+        }
+
+        .suggestion-content .query-item code {
+            color: #24292f;
+            background: transparent;
+            border: none;
+            padding: 0;
+            font-size: 13px;
+        }
+
+        /* Ensure syntax highlighting works in query-item */
+        .query-item .highlight .keyword   { color: #C7162B; font-weight: bold; }
+        .query-item .highlight .word      { color: #1f2937; }
+        .query-item .highlight .variable  { color: #E95420; }
+        .query-item .highlight .symbol    { color: #1f2937; }
+        .query-item .highlight .comment   { color: #6b7280; font-style: italic; }
+        .query-item .highlight .string    { color: #0E8420; }
+        .query-item .highlight .number    { color: #772953; font-weight: bold; }
+        .query-item .highlight .error     { color: #C7162B; background: #ffe7ea; }
+
+        /* ============================================
+           Backtrace Content
+           ============================================ */
+
+        .backtrace-content {
+            padding: 16px;
+            background: #1e1e1e;
+            border-radius: 6px;
+        }
+
+        .backtrace-content pre {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            color: #d4d4d4;
+            font-size: 12px;
+            line-height: 1.6;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        /* ============================================
+           Status Styles - Simple & Clean
+           ============================================ */
+
+        .value.status-error,
+        .label.status-error {
+            color: #C7162B;
+            font-weight: 600;
+            border-radius: 3px;
+        }
+
+        .value.status-warning,
+        .label.status-warning {
+            color: #E95420;
+            font-weight: 600;
+            border-radius: 3px;
+        }
+
+        .value.status-info,
+        .label.status-info {
+            color: #2d6f94;
+            background: #e8f5ff;
+            font-weight: 600;
+            border-radius: 3px;
+        }
+
+        .value.status-success,
+        .label.status-success {
+            color: #0E8420;
+            font-weight: 600;
+            border-radius: 3px;
+        }
+
+        /* ============================================
+           Modern Alert Boxes
+           ============================================ */
+
+        .dd-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 4px;
+            border-left: 4px solid;
+        }
+
+        .dd-alert svg {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .dd-alert > div {
+            flex: 1;
+        }
+
+        .dd-alert strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .dd-alert-error {
+            background: #ffe7ea;
+            border-left-color: #C7162B;
+            color: #6b1020;
+        }
+
+        .dd-alert-error svg {
+            color: #C7162B;
+        }
+
+        .dd-alert-warning {
+            background: #fff0ea;
+            border-left-color: #E95420;
+            color: #7d2f14;
+        }
+
+        .dd-alert-warning svg {
+            color: #E95420;
+        }
+
+        .dd-alert-success {
+            background: #e7f7ea;
+            border-left-color: #0E8420;
+            color: #145523;
+        }
+
+        .dd-alert-success svg {
+            color: #0E8420;
+        }
+
+        /* Preserve old card classes for backward compat */
+        .card-header.status-warning {
+            background-color: #fff0ea;
+            border-left: 4px solid #E95420;
+            padding: 12px 15px;
+        }
+
+        .card-header.status-error {
+            background-color: #ffe7ea;
+            border-left: 4px solid #C7162B;
+            padding: 12px 15px;
+        }
+
+        /* Fix alignment in slowest queries table */
+        .queries-table td.time-container {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .queries-table td .text-small {
+            margin-top: 0;
+        }
+
+        .queries-table td {
+            vertical-align: middle;
+            padding: 10px;
+        }
+
+        .queries-table td:first-child {
+            text-align: center;
+        }
+
+        button.link-inverse {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            color: inherit;
+            font: inherit;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        /* ============================================
+           Suggestion Container - Main Structure
+           ============================================ */
+
+        .suggestion-container {
+            margin-top: 20px;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        .suggestion-header {
+            background: linear-gradient(135deg, #E95420 0%, #772953 100%);
+            padding: 9px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 1px 2px rgba(119, 41, 83, 0.15);
+        }
+
+        .suggestion-header::before {
+            content: "💡";
+            font-size: 14px;
+            display: inline-block;
+            opacity: 0.92;
+        }
+
+        .suggestion-header svg {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+            color: #ffffff;
+        }
+
+        .suggestion-header h4 {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.4;
+            text-transform: none;
+            letter-spacing: 0.2px;
+            flex: 1;
+        }
+
+        .suggestion-content {
+            padding: 10px 12px 6px;
+            background: transparent;
+        }
+
+        .dd-suggestion-actionability {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #fff;
+            white-space: nowrap;
+        }
+
+        .dd-suggestion-actionability.quick_fix {
+            background: rgba(14, 132, 32, 0.35);
+        }
+
+        .dd-suggestion-actionability.schema_change {
+            background: rgba(233, 84, 32, 0.38);
+        }
+
+        .dd-suggestion-actionability.refactor {
+            background: rgba(119, 41, 83, 0.45);
+        }
+
+        /* ============================================
+           Content Blocks - Text & Paragraphs
+           ============================================ */
+
+        /* Bloc info = container pour titre + fichier */
+        .suggestion-content > p:first-child,
+        .suggestion-content > .dd-suggestion-meta-intro {
+            margin: 0 0 20px 0;
+            padding: 16px 20px 10px 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            line-height: 1.5;
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 600;
+            border-left: 4px solid #E95420;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Info de fichier - dans le même bloc, style discret */
+        .suggestion-content > p:first-child + p,
+        .suggestion-content > .dd-suggestion-meta-file {
+            margin: -20px 0 20px 0;
+            padding: 0 20px 14px 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-left: 4px solid #E95420;
+            border-radius: 0 0 6px 6px;
+            font-size: 12px;
+            color: black;
+            line-height: 1.4;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            font-weight: normal;
+        }
+
+        .suggestion-content > p:first-child + p strong,
+        .suggestion-content > .dd-suggestion-meta-file strong {
+            font-weight: 500;
+            color: #4a5568;
+            font-size: 11px;
+        }
+
+        .suggestion-content > p:first-child + p code,
+        .suggestion-content > .dd-suggestion-meta-file code {
+            font-size: 10px;
+            padding: 1px 4px;
+            font-weight: normal;
+        }
+
+        /* Paragraphes normaux */
+        .suggestion-content p {
+            margin: 12px 0;
+            padding: 0;
+            line-height: 1.7;
+            color: #4a5568;
+            background: transparent;
+            font-size: 13px;
+            max-width: 96ch;
+        }
+
+        /* Inline elements */
+        .suggestion-content code {
+            background: #f1f3f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 12px;
+            color: #c7254e;
+            border: 1px solid #e1e4e8;
+            font-weight: 500;
+        }
+
+        .suggestion-content strong {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        /* ============================================
+           Headings - Section Titles
+           ============================================ */
+
+        .suggestion-content h3,
+        .suggestion-content h4,
+        .suggestion-content h5 {
+            margin: 16px 0 10px 0;
+            padding: 0 0 8px 0;
+            font-weight: 600;
+            background: transparent;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .suggestion-content h3 {
+            font-size: 15px;
+            color: #E95420;
+            border-bottom-color: #E95420;
+        }
+
+        .suggestion-content h4 {
+            font-size: 14px;
+            color: #4a5568;
+            border-bottom-color: #cbd5e0;
+        }
+
+        .suggestion-content h5 {
+            font-size: 13px;
+            color: #718096;
+            font-weight: 500;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        /* ============================================
+           Code Blocks - Individual
+           ============================================ */
+
+        .suggestion-content .code-block {
+            margin: 10px 0 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #f6f8fa;
+            border-left: 4px solid #d1d5db;
+        }
+
+        .suggestion-content .code-label {
+            display: inline-block;
+            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin: 8px 0 -6px 10px;
+            border-radius: 4px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .suggestion-content .label-bad {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        .suggestion-content .label-bad::before {
+            content: "📢 ";
+            margin-right: 4px;
+        }
+
+        .suggestion-content .label-good {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .suggestion-content .label-good::before {
+            content: "";
+            margin-right: 4px;
+        }
+
+        .suggestion-content .code-block pre {
+            margin: 0;
+            padding: 16px;
+            background: transparent;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            border: none;
+        }
+
+        .suggestion-content .code-block.label-good {
+            background: #f0fdf4;
+            border-left-color: #10b981;
+        }
+
+        .suggestion-content .code-block.label-bad {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+        }
+
+        .suggestion-content .code-block pre code {
+            background: transparent;
+            padding: 0;
+            border: none;
+            color: #24292f;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 13px;
+        }
+
+        /* ============================================
+           Code Comparison - Side by Side
+           ============================================ */
+
+        .suggestion-content .code-comparison {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0;
+            margin: 0;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .suggestion-content .code-comparison:has(.comparison-side + .comparison-side),
+        .suggestion-content .code-comparison:has(> pre + pre) {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .suggestion-content .comparison-side {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .suggestion-content .comparison-side:first-child {
+            border-right: 2px solid #e9ecef;
+        }
+
+        .suggestion-content .comparison-bad {
+            background: #fff5f5;
+        }
+
+        .suggestion-content .comparison-good {
+            background: #f0fdf4;
+        }
+
+        .suggestion-content .code-comparison .code-label {
+            margin: 0;
+            padding: 6px 10px;
+            border-radius: 0;
+            width: 100%;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .suggestion-content .code-comparison pre {
+            margin: 0;
+            padding: unset;
+            border: none;
+            border-radius: 0;
+            flex-grow: 1;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* ============================================
+           Alerts - Warnings & Info
+           ============================================ */
+
+        .suggestion-content .alert {
+            padding: 12px 14px;
+            margin: 10px 0 12px;
+            border-radius: 6px;
+            border-left: 4px solid;
+            display: block;
+            line-height: 1.5;
+            max-width: 96ch;
+        }
+
+        .suggestion-content .alert p {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+        }
+
+        .suggestion-content .alert p:first-child::before {
+            font-size: 16px;
+            margin-right: 8px;
+        }
+
+        .suggestion-content .alert code {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(0,0,0,0.1);
+        }
+
+        .suggestion-content .alert strong {
+            font-weight: 700;
+        }
+
+        .suggestion-content .alert ul {
+            margin: 8px 0 0 0;
+            padding-left: 20px;
+            background: transparent;
+            border: none;
+        }
+
+        .suggestion-content .alert li {
+            margin: 4px 0;
+            color: inherit;
+        }
+
+        .suggestion-content .alert-warning {
+            background: #fff0ea;
+            border-left-color: #E95420;
+            color: #7d2f14;
+            font-weight: 500;
+        }
+
+        .suggestion-content .alert-warning p:first-child::before {
+            content: "";
+        }
+
+        .suggestion-content .alert-info {
+            background: #f5e9f1;
+            border-left-color: #772953;
+            color: #4f183f;
+            font-weight: 500;
+        }
+
+        .suggestion-content .alert-info p:first-child::before {
+            content: "ℹ️ ";
+        }
+
+        .suggestion-content .alert-danger {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+            color: #991b1b;
+            font-weight: 600;
+        }
+
+        .suggestion-content .alert-danger p:first-child::before {
+            content: "";
+        }
+
+        .suggestion-content .alert-success {
+            background: #d1fae5;
+            border-left-color: #10b981;
+            color: #065f46;
+            font-weight: 500;
+        }
+
+        .dd-suggestion-step {
+            margin: 8px 0 12px;
+            padding: 10px 12px;
+            border: 1px solid #eceff3;
+            border-left: 3px solid #E95420;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .dd-suggestion-step > h4 {
+            margin-top: 0;
+        }
+
+        .dd-suggestion-details-toggle {
+            margin: 6px 0 10px;
+        }
+
+        .suggestion-content .alert-success p:first-child::before {
+            content: "";
+        }
+
+        .suggestion-content .doc-link {
+            display: inline-block;
+            margin-top: 8px;
+            color: #E95420;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .suggestion-content .doc-link:hover {
+            text-decoration: underline;
+        }
+
+        /* ============================================
+           Lists - Bullets & Numbers
+           ============================================ */
+
+        .suggestion-content ul,
+        .suggestion-content ol {
+            margin: 12px 0;
+            padding: 0 0 0 24px;
+            background: transparent;
+            max-width: 96ch;
+        }
+
+        .suggestion-content li {
+            margin: 8px 0;
+            line-height: 1.7;
+            color: #4a5568;
+        }
+
+        .suggestion-content ul li::marker {
+            color: #E95420;
+        }
+
+        /* ============================================
+           Links - Documentation
+           ============================================ */
+
+        .suggestion-content .suggestion-link {
+            margin: 16px 0;
+            padding: 0;
+            background: transparent;
+        }
+
+        .suggestion-content .suggestion-link a {
+            color: #E95420;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .suggestion-content .suggestion-link a:hover {
+            color: #772953;
+            gap: 8px;
+        }
+
+        .suggestion-content .suggestion-link a::before {
+            content: "📖";
+            font-size: 14px;
+        }
+
+        .suggestion-content .suggestion-link a::after {
+            content: "→";
+            transition: transform 0.2s;
+        }
+
+        .suggestion-content .suggestion-link a:hover::after {
+            transform: translateX(3px);
+        }
+
+        /* ============================================
+           Responsive Design
+           ============================================ */
+
+        @media (max-width: 1200px) {
+            .suggestion-content .code-comparison {
+                grid-template-columns: 1fr;
+                gap: 2px;
+            }
+
+            .suggestion-content .comparison-side:first-child {
+                border-right: none;
+                border-bottom: 2px solid #e9ecef;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .suggestion-container {
+                margin-left: -10px;
+                margin-right: -10px;
+                border-radius: 0;
+            }
+
+            .suggestion-content .code-comparison {
+                margin: 12px;
+            }
+
+            .suggestion-content .alert {
+                margin: 12px;
+            }
+        }
+
+        /* ============================================
+           Print Styles
+           ============================================ */
+
+        @media print {
+            .dd-btn {
+                display: none;
+            }
+
+            .issue-actions {
+                display: none;
+            }
+
+            .dd-collapsible.hidden,
+            .suggestion-container.hidden {
+                display: block !important;
+            }
+            .suggestion-container {
+                break-inside: avoid;
+            }
+        }
+
+        /* ============================================
+           Dark Theme Overrides
+           ============================================ */
+
+        .theme-dark .issue-card {
+            background: #1e1e1e;
+            border-color: #3f3f3f;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .theme-dark .issue-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .theme-dark .issue-header {
+            border-bottom-color: #3f3f3f;
+        }
+
+        .theme-dark .issue-header.severity-critical {
+            background: linear-gradient(135deg, #3d1a1a 0%, #4d2020 100%);
+            border-left-color: #ff5c5c;
+        }
+
+        .theme-dark .issue-header.severity-warning {
+            background: linear-gradient(135deg, #3f2319 0%, #5E2750 100%);
+            border-left-color: #E95420;
+        }
+
+        .theme-dark .issue-header.severity-info {
+            background: linear-gradient(135deg, #301934 0%, #4b1f41 100%);
+            border-left-color: #772953;
+        }
+
+        .theme-dark .issue-title {
+            color: #f0f0f0;
+        }
+
+        .theme-dark .issue-description {
+            color: #b8b8b8;
+        }
+
+        /* Dark mode inline code */
+        .theme-dark .issue-description code {
+            background: #2d2d2d;
+            border-color: #444;
+            color: #ff7b72;
+        }
+
+        .theme-dark .issue-body {
+            background: #1e1e1e;
+        }
+
+        .theme-dark .dd-btn-secondary {
+            background: #2a2a2a;
+            border-color: #4a4a4a;
+            color: #e0e0e0;
+        }
+
+        .theme-dark .dd-btn-secondary:hover {
+            background: #353535;
+            border-color: #5a5a5a;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+        }
+
+        .theme-dark .dd-btn-primary {
+            background: linear-gradient(135deg, #E95420 0%, #772953 100%);
+            border-color: #E95420;
+            color: #ffffff;
+        }
+
+        .theme-dark .dd-btn-primary:hover {
+            background: linear-gradient(135deg, #C34113 0%, #5E2750 100%);
+            border-color: #C34113;
+            box-shadow: 0 2px 8px rgba(119, 41, 83, 0.35);
+        }
+
+        .theme-dark .query-item {
+            background: #1a1a1a;
+            border-color: #3f3f3f;
+            border-left-color: #772953;
+        }
+
+        .theme-dark .query-item pre {
+            background: #1e1e1e;
+            color: #e2e8f0;
+        }
+
+        .theme-dark .query-item code {
+            color: #e2e8f0;
+        }
+
+        .theme-dark .query-item .highlight-sql,
+        .theme-dark .query-item .highlight {
+            background: #1e1e1e;
+            color: #e2e8f0;
+        }
+
+        .theme-dark .suggestion-content .query-item {
+            background: #1e1e1e;
+            border-left-color: #772953;
+        }
+
+        .theme-dark .suggestion-content .query-item pre {
+            background: transparent;
+            color: #e2e8f0;
+        }
+
+        .theme-dark .suggestion-content .query-item code {
+            color: #e2e8f0;
+        }
+
+        /* Dark theme syntax highlighting in query-item */
+        .theme-dark .query-item .highlight .keyword   { color: #ff8f70; font-weight: bold; }
+        .theme-dark .query-item .highlight .word      { color: #f8f8f2; }
+        .theme-dark .query-item .highlight .variable  { color: #E9A06E; }
+        .theme-dark .query-item .highlight .symbol    { color: #f8f8f2; }
+        .theme-dark .query-item .highlight .comment   { color: #8a7f89; font-style: italic; }
+        .theme-dark .query-item .highlight .string    { color: #9fe7ac; }
+        .theme-dark .query-item .highlight .number    { color: #d39bc2; font-weight: bold; }
+        .theme-dark .query-item .highlight .error     { color: #ff6f6f; background: #3d1a1a; }
+
+        .theme-dark .suggestion-container {
+            background: transparent;
+        }
+
+        .theme-dark .suggestion-header {
+            background: linear-gradient(135deg, #772953 0%, #5E2750 100%);
+        }
+
+        .theme-dark .suggestion-header svg {
+            color: #ffffff;
+        }
+
+        .theme-dark .suggestion-header h4 {
+            color: #ffffff;
+        }
+
+        .theme-dark .suggestion-content {
+            background: transparent;
+        }
+
+        .theme-dark .dd-suggestion-actionability {
+            border-color: rgba(255, 255, 255, 0.28);
+        }
+
+        .theme-dark .dd-suggestion-actionability.quick_fix {
+            background: rgba(14, 132, 32, 0.45);
+        }
+
+        .theme-dark .dd-suggestion-actionability.schema_change {
+            background: rgba(233, 84, 32, 0.45);
+        }
+
+        .theme-dark .dd-suggestion-actionability.refactor {
+            background: rgba(119, 41, 83, 0.55);
+        }
+
+        .theme-dark .suggestion-content > p:first-child,
+        .theme-dark .suggestion-content > .dd-suggestion-meta-intro {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+            border-left-color: #E9A06E;
+            color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        }
+
+        .theme-dark .suggestion-content > p:first-child + p,
+        .theme-dark .suggestion-content > .dd-suggestion-meta-file {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+            border-left-color: #E9A06E;
+            color: #9ca3af;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        }
+
+        .theme-dark .suggestion-content > p:first-child + p strong,
+        .theme-dark .suggestion-content > .dd-suggestion-meta-file strong {
+            color: #cbd5e0;
+        }
+
+        .theme-dark .suggestion-content > p:first-child + p code,
+        .theme-dark .suggestion-content > .dd-suggestion-meta-file code {
+            background: #1a1a1a;
+            color: #E9A06E;
+            border-color: #3f3f3f;
+        }
+
+        .theme-dark .suggestion-content p {
+            color: #cbd5e0;
+            background: transparent;
+        }
+
+        .theme-dark .suggestion-content code {
+            background: #2a2a2a;
+            color: #f687b3;
+            border-color: #4a4a4a;
+        }
+
+        .theme-dark .suggestion-content strong {
+            color: #f7fafc;
+        }
+
+        .theme-dark .suggestion-content h3 {
+            background: transparent;
+            border-bottom-color: #772953;
+            color: #E9A06E;
+        }
+
+        .theme-dark .suggestion-content h4 {
+            background: transparent;
+            border-bottom-color: #4a5568;
+            color: #cbd5e0;
+        }
+
+        .theme-dark .suggestion-content h5 {
+            background: transparent;
+            border-bottom-color: #374151;
+            color: #9ca3af;
+        }
+
+        .theme-dark .suggestion-content .code-block {
+            background: #1e1e1e;
+            border-left-color: #4a5568;
+        }
+
+        .theme-dark .suggestion-content .code-block pre {
+            background: transparent;
+            color: #e2e8f0;
+        }
+
+        .theme-dark .suggestion-content .code-block.label-good {
+            background: #1a3327;
+            border-left-color: #10b981;
+        }
+
+        .theme-dark .suggestion-content .code-block.label-bad {
+            background: #3d1a1a;
+            border-left-color: #ef4444;
+        }
+
+        .theme-dark .suggestion-content .code-block pre code {
+            color: #e2e8f0;
+        }
+
+        .theme-dark .suggestion-content .code-comparison {
+            border-color: #3f3f3f;
+            background: #1e1e1e;
+        }
+
+        .theme-dark .suggestion-content .comparison-side:first-child {
+            border-right-color: #3f3f3f;
+        }
+
+        .theme-dark .suggestion-content .comparison-bad {
+            background: #2a1a1a;
+        }
+
+        .theme-dark .suggestion-content .comparison-good {
+            background: #1a2a1a;
+        }
+
+        .theme-dark .suggestion-content .comparison-bad pre {
+            background: #3a1a1a;
+            color: #ffb3b3;
+        }
+
+        .theme-dark .suggestion-content .comparison-good pre {
+            background: #1a3a24;
+            color: #a8e6a8;
+        }
+
+        .theme-dark .suggestion-content .alert {
+            border-top-color: #3f3f3f;
+        }
+
+        .theme-dark .suggestion-content .alert-warning {
+            background: #3f2319;
+            border-left-color: #E95420;
+            color: #ffb296;
+        }
+
+        .theme-dark .suggestion-content .alert-warning code {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .theme-dark .suggestion-content .alert-info {
+            background: #301934;
+            border-left-color: #772953;
+            color: #e8b7d4;
+        }
+
+        .theme-dark .suggestion-content .alert-info code {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .theme-dark .suggestion-content .alert-danger {
+            background: #450a0a;
+            border-left-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .theme-dark .suggestion-content .alert-danger code {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .theme-dark .suggestion-content .alert-success {
+            background: #10301a;
+            border-left-color: #0E8420;
+            color: #9fe7ac;
+        }
+
+        .theme-dark .suggestion-content .alert-success code {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .theme-dark .dd-suggestion-step {
+            border-color: #363a40;
+            border-left-color: #E95420;
+            background: #1f2227;
+        }
+
+        .theme-dark .suggestion-content .doc-link {
+            color: #E9A06E;
+        }
+
+        .theme-dark .suggestion-content ul,
+        .theme-dark .suggestion-content ol {
+            background: transparent;
+        }
+
+        .theme-dark .suggestion-content li {
+            color: #cbd5e0;
+        }
+
+        .theme-dark .suggestion-content ul li::marker {
+            color: #E9A06E;
+        }
+
+        .theme-dark .suggestion-content .suggestion-link {
+            background: transparent;
+        }
+
+        .theme-dark .suggestion-content .suggestion-link a {
+            color: #E9A06E;
+        }
+
+        .theme-dark .suggestion-content .suggestion-link a:hover {
+            color: #ffffff;
+        }
+
+        .theme-dark .dd-alert-error {
+            background: #3d1a1a;
+            border-left-color: #ff5c5c;
+            color: #ffc0c0;
+        }
+
+        .theme-dark .dd-alert-error svg {
+            color: #ff5c5c;
+        }
+
+        .theme-dark .dd-alert-warning {
+            background: #3f2319;
+            border-left-color: #E95420;
+            color: #ffb296;
+        }
+
+        .theme-dark .dd-alert-warning svg {
+            color: #E95420;
+        }
+
+        .theme-dark .dd-alert-success {
+            background: #10301a;
+            border-left-color: #0E8420;
+            color: #9fe7ac;
+        }
+
+        .theme-dark .dd-alert-success svg {
+            color: #0E8420;
+        }
+
+        .theme-dark .backtrace-content {
+            background: #1a1a1a;
+            border: 1px solid #3f3f3f;
+        }
+
+        .theme-dark .backtrace-content pre {
+            color: #e0e0e0;
+        }
+
+        .theme-dark .queries-table {
+            color: #e0e0e0;
+        }
+
+        .theme-dark .queries-table thead {
+            background: #252525;
+            border-bottom: 1px solid #3f3f3f;
+        }
+
+        .theme-dark .queries-table tbody tr {
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .theme-dark .queries-table tbody tr:hover {
+            background: #252525;
+        }
+
+        /* Amélioration des syntax highlighting SQL en dark mode */
+        .theme-dark .highlight .keyword {
+            color: #ff8f70;
+            font-weight: bold;
+        }
+
+        .theme-dark .highlight .word {
+            color: #f8f8f2;
+        }
+
+        .theme-dark .highlight .variable {
+            color: #E9A06E;
+        }
+
+        .theme-dark .highlight .symbol {
+            color: #f8f8f2;
+        }
+
+        .theme-dark .highlight .comment {
+            color: #8a7f89;
+        }
+
+        .theme-dark .highlight .string {
+            color: #9fe7ac;
+        }
+
+        .theme-dark .highlight .number {
+            color: #d39bc2;
+            font-weight: bold;
+        }
+
+        .theme-dark .highlight .error {
+            color: #ff5555;
+        }
+
+        /* Backward compatibility - old card classes */
+        .theme-dark .card-header.status-warning {
+            background-color: #3f2319;
+            border-left-color: #E95420;
+            color: #ffb296;
+        }
+
+        .theme-dark .card-header.status-error {
+            background-color: #3d1a1a;
+            border-left-color: #ff5c5c;
+            color: #ffc0c0;
+        }
+
+        /* ============================================
+           Duplicate Issues Panel
+           ============================================ */
+
+        .dd-duplicate-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-left: 8px;
+        }
+
+        .dd-duplicate-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: linear-gradient(135deg, #E95420 0%, #772953 100%);
+            color: white;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            vertical-align: middle;
+            border: none;
+        }
+
+        .dd-duplicate-badge:hover {
+            background: linear-gradient(135deg, #C34113 0%, #5E2750 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(119, 41, 83, 0.3);
+        }
+
+        .dd-duplicate-badge svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        .dd-duplicates-panel {
+            margin-top: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .dd-duplicates-header {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #E95420 0%, #772953 100%);
+            color: white;
+            font-size: 13px;
+        }
+
+        .dd-duplicates-header strong {
+            font-weight: 600;
+        }
+
+        .dd-duplicates-content {
+            padding: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .dd-duplicate-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .dd-duplicate-item:last-child {
+            border-bottom: none;
+        }
+
+        .dd-duplicate-item:hover {
+            background: #f9fafb;
+        }
+
+        .dd-duplicate-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #374151;
+            margin: 0;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        .dd-duplicate-description {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+            line-height: 1.3;
+            padding-left: 8px;
+            border-left: 2px solid #e5e7eb;
+        }
+
+        .dd-desc-toggle {
+            color: #772953;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-left: 2px;
+            border: none;
+            background: transparent;
+            padding: 0;
+        }
+
+        .dd-desc-toggle:hover {
+            color: #5E2750;
+            text-decoration: underline;
+        }
+
+        /* Dark mode styles for controls and duplicate panel */
+        .theme-dark .dd-issue-controls {
+            background: #241e20;
+            border-color: #3f3f3f;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+        }
+
+        .theme-dark .dd-issue-search,
+        .theme-dark .dd-issue-sort {
+            background: #1e1e1e;
+            border-color: #4a4a4a;
+            color: #e5e7eb;
+        }
+
+        .theme-dark .dd-chip {
+            background: #1e1e1e;
+            border-color: #4a4a4a;
+            color: #d1d5db;
+        }
+
+        .theme-dark .dd-chip.is-active {
+            background: #E95420;
+            border-color: #E95420;
+            color: #fff;
+        }
+
+        .theme-dark .dd-issue-meta {
+            color: #a3a3a3;
+        }
+
+        .theme-dark .dd-filter-empty {
+            border-color: #4a4a4a;
+            background: #1f1f1f;
+            color: #c5c5c5;
+        }
+
+        .theme-dark .dd-duplicate-badge {
+            background: linear-gradient(135deg, #E95420 0%, #772953 100%);
+        }
+
+        .theme-dark .dd-duplicate-badge:hover {
+            background: linear-gradient(135deg, #C34113 0%, #5E2750 100%);
+            box-shadow: 0 4px 12px rgba(119, 41, 83, 0.35);
+        }
+
+        .theme-dark .dd-duplicates-panel {
+            background: #1e1e1e;
+            border-color: #3f3f3f;
+        }
+
+        .theme-dark .dd-duplicates-header {
+            background: linear-gradient(135deg, #772953 0%, #5E2750 100%);
+        }
+
+        .theme-dark .dd-duplicate-item {
+            border-bottom-color: #2a2a2a;
+        }
+
+        .theme-dark .dd-duplicate-item:hover {
+            background: #252525;
+        }
+
+        .theme-dark .dd-duplicate-title {
+            color: #e5e7eb;
+        }
+
+        .theme-dark .dd-duplicate-description {
+            color: #9ca3af;
+            border-left-color: #3f3f3f;
+        }
+
+        .theme-dark .dd-desc-toggle {
+            color: #60a5fa;
+        }
+
+        .theme-dark .dd-desc-toggle:hover {
+            color: #93c5fd;
+        }
+
+        /* Scrollbar styling for duplicate panel content */
+        .dd-duplicates-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .dd-duplicates-content::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 0 0 8px 0;
+        }
+
+        .dd-duplicates-content::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+
+        .dd-duplicates-content::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        .theme-dark .dd-duplicates-content::-webkit-scrollbar-track {
+            background: #2a2a2a;
+        }
+
+        .theme-dark .dd-duplicates-content::-webkit-scrollbar-thumb {
+            background: #4a4a4a;
+        }
+
+        .theme-dark .dd-duplicates-content::-webkit-scrollbar-thumb:hover {
+            background: #5a5a5a;
+        }
+        code[class*="language-"],
+        pre[class*="language-"] {
+            background: none;
+            text-shadow: none;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        pre[class*="language-"] {
+            margin: 0;
+            padding: 12px 14px;
+            overflow-x: auto;
+        }
+
+        .query-item pre[class*="language-"] {
+            background: #f7f3f0;
+        }
+
+        .token.comment,
+        .token.prolog,
+        .token.doctype,
+        .token.cdata { color: #6b5e57; font-style: italic; }
+        .token.punctuation { color: #2f2525; }
+        .token.property,
+        .token.tag,
+        .token.boolean,
+        .token.number,
+        .token.constant,
+        .token.symbol { color: #772953; font-weight: bold; }
+        .token.selector,
+        .token.attr-name,
+        .token.string,
+        .token.char,
+        .token.builtin { color: #0E8420; }
+        .token.operator,
+        .token.entity,
+        .token.url { color: #5E2750; }
+        .token.atrule,
+        .token.attr-value,
+        .token.keyword { color: #C7162B; font-weight: bold; }
+        .token.function,
+        .token.class-name { color: #E95420; }
+        .token.regex,
+        .token.important,
+        .token.variable { color: #772953; }
+
+        .theme-dark code[class*="language-"],
+        .theme-dark pre[class*="language-"] {
+            color: #e2e8f0;
+        }
+
+        .theme-dark .query-item pre[class*="language-"] {
+            background: #1f1a21;
+        }
+
+        .theme-dark .token.comment,
+        .theme-dark .token.prolog,
+        .theme-dark .token.doctype,
+        .theme-dark .token.cdata { color: #8a7f89; }
+        .theme-dark .token.punctuation { color: #f8f8f2; }
+        .theme-dark .token.property,
+        .theme-dark .token.tag,
+        .theme-dark .token.boolean,
+        .theme-dark .token.number,
+        .theme-dark .token.constant,
+        .theme-dark .token.symbol { color: #E9A06E; font-weight: bold; }
+        .theme-dark .token.selector,
+        .theme-dark .token.attr-name,
+        .theme-dark .token.string,
+        .theme-dark .token.char,
+        .theme-dark .token.builtin { color: #9fe7ac; }
+        .theme-dark .token.operator,
+        .theme-dark .token.entity,
+        .theme-dark .token.url { color: #d39bc2; }
+        .theme-dark .token.atrule,
+        .theme-dark .token.attr-value,
+        .theme-dark .token.keyword { color: #ff8f70; font-weight: bold; }
+        .theme-dark .token.function,
+        .theme-dark .token.class-name { color: #E9A06E; }
+        .theme-dark .token.regex,
+        .theme-dark .token.important,
+        .theme-dark .token.variable { color: #f2b8a0; }
+
+        .dd-copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            color: #586069;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .dd-copy-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .dd-copy-btn.dd-copied {
+            color: #0E8420;
+        }
+
+        .query-item {
+            position: relative;
+        }
+
+        .query-item:hover .dd-copy-btn {
+            opacity: 1;
+        }
+
+        .theme-dark .dd-copy-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #8b949e;
+        }
+
+        .theme-dark .dd-copy-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .theme-dark .dd-copy-btn.dd-copied {
+            color: #50fa7b;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* ============================================
+           Typography System
+           ============================================ */
+        .dd-panel-typography {
+            --dd-fs-xs: 11px;
+            --dd-fs-sm: 12px;
+            --dd-fs-md: 13px;
+            --dd-fs-lg: 14px;
+            --dd-fs-xl: 16px;
+            --dd-lh-tight: 1.35;
+            --dd-lh-base: 1.5;
+            --dd-lh-loose: 1.65;
+        }
+
+        .dd-panel-typography .issue-title {
+            font-size: var(--dd-fs-xl);
+            line-height: var(--dd-lh-tight);
+            font-weight: 600;
+        }
+
+        .dd-panel-typography .issue-description,
+        .dd-panel-typography .suggestion-content p,
+        .dd-panel-typography .suggestion-content li {
+            font-size: var(--dd-fs-md);
+            line-height: var(--dd-lh-loose);
+        }
+
+        .dd-panel-typography .issue-badge,
+        .dd-panel-typography .dd-btn-badge,
+        .dd-panel-typography .dd-chip,
+        .dd-panel-typography .dd-issue-meta,
+        .dd-panel-typography .dd-filter-empty,
+        .dd-panel-typography .dd-duplicate-description {
+            font-size: var(--dd-fs-xs);
+            line-height: var(--dd-lh-base);
+        }
+
+        .dd-panel-typography .dd-btn,
+        .dd-panel-typography .dd-issue-search,
+        .dd-panel-typography .dd-issue-sort,
+        .dd-panel-typography .suggestion-content code,
+        .dd-panel-typography .suggestion-content .doc-link,
+        .dd-panel-typography .suggestion-content .suggestion-link a {
+            font-size: var(--dd-fs-sm);
+            line-height: var(--dd-lh-base);
+        }
+
+        .dd-panel-typography .suggestion-header h4,
+        .dd-panel-typography .suggestion-content h4 {
+            font-size: var(--dd-fs-lg);
+            line-height: var(--dd-lh-tight);
+        }
+
+        .dd-panel-typography .suggestion-content h3 {
+            font-size: 15px;
+            line-height: var(--dd-lh-tight);
+        }
+
+        .dd-panel-typography .suggestion-content h5 {
+            font-size: var(--dd-fs-sm);
+            line-height: var(--dd-lh-tight);
+        }
+
+        .dd-panel-typography .query-item pre,
+        .dd-panel-typography .suggestion-content .query-item pre,
+        .dd-panel-typography pre[class*="language-"],
+        .dd-panel-typography .suggestion-content .code-block pre,
+        .dd-panel-typography .suggestion-content .code-block pre code,
+        .dd-panel-typography .query-item code {
+            font-size: var(--dd-fs-sm);
+            line-height: var(--dd-lh-base);
+        }
+
+        .dd-panel-typography .dd-suggestion-actionability,
+        .dd-panel-typography .suggestion-content .code-label {
+            font-size: 10px;
+            line-height: 1.2;
+        }
+
+        /* ============================================
+           Suggestion Spacing Normalization
+           ============================================ */
+        .suggestion-container {
+            margin-top: 14px;
+        }
+
+        .suggestion-header {
+            min-height: 34px;
+            padding: 8px 12px;
+        }
+
+        .suggestion-content {
+            padding: 12px 14px 14px;
+            display: block;
+        }
+
+        .suggestion-content > * {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        .suggestion-content > * + * {
+            margin-top: 10px;
+        }
+
+        .suggestion-content > .dd-suggestion-meta-intro {
+            padding: 10px 12px;
+            margin: 0;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .suggestion-content > .dd-suggestion-meta-file {
+            margin: 0;
+            padding: 8px 12px 10px;
+            border-radius: 0 0 6px 6px;
+        }
+
+        .suggestion-content p,
+        .suggestion-content ul,
+        .suggestion-content ol {
+            margin: 0;
+        }
+
+        .suggestion-content h3,
+        .suggestion-content h4,
+        .suggestion-content h5 {
+            margin: 2px 0 0;
+            padding-bottom: 6px;
+        }
+
+        .suggestion-content .alert,
+        .suggestion-content .query-item,
+        .suggestion-content .code-block,
+        .suggestion-content .code-comparison {
+            margin: 0;
+        }
+
+        .dd-suggestion-step {
+            margin: 0;
+            padding: 10px 12px;
+        }
+
+        .dd-suggestion-step > * {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        .dd-suggestion-step > * + * {
+            margin-top: 8px;
+        }
+
+        .dd-suggestion-details-toggle {
+            margin: 2px 0;
+        }
+
+        .theme-dark .suggestion-content > .dd-suggestion-meta-intro,
+        .theme-dark .suggestion-content > .dd-suggestion-meta-file {
+            box-shadow: none;
+        }
+
+        /* ============================================
+           Soft Console Palette (desktop profiler)
+           ============================================ */
+        .dd-panel-typography {
+            --dd-console-paper: #fbf8f3;
+            --dd-console-ink: #2f2b2a;
+            --dd-console-muted: #6c6663;
+            --dd-console-line: #d8d2cb;
+            --dd-console-accent: #b16a2f;
+            --dd-console-accent-2: #7a5747;
+            --dd-console-ok: #5a7d5c;
+            --dd-console-warn: #a57537;
+            --dd-console-danger: #9a4d43;
+            --dd-console-code-bg: #f3eee7;
+        }
+
+        .issue-card {
+            background: #fffdfa;
+            border-color: var(--dd-console-line);
+        }
+
+        .issue-title {
+            color: var(--dd-console-ink);
+        }
+
+        .issue-description {
+            color: #4f4a48;
+        }
+
+        .issue-description code,
+        .suggestion-content code {
+            background: var(--dd-console-code-bg);
+            border-color: #e2dbd3;
+            color: #6d4c3b;
+        }
+
+        .dd-btn-primary {
+            background: linear-gradient(135deg, var(--dd-console-accent) 0%, var(--dd-console-accent-2) 100%);
+            border-color: var(--dd-console-accent);
+        }
+
+        .dd-btn-primary:hover {
+            background: linear-gradient(135deg, #9d5e2a 0%, #64483b 100%);
+            border-color: #9d5e2a;
+            box-shadow: 0 2px 8px rgba(122, 87, 71, 0.28);
+        }
+
+        .dd-btn-secondary {
+            background: #f4efe8;
+            border-color: #d5cec5;
+            color: #4f4a48;
+        }
+
+        .dd-btn-secondary:hover {
+            background: #ece5dc;
+            border-color: #c7beb3;
+            color: #363230;
+        }
+
+        .issue-header.severity-critical {
+            background: linear-gradient(135deg, #f8ecea 0%, #f4e3e1 100%);
+            border-left-color: var(--dd-console-danger);
+        }
+
+        .issue-header.severity-warning {
+            background: linear-gradient(135deg, #f8f2e7 0%, #f2eadc 100%);
+            border-left-color: var(--dd-console-warn);
+        }
+
+        .issue-header.severity-info {
+            background: linear-gradient(135deg, #edf4fb 0%, #e3edf8 100%);
+            border-left-color: #6f8ea9;
+        }
+
+        .issue-badge.badge-critical {
+            background: var(--dd-console-danger);
+        }
+
+        .issue-badge.badge-warning {
+            background: var(--dd-console-warn);
+        }
+
+        .issue-badge.badge-info {
+            background: #6f8ea9;
+        }
+
+        .query-item,
+        .suggestion-content .query-item {
+            border-color: #ddd6ce;
+            background: #fcfaf7;
+            border-left-color: var(--dd-console-accent);
+        }
+
+        .query-item pre,
+        .query-item .highlight,
+        .query-item .highlight-sql,
+        .query-item pre[class*="language-"] {
+            background: var(--dd-console-code-bg);
+        }
+
+        .query-item .highlight .keyword { color: #8b4a2a; }
+        .query-item .highlight .variable { color: #7d5a49; }
+        .query-item .highlight .string { color: #4f6e52; }
+        .query-item .highlight .number { color: #6c4f7a; }
+        .query-item .highlight .comment { color: #7b7470; }
+        .query-item .highlight .error { color: #8f3f36; background: #f6e4e2; }
+
+        .suggestion-header {
+            background: linear-gradient(135deg, #a06a3d 0%, #705446 100%);
+            box-shadow: 0 1px 2px rgba(80, 62, 53, 0.2);
+        }
+
+        .dd-duplicate-badge,
+        .dd-duplicate-badge .dd-btn-text,
+        .dd-duplicate-badge svg,
+        .dd-duplicate-badge .dd-btn-chevron {
+            color: #fff !important;
+            fill: currentColor;
+        }
+
+        .dd-duplicate-badge {
+            background: linear-gradient(135deg, #8f613f 0%, #6a5044 100%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            font-weight: 700;
+            letter-spacing: 0.1px;
+        }
+
+        .dd-duplicate-badge:hover {
+            background: linear-gradient(135deg, #7d5638 0%, #5a453b 100%);
+            box-shadow: 0 3px 10px rgba(80, 62, 53, 0.28);
+        }
+
+        .dd-duplicates-panel {
+            border-color: #d8d2cb;
+            background: #fffaf4;
+            box-shadow: 0 2px 8px rgba(68, 58, 52, 0.08);
+        }
+
+        .dd-duplicates-header {
+            background: linear-gradient(135deg, #efe1d2 0%, #e4d3c2 100%);
+            color: #4f3f34;
+            border-bottom: 1px solid #d8cabc;
+        }
+
+        .dd-duplicate-item {
+            border-bottom-color: #ebe3da;
+            background: transparent;
+            padding: 9px 10px;
+            gap: 5px;
+        }
+
+        .dd-duplicate-item:hover {
+            background: #f5ede3;
+        }
+
+        .dd-duplicate-title {
+            color: #3f3531;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.35;
+        }
+
+        .dd-duplicate-description {
+            color: #6a615c;
+            border-left-color: #d7ccc2;
+            font-size: 11px;
+            line-height: 1.45;
+        }
+
+        .dd-desc-toggle {
+            color: #7b5841;
+            font-weight: 600;
+        }
+
+        .dd-desc-toggle:hover {
+            color: #604737;
+        }
+
+        .suggestion-content .alert-warning {
+            background: #f4ebdf;
+            border-left-color: var(--dd-console-warn);
+            color: #5f4a2d;
+        }
+
+        .suggestion-content .alert-info {
+            background: #eee7df;
+            border-left-color: #7a6a5d;
+            color: #4e4541;
+        }
+
+        .suggestion-content .alert-danger {
+            background: #f3e3e1;
+            border-left-color: var(--dd-console-danger);
+            color: #6a3630;
+        }
+
+        .suggestion-content .alert-success {
+            background: #e7efe7;
+            border-left-color: var(--dd-console-ok);
+            color: #2f5033;
+        }
+
+        .theme-dark .issue-card {
+            background: #171b20;
+            border-color: #2b3138;
+        }
+
+        .theme-dark .issue-title,
+        .theme-dark .suggestion-content strong {
+            color: #d6d1cb;
+        }
+
+        .theme-dark .issue-description,
+        .theme-dark .suggestion-content p,
+        .theme-dark .suggestion-content li {
+            color: #b4aea8;
+        }
+
+        .theme-dark .dd-btn-primary {
+            background: linear-gradient(135deg, #8a5b35 0%, #6a4d40 100%);
+            border-color: #8a5b35;
+        }
+
+        .theme-dark .dd-btn-primary:hover {
+            background: linear-gradient(135deg, #774d2d 0%, #594137 100%);
+            border-color: #774d2d;
+        }
+
+        .theme-dark .dd-btn-secondary {
+            background: #21262d;
+            border-color: #38404a;
+            color: #c4beb8;
+        }
+
+        .theme-dark .dd-btn-secondary:hover {
+            background: #2a3038;
+            border-color: #45505c;
+            color: #e0dad3;
+        }
+
+        .theme-dark .issue-header.severity-critical {
+            background: linear-gradient(135deg, #3b2626 0%, #432c2c 100%);
+            border-left-color: #a65b52;
+        }
+
+        .theme-dark .issue-header.severity-warning {
+            background: linear-gradient(135deg, #3b3025 0%, #44362a 100%);
+            border-left-color: #a9834e;
+        }
+
+        .theme-dark .issue-header.severity-info {
+            background: linear-gradient(135deg, #273544 0%, #2d3d4f 100%);
+            border-left-color: #7fa2c2;
+        }
+
+        .theme-dark .query-item,
+        .theme-dark .suggestion-content .query-item,
+        .theme-dark .dd-suggestion-step {
+            background: #1d2228;
+            border-color: #313943;
+            border-left-color: #8a5b35;
+        }
+
+        .theme-dark .query-item pre,
+        .theme-dark .query-item .highlight,
+        .theme-dark .query-item .highlight-sql,
+        .theme-dark .query-item pre[class*="language-"] {
+            background: #1a1f25;
+        }
+
+        .theme-dark .query-item .highlight .keyword { color: #d08b57; }
+        .theme-dark .query-item .highlight .variable { color: #b6927c; }
+        .theme-dark .query-item .highlight .string { color: #8fb192; }
+        .theme-dark .query-item .highlight .number { color: #b18ac0; }
+        .theme-dark .query-item .highlight .comment { color: #8a8580; }
+        .theme-dark .query-item .highlight .error { color: #d17a72; background: #3e2b2a; }
+
+        .theme-dark .suggestion-header {
+            background: linear-gradient(135deg, #6f4d36 0%, #5b4438 100%);
+        }
+
+        .theme-dark .dd-duplicate-badge,
+        .theme-dark .dd-duplicate-badge .dd-btn-text,
+        .theme-dark .dd-duplicate-badge svg,
+        .theme-dark .dd-duplicate-badge .dd-btn-chevron {
+            color: #f6f1eb !important;
+            fill: currentColor;
+        }
+
+        .theme-dark .dd-duplicate-badge {
+            background: linear-gradient(135deg, #6f4d36 0%, #58433a 100%);
+            border-color: #7a6356;
+        }
+
+        .theme-dark .dd-duplicate-badge:hover {
+            background: linear-gradient(135deg, #5e412e 0%, #493730 100%);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+        }
+
+        .theme-dark .dd-duplicates-panel {
+            background: #1e242b;
+            border-color: #333c46;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+        }
+
+        .theme-dark .dd-duplicates-header {
+            background: linear-gradient(135deg, #2d343d 0%, #2a3038 100%);
+            color: #d8d1ca;
+            border-bottom-color: #3c454f;
+        }
+
+        .theme-dark .dd-duplicate-item {
+            border-bottom-color: #2c333b;
+        }
+
+        .theme-dark .dd-duplicate-item:hover {
+            background: #252c34;
+        }
+
+        .theme-dark .dd-duplicate-title {
+            color: #d2cbc4;
+        }
+
+        .theme-dark .dd-duplicate-description {
+            color: #a8a19a;
+            border-left-color: #4a545f;
+        }
+
+        .theme-dark .dd-desc-toggle {
+            color: #caa17d;
+        }
+
+        .theme-dark .dd-desc-toggle:hover {
+            color: #deb792;
+        }
+
+        /* ============================================
+           Suggestion Layout Final Overrides
+           ============================================ */
+        .suggestion-container {
+            margin-top: 10px;
+        }
+
+        .suggestion-container .suggestion-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            column-gap: 8px;
+            padding: 4px 8px;
+            min-height: 0;
+            border-radius: 9px 9px 0 0;
+        }
+
+        .suggestion-container .suggestion-header::before {
+            content: none;
+        }
+
+        .suggestion-container .suggestion-header h4 {
+            margin: 0;
+            min-width: 0;
+            line-height: 1.15;
+            font-size: 11px;
+            letter-spacing: 0.1px;
+        }
+
+        .suggestion-container .dd-suggestion-actionability {
+            align-self: center;
+            margin: 0;
+            padding: 1px 6px;
+            font-size: 9px;
+            letter-spacing: 0.25px;
+        }
+
+        .suggestion-container .suggestion-header.is-redundant-title {
+            grid-template-columns: auto;
+            justify-content: end;
+            padding: 5px 8px;
+            min-height: 0;
+        }
+
+        .suggestion-container .suggestion-header.is-redundant-title h4 {
+            display: none;
+        }
+
+        .suggestion-container .suggestion-content {
+            display: grid;
+            gap: 8px;
+            padding: 8px;
+            border: 1px solid #ddd6ce;
+            border-top: none;
+            border-radius: 0 0 9px 9px;
+            background: #fffdfa;
+        }
+
+        .suggestion-container .suggestion-content > * {
+            margin: 0 !important;
+        }
+
+        .suggestion-container .suggestion-content > .dd-suggestion-meta-intro {
+            padding: 7px 9px;
+            border-left-width: 3px;
+            border-radius: 7px;
+            width: 100%;
+            max-width: none;
+            box-sizing: border-box;
+        }
+
+        .suggestion-container .suggestion-content > .dd-suggestion-meta-file {
+            margin-top: -4px !important;
+            padding: 6px 9px 7px;
+            border-left-width: 3px;
+            border-radius: 0 0 7px 7px;
+            width: 100%;
+            max-width: none;
+            box-sizing: border-box;
+        }
+
+        .suggestion-container .dd-suggestion-step {
+            display: grid;
+            gap: 6px;
+            margin: 0;
+            padding: 8px 9px;
+            border-radius: 8px;
+            border: 1px solid #ddd8d2;
+            border-left: 3px solid #9a6d4d;
+            background: #fffcf8;
+        }
+
+        .suggestion-container .dd-suggestion-step > * {
+            margin: 0 !important;
+        }
+
+        .suggestion-container .dd-suggestion-step > h4 {
+            margin: 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #e7dfd6;
+            color: #4a3f39;
+            font-size: 12px;
+            line-height: 1.2;
+        }
+
+        .suggestion-container .suggestion-content .alert {
+            margin: 0;
+            padding: 7px 9px;
+            border-radius: 7px;
+            border-left-width: 3px;
+            line-height: 1.45;
+            width: 100%;
+            max-width: none;
+            box-sizing: border-box;
+        }
+
+        .suggestion-container .suggestion-content .query-item {
+            margin: 0;
+            border-radius: 7px;
+            border-left-width: 3px;
+        }
+
+        .suggestion-container .suggestion-content .query-item pre,
+        .suggestion-container .suggestion-content .query-item pre[class*="language-"] {
+            margin: 0;
+            padding: 8px 48px 8px 10px;
+        }
+
+        .suggestion-container .suggestion-content .query-item .dd-copy-btn {
+            opacity: 1;
+            top: 5px;
+            right: 5px;
+            background: rgba(90, 77, 68, 0.1);
+            color: #5b4d43;
+            border-color: rgba(90, 77, 68, 0.2);
+        }
+
+        .suggestion-container .suggestion-content .doc-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 0;
+        }
+
+        .theme-dark .suggestion-container .suggestion-content {
+            background: #1a1f25;
+            border-color: #313943;
+        }
+
+        .theme-dark .suggestion-container .dd-suggestion-step {
+            background: #1f252c;
+            border-color: #343d47;
+            border-left-color: #9d724f;
+        }
+
+        .theme-dark .suggestion-container .dd-suggestion-step > h4 {
+            border-bottom-color: #3c4550;
+            color: #d3ccc5;
+        }
+
+        .theme-dark .suggestion-container .suggestion-content .query-item .dd-copy-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: #d5ccc4;
+        }
+
+        /* ============================================
+           Paper Feel - Global Panel Overrides
+           ============================================ */
+        .dd-panel-typography {
+            --dd-paper-bg: #f8f3eb;
+            --dd-paper-panel: #fffbf5;
+            --dd-paper-panel-2: #fdf7ef;
+            --dd-paper-line: #d9cfc3;
+            --dd-paper-ink: #3c3532;
+            --dd-paper-muted: #6f6660;
+            --dd-paper-accent: #9b6c47;
+            --dd-paper-accent-2: #7c5b49;
+        }
+
+        .dd-panel-typography .tab-content {
+            background: transparent !important;
+            border: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .metrics {
+            margin-bottom: 20px;
+        }
+
+        .metrics .metric-group {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            gap: 8px;
+            width: 100% !important;
+        }
+
+        .metrics .metric {
+            flex: 1 1 0 !important;
+            min-width: 0;
+            width: 100%;
+            max-width: none !important;
+            box-sizing: border-box;
+            margin: 0 !important;
+            padding: 8px 10px !important;
+        }
+
+        .metrics .metric .value {
+            font-size: 14px;
+            line-height: 1.2;
+            white-space: normal;
+        }
+
+        .metrics .metric .label {
+            font-size: 11px;
+            line-height: 1.2;
+            white-space: normal;
+        }
+
+        .metrics .metric,
+        .issue-card,
+        .dd-filter-empty,
+        .dd-alert,
+        .suggestion-container .suggestion-content {
+            background: var(--dd-paper-panel);
+            border-color: var(--dd-paper-line);
+            box-shadow: 0 1px 2px rgba(53, 43, 35, 0.05);
+        }
+
+        .issue-card:hover {
+            box-shadow: 0 2px 6px rgba(53, 43, 35, 0.08);
+        }
+
+        .dd-issue-controls {
+            background: transparent !important;
+            border-color: var(--dd-paper-line);
+            box-shadow: none;
+        }
+
+        .dd-issue-search,
+        .dd-issue-sort,
+        .dd-chip,
+        .dd-btn-secondary {
+            background: #fffdf8;
+            border-color: #d4c8ba;
+            color: var(--dd-paper-ink);
+        }
+
+        .dd-chip:hover,
+        .dd-btn-secondary:hover {
+            background: #f6eee4;
+            border-color: #bea893;
+            color: #4f433b;
+        }
+
+        .dd-chip.is-active {
+            background: var(--dd-paper-accent-2);
+            border-color: var(--dd-paper-accent-2);
+            color: #fff;
+        }
+
+        .dd-btn-primary {
+            background: #eff5f5;
+            border-color: #cfdcdb;
+            color: #3f5352;
+        }
+
+        .dd-btn-primary:hover {
+            background: #e4efef;
+            border-color: #bfd0cf;
+            color: #314342;
+            box-shadow: 0 2px 6px rgba(63, 83, 82, 0.16);
+        }
+
+        .issue-title,
+        .suggestion-content h3,
+        .suggestion-content h4,
+        .suggestion-content h5 {
+            color: var(--dd-paper-ink);
+        }
+
+        .issue-description,
+        .suggestion-content p,
+        .suggestion-content li,
+        .dd-issue-meta {
+            color: var(--dd-paper-muted);
+        }
+
+        .query-item,
+        .suggestion-content .query-item,
+        .suggestion-content .code-block,
+        .suggestion-content .code-comparison {
+            background: #fcf7f0;
+            border-color: #ddd0c1;
+        }
+
+        .query-item pre,
+        .query-item pre[class*="language-"],
+        .query-item .highlight,
+        .query-item .highlight-sql {
+            background: #f2ebe2;
+        }
+
+        .queries-table,
+        .dd-panel-typography table.alt {
+            background: var(--dd-paper-panel);
+            border: 1px solid var(--dd-paper-line);
+        }
+
+        .queries-table thead,
+        .dd-panel-typography table.alt thead {
+            background: #f2e8dc;
+        }
+
+        .queries-table th,
+        .queries-table td,
+        .dd-panel-typography table.alt th,
+        .dd-panel-typography table.alt td {
+            border-color: #e3d8cb;
+        }
+
+        .queries-table tbody tr:hover,
+        .dd-panel-typography table.alt tbody tr:hover {
+            background: #f8f1e7;
+        }
+
+        .dd-alert-error {
+            background: #f3e4e3;
+            border-left-color: #9e5d56;
+            color: #633631;
+        }
+
+        .dd-alert-warning {
+            background: #f3eadf;
+            border-left-color: #a27844;
+            color: #624b2c;
+        }
+
+        .dd-alert-success {
+            background: #e8efe4;
+            border-left-color: #6d8b67;
+            color: #335134;
+        }
+
+        /* ============================================
+           Radius Governance (flat / no rounding)
+           ============================================ */
+        .dd-panel-typography .tab-content,
+        .dd-panel-typography .metrics .metric,
+        .dd-panel-typography .issue-card,
+        .dd-panel-typography .issue-header,
+        .dd-panel-typography .issue-body,
+        .dd-panel-typography .dd-issue-controls,
+        .dd-panel-typography .dd-filter-empty,
+        .dd-panel-typography .dd-alert,
+        .dd-panel-typography .suggestion-container .suggestion-header,
+        .dd-panel-typography .suggestion-container .suggestion-content,
+        .dd-panel-typography .suggestion-container .dd-suggestion-step,
+        .dd-panel-typography .suggestion-container .suggestion-content .alert,
+        .dd-panel-typography .query-item,
+        .dd-panel-typography .suggestion-content .query-item,
+        .dd-panel-typography .suggestion-content .code-block,
+        .dd-panel-typography .suggestion-content .code-comparison,
+        .dd-panel-typography .dd-duplicates-panel,
+        .dd-panel-typography .dd-duplicates-header,
+        .dd-panel-typography .dd-duplicates-content,
+        .dd-panel-typography .dd-duplicate-item,
+        .dd-panel-typography .backtrace-content,
+        .dd-panel-typography .queries-table,
+        .dd-panel-typography table.alt {
+            border-radius: 0 !important;
+        }
+
+        .dd-panel-typography .suggestion-container .suggestion-content > .dd-suggestion-meta-intro,
+        .dd-panel-typography .suggestion-container .suggestion-content > .dd-suggestion-meta-file {
+            border-radius: 0 !important;
+        }
+
+        .dd-panel-typography .dd-issue-search,
+        .dd-panel-typography .dd-issue-sort,
+        .dd-panel-typography .dd-btn {
+            border-radius: 0 !important;
+        }
+
+        .dd-panel-typography .dd-chip,
+        .dd-panel-typography .issue-badge,
+        .dd-panel-typography .dd-btn-badge,
+        .dd-panel-typography .dd-suggestion-actionability,
+        .dd-panel-typography .dd-duplicate-count {
+            border-radius: 0 !important;
+        }
+
+        /* ============================================
+           Paper Breathing Space Between Blocks
+           ============================================ */
+        .dd-panel-typography .dd-issue-list {
+            display: grid;
+            gap: 14px;
+            background: transparent !important;
+            padding: 0;
+        }
+
+        .dd-panel-typography .issue-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .dd-panel-typography .issue-title .dd-duplicate-wrapper {
+            margin-left: auto;
+        }
+
+        .dd-panel-typography .dd-duplicate-badge,
+        .dd-panel-typography .dd-duplicate-title .dd-duplicate-count {
+            border-radius: 0 !important;
+        }
+
+        .dd-panel-typography .issue-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            border: 0;
+            background: transparent;
+        }
+
+        .dd-panel-typography .issue-actions .dd-btn {
+            min-height: 24px;
+            padding: 0 8px;
+            font-size: 10px;
+            line-height: 1;
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            color: #fff;
+            background: rgba(90, 77, 68, 0.62);
+            box-shadow: none;
+            transform: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.35px;
+        }
+
+        .dd-panel-typography .issue-actions .dd-btn:hover {
+            background: rgba(90, 77, 68, 0.78);
+        }
+
+        .dd-panel-typography .issue-actions .dd-btn .dd-btn-icon {
+            width: 10px;
+            height: 10px;
+        }
+
+        .dd-panel-typography .issue-actions .dd-btn .dd-btn-text {
+            letter-spacing: 0;
+        }
+
+        .dd-panel-typography .issue-actions .dd-btn .dd-btn-chevron {
+            display: none;
+        }
+
+        .dd-panel-typography .issue-actions .dd-btn-badge {
+            min-width: 16px;
+            height: 14px;
+            padding: 0 3px;
+            font-size: 9px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.24);
+            color: #fff;
+        }
+
+        .dd-panel-typography .issue-actions .dd-btn.sf-toggle-on {
+            background: rgba(63, 83, 82, 0.76);
+            border-color: rgba(255, 255, 255, 0.85);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+        }
+
+
+        .dd-panel-typography .issue-actions .dd-btn:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 1px;
+            box-shadow: 0 0 0 2px rgba(63, 83, 82, 0.35);
+        }
+
+        .dd-panel-typography .issue-card {
+            margin-bottom: 0;
+        }
+
+        .dd-panel-typography .issue-body > .dd-collapsible {
+            margin-top: 14px;
+        }
+
+        .dd-panel-typography .suggestion-container {
+            margin-top: 14px;
+        }
+
+        .dd-panel-typography .suggestion-container .suggestion-content {
+            gap: 14px;
+            padding: 14px;
+        }
+
+        .dd-panel-typography .suggestion-container .dd-suggestion-step {
+            margin-top: 2px;
+        }
+
+        .dd-duplicate-title .dd-duplicate-count {
+            margin-left: 8px;
+            padding: 0 6px;
+            border: 1px solid #cdbba8;
+            background: #f4ebdf;
+            color: #5f4a2d;
+            font-size: 11px;
+            line-height: 18px;
+            font-weight: 700;
+        }
+
+        .theme-dark .dd-duplicate-title .dd-duplicate-count {
+            border-color: #4a5866;
+            background: #2a3643;
+            color: #c5d4e2;
+        }
+
+        /* Prism line numbers: restore gutter visibility with compact custom code styles */
+        .dd-panel-typography pre.line-numbers[class*="language-"],
+        .dd-panel-typography .query-item pre.line-numbers,
+        .dd-panel-typography .suggestion-content .query-item pre.line-numbers {
+            padding-left: 3.4em !important;
+        }
+
+        .dd-panel-typography pre.line-numbers .line-numbers-rows {
+            border-right: 1px solid #d6c9ba !important;
+            width: 2.8em !important;
+            left: 0 !important;
+            background: rgba(120, 95, 78, 0.05);
+        }
+
+        .dd-panel-typography pre.line-numbers .line-numbers-rows > span:before {
+            color: #8b7f74 !important;
+        }
+
+        .theme-dark .dd-panel-typography pre.line-numbers .line-numbers-rows {
+            border-right-color: #3d4753 !important;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .theme-dark .dd-panel-typography pre.line-numbers .line-numbers-rows > span:before {
+            color: #76879b !important;
+        }
+
+        /* Fallback when Prism line-number stylesheet is unavailable/blocked.
+           Supports both DOM shapes:
+           - <pre class="line-numbers"><code>...</code><span class="line-numbers-rows">...</span></pre>
+           - <pre class="line-numbers"><code>...<span class="line-numbers-rows">...</span></code></pre>
+        */
+        .dd-panel-typography pre.line-numbers {
+            position: relative;
+            padding-left: 3.4em !important;
+            counter-reset: dd-linenumber;
+        }
+
+        .dd-panel-typography pre.line-numbers > code {
+            position: relative;
+            display: block;
+        }
+
+        .dd-panel-typography pre.line-numbers > .line-numbers-rows,
+        .dd-panel-typography pre.line-numbers > code > .line-numbers-rows {
+            position: absolute;
+            pointer-events: none;
+            top: 0;
+            left: 0;
+            width: 2.8em;
+            user-select: none;
+            border-right: 1px solid #d6c9ba;
+            background: rgba(120, 95, 78, 0.05);
+        }
+
+        .dd-panel-typography pre.line-numbers > .line-numbers-rows > span,
+        .dd-panel-typography pre.line-numbers > code > .line-numbers-rows > span {
+            display: block;
+            counter-increment: dd-linenumber;
+            min-height: 1.5em;
+            height: auto !important;
+        }
+
+        .dd-panel-typography pre.line-numbers > .line-numbers-rows > span:before,
+        .dd-panel-typography pre.line-numbers > code > .line-numbers-rows > span:before {
+            content: counter(dd-linenumber);
+            display: block;
+            padding-right: 0.8em;
+            text-align: right;
+            color: #8b7f74 !important;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .theme-dark .dd-panel-typography pre.line-numbers > .line-numbers-rows,
+        .theme-dark .dd-panel-typography pre.line-numbers > code > .line-numbers-rows {
+            border-right-color: #3d4753;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .theme-dark .dd-panel-typography pre.line-numbers > .line-numbers-rows > span:before,
+        .theme-dark .dd-panel-typography pre.line-numbers > code > .line-numbers-rows > span:before {
+            color: #76879b !important;
+        }
+
+        .dd-panel-typography pre.line-numbers.dd-ln-fallback > .line-numbers-rows > span:before,
+        .dd-panel-typography pre.line-numbers.dd-ln-fallback > code > .line-numbers-rows > span:before {
+            content: none !important;
+        }
+
+        .dd-panel-typography pre.line-numbers.dd-ln-fallback > .line-numbers-rows > span,
+        .dd-panel-typography pre.line-numbers.dd-ln-fallback > code > .line-numbers-rows > span {
+            display: block;
+            padding-right: 0.8em;
+            text-align: right;
+            font-size: 11px;
+            line-height: 1.5;
+            color: #8b7f74;
+            box-sizing: border-box;
+        }
+
+        .theme-dark .dd-panel-typography pre.line-numbers.dd-ln-fallback > .line-numbers-rows > span,
+        .theme-dark .dd-panel-typography pre.line-numbers.dd-ln-fallback > code > .line-numbers-rows > span {
+            color: #76879b;
+        }
+
+        /* ============================================
+           Final UI Polish (Desktop Readability Rhythm)
+           ============================================ */
+        .sf-tabs.dd-panel-typography {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .sf-tabs.dd-panel-typography .tab-navigation {
+            display: flex !important;
+            align-items: stretch;
+            justify-content: stretch;
+            gap: 8px;
+            width: 100% !important;
+            box-sizing: border-box;
+        }
+
+        .sf-tabs.dd-panel-typography .tab-navigation li {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        .sf-tabs.dd-panel-typography .tab-navigation li a,
+        .sf-tabs.dd-panel-typography .tab-navigation li button {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .sf-tabs.dd-panel-typography > .tab {
+            width: 100%;
+        }
+
+        .dd-panel-typography {
+            line-height: 1.45;
+            color: var(--dd-paper-ink);
+        }
+
+        .dd-panel-typography .tab-title {
+            font-size: 14px;
+            line-height: 1.3;
+            letter-spacing: 0.1px;
+        }
+
+        .dd-panel-typography .issue-header {
+            padding: 0;
+        }
+
+        .dd-panel-typography .issue-header-content {
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .dd-panel-typography .issue-badge {
+            font-size: 10px;
+            letter-spacing: 0.35px;
+        }
+
+        .dd-panel-typography .issue-title {
+            font-size: 15px;
+            line-height: 1.35;
+            font-weight: 600;
+        }
+
+        .dd-panel-typography .issue-body {
+            padding: 12px 14px;
+        }
+
+        .dd-panel-typography .issue-description {
+            margin: 0 0 10px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .dd-panel-typography .dd-issue-controls {
+            margin: 8px 0 12px;
+            padding: 8px 10px;
+            gap: 10px;
+        }
+
+        .dd-panel-typography .dd-control-group {
+            gap: 6px;
+            margin: 0;
+        }
+
+        .dd-panel-typography .dd-issue-search,
+        .dd-panel-typography .dd-issue-sort {
+            margin: 0;
+            padding: 3px 8px;
+            min-height: 24px;
+            height: 24px;
+            line-height: 1.2;
+        }
+
+        .dd-panel-typography .dd-chip,
+        .dd-panel-typography .dd-issue-controls .dd-btn {
+            margin: 0;
+            padding: 0 8px;
+            min-height: 24px;
+            height: 24px;
+            line-height: 1;
+        }
+
+        .dd-panel-typography .dd-issue-meta {
+            margin: 0 0 0 auto;
+            padding: 0;
+            line-height: 1.2;
+        }
+
+        .dd-panel-typography .suggestion-container .suggestion-header {
+            padding: 3px 8px;
+            min-height: 0;
+        }
+
+        .dd-panel-typography .suggestion-container .suggestion-header h4 {
+            font-size: 12px;
+            line-height: 1.2;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .dd-panel-typography .suggestion-container .dd-suggestion-actionability {
+            margin: 0;
+            padding: 1px 6px;
+            min-height: 18px;
+            line-height: 1.15;
+            font-size: 9px;
+        }
+
+        .dd-panel-typography .suggestion-container .suggestion-content {
+            padding: 12px;
+            gap: 12px;
+        }
+
+        .dd-panel-typography .suggestion-container .suggestion-content .alert {
+            padding: 8px 10px;
+            font-size: 12.5px;
+            line-height: 1.45;
+        }
+
+        .dd-panel-typography .suggestion-container .dd-suggestion-step {
+            padding: 10px;
+        }
+
+        .dd-panel-typography .suggestion-container .dd-suggestion-step > h4 {
+            font-size: 13px;
+            line-height: 1.25;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+        }
+
+        /* ============================================
+           Utilities (migrated from inline styles)
+           ============================================ */
+        .dd-overhead-value {
+            color: #e0e0e0;
+        }
+
+        .dd-mb-20 {
+            margin-bottom: 20px;
+        }
+
+        .dd-alert-deprecation-message {
+            margin: 4px 0 0;
+        }
+
+        .dd-w-full {
+            width: 100%;
+        }
+
+        .dd-w-30 {
+            width: 30%;
+        }
+
+        .dd-mt-5 {
+            margin-top: 5px;
+        }
+
+        .dd-mt-10 {
+            margin-top: 10px;
+        }
+
+        .dd-mt-20 {
+            margin-top: 20px;
+        }
+
+        .dd-fs-12 {
+            font-size: 12px;
+        }
+
+        .dd-fs-90 {
+            font-size: 0.9em;
+        }
+
+        .dd-bg-muted {
+            background-color: #f8f9fa;
+        }
+
+        .dd-p-10 {
+            padding: 10px;
+        }
+
+        .dd-pl-20 {
+            padding-left: 20px;
+        }
+
+        .dd-bt-2-muted {
+            border-top: 2px solid #dee2e6;
+        }
+
+        .dd-muted-strong {
+            color: #888;
+        }
+
+        .dd-text-muted-666 {
+            color: #666;
+        }
