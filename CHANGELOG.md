@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-03-03
+
+### Added
+
+- Prism.js syntax highlighting in profiler suggestion code blocks (with line numbers support and copy actions).
+
+### Changed
+
+- Profiler panel refactored: large inline CSS/JS moved to dedicated Twig partials for maintainability.
+- Issue descriptions in profiler normalized to a compact, impact-focused format for better readability.
+- Profiler UI/UX theme refreshed (softer paper-like palette, spacing/typography cleanup, action controls restyled, issue/suggestion block organization improved).
+
+### Fixed
+
+- Circular interface inheritance between `IssueInterface` and `DeduplicatableIssueInterface`.
+- Collector serialization edge case: stats can be computed from serialized profiler data without runtime failure.
+- Profiler JavaScript resilience when Prism is unavailable (guarded highlighting path).
+- Template code rendering safety for apostrophes/quotes in dynamic snippets.
+- Deduplication contract checks hardened in tests and CI static-analysis regressions resolved.
+
 ## [2.1.1] - 2026-02-25
 
 ### Fixed
