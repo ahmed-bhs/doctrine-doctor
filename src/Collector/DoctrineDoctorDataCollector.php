@@ -29,7 +29,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
-use Symfony\Component\Stopwatch\StopwatchEvent;
 use Symfony\Contracts\Service\ResetInterface;
 use Webmozart\Assert\Assert;
 
@@ -413,9 +412,10 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
         $analysisEvent = $this->stopwatch?->stop('doctrine_doctor.analysis');
 
-        if ($analysisEvent instanceof StopwatchEvent) {
-            $this->data['profiler_overhead']['analysis_time_ms'] = $analysisEvent->getDuration();
-            $this->data['profiler_overhead']['total_time_ms']    = $analysisEvent->getDuration();
+        if (is_object($analysisEvent) && method_exists($analysisEvent, 'getDuration')) {
+            $duration = (float) $analysisEvent->getDuration();
+            $this->data['profiler_overhead']['analysis_time_ms'] = $duration;
+            $this->data['profiler_overhead']['total_time_ms']    = $duration;
         }
 
         if ($this->showDebugInfo) {
