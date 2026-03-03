@@ -78,6 +78,7 @@ final class IssueDeduplicator
      */
     private function getIssueSignature(IssueInterface $issue): string
     {
+        $type = $issue->getType();
         $title = $issue->getTitle();
         $description = $issue->getDescription();
         $sql = $this->extractSqlFromIssue($issue);
@@ -91,6 +92,11 @@ final class IssueDeduplicator
 
         if (str_contains($title, 'Suboptimal LEFT JOIN')) {
             return 'suboptimal_left_join:' . md5($sql . ':' . ($entityOrTable ?? ''));
+        }
+
+        $signature = $this->getEntityTypeSignature($type, $title, $description, $entityOrTable);
+        if (null !== $signature) {
+            return $signature;
         }
 
         // Try specific signature strategies in order of priority
@@ -111,6 +117,49 @@ final class IssueDeduplicator
 
         // Default: use title + entity as signature
         return 'generic:' . md5($title . ':' . ($entityOrTable ?? ''));
+    }
+
+    /**
+     * Group noisy field-level integrity issues by entity + type.
+     * Example: User::$orders, User::$sessions, User::$socialAccounts -> one "collection_uninitialized" issue for User.
+     */
+    private function getEntityTypeSignature(
+        string $type,
+        string $title,
+        string $description,
+        ?string $entityOrTable,
+    ): ?string {
+        $entityScopedTypes = [
+            'collection_uninitialized',
+            'float_for_money',
+            'float_in_money_embeddable',
+            'property_type_mismatch',
+            'type_hint_mismatch',
+            'entity_manager_in_entity',
+        ];
+
+        if (!in_array($type, $entityScopedTypes, true)) {
+            return null;
+        }
+
+        // Prefer pre-extracted entity/table when available.
+        $entity = $entityOrTable;
+
+        if (null === $entity && 1 === preg_match('/\b([A-Z][A-Za-z0-9_]*)::\$/', $title, $matches)) {
+            $entity = $matches[1];
+        }
+
+        if (null === $entity && 1 === preg_match('/\b([A-Z][A-Za-z0-9_]*)::\$/', $description, $matches)) {
+            $entity = $matches[1];
+        }
+
+        if (null === $entity) {
+            return null;
+        }
+
+        $normalizedEntity = str_replace('_', '', strtolower($entity));
+
+        return "entity_type:{$type}:{$normalizedEntity}";
     }
 
     /**
