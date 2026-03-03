@@ -15,7 +15,7 @@ use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 
-interface IssueInterface
+interface IssueInterface extends DeduplicatableIssueInterface
 {
     public function getType(): string;
 
