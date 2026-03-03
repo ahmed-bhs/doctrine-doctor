@@ -14,6 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Service;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Issue\DeduplicatableIssueInterface;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
@@ -388,6 +389,43 @@ final class IssueDeduplicatorTest extends TestCase
         $duplicateTitles = array_map(fn (IssueInterface $issue) => $issue->getTitle(), $duplicates);
         self::assertContains('Lazy Loading in Loop: 212 queries on BillLine', $duplicateTitles);
         self::assertContains('Frequent Query: 212 executions on BillLine', $duplicateTitles);
+    }
+
+    #[Test]
+    public function it_deduplicates_collection_uninitialized_issues_by_entity(): void
+    {
+        $issues = IssueCollection::fromArray([
+            new IntegrityIssue([
+                'type' => 'collection_uninitialized',
+                'title' => 'Uninitialized Collection: User::$orders',
+                'description' => 'Collection property User::$orders is not initialized.',
+                'severity' => 'critical',
+                'queries' => [],
+            ]),
+            new IntegrityIssue([
+                'type' => 'collection_uninitialized',
+                'title' => 'Uninitialized Collection: User::$socialAccounts',
+                'description' => 'Collection property User::$socialAccounts is not initialized.',
+                'severity' => 'critical',
+                'queries' => [],
+            ]),
+            new IntegrityIssue([
+                'type' => 'collection_uninitialized',
+                'title' => 'Uninitialized Collection: User::$sessions',
+                'description' => 'Collection property User::$sessions is not initialized.',
+                'severity' => 'critical',
+                'queries' => [],
+            ]),
+        ]);
+
+        $deduplicated = $this->deduplicator->deduplicate($issues);
+
+        self::assertCount(1, $deduplicated);
+        $keptIssue = $deduplicated->toArray()[0];
+        self::assertSame('collection_uninitialized', $keptIssue->getType());
+        self::assertInstanceOf(DeduplicatableIssueInterface::class, $keptIssue);
+        /** @var DeduplicatableIssueInterface $keptIssue */
+        self::assertCount(2, $keptIssue->getDuplicatedIssues());
     }
 
     /**

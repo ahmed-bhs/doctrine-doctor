@@ -3,7 +3,14 @@
 {# Highlighting is now handled in PHP via DescriptionHighlighter utility class #}
 
 {% macro render_issue(issue, loop_index, prefix) %}
-    <div class="issue-card">
+    {% set severityKey = issue.getSeverity().isCritical() ? 'critical' : (issue.getSeverity().isWarning() ? 'warning' : 'info') %}
+    <div
+        class="issue-card"
+        data-issue-card="true"
+        data-severity="{{ severityKey }}"
+        data-title="{{ issue.getTitle()|e('html_attr') }}"
+        data-type="{{ issue.getType()|e('html_attr') }}"
+    >
         <div class="issue-header {% if issue.getSeverity().isCritical() %}severity-critical{% elseif issue.getSeverity().isWarning() %}severity-warning{% else %}severity-info{% endif %}">
             <div class="issue-header-content">
                 <span class="issue-badge {% if issue.getSeverity().isCritical() %}badge-critical{% elseif issue.getSeverity().isWarning() %}badge-warning{% else %}badge-info{% endif %}">
@@ -12,39 +19,25 @@
                 <h3 class="issue-title">
                     {{ issue.getTitle() }}
                     {% if issue.getDuplicatedIssues()|length > 0 %}
-                        <span class="dd-tooltip-wrapper">
-                            <span class="dd-duplicate-badge" title="">
+                        <span class="dd-duplicate-wrapper">
+                            <button
+                                type="button"
+                                class="dd-duplicate-badge dd-toggle"
+                                data-toggle-selector="#{{ prefix }}-duplicates-{{ loop_index }}"
+                                data-toggle-alt-content="Hide similar"
+                                aria-controls="{{ prefix }}-duplicates-{{ loop_index }}"
+                                aria-expanded="false"
+                                title="Show similar issues"
+                            >
                                 <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                                     <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                                     <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
                                 </svg>
-                                {{ issue.getDuplicatedIssues()|length }}
-                            </span>
-                            <div class="dd-tooltip">
-                                <div class="dd-tooltip-header">
-                                    <strong>{{ issue.getDuplicatedIssues()|length }} similar issue{{ issue.getDuplicatedIssues()|length > 1 ? 's' : '' }} hidden</strong>
-                                </div>
-                                <div class="dd-tooltip-content">
-                                    {% for duplicatedIssue in issue.getDuplicatedIssues() %}
-                                        <div class="dd-tooltip-item">
-                                            <span class="dd-tooltip-severity {% if duplicatedIssue.getSeverity().isCritical() %}severity-critical{% elseif duplicatedIssue.getSeverity().isWarning() %}severity-warning{% else %}severity-info{% endif %}">
-                                                {{ duplicatedIssue.getSeverity().getEmoji() }}
-                                                <span class="dd-tooltip-type">{{ duplicatedIssue.getTitle() }}</span>
-                                            </span>
-                                            {% set cleanDescription = duplicatedIssue.getDescription() %}
-                                            {% if cleanDescription|length > 100 %}
-                                                <div class="dd-tooltip-description dd-expandable-desc">
-                                                    <span class="dd-desc-short">{{ cleanDescription|slice(0, 100) }}</span>
-                                                    <span class="dd-desc-full" style="display: none;">{{ cleanDescription }}</span>
-                                                    <a href="#" class="dd-desc-toggle" onclick="event.preventDefault(); var item = this.closest('.dd-expandable-desc'); var short = item.querySelector('.dd-desc-short'); var full = item.querySelector('.dd-desc-full'); if (full.style.display === 'none') { short.style.display = 'none'; full.style.display = 'inline'; this.textContent = '...voir moins'; } else { short.style.display = 'inline'; full.style.display = 'none'; this.textContent = '...voir plus'; }">...voir plus</a>
-                                                </div>
-                                            {% else %}
-                                                <div class="dd-tooltip-description">{{ cleanDescription }}</div>
-                                            {% endif %}
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
+                                <span class="dd-btn-text">{{ issue.getDuplicatedIssues()|length }} similar</span>
+                                <svg class="dd-btn-chevron" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                                </svg>
+                            </button>
                         </span>
                     {% endif %}
                 </h3>
@@ -56,46 +49,95 @@
 
             {# Action buttons container #}
             <div class="issue-actions">
-                {% if issue.getQueries() %}
-                    <a href="#" class="dd-btn dd-btn-secondary dd-btn-sm dd-toggle" data-toggle-selector="#{{ prefix }}-queries-{{ loop_index }}" data-toggle-alt-content="Hide affected queries">
-                        <svg class="dd-btn-icon" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                            <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
-                        </svg>
-                        <span class="dd-btn-text">Affected queries</span>
-                        <span class="dd-btn-badge">{{ issue.getQueries()|length }}</span>
-                        <svg class="dd-btn-chevron" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                        </svg>
-                    </a>
-                {% endif %}
-
                 {% if issue.getSuggestion() %}
-                    <a href="#" class="dd-btn dd-btn-primary dd-btn-sm dd-toggle" data-toggle-selector="#{{ prefix }}-suggestion-{{ loop_index }}" data-toggle-alt-content="Hide suggested fix">
+                    <button
+                        type="button"
+                        class="dd-btn dd-btn-primary dd-btn-sm dd-toggle dd-action-fix"
+                        data-toggle-selector="#{{ prefix }}-suggestion-{{ loop_index }}"
+                        data-toggle-alt-content="Hide fix"
+                        aria-controls="{{ prefix }}-suggestion-{{ loop_index }}"
+                        aria-expanded="false"
+                    >
                         <svg class="dd-btn-icon" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                             <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
                         </svg>
-                        <span class="dd-btn-text">Suggested fix</span>
+                        <span class="dd-btn-text">Fix</span>
                         <svg class="dd-btn-chevron" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
                         </svg>
-                    </a>
+                    </button>
+                {% endif %}
+
+                {% if issue.getQueries() %}
+                    <button
+                        type="button"
+                        class="dd-btn dd-btn-secondary dd-btn-sm dd-toggle dd-action-queries"
+                        data-toggle-selector="#{{ prefix }}-queries-{{ loop_index }}"
+                        data-toggle-alt-content="Hide queries"
+                        aria-controls="{{ prefix }}-queries-{{ loop_index }}"
+                        aria-expanded="false"
+                    >
+                        <svg class="dd-btn-icon" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+                        </svg>
+                        <span class="dd-btn-text">Queries</span>
+                        <span class="dd-btn-badge">{{ issue.getQueries()|length }}</span>
+                        <svg class="dd-btn-chevron" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </button>
                 {% endif %}
 
                 {% if issue.getBacktrace() %}
-                    <a href="#" class="dd-btn dd-btn-secondary dd-btn-sm dd-toggle" data-toggle-selector="#{{ prefix }}-backtrace-{{ loop_index }}" data-toggle-alt-content="Hide backtrace">
+                    <button
+                        type="button"
+                        class="dd-btn dd-btn-secondary dd-btn-sm dd-toggle dd-action-trace"
+                        data-toggle-selector="#{{ prefix }}-backtrace-{{ loop_index }}"
+                        data-toggle-alt-content="Hide trace"
+                        aria-controls="{{ prefix }}-backtrace-{{ loop_index }}"
+                        aria-expanded="false"
+                    >
                         <svg class="dd-btn-icon" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
                             <path d="M6.854 4.646a.5.5 0 0 1 0 .708L4.207 8l2.647 2.646a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 0 1 .708 0zm2.292 0a.5.5 0 0 0 0 .708L11.793 8l-2.647 2.646a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708 0z"/>
                         </svg>
-                        <span class="dd-btn-text">Backtrace</span>
+                        <span class="dd-btn-text">Trace</span>
                         <svg class="dd-btn-chevron" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
                         </svg>
-                    </a>
+                    </button>
                 {% endif %}
             </div>
+
+            {% if issue.getDuplicatedIssues()|length > 0 %}
+                <div id="{{ prefix }}-duplicates-{{ loop_index }}" class="dd-collapsible dd-duplicates-panel hidden">
+                    <div class="dd-duplicates-header">
+                        <strong>{{ issue.getDuplicatedIssues()|length }} similar issue{{ issue.getDuplicatedIssues()|length > 1 ? 's' : '' }} hidden</strong>
+                    </div>
+                    <div class="dd-duplicates-content">
+                        {% for duplicatedIssue in issue.getDuplicatedIssues() %}
+                            <article class="dd-duplicate-item" data-severity="{% if duplicatedIssue.getSeverity().isCritical() %}critical{% elseif duplicatedIssue.getSeverity().isWarning() %}warning{% else %}info{% endif %}">
+                                <div class="dd-duplicate-title">
+                                    <span>{{ duplicatedIssue.getSeverity().getEmoji() }}</span>
+                                    <strong>{{ duplicatedIssue.getTitle() }}</strong>
+                                </div>
+                                {% set cleanDescription = duplicatedIssue.getDescription() %}
+                                {% if cleanDescription|length > 130 %}
+                                    <div class="dd-duplicate-description dd-expandable-desc">
+                                        <span class="dd-desc-short">{{ cleanDescription|slice(0, 130) }}</span>
+                                        <span class="dd-desc-full hidden">{{ cleanDescription }}</span>
+                                        <button type="button" class="dd-desc-toggle" aria-expanded="false">...view more</button>
+                                    </div>
+                                {% else %}
+                                    <p class="dd-duplicate-description">{{ cleanDescription }}</p>
+                                {% endif %}
+                            </article>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
 
             {# Collapsible content sections #}
             {% if issue.getQueries() %}
@@ -240,8 +282,8 @@
 
     {% set dbInfo = collector.getDatabaseInfo %}
 
-    {# Database Information Section #}
-    <div class="metrics" style="margin-bottom: 20px;">
+    {# Database + Analysis Metrics (single row) #}
+    <div class="metrics">
         <div class="metric-group">
             <div class="metric">
                 <span class="value">{{ dbInfo.driver }}</span>
@@ -264,28 +306,6 @@
                     <span class="label">Status</span>
                 </div>
             {% endif %}
-        </div>
-    </div>
-
-    {% if dbInfo.is_deprecated %}
-        <div class="dd-alert dd-alert-error" style="margin-bottom: 20px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
-            </svg>
-            <div>
-                <strong>Deprecated Version Detected</strong>
-                <p style="margin: 4px 0 0 0;">{{ dbInfo.deprecation_message }}</p>
-            </div>
-        </div>
-    {% endif %}
-
-    <div class="metrics">
-        <div class="metric-group">
-            <div class="metric">
-                <span class="value">{{ collector.getStats.total_issues }}</span>
-                <span class="label">Total Issues</span>
-            </div>
-
             <div class="metric">
                 <span class="value {{ collector.getStats.critical > 0 ? 'status-error' : '' }}">{{ collector.getStats.critical }}</span>
                 <span class="label">Critical</span>
@@ -297,7 +317,7 @@
             </div>
 
             <div class="metric">
-                <span class="value">{{ collector.getStats.info }}</span>
+                <span class="value {{ collector.getStats.info > 0 ? 'status-info' : '' }}">{{ collector.getStats.info }}</span>
                 <span class="label">Info</span>
             </div>
 
@@ -308,15 +328,27 @@
 
             {% set overhead = collector.getProfilerOverhead %}
             {% if overhead.total_time_ms > 0 %}
-            <div class="metric">
-                <span class="value" style="color: #E0E0E0;" title="Time spent by Doctrine Doctor analysis (excluded from app performance)">{{ overhead.total_time_ms|number_format(2) }} ms</span>
-                <span class="label">Profiler Overhead</span>
-            </div>
+                <div class="metric">
+                    <span class="value dd-overhead-value" title="Time spent by Doctrine Doctor analysis (excluded from app performance)">{{ overhead.total_time_ms|number_format(2) }} ms</span>
+                    <span class="label">Profiler Overhead</span>
+                </div>
             {% endif %}
         </div>
     </div>
 
-    <div class="sf-tabs" style="margin-top: 20px;">
+    {% if dbInfo.is_deprecated %}
+        <div class="dd-alert dd-alert-error dd-mb-20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+            </svg>
+            <div>
+                <strong>Deprecated Version Detected</strong>
+                <p class="dd-alert-deprecation-message">{{ dbInfo.deprecation_message }}</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="sf-tabs dd-panel-typography">
         <div class="tab {{ collector.getIssueCountByCategory('performance') == 0 ? 'disabled' }}">
             <h3 class="tab-title">⚡ Performance ({{ collector.getIssueCountByCategory('performance') }})</h3>
             <div class="tab-content">
@@ -327,9 +359,30 @@
                     </div>
                 {% else %}
                     {% import _self as macros %}
-                    {% for issue in performanceIssues %}
-                        {{ macros.render_issue(issue, loop.index, 'perf') }}
-                    {% endfor %}
+                    <div class="dd-issue-controls" data-controls-for="performance">
+                        <div class="dd-control-group">
+                            <input type="search" class="dd-issue-search" data-filter-search placeholder="Search title/type..." aria-label="Search performance issues">
+                        </div>
+                        <div class="dd-control-group dd-severity-filters" role="group" aria-label="Filter by severity">
+                            <button type="button" class="dd-chip is-active" data-filter-severity="all">All</button>
+                            <button type="button" class="dd-chip" data-filter-severity="critical">Critical</button>
+                            <button type="button" class="dd-chip" data-filter-severity="warning">Warnings</button>
+                            <button type="button" class="dd-chip" data-filter-severity="info">Info</button>
+                        </div>
+                        <div class="dd-control-group">
+                            <select class="dd-issue-sort" data-filter-sort aria-label="Sort performance issues">
+                                <option value="severity_desc">Sort: Severity</option>
+                                <option value="title_asc">Title A-Z</option>
+                                <option value="title_desc">Title Z-A</option>
+                            </select>
+                            <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>Reset</button>
+                        </div>
+                    </div>
+                    <div class="dd-issue-list" data-issue-list="performance">
+                        {% for issue in performanceIssues %}
+                            {{ macros.render_issue(issue, loop.index, 'perf') }}
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -344,9 +397,30 @@
                     </div>
                 {% else %}
                     {% import _self as macros %}
-                    {% for issue in securityIssues %}
-                        {{ macros.render_issue(issue, loop.index, 'security') }}
-                    {% endfor %}
+                    <div class="dd-issue-controls" data-controls-for="security">
+                        <div class="dd-control-group">
+                            <input type="search" class="dd-issue-search" data-filter-search placeholder="Search title/type..." aria-label="Search security issues">
+                        </div>
+                        <div class="dd-control-group dd-severity-filters" role="group" aria-label="Filter by severity">
+                            <button type="button" class="dd-chip is-active" data-filter-severity="all">All</button>
+                            <button type="button" class="dd-chip" data-filter-severity="critical">Critical</button>
+                            <button type="button" class="dd-chip" data-filter-severity="warning">Warnings</button>
+                            <button type="button" class="dd-chip" data-filter-severity="info">Info</button>
+                        </div>
+                        <div class="dd-control-group">
+                            <select class="dd-issue-sort" data-filter-sort aria-label="Sort security issues">
+                                <option value="severity_desc">Sort: Severity</option>
+                                <option value="title_asc">Title A-Z</option>
+                                <option value="title_desc">Title Z-A</option>
+                            </select>
+                            <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>Reset</button>
+                        </div>
+                    </div>
+                    <div class="dd-issue-list" data-issue-list="security">
+                        {% for issue in securityIssues %}
+                            {{ macros.render_issue(issue, loop.index, 'security') }}
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -361,9 +435,30 @@
                     </div>
                 {% else %}
                     {% import _self as macros %}
-                    {% for issue in integrityIssues %}
-                        {{ macros.render_issue(issue, loop.index, 'integrity') }}
-                    {% endfor %}
+                    <div class="dd-issue-controls" data-controls-for="integrity">
+                        <div class="dd-control-group">
+                            <input type="search" class="dd-issue-search" data-filter-search placeholder="Search title/type..." aria-label="Search integrity issues">
+                        </div>
+                        <div class="dd-control-group dd-severity-filters" role="group" aria-label="Filter by severity">
+                            <button type="button" class="dd-chip is-active" data-filter-severity="all">All</button>
+                            <button type="button" class="dd-chip" data-filter-severity="critical">Critical</button>
+                            <button type="button" class="dd-chip" data-filter-severity="warning">Warnings</button>
+                            <button type="button" class="dd-chip" data-filter-severity="info">Info</button>
+                        </div>
+                        <div class="dd-control-group">
+                            <select class="dd-issue-sort" data-filter-sort aria-label="Sort integrity issues">
+                                <option value="severity_desc">Sort: Severity</option>
+                                <option value="title_asc">Title A-Z</option>
+                                <option value="title_desc">Title Z-A</option>
+                            </select>
+                            <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>Reset</button>
+                        </div>
+                    </div>
+                    <div class="dd-issue-list" data-issue-list="integrity">
+                        {% for issue in integrityIssues %}
+                            {{ macros.render_issue(issue, loop.index, 'integrity') }}
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -378,9 +473,30 @@
                     </div>
                 {% else %}
                     {% import _self as macros %}
-                    {% for issue in configurationIssues %}
-                        {{ macros.render_issue(issue, loop.index, 'config') }}
-                    {% endfor %}
+                    <div class="dd-issue-controls" data-controls-for="configuration">
+                        <div class="dd-control-group">
+                            <input type="search" class="dd-issue-search" data-filter-search placeholder="Search title/type..." aria-label="Search configuration issues">
+                        </div>
+                        <div class="dd-control-group dd-severity-filters" role="group" aria-label="Filter by severity">
+                            <button type="button" class="dd-chip is-active" data-filter-severity="all">All</button>
+                            <button type="button" class="dd-chip" data-filter-severity="critical">Critical</button>
+                            <button type="button" class="dd-chip" data-filter-severity="warning">Warnings</button>
+                            <button type="button" class="dd-chip" data-filter-severity="info">Info</button>
+                        </div>
+                        <div class="dd-control-group">
+                            <select class="dd-issue-sort" data-filter-sort aria-label="Sort configuration issues">
+                                <option value="severity_desc">Sort: Severity</option>
+                                <option value="title_asc">Title A-Z</option>
+                                <option value="title_desc">Title Z-A</option>
+                            </select>
+                            <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>Reset</button>
+                        </div>
+                    </div>
+                    <div class="dd-issue-list" data-issue-list="configuration">
+                        {% for issue in configurationIssues %}
+                            {{ macros.render_issue(issue, loop.index, 'config') }}
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -402,7 +518,7 @@
                                 <th>Total Time</th>
                                 <th>Avg Time</th>
                                 <th>Min/Max</th>
-                                <th style="width: 100%;">Query</th>
+                                <th class="dd-w-full">Query</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -434,12 +550,12 @@
                                     </td>
                                     <td>
                                         <div class="text-small">
-                                            <a href="#" class="sf-toggle link-inverse" data-toggle-selector="#query-{{ loop.index }}" data-toggle-alt-content="Hide query">
+                                            <button type="button" class="sf-toggle link-inverse" data-toggle-selector="#query-{{ loop.index }}" data-toggle-alt-content="Hide query" aria-controls="query-{{ loop.index }}" aria-expanded="false">
                                                 View query
-                                            </a>
+                                            </button>
                                         </div>
-                                        <div id="query-{{ loop.index }}" class="hidden" style="margin-top: 5px;">
-                                            <div style="font-size: 11px;">
+                                        <div id="query-{{ loop.index }}" class="hidden dd-mt-5">
+                                            <div class="dd-fs-12">
                                                 {{ queryGroup.sql|doctrine_format_sql(highlight = true)|raw }}
                                             </div>
                                         </div>
@@ -450,12 +566,12 @@
                     </table>
 
                     {% if collector.groupedQueriesByTime|length > 10 %}
-                        <div class="text-small font-normal" style="margin-top: 20px;">
-                            <a href="#" class="sf-toggle link-inverse" data-toggle-selector="#all-queries" data-toggle-alt-content="Hide all queries">
+                        <div class="text-small font-normal dd-mt-20">
+                            <button type="button" class="sf-toggle link-inverse" data-toggle-selector="#all-queries" data-toggle-alt-content="Hide all queries" aria-controls="all-queries" aria-expanded="false">
                                 Show all grouped queries ({{ collector.groupedQueriesByTime|length }} unique)
-                            </a>
+                            </button>
                         </div>
-                        <div id="all-queries" class="hidden" style="margin-top: 10px;">
+                        <div id="all-queries" class="hidden dd-mt-10">
                             <table class="alt queries-table">
                                 <thead>
                                     <tr>
@@ -463,7 +579,7 @@
                                         <th>Count</th>
                                         <th>Total Time</th>
                                         <th>Avg Time</th>
-                                        <th style="width: 100%;">Query</th>
+                                        <th class="dd-w-full">Query</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -477,7 +593,7 @@
                                             <td>{{ totalTimeMs }} ms</td>
                                             <td>{{ avgTimeMs }} ms</td>
                                             <td>
-                                                <div style="font-size: 10px;">
+                                                <div class="dd-fs-12">
                                                     {{ queryGroup.sql|doctrine_prettify_sql|raw }}
                                                 </div>
                                             </td>
@@ -502,7 +618,7 @@
                     <table class="alt">
                         <thead>
                             <tr>
-                                <th style="width: 30%;">Metric</th>
+                                <th class="dd-w-30">Metric</th>
                                 <th>Value</th>
                             </tr>
                         </thead>
@@ -533,26 +649,26 @@
                                     <td><strong class="{{ collector.getIssues|length > 0 ? 'status-error' : 'status-success' }}">{{ collector.getIssues|length }}</strong></td>
                                 </tr>
                                 {% if debug.profiler_overhead_ms is defined and debug.profiler_overhead_ms > 0 %}
-                                    <tr style="background-color: #f8f9fa;">
-                                        <th colspan="2" style="padding: 10px; border-top: 2px solid #dee2e6;">
+                                    <tr class="dd-bg-muted">
+                                        <th colspan="2" class="dd-p-10 dd-bt-2-muted">
                                             <strong>Profiler Overhead (Excluded from App Performance)</strong>
                                         </th>
                                     </tr>
                                     {% set overhead = collector.getProfilerOverhead %}
                                     <tr>
-                                        <th style="padding-left: 20px;">Query Analysis Time</th>
+                                        <th class="dd-pl-20">Query Analysis Time</th>
                                         <td><strong>{{ overhead.analysis_time_ms|number_format(2) }} ms</strong></td>
                                     </tr>
                                     <tr>
-                                        <th style="padding-left: 20px;">Database Info Collection Time</th>
+                                        <th class="dd-pl-20">Database Info Collection Time</th>
                                         <td><strong>{{ overhead.db_info_time_ms|number_format(2) }} ms</strong></td>
                                     </tr>
                                     <tr>
-                                        <th style="padding-left: 20px;">Total Profiler Overhead</th>
-                                        <td><strong style="color: #888;">{{ overhead.total_time_ms|number_format(2) }} ms</strong></td>
+                                        <th class="dd-pl-20">Total Profiler Overhead</th>
+                                        <td><strong class="dd-muted-strong">{{ overhead.total_time_ms|number_format(2) }} ms</strong></td>
                                     </tr>
                                     <tr>
-                                        <td colspan="2" style="padding: 10px; font-size: 0.9em; color: #666; background-color: #f8f9fa;">
+                                        <td colspan="2" class="dd-p-10 dd-fs-90 dd-text-muted-666 dd-bg-muted">
                                             <em>ℹ️ This time is isolated using Stopwatch with category "doctrine_doctor_profiling" and is NOT included in your application's performance metrics.</em>
                                         </td>
                                     </tr>
@@ -602,1745 +718,7 @@
         {% endif %}
     </div>
 
-    <style>
-        /* SQL syntax highlighting - using Doctrine profiler styles */
-        {% if profiler_markup_version >= 3 %}
-        .highlight .keyword   { color: var(--highlight-keyword); font-weight: bold; }
-        .highlight .word      { color: var(--color-text); }
-        .highlight .variable  { color: var(--highlight-variable); }
-        .highlight .symbol    { color: var(--color-text); }
-        .highlight .comment   { color: var(--highlight-comment); }
-        .highlight .string    { color: var(--highlight-string); }
-        .highlight .number    { color: var(--highlight-constant); font-weight: bold; }
-        .highlight .error     { color: var(--highlight-error); }
-        {% endif %}
-
-        .highlight-sql {
-            background: transparent;
-        }
-
-        /* ============================================
-           Issue Card - Modern Design
-           ============================================ */
-
-        .issue-card {
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            margin-bottom: 20px;
-            overflow: visible; /* Changed from hidden to visible to allow tooltips */
-            border: 1px solid #e0e0e0;
-            transition: box-shadow 0.2s;
-            position: relative; /* Ensure proper stacking context */
-        }
-
-        .issue-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-        }
-
-        .issue-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #e9ecef;
-            border-radius: 8px 8px 0 0; /* Maintain rounded corners on header */
-            overflow: visible; /* Allow tooltips to overflow */
-            position: relative; /* Stacking context */
-        }
-
-        .issue-header.severity-critical {
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-            border-left: 4px solid #dc2626;
-        }
-
-        .issue-header.severity-warning {
-            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-            border-left: 4px solid #eab308;
-        }
-
-        .issue-header.severity-info {
-            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-            border-left: 4px solid #0ea5e9;
-        }
-
-        .issue-header-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .issue-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .issue-badge.badge-critical {
-            background: #dc2626;
-            color: #ffffff;
-        }
-
-        .issue-badge.badge-warning {
-            background: #eab308;
-            color: #ffffff;
-        }
-
-        .issue-badge.badge-info {
-            background: #0ea5e9;
-            color: #ffffff;
-        }
-
-        .issue-title {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 600;
-            color: #1f2937;
-            line-height: 1.4;
-            flex: 1;
-        }
-
-        .issue-body {
-            padding: 20px;
-            border-radius: 0 0 8px 8px; /* Rounded corners on bottom */
-            overflow: hidden; /* Clip to rounded corners */
-        }
-
-        .issue-description {
-            margin: 0 0 16px 0;
-            color: #4b5563;
-            line-height: 1.6;
-        }
-
-        /* Inline code in descriptions - Simple style */
-        .issue-description code {
-            padding: 2px 5px;
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 90%;
-            color: #c7254e;
-        }
-
-        /* ============================================
-           Action Buttons - Uniform Design System
-           ============================================ */
-
-        .issue-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 0;
-        }
-
-        .dd-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            border: 1px solid;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            background: transparent;
-            font-family: inherit;
-        }
-
-        .dd-btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-
-        .dd-btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-color: #667eea;
-            color: #ffffff;
-        }
-
-        .dd-btn-primary:hover {
-            background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
-            border-color: #5568d3;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .dd-btn-secondary {
-            background: #f8f9fa;
-            border-color: #dee2e6;
-            color: #495057;
-        }
-
-        .dd-btn-secondary:hover {
-            background: #e9ecef;
-            border-color: #adb5bd;
-            color: #212529;
-        }
-
-        .dd-btn-icon {
-            flex-shrink: 0;
-        }
-
-        .dd-btn-text {
-            flex-shrink: 0;
-        }
-
-        .dd-btn-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 20px;
-            height: 18px;
-            padding: 0 6px;
-            background: rgba(0, 0, 0, 0.15);
-            border-radius: 9px;
-            font-size: 11px;
-            font-weight: 600;
-            line-height: 1;
-        }
-
-        .dd-btn-primary .dd-btn-badge {
-            background: rgba(255, 255, 255, 0.25);
-            color: #ffffff;
-        }
-
-        .dd-btn-chevron {
-            flex-shrink: 0;
-            transition: transform 0.3s ease;
-        }
-
-        .dd-btn.sf-toggle-on .dd-btn-chevron {
-            transform: rotate(180deg);
-        }
-
-        /* ============================================
-           Collapsible Content - Smooth Animations
-           ============================================ */
-
-        .dd-collapsible {
-            margin-top: 12px;
-        }
-
-        /* ============================================
-           Queries List
-           ============================================ */
-
-        .queries-list {
-            padding: 0;
-        }
-
-        .query-item {
-            margin: 8px 0;
-            padding: 0;
-            background: #ffffff;
-            border: 1px solid #e9ecef;
-            border-left: 3px solid #667eea;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .query-item:first-child {
-            margin-top: 0;
-        }
-
-        /* Support pour <pre> et <code> dans query-item */
-        .query-item pre {
-            margin: 0;
-            padding: 16px;
-            background: #f8f9fa;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            overflow-x: auto;
-        }
-
-        .query-item code {
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 13px;
-        }
-
-        /* Support pour le highlighting SQL dans query-item */
-        .query-item .highlight-sql,
-        .query-item .highlight {
-            display: block;
-            padding: 16px;
-            background: #f8f9fa;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            overflow-x: auto;
-        }
-
-        /* Style amélioré pour query-item dans suggestion-content */
-        .suggestion-content .query-item {
-            margin: 16px 0;
-            border-radius: 6px;
-            border-left: 4px solid #667eea;
-            background: #f6f8fa;
-            overflow: hidden;
-        }
-
-        .suggestion-content .query-item pre {
-            background: transparent;
-            padding: 16px;
-            margin: 0;
-        }
-
-        .suggestion-content .query-item code {
-            color: #24292f;
-            background: transparent;
-            border: none;
-            padding: 0;
-            font-size: 13px;
-        }
-
-        /* Ensure syntax highlighting works in query-item */
-        .query-item .highlight .keyword   { color: #d73a49; font-weight: bold; }
-        .query-item .highlight .word      { color: #24292e; }
-        .query-item .highlight .variable  { color: #e36209; }
-        .query-item .highlight .symbol    { color: #24292e; }
-        .query-item .highlight .comment   { color: #6a737d; font-style: italic; }
-        .query-item .highlight .string    { color: #032f62; }
-        .query-item .highlight .number    { color: #005cc5; font-weight: bold; }
-        .query-item .highlight .error     { color: #d73a49; background: #ffeef0; }
-
-        /* ============================================
-           Backtrace Content
-           ============================================ */
-
-        .backtrace-content {
-            padding: 16px;
-            background: #1e1e1e;
-            border-radius: 6px;
-        }
-
-        .backtrace-content pre {
-            margin: 0;
-            padding: 0;
-            background: transparent;
-            color: #d4d4d4;
-            font-size: 12px;
-            line-height: 1.6;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            overflow-x: auto;
-        }
-
-        /* ============================================
-           Status Styles - Simple & Clean
-           ============================================ */
-
-        .value.status-error,
-        .label.status-error {
-            color: #dc3545;
-            font-weight: 600;
-            border-radius: 3px;
-        }
-
-        .value.status-warning,
-        .label.status-warning {
-            color: #ff9800;
-            font-weight: 600;
-            border-radius: 3px;
-        }
-
-        .value.status-success,
-        .label.status-success {
-            color: #28a745;
-            font-weight: 600;
-            border-radius: 3px;
-        }
-
-        /* ============================================
-           Modern Alert Boxes
-           ============================================ */
-
-        .dd-alert {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 14px 16px;
-            border-radius: 4px;
-            border-left: 4px solid;
-        }
-
-        .dd-alert svg {
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .dd-alert > div {
-            flex: 1;
-        }
-
-        .dd-alert strong {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .dd-alert-error {
-            background: #f8d7da;
-            border-left-color: #dc3545;
-            color: #721c24;
-        }
-
-        .dd-alert-error svg {
-            color: #dc3545;
-        }
-
-        .dd-alert-warning {
-            background: #fff3cd;
-            border-left-color: #ff9800;
-            color: #856404;
-        }
-
-        .dd-alert-warning svg {
-            color: #ff9800;
-        }
-
-        .dd-alert-success {
-            background: #d4edda;
-            border-left-color: #28a745;
-            color: #155724;
-        }
-
-        .dd-alert-success svg {
-            color: #28a745;
-        }
-
-        /* Preserve old card classes for backward compat */
-        .card-header.status-warning {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 12px 15px;
-        }
-
-        .card-header.status-error {
-            background-color: #f8d7da;
-            border-left: 4px solid #dc3545;
-            padding: 12px 15px;
-        }
-
-        /* Fix alignment in slowest queries table */
-        .queries-table td.time-container {
-            vertical-align: middle;
-            text-align: center;
-        }
-
-        .queries-table td .text-small {
-            margin-top: 0;
-        }
-
-        .queries-table td {
-            vertical-align: middle;
-            padding: 10px;
-        }
-
-        .queries-table td:first-child {
-            text-align: center;
-        }
-
-        /* ============================================
-           Suggestion Container - Main Structure
-           ============================================ */
-
-        .suggestion-container {
-            margin-top: 20px;
-            background: transparent;
-            border: none;
-            box-shadow: none;
-        }
-
-        .suggestion-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-radius: 8px 8px 0 0;
-            box-shadow: 0 1px 3px rgba(102, 126, 234, 0.15);
-        }
-
-        .suggestion-header::before {
-            content: "💡";
-            font-size: 18px;
-            display: inline-block;
-        }
-
-        .suggestion-header svg {
-            flex-shrink: 0;
-            width: 18px;
-            height: 18px;
-            color: #ffffff;
-        }
-
-        .suggestion-header h4 {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 600;
-            color: #ffffff;
-            line-height: 1.4;
-            text-transform: none;
-            letter-spacing: 0.3px;
-        }
-
-        .suggestion-content {
-            padding: 0;
-            background: transparent;
-        }
-
-        /* ============================================
-           Content Blocks - Text & Paragraphs
-           ============================================ */
-
-        /* Bloc info = container pour titre + fichier */
-        .suggestion-content > p:first-child {
-            margin: 0 0 20px 0;
-            padding: 16px 20px 10px 20px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-            line-height: 1.5;
-            color: #0f172a;
-            font-size: 12px;
-            font-weight: 600;
-            border-left: 4px solid #667eea;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        }
-
-        /* Info de fichier - dans le même bloc, style discret */
-        .suggestion-content > p:first-child + p {
-            margin: -20px 0 20px 0;
-            padding: 0 20px 14px 20px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-            border-left: 4px solid #667eea;
-            border-radius: 0 0 6px 6px;
-            font-size: 12px;
-            color: black;
-            line-height: 1.4;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            font-weight: normal;
-        }
-
-        .suggestion-content > p:first-child + p strong {
-            font-weight: 500;
-            color: #4a5568;
-            font-size: 11px;
-        }
-
-        .suggestion-content > p:first-child + p code {
-            font-size: 10px;
-            padding: 1px 4px;
-            font-weight: normal;
-        }
-
-        /* Paragraphes normaux */
-        .suggestion-content p {
-            margin: 12px 0;
-            padding: 0;
-            line-height: 1.7;
-            color: #4a5568;
-            background: transparent;
-            font-size: 13px;
-        }
-
-        /* Inline elements */
-        .suggestion-content code {
-            background: #f1f3f5;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-            font-size: 12px;
-            color: #c7254e;
-            border: 1px solid #e1e4e8;
-            font-weight: 500;
-        }
-
-        .suggestion-content strong {
-            font-weight: 600;
-            color: #2d3748;
-        }
-
-        /* ============================================
-           Headings - Section Titles
-           ============================================ */
-
-        .suggestion-content h3,
-        .suggestion-content h4,
-        .suggestion-content h5 {
-            margin: 24px 0 12px 0;
-            padding: 0 0 8px 0;
-            font-weight: 600;
-            background: transparent;
-            border-bottom: 2px solid #e9ecef;
-        }
-
-        .suggestion-content h3 {
-            font-size: 15px;
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-
-        .suggestion-content h4 {
-            font-size: 14px;
-            color: #4a5568;
-            border-bottom-color: #cbd5e0;
-        }
-
-        .suggestion-content h5 {
-            font-size: 13px;
-            color: #718096;
-            font-weight: 500;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        /* ============================================
-           Code Blocks - Individual
-           ============================================ */
-
-        .suggestion-content .code-block {
-            margin: 16px 0;
-            border-radius: 6px;
-            overflow: hidden;
-            background: #f6f8fa;
-            border-left: 4px solid #d1d5db;
-        }
-
-        .suggestion-content .code-label {
-            display: inline-block;
-            padding: 4px 10px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin: 12px 0 -8px 12px;
-            border-radius: 4px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .suggestion-content .label-bad {
-            background: #ef4444;
-            color: #ffffff;
-        }
-
-        .suggestion-content .label-bad::before {
-            content: "📢 ";
-            margin-right: 4px;
-        }
-
-        .suggestion-content .label-good {
-            background: #10b981;
-            color: #ffffff;
-        }
-
-        .suggestion-content .label-good::before {
-            content: "";
-            margin-right: 4px;
-        }
-
-        .suggestion-content .code-block pre {
-            margin: 0;
-            padding: 16px;
-            background: transparent;
-            overflow-x: auto;
-            font-size: 13px;
-            line-height: 1.6;
-            border: none;
-        }
-
-        .suggestion-content .code-block.label-good {
-            background: #f0fdf4;
-            border-left-color: #10b981;
-        }
-
-        .suggestion-content .code-block.label-bad {
-            background: #fef2f2;
-            border-left-color: #ef4444;
-        }
-
-        .suggestion-content .code-block pre code {
-            background: transparent;
-            padding: 0;
-            border: none;
-            color: #24292f;
-            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-            font-size: 13px;
-        }
-
-        /* ============================================
-           Code Comparison - Side by Side
-           ============================================ */
-
-        .suggestion-content .code-comparison {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0;
-            margin: 16px;
-            border: 1px solid #e9ecef;
-            border-radius: 6px;
-            overflow: hidden;
-            background: #ffffff;
-        }
-
-        .suggestion-content .comparison-side {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .suggestion-content .comparison-side:first-child {
-            border-right: 2px solid #e9ecef;
-        }
-
-        .suggestion-content .comparison-bad {
-            background: #fff5f5;
-        }
-
-        .suggestion-content .comparison-good {
-            background: #f0fdf4;
-        }
-
-        .suggestion-content .code-comparison .code-label {
-            margin: 0;
-            padding: 8px 12px;
-            border-radius: 0;
-            width: 100%;
-            text-align: center;
-        }
-
-        .suggestion-content .code-comparison pre {
-            margin: 0;
-            border: none;
-            border-radius: 0;
-            flex-grow: 1;
-        }
-
-        /* ============================================
-           Alerts - Warnings & Info
-           ============================================ */
-
-        .suggestion-content .alert {
-            padding: 14px 16px;
-            margin: 16px 0;
-            border-radius: 6px;
-            border-left: 4px solid;
-            display: block;
-            line-height: 1.6;
-        }
-
-        .suggestion-content .alert p {
-            margin: 0;
-            padding: 0;
-            background: transparent;
-            border: none;
-        }
-
-        .suggestion-content .alert p:first-child::before {
-            font-size: 16px;
-            margin-right: 8px;
-        }
-
-        .suggestion-content .alert code {
-            background: rgba(0,0,0,0.05);
-            border-color: rgba(0,0,0,0.1);
-        }
-
-        .suggestion-content .alert strong {
-            font-weight: 700;
-        }
-
-        .suggestion-content .alert ul {
-            margin: 8px 0 0 0;
-            padding-left: 20px;
-            background: transparent;
-            border: none;
-        }
-
-        .suggestion-content .alert li {
-            margin: 4px 0;
-            color: inherit;
-        }
-
-        .suggestion-content .alert-warning {
-            background: #fef3c7;
-            border-left-color: #f59e0b;
-            color: #92400e;
-        }
-
-        .suggestion-content .alert-warning p:first-child::before {
-            content: "";
-        }
-
-        .suggestion-content .alert-info {
-            background: #dbeafe;
-            border-left-color: #3b82f6;
-            color: #1e3a8a;
-        }
-
-        .suggestion-content .alert-info p:first-child::before {
-            content: "ℹ️ ";
-        }
-
-        .suggestion-content .alert-danger {
-            background: #fee2e2;
-            border-left-color: #ef4444;
-            color: #991b1b;
-        }
-
-        .suggestion-content .alert-danger p:first-child::before {
-            content: "";
-        }
-
-        .suggestion-content .alert-success {
-            background: #d1fae5;
-            border-left-color: #10b981;
-            color: #065f46;
-        }
-
-        .suggestion-content .alert-success p:first-child::before {
-            content: "";
-        }
-
-        .suggestion-content .doc-link {
-            display: inline-block;
-            margin-top: 8px;
-            color: #667eea;
-            text-decoration: none;
-            font-size: 13px;
-        }
-
-        .suggestion-content .doc-link:hover {
-            text-decoration: underline;
-        }
-
-        /* ============================================
-           Lists - Bullets & Numbers
-           ============================================ */
-
-        .suggestion-content ul,
-        .suggestion-content ol {
-            margin: 12px 0;
-            padding: 0 0 0 24px;
-            background: transparent;
-        }
-
-        .suggestion-content li {
-            margin: 8px 0;
-            line-height: 1.7;
-            color: #4a5568;
-        }
-
-        .suggestion-content ul li::marker {
-            color: #667eea;
-        }
-
-        /* ============================================
-           Links - Documentation
-           ============================================ */
-
-        .suggestion-content .suggestion-link {
-            margin: 16px 0;
-            padding: 0;
-            background: transparent;
-        }
-
-        .suggestion-content .suggestion-link a {
-            color: #667eea;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 500;
-            transition: all 0.2s;
-            font-size: 13px;
-        }
-
-        .suggestion-content .suggestion-link a:hover {
-            color: #764ba2;
-            gap: 8px;
-        }
-
-        .suggestion-content .suggestion-link a::before {
-            content: "📖";
-            font-size: 14px;
-        }
-
-        .suggestion-content .suggestion-link a::after {
-            content: "→";
-            transition: transform 0.2s;
-        }
-
-        .suggestion-content .suggestion-link a:hover::after {
-            transform: translateX(3px);
-        }
-
-        /* ============================================
-           Responsive Design
-           ============================================ */
-
-        @media (max-width: 1200px) {
-            .suggestion-content .code-comparison {
-                grid-template-columns: 1fr;
-                gap: 2px;
-            }
-
-            .suggestion-content .comparison-side:first-child {
-                border-right: none;
-                border-bottom: 2px solid #e9ecef;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .suggestion-container {
-                margin-left: -10px;
-                margin-right: -10px;
-                border-radius: 0;
-            }
-
-            .suggestion-content .code-comparison {
-                margin: 12px;
-            }
-
-            .suggestion-content .alert {
-                margin: 12px;
-            }
-        }
-
-        /* ============================================
-           Print Styles
-           ============================================ */
-
-        @media print {
-            .dd-btn {
-                display: none;
-            }
-
-            .issue-actions {
-                display: none;
-            }
-
-            .dd-collapsible.hidden,
-            .suggestion-container.hidden {
-                display: block !important;
-            }
-            .suggestion-container {
-                break-inside: avoid;
-            }
-        }
-
-        /* ============================================
-           Dark Theme Overrides
-           ============================================ */
-
-        .theme-dark .issue-card {
-            background: #1e1e1e;
-            border-color: #3f3f3f;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-        }
-
-        .theme-dark .issue-card:hover {
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-        }
-
-        .theme-dark .issue-header {
-            border-bottom-color: #3f3f3f;
-        }
-
-        .theme-dark .issue-header.severity-critical {
-            background: linear-gradient(135deg, #3d1a1a 0%, #4d2020 100%);
-            border-left-color: #ff5c5c;
-        }
-
-        .theme-dark .issue-header.severity-warning {
-            background: linear-gradient(135deg, #3d3420 0%, #4d4225 100%);
-            border-left-color: #fbbf24;
-        }
-
-        .theme-dark .issue-header.severity-info {
-            background: linear-gradient(135deg, #1e3a3f 0%, #2d4a51 100%);
-            border-left-color: #0ea5e9;
-        }
-
-        .theme-dark .issue-title {
-            color: #f0f0f0;
-        }
-
-        .theme-dark .issue-description {
-            color: #b8b8b8;
-        }
-
-        /* Dark mode inline code */
-        .theme-dark .issue-description code {
-            background: #2d2d2d;
-            border-color: #444;
-            color: #ff7b72;
-        }
-
-        .theme-dark .issue-body {
-            background: #1e1e1e;
-        }
-
-        .theme-dark .dd-btn-secondary {
-            background: #2a2a2a;
-            border-color: #4a4a4a;
-            color: #e0e0e0;
-        }
-
-        .theme-dark .dd-btn-secondary:hover {
-            background: #353535;
-            border-color: #5a5a5a;
-            color: #ffffff;
-            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
-        }
-
-        .theme-dark .dd-btn-primary {
-            background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
-            border-color: #7c3aed;
-            color: #ffffff;
-        }
-
-        .theme-dark .dd-btn-primary:hover {
-            background: linear-gradient(135deg, #6d28d9 0%, #7e22ce 100%);
-            border-color: #6d28d9;
-            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
-        }
-
-        .theme-dark .query-item {
-            background: #1a1a1a;
-            border-color: #3f3f3f;
-            border-left-color: #9333ea;
-        }
-
-        .theme-dark .query-item pre {
-            background: #1e1e1e;
-            color: #e2e8f0;
-        }
-
-        .theme-dark .query-item code {
-            color: #e2e8f0;
-        }
-
-        .theme-dark .query-item .highlight-sql,
-        .theme-dark .query-item .highlight {
-            background: #1e1e1e;
-            color: #e2e8f0;
-        }
-
-        .theme-dark .suggestion-content .query-item {
-            background: #1e1e1e;
-            border-left-color: #9333ea;
-        }
-
-        .theme-dark .suggestion-content .query-item pre {
-            background: transparent;
-            color: #e2e8f0;
-        }
-
-        .theme-dark .suggestion-content .query-item code {
-            color: #e2e8f0;
-        }
-
-        /* Dark theme syntax highlighting in query-item */
-        .theme-dark .query-item .highlight .keyword   { color: #ff79c6; font-weight: bold; }
-        .theme-dark .query-item .highlight .word      { color: #f8f8f2; }
-        .theme-dark .query-item .highlight .variable  { color: #ffb86c; }
-        .theme-dark .query-item .highlight .symbol    { color: #f8f8f2; }
-        .theme-dark .query-item .highlight .comment   { color: #6272a4; font-style: italic; }
-        .theme-dark .query-item .highlight .string    { color: #f1fa8c; }
-        .theme-dark .query-item .highlight .number    { color: #bd93f9; font-weight: bold; }
-        .theme-dark .query-item .highlight .error     { color: #ff5555; background: #3d1a1a; }
-
-        .theme-dark .suggestion-container {
-            background: transparent;
-        }
-
-        .theme-dark .suggestion-header {
-            background: linear-gradient(135deg, #5b21b6 0%, #7e22ce 100%);
-        }
-
-        .theme-dark .suggestion-header svg {
-            color: #ffffff;
-        }
-
-        .theme-dark .suggestion-header h4 {
-            color: #ffffff;
-        }
-
-        .theme-dark .suggestion-content {
-            background: transparent;
-        }
-
-        .theme-dark .suggestion-content > p:first-child {
-            background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-            border-left-color: #a78bfa;
-            color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-        }
-
-        .theme-dark .suggestion-content > p:first-child + p {
-            background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-            border-left-color: #a78bfa;
-            color: #9ca3af;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-        }
-
-        .theme-dark .suggestion-content > p:first-child + p strong {
-            color: #cbd5e0;
-        }
-
-        .theme-dark .suggestion-content > p:first-child + p code {
-            background: #1a1a1a;
-            color: #a78bfa;
-            border-color: #3f3f3f;
-        }
-
-        .theme-dark .suggestion-content p {
-            color: #cbd5e0;
-            background: transparent;
-        }
-
-        .theme-dark .suggestion-content code {
-            background: #2a2a2a;
-            color: #f687b3;
-            border-color: #4a4a4a;
-        }
-
-        .theme-dark .suggestion-content strong {
-            color: #f7fafc;
-        }
-
-        .theme-dark .suggestion-content h3 {
-            background: transparent;
-            border-bottom-color: #9333ea;
-            color: #a78bfa;
-        }
-
-        .theme-dark .suggestion-content h4 {
-            background: transparent;
-            border-bottom-color: #4a5568;
-            color: #cbd5e0;
-        }
-
-        .theme-dark .suggestion-content h5 {
-            background: transparent;
-            border-bottom-color: #374151;
-            color: #9ca3af;
-        }
-
-        .theme-dark .suggestion-content .code-block {
-            background: #1e1e1e;
-            border-left-color: #4a5568;
-        }
-
-        .theme-dark .suggestion-content .code-block pre {
-            background: transparent;
-            color: #e2e8f0;
-        }
-
-        .theme-dark .suggestion-content .code-block.label-good {
-            background: #1a3327;
-            border-left-color: #10b981;
-        }
-
-        .theme-dark .suggestion-content .code-block.label-bad {
-            background: #3d1a1a;
-            border-left-color: #ef4444;
-        }
-
-        .theme-dark .suggestion-content .code-block pre code {
-            color: #e2e8f0;
-        }
-
-        .theme-dark .suggestion-content .code-comparison {
-            border-color: #3f3f3f;
-            background: #1e1e1e;
-        }
-
-        .theme-dark .suggestion-content .comparison-side:first-child {
-            border-right-color: #3f3f3f;
-        }
-
-        .theme-dark .suggestion-content .comparison-bad {
-            background: #2a1a1a;
-        }
-
-        .theme-dark .suggestion-content .comparison-good {
-            background: #1a2a1a;
-        }
-
-        .theme-dark .suggestion-content .comparison-bad pre {
-            background: #3a1a1a;
-            color: #ffb3b3;
-        }
-
-        .theme-dark .suggestion-content .comparison-good pre {
-            background: #1a3a24;
-            color: #a8e6a8;
-        }
-
-        .theme-dark .suggestion-content .alert {
-            border-top-color: #3f3f3f;
-        }
-
-        .theme-dark .suggestion-content .alert-warning {
-            background: #422006;
-            border-left-color: #f59e0b;
-            color: #fbbf24;
-        }
-
-        .theme-dark .suggestion-content .alert-warning code {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .theme-dark .suggestion-content .alert-info {
-            background: #1e3a8a;
-            border-left-color: #3b82f6;
-            color: #93c5fd;
-        }
-
-        .theme-dark .suggestion-content .alert-info code {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .theme-dark .suggestion-content .alert-danger {
-            background: #450a0a;
-            border-left-color: #ef4444;
-            color: #fca5a5;
-        }
-
-        .theme-dark .suggestion-content .alert-danger code {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .theme-dark .suggestion-content .alert-success {
-            background: #052e16;
-            border-left-color: #10b981;
-            color: #6ee7b7;
-        }
-
-        .theme-dark .suggestion-content .alert-success code {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .theme-dark .suggestion-content .doc-link {
-            color: #a78bfa;
-        }
-
-        .theme-dark .suggestion-content ul,
-        .theme-dark .suggestion-content ol {
-            background: transparent;
-        }
-
-        .theme-dark .suggestion-content li {
-            color: #cbd5e0;
-        }
-
-        .theme-dark .suggestion-content ul li::marker {
-            color: #a78bfa;
-        }
-
-        .theme-dark .suggestion-content .suggestion-link {
-            background: transparent;
-        }
-
-        .theme-dark .suggestion-content .suggestion-link a {
-            color: #a78bfa;
-        }
-
-        .theme-dark .suggestion-content .suggestion-link a:hover {
-            color: #c4b5fd;
-        }
-
-        .theme-dark .dd-alert-error {
-            background: #3d1a1a;
-            border-left-color: #ff5c5c;
-            color: #ffc0c0;
-        }
-
-        .theme-dark .dd-alert-error svg {
-            color: #ff5c5c;
-        }
-
-        .theme-dark .dd-alert-warning {
-            background: #3d3420;
-            border-left-color: #ffc107;
-            color: #ffd966;
-        }
-
-        .theme-dark .dd-alert-warning svg {
-            color: #ffc107;
-        }
-
-        .theme-dark .dd-alert-success {
-            background: #1a3a24;
-            border-left-color: #3db93d;
-            color: #a8e6a8;
-        }
-
-        .theme-dark .dd-alert-success svg {
-            color: #3db93d;
-        }
-
-        .theme-dark .backtrace-content {
-            background: #1a1a1a;
-            border: 1px solid #3f3f3f;
-        }
-
-        .theme-dark .backtrace-content pre {
-            color: #e0e0e0;
-        }
-
-        .theme-dark .queries-table {
-            color: #e0e0e0;
-        }
-
-        .theme-dark .queries-table thead {
-            background: #252525;
-            border-bottom: 1px solid #3f3f3f;
-        }
-
-        .theme-dark .queries-table tbody tr {
-            border-bottom: 1px solid #2a2a2a;
-        }
-
-        .theme-dark .queries-table tbody tr:hover {
-            background: #252525;
-        }
-
-        /* Amélioration des syntax highlighting SQL en dark mode */
-        .theme-dark .highlight .keyword {
-            color: #ff79c6;
-            font-weight: bold;
-        }
-
-        .theme-dark .highlight .word {
-            color: #f8f8f2;
-        }
-
-        .theme-dark .highlight .variable {
-            color: #50fa7b;
-        }
-
-        .theme-dark .highlight .symbol {
-            color: #f8f8f2;
-        }
-
-        .theme-dark .highlight .comment {
-            color: #6272a4;
-        }
-
-        .theme-dark .highlight .string {
-            color: #f1fa8c;
-        }
-
-        .theme-dark .highlight .number {
-            color: #bd93f9;
-            font-weight: bold;
-        }
-
-        .theme-dark .highlight .error {
-            color: #ff5555;
-        }
-
-        /* Backward compatibility - old card classes */
-        .theme-dark .card-header.status-warning {
-            background-color: #3d3420;
-            border-left-color: #ffc107;
-            color: #ffd966;
-        }
-
-        .theme-dark .card-header.status-error {
-            background-color: #3d1a1a;
-            border-left-color: #ff5c5c;
-            color: #ffc0c0;
-        }
-
-        /* ============================================
-           Duplicate Issues Tooltip
-           ============================================ */
-
-        .dd-tooltip-wrapper {
-            position: relative;
-            display: inline-block;
-            margin-left: 8px;
-            z-index: 1001; /* Higher than other elements */
-        }
-
-        .dd-duplicate-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 8px;
-            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
-            color: white;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: help;
-            transition: all 0.2s ease;
-            vertical-align: middle;
-            position: relative;
-            z-index: 1;
-        }
-
-        .dd-duplicate-badge:hover {
-            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-        }
-
-        .dd-duplicate-badge svg {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
-        }
-
-        .dd-tooltip {
-            position: absolute;
-            left: 50%;
-            bottom: calc(100% + 8px);
-            transform: translateX(-50%);
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
-            padding: 0;
-            min-width: 300px;
-            max-width: 400px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            z-index: 10000; /* Very high z-index to ensure it's on top */
-            transform: translateX(-50%) translateY(4px);
-            white-space: normal; /* Allow text wrapping */
-        }
-
-        .dd-tooltip::before {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 6px solid transparent;
-            border-top-color: white;
-            filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.05));
-        }
-
-        .dd-tooltip-wrapper:hover .dd-tooltip {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .dd-tooltip-header {
-            padding: 12px 16px;
-            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
-            color: white;
-            border-radius: 8px 8px 0 0;
-            font-size: 13px;
-        }
-
-        .dd-tooltip-header strong {
-            font-weight: 600;
-        }
-
-        .dd-tooltip-content {
-            padding: 8px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .dd-tooltip-item {
-            padding: 10px 12px;
-            border-bottom: 1px solid #f3f4f6;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .dd-tooltip-item:last-child {
-            border-bottom: none;
-        }
-
-        .dd-tooltip-item:hover {
-            background: #f9fafb;
-        }
-
-        .dd-tooltip-severity {
-            display: inline-block;
-            font-size: 14px;
-            margin-right: 6px;
-            vertical-align: middle;
-        }
-
-        .dd-tooltip-type {
-            display: inline-block;
-            font-size: 10px;
-            font-weight: 600;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            vertical-align: middle;
-        }
-
-        .dd-tooltip-title {
-            font-size: 13px;
-            color: #374151;
-            margin-top: 4px;
-            line-height: 1.4;
-            font-weight: 500;
-        }
-
-        .dd-tooltip-description {
-            font-size: 11px;
-            color: #6b7280;
-            margin-top: 4px;
-            line-height: 1.3;
-            padding-left: 8px;
-            border-left: 2px solid #e5e7eb;
-        }
-
-        .dd-desc-toggle {
-            color: #3b82f6;
-            text-decoration: none;
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer;
-            margin-left: 2px;
-        }
-
-        .dd-desc-toggle:hover {
-            color: #2563eb;
-            text-decoration: underline;
-        }
-
-        /* Dark mode styles for tooltip */
-        .theme-dark .dd-duplicate-badge {
-            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
-        }
-
-        .theme-dark .dd-duplicate-badge:hover {
-            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-        }
-
-        .theme-dark .dd-tooltip {
-            background: #1e1e1e;
-            border-color: #3f3f3f;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
-        }
-
-        .theme-dark .dd-tooltip::before {
-            border-top-color: #1e1e1e;
-            filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.3));
-        }
-
-        .theme-dark .dd-tooltip-header {
-            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
-        }
-
-        .theme-dark .dd-tooltip-item {
-            border-bottom-color: #2a2a2a;
-        }
-
-        .theme-dark .dd-tooltip-item:hover {
-            background: #252525;
-        }
-
-        .theme-dark .dd-tooltip-type {
-            color: #9ca3af;
-        }
-
-        .theme-dark .dd-tooltip-title {
-            color: #e5e7eb;
-        }
-
-        .theme-dark .dd-tooltip-description {
-            color: #9ca3af;
-            border-left-color: #3f3f3f;
-        }
-
-        .theme-dark .dd-desc-toggle {
-            color: #60a5fa;
-        }
-
-        .theme-dark .dd-desc-toggle:hover {
-            color: #93c5fd;
-        }
-
-        /* Scrollbar styling for tooltip content */
-        .dd-tooltip-content::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .dd-tooltip-content::-webkit-scrollbar-track {
-            background: #f3f4f6;
-            border-radius: 0 0 8px 0;
-        }
-
-        .dd-tooltip-content::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 3px;
-        }
-
-        .dd-tooltip-content::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-        }
-
-        .theme-dark .dd-tooltip-content::-webkit-scrollbar-track {
-            background: #2a2a2a;
-        }
-
-        .theme-dark .dd-tooltip-content::-webkit-scrollbar-thumb {
-            background: #4a4a4a;
-        }
-
-        .theme-dark .dd-tooltip-content::-webkit-scrollbar-thumb:hover {
-            background: #5a5a5a;
-        }
-        code[class*="language-"],
-        pre[class*="language-"] {
-            background: none;
-            text-shadow: none;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        pre[class*="language-"] {
-            margin: 0;
-            padding: 16px;
-            overflow-x: auto;
-        }
-
-        .query-item pre[class*="language-"] {
-            background: #f8f9fa;
-        }
-
-        .token.comment,
-        .token.prolog,
-        .token.doctype,
-        .token.cdata { color: #6a737d; font-style: italic; }
-        .token.punctuation { color: #24292e; }
-        .token.property,
-        .token.tag,
-        .token.boolean,
-        .token.number,
-        .token.constant,
-        .token.symbol { color: #005cc5; font-weight: bold; }
-        .token.selector,
-        .token.attr-name,
-        .token.string,
-        .token.char,
-        .token.builtin { color: #032f62; }
-        .token.operator,
-        .token.entity,
-        .token.url { color: #d73a49; }
-        .token.atrule,
-        .token.attr-value,
-        .token.keyword { color: #d73a49; font-weight: bold; }
-        .token.function,
-        .token.class-name { color: #6f42c1; }
-        .token.regex,
-        .token.important,
-        .token.variable { color: #e36209; }
-
-        .theme-dark code[class*="language-"],
-        .theme-dark pre[class*="language-"] {
-            color: #e2e8f0;
-        }
-
-        .theme-dark .query-item pre[class*="language-"] {
-            background: #1e1e1e;
-        }
-
-        .theme-dark .token.comment,
-        .theme-dark .token.prolog,
-        .theme-dark .token.doctype,
-        .theme-dark .token.cdata { color: #6272a4; }
-        .theme-dark .token.punctuation { color: #f8f8f2; }
-        .theme-dark .token.property,
-        .theme-dark .token.tag,
-        .theme-dark .token.boolean,
-        .theme-dark .token.number,
-        .theme-dark .token.constant,
-        .theme-dark .token.symbol { color: #bd93f9; font-weight: bold; }
-        .theme-dark .token.selector,
-        .theme-dark .token.attr-name,
-        .theme-dark .token.string,
-        .theme-dark .token.char,
-        .theme-dark .token.builtin { color: #f1fa8c; }
-        .theme-dark .token.operator,
-        .theme-dark .token.entity,
-        .theme-dark .token.url { color: #ff79c6; }
-        .theme-dark .token.atrule,
-        .theme-dark .token.attr-value,
-        .theme-dark .token.keyword { color: #ff79c6; font-weight: bold; }
-        .theme-dark .token.function,
-        .theme-dark .token.class-name { color: #50fa7b; }
-        .theme-dark .token.regex,
-        .theme-dark .token.important,
-        .theme-dark .token.variable { color: #ffb86c; }
-
-        .dd-copy-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 11px;
-            cursor: pointer;
-            color: #586069;
-            opacity: 0;
-            transition: opacity 0.15s ease;
-        }
-
-        .dd-copy-btn:hover {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        .dd-copy-btn.dd-copied {
-            color: #28a745;
-        }
-
-        .query-item {
-            position: relative;
-        }
-
-        .query-item:hover .dd-copy-btn {
-            opacity: 1;
-        }
-
-        .theme-dark .dd-copy-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.15);
-            color: #8b949e;
-        }
-
-        .theme-dark .dd-copy-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .theme-dark .dd-copy-btn.dd-copied {
-            color: #50fa7b;
-        }
-    </style>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.css" />
+    <style>{% include '@DoctrineDoctor/profiler/_doctrine_doctor_panel.css.twig' %}</style>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js" data-manual></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markup-templating.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-php.min.js"></script>
@@ -2350,167 +728,6 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-twig.min.js"></script>
 
     <script type="text/javascript">//<![CDATA[
-        if (navigator.clipboard) {
-            document.querySelectorAll('[data-clipboard-text]').forEach(function(button) {
-                button.classList.remove('hidden');
-                button.addEventListener('click', function() {
-                    navigator.clipboard.writeText(button.getAttribute('data-clipboard-text'));
-                })
-            });
-        }
-
-        // Enhanced toggle functionality to fix inconsistent behavior
-        (function() {
-            // Wait for DOM to be ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initToggle);
-            } else {
-                initToggle();
-            }
-
-            function initToggle() {
-                // Find all dd-btn toggle buttons (using dd-toggle to avoid conflicts with Symfony's sf-toggle)
-                const toggleButtons = document.querySelectorAll('.dd-btn.dd-toggle');
-
-                toggleButtons.forEach(function(button, index) {
-                    // Store original texts on first initialization
-                    // Use a unique marker to prevent re-initialization
-                    if (button.hasAttribute('data-dd-initialized')) {
-                        return; // Skip already initialized buttons
-                    }
-
-                    const textElement = button.querySelector('.dd-btn-text');
-                    if (!textElement) {
-                        console.warn('Button without .dd-btn-text found:', button);
-                        return;
-                    }
-
-                    // Store original text from button content
-                    const originalText = textElement.textContent.trim();
-                    // Store alt text from data attribute
-                    const altText = button.getAttribute('data-toggle-alt-content');
-
-                    if (!originalText || !altText) {
-                        console.warn('Button missing text configuration:', {
-                            button: button,
-                            originalText: originalText,
-                            altText: altText
-                        });
-                        return;
-                    }
-
-                    // Store in data attributes (cleaned)
-                    button.setAttribute('data-original-text', originalText);
-                    button.setAttribute('data-alt-text', altText.trim());
-                    button.setAttribute('data-dd-initialized', 'true');
-
-                    // Add click handler with proper isolation
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-
-                        // Get configuration from THIS button only (isolation)
-                        const targetSelector = this.getAttribute('data-toggle-selector');
-                        const myOriginalText = this.getAttribute('data-original-text');
-                        const myAltText = this.getAttribute('data-alt-text');
-                        const myTextElement = this.querySelector('.dd-btn-text');
-
-                        // Validate all required elements exist
-                        if (!targetSelector || !myOriginalText || !myAltText || !myTextElement) {
-                            console.error('Button click handler missing required data:', this);
-                            return;
-                        }
-
-                        // Find target element (should be unique per button)
-                        const targetElement = document.querySelector(targetSelector);
-                        if (!targetElement) {
-                            console.error('Target element not found for selector:', targetSelector);
-                            return;
-                        }
-
-                        // Toggle the target element visibility
-                        const isCurrentlyHidden = targetElement.classList.contains('hidden');
-
-                        if (isCurrentlyHidden) {
-                            // Show the collapsible content
-                            targetElement.classList.remove('hidden');
-                            this.classList.add('sf-toggle-on');
-                            this.classList.remove('sf-toggle-off');
-                            // Update button text to "Hide ..."
-                            myTextElement.textContent = myAltText;
-                        } else {
-                            // Hide the collapsible content
-                            targetElement.classList.add('hidden');
-                            this.classList.remove('sf-toggle-on');
-                            this.classList.add('sf-toggle-off');
-                            // Update button text back to original
-                            myTextElement.textContent = myOriginalText;
-                        }
-                    }, false); // Use capture=false for normal bubbling
-                });
-            }
-        })();
-
-        (function() {
-            function highlightAndAddCopyButtons(container) {
-                var root = container || document;
-                root.querySelectorAll('code[class*="language-"]').forEach(function(block) {
-                    if (!block.classList.contains('prism-highlighted')) {
-                        Prism.highlightElement(block);
-                        block.classList.add('prism-highlighted');
-                    }
-                });
-
-                root.querySelectorAll('.query-item').forEach(function(item) {
-                    if (item.querySelector('.dd-copy-btn')) return;
-                    var code = item.querySelector('code');
-                    if (!code) return;
-                    var btn = document.createElement('button');
-                    btn.className = 'dd-copy-btn';
-                    btn.textContent = 'Copy';
-                    btn.addEventListener('click', function() {
-                        var text = code.textContent;
-                        navigator.clipboard.writeText(text).then(function() {
-                            btn.textContent = 'Copied!';
-                            btn.classList.add('dd-copied');
-                            setTimeout(function() {
-                                btn.textContent = 'Copy';
-                                btn.classList.remove('dd-copied');
-                            }, 2000);
-                        });
-                    });
-                    item.appendChild(btn);
-                });
-            }
-
-            function init() {
-                if (typeof Prism !== 'undefined') {
-                    Prism.manual = true;
-                    highlightAndAddCopyButtons();
-                }
-
-                document.querySelectorAll('.dd-btn.dd-toggle').forEach(function(button) {
-                    var selector = button.getAttribute('data-toggle-selector');
-                    if (!selector) return;
-                    var target = document.querySelector(selector);
-                    if (!target) return;
-
-                    var observer = new MutationObserver(function(mutations) {
-                        mutations.forEach(function(mutation) {
-                            if (mutation.attributeName === 'class' && !target.classList.contains('hidden')) {
-                                highlightAndAddCopyButtons(target);
-                            }
-                        });
-                    });
-                    observer.observe(target, { attributes: true });
-                });
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-        })();
+{% include '@DoctrineDoctor/profiler/_doctrine_doctor_panel.js.twig' %}
     //]]></script>
 {% endblock %}
