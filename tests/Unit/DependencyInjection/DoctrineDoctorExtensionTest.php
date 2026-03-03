@@ -13,6 +13,8 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Unit\DependencyInjection;
 
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\DoctrineDoctorExtension;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -178,6 +180,16 @@ final class DoctrineDoctorExtensionTest extends TestCase
         self::assertTrue($container->hasParameter('doctrine_doctor.enabled'));
         self::assertTrue($container->getParameter('doctrine_doctor.enabled'));
         self::assertTrue($container->hasDefinition(DoctrineDoctorDataCollector::class));
+    }
+
+    #[Test]
+    public function it_registers_suggestion_factory_interface_alias(): void
+    {
+        $container = new ContainerBuilder();
+        $this->extension->load([['enabled' => true]], $container);
+
+        self::assertTrue($container->hasAlias(SuggestionFactoryInterface::class));
+        self::assertSame(SuggestionFactory::class, (string) $container->getAlias(SuggestionFactoryInterface::class));
     }
 
     #[Test]
