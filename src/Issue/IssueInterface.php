@@ -15,7 +15,7 @@ use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 
-interface IssueInterface extends DeduplicatableIssueInterface
+interface IssueInterface
 {
     public function getType(): string;
 
@@ -35,6 +35,23 @@ interface IssueInterface extends DeduplicatableIssueInterface
     public function getBacktrace(): ?array;
 
     public function getQueries(): array;
+
+    /**
+     * Get issues that were deduplicated and hidden because they resemble this one.
+     * @return IssueInterface[]
+     */
+    public function getDuplicatedIssues(): array;
+
+    /**
+     * Add an issue that was deduplicated and hidden.
+     */
+    public function addDuplicatedIssue(IssueInterface $issue): void;
+
+    /**
+     * Set all duplicated issues at once.
+     * @param IssueInterface[] $issues
+     */
+    public function setDuplicatedIssues(array $issues): void;
 
     /**
      * Get the raw data array for this issue.
