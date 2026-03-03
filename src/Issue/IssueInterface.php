@@ -37,6 +37,23 @@ interface IssueInterface
     public function getQueries(): array;
 
     /**
+     * Get issues that were deduplicated and hidden because they resemble this one.
+     * @return IssueInterface[]
+     */
+    public function getDuplicatedIssues(): array;
+
+    /**
+     * Add an issue that was deduplicated and hidden.
+     */
+    public function addDuplicatedIssue(IssueInterface $issue): void;
+
+    /**
+     * Set all duplicated issues at once.
+     * @param IssueInterface[] $issues
+     */
+    public function setDuplicatedIssues(array $issues): void;
+
+    /**
      * Get the raw data array for this issue.
      * @return array<string, mixed>
      */

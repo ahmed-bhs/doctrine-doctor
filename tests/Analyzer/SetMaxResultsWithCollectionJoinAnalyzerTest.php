@@ -199,8 +199,8 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         self::assertGreaterThan(0, count($issues));
         $issue = $issues->toArray()[0];
 
-        self::assertStringContainsString('Paginator', $issue->getDescription());
-        self::assertStringContainsString('2 queries', $issue->getDescription());
+        self::assertStringContainsString('fetch-joined collection', $issue->getDescription());
+        self::assertStringContainsString('Impact:', $issue->getDescription());
     }
 
     #[Test]
@@ -263,9 +263,8 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         self::assertGreaterThan(0, count($issues));
         $issue = $issues->toArray()[0];
 
-        // Should include Pet/pictures example
-        self::assertStringContainsString('Pet', $issue->getDescription());
-        self::assertStringContainsString('pictures', $issue->getDescription());
+        self::assertStringContainsString('LIMIT is applied to SQL rows', $issue->getDescription());
+        self::assertStringContainsString('partially hydrated', $issue->getDescription());
     }
 
     #[Test]
