@@ -307,7 +307,7 @@ final class SuggestionContentBlock
     {
         $language = $this->metadata['language'] ?? 'php';
         $label    = $this->metadata['label'] ?? null;
-        $code     = htmlspecialchars($this->getStringContent());
+        $code     = htmlspecialchars($this->getStringContent(), ENT_NOQUOTES, 'UTF-8');
 
         $labelHtml = $label ? '<div class="code-label ' . ('Bad' === $label ? 'label-bad' : 'label-good') . '">' . $label . '</div>' : '';
 
@@ -372,8 +372,8 @@ final class SuggestionContentBlock
     {
         $language = $this->metadata['language'] ?? 'php';
         $content  = $this->getArrayContent();
-        $badCode  = htmlspecialchars((string) ($content['bad'] ?? ''));
-        $goodCode = htmlspecialchars((string) ($content['good'] ?? ''));
+        $badCode  = htmlspecialchars((string) ($content['bad'] ?? ''), ENT_NOQUOTES, 'UTF-8');
+        $goodCode = htmlspecialchars((string) ($content['good'] ?? ''), ENT_NOQUOTES, 'UTF-8');
 
         return <<<HTML
             <div class="code-comparison">
