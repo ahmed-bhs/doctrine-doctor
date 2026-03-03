@@ -23,7 +23,7 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h3>cascade="remove" on ManyToMany</h3>
+    <h4>cascade="remove" on ManyToMany</h4>
 </div>
 
 <div class="suggestion-content">

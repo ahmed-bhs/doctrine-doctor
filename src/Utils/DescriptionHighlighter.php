@@ -58,7 +58,7 @@ final class DescriptionHighlighter
      */
     public static function keyword(string $text): string
     {
-        return sprintf('<code>%s</code>', htmlspecialchars($text, ENT_QUOTES, 'UTF-8'));
+        return sprintf('<code>%s</code>', htmlspecialchars($text, ENT_NOQUOTES, 'UTF-8'));
     }
 
     /**
@@ -66,7 +66,7 @@ final class DescriptionHighlighter
      */
     public static function method(string $text): string
     {
-        return sprintf('<code>%s</code>', htmlspecialchars($text, ENT_QUOTES, 'UTF-8'));
+        return sprintf('<code>%s</code>', htmlspecialchars($text, ENT_NOQUOTES, 'UTF-8'));
     }
 
     /**
@@ -74,7 +74,7 @@ final class DescriptionHighlighter
      */
     public static function value(string $text): string
     {
-        return sprintf('<code>%s</code>', htmlspecialchars($text, ENT_QUOTES, 'UTF-8'));
+        return sprintf('<code>%s</code>', htmlspecialchars($text, ENT_NOQUOTES, 'UTF-8'));
     }
 
     /**
@@ -82,7 +82,7 @@ final class DescriptionHighlighter
      */
     public static function class(string $text): string
     {
-        return sprintf('<code>%s</code>', htmlspecialchars($text, ENT_QUOTES, 'UTF-8'));
+        return sprintf('<code>%s</code>', htmlspecialchars($text, ENT_NOQUOTES, 'UTF-8'));
     }
 
     /**
@@ -90,7 +90,7 @@ final class DescriptionHighlighter
      */
     public static function dbObject(string $text): string
     {
-        return sprintf('<code>%s</code>', htmlspecialchars($text, ENT_QUOTES, 'UTF-8'));
+        return sprintf('<code>%s</code>', htmlspecialchars($text, ENT_NOQUOTES, 'UTF-8'));
     }
 
     /**
@@ -98,7 +98,7 @@ final class DescriptionHighlighter
      */
     public static function code(string $text): string
     {
-        return sprintf('<code>%s</code>', htmlspecialchars($text, ENT_QUOTES, 'UTF-8'));
+        return sprintf('<code>%s</code>', htmlspecialchars($text, ENT_NOQUOTES, 'UTF-8'));
     }
 
     /**

@@ -103,7 +103,7 @@ final readonly class PhpTemplateRenderer implements TemplateRendererInterface, S
             }
 
             return [
-                'code'        => (string) $result['code'],
+                'code'        => self::normalizeCodeBlockEntities((string) $result['code']),
                 'description' => (string) $result['description'],
             ];
         } catch (\Throwable $throwable) {
@@ -139,5 +139,27 @@ final readonly class PhpTemplateRenderer implements TemplateRendererInterface, S
     private function getDefaultTemplateDirectory(): string
     {
         return dirname(__DIR__) . '/Suggestions';
+    }
+
+    /**
+     * Keep generated code snippets readable by normalizing double-escaped entities
+     * inside <code> blocks without decoding HTML control chars into real tags.
+     */
+    private static function normalizeCodeBlockEntities(string $html): string
+    {
+        return (string) preg_replace_callback('/(<code\b[^>]*>)(.*?)(<\/code>)/si', static function (array $matches): string {
+            // First, collapse one extra escaping layer:
+            // &amp;gt; -> &gt;, &amp;lt; -> &lt;, etc.
+            $normalizedCode = preg_replace('/&amp;([a-zA-Z0-9#]+;)/', '&$1', $matches[2]) ?? $matches[2];
+
+            // Then normalize quote entities to real characters for better readability/copy.
+            $normalizedCode = str_replace(
+                ['&apos;', '&#039;', '&#39;', '&quot;', '&#34;'],
+                ["'", "'", "'", '"', '"'],
+                $normalizedCode,
+            );
+
+            return $matches[1] . $normalizedCode . $matches[3];
+        }, $html);
     }
 }
