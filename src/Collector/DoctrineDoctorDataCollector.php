@@ -171,15 +171,14 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             return [];
         }
 
-        try {
-            $issueReconstructor = $this->dataCollectorHelpers->issueReconstructor;
-        } catch (\Error) {
+        if (!isset($this->dataCollectorHelpers)) {
             // Serialized profiler snapshots can be restored without service dependencies.
             // In this state, issue reconstruction is unavailable but aggregate stats can still work.
             $this->memoizedIssues = [];
 
             return [];
         }
+        $issueReconstructor = $this->dataCollectorHelpers->issueReconstructor;
 
         $this->memoizedIssues = array_map(
             $issueReconstructor->reconstructIssue(...),
