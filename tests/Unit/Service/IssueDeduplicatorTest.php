@@ -423,6 +423,8 @@ final class IssueDeduplicatorTest extends TestCase
         self::assertCount(1, $deduplicated);
         $keptIssue = $deduplicated->toArray()[0];
         self::assertSame('collection_uninitialized', $keptIssue->getType());
+        self::assertInstanceOf(DeduplicatableIssueInterface::class, $keptIssue);
+        /** @var DeduplicatableIssueInterface $keptIssue */
         self::assertCount(2, $keptIssue->getDuplicatedIssues());
     }
 

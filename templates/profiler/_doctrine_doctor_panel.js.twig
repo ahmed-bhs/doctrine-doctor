@@ -206,12 +206,14 @@
                     code.parentElement.setAttribute('data-dd-line-count', String(rawCount));
                 });
 
-                root.querySelectorAll('code[class*="language-"]').forEach(function(block) {
-                    if (!block.classList.contains('prism-highlighted')) {
-                        Prism.highlightElement(block);
-                        block.classList.add('prism-highlighted');
-                    }
-                });
+                if (typeof Prism !== 'undefined' && Prism && typeof Prism.highlightElement === 'function') {
+                    root.querySelectorAll('code[class*="language-"]').forEach(function(block) {
+                        if (!block.classList.contains('prism-highlighted')) {
+                            Prism.highlightElement(block);
+                            block.classList.add('prism-highlighted');
+                        }
+                    });
+                }
 
                 ensureLineNumberText(root);
 
