@@ -2,12 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * Compact template for Flush in Loop suggestions.
- * @var int   $flush_count - Number of flush() calls detected
- * @var float $operations_between_flush - Average operations between flushes
- */
-
 /** @var array<string, mixed> $context */
 $flushCount = $context['flush_count'] ?? null;
 $operationsBetweenFlush = $context['operations_between_flush'] ?? null;
@@ -16,14 +10,9 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<div class="suggestion-compact">
-    <div class="suggestion-header">
-        <strong>flush() in loop</strong> (<?php echo $flushCount; ?> calls)
-    </div>
-
-    <div class="suggestion-content">
-        <pre><code class="language-php">// Current: <?php echo $flushCount; ?> flush()
+<div class="suggestion-header"><h4>flush() in loop (<?php echo $flushCount; ?> calls)</h4></div>
+<div class="suggestion-content">
+<div class="query-item"><pre><code class="language-php">// Current: <?php echo $flushCount; ?> flush()
 foreach ($items as $item) {
     $em->persist($entity);
     $em->flush(); // Every iteration
@@ -38,15 +27,13 @@ foreach ($items as $i => $item) {
         $em->clear();
     }
 }
-$em->flush();</code></pre>
+$em->flush();</code></pre></div>
 
-        <p>
-            ~<?php echo round((1 - (ceil($flushCount / 20) / $flushCount)) * 100); ?>% faster
-            • <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank">Docs</a>
-        </p>
-    </div>
+<p>
+    ~<?php echo round((1 - (ceil($flushCount / 20) / $flushCount)) * 100); ?>% faster
+    | <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank">Docs</a>
+</p>
 </div>
-
 <?php
 $code = ob_get_clean();
 

@@ -20,7 +20,7 @@ ob_start();
 <p><strong>File:</strong> <code><?php echo $e($filePath); ?></code></p>
 <?php } ?>
 <h4>Suggested Code</h4>
-<div class="query-item"><pre><code class="language-php"><?php echo $code; ?></code></pre></div>
+<div class="query-item"><pre><code class="language-php"><?php echo $e($code); ?></code></pre></div>
 </div>
 <?php
 $code = ob_get_clean();
