@@ -103,6 +103,8 @@ services:
         class: AhmedBhs\DoctrineDoctor\Factory\IssueFactory
 
     AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory: ~
+    AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface:
+        alias: AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory
 
     AhmedBhs\DoctrineDoctor\Factory\PlatformAnalysisStrategyFactory: ~
 
