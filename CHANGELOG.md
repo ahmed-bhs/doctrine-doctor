@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.3] - 2026-03-04
+
+### Fixed
+
+- PHPStan `isset.initializedProperty` error: use `ReflectionProperty::isInitialized()` for readonly property check after unserialization.
+- Missing `rel="noopener noreferrer"` on external Doctrine documentation link (`target="_blank"`).
+- Duplicate deduplication key normalization applied per-source before fallback selection.
+
+### Changed
+
+- Softer color palette for `.alert-warning`, `.alert-danger`, and `.dd-suggestion-meta-intro` blocks (less aggressive text contrast).
+- Reduced font-size, padding, and margin across alert and suggestion-meta blocks for a more compact profiler panel.
+
 ## [2.1.2] - 2026-03-03
 
 ### Added
