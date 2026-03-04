@@ -51,6 +51,8 @@ class <?= $e($shortClass) ?> {
     </div>
 
     <p>In ManyToMany, entities are typically shared. Only use cascade="remove" if they're truly dependent.</p>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Cascade Operations</a></p>
 </div>
 
 <?php

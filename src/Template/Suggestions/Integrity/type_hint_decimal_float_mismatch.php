@@ -49,7 +49,7 @@ ob_start();
 
     <p>
         <a href="<?php echo $e($doctrineTypesLink); ?>" target="_blank" class="doc-link">
-            📖 Doctrine Mapping Types Reference →
+            📜 Doctrine Mapping Types Reference
         </a>
     </p>
 </div>

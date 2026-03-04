@@ -215,6 +215,8 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             ),
             'backtrace' => null,
             'queries'   => [],
+            'entity'    => $entityClass,
+            'field'     => $fieldName,
         ]);
         return $issue;
     }
@@ -260,6 +262,8 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 'line' => $reflectionMethod->getStartLine() ?: 0,
             ],
             'queries' => [],
+            'entity'  => $entityClass,
+            'field'   => $fieldName,
         ]);
         return $issue;
     }

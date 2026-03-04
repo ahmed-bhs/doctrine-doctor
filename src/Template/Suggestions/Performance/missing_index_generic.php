@@ -73,7 +73,7 @@ ob_start();
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index" target="_blank" class="doc-link">
-            📖 Doctrine indexing documentation →
+            📜 Doctrine indexing documentation
         </a>
     </p>
 </div>

@@ -99,7 +99,7 @@ foreach ($users as $user) {
 
     <p>
         <a href="https://ocramius.github.io/blog/doctrine-orm-optimization-hydration" target="_blank" class="doc-link">
-            📖 Read Marco Pivetta's article on multi-step hydration →
+            📜 Read Marco Pivetta's article on multi-step hydration
         </a>
     </p>
 </div>

@@ -48,7 +48,7 @@ ob_start();
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html" target="_blank" class="doc-link">
-            📖 Doctrine QueryBuilder Documentation →
+            📜 Doctrine QueryBuilder Documentation
         </a>
     </p>
 </div>

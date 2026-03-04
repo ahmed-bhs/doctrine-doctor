@@ -149,6 +149,8 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
             'severity'    => 'warning',
             'category'    => 'configuration',
             'suggestion'  => $this->createPrecisionSuggestion($fieldName),
+            'entity'      => $className,
+            'field'       => $fieldName,
         ]);
     }
 
@@ -290,6 +292,8 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                 ],
                 $suggestionMetadata,
             ),
+            'entity'      => $className,
+            'field'       => $fieldName,
         ]);
     }
 
@@ -342,6 +346,8 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                 ],
                 $suggestionMetadata,
             ),
+            'entity'      => $className,
+            'field'       => $fieldName,
         ]);
     }
 
@@ -389,6 +395,8 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                 ],
                 $suggestionMetadata,
             ),
+            'entity'      => $className,
+            'field'       => $fieldName,
         ]);
     }
 

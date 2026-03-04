@@ -54,7 +54,7 @@ ob_start();
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/basic-mapping.html" target="_blank" class="doc-link">
-            📖 Doctrine basic mapping docs
+            📜 Doctrine basic mapping docs
         </a>
     </p>
 </div>

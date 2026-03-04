@@ -24,6 +24,8 @@ ob_start();
 
 -- DQL example
 $qb->where('e.<?php echo $e((string) $field); ?> IS NULL');</code></pre></div>
+
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Query Language (DQL)</a></p>
 </div>
 <?php
 $code = ob_get_clean();

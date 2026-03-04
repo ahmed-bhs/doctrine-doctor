@@ -41,9 +41,9 @@
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 10px;
-            margin: 0 0 16px;
-            padding: 10px;
+            gap: 4px;
+            margin: 0 0 8px;
+            padding: 4px 6px;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             background: #fff7f3;
@@ -56,15 +56,15 @@
         .dd-control-group {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
         }
 
         .dd-issue-search {
-            min-width: 220px;
-            padding: 7px 10px;
+            min-width: 170px;
+            padding: 4px 6px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 10px;
             color: #1f2937;
             background: #fff;
         }
@@ -78,9 +78,9 @@
             border: 1px solid #d1d5db;
             background: #fff;
             border-radius: 999px;
-            font-size: 11px;
+            font-size: 9px;
             line-height: 1;
-            padding: 7px 10px;
+            padding: 4px 6px;
             cursor: pointer;
             color: #374151;
             transition: all 0.18s ease;
@@ -101,18 +101,44 @@
         .dd-issue-sort {
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            padding: 7px 10px;
-            font-size: 12px;
+            padding: 4px 6px;
+            font-size: 10px;
             background: #fff;
             color: #1f2937;
         }
 
         .dd-issue-meta {
             margin-left: auto;
-            font-size: 11px;
+            font-size: 10px;
             color: #6b7280;
             font-weight: 600;
             white-space: nowrap;
+        }
+
+        .dd-issue-controls .dd-btn.dd-btn-sm {
+            min-height: 18px;
+            padding: 0 6px;
+            font-size: 9px;
+        }
+
+        /* Compact control heights: neutralize inherited min-height from profiler/base buttons */
+        .dd-issue-controls .dd-issue-search,
+        .dd-issue-controls .dd-chip,
+        .dd-issue-controls .dd-issue-sort,
+        .dd-issue-controls .dd-btn.dd-btn-sm {
+            height: 18px !important;
+            min-height: 18px !important;
+            line-height: 1 !important;
+            box-sizing: border-box;
+        }
+
+        .dd-issue-controls .dd-chip,
+        .dd-issue-controls .dd-btn.dd-btn-sm {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
         }
 
         .dd-filter-empty {
@@ -134,20 +160,6 @@
             position: relative; /* Stacking context */
         }
 
-        .issue-header.severity-critical {
-            background: linear-gradient(135deg, #fff1f3 0%, #ffe7ea 100%);
-            border-left: 4px solid #C7162B;
-        }
-
-        .issue-header.severity-warning {
-            background: linear-gradient(135deg, #fff6f2 0%, #fff0ea 100%);
-            border-left: 4px solid #E95420;
-        }
-
-        .issue-header.severity-info {
-            background: linear-gradient(135deg, #f8eef4 0%, #f5e9f1 100%);
-            border-left: 4px solid #772953;
-        }
 
         .issue-header-content {
             display: flex;
@@ -159,7 +171,7 @@
         .issue-badge {
             display: inline-flex;
             align-items: center;
-            padding: 4px 10px;
+            padding: 4px 13px;
             border-radius: 12px;
             font-size: 11px;
             font-weight: 600;
@@ -269,6 +281,21 @@
             background: #e9ecef;
             border-color: #adb5bd;
             color: #212529;
+        }
+
+        .dd-btn.dd-action-fix,
+        .dd-btn.dd-action-queries,
+        .dd-btn.dd-action-trace,
+        .dd-btn.dd-action-fix:hover,
+        .dd-btn.dd-action-queries:hover,
+        .dd-btn.dd-action-trace:hover,
+        .dd-btn.dd-action-fix.sf-toggle-on,
+        .dd-btn.dd-action-queries.sf-toggle-on,
+        .dd-btn.dd-action-trace.sf-toggle-on {
+            border-color: rgba(255, 255, 255, 0.35) !important;
+            border-style: solid !important;
+            border-width: 1px !important;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45) !important;
         }
 
         .dd-btn:focus-visible,
@@ -1009,6 +1036,13 @@
             text-decoration: underline;
         }
 
+        .suggestion-content .doc-link[target="_blank"]::after {
+            content: "↗";
+            margin-left: 6px;
+            font-size: 11px;
+            opacity: 0.82;
+        }
+
         /* ============================================
            Lists - Bullets & Numbers
            ============================================ */
@@ -1143,20 +1177,6 @@
             border-bottom-color: #3f3f3f;
         }
 
-        .theme-dark .issue-header.severity-critical {
-            background: linear-gradient(135deg, #3d1a1a 0%, #4d2020 100%);
-            border-left-color: #ff5c5c;
-        }
-
-        .theme-dark .issue-header.severity-warning {
-            background: linear-gradient(135deg, #3f2319 0%, #5E2750 100%);
-            border-left-color: #E95420;
-        }
-
-        .theme-dark .issue-header.severity-info {
-            background: linear-gradient(135deg, #301934 0%, #4b1f41 100%);
-            border-left-color: #772953;
-        }
 
         .theme-dark .issue-title {
             color: #f0f0f0;
@@ -1629,7 +1649,7 @@
         }
 
         .dd-duplicates-header {
-            padding: 12px 16px;
+            padding: 6px 12px;
             background: linear-gradient(135deg, #E95420 0%, #772953 100%);
             color: white;
             font-size: 13px;
@@ -2140,6 +2160,9 @@
             background: var(--dd-console-code-bg);
             border-color: #e2dbd3;
             color: #6d4c3b;
+            padding: 0 2px;
+            line-height: 1;
+            vertical-align: baseline;
         }
 
         .dd-btn-primary {
@@ -2165,20 +2188,6 @@
             color: #363230;
         }
 
-        .issue-header.severity-critical {
-            background: linear-gradient(135deg, #f8ecea 0%, #f4e3e1 100%);
-            border-left-color: var(--dd-console-danger);
-        }
-
-        .issue-header.severity-warning {
-            background: linear-gradient(135deg, #f8f2e7 0%, #f2eadc 100%);
-            border-left-color: var(--dd-console-warn);
-        }
-
-        .issue-header.severity-info {
-            background: linear-gradient(135deg, #edf4fb 0%, #e3edf8 100%);
-            border-left-color: #6f8ea9;
-        }
 
         .issue-badge.badge-critical {
             background: var(--dd-console-danger);
@@ -2346,20 +2355,6 @@
             color: #e0dad3;
         }
 
-        .theme-dark .issue-header.severity-critical {
-            background: linear-gradient(135deg, #3b2626 0%, #432c2c 100%);
-            border-left-color: #a65b52;
-        }
-
-        .theme-dark .issue-header.severity-warning {
-            background: linear-gradient(135deg, #3b3025 0%, #44362a 100%);
-            border-left-color: #a9834e;
-        }
-
-        .theme-dark .issue-header.severity-info {
-            background: linear-gradient(135deg, #273544 0%, #2d3d4f 100%);
-            border-left-color: #7fa2c2;
-        }
 
         .theme-dark .query-item,
         .theme-dark .suggestion-content .query-item,
@@ -2630,15 +2625,23 @@
         }
 
         .metrics {
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
         .metrics .metric-group {
             display: flex;
             flex-wrap: nowrap;
             align-items: stretch;
-            gap: 8px;
+            gap: 4px;
             width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        /* Override WebProfiler metric-group spacing only inside Doctrine Doctor panel */
+        .dd-panel-typography .metrics .metric-group {
+            padding: 0 !important;
+            margin: 0 !important;
         }
 
         .metrics .metric {
@@ -2648,18 +2651,18 @@
             max-width: none !important;
             box-sizing: border-box;
             margin: 0 !important;
-            padding: 8px 10px !important;
+            padding: 5px 8px !important;
         }
 
         .metrics .metric .value {
-            font-size: 14px;
-            line-height: 1.2;
+            font-size: 13px;
+            line-height: 1.1;
             white-space: normal;
         }
 
         .metrics .metric .label {
-            font-size: 11px;
-            line-height: 1.2;
+            font-size: 10px;
+            line-height: 1.1;
             white-space: normal;
         }
 
@@ -2920,6 +2923,23 @@
             font-weight: 600;
         }
 
+        .dd-panel-typography .issue-actions .dd-btn.dd-action-fix,
+        .dd-panel-typography .issue-actions .dd-btn.dd-action-queries,
+        .dd-panel-typography .issue-actions .dd-btn.dd-action-trace,
+        .dd-panel-typography .issue-actions .dd-btn.dd-action-fix:hover,
+        .dd-panel-typography .issue-actions .dd-btn.dd-action-queries:hover,
+        .dd-panel-typography .issue-actions .dd-btn.dd-action-trace:hover,
+        .dd-panel-typography .issue-actions .dd-btn.dd-action-fix.sf-toggle-on,
+        .dd-panel-typography .issue-actions .dd-btn.dd-action-queries.sf-toggle-on,
+        .dd-panel-typography .issue-actions .dd-btn.dd-action-trace.sf-toggle-on {
+            border-color: rgba(255, 255, 255, 0.35) !important;
+            border-style: solid !important;
+            border-width: 1px !important;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45) !important;
+            min-height: 20px !important;
+            padding: 0 6px !important;
+        }
+
 
         .dd-panel-typography .issue-actions .dd-btn:focus-visible {
             outline: 2px solid #fff;
@@ -3075,7 +3095,7 @@
            Final UI Polish (Desktop Readability Rhythm)
            ============================================ */
         .sf-tabs.dd-panel-typography {
-            margin-top: 20px;
+            margin-top: 12px;
             width: 100%;
         }
 
@@ -3083,9 +3103,11 @@
             display: flex !important;
             align-items: stretch;
             justify-content: stretch;
-            gap: 8px;
+            gap: 4px;
             width: 100% !important;
             box-sizing: border-box;
+            margin: 0 0 8px 0 !important;
+            padding: 0 !important;
         }
 
         .sf-tabs.dd-panel-typography .tab-navigation li {
@@ -3098,6 +3120,20 @@
             display: block;
             width: 100%;
             box-sizing: border-box;
+        }
+
+        .sf-tabs.dd-panel-typography .tab-navigation .tab-control,
+        .sf-tabs.dd-panel-typography .tab-navigation li a,
+        .sf-tabs.dd-panel-typography .tab-navigation li button {
+            min-height: 24px !important;
+            height: 24px !important;
+            padding: 0 8px !important;
+            font-size: 11px !important;
+            line-height: 1 !important;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
         }
 
         .sf-tabs.dd-panel-typography > .tab {
@@ -3127,6 +3163,8 @@
         .dd-panel-typography .issue-badge {
             font-size: 10px;
             letter-spacing: 0.35px;
+            padding-left: 12px;
+            padding-right: 12px;
         }
 
         .dd-panel-typography .issue-title {
@@ -3152,26 +3190,28 @@
         }
 
         .dd-panel-typography .dd-control-group {
-            gap: 6px;
+            gap: 4px;
             margin: 0;
         }
 
         .dd-panel-typography .dd-issue-search,
         .dd-panel-typography .dd-issue-sort {
             margin: 0;
-            padding: 3px 8px;
-            min-height: 24px;
-            height: 24px;
-            line-height: 1.2;
+            padding: 1px 5px;
+            min-height: 18px;
+            height: 18px;
+            line-height: 1;
+            font-size: 10px;
         }
 
         .dd-panel-typography .dd-chip,
         .dd-panel-typography .dd-issue-controls .dd-btn {
             margin: 0;
-            padding: 0 8px;
-            min-height: 24px;
-            height: 24px;
+            padding: 0 5px;
+            min-height: 18px;
+            height: 18px;
             line-height: 1;
+            font-size: 9px;
         }
 
         .dd-panel-typography .dd-issue-meta {
@@ -3220,6 +3260,174 @@
             line-height: 1.25;
             padding-bottom: 6px;
             margin-bottom: 8px;
+        }
+
+        /* ============================================
+           Duplicate Panel Compact Layout
+           ============================================ */
+        .dd-duplicates-header {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            padding: 4px 10px;
+        }
+
+        .dd-duplicates-subtitle {
+            font-size: 11px;
+            line-height: 1.35;
+            opacity: 0.85;
+        }
+
+        .dd-duplicate-item {
+            gap: 4px;
+            padding: 6px 8px;
+        }
+
+        .dd-duplicate-topline {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            min-width: 0;
+            font-size: 11px;
+            line-height: 1.3;
+        }
+
+        .dd-duplicates-content {
+            padding: 2px 4px;
+        }
+
+        .dd-duplicate-severity {
+            font-size: 12px;
+            line-height: 1;
+        }
+
+        .dd-duplicate-type {
+            margin: 0;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid #d8cabc;
+            background: #f4ede4;
+            color: #5f4b3f;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+
+        .dd-duplicate-location {
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #6a615c;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        .dd-duplicate-query-count {
+            margin-left: auto;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: #ede5db;
+            color: #604b3f;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .dd-duplicate-context-toggle {
+            align-self: flex-start;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid #d7ccc2;
+            background: #f6eee4;
+            color: #6b4f3f;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.2;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .dd-duplicate-context-toggle:hover {
+            background: #efe3d6;
+            border-color: #cdbcae;
+        }
+
+        .dd-duplicate-context-toggle .dd-duplicate-context-chevron {
+            transition: transform 0.18s ease;
+        }
+
+        .dd-duplicate-context-toggle.sf-toggle-on {
+            background: #eadac9;
+            border-color: #c4ae9b;
+            color: #5e4334;
+        }
+
+        .dd-duplicate-context-toggle.sf-toggle-on .dd-duplicate-context-chevron {
+            transform: rotate(180deg);
+        }
+
+        .dd-duplicate-context {
+            width: 100%;
+            margin-top: 2px;
+        }
+
+        .dd-duplicate-description {
+            margin-top: 2px;
+            padding-left: 6px;
+            border-left-width: 2px;
+            line-height: 1.3;
+        }
+
+        .dd-duplicate-topline .dd-duplicate-count {
+            padding: 1px 6px;
+            border-radius: 999px;
+            border: 1px solid #d7ccc2;
+            background: #f3eadf;
+            color: #5c463a;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .theme-dark .dd-duplicate-type {
+            border-color: #556170;
+            background: #2a333d;
+            color: #c4d1dd;
+        }
+
+        .theme-dark .dd-duplicate-location {
+            color: #a8a19a;
+        }
+
+        .theme-dark .dd-duplicate-query-count {
+            background: #303945;
+            color: #c9d4df;
+        }
+
+        .theme-dark .dd-duplicate-context-toggle {
+            background: #2b3440;
+            border-color: #495565;
+            color: #caa17d;
+        }
+
+        .theme-dark .dd-duplicate-context-toggle:hover {
+            background: #343f4c;
+            border-color: #5a687a;
+        }
+
+        .theme-dark .dd-duplicate-context-toggle.sf-toggle-on {
+            background: #3a4654;
+            border-color: #6a7789;
+            color: #e1bc9a;
+        }
+
+        .theme-dark .dd-duplicate-topline .dd-duplicate-count {
+            border-color: #4a545f;
+            background: #2a323b;
+            color: #d7e1eb;
         }
 
         /* ============================================

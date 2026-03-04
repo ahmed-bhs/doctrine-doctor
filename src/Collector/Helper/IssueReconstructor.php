@@ -89,6 +89,9 @@ final readonly class IssueReconstructor
             'description' => $description,
             'severity'    => $data['severity'] ?? 'info',
             'queries'     => [],
+            'entityClass' => $data['entityClass'] ?? null,
+            'fieldName'   => $data['fieldName'] ?? null,
+            'targetLabel' => $data['targetLabel'] ?? null,
         ]);
     }
 

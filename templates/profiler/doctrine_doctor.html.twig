@@ -11,7 +11,7 @@
         data-title="{{ issue.getTitle()|e('html_attr') }}"
         data-type="{{ issue.getType()|e('html_attr') }}"
     >
-        <div class="issue-header {% if issue.getSeverity().isCritical() %}severity-critical{% elseif issue.getSeverity().isWarning() %}severity-warning{% else %}severity-info{% endif %}">
+        <div class="issue-header">
             <div class="issue-header-content">
                 <span class="issue-badge {% if issue.getSeverity().isCritical() %}badge-critical{% elseif issue.getSeverity().isWarning() %}badge-warning{% else %}badge-info{% endif %}">
                     {{ issue.getSeverity().getEmoji() }} {{ issue.getType() }}
@@ -114,24 +114,41 @@
             {% if issue.getDuplicatedIssues()|length > 0 %}
                 <div id="{{ prefix }}-duplicates-{{ loop_index }}" class="dd-collapsible dd-duplicates-panel hidden">
                     <div class="dd-duplicates-header">
-                        <strong>{{ issue.getDuplicatedIssues()|length }} similar issue{{ issue.getDuplicatedIssues()|length > 1 ? 's' : '' }} hidden</strong>
+                        <strong>{{ issue.getDuplicatedIssues()|length }} related finding{{ issue.getDuplicatedIssues()|length > 1 ? 's' : '' }} (grouped for readability)</strong>
                     </div>
                     <div class="dd-duplicates-content">
                         {% for duplicatedIssue in issue.getDuplicatedIssues() %}
-                            <article class="dd-duplicate-item" data-severity="{% if duplicatedIssue.getSeverity().isCritical() %}critical{% elseif duplicatedIssue.getSeverity().isWarning() %}warning{% else %}info{% endif %}">
-                                <div class="dd-duplicate-title">
-                                    <span>{{ duplicatedIssue.getSeverity().getEmoji() }}</span>
-                                    <strong>{{ duplicatedIssue.getTitle() }}</strong>
+                            {% set duplicateBacktrace = duplicatedIssue.getBacktrace() %}
+                            {% set firstFrame = duplicateBacktrace is iterable and duplicateBacktrace|length > 0 ? duplicateBacktrace|first : null %}
+                            {% set frameFile = firstFrame is not null ? attribute(firstFrame, 'file')|default(null) : null %}
+                            {% set frameLine = firstFrame is not null ? attribute(firstFrame, 'line')|default(null) : null %}
+                            {% set duplicateData = duplicatedIssue.getData() %}
+                            {% set precomputedTargetLabel = duplicateData.targetLabel|default(null) %}
+                            {% set entityClass = duplicateData.entityClass|default(null) %}
+                            {% set fieldName = duplicateData.fieldName|default(null) %}
+                            {% set targetLabel = precomputedTargetLabel ?: (entityClass and fieldName ? entityClass ~ '::' ~ fieldName|replace({'$': ''}) : (entityClass ?: (fieldName ? fieldName|replace({'$': ''}) : null))) %}
+                            {% set locationLabel = frameFile ? (frameLine ? frameFile ~ ':' ~ frameLine : frameFile) : null %}
+                            {% set duplicateSignature = duplicatedIssue.getType() ~ '|' ~ duplicatedIssue.getTitle() ~ '|' ~ locationLabel ~ '|' ~ duplicatedIssue.getDescription() %}
+
+                            <article
+                                class="dd-duplicate-item"
+                                data-severity="{% if duplicatedIssue.getSeverity().isCritical() %}critical{% elseif duplicatedIssue.getSeverity().isWarning() %}warning{% else %}info{% endif %}"
+                                data-duplicate-signature="{{ duplicateSignature|e('html_attr') }}"
+                            >
+                                <div class="dd-duplicate-topline">
+                                    <code class="dd-duplicate-type">{{ duplicatedIssue.getType() }}</code>
+                                    {% if targetLabel %}
+                                        <span class="dd-duplicate-location" title="{{ targetLabel }}">{{ targetLabel }}</span>
+                                    {% elseif locationLabel %}
+                                        <span class="dd-duplicate-location" title="{{ locationLabel }}">{{ locationLabel }}</span>
+                                    {% endif %}
+                                    {% if duplicatedIssue.getQueries()|length > 0 %}
+                                        <span class="dd-duplicate-query-count">{{ duplicatedIssue.getQueries()|length }} quer{{ duplicatedIssue.getQueries()|length > 1 ? 'ies' : 'y' }}</span>
+                                    {% endif %}
                                 </div>
-                                {% set cleanDescription = duplicatedIssue.getDescription() %}
-                                {% if cleanDescription|length > 130 %}
-                                    <div class="dd-duplicate-description dd-expandable-desc">
-                                        <span class="dd-desc-short">{{ cleanDescription|slice(0, 130) }}</span>
-                                        <span class="dd-desc-full hidden">{{ cleanDescription }}</span>
-                                        <button type="button" class="dd-desc-toggle" aria-expanded="false">...view more</button>
-                                    </div>
-                                {% else %}
-                                    <p class="dd-duplicate-description">{{ cleanDescription }}</p>
+                                {% set dupDesc = duplicatedIssue.getDescription()|striptags|trim %}
+                                {% if dupDesc %}
+                                    <p class="dd-duplicate-description">{{ dupDesc }}</p>
                                 {% endif %}
                             </article>
                         {% endfor %}
@@ -322,7 +339,7 @@
             </div>
 
             <div class="metric">
-                <span class="value">{{ collector.timelineQueries|length }}</span>
+                <span class="value status-info">{{ collector.timelineQueries|length }}</span>
                 <span class="label">Queries Analyzed</span>
             </div>
 
@@ -388,7 +405,7 @@
         </div>
 
         <div class="tab {{ collector.getIssueCountByCategory('security') == 0 ? 'disabled' }}">
-            <h3 class="tab-title">🔒 Security ({{ collector.getIssueCountByCategory('security') }})</h3>
+            <h3 class="tab-title">🛡️ Security ({{ collector.getIssueCountByCategory('security') }})</h3>
             <div class="tab-content">
                 {% set securityIssues = collector.getIssuesByCategory('security') %}
                 {% if securityIssues is empty %}
@@ -426,7 +443,7 @@
         </div>
 
         <div class="tab {{ collector.getIssueCountByCategory('integrity') == 0 ? 'disabled' }}">
-            <h3 class="tab-title">🔧 Integrity ({{ collector.getIssueCountByCategory('integrity') }})</h3>
+            <h3 class="tab-title">🧩 Integrity ({{ collector.getIssueCountByCategory('integrity') }})</h3>
             <div class="tab-content">
                 {% set integrityIssues = collector.getIssuesByCategory('integrity') %}
                 {% if integrityIssues is empty %}
@@ -464,7 +481,7 @@
         </div>
 
         <div class="tab {{ collector.getIssueCountByCategory('configuration') == 0 ? 'disabled' }}">
-            <h3 class="tab-title">⚙️ Configuration ({{ collector.getIssueCountByCategory('configuration') }})</h3>
+            <h3 class="tab-title">🔧 Configuration ({{ collector.getIssueCountByCategory('configuration') }})</h3>
             <div class="tab-content">
                 {% set configurationIssues = collector.getIssuesByCategory('configuration') %}
                 {% if configurationIssues is empty %}

@@ -46,7 +46,7 @@ $product->set<?php echo ucfirst((string) $fieldName); ?>(Money::EUR(1999)); // 1
 
     <p>
         <a href="https://github.com/moneyphp/money" target="_blank" class="doc-link">
-            📖 Money PHP library
+            📜 Money PHP library
         </a>
     </p>
 </div>

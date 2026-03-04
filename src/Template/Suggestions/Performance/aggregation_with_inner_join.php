@@ -32,6 +32,8 @@ INNER JOIN order_items oi ON oi.order_id = o.id;</code></pre></div>
    ->innerJoin('o.items', 'oi');</code></pre></div>
 
 <p>Use <code>COUNT(DISTINCT)</code>, remove unnecessary JOINs, or use subqueries.</p>
+
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#aggregate-functions" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Aggregate Functions</a></p>
 </div>
 <?php
 $code = ob_get_clean();

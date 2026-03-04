@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Collector;
 
 use AhmedBhs\DoctrineDoctor\Collector\DataCollectorHelpers;
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
+use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -275,6 +276,39 @@ final class DoctrineDoctorDataCollectorTest extends TestCase
         self::assertSame(0, $stats['critical']);
         self::assertSame(0, $stats['warning']);
         self::assertSame(0, $stats['info']);
+    }
+
+    #[Test]
+    public function it_reconstructs_issues_after_serialization_without_injected_helpers(): void
+    {
+        $collector = $this->createDataCollector();
+        $reflection = new ReflectionClass($collector);
+        $dataProperty = $reflection->getProperty('data');
+        $dataProperty->setAccessible(true);
+        $dataProperty->setValue($collector, [
+            'enabled' => true,
+            'issues' => [
+                [
+                    'class' => PerformanceIssue::class,
+                    'type' => 'performance',
+                    'title' => 'N+1 Query Detected',
+                    'description' => 'Detected repeated query pattern.',
+                    'severity' => 'warning',
+                    'queries' => [],
+                    'backtrace' => [],
+                ],
+            ],
+            'skipped_analyzers' => 0,
+            'timeline_queries' => [],
+        ]);
+
+        /** @var DoctrineDoctorDataCollector $restored */
+        $restored = unserialize(serialize($collector));
+        $issues = $restored->getIssues();
+
+        self::assertCount(1, $issues);
+        self::assertSame('N+1 Query Detected', $issues[0]->getTitle());
+        self::assertSame('warning', $issues[0]->getSeverity()->getValue());
     }
 
     /**

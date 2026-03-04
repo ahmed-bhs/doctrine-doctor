@@ -17,6 +17,7 @@ use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Collector\Helper\DataCollectorLogger;
+use AhmedBhs\DoctrineDoctor\Collector\Helper\IssueReconstructor;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
@@ -170,7 +171,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             return [];
         }
 
-        $issueReconstructor = $this->dataCollectorHelpers->issueReconstructor;
+        $issueReconstructor = $this->resolveIssueReconstructor();
 
         $this->memoizedIssues = array_map(
             $issueReconstructor->reconstructIssue(...),
@@ -509,6 +510,17 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $deduplicatedCollection = $deduplicatedCollection->sorting()->bySeverityDescending();
 
         return $deduplicatedCollection->toArrayOfArrays();
+    }
+
+    private function resolveIssueReconstructor(): IssueReconstructor
+    {
+        if (isset($this->dataCollectorHelpers)) {
+            return $this->dataCollectorHelpers->issueReconstructor;
+        }
+
+        // Collector instances are serialized by Symfony Profiler; on restore,
+        // constructor-injected services are not guaranteed to be available.
+        return new IssueReconstructor();
     }
 
     /**

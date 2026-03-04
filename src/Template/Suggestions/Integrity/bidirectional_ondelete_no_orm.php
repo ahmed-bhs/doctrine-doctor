@@ -36,7 +36,7 @@ ob_start();
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" class="doc-link">
-            📖 Doctrine Cascade Operations →
+            📜 Doctrine Cascade Operations
         </a>
     </p>
 </div>

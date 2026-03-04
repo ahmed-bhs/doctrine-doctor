@@ -181,7 +181,7 @@ $results = $query->getResult();
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#grouping" target="_blank" class="doc-link">
-            📖 Doctrine DQL GROUP BY Documentation →
+            📜 Doctrine DQL GROUP BY Documentation
         </a>
     </p>
 </div>

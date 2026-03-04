@@ -60,6 +60,8 @@ readonly class <?php echo $e($embeddableClass); ?> {
     </div>
 
     <p><strong>Value Object best practices:</strong> immutability (readonly), validation in constructor, equals(), domain methods.</p>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Embeddables</a></p>
 </div>
 
 <?php

@@ -32,6 +32,8 @@ SELECT PARTIAL e.{id, name} FROM Entity e
 // Pagination (limit results)
 $query->setFirstResult($offset)->setMaxResults($limit);</code></pre>
     </div>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#query-result-formats-hydration-modes" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Hydration Modes</a></p>
 </div>
 
 <?php

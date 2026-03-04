@@ -31,6 +31,8 @@ class <?php echo $e($shortClass); ?>
 }</code></pre></div>
 
 <p>Make sure to use your actual User entity class. Common names include App\Entity\User, App\Entity\Account, or App\Security\User.</p>
+
+<p><a href="https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Extensions Blameable</a></p>
 </div>
 <?php
 $code = ob_get_clean();

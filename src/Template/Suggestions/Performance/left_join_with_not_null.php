@@ -37,6 +37,8 @@ $qb->select('e')
     </div>
 
     <p><strong>Why:</strong> LEFT JOIN includes NULL checks which are unnecessary for NOT NULL fields. INNER JOIN is faster.</p>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Joins</a></p>
 </div>
 
 <?php

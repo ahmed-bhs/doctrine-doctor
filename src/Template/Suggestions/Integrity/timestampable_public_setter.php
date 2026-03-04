@@ -50,6 +50,8 @@ ob_start();
     </div>
 
     <p>Remove the setter.</p>
+
+    <p><a href="https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/timestampable.md" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Extensions Timestampable</a></p>
 </div>
 
 <?php

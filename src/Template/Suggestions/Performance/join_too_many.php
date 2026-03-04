@@ -48,7 +48,7 @@ $addresses = $em->createQuery('SELECT a FROM Address a WHERE a.customer IN (:ids
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html" target="_blank" class="doc-link">
-            📖 Doctrine Query Builder →
+            📜 Doctrine Query Builder
         </a>
     </p>
 </div>

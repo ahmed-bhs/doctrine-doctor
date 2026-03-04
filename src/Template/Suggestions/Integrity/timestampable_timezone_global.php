@@ -59,7 +59,7 @@ private \DateTimeImmutable $createdAt;</code></pre>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz" target="_blank" class="doc-link">
-            📖 Doctrine: DateTimeTZ Type →
+            📜 Doctrine: DateTimeTZ Type
         </a>
     </p>
 </div>

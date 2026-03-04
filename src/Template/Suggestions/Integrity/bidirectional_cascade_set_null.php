@@ -41,6 +41,8 @@ class <?php echo $e($childClass); ?> {
     </div>
 
     <p>Make cascade="remove" match onDelete="CASCADE" so behavior is consistent whether you delete via ORM or database.</p>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Cascade Operations</a></p>
 </div>
 
 <?php

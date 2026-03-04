@@ -36,6 +36,8 @@ ob_start();
 }</code></pre></div>
 
 <p>Remove the setter. Set in constructor.</p>
+
+<p><a href="https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Extensions Blameable</a></p>
 </div>
 <?php
 $code = ob_get_clean();

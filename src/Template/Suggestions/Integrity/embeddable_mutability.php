@@ -54,6 +54,8 @@ readonly class <?= $e($embeddableClass) ?> {
     </div>
 
     <p><strong>Best practice:</strong> Value Objects should be immutable. Use <code>readonly</code> and constructor injection.</p>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Embeddables</a></p>
 </div>
 
 <?php

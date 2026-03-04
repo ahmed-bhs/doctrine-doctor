@@ -189,6 +189,7 @@ class EmbeddableWithoutValueObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\A
                 'embeddable' => $className,
                 'missing_methods' => $missingMethods,
             ],
+            'entity' => $className,
         ]);
     }
 

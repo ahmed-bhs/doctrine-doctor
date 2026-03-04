@@ -204,7 +204,7 @@ FOR EACH ROW EXECUTE FUNCTION update_<?php echo strtolower($entity); ?>_<?php ec
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/aggregate-fields.html" target="_blank" class="doc-link">
-            📖 Doctrine Aggregate Fields Documentation →
+            📜 Doctrine Aggregate Fields Documentation
         </a>
     </p>
 </div>

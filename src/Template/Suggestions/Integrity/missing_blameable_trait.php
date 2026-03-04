@@ -125,7 +125,7 @@ class <?php echo $e($entityClass); ?>
 
     <p>
         <a href="https://symfony.com/bundles/StofDoctrineExtensionsBundle/current/index.html#blameable" target="_blank" class="doc-link">
-            📖 Doctrine Extensions: Blameable →
+            📜 Doctrine Extensions: Blameable
         </a>
     </p>
 </div>

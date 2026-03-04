@@ -33,6 +33,8 @@ ob_start();
 
 <h4>Invalidation (when data changes)</h4>
 <div class="query-item"><pre><code class="language-php">$cacheDriver->delete('<?php echo $e($table_name); ?>_all');</code></pre></div>
+
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Caching</a></p>
 </div>
 <?php
 $code = ob_get_clean();

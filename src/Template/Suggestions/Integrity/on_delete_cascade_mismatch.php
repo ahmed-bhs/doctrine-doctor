@@ -46,7 +46,7 @@ private $<?php echo $e($fieldName); ?>;
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn" target="_blank" class="doc-link">
-            📖 Doctrine JoinColumn →
+            📜 Doctrine JoinColumn
         </a>
     </p>
 </div>

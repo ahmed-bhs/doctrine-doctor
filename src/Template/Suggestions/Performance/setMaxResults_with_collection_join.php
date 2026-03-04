@@ -43,7 +43,7 @@ $orders = iterator_to_array($paginator);</code></pre>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/current/tutorials/pagination.html" target="_blank" class="doc-link">
-            📖 Doctrine pagination docs
+            📜 Doctrine pagination docs
         </a>
     </p>
 </div>

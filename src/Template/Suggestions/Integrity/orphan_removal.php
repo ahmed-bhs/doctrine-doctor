@@ -52,7 +52,7 @@ ob_start();
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">
-            📖 Doctrine orphan removal →
+            📜 Doctrine orphan removal
         </a>
     </p>
 </div>

@@ -27,6 +27,8 @@ ob_start();
 <h4>How to Fix</h4>
 <div class="query-item"><pre><code class="language-bash"><?php echo $eCode($fixCommand); ?></code></pre></div>
 <?php } ?>
+
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/advanced-configuration.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Advanced Configuration</a></p>
 </div>
 <?php
 $code = ob_get_clean();

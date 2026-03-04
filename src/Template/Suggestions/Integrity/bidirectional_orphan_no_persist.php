@@ -38,6 +38,8 @@ ob_start();
     </div>
 
     <p>For full composition (Order → OrderItems), use <code>cascade={"persist", "remove"}</code> with <code>orphanRemoval=true</code>. This way both adding and removing children works automatically.</p>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#orphan-removal" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Orphan Removal</a></p>
 </div>
 
 <?php
