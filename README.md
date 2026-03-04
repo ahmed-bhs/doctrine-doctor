@@ -18,7 +18,7 @@
 <p>Unlike static analysis tools (PHPStan, Psalm) that analyze code without execution, Doctrine Doctor:</p>
 
 <ul>
-<li><b>Detects runtime-only database issues</b> by analyzing real execution context (actual parameters, data volume, query plans), including N+1 queries, real query performance bottlenecks, and missing indexes.</li>
+<li><b>Detects runtime doctrine issues</b> by analyzing real execution context (actual parameters, data volume, query plans), including N+1 queries, real query performance bottlenecks, and missing indexes.</li>
 <li><b>Integrated into your workflow</b>: Results appear directly in Symfony Web Profiler during development
   <ul>
   <li>&#x1F4CD; Backtrace: Points to exact template line</li>
@@ -35,7 +35,7 @@
 
 ## Features
 
-### 74 Specialized Analyzers
+### 66 Specialized Analyzers
 
 - **Performance** — Detects N+1 queries, missing database indexes, slow queries, excessive hydration,
   findAll() without limits, setMaxResults() with collection joins, too many JOINs, and query caching
@@ -144,7 +144,7 @@ execution time, points to the exact template line, and suggests eager loading wi
 
 | Document | Description |
 |----------|-------------|
-| [**Full Analyzers List**](docs/user-guide/analyzers.md) | Complete catalog of all **74 analyzers** covering performance, security, code quality, and configuration - find the perfect analyzer for your specific needs |
+| [**Full Analyzers List**](docs/user-guide/analyzers.md) | Complete catalog of all **66 analyzers** covering performance, security, code quality, and configuration - find the perfect analyzer for your specific needs |
 | [**Architecture Guide**](docs/advanced/architecture.md) | Deep dive into **system design**, architecture patterns, and technical internals - understand how Doctrine Doctor works under the hood |
 | [**Configuration Reference**](docs/user-guide/configuration.md) | Comprehensive guide to **all configuration options** - customize analyzers, thresholds, and outputs to match your workflow |
 | [**Template Security**](docs/advanced/template-security.md) | Essential **security best practices** for PHP templates - prevent XSS attacks and ensure safe template rendering |
@@ -153,7 +153,7 @@ execution time, points to the exact template line, and suggests eager loading wi
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+See [Contributing Guide](docs/contributing/overview.md) for guidelines.
 
 ## License
 

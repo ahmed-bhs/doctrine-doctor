@@ -17,10 +17,9 @@ Doctrine Doctor implements **66 specialized analyzers** organized into four cate
 
 | Severity | Impact | Examples |
 |----------|---------|----------|
-| **Critical** | Security vulnerabilities or data loss risk | SQL injection, cascade misconfiguration |
-| **High** | Major performance degradation (>50%) | N+1 queries, missing indexes |
-| **Medium** | Sub-optimal patterns with measurable impact | Inefficient hydration, architectural issues |
-| **Low** | Minor improvements | Naming conventions, code style |
+| **Critical** | Security/data-loss/severe runtime risk | SQL injection, dangerous cascade |
+| **Warning** | Important performance/integrity/config issues | N+1 patterns, missing indexes |
+| **Info** | Optimization and maintainability recommendations | Naming and design improvements |
 
 ---
 
@@ -45,7 +44,7 @@ Doctrine Doctor implements **66 specialized analyzers** organized into four cate
 
 Performance analyzers detect patterns that degrade application responsiveness, increase database load, or consume excessive system resources.
 
-**Total**: 25 analyzers
+**Total**: 19 analyzers
 **Average Impact**: 10-1000x performance improvement when resolved
 
 ### 3.2 Analyzer Catalog
@@ -75,33 +74,17 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 
 #### 3.2.4 SlowQueryAnalyzer
 
-- **Severity**: High
+- **Severity**: Warning
 - **Purpose**: Flags queries exceeding execution time threshold
 - **Detection**: Direct execution time measurement
 
 #### 3.2.5 HydrationAnalyzer
 
-- **Severity**: Medium
+- **Severity**: Info
 - **Purpose**: Detects inefficient result set hydration
 - **Impact**: 50-80% memory reduction
 
-#### 3.2.6 NestedRelationshipN1Analyzer
-
-- **Severity**: Critical
-- **Purpose**: Detects nested N+1 queries (multi-level lazy loading chains)
-- **Detection**: Query chain pattern analysis tracking foreign key relationships
-- **Impact**: Prevents exponential query growth (N×M queries for 2-level nesting)
-- **Example**: `$article->getAuthor()->getCountry()` creates N+1 for authors AND N+1 for countries
-
-#### 3.2.7 UnusedEagerLoadAnalyzer
-
-- **Severity**: High
-- **Purpose**: Detects JOIN FETCH where joined data is never accessed
-- **Detection**: Analyzes SELECT/WHERE/ORDER BY clauses for unused table aliases
-- **Impact**: 30-70% memory reduction, faster hydration, reduced bandwidth
-- **Example**: `SELECT a FROM Article a JOIN a.author` but never uses author data
-
-#### 3.2.8 CartesianProductAnalyzer
+#### 3.2.6 CartesianProductAnalyzer
 
 - **Severity**: Critical
 - **Purpose**: Detects cartesian product risks caused by joining multiple collections
@@ -109,17 +92,11 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 - **Impact**: Prevents row explosion, duplicate hydration, memory spikes, and severe slowdowns
 - **Example**: Joining multiple to-many associations in one query creates `N x M` result multiplication
 
-#### 3.2.9 FlushInLoopAnalyzerModern
-
-- **Severity**: Critical
-- **Purpose**: Modern implementation of flush-in-loop detection using factory pattern
-- **Detection**: Temporal analysis of flush() calls with improved architecture
-- **Impact**: Same as FlushInLoopAnalyzer (10-100x improvement)
-- **Note**: Refactored version with better separation of concerns
+> Note: Some analyzer classes exist in `src/Analyzer/` but are not part of the default registered analyzer set.
 
 ---
 
-### 3.3 Performance Analyzer Summary Table
+### 3.3 Analyzer Summary Table
 
 | Analyzer ID | Detection Method | Typical Impact | Configuration |
 |-------------|------------------|----------------|---------------|
@@ -128,29 +105,19 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 | SlowQueryAnalyzer | Execution time | Direct | `threshold: 100` (ms) |
 | HydrationAnalyzer | Result set size | 50-80% memory reduction | `row_threshold: 99` |
 | FlushInLoopAnalyzer | Trace analysis | 10-100x | `flush_count_threshold: 5` |
-| EagerLoadingAnalyzer | JOIN count | Query optimization | `join_threshold: 5` |
+| EagerLoadingAnalyzer | JOIN count | Query optimization | `join_threshold: 4` |
 | LazyLoadingAnalyzer | Proxy initialization | Query reduction | `threshold: 10` |
 | DTOHydrationAnalyzer | Hydration mode | Memory + performance | — |
-| BulkOperationAnalyzer | Entity count | 100-1000x | `threshold: 100` |
-| ConnectionPoolingAnalyzer | Connection usage | Scaling | Platform-dependent |
+| BulkOperationAnalyzer | Entity count | 100-1000x | `threshold: 20` |
 | QueryCachingOpportunityAnalyzer | Cache statistics | 50-90% reduction | — |
-| EntityManagerClearAnalyzer | Memory usage | Memory leak prevention | `batch_size_threshold: 100` |
-| JoinOptimizationAnalyzer | JOIN complexity | Query simplification | `max_joins: 5` |
+| EntityManagerClearAnalyzer | Memory usage | Memory leak prevention | `batch_size_threshold: 20` |
+| JoinOptimizationAnalyzer | JOIN complexity | Query simplification | `max_joins_recommended: 5`, `max_joins_critical: 8` |
 | CartesianProductAnalyzer | Multi-collection JOIN analysis | Prevent row explosion | `n1_collection_threshold: 3` |
-| JoinTypeConsistencyAnalyzer | JOIN + WHERE patterns | Semantic clarity | — |
 | SetMaxResultsWithCollectionJoinAnalyzer | LIMIT + JOIN | Incorrect results | — |
-| PartialObjectAnalyzer | SELECT clause | Memory reduction | `threshold: 5` |
 | OrderByWithoutLimitAnalyzer | ORDER BY + full scan | Resource usage | — |
 | FindAllAnalyzer | Unfiltered queries | Memory exhaustion | `threshold: 99` |
 | YearFunctionOptimizationAnalyzer | Function in WHERE | Index usage | — |
 | IneffectiveLikeAnalyzer | Leading wildcard | Full table scan | — |
-| DivisionByZeroAnalyzer | Division operations | Runtime errors | — |
-| NullComparisonAnalyzer | NULL handling | Index effectiveness | — |
-| CollectionEmptyAccessAnalyzer | Uninitialized collections | Lazy load prevention | — |
-| AutoGenerateProxyClassesAnalyzer | Configuration | Production readiness | — |
-| DoctrineCacheAnalyzer | Cache configuration | Deprecation warnings | — |
-| NestedRelationshipN1Analyzer | Query chain analysis | Exponential query prevention | `nesting_threshold: 2` |
-| UnusedEagerLoadAnalyzer | Alias usage analysis | 30-70% memory reduction | — |
 
 **Internal Parser Utilities** (not directly user-facing):
 | SqlAggregationAnalyzer | Aggregation function analysis | Query optimization | Internal |
@@ -193,7 +160,7 @@ Security analyzers detect vulnerabilities aligned with **OWASP Top 10** and Doct
 
 #### 4.2.4 InsecureRandomAnalyzer
 
-- **Severity**: Medium
+- **Severity**: Warning
 - **Purpose**: Identifies insecure random number generation
 - **Detection**: Usage of `rand()` in security contexts
 
@@ -203,9 +170,9 @@ Security analyzers detect vulnerabilities aligned with **OWASP Top 10** and Doct
 
 ### 5.1 Category Overview
 
-Code Quality analyzers detect code smells, anti-patterns, and violations of best practices that affect maintainability, readability, and adherence to Doctrine ORM conventions.
+Integrity analyzers detect code smells, anti-patterns, and violations of best practices that affect maintainability, readability, and adherence to Doctrine ORM conventions.
 
-**Total**: 29 analyzers
+**Total**: 35 analyzers
 **Focus**: Type safety, relationship consistency, lifecycle management, naming conventions
 
 ### 5.2 Key Analyzers
@@ -280,7 +247,7 @@ class Customer {
 
 ---
 
-### 5.3 Code Quality Analyzer Summary
+### 5.3 Integrity Analyzer Summary
 
 | Analyzer | Focus Area | Violation Type | Impact |
 |----------|------------|----------------|--------|
@@ -399,15 +366,17 @@ doctrine_doctor:
             slow_query_threshold: 50
 ```
 
-### 7.3 Category Configuration
+### 7.3 Enabling / Disabling Individual Analyzers
 
 ```yaml
 doctrine_doctor:
-    groups:
-        performance: true
-        security: true
-        integrity: true
-        configuration: true
+    analyzers:
+        n_plus_one:
+            enabled: true
+        dql_injection:
+            enabled: true
+        strict_mode:
+            enabled: true
 ```
 
 ## 8. Extensibility
