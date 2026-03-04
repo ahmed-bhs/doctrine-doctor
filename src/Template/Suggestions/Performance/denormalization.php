@@ -28,7 +28,7 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>Suggested Fix: Denormalization (Counter Field)</h4>
+    <h4>Denormalization (Counter Field)</h4>
 </div>
 
 <div class="suggestion-content">
