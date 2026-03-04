@@ -3132,9 +3132,9 @@
             flex: 1 1 0;
             width: 0;
             min-width: 0;
-            min-height: 30px !important;
+            min-height: 26px !important;
             height: auto !important;
-            padding: 0 10px !important;
+            padding: 0 8px !important;
             font-size: 12px !important;
             line-height: 1.2 !important;
             display: inline-flex !important;
@@ -3772,6 +3772,74 @@
             color: #f9f7ff !important;
             background: linear-gradient(135deg, #9463e6 0%, #883ee5 100%) !important;
             border-color: #a98be2 !important;
+        }
+
+        /* ============================================
+           Slowest Queries - Dark Theme Rework
+           ============================================ */
+        .theme-dark .dd-panel-typography .queries-table,
+        .theme-dark .dd-panel-typography table.alt {
+            background: #141c25 !important;
+            border: 1px solid #2c3b4b !important;
+            color: #dbe7f3 !important;
+        }
+
+        .theme-dark .dd-panel-typography .queries-table thead,
+        .theme-dark .dd-panel-typography table.alt thead {
+            background: #1a2531 !important;
+            border-bottom: 1px solid #304356 !important;
+        }
+
+        .theme-dark .dd-panel-typography .queries-table th,
+        .theme-dark .dd-panel-typography .queries-table td,
+        .theme-dark .dd-panel-typography table.alt th,
+        .theme-dark .dd-panel-typography table.alt td {
+            border-color: #2a394a !important;
+            color: #dbe7f3 !important;
+        }
+
+        .theme-dark .dd-panel-typography .queries-table tbody tr,
+        .theme-dark .dd-panel-typography table.alt tbody tr {
+            background: #141c25 !important;
+        }
+
+        .theme-dark .dd-panel-typography .queries-table tbody tr:nth-child(even),
+        .theme-dark .dd-panel-typography table.alt tbody tr:nth-child(even) {
+            background: #17222e !important;
+        }
+
+        .theme-dark .dd-panel-typography .queries-table tbody tr:hover,
+        .theme-dark .dd-panel-typography table.alt tbody tr:hover {
+            background: #1d2b3a !important;
+        }
+
+        .theme-dark .dd-panel-typography .queries-table td.time-container > span:not(.label) {
+            display: inline-block;
+            padding: 1px 6px;
+            background: #1b2836;
+            border: 1px solid #31465b;
+            color: #dbe7f3;
+        }
+
+        .theme-dark .dd-panel-typography .queries-table .link-inverse {
+            color: #d7e6f5;
+            background: #1a2633;
+            border: 1px solid #33485c;
+            padding: 2px 8px;
+        }
+
+        .theme-dark .dd-panel-typography .queries-table .link-inverse:hover {
+            color: #f1f7ff;
+            background: #223245;
+            border-color: #46607a;
+        }
+
+        .theme-dark .dd-panel-typography .queries-table .highlight,
+        .theme-dark .dd-panel-typography .queries-table .highlight-sql,
+        .theme-dark .dd-panel-typography .queries-table pre {
+            background: #111922 !important;
+            border: 1px solid #2c3f52;
+            color: #dbe7f3;
         }
 
         /* ============================================
