@@ -22,7 +22,7 @@
 <li><b>Integrated into your workflow</b>: Results appear directly in Symfony Web Profiler during development
   <ul>
   <li>&#x1F4CD; Backtrace: Points to exact template line</li>
-  <li>&#x1F4A1; Suggestion: Use <code>->addSelect(..)</code> to eager load authors</li>
+  <li>&#x1F4A1; Suggestion: Use <code>->addSelect(..)</code> to eager load products</li>
   </ul>
 </li>
 </ul>
