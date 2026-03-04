@@ -30,7 +30,6 @@
 <p align="center">
   <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo-styled.png" alt="Doctrine Doctor Demo" width="100%">
 </p>
-<p align="center"><em>Doctrine Doctor panel in Symfony Web Profiler</em></p>
 
 ---
 
