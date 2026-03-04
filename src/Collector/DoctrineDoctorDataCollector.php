@@ -514,12 +514,10 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
     private function resolveIssueReconstructor(): IssueReconstructor
     {
-        if (isset($this->dataCollectorHelpers)) {
+        if ((new \ReflectionProperty(self::class, 'dataCollectorHelpers'))->isInitialized($this)) {
             return $this->dataCollectorHelpers->issueReconstructor;
         }
 
-        // Collector instances are serialized by Symfony Profiler; on restore,
-        // constructor-injected services are not guaranteed to be available.
         return new IssueReconstructor();
     }
 
