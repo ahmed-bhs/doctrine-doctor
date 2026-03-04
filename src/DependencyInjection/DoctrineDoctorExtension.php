@@ -23,7 +23,10 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
 {
     public function prepend(ContainerBuilder $container): void
     {
-        $configs = $container->getExtensionConfig($this->getAlias());
+        $configs = $this->resolveEnabledInConfigs(
+            $container->getExtensionConfig($this->getAlias()),
+            $container,
+        );
         $config  = $this->processConfiguration(new Configuration(), $configs);
 
         if (!$config['enabled']) {
@@ -42,6 +45,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
     public function load(array $configs, ContainerBuilder $container): void
     {
         $configuration = new Configuration();
+        $configs       = $this->resolveEnabledInConfigs($configs, $container);
         $config        = $this->processConfiguration($configuration, $configs);
 
         if (!$config['enabled']) {
@@ -161,5 +165,34 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $step2 = (string) preg_replace('/([a-z\d])([A-Z])/', '$1_$2', $step1);
 
         return strtolower($step2);
+    }
+
+    /**
+     * Resolve and normalize only the root "enabled" key before strict boolean validation.
+     *
+     * @param array<array<string, mixed>> $configs
+     *
+     * @return array<array<string, mixed>>
+     */
+    private function resolveEnabledInConfigs(array $configs, ContainerBuilder $container): array
+    {
+        foreach ($configs as $index => $config) {
+            if (!\is_array($config) || !\array_key_exists('enabled', $config)) {
+                continue;
+            }
+
+            $resolved = $container->getParameterBag()->resolveValue($config['enabled']);
+
+            if (\is_string($resolved)) {
+                $parsed = filter_var(trim($resolved), \FILTER_VALIDATE_BOOLEAN, \FILTER_NULL_ON_FAILURE);
+                if (null !== $parsed) {
+                    $resolved = $parsed;
+                }
+            }
+
+            $configs[$index]['enabled'] = $resolved;
+        }
+
+        return $configs;
     }
 }
