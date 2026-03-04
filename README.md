@@ -13,10 +13,6 @@
 [![Code Style](https://img.shields.io/badge/Code%20Style-PSR--12-blue.svg)](https://www.php-fig.org/psr/psr-12/)
 [![Packagist Version](https://img.shields.io/packagist/v/ahmed-bhs/doctrine-doctor.svg)](https://packagist.org/packages/ahmed-bhs/doctrine-doctor)
 
-<table>
-<tr>
-<td width="50%" valign="top">
-
 <b>Why Runtime Analysis?</b>
 
 <p>Unlike static analysis tools (PHPStan, Psalm) that analyze code without execution, Doctrine Doctor:</p>
@@ -31,14 +27,10 @@
 </li>
 </ul>
 
-</td>
-<td width="50%" align="center" valign="top" style="background: url('https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo-thumbnail.png') no-repeat center; background-size: contain;">
-
-![Doctrine Doctor Demo](https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo.png)
-
-</td>
-</tr>
-</table>
+<p align="center">
+  <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo-styled.png" alt="Doctrine Doctor Demo" width="100%">
+</p>
+<p align="center"><em>Doctrine Doctor panel in Symfony Web Profiler</em></p>
 
 ---
 
