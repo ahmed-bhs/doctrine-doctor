@@ -682,29 +682,29 @@
         /* Bloc info = container pour titre + fichier */
         .suggestion-content > p:first-child,
         .suggestion-content > .dd-suggestion-meta-intro {
-            margin: 0 0 20px 0;
-            padding: 16px 20px 10px 20px;
+            margin: 0 0 14px 0;
+            padding: 10px 14px 8px 14px;
             background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-            line-height: 1.5;
-            color: #0f172a;
-            font-size: 12px;
-            font-weight: 600;
-            border-left: 4px solid #E95420;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            line-height: 1.45;
+            color: #3b4252;
+            font-size: 11px;
+            font-weight: 500;
+            border-left: 3px solid #E95420;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         /* Info de fichier - dans le même bloc, style discret */
         .suggestion-content > p:first-child + p,
         .suggestion-content > .dd-suggestion-meta-file {
-            margin: -20px 0 20px 0;
-            padding: 0 20px 14px 20px;
+            margin: -14px 0 14px 0;
+            padding: 0 14px 10px 14px;
             background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-            border-left: 4px solid #E95420;
+            border-left: 3px solid #E95420;
             border-radius: 0 0 6px 6px;
-            font-size: 12px;
-            color: black;
+            font-size: 11px;
+            color: #4a5568;
             line-height: 1.4;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             font-weight: normal;
         }
 
@@ -712,13 +712,13 @@
         .suggestion-content > .dd-suggestion-meta-file strong {
             font-weight: 500;
             color: #4a5568;
-            font-size: 11px;
+            font-size: 10px;
         }
 
         .suggestion-content > p:first-child + p code,
         .suggestion-content > .dd-suggestion-meta-file code {
-            font-size: 10px;
-            padding: 1px 4px;
+            font-size: 9.5px;
+            padding: 1px 3px;
             font-weight: normal;
         }
 
@@ -921,12 +921,13 @@
            ============================================ */
 
         .suggestion-content .alert {
-            padding: 12px 14px;
-            margin: 10px 0 12px;
-            border-radius: 6px;
-            border-left: 4px solid;
+            padding: 8px 10px;
+            margin: 8px 0 10px;
+            border-radius: 5px;
+            border-left: 3px solid;
             display: block;
-            line-height: 1.5;
+            font-size: 11px;
+            line-height: 1.45;
             max-width: 96ch;
         }
 
@@ -964,10 +965,10 @@
         }
 
         .suggestion-content .alert-warning {
-            background: #fff0ea;
-            border-left-color: #E95420;
-            color: #7d2f14;
-            font-weight: 500;
+            background: #fff4ef;
+            border-left-color: #e8784a;
+            color: #8b5339;
+            font-weight: 400;
         }
 
         .suggestion-content .alert-warning p:first-child::before {
@@ -986,10 +987,10 @@
         }
 
         .suggestion-content .alert-danger {
-            background: #fee2e2;
-            border-left-color: #ef4444;
-            color: #991b1b;
-            font-weight: 600;
+            background: #fef0f0;
+            border-left-color: #e06060;
+            color: #8b3a3a;
+            font-weight: 500;
         }
 
         .suggestion-content .alert-danger p:first-child::before {
@@ -2293,9 +2294,9 @@
         }
 
         .suggestion-content .alert-warning {
-            background: #f4ebdf;
+            background: #f7f0e6;
             border-left-color: var(--dd-console-warn);
-            color: #5f4a2d;
+            color: #7a6347;
         }
 
         .suggestion-content .alert-info {
@@ -2305,9 +2306,9 @@
         }
 
         .suggestion-content .alert-danger {
-            background: #f3e3e1;
+            background: #f5e8e6;
             border-left-color: var(--dd-console-danger);
-            color: #6a3630;
+            color: #7a4a44;
         }
 
         .suggestion-content .alert-success {
