@@ -35,7 +35,7 @@
 </td>
 <td width="50%" align="center" valign="top" style="background: url('https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo-thumbnail.png') no-repeat center; background-size: contain;">
 
-![Doctrine Doctor Demo](https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo.gif)
+![Doctrine Doctor Demo](https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo.png)
 
 </td>
 </tr>

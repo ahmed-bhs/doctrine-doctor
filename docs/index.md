@@ -37,7 +37,7 @@ Unlike static analysis tools (PHPStan, Psalm) that analyze code without executio
   - 💡 **Suggestion**: Use `->addSelect(..)` to eager load authors
 
 <p align="center">
-  <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo.gif" alt="Doctrine Doctor Demo" width="100%">
+  <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo.png" alt="Doctrine Doctor Demo" width="100%">
 </p>
 
 ---
