@@ -13,7 +13,7 @@ declare(strict_types=1);
 $e                                                                         = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Code Quality Suggestion</h4></div>
+<div class="suggestion-header"><h4>Suggestion</h4></div>
 <div class="suggestion-content">
 <p><?php echo nl2br($e($description)); ?></p>
 <?php if ($filePath) { ?>

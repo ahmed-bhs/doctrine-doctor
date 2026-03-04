@@ -439,7 +439,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Code Quality Suggestion',
+                title: 'Suggestion',
                 tags: ['code-quality'],
             ),
         );
@@ -493,7 +493,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Code Quality Suggestion',
+                title: 'Suggestion',
                 tags: ['code-quality'],
             ),
         );
@@ -545,7 +545,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Code Quality Suggestion',
+                title: 'Suggestion',
                 tags: ['code-quality'],
             ),
         );
@@ -609,7 +609,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Code Quality Suggestion',
+                title: 'Suggestion',
                 tags: ['code-quality'],
             ),
         );

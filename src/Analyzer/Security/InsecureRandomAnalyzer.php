@@ -344,7 +344,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Code Quality Suggestion',
+                title: 'Suggestion',
                 tags: ['code-quality'],
             ),
         );

@@ -307,7 +307,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::info(),
-                    title: 'Code Quality Suggestion',
+                    title: 'Suggestion',
                     tags: ['code-quality'],
                 ),
             ),
@@ -352,7 +352,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::info(),
-                    title: 'Code Quality Suggestion',
+                    title: 'Suggestion',
                     tags: ['code-quality'],
                 ),
             ),

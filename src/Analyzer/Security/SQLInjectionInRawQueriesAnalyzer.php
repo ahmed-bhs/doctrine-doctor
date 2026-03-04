@@ -218,7 +218,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Code Quality Suggestion',
+                title: 'Suggestion',
                 tags: ['code-quality'],
             ),
         );
@@ -516,7 +516,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Code Quality Suggestion',
+                title: 'Suggestion',
                 tags: ['code-quality'],
             ),
         );
@@ -563,7 +563,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Code Quality Suggestion',
+                title: 'Suggestion',
                 tags: ['code-quality'],
             ),
         );
