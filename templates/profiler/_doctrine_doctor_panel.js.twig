@@ -582,40 +582,6 @@
                 });
             }
 
-            function initSuggestionDetailsDisclosure() {
-                document.querySelectorAll('.suggestion-content').forEach(function(content) {
-                    if (content.hasAttribute('data-disclosure-ready')) return;
-                    content.setAttribute('data-disclosure-ready', 'true');
-
-                    var steps = Array.prototype.slice.call(content.querySelectorAll(':scope > .dd-suggestion-step'));
-                    if (steps.length <= 2) return;
-
-                    var detailStart = 2;
-                    steps.slice(detailStart).forEach(function(step) {
-                        step.classList.add('hidden');
-                        step.classList.add('dd-suggestion-detail-step');
-                    });
-
-                    var toggleWrap = document.createElement('div');
-                    toggleWrap.className = 'dd-suggestion-details-toggle';
-                    var btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'dd-btn dd-btn-secondary dd-btn-sm';
-                    btn.textContent = 'Show detailed rationale';
-                    btn.setAttribute('aria-expanded', 'false');
-                    toggleWrap.appendChild(btn);
-                    content.insertBefore(toggleWrap, steps[detailStart]);
-
-                    btn.addEventListener('click', function() {
-                        var expanded = this.getAttribute('aria-expanded') === 'true';
-                        steps.slice(detailStart).forEach(function(step) {
-                            step.classList.toggle('hidden', expanded);
-                        });
-                        this.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-                        this.textContent = expanded ? 'Show detailed rationale' : 'Hide detailed rationale';
-                    });
-                });
-            }
 
             function init() {
                 if (typeof Prism !== 'undefined') {
@@ -630,7 +596,6 @@
                 initSuggestionActionabilityChips();
                 initSuggestionHeaderCompaction();
                 wrapSuggestionSteps();
-                initSuggestionDetailsDisclosure();
 
                 document.querySelectorAll('.dd-toggle, button.sf-toggle').forEach(function(button) {
                     var selector = button.getAttribute('data-toggle-selector');
