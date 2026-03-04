@@ -2490,7 +2490,9 @@
             max-width: none;
             box-sizing: border-box;
             font-size: 11px;
-            color: #3b4252;
+            color: #334155;
+            background: #f7fbff;
+            border-color: #d8e6f3;
         }
 
         .suggestion-container .suggestion-content > .dd-suggestion-meta-file {
@@ -2502,7 +2504,9 @@
             max-width: none;
             box-sizing: border-box;
             font-size: 11px;
-            color: #4a5568;
+            color: #475569;
+            background: #fcfeff;
+            border-color: #dce8f2;
         }
 
         .suggestion-container .dd-suggestion-step {
@@ -2594,12 +2598,12 @@
            Paper Feel - Global Panel Overrides
            ============================================ */
         .dd-panel-typography {
-            --dd-paper-bg: #f8f3eb;
-            --dd-paper-panel: #fffbf5;
-            --dd-paper-panel-2: #fdf7ef;
-            --dd-paper-line: #d9cfc3;
-            --dd-paper-ink: #3c3532;
-            --dd-paper-muted: #6f6660;
+            --dd-paper-bg: #f6f9fc;
+            --dd-paper-panel: #ffffff;
+            --dd-paper-panel-2: #f8fbff;
+            --dd-paper-line: #dee7f0;
+            --dd-paper-ink: #1f2937;
+            --dd-paper-muted: #475569;
             --dd-paper-accent: #9b6c47;
             --dd-paper-accent-2: #7c5b49;
         }
@@ -2864,7 +2868,7 @@
         .dd-panel-typography .issue-actions .dd-btn {
             min-height: 24px;
             padding: 0 8px;
-            font-size: 10px;
+            font-size: 11px;
             line-height: 1;
             border: 1px solid rgba(255, 255, 255, 0.55);
             color: #fff;
@@ -2874,6 +2878,8 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.35px;
+            white-space: nowrap;
+            transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
         }
 
         .dd-panel-typography .issue-actions .dd-btn:hover {
@@ -2887,6 +2893,8 @@
 
         .dd-panel-typography .issue-actions .dd-btn .dd-btn-text {
             letter-spacing: 0;
+            display: inline-block;
+            line-height: 1;
         }
 
         .dd-panel-typography .issue-actions .dd-btn .dd-btn-chevron {
@@ -2897,7 +2905,7 @@
             min-width: 16px;
             height: 14px;
             padding: 0 3px;
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 700;
             background: rgba(255, 255, 255, 0.24);
             color: #fff;
@@ -2907,7 +2915,14 @@
             background: rgba(63, 83, 82, 0.76);
             border-color: rgba(255, 255, 255, 0.85);
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-            font-weight: 600;
+            font-weight: 700;
+        }
+
+        .dd-panel-typography .issue-actions .dd-btn.sf-toggle-on,
+        .dd-panel-typography .issue-actions .dd-btn.sf-toggle-off {
+            font-size: 11px;
+            line-height: 1;
+            letter-spacing: 0.35px;
         }
 
         .dd-panel-typography .issue-actions .dd-btn.dd-action-fix,
@@ -3148,7 +3163,7 @@
         }
 
         .dd-panel-typography .issue-badge {
-            font-size: 10px;
+            font-size: 11px;
             letter-spacing: 0.35px;
             padding-left: 12px;
             padding-right: 12px;
@@ -3185,20 +3200,20 @@
         .dd-panel-typography .dd-issue-sort {
             margin: 0;
             padding: 1px 5px;
-            min-height: 18px;
-            height: 18px;
+            min-height: 20px;
+            height: 20px;
             line-height: 1;
-            font-size: 10px;
+            font-size: 11px;
         }
 
         .dd-panel-typography .dd-chip,
         .dd-panel-typography .dd-issue-controls .dd-btn {
             margin: 0;
             padding: 0 5px;
-            min-height: 18px;
-            height: 18px;
+            min-height: 20px;
+            height: 20px;
             line-height: 1;
-            font-size: 9px;
+            font-size: 10px;
         }
 
         .dd-panel-typography .dd-issue-meta {
@@ -3222,9 +3237,9 @@
         .dd-panel-typography .suggestion-container .dd-suggestion-actionability {
             margin: 0;
             padding: 1px 6px;
-            min-height: 18px;
+            min-height: 20px;
             line-height: 1.15;
-            font-size: 9px;
+            font-size: 10px;
         }
 
         .dd-panel-typography .suggestion-container .suggestion-content {
@@ -3247,6 +3262,83 @@
             line-height: 1.25;
             padding-bottom: 6px;
             margin-bottom: 8px;
+        }
+
+        /* ============================================
+           Readability Guardrails (light + dark)
+           ============================================ */
+        .dd-panel-typography .issue-body {
+            background: #ffffff;
+        }
+
+        .dd-panel-typography .issue-description,
+        .dd-panel-typography .suggestion-content p,
+        .dd-panel-typography .suggestion-content li,
+        .dd-panel-typography .dd-issue-meta {
+            color: #334155;
+        }
+
+        .dd-panel-typography .issue-description code,
+        .dd-panel-typography .suggestion-content code {
+            background: #f5f8fc;
+            border-color: #dbe5f0;
+            color: #5f3c2f;
+        }
+
+        .dd-panel-typography .suggestion-container .suggestion-content > .dd-suggestion-meta-intro {
+            color: #334155;
+            background: #f7fbff;
+            border-color: #d8e6f3;
+        }
+
+        .dd-panel-typography .suggestion-container .suggestion-content > .dd-suggestion-meta-file {
+            color: #475569;
+            background: #fcfeff;
+            border-color: #dce8f2;
+        }
+
+        .dd-panel-typography .backtrace-content {
+            background: #f8fbff;
+            border: 1px solid #dbe6f2;
+        }
+
+        .dd-panel-typography .backtrace-content pre {
+            color: #334155;
+        }
+
+        .theme-dark .dd-panel-typography .issue-title,
+        .theme-dark .dd-panel-typography .suggestion-content strong {
+            color: #eef4fb;
+        }
+
+        .theme-dark .dd-panel-typography .issue-description,
+        .theme-dark .dd-panel-typography .suggestion-content p,
+        .theme-dark .dd-panel-typography .suggestion-content li,
+        .theme-dark .dd-panel-typography .dd-issue-meta {
+            color: #d5dee8;
+        }
+
+        .theme-dark .dd-panel-typography .issue-description code,
+        .theme-dark .dd-panel-typography .suggestion-content code {
+            background: #1a2531;
+            border-color: #304254;
+            color: #f0c7ae;
+        }
+
+        .theme-dark .dd-panel-typography .suggestion-container .suggestion-content > .dd-suggestion-meta-intro,
+        .theme-dark .dd-panel-typography .suggestion-container .suggestion-content > .dd-suggestion-meta-file {
+            color: #dce7f4;
+            background: #1b2530;
+            border-color: #314050;
+        }
+
+        .theme-dark .dd-panel-typography .backtrace-content {
+            background: #111922;
+            border-color: #2f3d4d;
+        }
+
+        .theme-dark .dd-panel-typography .backtrace-content pre {
+            color: #dbe7f3;
         }
 
         /* ============================================
@@ -3296,7 +3388,7 @@
             border: 1px solid #d8cabc;
             background: #f4ede4;
             color: #5f4b3f;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
             letter-spacing: 0.2px;
         }
@@ -3317,7 +3409,7 @@
             border-radius: 999px;
             background: #ede5db;
             color: #604b3f;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
         }
 
@@ -3375,7 +3467,7 @@
             border: 1px solid #d7ccc2;
             background: #f3eadf;
             color: #5c463a;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
         }
 
@@ -3415,6 +3507,53 @@
             border-color: #4a545f;
             background: #2a323b;
             color: #d7e1eb;
+        }
+
+        /* ============================================
+           Tabs Contrast (light + dark)
+           ============================================ */
+        .sf-tabs.dd-panel-typography .tab-navigation .tab-control {
+            color: #334155 !important;
+            background: #f7faff !important;
+            border: 1px solid #dbe6f2 !important;
+        }
+
+        .sf-tabs.dd-panel-typography .tab-navigation .tab-control.active,
+        .sf-tabs.dd-panel-typography .tab-navigation .tab-control[aria-selected="true"] {
+            color: #0f172a !important;
+            background: #ffffff !important;
+            border-color: #c8d9ea !important;
+        }
+
+        .sf-tabs.dd-panel-typography .tab-navigation .tab-control.disabled,
+        .sf-tabs.dd-panel-typography .tab-navigation .tab-control:disabled,
+        .sf-tabs.dd-panel-typography .tab-navigation .tab-control[aria-disabled="true"] {
+            color: #64748b !important;
+            background: #f3f7fb !important;
+            border-color: #dce6f1 !important;
+            opacity: 1 !important;
+        }
+
+        .theme-dark .sf-tabs.dd-panel-typography .tab-navigation .tab-control {
+            color: #e8f0fa !important;
+            background: #1d2834 !important;
+            border: 1px solid #324457 !important;
+        }
+
+        .theme-dark .sf-tabs.dd-panel-typography .tab-navigation .tab-control.active,
+        .theme-dark .sf-tabs.dd-panel-typography .tab-navigation .tab-control[aria-selected="true"] {
+            color: #f8fbff !important;
+            background: #243243 !important;
+            border-color: #3f5872 !important;
+        }
+
+        .theme-dark .sf-tabs.dd-panel-typography .tab-navigation .tab-control.disabled,
+        .theme-dark .sf-tabs.dd-panel-typography .tab-navigation .tab-control:disabled,
+        .theme-dark .sf-tabs.dd-panel-typography .tab-navigation .tab-control[aria-disabled="true"] {
+            color: #c5d2e2 !important;
+            background: #18222e !important;
+            border-color: #2d3d50 !important;
+            opacity: 1 !important;
         }
 
         /* ============================================

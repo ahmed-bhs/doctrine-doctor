@@ -449,4 +449,4 @@ var_dump($context->test3); // Should NOT contain javascript: protocol
 
 ---
 
-**[← Back to Main Documentation]({{ site.baseurl }}/)** | **[Template Analysis →](template-analysis)**
+**[← Back to Main Documentation]({{ site.baseurl }}/)** | **[Architecture →](architecture)**

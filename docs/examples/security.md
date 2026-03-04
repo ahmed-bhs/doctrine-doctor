@@ -401,7 +401,7 @@ curl -X PUT /api/users/123 \
 ### Doctrine Doctor Detection
 
 ```text
-🟠 High: Potential Mass Assignment Vulnerability
+🟠 Warning: Potential Mass Assignment Vulnerability
 
 Controller directly maps request data to entity properties without validation.
 
@@ -476,7 +476,7 @@ doctrine_doctor:
     analyzers:
         dql_injection:
             enabled: true  # Always on
-        sql_injection:
+        sql_injection_in_raw_queries:
             enabled: true  # Always on
         sensitive_data_exposure:
             enabled: true  # Always on

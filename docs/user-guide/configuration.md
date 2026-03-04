@@ -44,10 +44,18 @@ doctrine_doctor:
     # Master switch
     enabled: true|false
 
+    analysis:
+        exclude_third_party_entities: true|false
+        exclude_paths: ['vendor/', 'var/cache/']
+
     # Profiler integration settings
     profiler:
         show_in_toolbar: true|false
         show_debug_info: true|false
+
+    debug:
+        enabled: true|false
+        internal_logging: true|false
 
     # Individual analyzer settings
     analyzers:
@@ -66,9 +74,17 @@ When no configuration file exists, Doctrine Doctor uses these defaults:
 doctrine_doctor:
     enabled: true
 
+    analysis:
+        exclude_third_party_entities: true
+        exclude_paths: ['vendor/']
+
     profiler:
         show_in_toolbar: true
         show_debug_info: false
+
+    debug:
+        enabled: false
+        internal_logging: false
 
     analyzers:
         # Performance
@@ -143,6 +159,18 @@ doctrine_doctor:
 
 **When to disable**: Only disable if you need to analyze vendor entity mappings or debug third-party bundle configurations.
 
+### 4.2 Excluding Query Origins by Path
+
+```yaml
+doctrine_doctor:
+    analysis:
+        exclude_paths: ['vendor/', 'var/cache/']
+```
+
+**Type**: `array<string>`
+**Default**: `['vendor/']`
+**Description**: Excludes DBAL queries whose origin path contains one of these fragments.
+
 ---
 
 ## 5. Profiler Configuration
@@ -171,7 +199,23 @@ doctrine_doctor:
 **Default**: `false`
 **Description**: Displays internal debugging information (analyzer execution times, memory usage, service instances). **For development of Doctrine Doctor itself only.**
 
-### 5.3 Enabling Query Backtraces
+### 5.3 Internal Debug Mode
+
+```yaml
+doctrine_doctor:
+    debug:
+        enabled: false
+        internal_logging: false
+```
+
+**Type**: `boolean`
+**Defaults**: `false`
+**Description**:
+
+- `debug.enabled`: Enables contributor-oriented debug behavior.
+- `debug.internal_logging`: Enables internal analyzer logs (can add noticeable overhead).
+
+### 5.4 Enabling Query Backtraces
 
 To see code location backtraces in Doctrine Doctor issues, enable Doctrine DBAL's backtrace collection:
 
@@ -297,7 +341,7 @@ doctrine_doctor:
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable analyzer |
-| `row_threshold` | integer | `99` | Rows to trigger "High" severity |
+| `row_threshold` | integer | `99` | Rows to trigger warning severity |
 | `critical_threshold` | integer | `999` | Rows to trigger "Critical" severity |
 
 ---
@@ -328,15 +372,15 @@ doctrine_doctor:
     analyzers:
         eager_loading:
             enabled: true
-            join_threshold: 5
-            critical_join_threshold: 10
+            join_threshold: 4
+            critical_join_threshold: 7
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable analyzer |
-| `join_threshold` | integer | `5` | Number of JOINs to trigger "Medium" severity |
-| `critical_join_threshold` | integer | `10` | Number of JOINs to trigger "Critical" severity |
+| `join_threshold` | integer | `4` | Number of JOINs to trigger info/warning severity |
+| `critical_join_threshold` | integer | `7` | Number of JOINs to trigger critical severity |
 
 ---
 
@@ -364,13 +408,13 @@ doctrine_doctor:
     analyzers:
         bulk_operation:
             enabled: true
-            threshold: 100
+            threshold: 20
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable analyzer |
-| `threshold` | integer | `100` | Entity count to recommend DQL bulk operations |
+| `threshold` | integer | `20` | Entity count to recommend DQL bulk operations |
 
 **Recommendation**:
 
@@ -398,13 +442,13 @@ doctrine_doctor:
     analyzers:
         entity_manager_clear:
             enabled: true
-            batch_size_threshold: 100
+            batch_size_threshold: 20
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable analyzer |
-| `batch_size_threshold` | integer | `100` | Entity count to recommend `clear()` calls |
+| `batch_size_threshold` | integer | `20` | Entity count to recommend `clear()` calls |
 
 ---
 
@@ -416,14 +460,14 @@ doctrine_doctor:
         join_optimization:
             enabled: true
             max_joins_recommended: 5
-            max_joins_critical: 10
+            max_joins_critical: 8
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable analyzer |
 | `max_joins_recommended` | integer | `5` | Recommended maximum JOINs |
-| `max_joins_critical` | integer | `10` | Critical threshold |
+| `max_joins_critical` | integer | `8` | Critical threshold |
 
 ---
 
@@ -468,13 +512,13 @@ doctrine_doctor:
     analyzers:
         get_reference:
             enabled: true
-            threshold: 10
+            threshold: 2
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable analyzer |
-| `threshold` | integer | `10` | Minimum `find()` calls to recommend `getReference()` |
+| `threshold` | integer | `2` | Minimum `find()` calls to recommend `getReference()` |
 
 ---
 
@@ -487,7 +531,7 @@ doctrine_doctor:
     analyzers:
         dql_injection:
             enabled: true
-        sql_injection:
+        sql_injection_in_raw_queries:
             enabled: true
         sensitive_data_exposure:
             enabled: true
@@ -499,9 +543,9 @@ doctrine_doctor:
 
 ---
 
-### 5.3 Architectural Analyzers
+### 5.3 Integrity Analyzers
 
-Architectural analyzers typically have no configurable parameters beyond `enabled`:
+Integrity analyzers typically have no configurable parameters beyond `enabled`:
 
 ```yaml
 doctrine_doctor:
@@ -514,33 +558,33 @@ doctrine_doctor:
             enabled: true
         orphan_removal_without_cascade_remove:
             enabled: true
-        # ... (see full list in ANALYZERS.md)
+        # ... (see full list in user-guide/analyzers)
 ```
 
 ---
 
-### 5.4 Data Integrity Analyzers
+### 5.4 Configuration Analyzers
 
 ```yaml
 doctrine_doctor:
     analyzers:
-        decimal_precision:
-            enabled: true
-        float_for_money:
-            enabled: true
-        timezone:
+        strict_mode:
             enabled: true
         charset:
             enabled: true
-        collation:
+        inno_db_engine:
             enabled: true
-        strict_mode:
+        connection_pooling:
+            enabled: true
+        doctrine_cache:
             enabled: true
 ```
 
+Note: Some configuration analyzers are active but currently do not expose dedicated `analyzers.<key>` toggles in the configuration tree.
+
 ---
 
-### 5.5 Best Practices Analyzers
+### 5.5 Integrity / Best-Practices Analyzers
 
 ```yaml
 doctrine_doctor:
@@ -549,9 +593,9 @@ doctrine_doctor:
             enabled: true
         collection_initialization:
             enabled: true
-        primary_key_strategy:
+        missing_embeddable_opportunity:
             enabled: true
-        innodb_engine:
+        blameable_trait:
             enabled: true
 ```
 
@@ -645,7 +689,7 @@ doctrine_doctor:
             explain_queries: true
 ```
 
-### 8.2 Test Configuration
+### 9.2 Test Configuration
 
 ```yaml
 # config/packages/test/doctrine_doctor.yaml
@@ -653,7 +697,7 @@ doctrine_doctor:
     enabled: false  # Disable to avoid test overhead
 ```
 
-### 8.3 Production Configuration
+### 9.3 Production Configuration
 
 ```yaml
 # config/packages/prod/doctrine_doctor.yaml
@@ -683,7 +727,7 @@ services:
             - { name: 'doctrine_doctor.analyzer' }
 ```
 
-### 9.2 Custom Template Renderer
+### 10.2 Custom Template Renderer
 
 ```yaml
 services:
@@ -696,7 +740,7 @@ services:
         alias: App\Infrastructure\MarkdownTemplateRenderer
 ```
 
-### 9.3 Service Decoration
+### 10.3 Service Decoration
 
 ```yaml
 services:
@@ -707,7 +751,7 @@ services:
             $logger: '@logger'
 ```
 
-### 9.4 Conditional Configuration via Environment Variables
+### 10.4 Conditional Configuration via Environment Variables
 
 ```yaml
 # config/packages/doctrine_doctor.yaml
@@ -784,14 +828,14 @@ doctrine_doctor:
     analyzers:
         missing_index:
             enabled: true
-            # Missing: slow_query_threshold, min_rows_scanned
+            # Optional overrides omitted (defaults are used)
 
 # Complete
 doctrine_doctor:
     analyzers:
         missing_index:
             enabled: true
-            slow_query_threshold: 100
+            slow_query_threshold: 50
             min_rows_scanned: 1000
             explain_queries: true
 ```
@@ -812,12 +856,6 @@ doctrine_doctor:
 
 ```yaml
 doctrine_doctor:
-    groups:
-        performance: true
-        security: false
-        integrity: false
-        configuration: false
-
     analyzers:
         n_plus_one:
             threshold: 2
@@ -838,7 +876,7 @@ doctrine_doctor:
     analyzers:
         dql_injection:
             enabled: true
-        sql_injection:
+        sql_injection_in_raw_queries:
             enabled: true
         sensitive_data_exposure:
             enabled: true
@@ -886,8 +924,8 @@ doctrine_doctor:
 
         eager_loading:
             enabled: true
-            join_threshold: 5
-            critical_join_threshold: 10
+            join_threshold: 4
+            critical_join_threshold: 7
 
         lazy_loading:
             enabled: true
@@ -895,16 +933,16 @@ doctrine_doctor:
 
         bulk_operation:
             enabled: true
-            threshold: 100
+            threshold: 20
 
         entity_manager_clear:
             enabled: true
-            batch_size_threshold: 100
+            batch_size_threshold: 20
 
         join_optimization:
             enabled: true
             max_joins_recommended: 5
-            max_joins_critical: 10
+            max_joins_critical: 8
 
         partial_object:
             enabled: true
@@ -916,19 +954,19 @@ doctrine_doctor:
 
         get_reference:
             enabled: true
-            threshold: 10
+            threshold: 2
 
         # Security (no thresholds)
         dql_injection:
             enabled: true
-        sql_injection:
+        sql_injection_in_raw_queries:
             enabled: true
         sensitive_data_exposure:
             enabled: true
         insecure_random:
             enabled: true
 
-        # Code Quality (no thresholds)
+        # Integrity (no thresholds)
         cascade_configuration:
             enabled: true
         cascade_all:
@@ -937,13 +975,11 @@ doctrine_doctor:
             enabled: true
 
         # Configuration (no thresholds)
-        decimal_precision:
-            enabled: true
-        float_for_money:
-            enabled: true
-        timezone:
+        strict_mode:
             enabled: true
         charset:
+            enabled: true
+        inno_db_engine:
             enabled: true
 
         # Best Practices (no thresholds)
@@ -951,7 +987,9 @@ doctrine_doctor:
             enabled: true
         collection_initialization:
             enabled: true
-        primary_key_strategy:
+        missing_embeddable_opportunity:
+            enabled: true
+        blameable_trait:
             enabled: true
 ```
 

@@ -17,9 +17,9 @@ Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler
 
 ---
 
-[![PHP 8.2+](https://img.shields.io/badge/PHP-8.2+-777BB4.svg?logo=php&logoColor=white)](https://php.net)
-[![Symfony 6.0+ | 7.x](https://img.shields.io/badge/Symfony-6.0%2B%20%7C%207.x-000000.svg?logo=symfony&logoColor=white)](https://symfony.com)
-[![Doctrine ORM](https://img.shields.io/badge/Doctrine-2.10%2B%20%7C%203.x%20%7C%204.x-FC6A31.svg?logo=doctrine&logoColor=white)](https://www.doctrine-project.org)
+[![PHP 8.4+](https://img.shields.io/badge/PHP-8.4+-777BB4.svg?logo=php&logoColor=white)](https://php.net)
+[![Symfony 6.x | 7.x | 8.x](https://img.shields.io/badge/Symfony-6.x%20%7C%207.x%20%7C%208.x-000000.svg?logo=symfony&logoColor=white)](https://symfony.com)
+[![Doctrine ORM](https://img.shields.io/badge/Doctrine-3.x%20%7C%204.x-FC6A31.svg?logo=doctrine&logoColor=white)](https://www.doctrine-project.org)
 [![License MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/ahmed-bhs/doctrine-doctor/blob/main/LICENSE)
 [![CI](https://github.com/ahmed-bhs/doctrine-doctor/workflows/CI/badge.svg)](https://github.com/ahmed-bhs/doctrine-doctor/actions)
 [![PHPStan Level 8](https://img.shields.io/badge/PHPStan-Level%208-brightgreen.svg)](https://phpstan.org)

@@ -19,8 +19,8 @@ The Doctrine Doctor panel appears in the Symfony Web Profiler toolbar after each
 
 The panel displays:
 
-- **Issue count** by severity (Critical, High, Medium, Low)
-- **Category breakdown** (Performance, Security, Code Quality, Configuration)
+- **Issue count** by severity (`critical`, `warning`, `info`)
+- **Category breakdown** (Performance, Security, Integrity, Configuration)
 - **Total queries** analyzed
 - **Analysis time** (overhead)
 
@@ -85,7 +85,7 @@ After loading a page, click the Doctrine Doctor panel in the profiler.
 
 ### 3. Review Issues
 
-Focus on Critical and High severity issues first.
+Focus on Critical issues first, then Warning issues.
 
 ### 4. Apply Suggestions
 
@@ -130,7 +130,7 @@ doctrine_doctor:
 1. **Keep Doctrine Doctor enabled** in the dev environment
 2. **Enable backtraces** for precise issue location
 3. **Review issues regularly** before committing code
-4. **Fix Critical/High issues** immediately
+4. **Fix Critical/Warning issues** immediately
 
 ### Before Deployment
 
@@ -157,7 +157,7 @@ doctrine_doctor:
 
 **Action**: Fix immediately before committing
 
-### 🟠 High
+### 🟠 Warning
 
 - Significant performance degradation (missing indexes)
 - Architectural violations
@@ -165,21 +165,13 @@ doctrine_doctor:
 
 **Action**: Fix before merging to main branch
 
-### 🟡 Medium
+### 🔵 Info
 
-- Sub-optimal patterns
-- Minor performance issues
-- Code quality improvements
+- Non-blocking improvements
+- Minor quality/performance suggestions
+- Refactoring opportunities
 
-**Action**: Fix when refactoring or improving the area
-
-### 🔵 Low
-
-- Naming conventions
-- Minor suggestions
-- Cosmetic issues
-
-**Action**: Fix when convenient or as part of larger changes
+**Action**: Plan and address progressively
 
 ---
 

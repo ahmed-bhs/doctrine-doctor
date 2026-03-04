@@ -161,7 +161,7 @@ class Article
 ### Doctrine Doctor Detection
 
 ```text
-🟠 High: Suboptimal Index Usage
+🟠 Warning: Suboptimal Index Usage
 
 Query uses multiple WHERE conditions but only one index.
 Consider a composite index for better performance.
@@ -295,7 +295,7 @@ class Article
 ### Doctrine Doctor Detection
 
 ```text
-🟠 High: Missing Index for Sorting
+🟠 Warning: Missing Index for Sorting
 
 Query uses ORDER BY published_at without index.
 Causes filesort for large tables.
@@ -340,7 +340,7 @@ public function search(string $term): array
 ### Doctrine Doctor Detection
 
 ```text
-🟡 Medium: LIKE Query Without Index
+🔵 Info: LIKE Query Without Index
 
 Wildcard searches with leading % cannot use indexes efficiently.
 

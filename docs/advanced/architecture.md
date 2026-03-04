@@ -77,23 +77,22 @@ Each analyzer implements the `AnalyzerInterface`, enabling runtime composition. 
 - **Independent testing** - Each analyzer can be tested in isolation
 - **Dynamic analyzer selection** - Enable/disable analyzers via configuration
 
-### 2.2 Template Method Pattern (Analysis Pipeline)
+### 2.2 Data Collector Pipeline
 
-The analysis process follows a defined template implemented by Symfony's `DataCollector` and `LateDataCollectorInterface`:
+Doctrine Doctor uses Symfony's `DataCollector` + `LateDataCollectorInterface`, but analysis is currently executed in `collect()` for worker-mode safety.
 
-1. **collect()** - Capture raw query data (fast, ~1-2ms, runs during request)
-2. **lateCollect()** - Perform heavy analysis (10-50ms, runs AFTER response sent)
-3. **serialize()** - Prepare analysis results for storage/display
-4. **unserialize()** - Restore analysis results from cache
+1. **collect()** - Capture query data and run analysis
+2. **lateCollect()** - Present for interface compatibility (no heavy work here)
+3. **serialize()/unserialize()** - Profiler storage lifecycle
 
-This pattern ensures analysis overhead doesn't impact request time metrics.
+Rationale: avoid stale Doctrine objects in persistent runtimes (FrankenPHP/RoadRunner/Swoole).
 
 ### 2.3 Issue Creation Pattern
 
 Each analyzer creates `Issue` objects with:
 
-- **Severity** (Critical, High, Medium, Low)
-- **Category** (Performance, Security, Code Quality, Configuration)
+- **Severity** (`critical`, `warning`, `info`)
+- **Category** (Performance, Security, Integrity, Configuration)
 - **Suggestion** (with code examples and descriptions)
 - **Location** (backtrace, query context)
 - **Metadata** (queries, execution time, affected entities)
@@ -174,13 +173,7 @@ sequenceDiagram
     DoctorDC->>DoctorDC: Store in $data
     deactivate DoctorDC
 
-    Symfony-->>Request: Response sent ✓
-    deactivate Symfony
-
-    Note over DoctorDC,Analyzers: Post-response analysis
-
-    DoctorDC->>DoctorDC: lateCollect()
-    activate DoctorDC
+    DoctorDC->>DoctorDC: Run analysis in collect()
 
     loop For each analyzer
         DoctorDC->>Analyzers: analyze(QueryDataCollection)
@@ -191,6 +184,9 @@ sequenceDiagram
     DoctorDC->>DoctorDC: Deduplicate issues
     DoctorDC->>DoctorDC: Calculate statistics
     deactivate DoctorDC
+
+    Symfony-->>Request: Response sent ✓
+    deactivate Symfony
 
     Profiler->>DoctorDC: getData()
     DoctorDC-->>Profiler: Analysis results
@@ -263,7 +259,7 @@ interface IssueInterface
 ┌─────────────────────────────────┐
 │   DoctrineDoctorDataCollector   │
 │   extends DataCollector          │
-│   implements LateDataCollector   │
+│ implements LateDataCollectorInterface │
 ├─────────────────────────────────┤
 │ - analyzers: AnalyzerInterface[]│
 │ - helpers: DataCollectorHelpers  │
@@ -323,22 +319,21 @@ interface IssueInterface
 
 ## 6. Design Decisions
 
-### 6.1 Late Data Collection
+### 6.1 Data Collection Timing
 
-**Decision**: Implement `LateDataCollectorInterface` for analysis execution.
+**Decision**: Keep `LateDataCollectorInterface` contract but execute analysis in `collect()`.
 
 **Rationale**:
 
-- Analysis overhead not included in request time metrics
-- Heavy operations (EXPLAIN queries, entity metadata inspection) deferred
-- User experience unaffected by analysis time
-- Profiler data still available post-response
+- Worker mode compatibility (no stale EntityManager references post-response)
+- Deterministic lifecycle in persistent runtimes
+- Profiler data remains available via serialized collector state
 
 **Trade-offs**:
 
-- Additional complexity in service lifecycle management
-- ServiceHolder pattern required for post-response DI access
-- Cannot modify response based on analysis (acceptable for dev tool)
+- Analysis cost happens during collection phase
+- Requires careful control of overhead in development
+- Still cannot modify response based on analysis (acceptable for dev tool)
 
 ### 6.2 PHP Template System
 
@@ -390,21 +385,19 @@ return ['code' => $code, 'description' => 'Suggestion'];
 
 ### 6.4 Severity Classification
 
-**Decision**: Four-level severity system (Critical, High, Medium, Low).
+**Decision**: Three-level severity system (`critical`, `warning`, `info`).
 
 **Rationale**:
 
-- Aligned with industry standards (CVSS, issue tracking systems)
-- Clear priority communication
-- Filterable in UI
-- Objective criteria per analyzer
+- Simple and consistent UI semantics
+- Easy sorting/filtering
+- Reduced ambiguity between adjacent levels
 
 **Criteria**:
 
-- **Critical**: Security vulnerability, data loss risk, production failure
-- **High**: Significant performance degradation, architectural violation
-- **Medium**: Sub-optimal patterns, improvement opportunities
-- **Low**: Style, cosmetic issues
+- **Critical**: Security vulnerability, data loss risk, severe runtime risk
+- **Warning**: Significant performance/integrity/configuration concern
+- **Info**: Improvement opportunity, non-blocking recommendation
 
 ---
 
