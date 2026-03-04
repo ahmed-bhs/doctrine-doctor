@@ -21,12 +21,12 @@ composer require --dev ahmed-bhs/doctrine-doctor
 
 That's it! Auto-configured via Symfony Flex.
 
-### Does it work with Symfony 6 and 7?
+### Does it work with Symfony 6, 7, and 8?
 
 Yes! Doctrine Doctor supports:
-- **Symfony**: 6.0+ and 7.x
-- **PHP**: 8.2+
-- **Doctrine ORM**: 2.10+, 3.x, 4.x
+- **Symfony**: 6.x, 7.x, 8.x
+- **PHP**: 8.4+
+- **Doctrine ORM**: 3.x, 4.x
 
 ### Do I need to configure anything?
 
@@ -69,7 +69,7 @@ doctrine_doctor:
 
 ### Does it slow down my application?
 
-**No!** Analysis runs AFTER the response is sent using `LateDataCollectorInterface`. Your users see no impact.
+Analysis runs in the Symfony data collector during profiling and is intended for development usage only.
 
 ### Can I use it in production?
 
@@ -80,7 +80,7 @@ doctrine_doctor:
 
 ### How much overhead does it add?
 
-~10-50ms post-response (users don't notice). Heavy operations like EXPLAIN queries run after response.
+Typically low overhead in `dev`; it should remain disabled in production.
 
 ---
 
@@ -89,10 +89,10 @@ doctrine_doctor:
 ### How many analyzers are there?
 
 **66 specialized analyzers** across 4 categories:
-- Performance (25)
-- Security (8)
-- Code Quality (20)
-- Configuration (13)
+- Performance (19)
+- Security (4)
+- Code Quality / Integrity (35)
+- Configuration (8)
 
 ### Can I create custom analyzers?
 
