@@ -36,6 +36,8 @@ class <?php echo $e($shortClass); ?> {
 }</code></pre></div>
 
 <p>Use <code>#[Ignore]</code> or <code>#[Groups]</code> to exclude sensitive fields from serialization. Never expose passwords, tokens, or personally identifiable information.</p>
+
+<p><a href="https://symfony.com/doc/current/serializer.html#selecting-specific-properties" target="_blank" rel="noopener noreferrer" class="doc-link">Symfony Serializer Groups</a></p>
 </div>
 <?php
 $code = ob_get_clean();

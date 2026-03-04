@@ -362,10 +362,12 @@ final class SuggestionContentBlock
 
     private function renderLinkHtml(): string
     {
-        $text = htmlspecialchars((string) ($this->metadata['text'] ?? ''));
+        $rawText = trim((string) ($this->metadata['text'] ?? ''));
+        $text = '' !== $rawText ? $rawText : '📖 Documentation';
+        $text = htmlspecialchars($text);
         $url  = htmlspecialchars($this->getStringContent());
 
-        return '<div class="suggestion-link"><a href="' . $url . '" target="_blank" rel="noopener">' . $text . '</a></div>';
+        return '<div class="suggestion-link"><a href="' . $url . '" target="_blank" rel="noopener noreferrer" class="doc-link">' . $text . '</a></div>';
     }
 
     private function renderComparisonHtml(): string

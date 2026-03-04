@@ -45,6 +45,8 @@ class <?= $e(basename(str_replace('\\', '/', $entityClass))) . "\n" ?>
 }</code></pre>
 
     <p>Set in constructor to ensure it's always present. Don't add a public setter.</p>
+
+    <p><a href="https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Extensions Blameable</a></p>
 </div>
 
 <?php

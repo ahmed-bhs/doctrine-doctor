@@ -41,7 +41,7 @@ private \DateTimeImmutable $<?php echo $e($fieldName); ?>;</code></pre>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/working-with-datetime.html" target="_blank" class="doc-link">
-            📖 Doctrine datetime docs
+            📜 Doctrine datetime docs
         </a>
     </p>
 </div>

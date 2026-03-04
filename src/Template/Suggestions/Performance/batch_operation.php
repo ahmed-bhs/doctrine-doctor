@@ -39,6 +39,8 @@ for ($i = 0; $i < <?php echo $operationCount; ?>; $i++) {
 $em->flush();
 // Memory usage: Only 20 * entity size at any time</code></pre></div>
 <p><strong>Impact:</strong> Reduces memory from ~<?php echo round($operationCount / 20); ?>MB to ~1MB</p>
+
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/batch-processing.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Batch Processing</a></p>
 </div>
 <?php
 $code = ob_get_clean();

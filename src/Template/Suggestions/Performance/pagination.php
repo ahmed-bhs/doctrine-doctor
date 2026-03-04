@@ -44,7 +44,7 @@ $entities = $repository->createQueryBuilder('e')
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/pagination.html" target="_blank" class="doc-link">
-            📖 Doctrine pagination →
+            📜 Doctrine pagination
         </a>
     </p>
 </div>

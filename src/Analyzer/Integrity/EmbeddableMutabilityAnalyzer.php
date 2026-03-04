@@ -260,6 +260,7 @@ class EmbeddableMutabilityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
                 'embeddable'        => $className,
                 'mutability_issues' => $mutabilityIssues,
             ],
+            'entity'      => $className,
         ]);
     }
 

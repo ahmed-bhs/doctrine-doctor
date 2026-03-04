@@ -52,6 +52,8 @@ class <?= $e($entityClass) ?> {
     </div>
 
     <p><strong>Benefits:</strong> Better encapsulation, reusability, validation in one place.</p>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Embeddables</a></p>
 </div>
 
 <?php

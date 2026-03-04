@@ -49,6 +49,8 @@ ob_start();
     </div>
 
     <p>Cache durations: Static (countries) 24h, Products 1h, Stock 5min. Use descriptive keys: <code>'product_' . $id</code>.</p>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Caching</a></p>
 </div>
 
 <?php

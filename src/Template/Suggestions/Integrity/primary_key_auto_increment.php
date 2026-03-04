@@ -34,6 +34,8 @@ public function __construct() {
 }</code></pre></div>
 
 <p>Use UUID v7 for: API resources, distributed systems, security-sensitive entities.</p>
+
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#identifier-generation-strategies" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Identifier Generation Strategies</a></p>
 </div>
 <?php
 $code = ob_get_clean();

@@ -234,7 +234,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray($issueData->toArray());
+        $issue = $this->issueFactory->createFromArray($issueData->toArray() + ['entity' => $entityName]);
         return $issue;
     }
 
@@ -262,7 +262,7 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
 
         /** @var IntegrityIssue $issue */
-        $issue = $this->issueFactory->createFromArray($issueData->toArray());
+        $issue = $this->issueFactory->createFromArray($issueData->toArray() + ['entity' => $entityName]);
         return $issue;
     }
 

@@ -43,7 +43,7 @@ ob_start();
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal" target="_blank" class="doc-link">
-            📖 Doctrine Decimal Type →
+            📜 Doctrine Decimal Type
         </a>
     </p>
 </div>

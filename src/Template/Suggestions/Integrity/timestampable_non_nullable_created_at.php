@@ -41,6 +41,8 @@ class <?= $e($entityClass) ?> {
     </div>
 
     <p>Timestamps are always set automatically - they should never be NULL.</p>
+
+    <p><a href="https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/timestampable.md" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Extensions Timestampable</a></p>
 </div>
 
 <?php

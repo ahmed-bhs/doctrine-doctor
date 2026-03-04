@@ -231,7 +231,7 @@ $results = $em->createQuery('
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">
-            📖 Doctrine DQL JOIN Documentation →
+            📜 Doctrine DQL JOIN Documentation
         </a>
     </p>
 </div>

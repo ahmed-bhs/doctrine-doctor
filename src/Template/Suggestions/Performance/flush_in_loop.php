@@ -55,7 +55,7 @@ $em->clear();
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank" class="doc-link">
-            📖 Doctrine batch processing
+            📜 Doctrine batch processing
         </a>
     </p>
 </div>

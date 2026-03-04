@@ -38,6 +38,8 @@ class <?php echo $e($shortClass); ?> {
         $this-><?php echo $e($fieldName); ?> = new ArrayCollection();
     }
 }</code></pre></div>
+
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Working with Associations</a></p>
 </div>
 <?php
 $code = ob_get_clean();

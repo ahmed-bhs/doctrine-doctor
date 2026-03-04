@@ -79,7 +79,7 @@ class <?= $e($entityClass) ?> {
 
     <p>
         <a href="https://docs.example.com" target="_blank" class="doc-link">
-            📖 Documentation →
+            📜 Documentation
         </a>
     </p>
 </div>
