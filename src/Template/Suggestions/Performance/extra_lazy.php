@@ -20,7 +20,7 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>Suggested Fix: Extra Lazy Collections</h4>
+    <h4>Extra Lazy Collections</h4>
 </div>
 
 <div class="suggestion-content">

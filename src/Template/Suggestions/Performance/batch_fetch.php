@@ -19,7 +19,7 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>Suggested Fix: Batch Fetching for Proxies</h4>
+    <h4>Batch Fetching for Proxies</h4>
 </div>
 
 <div class="suggestion-content">

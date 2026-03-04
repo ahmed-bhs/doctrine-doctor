@@ -17,7 +17,7 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>Suggested Fix: Reduce Over-Eager Loading</h4>
+    <h4>Reduce Over-Eager Loading</h4>
 </div>
 
 <div class="suggestion-content">

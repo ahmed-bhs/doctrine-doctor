@@ -19,7 +19,7 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>Suggested Fix: Remove Unused Eager Loading</h4>
+    <h4>Remove Unused Eager Loading</h4>
 </div>
 
 <div class="suggestion-content">

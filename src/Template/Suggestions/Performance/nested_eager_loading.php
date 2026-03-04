@@ -20,7 +20,7 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>Suggested Fix: Resolve Nested Relationship N+1</h4>
+    <h4>Resolve Nested Relationship N+1</h4>
 </div>
 
 <div class="suggestion-content">
