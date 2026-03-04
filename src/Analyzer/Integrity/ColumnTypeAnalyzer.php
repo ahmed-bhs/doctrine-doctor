@@ -246,7 +246,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::info(),
-                    title: 'Code Quality Suggestion',
+                    title: 'Suggestion',
                     tags: ['code-quality'],
                 ),
             ),
@@ -297,7 +297,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                     suggestionMetadata: new SuggestionMetadata(
                         type: SuggestionType::integrity(),
                         severity: Severity::info(),
-                        title: 'Code Quality Suggestion',
+                        title: 'Suggestion',
                         tags: ['code-quality'],
                     ),
                 ),
@@ -369,7 +369,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::info(),
-                    title: 'Code Quality Suggestion',
+                    title: 'Suggestion',
                     tags: ['code-quality'],
                 ),
             ),
