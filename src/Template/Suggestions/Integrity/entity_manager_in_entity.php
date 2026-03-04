@@ -47,7 +47,7 @@ ob_start();
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/architecture.html" target="_blank" class="doc-link">
-            📖 Doctrine architecture
+            📜 Doctrine architecture
         </a>
     </p>
 </div>

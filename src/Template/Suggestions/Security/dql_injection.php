@@ -48,7 +48,7 @@ $result = $query->getResult();</code></pre>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#dql-query-parameters" target="_blank" class="doc-link">
-            📖 Doctrine DQL parameters
+            📜 Doctrine DQL parameters
         </a>
     </p>
 </div>

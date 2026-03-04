@@ -56,6 +56,8 @@ ob_start();
         <strong>Performance Impact:</strong><br>
         Removing unused JOIN: 10-20% faster
     </div>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Joins</a></p>
 </div>
 
 <?php

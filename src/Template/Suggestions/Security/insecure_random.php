@@ -30,6 +30,8 @@ $token = bin2hex(<?php echo $e($insecureFunction); ?>(16));</code></pre></div>
 $token = bin2hex(random_bytes(16));
 // Or for integers:
 $number = random_int(1000, 9999);</code></pre></div>
+
+<p><a href="https://www.php.net/manual/en/function.random-bytes.php" target="_blank" rel="noopener noreferrer" class="doc-link">PHP random_bytes() Documentation</a></p>
 </div>
 <?php
 $code = ob_get_clean();

@@ -35,7 +35,7 @@ ob_start();
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html" target="_blank" class="doc-link">
-            📖 Doctrine Associations Documentation →
+            📜 Doctrine Associations Documentation
         </a>
     </p>
 </div>

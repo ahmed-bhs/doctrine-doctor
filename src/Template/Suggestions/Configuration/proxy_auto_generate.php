@@ -44,6 +44,8 @@ doctrine:
         auto_generate_proxy_classes: true
 </code></pre>
 
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/advanced-configuration.html#proxy-objects" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Proxy Objects Documentation</a></p>
+
 <?php
 
 $code = ob_get_clean();

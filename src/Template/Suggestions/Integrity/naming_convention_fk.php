@@ -45,7 +45,7 @@ private $<?php echo $e($assocName); ?>;</code></pre>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn" target="_blank" class="doc-link">
-            📖 Doctrine JoinColumn Documentation →
+            📜 Doctrine JoinColumn Documentation
         </a>
     </p>
 </div>

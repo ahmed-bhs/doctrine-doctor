@@ -38,6 +38,8 @@ class <?php echo $e($shortClass); ?>
 }</code></pre></div>
 
 <p>DateTimeImmutable is thread-safe. Once a deletion time is set, it should never change.</p>
+
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#doctrine-mapping-types" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Mapping Types</a></p>
 </div>
 <?php
 $code = ob_get_clean();

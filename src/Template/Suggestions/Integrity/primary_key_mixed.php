@@ -23,6 +23,8 @@ ob_start();
 
 <p><strong>UUID entities:</strong> <?php if (!empty($uuid_entities)): ?><?php foreach (array_slice($uuid_entities, 0, 3) as $entity): ?><code><?php echo $e((string) $entity); ?></code> <?php endforeach; ?><?php if (count($uuid_entities) > 3): ?>... +<?php echo count($uuid_entities) - 3; ?><?php endif; ?><?php endif; ?></p>
 <p><strong>Auto-increment:</strong> <?php if (!empty($auto_increment_entities)): ?><?php foreach (array_slice($auto_increment_entities, 0, 3) as $entity): ?><code><?php echo $e((string) $entity); ?></code> <?php endforeach; ?><?php if (count($auto_increment_entities) > 3): ?>... +<?php echo count($auto_increment_entities) - 3; ?><?php endif; ?><?php endif; ?></p>
+
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#identifier-generation-strategies" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Identifier Generation Strategies</a></p>
 </div>
 <?php
 $code = ob_get_clean();

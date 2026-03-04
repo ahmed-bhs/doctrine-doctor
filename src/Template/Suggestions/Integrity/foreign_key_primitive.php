@@ -56,7 +56,7 @@ ob_start();
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/association-mapping.html" target="_blank" class="doc-link">
-            📖 Doctrine Association Mapping →
+            📜 Doctrine Association Mapping
         </a>
     </p>
 </div>

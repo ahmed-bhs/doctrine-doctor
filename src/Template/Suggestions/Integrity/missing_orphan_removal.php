@@ -58,7 +58,7 @@ $em->flush();</code></pre>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">
-            📖 Doctrine Orphan Removal
+            📜 Doctrine Orphan Removal
         </a>
     </p>
 </div>

@@ -200,7 +200,7 @@ public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/extra-lazy-associations.html" target="_blank" class="doc-link">
-            📖 Doctrine Extra Lazy Associations Documentation →
+            📜 Doctrine Extra Lazy Associations Documentation
         </a>
     </p>
 </div>

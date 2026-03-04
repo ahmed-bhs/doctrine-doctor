@@ -34,6 +34,8 @@ $qb->leftJoin('o.relation', '<?php echo $e($alias); ?>');
 $qb->innerJoin('o.relation', '<?php echo $e($alias); ?>');</code></pre>
 
     <p><strong>Rule:</strong> NOT NULL FK → INNER JOIN. Nullable FK → LEFT JOIN.</p>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Joins</a></p>
 </div>
 
 <?php

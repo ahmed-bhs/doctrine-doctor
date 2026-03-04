@@ -242,7 +242,7 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">
-            📖 Doctrine Multi-Level JOIN Documentation →
+            📜 Doctrine Multi-Level JOIN Documentation
         </a>
     </p>
 </div>

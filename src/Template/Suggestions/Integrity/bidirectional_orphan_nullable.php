@@ -53,7 +53,7 @@ class <?php echo $e($childClass); ?> {
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">
-            📖 Doctrine Orphan Removal Documentation →
+            📜 Doctrine Orphan Removal Documentation
         </a>
     </p>
 </div>

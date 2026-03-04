@@ -40,6 +40,8 @@ if ($isPHP) {
 <li>Avoid SELECT * (use partial objects)</li>
 <li>Use Query Result Cache for repeated queries</li>
 </ul>
+
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/improving-performance.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Improving Performance</a></p>
 </div>
 <?php
 $code = ob_get_clean();

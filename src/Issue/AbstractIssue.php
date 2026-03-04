@@ -208,9 +208,94 @@ abstract class AbstractIssue implements DeduplicatableIssueInterface
                 'title'       => $issue->getTitle(),
                 'type'        => $issue->getType(),
                 'severity'    => $issue->getSeverity()->value,
-                'description' => substr(html_entity_decode(strip_tags($issue->getDescription()), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 0, 200), // First 200 chars, strip HTML then decode entities
+                'description' => self::createDuplicateDescriptionExcerpt($issue->getDescription(), 200),
+                'entityClass' => self::extractDuplicateEntityClass($issue),
+                'fieldName'   => self::extractDuplicateFieldName($issue),
+                'targetLabel' => self::buildDuplicateTargetLabel($issue),
             ], $this->duplicatedIssues),
         ];
+    }
+
+    /**
+     * Build a compact, readable excerpt for duplicated issues.
+     * Avoids cutting in the middle of a word (e.g. "... not cr").
+     */
+    private static function createDuplicateDescriptionExcerpt(string $description, int $maxLength): string
+    {
+        $plain = trim(html_entity_decode(strip_tags($description), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+
+        if (strlen($plain) <= $maxLength) {
+            return $plain;
+        }
+
+        $snippet = substr($plain, 0, $maxLength);
+        $lastSpacePos = strrpos($snippet, ' ');
+
+        if (false !== $lastSpacePos && $lastSpacePos > (int) ($maxLength * 0.6)) {
+            $snippet = substr($snippet, 0, $lastSpacePos);
+        }
+
+        return rtrim($snippet, " \t\n\r\0\x0B.,;:!?") . '...';
+    }
+
+    private static function extractDuplicateEntityClass(IssueInterface $issue): ?string
+    {
+        $data = $issue->getData();
+        $candidates = ['entityClass', 'entity_class', 'class', 'entity', 'entityName'];
+
+        foreach ($candidates as $key) {
+            if (isset($data[$key]) && is_string($data[$key]) && '' !== trim($data[$key])) {
+                return trim($data[$key]);
+            }
+        }
+
+        $description = html_entity_decode(strip_tags($issue->getDescription()), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if (1 === preg_match('/\bentity\s+([A-Za-z_\\\\][A-Za-z0-9_\\\\]*)/i', $description, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    private static function extractDuplicateFieldName(IssueInterface $issue): ?string
+    {
+        $data = $issue->getData();
+        $candidates = ['fieldName', 'field_name', 'field', 'property', 'propertyName', 'property_name'];
+
+        foreach ($candidates as $key) {
+            if (isset($data[$key]) && is_string($data[$key]) && '' !== trim($data[$key])) {
+                return trim($data[$key]);
+            }
+        }
+
+        $description = html_entity_decode(strip_tags($issue->getDescription()), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if (1 === preg_match('/\bField\s+([A-Za-z_][A-Za-z0-9_]*)\b/i', $description, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    private static function buildDuplicateTargetLabel(IssueInterface $issue): ?string
+    {
+        $entityClass = self::extractDuplicateEntityClass($issue);
+        $fieldName = self::extractDuplicateFieldName($issue);
+
+        if (null !== $entityClass && null !== $fieldName) {
+            $normalizedField = ltrim($fieldName, '$');
+
+            return sprintf('%s::%s', $entityClass, $normalizedField);
+        }
+
+        if (null !== $entityClass) {
+            return $entityClass;
+        }
+
+        if (null !== $fieldName) {
+            return ltrim($fieldName, '$');
+        }
+
+        return null;
     }
 
     /**

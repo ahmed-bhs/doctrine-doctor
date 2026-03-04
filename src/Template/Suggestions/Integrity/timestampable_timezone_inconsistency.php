@@ -122,7 +122,7 @@ php bin/console doctrine:migrations:migrate</code></pre>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetime" target="_blank" class="doc-link">
-            📖 Doctrine: DateTime Types →
+            📜 Doctrine: DateTime Types
         </a>
     </p>
 </div>

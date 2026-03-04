@@ -252,6 +252,8 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             ),
             'backtrace' => null,
             'queries'   => [],
+            'entity'    => $entityClass,
+            'field'     => $fieldName,
         ]);
         return $issue;
     }
@@ -301,6 +303,8 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                 ),
                 'backtrace' => null,
                 'queries'   => [],
+                'entity'    => $entityClass,
+                'field'     => $fieldName,
             ]);
             return $issue;
         }
@@ -371,6 +375,8 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             ),
             'backtrace' => null,
             'queries'   => [],
+            'entity'    => $entityClass,
+            'field'     => $fieldName,
         ]);
         return $issue;
     }

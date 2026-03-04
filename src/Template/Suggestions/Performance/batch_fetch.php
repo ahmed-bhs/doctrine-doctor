@@ -150,7 +150,7 @@ public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#annref_batchfetch" target="_blank" class="doc-link">
-            📖 Doctrine Batch Fetch Documentation →
+            📜 Doctrine Batch Fetch Documentation
         </a>
     </p>
 </div>

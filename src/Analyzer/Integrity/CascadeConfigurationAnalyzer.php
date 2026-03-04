@@ -203,6 +203,8 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
                 'suggestion' => $this->createCascadeAllSuggestion($entityClass, $fieldName, $mapping),
                 'backtrace'  => $backtrace,
                 'queries'    => [],
+                'entity'     => $entityClass,
+                'field'      => $fieldName,
             ]);
             return $issue;
         }
@@ -223,6 +225,8 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             'suggestion' => $this->createCascadeAllSuggestion($entityClass, $fieldName, $mapping),
             'backtrace'  => $backtrace,
             'queries'    => [],
+            'entity'     => $entityClass,
+            'field'      => $fieldName,
         ]);
         return $issue;
     }
@@ -260,6 +264,8 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             'suggestion' => $this->createRemoveCascadeRemoveSuggestion($entityClass, $fieldName, $mapping),
             'backtrace'  => $backtrace,
             'queries'    => [],
+            'entity'     => $entityClass,
+            'field'      => $fieldName,
         ]);
         return $issue;
     }
@@ -292,6 +298,8 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
                 'suggestion' => $this->createAddCascadeSuggestion($entityClass, $fieldName, $mapping),
                 'backtrace'  => $backtrace,
                 'queries'    => [],
+                'entity'     => $entityClass,
+                'field'      => $fieldName,
             ]);
             return $issue;
         }

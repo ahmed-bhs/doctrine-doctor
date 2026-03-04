@@ -51,6 +51,8 @@ ob_start();
 }</code></pre></div>
 
 <p>Use <code>delete()</code> and <code>restore()</code> methods instead of a setter.</p>
+
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#doctrine-mapping-types" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Mapping Types</a></p>
 </div>
 <?php
 $code = ob_get_clean();

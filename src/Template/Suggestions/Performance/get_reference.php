@@ -42,7 +42,7 @@ $order->setUser($user);</code></pre>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-objects.html#entity-object-graph-traversal" target="_blank" class="doc-link">
-            📖 Doctrine getReference() docs
+            📜 Doctrine getReference() docs
         </a>
     </p>
 </div>

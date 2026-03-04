@@ -42,6 +42,8 @@ $result = $stmt->executeQuery();</code></pre>
     </div>
 
     <p>Use prepared statements or prefer QueryBuilder/DQL over raw SQL.</p>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/security.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Security</a></p>
 </div>
 
 <?php

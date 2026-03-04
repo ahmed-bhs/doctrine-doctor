@@ -42,6 +42,8 @@ $qb->select('u')
     </div>
 
     <p><strong>Performance:</strong> Sorting 1M rows without LIMIT uses significant CPU/memory. Add LIMIT or remove ORDER BY.</p>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#first-and-max-result-items-dql-query-only" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM First and Max Result Items</a></p>
 </div>
 
 <?php

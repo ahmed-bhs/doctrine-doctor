@@ -45,7 +45,7 @@ private $<?php echo $e($fieldName); ?>;</code></pre>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/naming-strategy.html" target="_blank" class="doc-link">
-            📖 Doctrine Naming Strategy Documentation →
+            📜 Doctrine Naming Strategy Documentation
         </a>
     </p>
 </div>

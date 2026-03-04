@@ -52,6 +52,8 @@ readonly class <?php echo $e($embeddableClass); ?> {
     </div>
 
     <p>Store monetary values as integers (smallest unit: cents, pence, etc.) to avoid float precision issues.</p>
+
+    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Embeddables</a></p>
 </div>
 
 <?php
