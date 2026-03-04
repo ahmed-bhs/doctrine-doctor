@@ -22,8 +22,7 @@
 <p>Unlike static analysis tools (PHPStan, Psalm) that analyze code without execution, Doctrine Doctor:</p>
 
 <ul>
-<li><b>Detects runtime-only issues</b>: N+1 queries, actual query performance, missing indexes on real database</li>
-<li><b>Analyzes real execution context</b>: Actual parameter values, data volumes, execution plans</li>
+<li><b>Detects runtime-only database issues</b> by analyzing real execution context (actual parameters, data volume, query plans), including N+1 queries, real query performance bottlenecks, and missing indexes.</li>
 <li><b>Integrated into your workflow</b>: Results appear directly in Symfony Web Profiler during development
   <ul>
   <li>&#x1F4CD; Backtrace: Points to exact template line</li>
