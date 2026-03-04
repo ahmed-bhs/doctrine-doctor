@@ -62,11 +62,6 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
     {
         $queries = $queryDataCollection->toArray();
 
-        // Sort by execution time to analyze temporal sequences
-        usort($queries, function (QueryData $queryA, QueryData $queryB): int {
-            return 0; // If no timing available, keep original order
-        });
-
         return IssueCollection::fromGenerator(
             /**
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
@@ -102,10 +97,11 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
     private function detectQueryChains(array $queries): array
     {
         $chains = [];
+        /** @var array<string, array{items: list<array{query: QueryData, table: string, foreignKey: ?string, sql: string, index: int}>, first_index: int}> $groupedByTable */
         $groupedByTable = [];
 
         // Group queries by table name
-        foreach ($queries as $query) {
+        foreach ($queries as $index => $query) {
             $sql = $query->sql;
 
             // Only analyze SELECT queries
@@ -126,56 +122,73 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
             $foreignKey = $this->extractForeignKeyPattern($sql);
 
             if (!isset($groupedByTable[$table])) {
-                $groupedByTable[$table] = [];
+                $groupedByTable[$table] = [
+                    'items' => [],
+                    'first_index' => $index,
+                ];
             }
 
-            $groupedByTable[$table][] = [
+            $groupedByTable[$table]['items'][] = [
                 'query' => $query,
                 'table' => $table,
                 'foreignKey' => $foreignKey,
                 'sql' => $sql,
+                'index' => $index,
             ];
         }
 
         // Filter tables with repeated queries (potential N+1)
-        $repeatedTables = array_filter($groupedByTable, fn ($group) => \count($group) >= $this->threshold);
+        $repeatedTables = array_filter(
+            $groupedByTable,
+            fn (array $group): bool => \count($group['items']) >= $this->threshold,
+        );
 
         if (\count($repeatedTables) < 2) {
             return []; // Need at least 2 tables for nesting
         }
 
-        // Simplified approach: If we have 2+ tables with repeated queries,
-        // assume they form a nested relationship chain
-        // This is a heuristic - in real scenarios, these are likely related
-        $tablesArray = array_keys($repeatedTables);
+        // Require at least one non-repeated root query before nested groups.
+        // This prevents false positives from unrelated repeated lookups.
+        $rootCandidates = array_filter(
+            $groupedByTable,
+            fn (array $group): bool => \count($group['items']) < $this->threshold,
+        );
 
-        if (\count($tablesArray) >= 2) {
-            // Build chain from all repeated tables
-            // Sort by query count (ascending) to get the likely execution order
-            usort($tablesArray, fn (string $tableA, string $tableB): int => \count($repeatedTables[$tableA]) <=> \count($repeatedTables[$tableB]));
-
-            // Reverse to get parent -> child order (more queries first)
-            $tablesArray = array_reverse($tablesArray);
-
-            $allQueries = [];
-            $totalCount = 0;
-            foreach ($tablesArray as $table) {
-                $queries = $repeatedTables[$table];
-                $allQueries = array_merge($allQueries, array_map(fn ($item) => $item['query'], $queries));
-                $totalCount += \count($queries);
-            }
-
-            // Calculate average query count per table
-            $avgCount = (int) ($totalCount / \count($tablesArray));
-
-            $chains[] = [
-                'depth' => \count($tablesArray),
-                'count' => $avgCount,
-                'tables' => $tablesArray,
-                'pattern' => implode(' → ', $tablesArray),
-                'queries' => $allQueries,
-            ];
+        if ([] === $rootCandidates) {
+            return [];
         }
+
+        $rootFirstIndex = min(array_map(static fn (array $group): int => $group['first_index'], $rootCandidates));
+        $repeatedFirstIndex = min(array_map(static fn (array $group): int => $group['first_index'], $repeatedTables));
+
+        if ($rootFirstIndex >= $repeatedFirstIndex) {
+            return [];
+        }
+
+        $tablesArray = array_keys($repeatedTables);
+        usort(
+            $tablesArray,
+            fn (string $tableA, string $tableB): int => $repeatedTables[$tableA]['first_index'] <=> $repeatedTables[$tableB]['first_index'],
+        );
+
+        $allQueries = [];
+        $totalCount = 0;
+        foreach ($tablesArray as $table) {
+            $tableQueries = $repeatedTables[$table]['items'];
+            $allQueries = array_merge($allQueries, array_map(fn (array $item): QueryData => $item['query'], $tableQueries));
+            $totalCount += \count($tableQueries);
+        }
+
+        // Calculate average query count per table
+        $avgCount = (int) ($totalCount / \count($tablesArray));
+
+        $chains[] = [
+            'depth' => \count($tablesArray),
+            'count' => $avgCount,
+            'tables' => $tablesArray,
+            'pattern' => implode(' → ', $tablesArray),
+            'queries' => $allQueries,
+        ];
 
         return $chains;
     }

@@ -80,6 +80,23 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_does_not_flag_inner_join_used_for_filtering(): void
+    {
+        // INNER JOIN can constrain results even if joined alias is not projected.
+        $sql = 'SELECT a.id FROM article a INNER JOIN user u ON u.id = a.author_id';
+
+        $collection = QueryDataBuilder::create()->addQuery($sql, 0.010)->build();
+
+        $issues = $this->analyzer->analyze($collection);
+        $unusedJoinIssues = array_filter(
+            $issues->toArray(),
+            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+        );
+
+        self::assertCount(0, $unusedJoinIssues);
+    }
+
+    #[Test]
     public function it_detects_over_eager_loading_with_many_joins(): void
     {
         $sql = 'SELECT a.id FROM article a '
