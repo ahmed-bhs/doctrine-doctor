@@ -187,6 +187,25 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_does_not_detect_unrelated_repeated_lookups_without_root_query(): void
+    {
+        // Two repeated lookup groups without an initial root query should not be
+        // considered nested N+1.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM countries WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 12', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
     public function it_handles_empty_query_collection(): void
     {
         $collection = QueryDataBuilder::create()->build();
