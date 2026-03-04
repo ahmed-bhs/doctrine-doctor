@@ -1034,13 +1034,12 @@
 
         .suggestion-content .doc-link:hover {
             text-decoration: underline;
+            text-underline-offset: 3px;
+            text-decoration-skip-ink: all;
         }
 
         .suggestion-content .doc-link[target="_blank"]::after {
-            content: "↗";
-            margin-left: 6px;
-            font-size: 11px;
-            opacity: 0.82;
+            content: "";
         }
 
         /* ============================================
