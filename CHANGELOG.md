@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-03-04
+
+### Fixed
+
+- `doctrine_doctor.enabled` now supports Symfony parameter placeholders (e.g. `%kernel.debug%`) by resolving the root `enabled` config before strict tree validation.
+- Added regression coverage for string boolean values and `%kernel.debug%` placeholder handling in DI extension tests.
+
 ## [1.0.4] - 2026-02-26
 
 ### Fixed
