@@ -58,7 +58,7 @@ private \DateTimeImmutable $createdAt;</code></pre>
     <p>If you're not sure, stick with <code>datetime</code> and UTC. It's simpler and works for most cases. Only switch to <code>datetimetz</code> if you have a specific need to preserve timezones.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz" target="_blank" class="doc-link">
+        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz" target="_blank" rel="noopener noreferrer" class="doc-link">
             📜 Doctrine: DateTimeTZ Type
         </a>
     </p>

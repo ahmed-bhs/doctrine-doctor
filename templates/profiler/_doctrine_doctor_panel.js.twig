@@ -324,9 +324,9 @@
                     var removedCount = 0;
 
                     items.forEach(function(item) {
-                        var explicitKey = item.getAttribute('data-duplicate-signature');
-                        var fallback = normalizeDuplicateText(item.textContent || '');
-                        var key = normalizeDuplicateText(explicitKey || fallback);
+                        var explicitKey = normalizeDuplicateText(item.getAttribute('data-duplicate-signature') || '');
+                        var fallbackKey = normalizeDuplicateText(item.textContent || '');
+                        var key = explicitKey || fallbackKey;
 
                         if (!seen.has(key)) {
                             seen.set(key, { item: item, count: 1 });
