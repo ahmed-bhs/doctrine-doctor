@@ -183,6 +183,29 @@ final class DoctrineDoctorExtensionTest extends TestCase
     }
 
     #[Test]
+    public function it_loads_services_when_enabled_is_kernel_debug_placeholder(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('kernel.debug', true);
+
+        $this->extension->load([['enabled' => '%kernel.debug%']], $container);
+
+        self::assertTrue($container->hasParameter('doctrine_doctor.enabled'));
+        self::assertTrue($container->getParameter('doctrine_doctor.enabled'));
+        self::assertTrue($container->hasDefinition(DoctrineDoctorDataCollector::class));
+    }
+
+    #[Test]
+    public function it_does_not_load_services_when_enabled_is_false_string(): void
+    {
+        $container = new ContainerBuilder();
+        $this->extension->load([['enabled' => 'false']], $container);
+
+        self::assertFalse($container->hasParameter('doctrine_doctor.enabled'));
+        self::assertFalse($container->hasDefinition(DoctrineDoctorDataCollector::class));
+    }
+
+    #[Test]
     public function it_registers_suggestion_factory_interface_alias(): void
     {
         $container = new ContainerBuilder();
