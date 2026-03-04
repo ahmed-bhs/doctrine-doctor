@@ -19,7 +19,7 @@ ob_start();
 ?>
 
 <div class="suggestion-header">
-    <h4>Suggested Fix: GROUP BY Aggregation Query</h4>
+    <h4>GROUP BY Aggregation Query</h4>
 </div>
 
 <div class="suggestion-content">
