@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-03-04
+
+### Changed
+
+- Refined profiler tab navigation labels with dedicated icon/label/count markup for clearer readability.
+- Updated suggestion action labels in the issue panel (`Suggested Fix`, `Hide suggestion`).
+- Reduced tab control height and tightened spacing for a denser profiler header layout.
+
+### Fixed
+
+- Improved dark theme colors for the **Slowest Queries** table (header, rows, hover states, SQL block, and action button contrast).
+- Harmonized light-mode `issue-body` background color to `#fffefc` for better visual consistency.
+- Removed tab top-accent hover artifacts and ensured tabs fill the full available row width.
+
 ## [2.2.1] - 2026-03-04
 
 ### Fixed
