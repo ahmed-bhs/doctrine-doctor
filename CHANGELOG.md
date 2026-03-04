@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-03-04
+
+### Changed
+
+- Removed "Show detailed rationale" toggle button from suggestion panels.
+- Removed SVG icons from suggestion headers for consistent compact grid layout.
+- Removed "Suggested Fix:" prefix from Performance suggestion titles.
+- Renamed default suggestion title from "Code Quality Suggestion" to "Suggestion".
+- Bumped PHPMD CouplingBetweenObjects threshold to 25.
+
 ## [2.1.3] - 2026-03-04
 
 ### Fixed
