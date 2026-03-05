@@ -124,7 +124,7 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
             if (!isset($groupedByTable[$table])) {
                 $groupedByTable[$table] = [
                     'items' => [],
-                    'first_index' => $index,
+                    'first_index' => (int) $index,
                 ];
             }
 
@@ -133,7 +133,7 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
                 'table' => $table,
                 'foreignKey' => $foreignKey,
                 'sql' => $sql,
-                'index' => $index,
+                'index' => (int) $index,
             ];
         }
 
