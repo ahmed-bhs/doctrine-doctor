@@ -238,27 +238,21 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
         $patterns = [
             // Pattern 1: WITH alias, parameterized (?), standard 'id' column
-            // Example: SELECT ... FROM users t0_ WHERE t0_.id = ?
             '/SELECT\s+.*\s+FROM\s+\w+\s+(\w+)\s+WHERE\s+\1\.id\s*=\s*\?/i',
 
             // Pattern 2: NO alias, parameterized (?), standard 'id' column
-            // Example: SELECT ... FROM users WHERE id = ?
             '/SELECT\s+.*\s+FROM\s+\w+\s+WHERE\s+id\s*=\s*\?/i',
 
             // Pattern 3: WITH alias, LITERAL number, standard 'id' column
-            // Example: SELECT ... FROM users t0_ WHERE t0_.id = 123
             '/SELECT\s+.*\s+FROM\s+\w+\s+(\w+)\s+WHERE\s+\1\.id\s*=\s*\d+/i',
 
             // Pattern 4: NO alias, LITERAL number, standard 'id' column
-            // Example: SELECT ... FROM users WHERE id = 123
             '/SELECT\s+.*\s+FROM\s+\w+\s+WHERE\s+id\s*=\s*\d+/i',
 
             // Pattern 5: WITH alias, parameterized (?), ANY *_id column
-            // Example: SELECT ... FROM users t0_ WHERE t0_.user_id = ?
             '/SELECT\s+.*\s+FROM\s+\w+\s+(\w+)\s+WHERE\s+\1\.\w*_?id\s*=\s*\?/i',
 
             // Pattern 6: NO alias, parameterized (?), ANY *_id column
-            // Example: SELECT ... FROM users WHERE user_id = ?
             '/SELECT\s+.*\s+FROM\s+\w+\s+WHERE\s+\w*_?id\s*=\s*\?/i',
         ];
 
@@ -340,7 +334,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $backtrace = $queries[0]->backtrace ?? [];
 
         if (empty($backtrace)) {
-            return 'explicit_find'; // Default if no backtrace
+            return 'explicit_find';
         }
 
         // FIRST: Check for explicit find() calls

@@ -172,18 +172,14 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     {
         $upperSql = strtoupper($sql);
 
-        // Pattern: SELECT e FROM ... (entity alias only, not specific fields)
-        // This indicates full entity hydration
         if (1 === preg_match('/SELECT\s+([a-z]\w*)\s+FROM/i', $sql, $matches)) {
             $selectPart = $matches[1];
 
-            // If SELECT contains only an alias (single word), it's a full entity load
             if (!str_contains($selectPart, '.') && !str_contains($selectPart, ',')) {
                 return true;
             }
         }
 
-        // Pattern: SELECT * FROM (always full load)
         return str_contains($upperSql, 'SELECT *');
     }
 

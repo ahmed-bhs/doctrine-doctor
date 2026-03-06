@@ -225,9 +225,20 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         $next    = $queries[$currentIndex + 1];
 
         if (($current->isInsert() || $current->isUpdate()) && $next->isSelect()) {
-            return true;
+            return !$this->isIdRetrievalQuery($next->sql);
         }
 
         return false;
+    }
+
+    private function isIdRetrievalQuery(string $sql): bool
+    {
+        $upperSql = strtoupper($sql);
+
+        return str_contains($upperSql, 'LAST_INSERT_ID')
+            || str_contains($upperSql, 'NEXTVAL')
+            || str_contains($upperSql, 'CURRVAL')
+            || str_contains($upperSql, '@@IDENTITY')
+            || str_contains($upperSql, 'SCOPE_IDENTITY');
     }
 }

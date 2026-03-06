@@ -132,7 +132,6 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
 
         foreach ($sequentialQueries as $table => $queryGroup) {
             if (count($queryGroup) >= $this->threshold) {
-                // Check if queries are close together (likely in a loop)
                 $indices      = array_column($queryGroup, 'index');
                 $isSequential = $this->areQueriesInLoop($indices);
 
@@ -183,7 +182,7 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         // If average gap is small (< 5 queries apart), they're likely in a loop
         $avgGap = array_sum($gaps) / count($gaps);
 
-        return $avgGap <= 5;
+        return $avgGap <= 1.5;
     }
 
     private function tableToEntityName(string $table): string
