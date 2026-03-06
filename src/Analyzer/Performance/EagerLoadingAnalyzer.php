@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -52,10 +53,19 @@ class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             function () use ($queryDataCollection) {
                 Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
+                $seenPatterns = [];
+
                 foreach ($queryDataCollection as $queryData) {
+                    $normalized = SqlNormalizationCache::normalize($queryData->sql);
+                    if (isset($seenPatterns[$normalized])) {
+                        continue;
+                    }
+
                     $joinCount = $this->countJoins($queryData->sql);
 
                     if ($joinCount >= $this->joinThreshold) {
+                        $seenPatterns[$normalized] = true;
+
                         $issueData = new IssueData(
                             type: IssueType::EAGER_LOADING->value,
                             title: sprintf('Excessive Eager Loading: %d JOINs', $joinCount),
@@ -81,10 +91,47 @@ class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
     private function countJoins(string $sql): int
     {
-        // Count all JOINs by simply counting the keyword "JOIN"
-        // This catches: INNER JOIN, LEFT JOIN, LEFT OUTER JOIN, RIGHT JOIN, FULL JOIN, CROSS JOIN, JOIN
-        $count = preg_match_all('/\bJOIN\b/i', $sql);
+        $stripped = $this->stripSubqueries($sql);
+        $count = preg_match_all('/\bJOIN\b/i', $stripped);
         return false === $count ? 0 : $count;
+    }
+
+    private function stripSubqueries(string $sql): string
+    {
+        $result = '';
+        $depth = 0;
+        $inSubquery = false;
+        $subqueryDepth = 0;
+        $len = strlen($sql);
+
+        for ($i = 0; $i < $len; ++$i) {
+            $char = $sql[$i];
+
+            if ('(' === $char) {
+                if (!$inSubquery) {
+                    $remaining = substr($sql, $i + 1, 20);
+                    if (1 === preg_match('/^\s*SELECT\b/i', $remaining)) {
+                        $inSubquery = true;
+                        $subqueryDepth = $depth;
+                        ++$depth;
+                        continue;
+                    }
+                }
+                ++$depth;
+            } elseif (')' === $char) {
+                --$depth;
+                if ($inSubquery && $depth === $subqueryDepth) {
+                    $inSubquery = false;
+                    continue;
+                }
+            }
+
+            if (!$inSubquery) {
+                $result .= $char;
+            }
+        }
+
+        return $result;
     }
 
     private function generateSuggestion(int $joinCount): SuggestionInterface

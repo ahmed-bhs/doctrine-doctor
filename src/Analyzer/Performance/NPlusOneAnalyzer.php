@@ -69,8 +69,6 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             fn (QueryData $queryData): bool => $this->sqlExtractor->isSelectQuery($queryData->sql),
         );
 
-        //  Use collection's groupByPattern method with improved aggregation key
-        // OPTIMIZED: Uses cached aggregation key creation for massive speedup
         $queryGroups = $selectQueries->groupByPattern(
             fn (string $sql): string => $this->createAggregationKey($sql),
         );
@@ -85,8 +83,13 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
 
                 foreach ($queryGroups as $pattern => $group) {
                     if ($group->count() >= $this->threshold) {
-                        $totalTime  = $group->totalExecutionTime();
                         $groupArray = $group->toArray();
+
+                        if ($this->hasDiverseBacktraceOrigins($groupArray)) {
+                            continue;
+                        }
+
+                        $totalTime  = $group->totalExecutionTime();
                         $backtrace  = $group->first()?->backtrace;
 
                         // Note: Queries are automatically deduplicated in IssueData constructor
@@ -143,6 +146,38 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
      *
      * OPTIMIZED: Uses CachedSqlStructureExtractor (transparent via DI) for 1233x speedup
      */
+    /**
+     * @param QueryData[] $queries
+     */
+    private function hasDiverseBacktraceOrigins(array $queries): bool
+    {
+        $origins = [];
+        foreach ($queries as $qd) {
+            $origin = $this->extractFirstAppFrame($qd->backtrace);
+            if (null !== $origin) {
+                $origins[$origin] = true;
+            }
+        }
+
+        return count($origins) >= 3;
+    }
+
+    private function extractFirstAppFrame(?array $backtrace): ?string
+    {
+        if (null === $backtrace || [] === $backtrace) {
+            return null;
+        }
+
+        foreach ($backtrace as $frame) {
+            $file = $frame['file'] ?? null;
+            if (\is_string($file) && !str_contains($file, '/vendor/')) {
+                return basename($file) . ':' . ($frame['line'] ?? 0);
+            }
+        }
+
+        return null;
+    }
+
     private function createAggregationKey(string $sql): string
     {
         $normalized = $this->normalizeQuery($sql);

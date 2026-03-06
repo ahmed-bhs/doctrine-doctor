@@ -91,9 +91,6 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                         // Detect query context from backtrace
                         $context = $this->detectQueryContext($query);
 
-                        // Skip false positives: single-result methods with good performance
-                        // These methods (getOneOrNullResult, getSingleResult) are meant to return
-                        // a single result, so ORDER BY without LIMIT is acceptable if performant
                         if ('single_result' === $context && $executionTime < 10.0) {
                             continue;
                         }

@@ -132,6 +132,6 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             return $queryData->rowCount;
         }
 
-        return 999; // Assume potentially large result set
+        return 999;
     }
 }
