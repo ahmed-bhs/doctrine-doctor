@@ -120,6 +120,21 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $containerBuilder->setParameter('doctrine_doctor.analyzers.join_optimization.max_joins_critical', $analyzers['join_optimization']['max_joins_critical']);
 
         $containerBuilder->setParameter('doctrine_doctor.analyzers.cartesian_product.n1_collection_threshold', $analyzers['cartesian_product']['n1_collection_threshold']);
+
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.nested_relationship_n1.threshold', $analyzers['nested_relationship_n1']['threshold']);
+
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.query_caching_opportunity.static_tables', $analyzers['query_caching_opportunity']['static_tables']);
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.query_caching_opportunity.frequency_threshold', $analyzers['query_caching_opportunity']['frequency_threshold']);
+
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.sensitive_data_exposure.sensitive_patterns', $analyzers['sensitive_data_exposure']['sensitive_patterns']);
+
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.float_for_money.money_field_patterns', $analyzers['float_for_money']['money_field_patterns']);
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.float_for_money.money_entity_patterns', $analyzers['float_for_money']['money_entity_patterns']);
+
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.cascade_persist_on_independent_entity.independent_entity_patterns', $analyzers['cascade_persist_on_independent_entity']['independent_entity_patterns']);
+
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.transaction_boundary.max_flush_per_transaction', $analyzers['transaction_boundary']['max_flush_per_transaction']);
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.transaction_boundary.max_transaction_duration', $analyzers['transaction_boundary']['max_transaction_duration']);
     }
 
     /**
