@@ -107,7 +107,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     {
         /** @var array<string, int> */
         $queryFrequencies = [];
-        /** @var array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array}> */
+        /** @var array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array, uniqueParamSets: array<string, true>}> */
         $queryDetails = [];
 
         Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
@@ -132,6 +132,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
                     'totalTime' => 0.0,
                     'backtrace' => $this->extractBacktrace($query),
                     'queries' => [],
+                    'uniqueParamSets' => [],
                 ];
             }
 
@@ -139,6 +140,9 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
             $existingTotal = $queryDetails[$queryKey]['totalTime'];
             $queryDetails[$queryKey]['totalTime'] = $existingTotal + $executionTime;
             $queryDetails[$queryKey]['queries'][] = $query;
+
+            $paramsHash = md5(json_encode($params, JSON_THROW_ON_ERROR));
+            $queryDetails[$queryKey]['uniqueParamSets'][$paramsHash] = true;
         }
 
         /** @phpstan-ignore-next-line */
@@ -148,7 +152,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     /**
      * Generate issues for frequently executed queries.
      * @param array<string, int> $queryFrequencies
-     * @param array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array}> $queryDetails
+     * @param array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array, uniqueParamSets: array<string, true>}> $queryDetails
      * @return \Generator<PerformanceIssue>
      */
     private function generateFrequentQueryIssues(array $queryFrequencies, array $queryDetails): \Generator
@@ -161,6 +165,10 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
             }
 
             $details = $queryDetails[$normalized];
+
+            if (count($details['uniqueParamSets']) > 1) {
+                continue;
+            }
 
             if ($this->isSelectQuery($details['originalSql'])) {
                 yield $this->createFrequentQueryIssue(
