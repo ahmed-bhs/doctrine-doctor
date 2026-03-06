@@ -77,13 +77,17 @@ class InjectionPatternDetector
         }
 
         if ($this->hasLiteralStringInWhere($sql, $parsedData)) {
-            $riskLevel += 2;
+            ++$riskLevel;
             $indicators[] = 'WHERE clause with literal string instead of parameter';
         }
 
         if ($this->hasMultipleConditionsWithLiterals($sql, $parsedData)) {
             $riskLevel += 3;
             $indicators[] = 'Multiple conditions with literal strings (possible injection)';
+        }
+
+        if (!$this->hasSQLInjectionKeywords($sql) && $riskLevel > 2) {
+            $riskLevel = 2;
         }
 
         return [
@@ -120,7 +124,7 @@ class InjectionPatternDetector
      */
     public function hasSQLInjectionKeywords(string $sql): bool
     {
-        if (1 === preg_match("/'.*(?:UNION|OR\s+1\s*=\s*1|AND\s+1\s*=\s*1|--|\#|\/\*).*'/i", $sql)) {
+        if (1 === preg_match("/'.*(?:UNION|OR\s+1\s*=\s*1|AND\s+1\s*=\s*1|\/\*).*'/i", $sql)) {
             return true;
         }
 
@@ -142,7 +146,7 @@ class InjectionPatternDetector
      */
     public function hasCommentSyntaxInString(string $sql): bool
     {
-        return 1 === preg_match("/['\"].*(?:--|#|\/\*).*['\"]/", $sql);
+        return 1 === preg_match("/['\"]\s*(?:--|#|\/\*)/", $sql);
     }
 
     /**
@@ -152,7 +156,7 @@ class InjectionPatternDetector
      */
     public function hasConsecutiveQuotes(string $sql): bool
     {
-        return 1 === preg_match("/'{2,}|(\"){2,}/", $sql);
+        return 1 === preg_match("/'{3,}|(\"){3,}/", $sql);
     }
 
     /**

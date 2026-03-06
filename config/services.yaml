@@ -149,6 +149,24 @@ services:
         tags:
             - { name: doctrine_doctor.analyzer }
 
+    AhmedBhs\DoctrineDoctor\Analyzer\NestedRelationshipN1Analyzer:
+        arguments:
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $threshold: '%doctrine_doctor.analyzers.nested_relationship_n1.threshold%'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\UnusedEagerLoadAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
     # Configuration object for MissingIndexAnalyzer
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzerConfig:
         arguments:
@@ -295,9 +313,10 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Security\SensitiveDataExposureAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $logger: '@?logger'
+            $sensitivePatterns: '%doctrine_doctor.analyzers.sensitive_data_exposure.sensitive_patterns%'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -346,8 +365,10 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadePersistOnIndependentEntityAnalyzer:
         arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+            $independentEntityPatterns: '%doctrine_doctor.analyzers.cascade_persist_on_independent_entity.independent_entity_patterns%'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -448,7 +469,10 @@ services:
 
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\FloatForMoneyAnalyzer:
         arguments:
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $moneyFieldPatterns: '%doctrine_doctor.analyzers.float_for_money.money_field_patterns%'
+            $moneyEntityPatterns: '%doctrine_doctor.analyzers.float_for_money.money_entity_patterns%'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -480,6 +504,9 @@ services:
 
     # Advanced Runtime Analyzers
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\TransactionBoundaryAnalyzer:
+        arguments:
+            $maxFlushPerTransaction: '%doctrine_doctor.analyzers.transaction_boundary.max_flush_per_transaction%'
+            $maxTransactionDuration: '%doctrine_doctor.analyzers.transaction_boundary.max_transaction_duration%'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -502,6 +529,14 @@ services:
             $entityManager: '@doctrine_doctor.entity_manager'
             $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Performance\QueryCachingOpportunityAnalyzer:
+        arguments:
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $staticTables: '%doctrine_doctor.analyzers.query_caching_opportunity.static_tables%'
+            $frequencyThreshold: '%doctrine_doctor.analyzers.query_caching_opportunity.frequency_threshold%'
         tags:
             - { name: doctrine_doctor.analyzer }
 

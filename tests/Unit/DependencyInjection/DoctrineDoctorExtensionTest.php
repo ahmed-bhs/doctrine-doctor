@@ -11,7 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\DependencyInjection;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
+use AhmedBhs\DoctrineDoctor\DependencyInjection\Configuration;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\DoctrineDoctorExtension;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
@@ -21,6 +23,7 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Unit tests for DoctrineDoctorExtension.
@@ -135,6 +138,14 @@ final class DoctrineDoctorExtensionTest extends TestCase
                 'MissingEmbeddableOpportunityAnalyzer',
                 'missing_embeddable_opportunity',
             ],
+            'query_caching_opportunity' => [
+                'QueryCachingOpportunityAnalyzer',
+                'query_caching_opportunity',
+            ],
+            'query_caching_opportunity_with_namespace' => [
+                \AhmedBhs\DoctrineDoctor\Analyzer\Performance\QueryCachingOpportunityAnalyzer::class,
+                'query_caching_opportunity',
+            ],
         ];
     }
 
@@ -231,6 +242,32 @@ final class DoctrineDoctorExtensionTest extends TestCase
     }
 
     #[Test]
+    public function it_registers_root_level_analyzers_when_declared_explicitly(): void
+    {
+        $container = new ContainerBuilder();
+        $this->extension->load([['enabled' => true]], $container);
+
+        self::assertTrue($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\NestedRelationshipN1Analyzer::class));
+        self::assertTrue($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\UnusedEagerLoadAnalyzer::class));
+    }
+
+    #[Test]
+    public function it_can_disable_explicitly_registered_root_level_analyzers(): void
+    {
+        $container = new ContainerBuilder();
+        $this->extension->load([[
+            'enabled' => true,
+            'analyzers' => [
+                'nested_relationship_n1' => ['enabled' => false],
+                'unused_eager_load' => ['enabled' => false],
+            ],
+        ]], $container);
+
+        self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\NestedRelationshipN1Analyzer::class));
+        self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\UnusedEagerLoadAnalyzer::class));
+    }
+
+    #[Test]
     public function it_removes_analyzers_with_generated_config_keys(): void
     {
         $container = new ContainerBuilder();
@@ -252,6 +289,34 @@ final class DoctrineDoctorExtensionTest extends TestCase
         self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeRemoveOnIndependentEntityAnalyzer::class));
         self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OrphanRemovalWithoutCascadeRemoveAnalyzer::class));
         self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\OnDeleteCascadeMismatchAnalyzer::class));
+    }
+
+    #[Test]
+    public function it_can_disable_query_caching_opportunity_analyzer(): void
+    {
+        $container = new ContainerBuilder();
+        $this->extension->load([[
+            'enabled' => true,
+            'analyzers' => [
+                'query_caching_opportunity' => ['enabled' => false],
+            ],
+        ]], $container);
+
+        self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Performance\QueryCachingOpportunityAnalyzer::class));
+    }
+
+    #[Test]
+    public function it_can_disable_query_caching_opportunity_analyzer_via_legacy_key(): void
+    {
+        $container = new ContainerBuilder();
+        $this->extension->load([[
+            'enabled' => true,
+            'analyzers' => [
+                'query_caching' => ['enabled' => false],
+            ],
+        ]], $container);
+
+        self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Performance\QueryCachingOpportunityAnalyzer::class));
     }
 
     #[Test]
@@ -328,5 +393,78 @@ final class DoctrineDoctorExtensionTest extends TestCase
         }
 
         return false;
+    }
+
+    #[Test]
+    public function every_analyzer_has_a_matching_config_node(): void
+    {
+        $extension = new DoctrineDoctorExtension();
+        $reflection = new ReflectionClass($extension);
+        $method = $reflection->getMethod('classNameToConfigKey');
+
+        $configuration = new Configuration();
+        $tree = $configuration->getConfigTreeBuilder()->buildTree();
+        $analyzersNode = $tree->getChildren()['analyzers'];
+        $configKeys = array_keys($analyzersNode->getChildren());
+
+        $analyzerDirs = [
+            __DIR__ . '/../../../src/Analyzer/Performance',
+            __DIR__ . '/../../../src/Analyzer/Security',
+            __DIR__ . '/../../../src/Analyzer/Integrity',
+            __DIR__ . '/../../../src/Analyzer/Configuration',
+        ];
+
+        $missingKeys = [];
+
+        foreach ($analyzerDirs as $dir) {
+            if (!is_dir($dir)) {
+                continue;
+            }
+
+            $finder = Finder::create()->files()->name('*Analyzer*.php')->in($dir);
+
+            foreach ($finder as $file) {
+                $className = $file->getBasename('.php');
+
+                $fullClass = $this->resolveFullClassName($dir, $className);
+                if (null === $fullClass || !class_exists($fullClass)) {
+                    continue;
+                }
+
+                $refClass = new ReflectionClass($fullClass);
+                if ($refClass->isAbstract() || !$refClass->implementsInterface(AnalyzerInterface::class)) {
+                    continue;
+                }
+
+                $configKey = $method->invoke($extension, $className);
+
+                if (!in_array($configKey, $configKeys, true)) {
+                    $missingKeys[] = $className . ' => ' . $configKey;
+                }
+            }
+        }
+
+        self::assertSame([], $missingKeys, sprintf(
+            "The following analyzers have no matching config node in Configuration.php:\n%s",
+            implode("\n", $missingKeys),
+        ));
+    }
+
+    private function resolveFullClassName(string $dir, string $className): ?string
+    {
+        $namespaceMap = [
+            'Performance' => 'AhmedBhs\\DoctrineDoctor\\Analyzer\\Performance\\',
+            'Security' => 'AhmedBhs\\DoctrineDoctor\\Analyzer\\Security\\',
+            'Integrity' => 'AhmedBhs\\DoctrineDoctor\\Analyzer\\Integrity\\',
+            'Configuration' => 'AhmedBhs\\DoctrineDoctor\\Analyzer\\Configuration\\',
+        ];
+
+        foreach ($namespaceMap as $segment => $namespace) {
+            if (str_contains($dir, DIRECTORY_SEPARATOR . $segment) || str_ends_with($dir, '/' . $segment)) {
+                return $namespace . $className;
+            }
+        }
+
+        return null;
     }
 }

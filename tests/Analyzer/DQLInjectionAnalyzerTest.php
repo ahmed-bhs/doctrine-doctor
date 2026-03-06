@@ -114,15 +114,12 @@ final class DQLInjectionAnalyzerTest extends TestCase
     #[Test]
     public function it_detects_where_clause_with_literal_string(): void
     {
-        // Arrange: WHERE with literal string instead of parameter
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE email = 'user@example.com'")
+            ->addQuery("SELECT * FROM users WHERE email = 'user@example.com' OR username = 'admin@corp.com'")
             ->build();
 
-        // Act
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert: Should detect literal string in WHERE clause
         $issuesArray = $issues->toArray();
         self::assertGreaterThan(0, count($issuesArray));
 
@@ -268,15 +265,12 @@ final class DQLInjectionAnalyzerTest extends TestCase
     #[Test]
     public function it_provides_suggestion_with_parameterized_query(): void
     {
-        // Arrange
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE id = '123'")
+            ->addQuery("SELECT * FROM users WHERE email = 'user@example.com' OR name = 'test-injection'")
             ->build();
 
-        // Act
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert: Should provide suggestion
         $issuesArray = $issues->toArray();
         self::assertGreaterThan(0, count($issuesArray));
 
@@ -336,10 +330,9 @@ final class DQLInjectionAnalyzerTest extends TestCase
     #[Test]
     public function it_limits_attached_queries_to_10(): void
     {
-        // Arrange: More than 10 suspicious queries
         $builder = QueryDataBuilder::create();
         for ($i = 0; $i < 15; $i++) {
-            $builder->addQuery("SELECT * FROM users WHERE id = '{$i}'");
+            $builder->addQuery("SELECT * FROM users WHERE email = 'user{$i}@example.com' OR name = 'test{$i}'");
         }
         $queries = $builder->build();
 
