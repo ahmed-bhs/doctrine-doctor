@@ -158,10 +158,15 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
             return [];
         }
 
-        $rootFirstIndex = min(array_map(static fn (array $group): int => $group['first_index'], $rootCandidates));
         $repeatedFirstIndex = min(array_map(static fn (array $group): int => $group['first_index'], $repeatedTables));
 
-        if ($rootFirstIndex >= $repeatedFirstIndex) {
+        // Find the root immediately before the first repeated group.
+        // A real nested N+1 starts with a "list all" query (no WHERE) that
+        // drives the foreach loop. Unrelated single queries (config lookups,
+        // session checks) should not qualify.
+        $adjacentRoot = $this->findAdjacentListRoot($rootCandidates, $repeatedFirstIndex);
+
+        if (null === $adjacentRoot) {
             return [];
         }
 
@@ -171,26 +176,254 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
             fn (string $tableA, string $tableB): int => $repeatedTables[$tableA]['first_index'] <=> $repeatedTables[$tableB]['first_index'],
         );
 
+        $chainedTables = $this->buildSequentialChain($tablesArray, $repeatedTables, $groupedByTable, $adjacentRoot);
+
+        if (\count($chainedTables) < self::MIN_CHAIN_LENGTH) {
+            return [];
+        }
+
         $allQueries = [];
         $totalCount = 0;
-        foreach ($tablesArray as $table) {
+        foreach ($chainedTables as $table) {
             $tableQueries = $repeatedTables[$table]['items'];
             $allQueries = array_merge($allQueries, array_map(fn (array $item): QueryData => $item['query'], $tableQueries));
             $totalCount += \count($tableQueries);
         }
 
-        // Calculate average query count per table
-        $avgCount = (int) ($totalCount / \count($tablesArray));
+        $avgCount = (int) ($totalCount / \count($chainedTables));
 
         $chains[] = [
-            'depth' => \count($tablesArray),
+            'depth' => \count($chainedTables),
             'count' => $avgCount,
-            'tables' => $tablesArray,
-            'pattern' => implode(' → ', $tablesArray),
+            'tables' => $chainedTables,
+            'pattern' => implode(' → ', $chainedTables),
             'queries' => $allQueries,
         ];
 
         return $chains;
+    }
+
+    /**
+     * Find a root query that is immediately adjacent to the first repeated group
+     * and looks like a "list" query (no WHERE clause or simple FROM without filter).
+     *
+     * A real nested N+1 starts with something like `SELECT * FROM articles`
+     * (loads a collection), not `SELECT * FROM config WHERE key = ?` (point lookup).
+     *
+     * @param array<string, array{items: list<array{query: QueryData, table: string, foreignKey: ?string, sql: string, index: int}>, first_index: int}> $rootCandidates
+     */
+    private function findAdjacentListRoot(array $rootCandidates, int $repeatedFirstIndex): ?string
+    {
+        $bestRoot = null;
+        $bestRootIndex = -1;
+        $bestDistance = \PHP_INT_MAX;
+
+        foreach ($rootCandidates as $table => $group) {
+            foreach ($group['items'] as $item) {
+                $distance = $repeatedFirstIndex - $item['index'];
+                if ($distance > 0 && $distance < $bestDistance && null === $item['foreignKey'] && !$this->isAggregateQuery($item['sql'])) {
+                    $bestRoot = $table;
+                    $bestRootIndex = $item['index'];
+                    $bestDistance = $distance;
+                }
+            }
+        }
+
+        if (null === $bestRoot) {
+            return null;
+        }
+
+        if ($this->hasGapQuery($rootCandidates, $bestRoot, $bestRootIndex, $repeatedFirstIndex)) {
+            return null;
+        }
+
+        if ($this->hasMultipleListRoots($rootCandidates, $repeatedFirstIndex)) {
+            return null;
+        }
+
+        return $bestRoot;
+    }
+
+    /**
+     * @param array<string, array{items: list<array{query: QueryData, table: string, foreignKey: ?string, sql: string, index: int}>, first_index: int}> $rootCandidates
+     */
+    /**
+     * @param array<string, array{items: list<array{query: QueryData, table: string, foreignKey: ?string, sql: string, index: int}>, first_index: int}> $rootCandidates
+     */
+    private function hasGapQuery(array $rootCandidates, string $rootTable, int $rootIndex, int $repeatedFirstIndex): bool
+    {
+        foreach ($rootCandidates as $table => $group) {
+            if ($table === $rootTable) {
+                continue;
+            }
+            foreach ($group['items'] as $item) {
+                if ($item['index'] > $rootIndex && $item['index'] < $repeatedFirstIndex) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array<string, array{items: list<array{query: QueryData, table: string, foreignKey: ?string, sql: string, index: int}>, first_index: int}> $rootCandidates
+     */
+    private function hasMultipleListRoots(array $rootCandidates, int $repeatedFirstIndex): bool
+    {
+        $listRootCount = 0;
+
+        foreach ($rootCandidates as $group) {
+            foreach ($group['items'] as $item) {
+                if ($item['index'] < $repeatedFirstIndex && null === $item['foreignKey'] && !$this->isAggregateQuery($item['sql'])) {
+                    ++$listRootCount;
+                    if ($listRootCount > 1) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function isAggregateQuery(string $sql): bool
+    {
+        return (bool) preg_match('/\bSELECT\s+(?:COUNT|SUM|AVG|MIN|MAX)\s*\(/i', $sql);
+    }
+
+    /**
+     * Filter repeated groups to keep only those forming a sequential chain.
+     *
+     * A real nested N+1 produces contiguous blocks of queries per table:
+     *   root | AAAA | BBBB | CCCC
+     * False positives produce interleaved or non-adjacent patterns:
+     *   root | A B A B A B   (parallel access, not nested)
+     *   root | AAAA | unrelated | BBBB  (independent N+1s)
+     *
+     * Each group must form a contiguous block AND be adjacent to the previous
+     * group (no unrelated queries in between).
+     *
+     * @param list<string>                                                                                                          $sortedTables
+     * @param array<string, array{items: list<array{query: QueryData, table: string, foreignKey: ?string, sql: string, index: int}>, first_index: int}> $repeatedTables
+     * @param array<string, array{items: list<array{query: QueryData, table: string, foreignKey: ?string, sql: string, index: int}>, first_index: int}> $allGroups
+     *
+     * @return list<string>
+     */
+    private function buildSequentialChain(array $sortedTables, array $repeatedTables, array $allGroups, string $rootTable): array
+    {
+        $chain = [];
+        $previousLastIndex = null;
+        $previousDominantFk = null;
+
+        foreach ($sortedTables as $table) {
+            $items = $repeatedTables[$table]['items'];
+
+            if (!$this->isContiguousBlock($items)) {
+                continue;
+            }
+
+            $firstIndex = $items[0]['index'];
+            $lastIndex = $items[\count($items) - 1]['index'];
+
+            if (null !== $previousLastIndex && !$this->areAdjacent($previousLastIndex, $firstIndex, $allGroups)) {
+                break;
+            }
+
+            $dominantFk = $this->dominantForeignKey($items);
+
+            if (null !== $previousDominantFk && null !== $dominantFk
+                && 'id' !== $dominantFk && $dominantFk === $previousDominantFk) {
+                continue;
+            }
+
+            if ([] !== $chain && null !== $dominantFk && 'id' !== $dominantFk && $this->fkReferencesTable($dominantFk, $rootTable)) {
+                continue;
+            }
+
+            $chain[] = $table;
+            $previousLastIndex = $lastIndex;
+            $previousDominantFk = $dominantFk;
+        }
+
+        return $chain;
+    }
+
+    private function fkReferencesTable(string $foreignKey, string $table): bool
+    {
+        $fkBase = preg_replace('/_id$/', '', $foreignKey);
+
+        if (null === $fkBase) {
+            return false;
+        }
+
+        return $fkBase === $table || $fkBase . 's' === $table || $fkBase . 'es' === $table;
+    }
+
+    /**
+     * @param list<array{query: QueryData, table: string, foreignKey: ?string, sql: string, index: int}> $items
+     */
+    private function dominantForeignKey(array $items): ?string
+    {
+        $counts = [];
+        foreach ($items as $item) {
+            $fk = $item['foreignKey'];
+            if (null !== $fk) {
+                $counts[$fk] = ($counts[$fk] ?? 0) + 1;
+            }
+        }
+
+        if ([] === $counts) {
+            return null;
+        }
+
+        arsort($counts);
+
+        return array_key_first($counts);
+    }
+
+    /**
+     * Check if all queries in a group occupy consecutive indexes.
+     *
+     * @param list<array{query: QueryData, table: string, foreignKey: ?string, sql: string, index: int}> $items
+     */
+    private function isContiguousBlock(array $items): bool
+    {
+        if (\count($items) <= 1) {
+            return true;
+        }
+
+        $indexes = array_map(static fn (array $item): int => $item['index'], $items);
+        sort($indexes);
+
+        for ($i = 1, $count = \count($indexes); $i < $count; ++$i) {
+            if ($indexes[$i] !== $indexes[$i - 1] + 1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Check that no unrelated repeated group starts between two indexes.
+     *
+     * @param array<string, array{items: list<array{query: QueryData, table: string, foreignKey: ?string, sql: string, index: int}>, first_index: int}> $allGroups
+     */
+    private function areAdjacent(int $previousLastIndex, int $currentFirstIndex, array $allGroups): bool
+    {
+        if ($currentFirstIndex <= $previousLastIndex + 1) {
+            return true;
+        }
+
+        foreach ($allGroups as $group) {
+            $groupFirst = $group['first_index'];
+            if ($groupFirst > $previousLastIndex && $groupFirst < $currentFirstIndex && \count($group['items']) >= $this->threshold) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

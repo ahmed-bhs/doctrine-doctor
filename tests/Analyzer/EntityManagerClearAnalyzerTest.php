@@ -173,14 +173,14 @@ final class EntityManagerClearAnalyzerTest extends TestCase
     #[Test]
     public function it_allows_small_gaps_between_operations(): void
     {
-        // Arrange: 25 operations with small gaps (within maxGap of 10)
+        // Arrange: 25 operations with small gaps (within maxGap of 3)
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
             $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
 
-            // Add 5 unrelated queries (within maxGap)
-            for ($j = 1; $j <= 5; $j++) {
+            // Add 2 unrelated queries (within maxGap)
+            for ($j = 1; $j <= 2; $j++) {
                 $queries->addQuery("SELECT * FROM other_table WHERE id = {$j}", 0.5);
             }
         }
