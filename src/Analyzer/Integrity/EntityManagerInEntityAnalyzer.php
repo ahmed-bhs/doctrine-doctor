@@ -188,10 +188,9 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                 }
             }
 
-            // Check property name
             $propertyName = $reflectionProperty->getName();
 
-            if ($this->isEntityManagerPropertyName($propertyName)) {
+            if (null === $type && $this->isEntityManagerPropertyName($propertyName)) {
                 $emProperties[] = $reflectionProperty;
             }
         }
