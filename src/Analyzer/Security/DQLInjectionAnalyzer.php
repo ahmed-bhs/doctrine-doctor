@@ -97,8 +97,8 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                         type: IssueType::DQL_INJECTION->value,
                         title: sprintf('Security Vulnerability: %d queries with SQL injection risks', count($criticalQueries)),
                         description: DescriptionHighlighter::highlight(
-                            'Detected {count} queries with CRITICAL injection risk. Indicators: {indicators}. ' .
-                            'Always use parameterized queries and never concatenate user input',
+                            'Detected {count} queries with critical injection risk. Indicators: {indicators}. ' .
+                            'Always use parameterized queries and never concatenate user input.',
                             [
                                 'count' => (string) count($criticalQueries),
                                 'indicators' => implode(', ', $indicators),
@@ -145,8 +145,8 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                         type: IssueType::DQL_INJECTION->value,
                         title: sprintf('Security Warning: %d queries with potential injection risks', count($highRiskQueries)),
                         description: sprintf(
-                            'Detected %d queries with HIGH injection risk. Indicators: %s. ' .
-                            'Review these queries and ensure proper parameter binding',
+                            'Detected %d queries with high injection risk. Indicators: %s. ' .
+                            'Review these queries and ensure proper parameter binding.',
                             count($highRiskQueries),
                             implode(', ', $indicators),
                         ),

@@ -192,7 +192,7 @@ $results = $em->createQuery('
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd;">Multiple collections</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">NEVER JOIN all together!</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">Avoid joining all collections in one query</td>
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd;">Read-only/API</td>

@@ -47,5 +47,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Add cascade="persist" with orphanRemoval for full composition',
+    'description' => 'Add cascade="persist" with orphanRemoval for complete composition semantics',
 ];

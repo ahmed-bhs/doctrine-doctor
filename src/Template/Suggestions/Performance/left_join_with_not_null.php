@@ -20,7 +20,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        Using LEFT JOIN on <code><?= $e($field) ?></code> which is NOT NULL - use INNER JOIN instead for better performance.
+        This query uses LEFT JOIN on <code><?= $e($field) ?></code>, which is NOT NULL. Use INNER JOIN instead for better performance.
     </div>
 
     <h4>Solution: Use INNER JOIN</h4>

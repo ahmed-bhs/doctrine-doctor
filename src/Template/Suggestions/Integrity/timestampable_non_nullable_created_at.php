@@ -20,7 +20,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        Field <code>$<?= $e($fieldName) ?></code> in <code><?= $e($entityClass) ?></code> is nullable - timestamp fields should be NOT NULL.
+        Field <code>$<?= $e($fieldName) ?></code> in <code><?= $e($entityClass) ?></code> is nullable. Timestamp fields should be NOT NULL.
     </div>
 
     <h4>Solution: Make it non-nullable</h4>

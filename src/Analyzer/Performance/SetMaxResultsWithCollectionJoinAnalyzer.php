@@ -178,8 +178,8 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
             title: 'setMaxResults() with Collection Join Detected',
             description: 'LIMIT is used with a fetch-joined collection.' . "\n" .
             'Impact: LIMIT is applied to SQL rows, not root entities.' . "\n" .
-            'Impact: Collections can be partially hydrated (silent data loss).' . "\n" .
-            'Impact: Result counts and business behavior can be incorrect.',
+            'Impact: Collections may be partially hydrated (silent data loss).' . "\n" .
+            'Impact: Result counts and application behavior may become incorrect.',
             severity: Severity::critical(),
             suggestion: $this->createSuggestion($mainTable),
             queries: [$queryData],

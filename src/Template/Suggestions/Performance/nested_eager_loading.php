@@ -191,7 +191,7 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
 
     <h4>When to Use Each Solution</h4>
     <ul>
-        <li><strong>Multi-level JOIN:</strong> You ALWAYS access all levels (100% usage)</li>
+        <li><strong>Multi-level JOIN:</strong> You consistently access all levels (close to 100% usage)</li>
         <li><strong>DTOs:</strong> Read-only display, API responses, reporting</li>
         <li><strong>Refactor:</strong> 4+ levels deep suggests design smell</li>
     </ul>

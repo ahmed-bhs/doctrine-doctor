@@ -148,7 +148,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                             title: sprintf('Lazy Loading Detected: %d queries triggered', $totalCount),
                             description: DescriptionHighlighter::highlight(
                                 'Detected {count} lazy loading queries across {tableCount} table(s): {tables}. ' .
-                                'These queries are triggered automatically when accessing collections in templates or code. ' .
+                                'These queries are triggered automatically when accessing collections in templates and application code. ' .
                                 'Consider using {eagerLoading} in your repository queries to load related entities upfront and avoid N+1 problems (threshold: {threshold})',
                                 [
                                     'count' => $totalCount,

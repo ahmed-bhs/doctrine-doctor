@@ -450,7 +450,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Suggestion',
+                title: 'Restrict Sensitive Data in __toString()',
                 tags: ['code-quality'],
             ),
         );
@@ -504,7 +504,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Suggestion',
+                title: 'Remove Sensitive Fields from jsonSerialize()',
                 tags: ['code-quality'],
             ),
         );
@@ -556,7 +556,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Suggestion',
+                title: 'Remove Sensitive Fields from toArray()',
                 tags: ['code-quality'],
             ),
         );
@@ -620,7 +620,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Suggestion',
+                title: 'Add Serialization and Parameter Protection',
                 tags: ['code-quality'],
             ),
         );

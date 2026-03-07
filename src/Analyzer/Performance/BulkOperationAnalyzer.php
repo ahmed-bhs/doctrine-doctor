@@ -74,7 +74,7 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                             title: sprintf('Inefficient Bulk Operations: %d %s on %s', $bulkOperation['count'], $bulkOperation['type'], $bulkOperation['table']),
                             description: DescriptionHighlighter::highlight(
                                 'Detected {count} individual {type} queries on table {table}. ' .
-                                'Use batch operations ({dql}) or iterate with batching for better performance (threshold: {threshold})',
+                                'Use bulk operations ({dql}) or iterate with batching for better performance (threshold: {threshold})',
                                 [
                                     'count' => $bulkOperation['count'],
                                     'type' => $bulkOperation['type'],

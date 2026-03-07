@@ -54,5 +54,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Suggestion',
+    'description' => 'Make createdBy non-nullable for reliable audit data',
 ];

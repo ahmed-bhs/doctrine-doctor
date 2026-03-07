@@ -366,7 +366,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Suggestion',
+                title: 'Use Explicit Cascade Options',
                 tags: ['code-quality'],
             ),
         );
@@ -426,7 +426,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Suggestion',
+                title: 'Remove cascade="remove" on Independent Relations',
                 tags: ['code-quality'],
             ),
         );
@@ -484,7 +484,7 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Suggestion',
+                title: 'Add Proper Cascade Rules for Composition',
                 tags: ['code-quality'],
             ),
         );

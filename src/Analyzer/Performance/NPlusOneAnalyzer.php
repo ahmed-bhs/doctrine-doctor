@@ -695,7 +695,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
 
         if ($isLowTimeHighCount) {
             $description = DescriptionHighlighter::highlight(
-                '{type_label}: Found {count} similar queries ({time}ms SQL-only). Pattern: {pattern}',
+                '{type_label}: Found {count} similar queries ({time}ms SQL time only). Pattern: {pattern}',
                 [
                     'type_label' => $typeLabel,
                     'count' => $count,
@@ -705,7 +705,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             );
         } else {
             $description = DescriptionHighlighter::highlight(
-                '{type_label}: Found {count} similar queries with total execution time of {time}ms. Pattern: {pattern}',
+                '{type_label}: Found {count} similar queries with a total execution time of {time}ms. Pattern: {pattern}',
                 [
                     'type_label' => $typeLabel,
                     'count' => $count,
@@ -716,17 +716,17 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         }
 
         if ('proxy' === $detectedType['type']) {
-            $description .= "\nProxy initialization in loop detected - consider using a fetch join (join + addSelect) for better performance.";
+            $description .= "\nProxy initialization detected in a loop. Consider using a fetch join (join + addSelect) for better performance.";
         } elseif ('collection' === $detectedType['type'] && $detectedType['hasLimit']) {
-            $description .= "\nPartial collection access detected (LIMIT in query) - EXTRA_LAZY fetch mode would be ideal here.";
+            $description .= "\nDetected partial collection access (LIMIT in query). EXTRA_LAZY fetch mode is usually ideal here.";
         }
 
         if ($isLowTimeHighCount) {
             $description .= sprintf(
-                "\nThe %.2fms only measures database engine time. The real cost is in PHP: " .
-                '%d Doctrine hydration cycles, %d UnitOfWork snapshots held in memory, and %d PDO roundtrips. ' .
-                'This overhead does not appear in SQL time but contributes significantly to total page time. ' .
-                'A single fetch join query (join + addSelect) would eliminate all of this.',
+                "\nThe %.2fms only measures database engine time. The main cost is in PHP: " .
+                '%d Doctrine hydration cycles, %d UnitOfWork snapshots kept in memory, and %d PDO round trips. ' .
+                'This overhead is not visible in SQL timing but can significantly increase total page time. ' .
+                'A single fetch-join query (join + addSelect) would eliminate most of this overhead.',
                 $totalTime,
                 $count,
                 $count,

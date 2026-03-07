@@ -56,5 +56,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Add timezone support using datetimetz type',
+    'description' => 'Add timezone support using the datetimetz type',
 ];

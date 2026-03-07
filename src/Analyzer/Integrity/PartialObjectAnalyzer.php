@@ -210,7 +210,7 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         $performanceIssue->setSeverity($count > 10 ? 'critical' : 'warning');
         $performanceIssue->setTitle('Full Entity Loading - Consider Partial Objects');
         $performanceIssue->setMessage(
-            sprintf('Detected %d queries loading full entities when partial objects might be more efficient. ', $count) .
+            sprintf('Detected %d queries loading full entities where partial objects could be more efficient. ', $count) .
             'If you only need a few fields, consider using partial objects or array hydration to save memory and improve performance.',
         );
         $performanceIssue->setSuggestion($this->buildSuggestion($entityName));

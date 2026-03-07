@@ -235,7 +235,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             title: 'LEFT JOIN with IS NOT NULL Check',
             description: sprintf(
                 "Query uses LEFT JOIN on '%s' but then checks '%s.%s IS NOT NULL'. " .
-                "This is redundant - if you know the field is NOT NULL, use INNER JOIN instead for clarity and potential performance gain. " .
+                "This is redundant. If the field is NOT NULL, use INNER JOIN instead for clarity and potential performance gains. " .
                 "LEFT JOIN is for optional relationships where NULL is expected.",
                 $tableName,
                 $alias,

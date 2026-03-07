@@ -69,7 +69,7 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                                 type: IssueType::FIND_ALL->value,
                                 title: sprintf('Unpaginated Query: findAll() returned %d rows', $rowCount),
                                 description: DescriptionHighlighter::highlight(
-                                    'Query without {where} or {limit} clause returned approximately {count} rows. ' .
+                                    'A query without a {where} or {limit} clause returned approximately {count} rows. ' .
                                     'Consider adding pagination or filters (threshold: {threshold})',
                                     [
                                         'where' => 'WHERE',

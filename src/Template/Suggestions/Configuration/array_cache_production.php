@@ -60,5 +60,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'ArrayCache in production causes severe performance degradation',
+    'description' => 'Using ArrayCache in production can severely degrade performance',
 ];

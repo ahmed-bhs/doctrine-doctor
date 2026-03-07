@@ -135,5 +135,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Add blameable fields to %s for complete audit trail', $entityClass),
+    'description' => sprintf('Add Blameable fields to %s for a complete audit trail', $entityClass),
 ];
