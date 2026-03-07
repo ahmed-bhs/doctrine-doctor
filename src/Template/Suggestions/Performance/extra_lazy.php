@@ -141,7 +141,7 @@ public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
     <h4>When to Use Each Solution</h4>
     <ul>
         <li><strong>EXTRA_LAZY</strong>: When you need count(), contains(), slice(), or rarely iterate full collection</li>
-        <li><strong>JOIN FETCH</strong>: When you ALWAYS iterate over the entire collection</li>
+        <li><strong>JOIN FETCH</strong>: When you consistently iterate over the entire collection</li>
         <li><strong>Repository Method</strong>: When eager loading is needed in specific use cases only</li>
     </ul>
 

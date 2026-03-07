@@ -63,5 +63,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Make embeddable immutable using readonly',
+    'description' => 'Make the embeddable immutable with readonly properties',
 ];

@@ -85,7 +85,7 @@ $code = ob_get_clean();
 return [
     'code'        => $code,
     'description' => sprintf(
-        'Collection N+1 on %s::$%s - add addSelect() to your query or use EXTRA_LAZY fetch mode',
+        'Collection N+1 on %s::$%s - use addSelect() in the query or switch to EXTRA_LAZY fetch mode',
         $parentEntity,
         $collectionField,
     ),

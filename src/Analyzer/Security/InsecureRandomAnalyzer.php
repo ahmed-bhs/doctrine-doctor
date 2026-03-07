@@ -207,7 +207,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             return false;
         }
 
-        $generationVerbs = ['generate', 'create', 'make', 'build', 'new', 'init'];
+        $generationVerbs = ['generate', 'create', 'make', 'build', 'new', 'init', 'refresh', 'renew', 'regenerate'];
 
         return array_any(
             $generationVerbs,
@@ -360,7 +360,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Suggestion',
+                title: 'Use Cryptographically Secure Random Functions',
                 tags: ['code-quality'],
             ),
         );

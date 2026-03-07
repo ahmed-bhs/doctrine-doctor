@@ -124,7 +124,7 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                                 title: sprintf('Memory Leak Risk: %d operations on %s', $count, $table),
                                 description: DescriptionHighlighter::highlight(
                                     'Detected {count} sequential INSERT/UPDATE/DELETE operations on table {table} without {clearMethod}. ' .
-                                    'This can cause memory leaks in batch operations (threshold: {threshold})',
+                                    'This can cause memory growth during batch operations (threshold: {threshold})',
                                     [
                                         'count' => $count,
                                         'table' => $table,

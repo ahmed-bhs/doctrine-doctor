@@ -41,5 +41,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Cache queries on static table %s for better performance', $table_name),
+    'description' => sprintf('Cache queries on the static table %s to improve performance', $table_name),
 ];

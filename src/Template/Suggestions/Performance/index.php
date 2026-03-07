@@ -32,4 +32,4 @@ Columns: <code><?php echo $e($columnsList); ?></code></div>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Add index on %s(%s)', $table, $columnsList)];
+return ['code' => $code, 'description' => sprintf('Add an index on %s(%s)', $table, $columnsList)];

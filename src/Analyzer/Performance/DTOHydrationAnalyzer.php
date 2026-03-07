@@ -254,7 +254,7 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $performanceIssue->setSeverity($count > 5 ? 'critical' : 'warning');
         $performanceIssue->setTitle('Aggregation Query Without DTO Hydration');
         $performanceIssue->setMessage(
-            sprintf('Detected %d queries with aggregations/GROUP BY that should use DTO hydration. ', $count) .
+            sprintf('Detected %d queries with aggregations/GROUP BY that are good candidates for DTO hydration. ', $count) .
             'Using the NEW syntax with DTOs is 3-5x faster, type-safe, and more maintainable than array results.',
         );
         $performanceIssue->setSuggestion($this->createDTOSuggestion($aggregations, $hasGroupBy));

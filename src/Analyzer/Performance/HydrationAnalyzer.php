@@ -71,7 +71,7 @@ class HydrationAnalyzer implements AnalyzerInterface
                             type: IssueType::HYDRATION->value,
                             title: sprintf('Excessive Hydration: %d rows', $rowCount),
                             description: DescriptionHighlighter::highlight(
-                                'Query {action} {count} rows which may cause significant hydration overhead (threshold: {threshold})',
+                                'Query {action} {count} rows, which may cause significant hydration overhead (threshold: {threshold}).',
                                 [
                                     'action' => null === $queryData->rowCount ? 'fetches up to' : 'returned',
                                     'count' => $rowCount,

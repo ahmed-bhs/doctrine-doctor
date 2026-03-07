@@ -75,7 +75,7 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                             type: IssueType::LAZY_LOADING->value,
                             title: sprintf('Lazy Loading in Loop: %d queries on %s', $lazyLoadPattern['count'], $lazyLoadPattern['entity']),
                             description: DescriptionHighlighter::highlight(
-                                'Detected {count} sequential lazy-loaded queries on entity {entity} (relation: {relation}). ' .
+                                'Detected {count} sequential lazy-loaded queries for entity {entity} (relation: {relation}). ' .
                                 'Use eager loading with {joinFetch} to avoid N+1 queries (threshold: {threshold})',
                                 [
                                     'count' => $lazyLoadPattern['count'],

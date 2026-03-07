@@ -307,7 +307,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::info(),
-                    title: 'Suggestion',
+                    title: 'Escape LIKE Wildcards in User Input',
                     tags: ['code-quality'],
                 ),
             ),
@@ -319,7 +319,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
         return $this->issueFactory->createFromArray([
             'type' => IssueType::MISSING_PARAMETERS->value,
             'title'       => 'Missing Query Parameters',
-            'description' => 'The query contains parameter placeholders (:param) but some parameters are not set with setParameter(). This will cause a runtime error.',
+            'description' => 'The query contains parameter placeholders (:param), but some parameters are not set with setParameter(). This causes a runtime error.',
             'severity'    => 'critical',
             'category'    => 'integrity',
             'queries'     => [$queryData],
@@ -352,7 +352,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::info(),
-                    title: 'Suggestion',
+                    title: 'Set All Required Query Parameters',
                     tags: ['code-quality'],
                 ),
             ),
