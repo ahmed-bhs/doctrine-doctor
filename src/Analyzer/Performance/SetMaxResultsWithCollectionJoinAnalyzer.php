@@ -148,19 +148,24 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
      */
     private function hasSingleRowJoinConstraint(string $sql): bool
     {
-        // Pattern 1 & 2: Translation pattern with locale filter
-        // Use SQL parser to detect locale constraints in JOINs
         if ($this->sqlExtractor->hasLocaleConstraintInJoin($sql)) {
             return true;
         }
 
-        // Pattern 3: Join on unique identifier (primary key on joined table)
-        // Use SQL parser to detect unique JOIN constraints
         if ($this->sqlExtractor->hasUniqueJoinConstraint($sql)) {
             return true;
         }
 
+        if ($this->hasEqualityConstraintInJoinCondition($sql)) {
+            return true;
+        }
+
         return false;
+    }
+
+    private function hasEqualityConstraintInJoinCondition(string $sql): bool
+    {
+        return 1 === preg_match('/\bJOIN\b[^)]*\bON\b[^)]*\bAND\b\s+\w+\.\w+\s*(?:=|<=?|>=?)\s*\?/i', $sql);
     }
 
     private function createIssue(QueryData $queryData): IssueInterface

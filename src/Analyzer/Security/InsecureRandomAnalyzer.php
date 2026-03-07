@@ -48,20 +48,22 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         'time',
     ];
 
-    // Context patterns that indicate security-sensitive usage
     private const array SENSITIVE_CONTEXTS = [
         'token',
         'secret',
-        'key',
         'password',
         'salt',
         'nonce',
         'csrf',
-        'reset',
         'verification',
-        'api',
         'auth',
         'session',
+        'apikey',
+        'apitoken',
+        'apisecret',
+        'resettoken',
+        'resetpassword',
+        'secretkey',
     ];
 
     public function __construct(
@@ -195,8 +197,22 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     private function isSensitiveContext(string $methodName, string $source): bool
     {
         $lowerMethodName = strtolower($methodName);
-        $lowerSource     = strtolower($source);
-        return array_any(self::SENSITIVE_CONTEXTS, fn ($context) => str_contains($lowerMethodName, (string) $context) || str_contains($lowerSource, (string) $context));
+
+        $hasSensitiveKeyword = array_any(
+            self::SENSITIVE_CONTEXTS,
+            fn ($context) => str_contains($lowerMethodName, (string) $context),
+        );
+
+        if (!$hasSensitiveKeyword) {
+            return false;
+        }
+
+        $generationVerbs = ['generate', 'create', 'make', 'build', 'new', 'init'];
+
+        return array_any(
+            $generationVerbs,
+            fn ($verb) => str_contains($lowerMethodName, $verb),
+        );
     }
 
     private function createInsecureRandomIssue(

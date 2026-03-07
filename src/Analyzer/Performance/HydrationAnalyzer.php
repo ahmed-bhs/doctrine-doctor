@@ -61,7 +61,10 @@ class HydrationAnalyzer implements AnalyzerInterface
                         }
                     }
 
-                    // If many rows returned/estimated
+                    if ($this->isScalarOrAggregation($queryData->sql)) {
+                        continue;
+                    }
+
                     if ($rowCount > $this->rowThreshold) {
                         // Any query returning more than threshold is a hydration concern
                         $issueData = new IssueData(
@@ -99,6 +102,19 @@ class HydrationAnalyzer implements AnalyzerInterface
         // Use SQL parser to extract LIMIT value
         // Supports various formats: LIMIT 100, LIMIT 10,100, LIMIT 100 OFFSET 10
         return $this->sqlExtractor->getLimitValue($sql);
+    }
+
+    private function isScalarOrAggregation(string $sql): bool
+    {
+        if (1 === preg_match('/^\s*SELECT\s+(COUNT|SUM|AVG|MIN|MAX|GROUP_CONCAT)\s*\(/i', $sql)) {
+            return true;
+        }
+
+        if (1 === preg_match('/^\s*SELECT\s+\w+(?:\.\w+)?\s+FROM\b/i', $sql)) {
+            return true;
+        }
+
+        return false;
     }
 
     private function generateSuggestion(int $rowCount): SuggestionInterface

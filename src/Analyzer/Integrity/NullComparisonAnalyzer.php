@@ -70,9 +70,9 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                         continue;
                     }
 
-                    $sqlWithoutComments = $this->removeSqlComments($sql);
+                    $cleaned = $this->stripStringLiterals($this->removeSqlComments($sql));
 
-                    if (preg_match_all(self::NULL_COMPARISON_PATTERN, $sqlWithoutComments, $matches, PREG_SET_ORDER) >= 1) {
+                    if (preg_match_all(self::NULL_COMPARISON_PATTERN, $cleaned, $matches, PREG_SET_ORDER) >= 1) {
                         Assert::isIterable($matches, '$matches must be iterable');
 
                         foreach ($matches as $match) {
@@ -117,10 +117,6 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         return is_object($query) && property_exists($query, 'sql') ? ($query->sql ?? '') : '';
     }
 
-    /**
-     * Remove SQL comments to avoid false positives.
-     * Removes both single-line (--) and multi-line comments.
-     */
     private function removeSqlComments(string $sql): string
     {
         $sql = preg_replace('/--.*$/m', '', $sql) ?? $sql;
@@ -128,6 +124,11 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         $sql = preg_replace('/\/\*.*?\*\//s', '', $sql) ?? $sql;
 
         return $sql;
+    }
+
+    private function stripStringLiterals(string $sql): string
+    {
+        return preg_replace("/('[^']*'|\"[^\"]*\")/", "'__STR__'", $sql) ?? $sql;
     }
 
     /**

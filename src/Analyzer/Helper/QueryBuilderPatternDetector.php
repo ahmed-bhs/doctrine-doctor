@@ -243,10 +243,19 @@ class QueryBuilderPatternDetector
         $escapedColumn = preg_quote($column, '/');
         $escapedOperator = preg_quote($operator, '/');
 
-        // Pattern: column operator "value" or column operator 'value'
-        $pattern = sprintf('/%s\s*%s\s*["\'][^"\']*["\']/', $escapedColumn, $escapedOperator);
+        $pattern = sprintf('/%s\s*%s\s*(["\'])([^"\']*)\1/', $escapedColumn, $escapedOperator);
 
-        return 1 === preg_match($pattern, $sql);
+        if (1 !== preg_match($pattern, $sql, $matches)) {
+            return false;
+        }
+
+        $value = $matches[2];
+
+        if (1 === preg_match('/^[a-zA-Z0-9_-]+$/', $value) && strlen($value) <= 20) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
