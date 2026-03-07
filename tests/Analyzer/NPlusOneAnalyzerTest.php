@@ -573,10 +573,10 @@ final class NPlusOneAnalyzerTest extends TestCase
         self::assertStringContainsString('proxy', strtolower($issue->getTitle()));
         self::assertStringContainsString('Proxy initialization', $issue->getDescription());
 
-        // Should suggest Batch Fetch for proxy N+1
         $suggestion = $issue->getSuggestion();
         self::assertNotNull($suggestion);
-        self::assertStringContainsString('Batch', $suggestion->getCode());
+        self::assertStringContainsString('addSelect', $suggestion->getCode());
+        self::assertStringContainsString('fetch join', strtolower($suggestion->getCode()));
     }
 
     #[Test]

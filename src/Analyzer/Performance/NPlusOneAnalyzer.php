@@ -234,7 +234,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
      * - Better foreign key detection using SQL structure analysis
      *
      * Now includes type-specific suggestions:
-     * - Proxy N+1 (ManyToOne/OneToOne): Suggests Batch Fetch
+     * - Proxy N+1 (ManyToOne/OneToOne): Suggests Fetch Join
      * - Collection N+1 (OneToMany/ManyToMany): Suggests Extra Lazy or Eager Loading
      * - Partial collection access: Suggests Extra Lazy
      *
@@ -661,7 +661,22 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         if (null === $backtrace) {
             return false;
         }
-        return array_any($backtrace, fn ($frame) => isset($frame['file']) && is_string($frame['file']) && str_contains($frame['file'], '/vendor/'));
+
+        foreach ($backtrace as $frame) {
+            if (!isset($frame['file']) || !is_string($frame['file'])) {
+                continue;
+            }
+
+            $file = $frame['file'];
+
+            if (str_contains($file, '/vendor/')) {
+                continue;
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -676,31 +691,51 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             default => 'N+1 Query',
         };
 
-        $description = DescriptionHighlighter::highlight(
-            '{type_label}: Found {count} similar queries with total execution time of {time}ms. Pattern: {pattern}',
-            [
-                'type_label' => $typeLabel,
-                'count' => $count,
-                'time' => sprintf('%.2f', $totalTime),
-                'pattern' => $pattern,
-            ],
-        );
+        $isLowTimeHighCount = $count > self::QUERY_COUNT_WARNING_THRESHOLD && $totalTime < self::LOW_EXECUTION_TIME_THRESHOLD;
 
-        // Add type-specific context
+        if ($isLowTimeHighCount) {
+            $description = DescriptionHighlighter::highlight(
+                '{type_label}: Found {count} similar queries ({time}ms SQL-only). Pattern: {pattern}',
+                [
+                    'type_label' => $typeLabel,
+                    'count' => $count,
+                    'time' => sprintf('%.2f', $totalTime),
+                    'pattern' => $pattern,
+                ],
+            );
+        } else {
+            $description = DescriptionHighlighter::highlight(
+                '{type_label}: Found {count} similar queries with total execution time of {time}ms. Pattern: {pattern}',
+                [
+                    'type_label' => $typeLabel,
+                    'count' => $count,
+                    'time' => sprintf('%.2f', $totalTime),
+                    'pattern' => $pattern,
+                ],
+            );
+        }
+
         if ('proxy' === $detectedType['type']) {
-            $description .= "\nProxy initialization in loop detected - consider using Batch Fetch or JOIN FETCH for better performance.";
+            $description .= "\nProxy initialization in loop detected - consider using a fetch join (join + addSelect) for better performance.";
         } elseif ('collection' === $detectedType['type'] && $detectedType['hasLimit']) {
             $description .= "\nPartial collection access detected (LIMIT in query) - EXTRA_LAZY fetch mode would be ideal here.";
         }
 
-        // Add scaling warning if low execution time but many queries
-        if ($count > self::QUERY_COUNT_WARNING_THRESHOLD && $totalTime < self::LOW_EXECUTION_TIME_THRESHOLD) {
-            $description .= "\nLow execution time in development may increase significantly in production with more data due to database contention, locks, and network latency.";
+        if ($isLowTimeHighCount) {
+            $description .= sprintf(
+                "\nThe %.2fms only measures database engine time. The real cost is in PHP: " .
+                '%d Doctrine hydration cycles, %d UnitOfWork snapshots held in memory, and %d PDO roundtrips. ' .
+                'This overhead does not appear in SQL time but contributes significantly to total page time. ' .
+                'A single fetch join query (join + addSelect) would eliminate all of this.',
+                $totalTime,
+                $count,
+                $count,
+                $count,
+            );
         }
 
-        // Add vendor code context
         if ($this->isVendorCode($backtrace)) {
-            $description .= "\nTriggered by vendor code - may require configuration change or eager loading in your queries.";
+            $description .= "\nThis N+1 originates from vendor code.";
         }
 
         return $description;
