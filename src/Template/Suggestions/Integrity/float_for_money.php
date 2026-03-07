@@ -56,5 +56,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Replace float with decimal or Money library for monetary values',
+    'description' => 'Replace float with decimal or a Money library for monetary values',
 ];

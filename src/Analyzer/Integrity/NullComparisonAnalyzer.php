@@ -148,7 +148,7 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             title: 'Incorrect NULL Comparison',
             description: sprintf(
                 "Found '%s' in query. Comparing to NULL with '%s' does not work as expected in SQL. " .
-                "This will ALWAYS return no rows. Use '%s' instead.",
+                "This will always return no rows. Use '%s' instead.",
                 $fullMatch,
                 $operator,
                 $correctSyntax,

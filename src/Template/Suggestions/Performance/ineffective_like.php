@@ -36,5 +36,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Ineffective LIKE pattern (%s) - consider full-text search', $like_type),
+    'description' => sprintf('Detected an ineffective LIKE pattern (%s) - consider full-text search', $like_type),
 ];

@@ -468,7 +468,7 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         $tables = $chain['tables'];
 
         $description = DescriptionHighlighter::highlight(
-            'Nested relationship N+1 detected: {count} queries across {depth}-level relationship chain: {pattern}',
+            'Detected nested relationship N+1: {count} queries across a {depth}-level relationship chain: {pattern}',
             [
                 'count' => $count,
                 'depth' => $depth,

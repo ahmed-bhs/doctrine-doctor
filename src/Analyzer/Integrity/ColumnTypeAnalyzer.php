@@ -246,7 +246,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::info(),
-                    title: 'Suggestion',
+                    title: 'Use a Safer Column Type',
                     tags: ['code-quality'],
                 ),
             ),
@@ -297,7 +297,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                     suggestionMetadata: new SuggestionMetadata(
                         type: SuggestionType::integrity(),
                         severity: Severity::info(),
-                        title: 'Suggestion',
+                        title: 'Replace simple_array with json',
                         tags: ['code-quality'],
                     ),
                 ),
@@ -369,7 +369,7 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::info(),
-                    title: 'Suggestion',
+                    title: 'Migrate to a Native PHP Enum',
                     tags: ['code-quality'],
                 ),
             ),

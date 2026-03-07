@@ -83,7 +83,7 @@ class FlushInLoopAnalyzerModern implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
                             title: sprintf('Performance Anti-Pattern: %d flush() calls in loop', $flushPattern['flush_count']),
                             description: sprintf(
                                 'Detected %d flush() calls with an average of %.1f operations between each flush. ' .
-                                'This anti-pattern causes severe performance degradation. Batch operations and flush once (threshold: %d)',
+                                'This anti-pattern causes severe performance degradation. Use batch operations and flush once (threshold: %d)',
                                 $flushPattern['flush_count'],
                                 $flushPattern['operations_between_flush'],
                                 $this->flushCountThreshold,
