@@ -566,3 +566,44 @@
                 init();
             }
         })();
+
+        (function() {
+            function initDdTabs() {
+                document.querySelectorAll('.sf-tabs.dd-panel-typography[data-processed="true"] .tab-navigation').forEach(function(nav) {
+                    var tabs = Array.prototype.slice.call(nav.querySelectorAll('.tab-control'));
+                    tabs.forEach(function(tab) {
+                        tab.addEventListener('click', function(e) {
+                            var activeTab = e.target;
+                            while (activeTab.tagName.toLowerCase() !== 'button') {
+                                activeTab = activeTab.parentNode;
+                            }
+                            var targetId = activeTab.getAttribute('data-tab-id');
+                            tabs.forEach(function(t) {
+                                var panelId = t.getAttribute('data-tab-id');
+                                var panel = document.getElementById(panelId);
+                                if (panel) {
+                                    panel.classList.add('hidden');
+                                    panel.classList.remove('block');
+                                }
+                                t.classList.remove('active');
+                                t.removeAttribute('aria-selected');
+                                t.setAttribute('tabindex', '-1');
+                            });
+                            activeTab.classList.add('active');
+                            activeTab.setAttribute('aria-selected', 'true');
+                            activeTab.removeAttribute('tabindex');
+                            var activePanel = document.getElementById(targetId);
+                            if (activePanel) {
+                                activePanel.classList.remove('hidden');
+                                activePanel.classList.add('block');
+                            }
+                        });
+                    });
+                });
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initDdTabs);
+            } else {
+                initDdTabs();
+            }
+        })();

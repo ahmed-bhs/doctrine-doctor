@@ -231,11 +231,9 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
             $patterns[] = $normalized;
         }
 
-        // If most queries have the same pattern, it's a bulk operation
-        $uniquePatterns  = array_unique($patterns);
-        $similarityRatio = count($uniquePatterns) / count($patterns);
+        $patternCounts = array_count_values($patterns);
+        $dominantCount = max($patternCounts);
 
-        // If > 70% of queries are similar, consider it bulk
-        return $similarityRatio <= 0.3;
+        return $dominantCount / count($patterns) >= 0.7;
     }
 }
