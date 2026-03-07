@@ -42,7 +42,7 @@
   opportunities
 - **Security** — Identifies DQL/SQL injection vulnerabilities, QueryBuilder SQL injection risks,
   sensitive data exposure in serialization, unprotected sensitive fields, and insecure random generators
-- **Code Quality** — Detects cascade configuration issues, bidirectional inconsistencies,
+- **Integrity** — Detects cascade configuration issues, bidirectional inconsistencies,
   missing orphan removal, type mismatches, float usage for money, uninitialized collections,
   EntityManager in entities, and architectural violations
 - **Configuration** — Validates database charset/collation settings, timezone handling,
@@ -144,7 +144,7 @@ execution time, points to the exact template line, and suggests eager loading wi
 
 | Document | Description |
 |----------|-------------|
-| [**Full Analyzers List**](docs/user-guide/analyzers.md) | Complete catalog of all **66 analyzers** covering performance, security, code quality, and configuration - find the perfect analyzer for your specific needs |
+| [**Full Analyzers List**](docs/user-guide/analyzers.md) | Complete catalog of all **66 analyzers** covering performance, security, integrity, and configuration - find the perfect analyzer for your specific needs |
 | [**Architecture Guide**](docs/advanced/architecture.md) | Deep dive into **system design**, architecture patterns, and technical internals - understand how Doctrine Doctor works under the hood |
 | [**Configuration Reference**](docs/user-guide/configuration.md) | Comprehensive guide to **all configuration options** - customize analyzers, thresholds, and outputs to match your workflow |
 | [**Template Security**](docs/advanced/template-security.md) | Essential **security best practices** for PHP templates - prevent XSS attacks and ensure safe template rendering |
