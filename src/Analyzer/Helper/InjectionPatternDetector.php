@@ -72,7 +72,7 @@ class InjectionPatternDetector
         }
 
         if ($this->hasUnparameterizedLike($sql, $parsedData)) {
-            ++$riskLevel;
+            $riskLevel += 2;
             $indicators[] = 'LIKE clause without parameter';
         }
 
@@ -81,12 +81,13 @@ class InjectionPatternDetector
             $indicators[] = 'WHERE clause with literal string instead of parameter';
         }
 
-        if ($this->hasMultipleConditionsWithLiterals($sql, $parsedData)) {
+        $hasMultipleLiterals = $this->hasMultipleConditionsWithLiterals($sql, $parsedData);
+        if ($hasMultipleLiterals) {
             $riskLevel += 3;
             $indicators[] = 'Multiple conditions with literal strings (possible injection)';
         }
 
-        if (!$this->hasSQLInjectionKeywords($sql) && $riskLevel > 2) {
+        if (!$this->hasSQLInjectionKeywords($sql) && !$hasMultipleLiterals && $riskLevel > 2) {
             $riskLevel = 2;
         }
 
@@ -146,7 +147,7 @@ class InjectionPatternDetector
      */
     public function hasCommentSyntaxInString(string $sql): bool
     {
-        return 1 === preg_match("/['\"]\s*(?:--|#|\/\*)/", $sql);
+        return 1 === preg_match("/'\s*(?:--|#|\/\*)|;\s*(?:--|#|\/\*)/", $sql);
     }
 
     /**
@@ -370,7 +371,7 @@ class InjectionPatternDetector
             return false;
         }
 
-        if (strlen($normalizedValue) <= 10 && 1 === preg_match('/^[a-z]+$/', $normalizedValue)) {
+        if (1 === preg_match('/^[a-z][a-z0-9 &\-_.,]*$/i', $normalizedValue) && strlen($normalizedValue) <= 50) {
             return false;
         }
 
