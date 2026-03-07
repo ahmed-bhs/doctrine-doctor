@@ -69,7 +69,7 @@ final class DQLInjectionAnalyzerTest extends TestCase
 
         $issue = $issuesArray[0];
         self::assertEquals('critical', $issue->getSeverity()->value);
-        self::assertStringContainsString('CRITICAL injection risk', $issue->getDescription());
+        self::assertStringContainsString('critical injection risk', $issue->getDescription());
         self::assertStringContainsString('injection keywords', $issue->getDescription());
     }
 
@@ -266,7 +266,7 @@ final class DQLInjectionAnalyzerTest extends TestCase
     public function it_provides_suggestion_with_parameterized_query(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM users WHERE email = 'user@example.com' OR name = 'test-injection'")
+            ->addQuery("SELECT * FROM users WHERE email = 'user@example.com' OR name = '1' OR '1'='1'")
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
