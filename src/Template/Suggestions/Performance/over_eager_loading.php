@@ -81,25 +81,18 @@ if (/* you need comments */) {
 // Result: No data duplication, minimal memory usage!</code></pre>
     </div>
 
-    <h4>Solution 2: Batch Fetch for ManyToOne Relations</h4>
+    <h4>Solution 2: Fetch Join for ManyToOne Relations</h4>
     <div class="query-item">
-        <pre><code class="language-php">// For ManyToOne/OneToOne relations, use Batch Fetch
-use Doctrine\ORM\Mapping as ORM;
+        <pre><code class="language-php">// For ManyToOne/OneToOne relations, use a simple fetch join
+// No data duplication since ManyToOne is always a single row
+$articles = $repository->createQueryBuilder('a')
+    ->leftJoin('a.author', 'u')
+    ->addSelect('u')
+    ->getQuery()
+    ->getResult();
 
-#[ORM\Entity]
-class Article
-{
-    // Instead of JOIN, use batch fetching
-    #[ORM\ManyToOne]
-    #[ORM\BatchFetch(size: 10)]  // Loads in batches automatically
-    private ?User $author = null;
-}
-
-// Now just query articles:
-$articles = $em->createQuery('SELECT a FROM App\Entity\Article a')->getResult();
-
-// When you access $article->getAuthor(), Doctrine batches the queries
-// 100 articles → ~10 queries instead of 100 (N+1) or 1 with duplication</code></pre>
+// $article->getAuthor() is already loaded, no extra query
+// Safe to combine with other ManyToOne joins (no cartesian product)</code></pre>
     </div>
 
     <h4>Solution 3: Use EXTRA_LAZY for Collections</h4>
@@ -187,7 +180,7 @@ $results = $em->createQuery('
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd;">ManyToOne (author, category)</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">Batch Fetch or single JOIN</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">Fetch join (join + addSelect)</td>
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd;">OneToMany small (1-5 items)</td>
@@ -199,7 +192,7 @@ $results = $em->createQuery('
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd;">Multiple collections</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">NEVER JOIN all together!</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">Avoid joining all collections in one query</td>
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd;">Read-only/API</td>

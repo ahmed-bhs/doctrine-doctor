@@ -39,14 +39,10 @@ use Webmozart\Assert\Assert;
  */
 class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    /** @var int Threshold for flush count in a single transaction */
-    private const int MAX_FLUSH_PER_TRANSACTION = 1;
-
-    /** @var float Maximum transaction duration in seconds */
-    private const float MAX_TRANSACTION_DURATION = 1.0;
-
     public function __construct(
         private readonly IssueFactoryInterface $issueFactory,
+        private readonly int $maxFlushPerTransaction = 1,
+        private readonly float $maxTransactionDuration = 1.0,
     ) {
     }
 
@@ -95,6 +91,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             'transactionStartTime'        => null,
             'lastQueryTime'               => 0,
             'currentTime'                 => 0,
+            'lastQueryWasFlush'           => false,
         ];
     }
 
@@ -106,20 +103,29 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function processQuery(string $sql, QueryData $queryData, array &$state): \Generator
     {
         if ($this->isBeginTransaction($sql)) {
+            $state['lastQueryWasFlush'] = false;
             yield from $this->handleTransactionStart($queryData, $state);
             return;
         }
 
         if (!$this->hasActiveTransaction($state)) {
+            $state['lastQueryWasFlush'] = false;
             return;
         }
 
         if ($this->isFlushQuery($sql)) {
-            yield from $this->handleFlush($queryData, $state);
+            if (!$state['lastQueryWasFlush']) {
+                yield from $this->handleFlush($queryData, $state);
+            }
+            $state['lastQueryWasFlush'] = true;
         } elseif ($this->isCommit($sql)) {
+            $state['lastQueryWasFlush'] = false;
             yield from $this->handleCommit($queryData, $state);
         } elseif ($this->isRollback($sql)) {
+            $state['lastQueryWasFlush'] = false;
             $this->handleRollback($state);
+        } else {
+            $state['lastQueryWasFlush'] = false;
         }
     }
 
@@ -159,7 +165,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         $currentTxId = end($state['transactionStack']);
         ++$state['flushesInCurrentTransaction'][$currentTxId];
 
-        if ($state['flushesInCurrentTransaction'][$currentTxId] > self::MAX_FLUSH_PER_TRANSACTION) {
+        if ($state['flushesInCurrentTransaction'][$currentTxId] > $this->maxFlushPerTransaction) {
             yield $this->createMultipleFlushIssue(
                 $queryData,
                 (int) $state['flushesInCurrentTransaction'][$currentTxId],
@@ -177,7 +183,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         $transactionId = array_pop($state['transactionStack']);
         $duration      = $state['currentTime'] - $state['transactionStartTime'];
 
-        if ($duration > self::MAX_TRANSACTION_DURATION) {
+        if ($duration > $this->maxTransactionDuration) {
             yield $this->createLongTransactionIssue($queryData, $duration);
         }
 
@@ -326,7 +332,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         $description = sprintf(
             "Transaction held open for %.2fs (threshold: %.2fs).\n",
             $duration,
-            self::MAX_TRANSACTION_DURATION,
+            $this->maxTransactionDuration,
         );
         $description .= "Impact: Longer lock retention increases contention and deadlock probability.\n";
         $description .= "Impact: Concurrent queries can be blocked, causing latency spikes.\n";

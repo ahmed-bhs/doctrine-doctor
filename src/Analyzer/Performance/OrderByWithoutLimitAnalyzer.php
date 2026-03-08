@@ -91,9 +91,6 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                         // Detect query context from backtrace
                         $context = $this->detectQueryContext($query);
 
-                        // Skip false positives: single-result methods with good performance
-                        // These methods (getOneOrNullResult, getSingleResult) are meant to return
-                        // a single result, so ORDER BY without LIMIT is acceptable if performant
                         if ('single_result' === $context && $executionTime < 10.0) {
                             continue;
                         }
@@ -272,7 +269,7 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             $description = sprintf(
                 "Query uses ORDER BY without LIMIT in a single-result context (getOneOrNullResult/getSingleResult). " .
                 "While the method returns only one result, the database still processes ORDER BY on all matching rows. " .
-                "Current execution time: %s. Consider adding setMaxResults(1) before calling getOneOrNullResult() " .
+                "Execution time: %s. Consider adding setMaxResults(1) before calling getOneOrNullResult() " .
                 "to limit database processing. ORDER BY clause: %s",
                 $executionTimeStr,
                 $orderByClause,
@@ -292,7 +289,7 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             $description = sprintf(
                 "Query uses ORDER BY without LIMIT and returns an array of results (getResult/findBy). " .
                 "This sorts the entire result set without limiting rows, which can cause performance issues. " .
-                "Execution time: %s. **Add LIMIT** for pagination or to restrict the number of results returned. " .
+                "Execution time: %s. Add LIMIT for pagination or to restrict the number of returned rows. " .
                 "ORDER BY clause: %s",
                 $executionTimeStr,
                 $orderByClause,
@@ -309,8 +306,8 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         };
         $title = 'ORDER BY Without LIMIT Detected';
         $description = sprintf(
-            "Query uses ORDER BY without LIMIT, potentially sorting entire table. " .
-            "This query took %s. Consider adding LIMIT for pagination or if you only need top N results. " .
+            "Query uses ORDER BY without LIMIT, potentially sorting the entire table. " .
+            "Execution time: %s. Consider adding LIMIT for pagination or if you only need the top N results. " .
             "ORDER BY clause: %s",
             $executionTimeStr,
             $orderByClause,

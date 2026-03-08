@@ -69,8 +69,6 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             fn (QueryData $queryData): bool => $this->sqlExtractor->isSelectQuery($queryData->sql),
         );
 
-        //  Use collection's groupByPattern method with improved aggregation key
-        // OPTIMIZED: Uses cached aggregation key creation for massive speedup
         $queryGroups = $selectQueries->groupByPattern(
             fn (string $sql): string => $this->createAggregationKey($sql),
         );
@@ -85,8 +83,13 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
 
                 foreach ($queryGroups as $pattern => $group) {
                     if ($group->count() >= $this->threshold) {
-                        $totalTime  = $group->totalExecutionTime();
                         $groupArray = $group->toArray();
+
+                        if ($this->hasDiverseBacktraceOrigins($groupArray)) {
+                            continue;
+                        }
+
+                        $totalTime  = $group->totalExecutionTime();
                         $backtrace  = $group->first()?->backtrace;
 
                         // Note: Queries are automatically deduplicated in IssueData constructor
@@ -143,6 +146,38 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
      *
      * OPTIMIZED: Uses CachedSqlStructureExtractor (transparent via DI) for 1233x speedup
      */
+    /**
+     * @param QueryData[] $queries
+     */
+    private function hasDiverseBacktraceOrigins(array $queries): bool
+    {
+        $origins = [];
+        foreach ($queries as $qd) {
+            $origin = $this->extractFirstAppFrame($qd->backtrace);
+            if (null !== $origin) {
+                $origins[$origin] = true;
+            }
+        }
+
+        return count($origins) >= 3;
+    }
+
+    private function extractFirstAppFrame(?array $backtrace): ?string
+    {
+        if (null === $backtrace || [] === $backtrace) {
+            return null;
+        }
+
+        foreach ($backtrace as $frame) {
+            $file = $frame['file'] ?? null;
+            if (\is_string($file) && !str_contains($file, '/vendor/')) {
+                return basename($file) . ':' . ($frame['line'] ?? 0);
+            }
+        }
+
+        return null;
+    }
+
     private function createAggregationKey(string $sql): string
     {
         $normalized = $this->normalizeQuery($sql);
@@ -199,7 +234,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
      * - Better foreign key detection using SQL structure analysis
      *
      * Now includes type-specific suggestions:
-     * - Proxy N+1 (ManyToOne/OneToOne): Suggests Batch Fetch
+     * - Proxy N+1 (ManyToOne/OneToOne): Suggests Fetch Join
      * - Collection N+1 (OneToMany/ManyToMany): Suggests Extra Lazy or Eager Loading
      * - Partial collection access: Suggests Extra Lazy
      *
@@ -626,7 +661,22 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         if (null === $backtrace) {
             return false;
         }
-        return array_any($backtrace, fn ($frame) => isset($frame['file']) && is_string($frame['file']) && str_contains($frame['file'], '/vendor/'));
+
+        foreach ($backtrace as $frame) {
+            if (!isset($frame['file']) || !is_string($frame['file'])) {
+                continue;
+            }
+
+            $file = $frame['file'];
+
+            if (str_contains($file, '/vendor/')) {
+                continue;
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -641,31 +691,51 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             default => 'N+1 Query',
         };
 
-        $description = DescriptionHighlighter::highlight(
-            '{type_label}: Found {count} similar queries with total execution time of {time}ms. Pattern: {pattern}',
-            [
-                'type_label' => $typeLabel,
-                'count' => $count,
-                'time' => sprintf('%.2f', $totalTime),
-                'pattern' => $pattern,
-            ],
-        );
+        $isLowTimeHighCount = $count > self::QUERY_COUNT_WARNING_THRESHOLD && $totalTime < self::LOW_EXECUTION_TIME_THRESHOLD;
 
-        // Add type-specific context
+        if ($isLowTimeHighCount) {
+            $description = DescriptionHighlighter::highlight(
+                '{type_label}: Found {count} similar queries ({time}ms SQL time only). Pattern: {pattern}',
+                [
+                    'type_label' => $typeLabel,
+                    'count' => $count,
+                    'time' => sprintf('%.2f', $totalTime),
+                    'pattern' => $pattern,
+                ],
+            );
+        } else {
+            $description = DescriptionHighlighter::highlight(
+                '{type_label}: Found {count} similar queries with a total execution time of {time}ms. Pattern: {pattern}',
+                [
+                    'type_label' => $typeLabel,
+                    'count' => $count,
+                    'time' => sprintf('%.2f', $totalTime),
+                    'pattern' => $pattern,
+                ],
+            );
+        }
+
         if ('proxy' === $detectedType['type']) {
-            $description .= "\nProxy initialization in loop detected - consider using Batch Fetch or JOIN FETCH for better performance.";
+            $description .= "\nProxy initialization detected in a loop. Consider using a fetch join (join + addSelect) for better performance.";
         } elseif ('collection' === $detectedType['type'] && $detectedType['hasLimit']) {
-            $description .= "\nPartial collection access detected (LIMIT in query) - EXTRA_LAZY fetch mode would be ideal here.";
+            $description .= "\nDetected partial collection access (LIMIT in query). EXTRA_LAZY fetch mode is usually ideal here.";
         }
 
-        // Add scaling warning if low execution time but many queries
-        if ($count > self::QUERY_COUNT_WARNING_THRESHOLD && $totalTime < self::LOW_EXECUTION_TIME_THRESHOLD) {
-            $description .= "\nLow execution time in development may increase significantly in production with more data due to database contention, locks, and network latency.";
+        if ($isLowTimeHighCount) {
+            $description .= sprintf(
+                "\nThe %.2fms only measures database engine time. The main cost is in PHP: " .
+                '%d Doctrine hydration cycles, %d UnitOfWork snapshots kept in memory, and %d PDO round trips. ' .
+                'This overhead is not visible in SQL timing but can significantly increase total page time. ' .
+                'A single fetch-join query (join + addSelect) would eliminate most of this overhead.',
+                $totalTime,
+                $count,
+                $count,
+                $count,
+            );
         }
 
-        // Add vendor code context
         if ($this->isVendorCode($backtrace)) {
-            $description .= "\nTriggered by vendor code - may require configuration change or eager loading in your queries.";
+            $description .= "\nThis N+1 originates from vendor code.";
         }
 
         return $description;

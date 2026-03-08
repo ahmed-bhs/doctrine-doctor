@@ -314,7 +314,7 @@
 
             <div class="metric">
                 <span class="value {{ dbInfo.is_deprecated ? 'status-error' : '' }}">{{ dbInfo.doctrine_version }}</span>
-                <span class="label">Doctrine ORM Version</span>
+                <span class="label">ORM Version</span>
             </div>
 
             {% if dbInfo.is_deprecated %}
@@ -365,9 +365,40 @@
         </div>
     {% endif %}
 
-    <div class="sf-tabs dd-panel-typography">
-        <div class="tab {{ collector.getIssueCountByCategory('performance') == 0 ? 'disabled' }}">
-            <h3 class="tab-title">
+    <div class="sf-tabs dd-panel-typography" data-processed="true">
+        <div class="tab-navigation" role="tablist">
+            <button class="tab-control{{ collector.getIssueCountByCategory('performance') == 0 ? ' disabled' }} active" data-tab-id="dd-tab-0" role="tab" aria-controls="dd-tab-0" aria-selected="true">
+                <span class="dd-tab-icon" aria-hidden="true">⚡</span>
+                <span class="dd-tab-label">Performance</span>
+                <span class="dd-tab-count">{{ collector.getIssueCountByCategory('performance') }}</span>
+            </button>
+            <button class="tab-control{{ collector.getIssueCountByCategory('security') == 0 ? ' disabled' }}" data-tab-id="dd-tab-1" role="tab" aria-controls="dd-tab-1" tabindex="-1">
+                <span class="dd-tab-icon" aria-hidden="true">🛡️</span>
+                <span class="dd-tab-label">Security</span>
+                <span class="dd-tab-count">{{ collector.getIssueCountByCategory('security') }}</span>
+            </button>
+            <button class="tab-control{{ collector.getIssueCountByCategory('integrity') == 0 ? ' disabled' }}" data-tab-id="dd-tab-2" role="tab" aria-controls="dd-tab-2" tabindex="-1">
+                <span class="dd-tab-icon" aria-hidden="true">🧩</span>
+                <span class="dd-tab-label">Integrity</span>
+                <span class="dd-tab-count">{{ collector.getIssueCountByCategory('integrity') }}</span>
+            </button>
+            <button class="tab-control{{ collector.getIssueCountByCategory('configuration') == 0 ? ' disabled' }}" data-tab-id="dd-tab-3" role="tab" aria-controls="dd-tab-3" tabindex="-1">
+                <span class="dd-tab-icon" aria-hidden="true">🔧</span>
+                <span class="dd-tab-label">Configuration</span>
+                <span class="dd-tab-count">{{ collector.getIssueCountByCategory('configuration') }}</span>
+            </button>
+            <button class="tab-control{{ collector.timelineQueries is empty ? ' disabled' }}" data-tab-id="dd-tab-4" role="tab" aria-controls="dd-tab-4" tabindex="-1">
+                <span class="dd-tab-label">Slowest Queries</span>
+                <span class="dd-tab-count">{{ collector.groupedQueriesByTime|length }}</span>
+            </button>
+            {% if collector.isDebugInfoEnabled %}
+            <button class="tab-control" data-tab-id="dd-tab-5" role="tab" aria-controls="dd-tab-5" tabindex="-1">
+                <span class="dd-tab-label">Debug Information</span>
+            </button>
+            {% endif %}
+        </div>
+        <div class="tab {{ collector.getIssueCountByCategory('performance') == 0 ? 'disabled' }} block" id="dd-tab-0" role="tabpanel" aria-labelledby="dd-tab-0">
+            <h3 class="tab-title hidden">
                 <span class="dd-tab-icon" aria-hidden="true">⚡</span>
                 <span class="dd-tab-label">Performance</span>
                 <span class="dd-tab-count">{{ collector.getIssueCountByCategory('performance') }}</span>
@@ -398,6 +429,7 @@
                             </select>
                             <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>Reset</button>
                         </div>
+                        <span class="dd-issue-meta">{{ performanceIssues|length }} shown / {{ performanceIssues|length }} total</span>
                     </div>
                     <div class="dd-issue-list" data-issue-list="performance">
                         {% for issue in performanceIssues %}
@@ -408,8 +440,8 @@
             </div>
         </div>
 
-        <div class="tab {{ collector.getIssueCountByCategory('security') == 0 ? 'disabled' }}">
-            <h3 class="tab-title">
+        <div class="tab {{ collector.getIssueCountByCategory('security') == 0 ? 'disabled' }} hidden" id="dd-tab-1" role="tabpanel" aria-labelledby="dd-tab-1">
+            <h3 class="tab-title hidden">
                 <span class="dd-tab-icon" aria-hidden="true">🛡️</span>
                 <span class="dd-tab-label">Security</span>
                 <span class="dd-tab-count">{{ collector.getIssueCountByCategory('security') }}</span>
@@ -440,6 +472,7 @@
                             </select>
                             <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>Reset</button>
                         </div>
+                        <span class="dd-issue-meta">{{ securityIssues|length }} shown / {{ securityIssues|length }} total</span>
                     </div>
                     <div class="dd-issue-list" data-issue-list="security">
                         {% for issue in securityIssues %}
@@ -450,8 +483,8 @@
             </div>
         </div>
 
-        <div class="tab {{ collector.getIssueCountByCategory('integrity') == 0 ? 'disabled' }}">
-            <h3 class="tab-title">
+        <div class="tab {{ collector.getIssueCountByCategory('integrity') == 0 ? 'disabled' }} hidden" id="dd-tab-2" role="tabpanel" aria-labelledby="dd-tab-2">
+            <h3 class="tab-title hidden">
                 <span class="dd-tab-icon" aria-hidden="true">🧩</span>
                 <span class="dd-tab-label">Integrity</span>
                 <span class="dd-tab-count">{{ collector.getIssueCountByCategory('integrity') }}</span>
@@ -482,6 +515,7 @@
                             </select>
                             <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>Reset</button>
                         </div>
+                        <span class="dd-issue-meta">{{ integrityIssues|length }} shown / {{ integrityIssues|length }} total</span>
                     </div>
                     <div class="dd-issue-list" data-issue-list="integrity">
                         {% for issue in integrityIssues %}
@@ -492,8 +526,8 @@
             </div>
         </div>
 
-        <div class="tab {{ collector.getIssueCountByCategory('configuration') == 0 ? 'disabled' }}">
-            <h3 class="tab-title">
+        <div class="tab {{ collector.getIssueCountByCategory('configuration') == 0 ? 'disabled' }} hidden" id="dd-tab-3" role="tabpanel" aria-labelledby="dd-tab-3">
+            <h3 class="tab-title hidden">
                 <span class="dd-tab-icon" aria-hidden="true">🔧</span>
                 <span class="dd-tab-label">Configuration</span>
                 <span class="dd-tab-count">{{ collector.getIssueCountByCategory('configuration') }}</span>
@@ -524,6 +558,7 @@
                             </select>
                             <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>Reset</button>
                         </div>
+                        <span class="dd-issue-meta">{{ configurationIssues|length }} shown / {{ configurationIssues|length }} total</span>
                     </div>
                     <div class="dd-issue-list" data-issue-list="configuration">
                         {% for issue in configurationIssues %}
@@ -534,8 +569,8 @@
             </div>
         </div>
 
-        <div class="tab {{ collector.timelineQueries is empty ? 'disabled' }}">
-            <h3 class="tab-title">
+        <div class="tab {{ collector.timelineQueries is empty ? 'disabled' }} hidden" id="dd-tab-4" role="tabpanel" aria-labelledby="dd-tab-4">
+            <h3 class="tab-title hidden">
                 <span class="dd-tab-label">Slowest Queries</span>
                 <span class="dd-tab-count">{{ collector.groupedQueriesByTime|length }}</span>
             </h3>
@@ -644,8 +679,8 @@
         </div>
 
         {% if collector.isDebugInfoEnabled %}
-            <div class="tab">
-                <h3 class="tab-title">Debug Information</h3>
+            <div class="tab hidden" id="dd-tab-5" role="tabpanel" aria-labelledby="dd-tab-5">
+                <h3 class="tab-title hidden">Debug Information</h3>
                 <div class="tab-content">
                     <div class="help">
                         <p><strong>Note:</strong> This debug section is only visible because <code>show_debug_info</code> is enabled in your configuration.</p>

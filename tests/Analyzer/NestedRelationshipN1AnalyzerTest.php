@@ -187,6 +187,310 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_does_not_detect_unrelated_repeated_lookups_without_root_query(): void
+    {
+        // Two repeated lookup groups without an initial root query should not be
+        // considered nested N+1.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM countries WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 12', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_does_not_detect_nested_n1_when_filtered_root_precedes_contiguous_groups(): void
+    {
+        // A point-lookup root (WHERE slug = ?) before two contiguous groups.
+        // The root has a detectable WHERE column, so it does not look like a
+        // "list all" query that would drive a foreach loop.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM config WHERE slug = ?', 0.001)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM tags WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM tags WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM tags WHERE id = 12', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_does_not_detect_nested_n1_for_independent_groups_from_different_concerns(): void
+    {
+        // Two independent N+1 patterns (sidebar + main content) preceded by a
+        // single root. Sequential contiguity validates, but there is no
+        // relationship between users and audit_logs.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM articles WHERE slug = ?', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM audit_logs WHERE entity_id = 100', 0.003)
+            ->addQuery('SELECT * FROM audit_logs WHERE entity_id = 101', 0.003)
+            ->addQuery('SELECT * FROM audit_logs WHERE entity_id = 102', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_does_not_detect_nested_n1_when_root_query_gap_breaks_adjacency(): void
+    {
+        // Multiple unrelated single queries before repeated groups.
+        // The gap between sessions and products breaks adjacency.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM settings WHERE id = 1', 0.001)
+            ->addQuery('SELECT * FROM sessions WHERE token = ?', 0.002)
+            ->addQuery('SELECT * FROM products WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM products WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM products WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM reviews WHERE product_id = 10', 0.003)
+            ->addQuery('SELECT * FROM reviews WHERE product_id = 11', 0.003)
+            ->addQuery('SELECT * FROM reviews WHERE product_id = 12', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_does_not_detect_nested_n1_for_unrelated_parallel_lookups(): void
+    {
+        // Permissions and notifications are loaded independently for the
+        // dashboard. They share no relationship chain.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM dashboard WHERE user_id = ?', 0.010)
+            ->addQuery('SELECT * FROM permissions WHERE id = 1', 0.003)
+            ->addQuery('SELECT * FROM permissions WHERE id = 2', 0.003)
+            ->addQuery('SELECT * FROM permissions WHERE id = 3', 0.003)
+            ->addQuery('SELECT * FROM notifications WHERE id = 50', 0.003)
+            ->addQuery('SELECT * FROM notifications WHERE id = 51', 0.003)
+            ->addQuery('SELECT * FROM notifications WHERE id = 52', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_does_not_detect_nested_n1_for_interleaved_query_patterns(): void
+    {
+        // Interleaved queries: users and orders alternate. This pattern comes
+        // from template rendering (load user, then its orders, next user...),
+        // not nested relationship traversal.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM page WHERE slug = ?', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM orders WHERE user_id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM orders WHERE user_id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM orders WHERE user_id = 3', 0.005)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_does_not_detect_nested_n1_when_join_root_precedes_unrelated_groups(): void
+    {
+        // The root uses a JOIN. The subsequent user and tag lookups are
+        // independent (e.g. sidebar tags + author list).
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT a.* FROM articles a JOIN categories c ON c.id = a.category_id WHERE c.active = 1', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM tags WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM tags WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM tags WHERE id = 12', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_does_not_detect_nested_n1_when_count_pagination_query_precedes_groups(): void
+    {
+        // SELECT COUNT(*) FROM articles is a pagination/aggregate query.
+        // It should not qualify as a list root for nested N+1 detection.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT COUNT(*) FROM articles', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM categories WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM categories WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM categories WHERE id = 12', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_does_not_detect_nested_n1_when_soft_delete_filtered_root_precedes_groups(): void
+    {
+        // SELECT * FROM articles WHERE deleted_at IS NULL is a soft-delete filter.
+        // extractWhereColumns returns ["deleted_at"], so the root is correctly
+        // rejected (it has a WHERE clause, not a bare list query).
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM articles WHERE deleted_at IS NULL', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM countries WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 12', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        // Soft-delete filter has FK = "deleted_at", so it is correctly rejected.
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_detects_nested_n1_when_paginated_list_query_acts_as_root(): void
+    {
+        // SELECT * FROM articles LIMIT 10 OFFSET 0 has no WHERE, so FK is null.
+        // This IS a list loader and is a legitimate root for nested N+1.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM articles LIMIT 10 OFFSET 0', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM countries WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 12', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertGreaterThanOrEqual(1, \count($issues));
+    }
+
+    #[Test]
+    public function it_does_not_detect_nested_n1_for_sibling_relations_with_same_fk(): void
+    {
+        // A list query on articles, then two independent N+1 patterns for
+        // sibling relations (tags and comments both use article_id).
+        // These are two flat N+1, not a nested chain.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM articles', 0.010)
+            ->addQuery('SELECT * FROM tags WHERE article_id = 1', 0.003)
+            ->addQuery('SELECT * FROM tags WHERE article_id = 2', 0.003)
+            ->addQuery('SELECT * FROM tags WHERE article_id = 3', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE article_id = 1', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE article_id = 2', 0.003)
+            ->addQuery('SELECT * FROM comments WHERE article_id = 3', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_detects_nested_n1_even_when_non_select_query_separates_groups(): void
+    {
+        // An INSERT (e.g. audit log write) between two contiguous groups.
+        // Non-SELECT queries are filtered out during indexing. The nested
+        // pattern remains valid -- the INSERT is a side effect.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM articles', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('INSERT INTO audit_log (action) VALUES (?)', 0.002)
+            ->addQuery('SELECT * FROM countries WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 12', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertGreaterThanOrEqual(1, \count($issues));
+    }
+
+    #[Test]
+    public function it_does_not_detect_nested_n1_when_two_list_queries_precede_independent_groups(): void
+    {
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM articles', 0.010)
+            ->addQuery('SELECT * FROM categories', 0.008)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM tags WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM tags WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM tags WHERE id = 12', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_does_not_detect_nested_n1_when_batch_in_query_precedes_unrelated_groups(): void
+    {
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM articles', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id IN (1, 2, 3)', 0.005)
+            ->addQuery('SELECT * FROM countries WHERE id = 10', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 11', 0.003)
+            ->addQuery('SELECT * FROM countries WHERE id = 12', 0.003)
+            ->addQuery('SELECT * FROM cities WHERE id = 100', 0.003)
+            ->addQuery('SELECT * FROM cities WHERE id = 101', 0.003)
+            ->addQuery('SELECT * FROM cities WHERE id = 102', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_does_not_detect_nested_n1_for_graphql_parallel_field_resolution(): void
+    {
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM posts', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM media WHERE post_id = 1', 0.003)
+            ->addQuery('SELECT * FROM media WHERE post_id = 2', 0.003)
+            ->addQuery('SELECT * FROM media WHERE post_id = 3', 0.003)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
     public function it_handles_empty_query_collection(): void
     {
         $collection = QueryDataBuilder::create()->build();

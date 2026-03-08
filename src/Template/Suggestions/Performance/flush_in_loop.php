@@ -66,7 +66,7 @@ $code = ob_get_clean();
 return [
     'code'        => $code,
     'description' => sprintf(
-        'Batch processing recommended (%d flush calls found in loop)',
+        'Use batch processing (%d flush() calls found in a loop)',
         $flushCount,
     ),
 ];
