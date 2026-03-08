@@ -113,8 +113,10 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
                         }
                     }
 
-                    if (str_contains(strtoupper($sql), 'LIKE') && !empty($params)) {
-                        foreach ($params as $param) {
+                    $likeParamPositions = $this->findLikeParameterPositions($sql);
+                    if ([] !== $likeParamPositions && !empty($params)) {
+                        foreach ($likeParamPositions as $paramIndex) {
+                            $param = $params[$paramIndex] ?? null;
                             if (is_string($param) && str_starts_with($param, '%')) {
                                 $key = md5($param);
                                 if (isset($seenIssues[$key])) {
@@ -188,6 +190,28 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
         }
 
         return [];
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function findLikeParameterPositions(string $sql): array
+    {
+        $positions = [];
+        $paramIndex = 0;
+        $offset = 0;
+        $sqlUpper = strtoupper($sql);
+
+        while (false !== ($pos = strpos($sql, '?', $offset))) {
+            $before = substr($sqlUpper, 0, $pos);
+            if (1 === preg_match('/\bLIKE\s+$/i', $before)) {
+                $positions[] = $paramIndex;
+            }
+            ++$paramIndex;
+            $offset = $pos + 1;
+        }
+
+        return $positions;
     }
 
     /**

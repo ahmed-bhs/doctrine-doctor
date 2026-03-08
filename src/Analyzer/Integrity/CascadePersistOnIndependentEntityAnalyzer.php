@@ -47,36 +47,26 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
 {
     use ShortClassNameTrait;
 
-    /**
-     * Entity patterns that are HIGHLY independent (critical issue).
-     * These should NEVER have cascade=persist from other entities.
-     */
-    private const array CRITICAL_INDEPENDENT_PATTERNS = [
+    private const array DEFAULT_INDEPENDENT_ENTITY_PATTERNS = [
         'User', 'Customer', 'Account', 'Member', 'Client', 'Subscriber',
         'Company', 'Organization', 'Role', 'Permission',
+        'Team', 'Department', 'Group',
+        'Product', 'Category', 'Brand', 'Tag', 'Label',
+        'Author', 'Editor', 'Publisher', 'Writer',
+        'Country', 'City', 'Region', 'Address',
+        'Status', 'Type', 'Currency',
     ];
 
-    /**
-     * Entity patterns that are typically independent (warning level).
-     * Referenced by multiple entities but might have legitimate cascade cases.
-     */
-    private const array INDEPENDENT_PATTERNS = [
-        // Organization
-        'Team', 'Department', 'Group',
-        // Catalog
-        'Product', 'Category', 'Brand', 'Tag', 'Label',
-        // Content
-        'Author', 'Editor', 'Publisher', 'Writer',
-        // Location
-        'Country', 'City', 'Region', 'Address',
-        // Other common independent entities
-        'Status', 'Type', 'Currency',
+    private const array DEFAULT_CRITICAL_PATTERNS = [
+        'User', 'Customer', 'Account', 'Member', 'Client', 'Subscriber',
+        'Company', 'Organization', 'Role', 'Permission',
     ];
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly IssueFactoryInterface $issueFactory,
+        private readonly array $independentEntityPatterns = self::DEFAULT_INDEPENDENT_ENTITY_PATTERNS,
     ) {
     }
 
@@ -184,34 +174,25 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
      * 1. Name patterns (User, Customer, Product, etc.)
      * 2. Reference count (referenced by multiple entities)
      */
+    private function matchesAsWord(string $entityClass, string $pattern): bool
+    {
+        $shortName = $this->shortClassName($entityClass);
+
+        return 1 === preg_match('/\b' . preg_quote($pattern, '/') . '(?:[A-Z\d]|$)/', $shortName)
+            || $shortName === $pattern;
+    }
+
     private function isIndependentEntity(string $entityClass, array $referenceCountMap): bool
     {
-        // Check critical patterns
-        foreach (self::CRITICAL_INDEPENDENT_PATTERNS as $pattern) {
-            if (str_contains($entityClass, $pattern)) {
+        foreach ($this->independentEntityPatterns as $pattern) {
+            if ($this->matchesAsWord($entityClass, $pattern)) {
                 return true;
             }
         }
 
-        // Check name patterns
-        foreach (self::INDEPENDENT_PATTERNS as $pattern) {
-            if (str_contains($entityClass, $pattern)) {
-                return true;
-            }
-        }
-
-        // Check if referenced by multiple entities (3+ references = likely independent)
         $referenceCount = $referenceCountMap[$entityClass] ?? 0;
 
         return $referenceCount >= 3;
-    }
-
-    /**
-     * Determine if an entity is HIGHLY independent (User, Customer, etc.).
-     */
-    private function isCriticallyIndependentEntity(string $entityClass): bool
-    {
-        return array_any(self::CRITICAL_INDEPENDENT_PATTERNS, fn ($pattern) => str_contains($entityClass, (string) $pattern));
     }
 
     private function createIssue(
@@ -260,31 +241,27 @@ class CascadePersistOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoc
         return $codeQualityIssue;
     }
 
-    /**
-     * Determine severity based on entity type and reference count.
-     * - critical: User, Customer, Account (obvious duplicates risk)
-     * - high: Entities with 5+ references
-     * - warning: Entities with 3-4 references
-     * - info: Entities with 1-2 references (might be composition, not independent)
-     */
+    private function isCriticallyIndependentEntity(string $entityClass): bool
+    {
+        $criticalPatterns = array_intersect($this->independentEntityPatterns, self::DEFAULT_CRITICAL_PATTERNS);
+
+        return array_any($criticalPatterns, fn ($pattern) => $this->matchesAsWord($entityClass, (string) $pattern));
+    }
+
     private function determineSeverity(string $targetEntity, int $referenceCount): string
     {
-        // Critical: User, Customer, etc.
         if ($this->isCriticallyIndependentEntity($targetEntity)) {
             return 'critical';
         }
 
-        // High: Heavily referenced entities
         if ($referenceCount >= 5) {
             return 'warning';
         }
 
-        // Warning: Moderately referenced
         if ($referenceCount >= 3) {
             return 'warning';
         }
 
-        // Info: Low reference count (might be composition)
         return 'info';
     }
 

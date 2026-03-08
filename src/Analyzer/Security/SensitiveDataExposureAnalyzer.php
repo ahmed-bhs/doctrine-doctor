@@ -38,7 +38,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 {
     use ShortClassNameTrait;
 
-    private const array SENSITIVE_PATTERNS = [
+    private const array DEFAULT_SENSITIVE_PATTERNS = [
         'password',
         'passwd',
         'pwd',
@@ -89,6 +89,11 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         '_max',          // password_max_length
         '_policy',       // password_policy
         '_rules',        // password_rules
+        '_strength',     // password_strength (score)
+        '_question',     // secret_question (recovery text)
+        '_score',        // password_score
+        '_hint',         // password_hint
+        '_complexity',   // password_complexity
     ];
 
     private readonly PhpCodeParser $phpCodeParser;
@@ -98,6 +103,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly ?LoggerInterface $logger = null,
         ?PhpCodeParser $phpCodeParser = null,
+        private readonly array $sensitivePatterns = self::DEFAULT_SENSITIVE_PATTERNS,
     ) {
         $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
     }
@@ -192,23 +198,25 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         return $issues;
     }
 
-    /**
-     * @return array<string>
-     */
+    private function normalizeFieldName(string $fieldName): string
+    {
+        return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName));
+    }
+
     private function getSensitiveFields(ClassMetadata $classMetadata): array
     {
 
         $sensitiveFields = [];
 
         foreach ($classMetadata->getFieldNames() as $fieldName) {
-            $lowerField = strtolower($fieldName);
+            $normalized = $this->normalizeFieldName($fieldName);
 
-            if ($this->isMetadataField($lowerField)) {
+            if ($this->isMetadataField($normalized)) {
                 continue;
             }
 
-            foreach (self::SENSITIVE_PATTERNS as $pattern) {
-                if (str_contains($lowerField, $pattern)) {
+            foreach ($this->sensitivePatterns as $pattern) {
+                if (1 === preg_match('/(?:^|_)' . preg_quote($pattern, '/') . '(?:_|$)/', $normalized)) {
                     $sensitiveFields[] = $fieldName;
                     break;
                 }
@@ -439,7 +447,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Suggestion',
+                title: 'Restrict Sensitive Data in __toString()',
                 tags: ['code-quality'],
             ),
         );
@@ -493,7 +501,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Suggestion',
+                title: 'Remove Sensitive Fields from jsonSerialize()',
                 tags: ['code-quality'],
             ),
         );
@@ -545,7 +553,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Suggestion',
+                title: 'Remove Sensitive Fields from toArray()',
                 tags: ['code-quality'],
             ),
         );
@@ -609,7 +617,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
                 severity: Severity::info(),
-                title: 'Suggestion',
+                title: 'Add Serialization and Parameter Protection',
                 tags: ['code-quality'],
             ),
         );

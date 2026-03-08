@@ -69,5 +69,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('%d timestamp fields without timezone (acceptable for single-timezone apps)', $totalFields),
+    'description' => sprintf('%d timestamp fields without timezone data (acceptable for single-timezone applications)', $totalFields),
 ];

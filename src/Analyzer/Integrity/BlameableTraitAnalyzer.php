@@ -60,7 +60,6 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         'createdBy',
         'created_by',
         'creator',
-        'author',
         'updatedBy',
         'updated_by',
         'modifier',
@@ -306,8 +305,7 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
 
         // Check if it's a createdBy field
         $isCreatedBy = str_contains($fieldLower, 'created')
-            || str_contains($fieldLower, 'creator')
-            || str_contains($fieldLower, 'author');
+            || str_contains($fieldLower, 'creator');
 
         if (!$isCreatedBy) {
             return false;

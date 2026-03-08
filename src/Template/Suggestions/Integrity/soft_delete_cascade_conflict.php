@@ -45,5 +45,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Fix CASCADE DELETE conflict with soft delete on %s::%s', $shortClass, $fieldName),
+    'description' => sprintf('Resolve CASCADE DELETE conflict with soft delete on %s::%s', $shortClass, $fieldName),
 ];

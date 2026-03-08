@@ -148,19 +148,24 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
      */
     private function hasSingleRowJoinConstraint(string $sql): bool
     {
-        // Pattern 1 & 2: Translation pattern with locale filter
-        // Use SQL parser to detect locale constraints in JOINs
         if ($this->sqlExtractor->hasLocaleConstraintInJoin($sql)) {
             return true;
         }
 
-        // Pattern 3: Join on unique identifier (primary key on joined table)
-        // Use SQL parser to detect unique JOIN constraints
         if ($this->sqlExtractor->hasUniqueJoinConstraint($sql)) {
             return true;
         }
 
+        if ($this->hasEqualityConstraintInJoinCondition($sql)) {
+            return true;
+        }
+
         return false;
+    }
+
+    private function hasEqualityConstraintInJoinCondition(string $sql): bool
+    {
+        return 1 === preg_match('/\bJOIN\b[^)]*\bON\b[^)]*\bAND\b\s+\w+\.\w+\s*(?:=|<=?|>=?)\s*\?/i', $sql);
     }
 
     private function createIssue(QueryData $queryData): IssueInterface
@@ -173,8 +178,8 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
             title: 'setMaxResults() with Collection Join Detected',
             description: 'LIMIT is used with a fetch-joined collection.' . "\n" .
             'Impact: LIMIT is applied to SQL rows, not root entities.' . "\n" .
-            'Impact: Collections can be partially hydrated (silent data loss).' . "\n" .
-            'Impact: Result counts and business behavior can be incorrect.',
+            'Impact: Collections may be partially hydrated (silent data loss).' . "\n" .
+            'Impact: Result counts and application behavior may become incorrect.',
             severity: Severity::critical(),
             suggestion: $this->createSuggestion($mainTable),
             queries: [$queryData],

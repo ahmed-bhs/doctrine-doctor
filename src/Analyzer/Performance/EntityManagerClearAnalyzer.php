@@ -26,6 +26,16 @@ use Webmozart\Assert\Assert;
 
 class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    private const array MIGRATION_TABLE_PATTERNS = [
+        'migration_versions',
+        'doctrine_migration_versions',
+        'schema_migrations',
+        'migrations',
+        'flyway_schema_history',
+        'changelog',
+        'db_changelog',
+    ];
+
     public function __construct(
         private readonly IssueFactoryInterface $issueFactory,
         private readonly SuggestionFactoryInterface $suggestionFactory,
@@ -75,6 +85,10 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                 Assert::isIterable($insertUpdateQueries, '$insertUpdateQueries must be iterable');
 
                 foreach ($insertUpdateQueries as $table => $tableQueries) {
+                    if ($this->isMigrationTable($table)) {
+                        continue;
+                    }
+
                     $count = count($tableQueries);
 
                     if ($count >= $this->batchSizeThreshold) {
@@ -110,7 +124,7 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                                 title: sprintf('Memory Leak Risk: %d operations on %s', $count, $table),
                                 description: DescriptionHighlighter::highlight(
                                     'Detected {count} sequential INSERT/UPDATE/DELETE operations on table {table} without {clearMethod}. ' .
-                                    'This can cause memory leaks in batch operations (threshold: {threshold})',
+                                    'This can cause memory growth during batch operations (threshold: {threshold})',
                                     [
                                         'count' => $count,
                                         'table' => $table,
@@ -132,6 +146,12 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         );
     }
 
+    private function isMigrationTable(string $table): bool
+    {
+        $lowerTable = strtolower($table);
+        return array_any(self::MIGRATION_TABLE_PATTERNS, fn ($pattern) => str_contains($lowerTable, (string) $pattern));
+    }
+
     private function areQueriesSequential(array $queries): bool
     {
         if (count($queries) < 2) {
@@ -141,7 +161,7 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         $indices = array_column($queries, 'index');
 
         // Check if most queries are within close proximity (allow some gaps)
-        $maxGap          = 10; // Allow up to 10 queries between batch operations
+        $maxGap          = 3;
         $sequentialCount = 0;
         $counter         = count($indices);
 

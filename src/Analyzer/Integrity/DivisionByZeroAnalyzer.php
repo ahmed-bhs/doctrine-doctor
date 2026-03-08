@@ -43,11 +43,6 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
      */
     private const string DIVISION_PATTERN = '/(\w+(?:\.\w+)?)\s*\/\s*(\w+(?:\.\w+)?)/';
 
-    /**
-     * Pattern to detect if division is already protected.
-     */
-    private const string PROTECTED_PATTERN = '/NULLIF|COALESCE|CASE\s+WHEN/i';
-
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
     ) {
@@ -74,12 +69,6 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                         continue;
                     }
 
-                    // Skip if already protected
-                    if ($this->isProtected($sql)) {
-                        continue;
-                    }
-
-                    // Find all division operations
                     if (preg_match_all(self::DIVISION_PATTERN, $sql, $matches, PREG_SET_ORDER) >= 1) {
                         Assert::isIterable($matches, '$matches must be iterable');
 
@@ -88,18 +77,21 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                             $dividend  = $match[1];
                             $divisor   = $match[2];
 
-                            // Deduplicate
                             $key = $dividend . '/' . $divisor;
                             if (isset($seenDivisions[$key])) {
                                 continue;
                             }
 
-                            $seenDivisions[$key] = true;
-
-                            // Skip if divisor is a constant number (not zero)
                             if ($this->isNonZeroConstant($divisor)) {
+                                $seenDivisions[$key] = true;
                                 continue;
                             }
+
+                            if ($this->isDivisionProtected($sql, $divisor)) {
+                                continue;
+                            }
+
+                            $seenDivisions[$key] = true;
 
                             yield $this->createDivisionByZeroIssue($dividend, $divisor, $fullMatch, $query);
                         }
@@ -131,12 +123,27 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         return is_object($query) && property_exists($query, 'sql') ? ($query->sql ?? '') : '';
     }
 
-    /**
-     * Check if the SQL already has protection against division by zero.
-     */
-    private function isProtected(string $sql): bool
+    private function isDivisionProtected(string $sql, string $divisor): bool
     {
-        return (bool) preg_match(self::PROTECTED_PATTERN, $sql);
+        if (in_array(strtoupper($divisor), ['NULLIF', 'COALESCE'], true)) {
+            return true;
+        }
+
+        $quotedDivisor = preg_quote($divisor, '/');
+
+        if (1 === preg_match('/NULLIF\s*\(\s*' . $quotedDivisor . '\s*,\s*0\s*\)/i', $sql)) {
+            return true;
+        }
+
+        if (1 === preg_match('/CASE\s+WHEN\s+' . $quotedDivisor . '\s*(?:!=|<>|>)\s*0/i', $sql)) {
+            return true;
+        }
+
+        if (1 === preg_match('/CASE\s+WHEN\s+' . $quotedDivisor . '\s*=\s*0\s+THEN\s/i', $sql)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

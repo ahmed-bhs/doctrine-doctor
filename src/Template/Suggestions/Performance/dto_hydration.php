@@ -59,7 +59,7 @@ $code = ob_get_clean();
 return [
     'code'        => $code,
     'description' => sprintf(
-        'DTO hydration could speed up %d aggregation %s',
+        'DTO hydration can speed up %d aggregation %s',
         $queryCount,
         $queryCount > 1 ? 'queries' : 'query',
     ),

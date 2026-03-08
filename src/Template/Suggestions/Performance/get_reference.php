@@ -50,4 +50,4 @@ $order->setUser($user);</code></pre>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Consider getReference() instead of find() for %s (%d occurrences)', $entity, $occurrences)];
+return ['code' => $code, 'description' => sprintf('Use getReference() instead of find() for %s (%d occurrences)', $entity, $occurrences)];

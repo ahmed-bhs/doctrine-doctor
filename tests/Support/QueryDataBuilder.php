@@ -93,6 +93,33 @@ class QueryDataBuilder
     }
 
     /**
+     * @param array<mixed> $params
+     */
+    public function addQueryWithParams(string $sql, array $params, ?float $executionTime = null): self
+    {
+        $this->queries[] = [
+            'sql' => $sql,
+            'params' => $params,
+            'executionMS' => $executionTime ?? 0.0,
+            'executionCount' => 1,
+        ];
+
+        return $this;
+    }
+
+    public function addQueryWithRowCount(string $sql, int $rowCount, ?float $executionTime = null): self
+    {
+        $this->queries[] = [
+            'sql' => $sql,
+            'executionMS' => $executionTime ?? 0.0,
+            'executionCount' => 1,
+            'rowCount' => $rowCount,
+        ];
+
+        return $this;
+    }
+
+    /**
      * Add multiple queries at once.
      *
      * @param array<int, string> $queries

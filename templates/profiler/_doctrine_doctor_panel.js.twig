@@ -146,59 +146,6 @@
         })();
 
         (function() {
-            function compactIssueDescriptions() {
-                var tmp = document.createElement('div');
-
-                function getText(html) {
-                    tmp.innerHTML = html;
-                    return (tmp.textContent || '').replace(/\s+/g, ' ').trim();
-                }
-
-                function compactNode(node) {
-                    if (!node || node.hasAttribute('data-dd-compact')) return;
-                    node.setAttribute('data-dd-compact', 'true');
-
-                    var parts = (node.innerHTML || '')
-                        .split(/<br\s*\/?>/i)
-                        .map(function(p) { return p.trim(); })
-                        .filter(function(p) { return p !== ''; });
-
-                    if (parts.length <= 1) return;
-
-                    var compacted = [];
-
-                    for (var i = 0; i < parts.length; i++) {
-                        var htmlPart = parts[i];
-                        var textPart = getText(htmlPart);
-                        if (!textPart) continue;
-
-                        if (/^(solution|solutions|best practices|possible causes|common causes)\s*:/i.test(textPart)) {
-                            break;
-                        }
-                        if (/^this can cause issues\s*:/i.test(textPart)) {
-                            continue;
-                        }
-
-                        if (/^\s*[-•]\s+/.test(textPart)) {
-                            var bulletHtml = htmlPart.replace(/^\s*[-•]\s*/, '');
-                            compacted.push('Impact: ' + bulletHtml);
-                            continue;
-                        }
-
-                        // Remove trailing recommendation tails for compact display.
-                        htmlPart = htmlPart.replace(/\s+Consider[^.]*\.?$/i, '');
-                        htmlPart = htmlPart.replace(/\s+Use [^.]* instead\.?$/i, '');
-
-                        compacted.push(htmlPart);
-                    }
-
-                    if (compacted.length === 0) return;
-                    node.innerHTML = compacted.slice(0, 4).join('<br>');
-                }
-
-                document.querySelectorAll('.issue-description, .dd-duplicate-description').forEach(compactNode);
-            }
-
             function ensureLineNumberText(root) {
                 (root || document).querySelectorAll('pre.line-numbers').forEach(function(pre) {
                     var code = pre.querySelector(':scope > code');
@@ -589,7 +536,6 @@
                     highlightAndAddCopyButtons();
                 }
 
-                compactIssueDescriptions();
                 deduplicateDuplicatePanels();
                 initIssueFilters();
                 initSuggestionMetaClasses();
@@ -618,5 +564,46 @@
                 document.addEventListener('DOMContentLoaded', init);
             } else {
                 init();
+            }
+        })();
+
+        (function() {
+            function initDdTabs() {
+                document.querySelectorAll('.sf-tabs.dd-panel-typography[data-processed="true"] .tab-navigation').forEach(function(nav) {
+                    var tabs = Array.prototype.slice.call(nav.querySelectorAll('.tab-control'));
+                    tabs.forEach(function(tab) {
+                        tab.addEventListener('click', function(e) {
+                            var activeTab = e.target;
+                            while (activeTab.tagName.toLowerCase() !== 'button') {
+                                activeTab = activeTab.parentNode;
+                            }
+                            var targetId = activeTab.getAttribute('data-tab-id');
+                            tabs.forEach(function(t) {
+                                var panelId = t.getAttribute('data-tab-id');
+                                var panel = document.getElementById(panelId);
+                                if (panel) {
+                                    panel.classList.add('hidden');
+                                    panel.classList.remove('block');
+                                }
+                                t.classList.remove('active');
+                                t.removeAttribute('aria-selected');
+                                t.setAttribute('tabindex', '-1');
+                            });
+                            activeTab.classList.add('active');
+                            activeTab.setAttribute('aria-selected', 'true');
+                            activeTab.removeAttribute('tabindex');
+                            var activePanel = document.getElementById(targetId);
+                            if (activePanel) {
+                                activePanel.classList.remove('hidden');
+                                activePanel.classList.add('block');
+                            }
+                        });
+                    });
+                });
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initDdTabs);
+            } else {
+                initDdTabs();
             }
         })();

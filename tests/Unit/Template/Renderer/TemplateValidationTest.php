@@ -354,8 +354,8 @@ final class TemplateValidationTest extends TestCase
             ],
             'Integrity/blameable_target_entity' => [
                 'entity_class'   => 'App\\Entity\\Article',
-                'field_name'     => 'createdBy',
-                'current_target' => 'App\\Entity\\User',
+                'field_name'     => 'author',
+                'current_target' => 'App\\Entity\\Post',
             ],
             'Integrity/cascade_configuration' => [
                 'entity_class'   => 'App\\Entity\\Order',
@@ -751,6 +751,34 @@ final class TemplateValidationTest extends TestCase
             $context = array_merge($baseContext, $specificContext);
             yield $templateName => [$templateName, $context];
         }
+    }
+
+    /**
+     * @dataProvider blameableFieldNameCollisionProvider
+     */
+    public function test_blameable_template_does_not_produce_duplicate_properties(string $fieldName): void
+    {
+        $result = $this->renderer->render('Integrity/blameable_target_entity', [
+            'entity_class'   => 'App\\Entity\\Article',
+            'field_name'     => $fieldName,
+            'current_target' => 'App\\Entity\\Post',
+        ]);
+
+        $code = $result['code'];
+        preg_match_all('/\$createdBy/', $code, $createdByMatches);
+        preg_match_all('/\$updatedBy/', $code, $updatedByMatches);
+
+        self::assertLessThanOrEqual(2, \count($createdByMatches[0]), "Template should not produce duplicate \$createdBy property declarations when field_name is '{$fieldName}'");
+        self::assertLessThanOrEqual(2, \count($updatedByMatches[0]), "Template should not produce duplicate \$updatedBy property declarations when field_name is '{$fieldName}'");
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function blameableFieldNameCollisionProvider(): iterable
+    {
+        yield 'field named createdBy' => ['createdBy'];
+        yield 'field named updatedBy' => ['updatedBy'];
     }
 
     /**

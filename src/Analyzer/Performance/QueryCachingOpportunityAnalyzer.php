@@ -37,11 +37,7 @@ use Webmozart\Assert\Assert;
  */
 class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    /**
-     * Tables that are typically static/rarely change.
-     * These are good candidates for long-term caching.
-     */
-    private const array STATIC_TABLES = [
+    private const array DEFAULT_STATIC_TABLES = [
         'countries',
         'currencies',
         'languages',
@@ -57,17 +53,14 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         'tags',
     ];
 
-    /**
-     * Minimum occurrences to suggest caching.
-     */
-    private const int FREQUENCY_THRESHOLD_INFO = 3;
+    private const int DEFAULT_FREQUENCY_THRESHOLD_WARNING = 5;
 
-    private const int FREQUENCY_THRESHOLD_WARNING = 5;
-
-    private const int FREQUENCY_THRESHOLD_CRITICAL = 10;
+    private const int DEFAULT_FREQUENCY_THRESHOLD_CRITICAL = 10;
 
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
+        private readonly array $staticTables = self::DEFAULT_STATIC_TABLES,
+        private readonly int $frequencyThreshold = 3,
         private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
     ) {
     }
@@ -107,7 +100,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     {
         /** @var array<string, int> */
         $queryFrequencies = [];
-        /** @var array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array}> */
+        /** @var array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array, uniqueParamSets: array<string, true>}> */
         $queryDetails = [];
 
         Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
@@ -132,6 +125,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
                     'totalTime' => 0.0,
                     'backtrace' => $this->extractBacktrace($query),
                     'queries' => [],
+                    'uniqueParamSets' => [],
                 ];
             }
 
@@ -139,6 +133,9 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
             $existingTotal = $queryDetails[$queryKey]['totalTime'];
             $queryDetails[$queryKey]['totalTime'] = $existingTotal + $executionTime;
             $queryDetails[$queryKey]['queries'][] = $query;
+
+            $paramsHash = md5(json_encode($params, JSON_THROW_ON_ERROR));
+            $queryDetails[$queryKey]['uniqueParamSets'][$paramsHash] = true;
         }
 
         /** @phpstan-ignore-next-line */
@@ -148,7 +145,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     /**
      * Generate issues for frequently executed queries.
      * @param array<string, int> $queryFrequencies
-     * @param array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array}> $queryDetails
+     * @param array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array, uniqueParamSets: array<string, true>}> $queryDetails
      * @return \Generator<PerformanceIssue>
      */
     private function generateFrequentQueryIssues(array $queryFrequencies, array $queryDetails): \Generator
@@ -156,11 +153,15 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         Assert::isIterable($queryFrequencies, '$queryFrequencies must be iterable');
 
         foreach ($queryFrequencies as $normalized => $count) {
-            if ($count < self::FREQUENCY_THRESHOLD_INFO) {
+            if ($count < $this->frequencyThreshold) {
                 continue;
             }
 
             $details = $queryDetails[$normalized];
+
+            if (count($details['uniqueParamSets']) > 1) {
+                continue;
+            }
 
             if ($this->isSelectQuery($details['originalSql'])) {
                 yield $this->createFrequentQueryIssue(
@@ -338,7 +339,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     {
         $tableNames = $this->sqlExtractor->getAllTableNames($sql);
 
-        foreach (self::STATIC_TABLES as $staticTable) {
+        foreach ($this->staticTables as $staticTable) {
             if (in_array(strtolower($staticTable), $tableNames, true)) {
                 return $staticTable;
             }
@@ -347,9 +348,18 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         return null;
     }
 
-    /**
-     * Create issue for frequently executed query.
-     */
+    private function determineFrequencySeverity(int $count): Severity
+    {
+        $warningThreshold = max(self::DEFAULT_FREQUENCY_THRESHOLD_WARNING, $this->frequencyThreshold + 2);
+        $criticalThreshold = max(self::DEFAULT_FREQUENCY_THRESHOLD_CRITICAL, $this->frequencyThreshold * 2);
+
+        return match (true) {
+            $count >= $criticalThreshold => Severity::critical(),
+            $count >= $warningThreshold => Severity::warning(),
+            default => Severity::info(),
+        };
+    }
+
     private function createFrequentQueryIssue(
         string $originalSql,
         int $count,
@@ -357,11 +367,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         ?array $backtrace,
         array $queries,
     ): PerformanceIssue {
-        $severity = match (true) {
-            $count >= self::FREQUENCY_THRESHOLD_CRITICAL => Severity::critical(),
-            $count >= self::FREQUENCY_THRESHOLD_WARNING => Severity::warning(),
-            default => Severity::info(),
-        };
+        $severity = $this->determineFrequencySeverity($count);
 
         $avgTime = $totalTime / $count;
         $cacheAccessTime = $avgTime / 100; // Cache is ~100x faster
@@ -435,7 +441,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::performance(),
-                severity: $count >= 10 ? Severity::critical() : Severity::warning(),
+                severity: $this->determineFrequencySeverity($count),
                 title: 'Enable result cache for frequent query',
                 tags: ['performance', 'cache', 'optimization'],
             ),

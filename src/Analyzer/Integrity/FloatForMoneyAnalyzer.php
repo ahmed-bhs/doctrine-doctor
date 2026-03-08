@@ -40,10 +40,7 @@ use Webmozart\Assert\Assert;
  */
 class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
-    /**
-     * Field names that typically represent monetary values.
-     */
-    private const array MONEY_FIELD_PATTERNS = [
+    private const array DEFAULT_MONEY_FIELD_PATTERNS = [
         'price',
         'amount',
         'cost',
@@ -105,12 +102,12 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         'score',
         'rating',
         'rank',
+
+        // Counters
+        'count',
     ];
 
-    /**
-     * Entity name patterns that suggest financial/monetary context.
-     */
-    private const array MONEY_ENTITY_PATTERNS = [
+    private const array DEFAULT_MONEY_ENTITY_PATTERNS = [
         'invoice',
         'order',
         'payment',
@@ -130,6 +127,8 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         private readonly EntityManagerInterface $entityManager,
         private readonly IssueFactoryInterface $issueFactory,
         private readonly SuggestionFactoryInterface $suggestionFactory,
+        private readonly array $moneyFieldPatterns = self::DEFAULT_MONEY_FIELD_PATTERNS,
+        private readonly array $moneyEntityPatterns = self::DEFAULT_MONEY_ENTITY_PATTERNS,
     ) {
     }
 
@@ -213,22 +212,32 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         return $this->isMoneyEntity($classMetadata->getName()) && $this->isGenericNumberField($fieldName);
     }
 
+    private function normalizeFieldName(string $fieldName): string
+    {
+        return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName));
+    }
+
+    private function matchesFieldPattern(string $normalizedField, string $pattern): bool
+    {
+        return 1 === preg_match('/(?:^|_)' . preg_quote($pattern, '/') . '(?:_|$)/', $normalizedField);
+    }
+
     private function isMoneyField(string $fieldName): bool
     {
-        $fieldLower = strtolower($fieldName);
-        return array_any(self::MONEY_FIELD_PATTERNS, fn ($pattern) => str_contains($fieldLower, (string) $pattern));
+        $normalized = $this->normalizeFieldName($fieldName);
+        return array_any($this->moneyFieldPatterns, fn ($pattern) => $this->matchesFieldPattern($normalized, (string) $pattern));
     }
 
     private function isNonMoneyField(string $fieldName): bool
     {
-        $fieldLower = strtolower($fieldName);
-        return array_any(self::NON_MONEY_FIELD_PATTERNS, fn ($pattern) => str_contains($fieldLower, (string) $pattern));
+        $normalized = $this->normalizeFieldName($fieldName);
+        return array_any(self::NON_MONEY_FIELD_PATTERNS, fn ($pattern) => $this->matchesFieldPattern($normalized, (string) $pattern));
     }
 
     private function isMoneyEntity(string $className): bool
     {
         $classLower = strtolower($className);
-        return array_any(self::MONEY_ENTITY_PATTERNS, fn ($pattern) => str_contains($classLower, (string) $pattern));
+        return array_any($this->moneyEntityPatterns, fn ($pattern) => str_contains($classLower, (string) $pattern));
     }
 
     private function isGenericNumberField(string $fieldName): bool
