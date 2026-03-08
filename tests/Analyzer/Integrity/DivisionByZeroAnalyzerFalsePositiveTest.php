@@ -49,4 +49,17 @@ final class DivisionByZeroAnalyzerFalsePositiveTest extends TestCase
 
         self::assertGreaterThanOrEqual(1, \count($issues), 'Unprotected division revenue / margin should be detected even when NULLIF protects a different divisor');
     }
+
+    #[Test]
+    public function it_detects_unprotected_division_after_same_pair_was_protected_in_earlier_query(): void
+    {
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT CASE WHEN quantity > 0 THEN revenue / quantity ELSE 0 END FROM sales WHERE region = 1')
+            ->addQuery('SELECT revenue / quantity FROM sales WHERE region = 2')
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        self::assertGreaterThanOrEqual(1, \count($issues), 'Unprotected revenue / quantity in second query must be detected even though the same pair was protected via CASE WHEN in an earlier query');
+    }
 }

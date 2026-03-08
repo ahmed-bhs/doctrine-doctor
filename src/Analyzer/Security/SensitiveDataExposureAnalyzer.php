@@ -199,7 +199,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
     }
 
     /**
-     * @return array<string>
+     * @return string
      */
     private function normalizeFieldName(string $fieldName): string
     {

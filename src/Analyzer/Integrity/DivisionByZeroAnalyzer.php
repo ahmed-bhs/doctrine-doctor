@@ -87,15 +87,16 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                                 continue;
                             }
 
-                            $seenDivisions[$key] = true;
-
                             if ($this->isNonZeroConstant($divisor)) {
+                                $seenDivisions[$key] = true;
                                 continue;
                             }
 
                             if ($this->isDivisionProtected($sql, $divisor)) {
                                 continue;
                             }
+
+                            $seenDivisions[$key] = true;
 
                             yield $this->createDivisionByZeroIssue($dividend, $divisor, $fullMatch, $query);
                         }

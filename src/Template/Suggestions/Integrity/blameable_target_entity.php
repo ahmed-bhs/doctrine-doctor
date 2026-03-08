@@ -31,14 +31,18 @@ class <?php echo $e($shortClass); ?>
 {
     #[ORM\ManyToOne(targetEntity: Author::class)]
     private ?Author $<?php echo $e($fieldName); ?> = null;
+<?php if ('createdBy' !== $fieldName): ?>
 
     #[Gedmo\Blameable(on: 'create')]
     #[ORM\ManyToOne(targetEntity: User::class)]
     private ?User $createdBy = null;
+<?php endif; ?>
+<?php if ('updatedBy' !== $fieldName): ?>
 
     #[Gedmo\Blameable(on: 'update')]
     #[ORM\ManyToOne(targetEntity: User::class)]
     private ?User $updatedBy = null;
+<?php endif; ?>
 }</code></pre></div>
 
 <h4>If your intent is audit actor</h4>
