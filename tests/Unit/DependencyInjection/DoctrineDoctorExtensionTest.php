@@ -23,9 +23,9 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Config\Definition\ArrayNode;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Webmozart\Assert\Assert;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\Finder\Finder;
+use Webmozart\Assert\Assert;
 
 /**
  * Unit tests for DoctrineDoctorExtension.
