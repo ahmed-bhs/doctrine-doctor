@@ -363,38 +363,6 @@ final class DoctrineDoctorExtensionTest extends TestCase
         self::assertTrue($this->hasTwigDoctrineDoctorPath($container));
     }
 
-    private function createContainerWithTwig(bool $enabled): ContainerBuilder
-    {
-        $container = new ContainerBuilder();
-        $twigExtension = new class() extends Extension {
-            public function load(array $configs, ContainerBuilder $container): void
-            {
-            }
-
-            public function getAlias(): string
-            {
-                return 'twig';
-            }
-        };
-        $container->registerExtension($twigExtension);
-        $container->prependExtensionConfig('doctrine_doctor', ['enabled' => $enabled]);
-
-        return $container;
-    }
-
-    private function hasTwigDoctrineDoctorPath(ContainerBuilder $container): bool
-    {
-        foreach ($container->getExtensionConfig('twig') as $config) {
-            foreach ($config['paths'] ?? [] as $namespace) {
-                if ('doctrine_doctor' === $namespace) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
     #[Test]
     public function every_analyzer_has_a_matching_config_node(): void
     {
@@ -448,6 +416,38 @@ final class DoctrineDoctorExtensionTest extends TestCase
             "The following analyzers have no matching config node in Configuration.php:\n%s",
             implode("\n", $missingKeys),
         ));
+    }
+
+    private function createContainerWithTwig(bool $enabled): ContainerBuilder
+    {
+        $container = new ContainerBuilder();
+        $twigExtension = new class() extends Extension {
+            public function load(array $configs, ContainerBuilder $container): void
+            {
+            }
+
+            public function getAlias(): string
+            {
+                return 'twig';
+            }
+        };
+        $container->registerExtension($twigExtension);
+        $container->prependExtensionConfig('doctrine_doctor', ['enabled' => $enabled]);
+
+        return $container;
+    }
+
+    private function hasTwigDoctrineDoctorPath(ContainerBuilder $container): bool
+    {
+        foreach ($container->getExtensionConfig('twig') as $config) {
+            foreach ($config['paths'] ?? [] as $namespace) {
+                if ('doctrine_doctor' === $namespace) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private function resolveFullClassName(string $dir, string $className): ?string
