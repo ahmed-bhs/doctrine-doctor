@@ -75,7 +75,7 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                             type: IssueType::LAZY_LOADING->value,
                             title: sprintf('Lazy Loading in Loop: %d queries on %s', $lazyLoadPattern['count'], $lazyLoadPattern['entity']),
                             description: DescriptionHighlighter::highlight(
-                                'Detected {count} sequential lazy-loaded queries on entity {entity} (relation: {relation}). ' .
+                                'Detected {count} sequential lazy-loaded queries for entity {entity} (relation: {relation}). ' .
                                 'Use eager loading with {joinFetch} to avoid N+1 queries (threshold: {threshold})',
                                 [
                                     'count' => $lazyLoadPattern['count'],
@@ -132,7 +132,6 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
 
         foreach ($sequentialQueries as $table => $queryGroup) {
             if (count($queryGroup) >= $this->threshold) {
-                // Check if queries are close together (likely in a loop)
                 $indices      = array_column($queryGroup, 'index');
                 $isSequential = $this->areQueriesInLoop($indices);
 
@@ -183,7 +182,7 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         // If average gap is small (< 5 queries apart), they're likely in a loop
         $avgGap = array_sum($gaps) / count($gaps);
 
-        return $avgGap <= 5;
+        return $avgGap <= 1.5;
     }
 
     private function tableToEntityName(string $table): string

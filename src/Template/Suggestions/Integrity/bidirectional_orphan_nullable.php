@@ -63,5 +63,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Make FK NOT NULL to be consistent with orphanRemoval=true',
+    'description' => 'Make the FK NOT NULL to align with orphanRemoval=true',
 ];

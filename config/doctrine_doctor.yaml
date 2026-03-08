@@ -16,6 +16,15 @@ doctrine_doctor:
             enabled: true
             threshold: 5  # Minimum number of similar queries to trigger detection
 
+        # Nested N+1 Detection (multi-level relationship chains)
+        nested_relationship_n1:
+            enabled: true
+            threshold: 3  # Minimum repeated queries per table to detect nested N+1
+
+        # Unused Eager Load Detection (unused JOIN FETCH / over-eager loading)
+        unused_eager_load:
+            enabled: true
+
         # Slow Query Detection
         slow_query:
             enabled: true
@@ -114,6 +123,7 @@ doctrine_doctor:
 
         cascade_persist_on_independent_entity:
             enabled: true
+            # independent_entity_patterns: ['User', 'Customer', 'Account', ...]  # Customize entity patterns considered independent
 
         missing_orphan_removal_on_composition:
             enabled: true
@@ -149,12 +159,113 @@ doctrine_doctor:
 
         sensitive_data_exposure:
             enabled: true
+            # sensitive_patterns: ['password', 'token', 'secret', ...]  # Customize field patterns considered sensitive
 
         sql_injection_in_raw_queries:
             enabled: true
+
+        # Query Caching Opportunity Detection
+        query_caching_opportunity:
+            enabled: true
+            frequency_threshold: 3  # Minimum query executions to suggest caching
+            # static_tables: ['countries', 'currencies', 'languages', ...]  # Tables considered static/rarely-changing
+
+        # Float for Money Detection
+        float_for_money:
+            enabled: true
+            # money_field_patterns: ['price', 'amount', 'cost', ...]  # Field patterns considered monetary
+            # money_entity_patterns: ['invoice', 'order', 'payment', ...]  # Entity patterns suggesting financial context
+
+        # Transaction Boundary Analysis
+        transaction_boundary:
+            enabled: true
+            max_flush_per_transaction: 1  # Maximum flush() calls per transaction
+            max_transaction_duration: 1.0  # Maximum transaction duration in seconds
 
         # JOIN Optimization Detection
         join_optimization:
             enabled: true
             max_joins_recommended: 5  # Maximum recommended number of JOINs in a single query
             max_joins_critical: 8     # Number of JOINs to mark as critical
+
+        # Additional Analyzers (all enabled by default)
+        auto_generate_proxy_classes:
+            enabled: true
+
+        collection_empty_access:
+            enabled: true
+
+        decimal_precision:
+            enabled: true
+
+        entity_state_consistency:
+            enabled: true
+
+        final_entity:
+            enabled: true
+
+        property_type_mismatch:
+            enabled: true
+
+        query_builder_best_practices:
+            enabled: true
+
+        set_max_results_with_collection_join:
+            enabled: true
+
+        type_hint_mismatch:
+            enabled: true
+
+        cascade:
+            enabled: true
+
+        collation:
+            enabled: true
+
+        column_type:
+            enabled: true
+
+        division_by_zero:
+            enabled: true
+
+        embeddable_mutability:
+            enabled: true
+
+        embeddable_without_value_object:
+            enabled: true
+
+        entity_manager_in_entity:
+            enabled: true
+
+        float_in_money_embeddable:
+            enabled: true
+
+        flush_in_loop_analyzer_modern:
+            enabled: true
+
+        ineffective_like:
+            enabled: true
+
+        join_type_consistency:
+            enabled: true
+
+        null_comparison:
+            enabled: true
+
+        order_by_without_limit:
+            enabled: true
+
+        primary_key_strategy:
+            enabled: true
+
+        soft_deleteable_trait:
+            enabled: true
+
+        time_zone:
+            enabled: true
+
+        timestampable_trait:
+            enabled: true
+
+        year_function_optimization:
+            enabled: true

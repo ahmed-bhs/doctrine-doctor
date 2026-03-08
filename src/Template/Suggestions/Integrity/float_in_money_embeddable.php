@@ -61,5 +61,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Use integer (cents) instead of float for money values',
+    'description' => 'Use integers (cents) instead of floats for monetary values',
 ];

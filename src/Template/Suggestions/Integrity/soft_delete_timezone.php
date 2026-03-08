@@ -39,5 +39,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Use datetimetz_immutable for soft delete field %s::%s', $shortClass, $fieldName),
+    'description' => sprintf('Use datetimetz_immutable for the soft-delete field %s::%s', $shortClass, $fieldName),
 ];

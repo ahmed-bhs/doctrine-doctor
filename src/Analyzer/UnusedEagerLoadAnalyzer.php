@@ -139,6 +139,12 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
                 continue; // Skip JOINs without alias
             }
 
+            // INNER JOIN can be used to constrain the result set even when alias
+            // is not selected. Restrict "unused eager" detection to optional joins.
+            if (!$this->isOptionalJoin($join['type'])) {
+                continue;
+            }
+
             // Build JOIN expression to exclude from alias usage check
             // This prevents counting the alias usage in its own ON clause
             // Note: $alias is guaranteed to be non-null here due to the check above
@@ -154,6 +160,12 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
         }
 
         return $unusedJoins;
+    }
+
+    private function isOptionalJoin(string $joinType): bool
+    {
+        $normalizedType = strtoupper(trim($joinType));
+        return str_contains($normalizedType, 'LEFT');
     }
 
     /**

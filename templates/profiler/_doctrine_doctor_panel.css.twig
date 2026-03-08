@@ -3103,6 +3103,15 @@
             width: 100%;
         }
 
+        .sf-tabs.dd-panel-typography .tab.block {
+            display: block;
+        }
+
+        .sf-tabs.dd-panel-typography .tab.hidden {
+            display: none;
+        }
+
+
         .sf-tabs.dd-panel-typography .tab-navigation {
             display: flex !important;
             align-items: stretch;
@@ -3561,7 +3570,7 @@
             -webkit-appearance: none !important;
             outline: none;
             margin: 0 !important;
-            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+            transition: none;
         }
 
         .sf-tabs.dd-panel-typography .tab-navigation .tab-control::before {
@@ -3570,6 +3579,7 @@
         }
 
         .sf-tabs.dd-panel-typography .tab-navigation .tab-control:hover {
+            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
             color: #1e293b !important;
             background: #ffffff !important;
         }

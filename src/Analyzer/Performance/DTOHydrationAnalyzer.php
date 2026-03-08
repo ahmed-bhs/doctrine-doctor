@@ -107,13 +107,68 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
         foreach ($queryDataCollection as $query) {
             $sql      = $query->sql;
-            $upperSql = strtoupper($sql);
-            $hasAggregation = array_any(self::AGGREGATION_FUNCTIONS, fn ($func) => str_contains($upperSql, (string) $func));
+            $stripped = $this->stripSubqueries($sql);
+            $upperStripped = strtoupper($stripped);
+            $hasAggregation = array_any(self::AGGREGATION_FUNCTIONS, fn ($func) => str_contains($upperStripped, (string) $func));
 
-            $hasGroupBy = str_contains($upperSql, 'GROUP BY');
+            $hasGroupBy = str_contains($upperStripped, 'GROUP BY');
+
+            if ($hasAggregation && $this->isPureScalarAggregation($stripped)) {
+                continue;
+            }
 
             if ($hasAggregation || $hasGroupBy) {
                 $result[] = $query;
+            }
+        }
+
+        return $result;
+    }
+
+    private function isPureScalarAggregation(string $sql): bool
+    {
+        if (1 !== preg_match('/SELECT\s+(.*?)\s+FROM/is', $sql, $matches)) {
+            return false;
+        }
+
+        $selectPart = trim($matches[1]);
+
+        return 1 === preg_match('/^(?:COUNT|SUM|AVG|MIN|MAX|GROUP_CONCAT)\s*\(/i', $selectPart)
+            && !str_contains($selectPart, ',');
+    }
+
+    private function stripSubqueries(string $sql): string
+    {
+        $result = '';
+        $depth = 0;
+        $inSubquery = false;
+        $subqueryDepth = 0;
+        $len = strlen($sql);
+
+        for ($i = 0; $i < $len; ++$i) {
+            $char = $sql[$i];
+
+            if ('(' === $char) {
+                if (!$inSubquery) {
+                    $remaining = substr($sql, $i + 1, 20);
+                    if (1 === preg_match('/^\s*SELECT\b/i', $remaining)) {
+                        $inSubquery = true;
+                        $subqueryDepth = $depth;
+                        ++$depth;
+                        continue;
+                    }
+                }
+                ++$depth;
+            } elseif (')' === $char) {
+                --$depth;
+                if ($inSubquery && $depth === $subqueryDepth) {
+                    $inSubquery = false;
+                    continue;
+                }
+            }
+
+            if (!$inSubquery) {
+                $result .= $char;
             }
         }
 
@@ -199,7 +254,7 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $performanceIssue->setSeverity($count > 5 ? 'critical' : 'warning');
         $performanceIssue->setTitle('Aggregation Query Without DTO Hydration');
         $performanceIssue->setMessage(
-            sprintf('Detected %d queries with aggregations/GROUP BY that should use DTO hydration. ', $count) .
+            sprintf('Detected %d queries with aggregations/GROUP BY that are good candidates for DTO hydration. ', $count) .
             'Using the NEW syntax with DTOs is 3-5x faster, type-safe, and more maintainable than array results.',
         );
         $performanceIssue->setSuggestion($this->createDTOSuggestion($aggregations, $hasGroupBy));

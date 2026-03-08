@@ -78,7 +78,7 @@ class SlowQueryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInt
                         type: IssueType::SLOW_QUERY->value,
                         title: sprintf('Slow Query: %.2fms', $executionTimeMs),
                         description: DescriptionHighlighter::highlight(
-                            'Query execution time ({time}ms) exceeds threshold ({threshold}ms)',
+                            'Query execution time ({time}ms) exceeds the threshold ({threshold}ms).',
                             [
                                 'time' => sprintf('%.2f', $executionTimeMs),
                                 'threshold' => $this->threshold,

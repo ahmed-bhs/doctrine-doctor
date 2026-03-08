@@ -172,18 +172,14 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     {
         $upperSql = strtoupper($sql);
 
-        // Pattern: SELECT e FROM ... (entity alias only, not specific fields)
-        // This indicates full entity hydration
         if (1 === preg_match('/SELECT\s+([a-z]\w*)\s+FROM/i', $sql, $matches)) {
             $selectPart = $matches[1];
 
-            // If SELECT contains only an alias (single word), it's a full entity load
             if (!str_contains($selectPart, '.') && !str_contains($selectPart, ',')) {
                 return true;
             }
         }
 
-        // Pattern: SELECT * FROM (always full load)
         return str_contains($upperSql, 'SELECT *');
     }
 
@@ -214,7 +210,7 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         $performanceIssue->setSeverity($count > 10 ? 'critical' : 'warning');
         $performanceIssue->setTitle('Full Entity Loading - Consider Partial Objects');
         $performanceIssue->setMessage(
-            sprintf('Detected %d queries loading full entities when partial objects might be more efficient. ', $count) .
+            sprintf('Detected %d queries loading full entities where partial objects could be more efficient. ', $count) .
             'If you only need a few fields, consider using partial objects or array hydration to save memory and improve performance.',
         );
         $performanceIssue->setSuggestion($this->buildSuggestion($entityName));

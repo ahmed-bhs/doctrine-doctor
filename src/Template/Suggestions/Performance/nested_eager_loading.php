@@ -120,37 +120,7 @@ $<?php echo lcfirst((string) $entities[0]); ?>s = $repository->findAllWithNested
 // Result: 1 query with all nested relations loaded!</code></pre>
     </div>
 
-    <h4>Solution 3: Batch Fetch for Nested Relations</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// For unpredictable access patterns, use Batch Fetch on all levels
-use Doctrine\ORM\Mapping as ORM;
-
-#[ORM\Entity]
-class <?php echo $e($entities[0]); ?>
-
-{
-    #[ORM\ManyToOne]
-    #[ORM\BatchFetch(size: 10)]  // Batch at level 1
-    private ?<?php echo $e($entities[1] ?? 'Relation'); ?> $<?php echo lcfirst($entities[1] ?? 'relation'); ?> = null;
-}
-
-<?php if (isset($entities[1])): ?>
-#[ORM\Entity]
-class <?php echo $e($entities[1]); ?>
-
-{
-    #[ORM\ManyToOne]
-    #[ORM\BatchFetch(size: 10)]  // Batch at level 2
-    private ?<?php echo $e($entities[2] ?? 'Relation'); ?> $<?php echo lcfirst($entities[2] ?? 'relation'); ?> = null;
-}
-<?php endif; ?>
-
-// Now queries are batched at each level:
-// 100 <?php echo lcfirst((string) $entities[0]); ?>s → ~10 queries for level 1, ~10 for level 2
-// Total: ~<?php echo (int) ceil($queryCount / 10) * $depth; ?> queries instead of <?php echo $queryCount * $depth; ?>!</code></pre>
-    </div>
-
-    <h4>Solution 4: Use DTOs for Deep Chains</h4>
+    <h4>Solution 3: Use DTOs for Deep Chains</h4>
     <div class="query-item">
         <pre><code class="language-php">// BEST for read-only data: Use custom DTO with single query
 $results = $em->createQuery('
@@ -221,8 +191,7 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
 
     <h4>When to Use Each Solution</h4>
     <ul>
-        <li><strong>Multi-level JOIN:</strong> You ALWAYS access all levels (100% usage)</li>
-        <li><strong>Batch Fetch:</strong> Access is conditional or varies by entity</li>
+        <li><strong>Multi-level JOIN:</strong> You consistently access all levels (close to 100% usage)</li>
         <li><strong>DTOs:</strong> Read-only display, API responses, reporting</li>
         <li><strong>Refactor:</strong> 4+ levels deep suggests design smell</li>
     </ul>
@@ -231,7 +200,7 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
         ℹ️ <strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Current:</strong> <?php echo $queryCount * $depth; ?> queries (<?php echo $depth; ?> levels × <?php echo $queryCount; ?> per level)</li>
-            <li><strong>With solution:</strong> 1 query (multi-level JOIN) or ~<?php echo (int) ceil($queryCount / 10) * $depth; ?> queries (batch)</li>
+            <li><strong>With multi-level JOIN:</strong> 1 query total</li>
             <li><strong>Time saved:</strong> ~<?php echo number_format((($queryCount * $depth) - 1) * 2, 0); ?>ms (assuming 2ms/query)</li>
             <li><strong>Scalability:</strong> O(1) vs O(n×m) where n=entities, m=depth</li>
         </ul>
