@@ -21,6 +21,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use Symfony\Component\Config\Definition\ArrayNode;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\Finder\Finder;
@@ -372,7 +373,9 @@ final class DoctrineDoctorExtensionTest extends TestCase
 
         $configuration = new Configuration();
         $tree = $configuration->getConfigTreeBuilder()->buildTree();
+        \assert($tree instanceof ArrayNode);
         $analyzersNode = $tree->getChildren()['analyzers'];
+        \assert($analyzersNode instanceof ArrayNode);
         $configKeys = array_keys($analyzersNode->getChildren());
 
         $analyzerDirs = [

@@ -43,11 +43,6 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
      */
     private const string DIVISION_PATTERN = '/(\w+(?:\.\w+)?)\s*\/\s*(\w+(?:\.\w+)?)/';
 
-    /**
-     * Pattern to detect if division is already protected.
-     */
-    private const string PROTECTED_PATTERN = '/NULLIF|COALESCE|CASE\s+WHEN/i';
-
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
     ) {
