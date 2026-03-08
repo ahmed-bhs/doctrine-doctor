@@ -367,9 +367,9 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
     {
         $counts = [];
         foreach ($items as $item) {
-            $fk = $item['foreignKey'];
-            if (null !== $fk) {
-                $counts[$fk] = ($counts[$fk] ?? 0) + 1;
+            $foreignKey = $item['foreignKey'];
+            if (null !== $foreignKey) {
+                $counts[$foreignKey] = ($counts[$foreignKey] ?? 0) + 1;
             }
         }
 
