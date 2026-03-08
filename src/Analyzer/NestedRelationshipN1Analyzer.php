@@ -397,7 +397,7 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         sort($indexes);
 
         for ($i = 1, $count = \count($indexes); $i < $count; ++$i) {
-            if ($indexes[$i] !== $indexes[$i - 1] + 1) {
+            if ($indexes[$i - 1] + 1 !== $indexes[$i]) {
                 return false;
             }
         }

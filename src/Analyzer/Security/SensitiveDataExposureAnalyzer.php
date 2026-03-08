@@ -198,9 +198,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         return $issues;
     }
 
-    /**
-     * @return string
-     */
     private function normalizeFieldName(string $fieldName): string
     {
         return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName));
