@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Template for orphanRemoval Without cascade="remove" suggestions.
+ * Template for orphanRemoval without cascade="remove" suggestions.
  * Context variables:
  * @var string $entity_class - Short entity class name
  * @var string $target_class - Short target entity class name

@@ -35,7 +35,7 @@ ob_start();
 
     <h4>Problem: Loading Data You Never Use</h4>
     <div class="query-item">
-        <pre><code class="language-sql">-- BAD: JOINing <?php echo $e($unusedTables[0]); ?> but never using it
+        <pre><code class="language-sql">-- BAD: Joining <?php echo $e($unusedTables[0]); ?> but never using it
 SELECT a.*
 FROM article a
 LEFT JOIN <?php echo $e($unusedTables[0]); ?> <?php echo $e($unusedAliases[0]); ?> ON <?php echo $e($unusedAliases[0]); ?>.article_id = a.id

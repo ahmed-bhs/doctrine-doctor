@@ -63,7 +63,7 @@ class <?= $e($entityClass) ?> {
 }</code></pre>
     </div>
 
-    <h4> Solution</h4>
+    <h4>Solution</h4>
     <div class="code-block">
         <pre><code class="language-php">// Good code example
 class <?= $e($entityClass) ?> {
@@ -148,7 +148,7 @@ private function createSuggestion(): SuggestionInterface
 - Use semantic HTML (h4 for headings, ul for lists)
 - Include concrete code examples
 - Add links to relevant documentation
-- Use emojis sparingly for visual cues ( )
+- Use emojis sparingly for visual cues
 
 **DON'T**:
 
