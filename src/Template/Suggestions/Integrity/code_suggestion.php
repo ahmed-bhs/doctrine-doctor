@@ -9,8 +9,10 @@ declare(strict_types=1);
  * @var mixed $filePath
  * @var mixed $context
  */
-['description' => $description, 'code' => $code, 'file_path' => $filePath] = $context;
-$e                                                                         = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$description = (string) ($context['description'] ?? '');
+$code = (string) ($context['code'] ?? '');
+$filePath = (string) ($context['file_path'] ?? '');
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 <div class="suggestion-header"><h4>Suggestion</h4></div>

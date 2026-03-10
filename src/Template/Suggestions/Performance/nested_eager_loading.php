@@ -10,7 +10,17 @@ declare(strict_types=1);
  * @var mixed $chain
  * @var mixed $context
  */
-['entities' => $entities, 'depth' => $depth, 'query_count' => $queryCount, 'chain' => $chain] = $context;
+$entities = $context['entities'] ?? ['Entity', 'Relation'];
+if (!is_array($entities) || [] === $entities) {
+    $entities = ['Entity', 'Relation'];
+}
+$entities = array_values(array_map(static fn (mixed $entity): string => (string) $entity, $entities));
+$depth = max(1, (int) ($context['depth'] ?? max(1, count($entities) - 1)));
+$queryCount = max(0, (int) ($context['query_count'] ?? 0));
+$chain = (string) ($context['chain'] ?? implode(' -> ', $entities));
+$totalQueries = $queryCount * $depth;
+$queryReduction = $totalQueries > 0 ? round((($totalQueries - 1) / $totalQueries) * 100) : 0;
+$speedGain = $totalQueries > 0 ? round((($totalQueries * 2) - 7.5) / ($totalQueries * 2) * 100) : 0;
 
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
@@ -28,7 +38,7 @@ ob_start();
         <strong>Nested N+1 Query Detected</strong><br>
         Found <strong><?php echo $queryCount; ?> queries</strong> across a <strong><?php echo $depth; ?>-level relationship chain</strong>: <code><?php echo $e($chain); ?></code>
         <br><br>
-        <strong>Total Query Impact:</strong> <?php echo $queryCount * $depth; ?> queries!
+        <strong>Total Query Impact:</strong> <?php echo $totalQueries; ?> queries!
     </div>
 
     <h4>Problem: Multi-Level Relationship Access in Loop</h4>
@@ -64,7 +74,7 @@ foreach ($<?php echo lcfirst((string) $entities[0]); ?>s as $<?php echo lcfirst(
 // - 100 queries for <?php echo $entities[3]; ?>
 
 <?php endif; ?>
-// - Total: <?php echo $queryCount * $depth; ?> queries!</code></pre>
+// - Total: <?php echo $totalQueries; ?> queries!</code></pre>
     </div>
 
     <h4>Solution 1: Multi-Level JOIN FETCH Best</h4>
@@ -146,9 +156,9 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
     <div class="alert alert-danger">
         <strong>Exponential Query Growth:</strong>
         <ul>
-            <li>🔥 <strong>Multiplies at each level</strong>: <?php echo $depth; ?> levels × <?php echo $queryCount; ?> queries = <?php echo $queryCount * $depth; ?> total queries</li>
+            <li>🔥 <strong>Multiplies at each level</strong>: <?php echo $depth; ?> levels × <?php echo $queryCount; ?> queries = <?php echo $totalQueries; ?> total queries</li>
             <li>⏱️ <strong>Latency compounds</strong>: Each level adds network round-trips</li>
-            <li>🐘 <strong>Database strain</strong>: <?php echo $queryCount * $depth; ?> queries vs 1 with eager loading</li>
+            <li>🐘 <strong>Database strain</strong>: <?php echo $totalQueries; ?> queries vs 1 with eager loading</li>
             <li>📈 <strong>Scales terribly</strong>: With 1000 entities → <?php echo 1000 * $depth; ?> queries!</li>
         </ul>
     </div>
@@ -164,8 +174,8 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
             </tr>
             <tr>
                 <td style="padding: 8px;">Current (nested N+1)</td>
-                <td style="padding: 8px;"><strong><?php echo $queryCount * $depth; ?></strong></td>
-                <td style="padding: 8px;"><?php echo number_format(($queryCount * $depth) * 2, 0); ?>ms</td>
+                <td style="padding: 8px;"><strong><?php echo $totalQueries; ?></strong></td>
+                <td style="padding: 8px;"><?php echo number_format($totalQueries * 2, 0); ?>ms</td>
             </tr>
             <tr>
                 <td style="padding: 8px;">With multi-level JOIN</td>
@@ -174,8 +184,8 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
             </tr>
             <tr>
                 <td style="padding: 8px;">⚡ Improvement</td>
-                <td style="padding: 8px;"><strong><?php echo round((($queryCount * $depth - 1) / ($queryCount * $depth)) * 100); ?>%</strong></td>
-                <td style="padding: 8px;"><?php echo round((($queryCount * $depth) * 2 - 7.5) / (($queryCount * $depth) * 2) * 100); ?>% faster</td>
+                <td style="padding: 8px;"><strong><?php echo $queryReduction; ?>%</strong></td>
+                <td style="padding: 8px;"><?php echo $speedGain; ?>% faster</td>
             </tr>
         </table>
     </div>
@@ -199,9 +209,9 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
     <div class="alert alert-info">
         ℹ️ <strong>Expected Performance Improvement:</strong><br>
         <ul>
-            <li><strong>Current:</strong> <?php echo $queryCount * $depth; ?> queries (<?php echo $depth; ?> levels × <?php echo $queryCount; ?> per level)</li>
+            <li><strong>Current:</strong> <?php echo $totalQueries; ?> queries (<?php echo $depth; ?> levels × <?php echo $queryCount; ?> per level)</li>
             <li><strong>With multi-level JOIN:</strong> 1 query total</li>
-            <li><strong>Time saved:</strong> ~<?php echo number_format((($queryCount * $depth) - 1) * 2, 0); ?>ms (assuming 2ms/query)</li>
+            <li><strong>Time saved:</strong> ~<?php echo number_format(max(0, ($totalQueries - 1) * 2), 0); ?>ms (assuming 2ms/query)</li>
             <li><strong>Scalability:</strong> O(1) vs O(n×m) where n=entities, m=depth</li>
         </ul>
     </div>
@@ -220,7 +230,7 @@ return [
     'code'        => $code,
     'description' => sprintf(
         'Use multi-level eager loading to eliminate %d nested N+1 queries across %d-level chain: %s',
-        $queryCount * $depth,
+        $totalQueries,
         $depth,
         $chain,
     ),

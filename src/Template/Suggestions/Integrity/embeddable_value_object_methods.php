@@ -8,7 +8,12 @@ declare(strict_types=1);
  * @var mixed $missingMethods
  * @var mixed $context
  */
-['embeddable_class' => $embeddableClass, 'missing_methods' => $missingMethods] = $context;
+$embeddableClass = (string) ($context['embeddable_class'] ?? 'Money');
+$missingMethods = $context['missing_methods'] ?? ['equals', '__toString'];
+if (!is_array($missingMethods) || [] === $missingMethods) {
+    $missingMethods = ['equals', '__toString'];
+}
+$missingMethods = array_values(array_map(static fn (mixed $method): string => (string) $method, $missingMethods));
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -21,7 +26,7 @@ ob_start();
 <div class="suggestion-content">
     <div class="alert alert-info">
         <strong>Embeddable:</strong> <code><?php echo $e($embeddableClass); ?></code><br>
-        <strong>Missing:</strong> <?php echo implode(', ', array_map($e, $missingMethods)); ?>
+        <strong>Missing:</strong> <?php echo implode(', ', array_map(static fn (mixed $method): string => $e((string) $method), $missingMethods)); ?>
     </div>
 
     <h4>Recommended Implementation</h4>

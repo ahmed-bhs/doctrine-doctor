@@ -9,8 +9,10 @@ declare(strict_types=1);
  * @var mixed $entity
  * @var mixed $context
  */
-['table' => $table, 'alias' => $alias, 'entity' => $entity] = $context;
-$e                                                          = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$table = (string) ($context['table'] ?? 'related_table');
+$alias = (string) ($context['alias'] ?? 'r');
+$entity = (string) ($context['entity'] ?? 'Entity');
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>

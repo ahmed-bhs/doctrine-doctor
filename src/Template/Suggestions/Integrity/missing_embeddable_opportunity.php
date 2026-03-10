@@ -8,7 +8,12 @@ declare(strict_types=1);
  * @var mixed $fields
  * @var mixed $context
  */
-['entity_class' => $entityClass, 'fields' => $fields] = $context;
+$entityClass = (string) ($context['entity_class'] ?? 'Entity');
+$fields = $context['fields'] ?? ['street', 'city'];
+if (!is_array($fields) || [] === $fields) {
+    $fields = ['street', 'city'];
+}
+$fields = array_values(array_map(static fn (mixed $field): string => (string) $field, $fields));
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -20,7 +25,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-info">
-        <code><?= $e($entityClass) ?></code> has related fields that could be grouped into an embeddable: <code><?= implode(', ', array_map($e, $fields)) ?></code>
+        <code><?= $e($entityClass) ?></code> has related fields that could be grouped into an embeddable: <code><?= implode(', ', array_map(static fn (mixed $field): string => $e((string) $field), $fields)) ?></code>
     </div>
 
     <p>When you have several fields that belong together conceptually (like address fields or money amounts), grouping them into an embeddable value object can make your code clearer.</p>
