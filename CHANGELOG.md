@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-03-10
+
+### Added
+
+- New `CompositeKeyComplexityAnalyzer`: detects entities using composite primary keys that limit Doctrine ORM features (no `getReference()`, slower identity map, complex FK mappings). Severity: WARNING for 2 columns, CRITICAL for 3+ or when referenced by other entities.
+- Configuration node for `composite_key_complexity` analyzer.
+
+## [2.5.1] - 2026-03-10
+
+### Fixed
+
+- Hardened all suggestion templates against incomplete context, null values, and division by zero. Templates no longer crash on missing keys or unexpected types.
+- Added tests ensuring every template renders without exception with an empty context.
+
+## [2.5.0] - 2026-03-10
+
+### Changed
+
+- `OnDeleteCascadeMismatchAnalyzer` now assigns CRITICAL severity for `orm_cascade_db_setnull` and `orm_orphan_db_setnull` mismatches (previously WARNING).
+- Suggestion templates for `on_delete_cascade_mismatch` now render context-aware code snippets per mismatch type instead of a generic template.
+
 ## [2.4.0] - 2026-03-10
 
 ### Added
