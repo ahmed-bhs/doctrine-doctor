@@ -22,16 +22,16 @@ class EntityWithNonPkJoin
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: TargetWithCompositeKey::class)]
+    #[ORM\ManyToOne(targetEntity: TargetWithNonPkUniqueColumn::class)]
     #[ORM\JoinColumn(name: 'target_code', referencedColumnName: 'code')]
-    private ?TargetWithCompositeKey $target = null;
+    private ?TargetWithNonPkUniqueColumn $target = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getTarget(): ?TargetWithCompositeKey
+    public function getTarget(): ?TargetWithNonPkUniqueColumn
     {
         return $this->target;
     }

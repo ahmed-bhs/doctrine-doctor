@@ -96,7 +96,8 @@ class DuplicatePrivateFieldInHierarchyAnalyzer implements \AhmedBhs\DoctrineDoct
             return [];
         }
 
-        $childPrivateFields = $this->getPrivateFields($reflectionClass);
+        $mappedFieldNames = $this->getMappedFieldNames($classMetadata);
+        $childPrivateFields = $this->getMappedPrivateFields($reflectionClass, $mappedFieldNames);
 
         if ([] === $childPrivateFields) {
             return [];
@@ -123,7 +124,14 @@ class DuplicatePrivateFieldInHierarchyAnalyzer implements \AhmedBhs\DoctrineDoct
         $current = $parentClass;
 
         while (false !== $current) {
-            $parentPrivateFields = $this->getPrivateFields($current);
+            if (!$this->isMappedClass($current)) {
+                $current = $current->getParentClass();
+
+                continue;
+            }
+
+            $parentMappedNames = $this->getMappedFieldNamesForClass($current->getName());
+            $parentPrivateFields = $this->getMappedPrivateFields($current, $parentMappedNames);
 
             foreach ($childPrivateFields as $fieldName => $childProperty) {
                 if (!isset($parentPrivateFields[$fieldName])) {
@@ -147,14 +155,55 @@ class DuplicatePrivateFieldInHierarchyAnalyzer implements \AhmedBhs\DoctrineDoct
     }
 
     /**
+     * @return array<string>
+     */
+    private function getMappedFieldNames(ClassMetadata $classMetadata): array
+    {
+        return array_merge(
+            $classMetadata->getFieldNames(),
+            $classMetadata->getAssociationNames(),
+        );
+    }
+
+    /**
+     * @return array<string>
+     */
+    private function getMappedFieldNamesForClass(string $className): array
+    {
+        try {
+            $metadata = $this->entityManager->getClassMetadata($className);
+
+            return $this->getMappedFieldNames($metadata);
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    private function isMappedClass(\ReflectionClass $reflectionClass): bool
+    {
+        try {
+            $this->entityManager->getClassMetadata($reflectionClass->getName());
+
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * @param array<string> $mappedFieldNames
      * @return array<string, \ReflectionProperty>
      */
-    private function getPrivateFields(\ReflectionClass $reflectionClass): array
+    private function getMappedPrivateFields(\ReflectionClass $reflectionClass, array $mappedFieldNames): array
     {
         $fields = [];
 
         foreach ($reflectionClass->getProperties(\ReflectionProperty::IS_PRIVATE) as $property) {
             if ($property->getDeclaringClass()->getName() !== $reflectionClass->getName()) {
+                continue;
+            }
+
+            if (!in_array($property->getName(), $mappedFieldNames, true)) {
                 continue;
             }
 
