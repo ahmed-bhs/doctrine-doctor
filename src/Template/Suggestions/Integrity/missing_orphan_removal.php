@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Template for Missing orphanRemoval on Composition suggestions.
+ * Template for missing orphanRemoval on composition suggestions.
  * Context variables:
  * @var string $entity_class - Short entity class name
  * @var string $target_class - Short target entity class name
