@@ -9,7 +9,9 @@ declare(strict_types=1);
  * @var mixed $queryCount
  * @var mixed $context
  */
-['entity' => $entity, 'relation' => $relation, 'query_count' => $queryCount] = $context;
+$entity = (string) ($context['entity'] ?? 'Entity');
+$relation = (string) ($context['relation'] ?? 'items');
+$queryCount = max(0, (int) ($context['query_count'] ?? 0));
 
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
@@ -170,7 +172,7 @@ $results = $query->getResult();
         <ul>
             <li><strong>Current:</strong> <?php echo $queryCount; ?> queries</li>
             <li><strong>With GROUP BY:</strong> 1 query</li>
-            <li><strong>Query reduction:</strong> <?php echo round((($queryCount - 1) / $queryCount) * 100); ?>%</li>
+            <li><strong>Query reduction:</strong> <?php echo $queryCount > 0 ? round((($queryCount - 1) / $queryCount) * 100) : 0; ?>%</li>
             <li><strong>No data duplication:</strong> Unlike JOIN FETCH (cleaner result set)</li>
         </ul>
     </div>

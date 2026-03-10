@@ -9,8 +9,10 @@ declare(strict_types=1);
  * @var mixed $insecureFunction
  * @var mixed $context
  */
-['entity_class' => $entityClass, 'method_name' => $methodName, 'insecure_function' => $insecureFunction] = $context;
-$e                                                                                                       = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$entityClass = (string) ($context['entity_class'] ?? 'RandomGenerator');
+$methodName = (string) ($context['method_name'] ?? 'generate');
+$insecureFunction = (string) ($context['insecure_function'] ?? 'rand');
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 $lastBackslash                                                                                           = strrchr($entityClass, '\\');
 $shortClass                                                                                              = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClass;
 ob_start();

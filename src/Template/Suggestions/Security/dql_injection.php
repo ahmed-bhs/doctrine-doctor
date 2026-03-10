@@ -9,8 +9,14 @@ declare(strict_types=1);
  * @var mixed $riskLevel
  * @var mixed $context
  */
-['query' => $query, 'vulnerable_parameters' => $vulnerableParams, 'risk_level' => $riskLevel] = $context;
-$e                                                                                            = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$query = (string) ($context['query'] ?? 'SELECT u FROM User u WHERE u.name = :username');
+$vulnerableParams = $context['vulnerable_parameters'] ?? ['username'];
+$riskLevel = (string) ($context['risk_level'] ?? 'high');
+if (!is_array($vulnerableParams) || [] === $vulnerableParams) {
+    $vulnerableParams = ['username'];
+}
+$vulnerableParams = array_values(array_map(static fn (mixed $param): string => (string) $param, $vulnerableParams));
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 
@@ -20,7 +26,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        Risk: <?php echo $e($riskLevel); ?> - Vulnerable parameters: <code><?php echo implode(', ', array_map($e, $vulnerableParams)); ?></code>
+        Risk: <?php echo $e($riskLevel); ?> - Vulnerable parameters: <code><?php echo implode(', ', array_map(static fn (mixed $param): string => $e((string) $param), $vulnerableParams)); ?></code>
     </div>
 
     <p>String concatenation in DQL queries allows query manipulation.</p>

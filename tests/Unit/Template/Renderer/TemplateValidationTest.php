@@ -162,6 +162,43 @@ final class TemplateValidationTest extends TestCase
             ],
             'mixed namespaces',
         ];
+
+        yield 'dto_hydration - missing optional aggregations' => [
+            'Performance/dto_hydration',
+            [
+                'query_count' => 1,
+            ],
+            'missing aggregations array',
+        ];
+
+        yield 'query_caching_frequent - zero total time' => [
+            'Performance/query_caching_frequent',
+            [
+                'sql'        => 'SELECT 1',
+                'count'      => 1,
+                'total_time' => 0.0,
+                'avg_time'   => 0.0,
+            ],
+            'zero total time',
+        ];
+
+        yield 'group_by_aggregation - zero query count' => [
+            'Performance/group_by_aggregation',
+            [
+                'entity'      => 'Article',
+                'relation'    => 'comments',
+                'query_count' => 0,
+            ],
+            'zero query count',
+        ];
+
+        yield 'configuration - partial context' => [
+            'Configuration/configuration',
+            [
+                'setting' => 'doctrine.orm.auto_generate_proxy_classes',
+            ],
+            'partial context',
+        ];
     }
 
     public function test_all_templates_have_valid_syntax(): void
@@ -227,6 +264,36 @@ final class TemplateValidationTest extends TestCase
         );
     }
 
+    public function test_all_templates_handle_empty_context_without_throwing(): void
+    {
+        $templates = glob($this->templateDirectory . '/{Integrity,Performance,Security,Configuration}/*.php', GLOB_BRACE);
+
+        if (false === $templates) {
+            $templates = [];
+        }
+
+        $failures = [];
+
+        foreach ($templates as $templatePath) {
+            if (str_contains($templatePath, 'EXAMPLE') || str_ends_with($templatePath, '/index.php')) {
+                continue;
+            }
+
+            $templateName = str_replace($this->templateDirectory . '/', '', $templatePath);
+            $templateName = substr($templateName, 0, -4);
+
+            try {
+                $result = $this->renderer->render($templateName, []);
+                self::assertArrayHasKey('code', $result);
+                self::assertArrayHasKey('description', $result);
+            } catch (\Throwable $throwable) {
+                $failures[] = sprintf('%s: %s', $templateName, $throwable->getMessage());
+            }
+        }
+
+        self::assertEmpty($failures, "Templates failing with empty context:\n" . implode("\n", $failures));
+    }
+
     /**
      * @dataProvider entityClassFormatsProvider
      */
@@ -243,6 +310,50 @@ final class TemplateValidationTest extends TestCase
 
         self::assertStringContainsString($expectedShortName, $result['code']);
         self::assertStringContainsString($expectedShortName, $result['description']);
+    }
+
+    public function test_dto_hydration_handles_missing_aggregations(): void
+    {
+        $result = $this->renderer->render('Performance/dto_hydration', [
+            'query_count' => 1,
+        ]);
+
+        self::assertStringContainsString('1 aggregation query', $result['code']);
+        self::assertStringNotContainsString('aggregation query (', $result['code']);
+    }
+
+    public function test_query_caching_frequent_handles_zero_total_time(): void
+    {
+        $result = $this->renderer->render('Performance/query_caching_frequent', [
+            'sql'        => 'SELECT 1',
+            'count'      => 1,
+            'total_time' => 0.0,
+            'avg_time'   => 0.0,
+        ]);
+
+        self::assertStringContainsString('Result cache saves ~0%', $result['code']);
+        self::assertStringContainsString('0.00ms total', $result['description']);
+    }
+
+    public function test_group_by_aggregation_handles_zero_query_count(): void
+    {
+        $result = $this->renderer->render('Performance/group_by_aggregation', [
+            'entity'      => 'Article',
+            'relation'    => 'comments',
+            'query_count' => 0,
+        ]);
+
+        self::assertStringContainsString('Query reduction:</strong> 0%', $result['code']);
+    }
+
+    public function test_configuration_handles_partial_context(): void
+    {
+        $result = $this->renderer->render('Configuration/configuration', [
+            'setting' => 'doctrine.orm.auto_generate_proxy_classes',
+        ]);
+
+        self::assertStringContainsString('Configuration Issue', $result['code']);
+        self::assertStringContainsString('Change doctrine.orm.auto_generate_proxy_classes from "" to ""', $result['description']);
     }
 
     /**
