@@ -88,6 +88,10 @@ abstract class DatabaseTestCase extends TestCase
             isDevMode: true,
         );
 
+
+        if (\PHP_VERSION_ID >= 80400) {
+            $configuration->enableNativeLazyObjects(true);
+        }
         return new EntityManager($this->connection, $configuration);
     }
 

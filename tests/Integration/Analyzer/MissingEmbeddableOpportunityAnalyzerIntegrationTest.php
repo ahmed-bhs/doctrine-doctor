@@ -46,6 +46,10 @@ final class MissingEmbeddableOpportunityAnalyzerIntegrationTest extends TestCase
             isDevMode: true,
         );
 
+
+        if (\PHP_VERSION_ID >= 80400) {
+            $configuration->enableNativeLazyObjects(true);
+        }
         $connection = DriverManager::getConnection([
             'driver' => 'pdo_sqlite',
             'memory' => true,

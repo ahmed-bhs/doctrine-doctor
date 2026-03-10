@@ -47,6 +47,10 @@ final class CollectionInitializationAnalyzerIntegrationTest extends TestCase
             isDevMode: true,
         );
 
+
+        if (\PHP_VERSION_ID >= 80400) {
+            $configuration->enableNativeLazyObjects(true);
+        }
         // Create connection first, then EntityManager
         $connection = DriverManager::getConnection([
             'driver' => 'pdo_sqlite',
