@@ -41,6 +41,8 @@ enum IssueType: string
     case SECURITY = 'security';
     case DQL_INJECTION = 'dql_injection';
     case QUERY_BUILDER_SQL_INJECTION = 'query_builder_sql_injection';
+    case OVERPRIVILEGED_DATABASE_USER = 'overprivileged_database_user';
+    case HARDCODED_DATABASE_CREDENTIALS = 'hardcoded_database_credentials';
     case UNESCAPED_LIKE = 'unescaped_like';
     case INCORRECT_NULL_COMPARISON = 'incorrect_null_comparison';
     case EMPTY_IN_CLAUSE = 'empty_in_clause';
@@ -87,6 +89,8 @@ enum IssueType: string
     case ENTITY_REMOVED_ACCESS = 'entity_removed_access';
     case ENTITY_REMOVED_IN_ASSOCIATION = 'entity_removed_in_association';
     case ENTITY_DETACHED_IN_ASSOCIATION = 'entity_detached_in_association';
+    case JOIN_COLUMN_NON_PRIMARY_KEY = 'join_column_non_primary_key';
+    case DUPLICATE_PRIVATE_FIELD_IN_HIERARCHY = 'duplicate_private_field_in_hierarchy';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';
