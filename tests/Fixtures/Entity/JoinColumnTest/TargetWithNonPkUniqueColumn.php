@@ -15,7 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'target_entity')]
-class TargetWithCompositeKey
+class TargetWithNonPkUniqueColumn
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
