@@ -15,7 +15,12 @@ declare(strict_types=1);
  * @var mixed $timestampFields
  * @var mixed $context
  */
-['entity_class' => $entityClass, 'timestamp_fields' => $timestampFields] = $context;
+$entityClass = (string) ($context['entity_class'] ?? 'Entity');
+$timestampFields = $context['timestamp_fields'] ?? ['createdAt'];
+if (!is_array($timestampFields) || [] === $timestampFields) {
+    $timestampFields = ['createdAt'];
+}
+$timestampFields = array_values(array_map(static fn (mixed $field): string => (string) $field, $timestampFields));
 
 // Escaping function
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
@@ -30,7 +35,7 @@ ob_start();
 <div class="suggestion-content">
     <div class="alert alert-info">
         Entity <strong><?php echo $e($entityClass); ?></strong> has timestamp field(s)
-        (<code><?php echo implode('</code>, <code>', array_map($e, $timestampFields)); ?></code>)
+        (<code><?php echo implode('</code>, <code>', array_map(static fn (mixed $field): string => $e((string) $field), $timestampFields)); ?></code>)
         but no blameable fields (createdBy/updatedBy).
     </div>
 

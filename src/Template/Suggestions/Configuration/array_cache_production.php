@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
+$cacheLabel = (string) ($context['cache_label'] ?? 'Doctrine cache');
+$currentConfig = (string) ($context['current_config'] ?? 'ArrayCache');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 <div class="suggestion-header"><h4>ArrayCache in production</h4></div>
 <div class="suggestion-content">
-<div class="alert alert-danger"><?php echo $e((string) $context->cache_label); ?> is using '<?php echo $e((string) $context->current_config); ?>' in production.</div>
+<div class="alert alert-danger"><?php echo $e($cacheLabel); ?> is using '<?php echo $e($currentConfig); ?>' in production.</div>
 
 <p>This is a common misconfiguration that significantly impacts performance.</p>
 

@@ -8,8 +8,9 @@ declare(strict_types=1);
  * @var mixed $fieldName
  * @var mixed $context
  */
-['entity_class' => $entityClass, 'field_name' => $fieldName] = $context;
-$e                                                           = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$entityClass = (string) ($context['entity_class'] ?? 'Product');
+$fieldName = (string) ($context['field_name'] ?? 'price');
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>

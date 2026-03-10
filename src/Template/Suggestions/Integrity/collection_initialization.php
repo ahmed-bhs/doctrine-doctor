@@ -9,8 +9,10 @@ declare(strict_types=1);
  * @var mixed $hasConstructor
  * @var mixed $context
  */
-['entity_class' => $entityClass, 'field_name' => $fieldName, 'has_constructor' => $hasConstructor] = $context;
-$e                                                                                                 = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$entityClass = (string) ($context['entity_class'] ?? 'Entity');
+$fieldName = (string) ($context['field_name'] ?? 'items');
+$hasConstructor = (bool) ($context['has_constructor'] ?? false);
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 $lastBackslash                                                                                     = strrchr($entityClass, '\\');
 $shortClass                                                                                        = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClass;
 ob_start();

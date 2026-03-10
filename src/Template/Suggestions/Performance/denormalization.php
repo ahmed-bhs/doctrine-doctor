@@ -13,12 +13,10 @@ declare(strict_types=1);
 
 /** @var array<string, mixed> $context PHPStan: Template context */
 // Extract context for clarity
-[
-    'entity' => $entity,
-    'relation' => $relation,
-    'query_count' => $queryCount,
-    'counter_field' => $counterField,
-] = $context;
+$entity = (string) ($context['entity'] ?? 'Entity');
+$relation = (string) ($context['relation'] ?? 'items');
+$queryCount = max(0, (int) ($context['query_count'] ?? 0));
+$counterField = (string) ($context['counter_field'] ?? lcfirst($relation) . 'Count');
 
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');

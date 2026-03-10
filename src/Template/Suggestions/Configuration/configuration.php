@@ -11,9 +11,13 @@ declare(strict_types=1);
  * @var mixed $fixCommand
  * @var mixed $context
  */
-['setting' => $setting, 'current_value' => $currentValue, 'recommended_value' => $recommendedValue, 'description' => $description, 'fix_command' => $fixCommand] = $context;
-$e                                                                                                                                                               = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
-$eCode                                                                                                                                                           = fn (string $str): string => htmlspecialchars($str ?? '', ENT_NOQUOTES, 'UTF-8');
+$setting = (string) ($context['setting'] ?? 'unknown_setting');
+$currentValue = (string) ($context['current_value'] ?? '');
+$recommendedValue = (string) ($context['recommended_value'] ?? '');
+$description = (string) ($context['description'] ?? '');
+$fixCommand = (string) ($context['fix_command'] ?? '');
+$e                                                                                                                                                               = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$eCode                                                                                                                                                           = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_NOQUOTES, 'UTF-8');
 ob_start();
 ?>
 <div class="suggestion-header"><h4>Configuration Issue: <?php echo $e($setting); ?></h4></div>

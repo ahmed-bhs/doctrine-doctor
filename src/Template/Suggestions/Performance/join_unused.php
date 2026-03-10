@@ -9,8 +9,10 @@ declare(strict_types=1);
  * @var mixed $alias
  * @var mixed $context
  */
-['type' => $type, 'table' => $table, 'alias' => $alias] = $context;
-$e                                                      = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$type = (string) ($context['type'] ?? 'LEFT');
+$table = (string) ($context['table'] ?? 'related_table');
+$alias = (string) ($context['alias'] ?? 'r');
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>

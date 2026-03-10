@@ -9,8 +9,10 @@ declare(strict_types=1);
  * @var mixed $vulnType
  * @var mixed $context
  */
-['class_name' => $className, 'method_name' => $methodName, 'vulnerability_type' => $vulnType] = $context;
-$e                                                                                            = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$className = (string) ($context['class_name'] ?? 'Repository');
+$methodName = (string) ($context['method_name'] ?? 'findByUnsafeInput');
+$vulnType = (string) ($context['vulnerability_type'] ?? 'SQL injection');
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 

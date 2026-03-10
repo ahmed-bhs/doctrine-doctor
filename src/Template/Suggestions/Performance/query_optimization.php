@@ -10,7 +10,10 @@ declare(strict_types=1);
  * @var mixed $threshold
  * @var mixed $context
  */
-['code' => $code, 'optimization' => $optimization, 'execution_time' => $executionTime, 'threshold' => $threshold] = $context;
+$code = (string) ($context['code'] ?? '');
+$optimization = (string) ($context['optimization'] ?? '');
+$executionTime = (float) ($context['execution_time'] ?? 0.0);
+$threshold = (float) ($context['threshold'] ?? 0.0);
 ob_start();
 ?>
 <div class="suggestion-header"><h4>Slow Query Optimization</h4></div>

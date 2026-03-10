@@ -11,8 +11,12 @@ declare(strict_types=1);
  * @var mixed $isComposition
  * @var mixed $context
  */
-['entity_class' => $entityClass, 'field_name' => $fieldName, 'issue_type' => $issueType, 'target_entity' => $targetEntity, 'is_composition' => $isComposition] = $context;
-$e                                                                                                                                                             = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$entityClass = (string) ($context['entity_class'] ?? 'ParentEntity');
+$fieldName = (string) ($context['field_name'] ?? 'children');
+$issueType = (string) ($context['issue_type'] ?? 'missing_cascade');
+$targetEntity = (string) ($context['target_entity'] ?? 'ChildEntity');
+$isComposition = (bool) ($context['is_composition'] ?? false);
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 $lastBackslash                                                                                                                                                 = strrchr($entityClass, '\\');
 $shortClass                                                                                                                                                    = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClass;
 $lastBackslashTarget                                                                                                                                           = strrchr((string) $targetEntity, '\\');

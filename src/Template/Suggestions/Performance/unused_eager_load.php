@@ -9,7 +9,18 @@ declare(strict_types=1);
  * @var mixed $count
  * @var mixed $context
  */
-['unused_tables' => $unusedTables, 'unused_aliases' => $unusedAliases, 'count' => $count] = $context;
+$unusedTables = $context['unused_tables'] ?? ['related_table'];
+$unusedAliases = $context['unused_aliases'] ?? ['r'];
+$count = max(0, (int) ($context['count'] ?? 0));
+if (!is_array($unusedTables) || [] === $unusedTables) {
+    $unusedTables = ['related_table'];
+}
+if (!is_array($unusedAliases) || [] === $unusedAliases) {
+    $unusedAliases = ['r'];
+}
+$unusedTables = array_values(array_map(static fn (mixed $value): string => (string) $value, $unusedTables));
+$unusedAliases = array_values(array_map(static fn (mixed $value): string => (string) $value, $unusedAliases));
+$count = max($count, count($unusedTables), count($unusedAliases));
 
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');

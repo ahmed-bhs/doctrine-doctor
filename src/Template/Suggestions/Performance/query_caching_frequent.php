@@ -13,15 +13,15 @@ declare(strict_types=1);
 
 /** @var array<string, mixed> $context PHPStan: Template context */
 // Extract context for clarity
-$sql = $context['sql'] ?? '';
-$count = $context['count'] ?? 0;
-$totalTime = $context['total_time'] ?? 0.0;
-$avgTime = $context['avg_time'] ?? 0.0;
+$sql = (string) ($context['sql'] ?? '');
+$count = max(0, (int) ($context['count'] ?? 0));
+$totalTime = max(0.0, (float) ($context['total_time'] ?? 0.0));
+$avgTime = max(0.0, (float) ($context['avg_time'] ?? 0.0));
 
 // Decode HTML entities if SQL is already encoded (from Doctrine Profiler)
 $sql = html_entity_decode($sql, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-$timeSaved = $totalTime - ($avgTime + ($avgTime / 100) * ($count - 1));
-$improvement = ($timeSaved / $totalTime) * 100;
+$timeSaved = max(0.0, $totalTime - ($avgTime + ($avgTime / 100) * max(0, $count - 1)));
+$improvement = $totalTime > 0.0 ? ($timeSaved / $totalTime) * 100 : 0.0;
 
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');

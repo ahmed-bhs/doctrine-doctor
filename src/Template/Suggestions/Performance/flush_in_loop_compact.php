@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 /** @var array<string, mixed> $context */
-$flushCount = $context['flush_count'] ?? null;
-$operationsBetweenFlush = $context['operations_between_flush'] ?? null;
+$flushCount = max(0, (int) ($context['flush_count'] ?? 0));
+$operationsBetweenFlush = max(0, (int) ($context['operations_between_flush'] ?? 20));
+$estimatedGain = $flushCount > 0 ? round((1 - (ceil($flushCount / 20) / $flushCount)) * 100) : 0;
 
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
@@ -30,7 +31,7 @@ foreach ($items as $i => $item) {
 $em->flush();</code></pre></div>
 
 <p>
-    ~<?php echo round((1 - (ceil($flushCount / 20) / $flushCount)) * 100); ?>% faster
+    ~<?php echo $estimatedGain; ?>% faster
     | <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank">Docs</a>
 </p>
 </div>

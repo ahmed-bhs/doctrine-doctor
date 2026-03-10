@@ -10,8 +10,15 @@ declare(strict_types=1);
  * @var mixed $exposureType
  * @var mixed $context
  */
-['entity_class' => $entityClass, 'method_name' => $methodName, 'exposed_fields' => $exposedFields, 'exposure_type' => $exposureType] = $context;
-$e                                                                                                                                   = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$entityClass = (string) ($context['entity_class'] ?? 'User');
+$methodName = (string) ($context['method_name'] ?? 'serialize');
+$exposedFields = $context['exposed_fields'] ?? ['password'];
+$exposureType = (string) ($context['exposure_type'] ?? 'serialization');
+if (!is_array($exposedFields) || [] === $exposedFields) {
+    $exposedFields = ['password'];
+}
+$exposedFields = array_values(array_map(static fn (mixed $field): string => (string) $field, $exposedFields));
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 $lastBackslash                                                                                                                       = strrchr($entityClass, '\\');
 $shortClass                                                                                                                          = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClass;
 ob_start();
@@ -20,7 +27,7 @@ ob_start();
 <div class="suggestion-content">
 <div class="alert alert-danger"><strong>Security issue in <?php echo $e($shortClass); ?>::<?php echo $e($methodName); ?>()</strong><br>
 Exposure type: <?php echo $e($exposureType); ?><br>
-Exposed fields: <code><?php echo implode(', ', array_map($e, $exposedFields)); ?></code></div>
+Exposed fields: <code><?php echo implode(', ', array_map(static fn (mixed $field): string => $e((string) $field), $exposedFields)); ?></code></div>
 
 <p>Sensitive fields like passwords and API tokens are being serialized. This can expose them in API responses, logs, or error messages.</p>
 
