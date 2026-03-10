@@ -91,15 +91,16 @@ class JoinColumnNonPrimaryKeyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
                 continue;
             }
 
-            $referencedColumnName = $this->getReferencedColumnName($mapping);
+            $referencedColumnNames = $this->getReferencedColumnNames($mapping);
 
-            if (null === $referencedColumnName) {
+            if ([] === $referencedColumnNames) {
                 continue;
             }
 
             $primaryKeyColumns = $targetMetadata->getIdentifierColumnNames();
+            $invalidColumns = array_values(array_diff($referencedColumnNames, $primaryKeyColumns));
 
-            if (in_array($referencedColumnName, $primaryKeyColumns, true)) {
+            if ([] === $invalidColumns) {
                 continue;
             }
 
@@ -107,7 +108,7 @@ class JoinColumnNonPrimaryKeyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
                 $classMetadata->getName(),
                 $fieldName,
                 $targetEntityClass,
-                $referencedColumnName,
+                $invalidColumns,
                 $primaryKeyColumns,
             );
         }
@@ -139,43 +140,55 @@ class JoinColumnNonPrimaryKeyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
 
     /**
      * @param array<string, mixed>|object $mapping
+     * @return array<string>
      */
-    private function getReferencedColumnName(array|object $mapping): ?string
+    private function getReferencedColumnNames(array|object $mapping): array
     {
         $joinColumns = MappingHelper::getArray($mapping, 'joinColumns');
 
         if (null === $joinColumns || [] === $joinColumns) {
-            return null;
+            return [];
         }
 
-        $firstJoinColumn = reset($joinColumns);
+        $names = [];
 
-        return MappingHelper::getString($firstJoinColumn, 'referencedColumnName');
+        foreach ($joinColumns as $joinColumn) {
+            $name = MappingHelper::getString($joinColumn, 'referencedColumnName');
+
+            if (null !== $name) {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
     }
 
     /**
+     * @param array<string> $invalidColumns
      * @param array<string> $primaryKeyColumns
      */
     private function createIssue(
         string $entityClass,
         string $fieldName,
         string $targetEntityClass,
-        string $referencedColumnName,
+        array $invalidColumns,
         array $primaryKeyColumns,
     ): IssueInterface {
         $shortEntity = $this->shortClassName($entityClass);
         $shortTarget = $this->shortClassName($targetEntityClass);
+        $invalidColumnsStr = implode(', ', $invalidColumns);
 
         $description = sprintf(
-            'Association "%s::%s" references column "%s" on target entity "%s", '
-            . 'but this column is not a primary key (primary key: %s). '
+            'Association "%s::%s" references column(s) "%s" on target entity "%s", '
+            . 'but %s not part of the primary key (primary key: %s). '
             . 'Doctrine will treat the referenced column value as the identifier for lazy-loading proxies, '
             . 'which can lead to incorrect data being loaded. '
             . 'This is a known Doctrine ORM limitation that cannot be validated at runtime.',
             $shortEntity,
             $fieldName,
-            $referencedColumnName,
+            $invalidColumnsStr,
             $shortTarget,
+            count($invalidColumns) > 1 ? 'these are' : 'this is',
             implode(', ', $primaryKeyColumns),
         );
 
@@ -186,7 +199,7 @@ class JoinColumnNonPrimaryKeyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
                     'Refactor the association to reference the primary key of %s instead of "%s", '
                     . 'or use the Doctrine Validate Schema command to detect this at build time.',
                     $shortTarget,
-                    $referencedColumnName,
+                    $invalidColumnsStr,
                 ),
                 'code' => $this->buildSuggestionCode($shortEntity, $fieldName, $shortTarget, $primaryKeyColumns),
                 'file_path' => $this->resolveFilePath($entityClass, $fieldName),
@@ -219,15 +232,23 @@ class JoinColumnNonPrimaryKeyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         string $shortTarget,
         array $primaryKeyColumns,
     ): string {
-        $pkColumn = $primaryKeyColumns[0] ?? 'id';
-
         $code = "// In {$shortEntity}:\n\n";
         $code .= "// PROBLEMATIC - references non-primary key:\n";
         $code .= "// #[ORM\\JoinColumn(name: '{$fieldName}_id', referencedColumnName: '<non_pk_column>')]\n";
         $code .= "// private {$shortTarget} \${$fieldName};\n\n";
         $code .= "// CORRECT - reference the primary key:\n";
         $code .= "#[ORM\\ManyToOne(targetEntity: {$shortTarget}::class)]\n";
-        $code .= "#[ORM\\JoinColumn(name: '{$fieldName}_id', referencedColumnName: '{$pkColumn}')]\n";
+
+        if (count($primaryKeyColumns) === 1) {
+            $code .= "#[ORM\\JoinColumn(name: '{$fieldName}_id', referencedColumnName: '{$primaryKeyColumns[0]}')]\n";
+        } else {
+            $code .= "#[ORM\\JoinColumns([\n";
+            foreach ($primaryKeyColumns as $pkCol) {
+                $code .= "    new ORM\\JoinColumn(name: '{$fieldName}_{$pkCol}', referencedColumnName: '{$pkCol}'),\n";
+            }
+            $code .= "])]\n";
+        }
+
         $code .= "private {$shortTarget} \${$fieldName};";
 
         return $code;

@@ -45,7 +45,7 @@ final class JoinColumnNonPrimaryKeyAnalyzerTest extends TestCase
 
         $firstIssue = reset($nonPkIssues);
         self::assertStringContainsString('code', (string) $firstIssue->getDescription());
-        self::assertStringContainsString('not a primary key', (string) $firstIssue->getDescription());
+        self::assertStringContainsString('not part of the primary key', (string) $firstIssue->getDescription());
     }
 
     #[Test]
