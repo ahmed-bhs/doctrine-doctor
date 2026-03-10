@@ -60,6 +60,8 @@ class IntegrityIssue extends AbstractIssue
             IssueType::AUTO_INCREMENT_EDUCATIONAL->value,
             IssueType::UUID_V4_PERFORMANCE->value,
             IssueType::MIXED_ID_STRATEGIES->value,
+            IssueType::JOIN_COLUMN_NON_PRIMARY_KEY->value,
+            IssueType::DUPLICATE_PRIVATE_FIELD_IN_HIERARCHY->value,
         ];
     }
 
