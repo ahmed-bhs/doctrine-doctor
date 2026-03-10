@@ -266,17 +266,22 @@ final class OnDeleteCascadeMismatchAnalyzerTest extends TestCase
     #[Test]
     public function it_sets_correct_severity_for_mismatches(): void
     {
-        // Arrange
         $queries = QueryDataBuilder::create()->build();
 
-        // Act
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert: All mismatches should be warning severity
         $issuesArray = $issues->toArray();
 
         foreach ($issuesArray as $issue) {
-            self::assertEquals('warning', $issue->getSeverity()->value, 'All mismatches should be warning severity');
+            $data = $issue->getData();
+            $type = $data['mismatch_type'] ?? '';
+            $severity = $issue->getSeverity()->value;
+
+            if (in_array($type, ['orm_cascade_db_setnull', 'orm_orphan_db_setnull'], true)) {
+                self::assertEquals('critical', $severity, "Type '$type' should be critical");
+            } else {
+                self::assertEquals('warning', $severity, "Type '$type' should be warning");
+            }
         }
     }
 
