@@ -282,11 +282,8 @@ class OnDeleteCascadeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     private function determineSeverity(string $mismatchType): Severity
     {
         return match ($mismatchType) {
-            'orm_cascade_db_setnull' => Severity::WARNING,  // Was 'warning' - data integrity risk
-            'orm_orphan_db_setnull'  => Severity::WARNING,  // Was 'warning' - orphan removal issue
-            'db_cascade_no_orm'      => Severity::WARNING,  // Was 'warning' - configuration mismatch
-            'orm_cascade_no_db'      => Severity::WARNING,  // Was 'warning' - configuration mismatch
-            default                  => Severity::WARNING,
+            'orm_cascade_db_setnull', 'orm_orphan_db_setnull' => Severity::CRITICAL,
+            default => Severity::WARNING,
         };
     }
 
@@ -358,11 +355,12 @@ class OnDeleteCascadeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         return $this->suggestionFactory->createFromTemplate(
             'on_delete_cascade_mismatch',
             [
-                'entity_class' => $shortClassName,
-                'target_class' => $shortTargetName,
-                'field_name'   => $fieldName,
-                'orm_cascade'  => $ormCascadeString,
-                'db_on_delete' => $dbOnDelete,
+                'entity_class'  => $shortClassName,
+                'target_class'  => $shortTargetName,
+                'field_name'    => $fieldName,
+                'orm_cascade'   => $ormCascadeString,
+                'db_on_delete'  => $dbOnDelete,
+                'mismatch_type' => $mismatch['type'],
             ],
             new SuggestionMetadata(
                 type: SuggestionType::configuration(),
