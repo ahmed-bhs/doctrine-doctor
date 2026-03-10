@@ -91,6 +91,7 @@ enum IssueType: string
     case ENTITY_DETACHED_IN_ASSOCIATION = 'entity_detached_in_association';
     case JOIN_COLUMN_NON_PRIMARY_KEY = 'join_column_non_primary_key';
     case DUPLICATE_PRIVATE_FIELD_IN_HIERARCHY = 'duplicate_private_field_in_hierarchy';
+    case COMPOSITE_KEY_COMPLEXITY = 'composite_key_complexity';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';
