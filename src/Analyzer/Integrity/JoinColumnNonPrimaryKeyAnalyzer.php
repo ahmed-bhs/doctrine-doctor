@@ -239,7 +239,7 @@ class JoinColumnNonPrimaryKeyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         $code .= "// CORRECT - reference the primary key:\n";
         $code .= "#[ORM\\ManyToOne(targetEntity: {$shortTarget}::class)]\n";
 
-        if (count($primaryKeyColumns) === 1) {
+        if (1 === count($primaryKeyColumns)) {
             $code .= "#[ORM\\JoinColumn(name: '{$fieldName}_id', referencedColumnName: '{$primaryKeyColumns[0]}')]\n";
         } else {
             $code .= "#[ORM\\JoinColumns([\n";
