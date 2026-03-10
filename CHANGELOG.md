@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-03-10
+
+### Added
+
+- New `JoinColumnNonPrimaryKeyAnalyzer`: detects associations where `referencedColumnName` points to a non-primary-key column, which causes incorrect lazy-loading proxy behavior.
+- New `DuplicatePrivateFieldInHierarchyAnalyzer`: detects private fields with the same name in an entity and its mapped parent classes, which triggers MappingException or unpredictable Collection filtering.
+- Configuration nodes for `join_column_non_primary_key`, `duplicate_private_field_in_hierarchy`, `overprivileged_database_user`, and `hardcoded_database_credentials` analyzers.
+
+## [2.3.0] - 2026-03-08
+
+### Fixed
+
+- DivisionByZero premature dedup, PHPDoc return type, blameable template duplicates.
+- N+1 descriptions, removed fictitious `ORM\BatchFetch`, fixed `isVendorCode` detection.
+- False positives across 8 analyzers.
+- SQL injection detection heuristics.
+- PHPStan and PHPMD violations: unused constant, type assertions, short variable rename.
+
+### Changed
+
+- Use Webmozart Assert instead of native assert for type narrowing.
+- Analyzer and suggestion wording polish.
+- Analyzer config values made user-configurable with config coverage gaps fixed.
+
 ## [2.2.2] - 2026-03-04
 
 ### Changed
