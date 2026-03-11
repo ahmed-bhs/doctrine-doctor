@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-03-11
+
+### Added
+
+- New `OneToOneInverseSideAnalyzer`: detects bidirectional OneToOne `mappedBy` sides that silently force Doctrine to execute N+1 queries on every load, even when the relation is never accessed. Suggests flipping the owning side, going unidirectional, or using a fetch join.
+- Configuration node for `one_to_one_inverse_side` analyzer.
+
+### Changed
+
+- `CompositeKeyComplexityAnalyzer`: use `ShortClassNameTrait`, proper return types, and `MappingHelper` for Doctrine 2/3/4 compatibility.
+
 ## [2.6.0] - 2026-03-10
 
 ### Added
