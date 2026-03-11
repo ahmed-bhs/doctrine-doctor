@@ -29,7 +29,7 @@ use Webmozart\Assert\Assert;
  *
  * Example:
  * class Order {
- *     @ManyToOne(targetEntity="Customer", cascade={"remove"})
+ *     #[ORM\ManyToOne(targetEntity: Customer::class, cascade: ['remove'])]
  *     private Customer $customer;
  * }
  * $em->remove($order);

@@ -27,12 +27,7 @@ ob_start();
     <h4>Fix</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($parentClass); ?> {
-    /**
-     * @OneToMany(
-     *     cascade={"persist", "remove"},
-     *     orphanRemoval=true
-     * )
-     */
+    #[ORM\OneToMany(cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $<?php echo $e($parentField); ?>;
 }</code></pre>
     </div>
