@@ -63,6 +63,7 @@ class IntegrityIssue extends AbstractIssue
             IssueType::JOIN_COLUMN_NON_PRIMARY_KEY->value,
             IssueType::DUPLICATE_PRIVATE_FIELD_IN_HIERARCHY->value,
             IssueType::COMPOSITE_KEY_COMPLEXITY->value,
+            IssueType::ONE_TO_ONE_INVERSE_SIDE->value,
         ];
     }
 
