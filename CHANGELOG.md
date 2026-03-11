@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.1] - 2026-03-11
+
+### Fixed
+
+- `SQLInjectionInRawQueriesAnalyzer`: now detects unparameterized literals in WHERE clauses of raw SQL queries as an injection risk, instead of only flagging active attack patterns.
+- `DQLInjectionAnalyzer`: now detects Doctrine-generated SQL with concatenated literals and empty bound parameters, indicating unsafe DQL string concatenation.
+
 ## [2.7.0] - 2026-03-11
 
 ### Added
