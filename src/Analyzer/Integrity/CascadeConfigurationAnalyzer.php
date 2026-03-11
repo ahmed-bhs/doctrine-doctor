@@ -233,9 +233,38 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
     private function checkDangerousCascadeRemove(string $entityClass, string $fieldName, array|object $mapping): ?IntegrityIssue
     {
+        $type = $this->getAssociationTypeConstant($mapping);
+        $orphanRemoval = MappingHelper::getBool($mapping, 'orphanRemoval') ?? false;
+
+        if (ClassMetadata::ONE_TO_MANY === $type && $orphanRemoval) {
+            return null;
+        }
+
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? '';
 
-        // Only flag if target is an independent entity
+        if (ClassMetadata::ONE_TO_MANY === $type) {
+            try {
+                /** @var class-string $targetEntity */
+                $targetMetadata = $this->entityManager->getMetadataFactory()->getMetadataFor($targetEntity);
+                foreach ($targetMetadata->getAssociationMappings() as $assoc) {
+                    if (ClassMetadata::MANY_TO_ONE !== $this->getAssociationTypeConstant($assoc)) {
+                        continue;
+                    }
+                    $joinColumns = MappingHelper::getArray($assoc, 'joinColumns') ?? [];
+                    if ([] !== $joinColumns) {
+                        $firstJoinColumn = reset($joinColumns);
+                        $nullable = is_array($firstJoinColumn)
+                            ? ($firstJoinColumn['nullable'] ?? true)
+                            : ($firstJoinColumn->nullable ?? true);
+                        if (!$nullable) {
+                            return null;
+                        }
+                    }
+                }
+            } catch (\Throwable) {
+            }
+        }
+
         if (!$this->isIndependentEntity($targetEntity)) {
             return null;
         }
