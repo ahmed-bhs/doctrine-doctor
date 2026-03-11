@@ -36,7 +36,7 @@ use Webmozart\Assert\Assert;
  * you risk creating duplicates instead of using existing records.
  * Example:
  * class Order {
- *     @ManyToOne(targetEntity="Customer", cascade={"persist"})
+ *     #[ORM\ManyToOne(targetEntity: Customer::class, cascade: ['persist'])]
  *     private Customer $customer;
  * }
  * $customer = new Customer();  // Should load existing, not create new!

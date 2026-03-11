@@ -35,11 +35,12 @@ use Webmozart\Assert\Assert;
  * - Direct SQL DELETE uses DB onDelete constraint
  * Example:
  * class Order {
- *     @OneToMany(cascade={"remove"})
+ *     #[ORM\OneToMany(cascade: ['remove'])]
  *     private Collection $items;
  * }
  * class OrderItem {
- *     @ManyToOne @JoinColumn(onDelete="SET NULL")
+ *     #[ORM\ManyToOne]
+ *     #[ORM\JoinColumn(onDelete: 'SET NULL')]
  * }
  * Result: $em->remove($order) deletes items, but SQL DELETE sets NULL!
  */
