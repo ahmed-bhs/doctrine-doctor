@@ -296,8 +296,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_has_correct_analyzer_metadata(): void
     {
-        // No getName() or getCategory() in this analyzer based on the code
-        // Just verify it runs without errors
         $queries = QueryDataBuilder::create()->build();
         $issues = $this->analyzer->analyze($queries);
 
@@ -307,15 +305,95 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_handles_exceptions_gracefully(): void
     {
-        // Arrange
         $queries = QueryDataBuilder::create()->build();
 
-        // Act: Even with potential reflection errors, should not throw
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert: Should return valid collection
         self::assertIsObject($issues);
         $issuesArray = $issues->toArray();
         self::assertIsArray($issuesArray);
+    }
+
+    #[Test]
+    public function it_detects_raw_sql_with_literal_in_where_and_no_params(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM orders WHERE status = 'pending'")
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        $issuesArray = $issues->toArray();
+        self::assertCount(1, $issuesArray);
+        self::assertStringContainsString('Unparameterized literal', $issuesArray[0]->getTitle());
+        self::assertEquals('critical', $issuesArray[0]->getSeverity()->value);
+    }
+
+    #[Test]
+    public function it_detects_active_attack_pattern_in_runtime_query(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM users WHERE name = '' OR '1'='1'")
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        $issuesArray = $issues->toArray();
+        self::assertCount(1, $issuesArray);
+        self::assertStringContainsString('Active attack', $issuesArray[0]->getTitle());
+        self::assertEquals('critical', $issuesArray[0]->getSeverity()->value);
+    }
+
+    #[Test]
+    public function it_ignores_runtime_query_with_bound_params(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithParams(
+                "SELECT * FROM orders WHERE status = ?",
+                ['pending'],
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(0, $issues->toArray());
+    }
+
+    #[Test]
+    public function it_ignores_doctrine_generated_sql(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery("SELECT t0_.id AS id_1, t0_.status AS status_2 FROM orders t0_ WHERE t0_.status = 'pending'")
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(0, $issues->toArray());
+    }
+
+    #[Test]
+    public function it_ignores_raw_sql_without_where_literals(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT COUNT(*) FROM orders')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(0, $issues->toArray());
+    }
+
+    #[Test]
+    public function it_detects_double_quoted_literal_in_where(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM users WHERE email = "admin@test.com"')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        $issuesArray = $issues->toArray();
+        self::assertCount(1, $issuesArray);
+        self::assertStringContainsString('Unparameterized literal', $issuesArray[0]->getTitle());
     }
 }
