@@ -278,9 +278,9 @@ final class OnDeleteCascadeMismatchAnalyzerTest extends TestCase
             $severity = $issue->getSeverity()->value;
 
             if (in_array($type, ['orm_cascade_db_setnull', 'orm_orphan_db_setnull'], true)) {
-                self::assertEquals('critical', $severity, "Type '$type' should be critical");
+                self::assertEquals('critical', $severity, "Type '{$type}' should be critical");
             } else {
-                self::assertEquals('warning', $severity, "Type '$type' should be warning");
+                self::assertEquals('warning', $severity, "Type '{$type}' should be warning");
             }
         }
     }
