@@ -11,11 +11,14 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
+use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
@@ -38,6 +41,8 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  */
 class CompositeKeyComplexityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use ShortClassNameTrait;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
@@ -107,7 +112,7 @@ class CompositeKeyComplexityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
                 ' This entity is referenced by %d other entit%s (%s), which must all map the full composite key.',
                 count($referencedBy),
                 1 === count($referencedBy) ? 'y' : 'ies',
-                implode(', ', array_map(fn (string $fqcn): string => $this->getShortClassName($fqcn), $referencedBy)),
+                implode(', ', array_map(fn (string $fqcn): string => $this->shortClassName($fqcn), $referencedBy)),
             );
             $severity = Severity::critical();
         }
@@ -146,7 +151,7 @@ class CompositeKeyComplexityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
             }
 
             foreach ($metadata->getAssociationMappings() as $mapping) {
-                if (($mapping['targetEntity'] ?? '') === $targetClass) {
+                if (MappingHelper::getString($mapping, 'targetEntity') === $targetClass) {
                     $referencedBy[] = $metadata->getName();
                     break;
                 }
@@ -161,7 +166,7 @@ class CompositeKeyComplexityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         string $shortName,
         array $identifierFields,
         array $referencedBy,
-    ): mixed {
+    ): SuggestionInterface {
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Integrity/composite_key_complexity',
             context: [
@@ -169,7 +174,7 @@ class CompositeKeyComplexityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
                 'short_name' => $shortName,
                 'identifier_fields' => $identifierFields,
                 'column_count' => count($identifierFields),
-                'referenced_by' => array_map(fn (string $fqcn): string => $this->getShortClassName($fqcn), $referencedBy),
+                'referenced_by' => array_map(fn (string $fqcn): string => $this->shortClassName($fqcn), $referencedBy),
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
@@ -204,12 +209,5 @@ class CompositeKeyComplexityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         } catch (\Exception) {
             return null;
         }
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-
-        return end($parts);
     }
 }
