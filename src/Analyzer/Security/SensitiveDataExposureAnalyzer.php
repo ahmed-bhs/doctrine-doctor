@@ -595,17 +595,11 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
 ";
 
-        $code .= "// Or with Doctrine annotations:
+        $code .= "#[Ignore]
 ";
-        $code .= "/**
+        $code .= "#[ORM\Column(type: Types::STRING)]
 ";
-        $code .= " * @Ignore
-";
-        $code .= " * @Column(type=\"string\")
-";
-        $code .= " */
-";
-        $code .= sprintf('private $%s;', $fieldName);
+        $code .= sprintf('private string $%s;', $fieldName);
 
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Integrity/code_suggestion',

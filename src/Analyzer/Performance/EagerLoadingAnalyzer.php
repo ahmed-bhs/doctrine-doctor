@@ -145,10 +145,7 @@ class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $suggestions[] = sprintf('// Review if all %d JOINs are necessary', $joinCount);
         $suggestions[] = '';
         $suggestions[] = '// Option 1: Use fetch="EXTRA_LAZY" for collections';
-        $suggestions[] = '/**';
-        $suggestions[] = " * @ORM\OneToMany(targetEntity=\"Item\", mappedBy=\"parent\", fetch=\"EXTRA_LAZY\")";
-        $suggestions[] = ' *';
-        $suggestions[] = ' */';
+        $suggestions[] = '#[ORM\OneToMany(targetEntity: Item::class, mappedBy: \'parent\', fetch: \'EXTRA_LAZY\')]';
         $suggestions[] = 'private Collection $items;';
         $suggestions[] = '';
         $suggestions[] = '// Option 2: Split into multiple queries if not all data needed immediately';

@@ -35,7 +35,7 @@ use Webmozart\Assert\Assert;
  * Otherwise, removing a child from the collection leaves it orphaned in the DB.
  * Example:
  * class Order {
- *     @OneToMany(targetEntity="OrderItem", cascade={"remove"})
+ *     #[ORM\OneToMany(targetEntity: OrderItem::class, cascade: ['remove'])]
  *     private Collection $items;
  * }
  * $order->getItems()->remove($item);

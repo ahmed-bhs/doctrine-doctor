@@ -351,33 +351,16 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             MappingHelper::getString($mapping, 'targetEntity') ?? '',
         );
 
-        if ($this->isAttribute()) {
-            $code .= "#[OneToMany(
+        $code .= "#[OneToMany(
 ";
-            $code .= "    targetEntity: {$targetEntityName},
+        $code .= "    targetEntity: {$targetEntityName},
 ";
-            $code .= "    mappedBy: '{$mappedBy}',
+        $code .= "    mappedBy: '{$mappedBy}',
 ";
-            $code .= "    cascade: {$recommendedCascade}  // Changed from ['all']
+        $code .= "    cascade: {$recommendedCascade}
 ";
-            $code .= ")]
+        $code .= ")]
 ";
-        } else {
-            $code .= "/**
-";
-            $code .= " * @ORM\OneToMany(
-";
-            $code .= " *     targetEntity=\"{$targetEntityName}\",
-";
-            $code .= " *     mappedBy=\"{$mappedBy}\",
-";
-            $code .= " *     cascade={\"persist\", \"remove\"}  // Changed from {\"all\"}
-";
-            $code .= " * )
-";
-            $code .= " */
-";
-        }
 
         $code .= sprintf('private Collection $%s;', $fieldName);
 
@@ -415,33 +398,14 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         $code .= "// Remove cascade remove to prevent accidental deletion
 ";
 
-        if ($this->isAttribute()) {
-            $code .= "#[OneToMany(
+        $code .= "#[OneToMany(
 ";
-            $code .= "    targetEntity: {$targetEntityName},
+        $code .= "    targetEntity: {$targetEntityName},
 ";
-            $code .= "    mappedBy: '{$mappedBy}'
+        $code .= "    mappedBy: '{$mappedBy}'
 ";
-            $code .= "    // No cascade - entities are independent
+        $code .= ")]
 ";
-            $code .= ")]
-";
-        } else {
-            $code .= "/**
-";
-            $code .= " * @ORM\OneToMany(
-";
-            $code .= " *     targetEntity=\"{$targetEntityName}\",
-";
-            $code .= " *     mappedBy=\"{$mappedBy}\"
-";
-            $code .= " * )
-";
-            $code .= " * No cascade - entities are independent
-";
-            $code .= " */
-";
-        }
 
         $code .= sprintf('private Collection $%s;', $fieldName);
 
@@ -473,33 +437,16 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
 ";
 
-        if ($this->isAttribute()) {
-            $code .= "#[OneToMany(
+        $code .= "#[OneToMany(
 ";
-            $code .= "    targetEntity: {$targetEntityName},
+        $code .= "    targetEntity: {$targetEntityName},
 ";
-            $code .= "    mappedBy: '{$mappedBy}',
+        $code .= "    mappedBy: '{$mappedBy}',
 ";
-            $code .= "    cascade: ['persist', 'remove']  // Add cascade for composition
+        $code .= "    cascade: ['persist', 'remove']
 ";
-            $code .= ")]
+        $code .= ")]
 ";
-        } else {
-            $code .= "/**
-";
-            $code .= " * @ORM\OneToMany(
-";
-            $code .= " *     targetEntity=\"{MappingHelper::getString({$mapping}, 'targetEntity')}\",
-";
-            $code .= " *     mappedBy=\"{$mappedBy}\",
-";
-            $code .= " *     cascade={\"persist\", \"remove\"}  // Add cascade for composition
-";
-            $code .= " * )
-";
-            $code .= " */
-";
-        }
 
         $code .= sprintf('private Collection $%s;', $fieldName);
 
@@ -517,13 +464,6 @@ class CascadeConfigurationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
                 tags: ['code-quality'],
             ),
         );
-    }
-
-    private function isAttribute(): bool
-    {
-        // Simple heuristic: check if we're using PHP 8 attributes vs annotations
-        // In practice, this would need more sophisticated detection
-        return PHP_VERSION_ID >= 80000;
     }
 
     /**

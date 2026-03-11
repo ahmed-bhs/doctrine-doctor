@@ -37,11 +37,12 @@ use Webmozart\Assert\Assert;
  * - orphanRemoval without cascade="persist"
  * Example:
  * class Order {
- *     @OneToMany(orphanRemoval=true)
+ *     #[ORM\OneToMany(orphanRemoval: true)]
  *     private Collection $items;
  * }
  * class OrderItem {
- *     @ManyToOne @JoinColumn(nullable=true)  //  Inconsistent!
+ *     #[ORM\ManyToOne]
+ *     #[ORM\JoinColumn(nullable: true)]  //  Inconsistent!
  *     private ?Order $order;
  * }
  */

@@ -31,7 +31,7 @@ ob_start();
     <h4>Current Anti-Pattern</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
-    /** @Column(type="integer") */
+    #[ORM\Column(type: Types::INTEGER)]
     private int $<?php echo $e($fieldName); ?>;
 
     public function get<?php echo ucfirst((string) $fieldName); ?>(): int {
@@ -43,7 +43,7 @@ ob_start();
     <h4>Solution: Use Proper Object Relations</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
-    /** @<?php echo $e($associationType); ?>(targetEntity="<?php echo $e($targetEntity); ?>") */
+    #[ORM\<?php echo $e($associationType); ?>(targetEntity: <?php echo $e($targetEntity); ?>::class)]
     private <?php echo $e($targetEntity); ?> $<?php echo $e(rtrim((string) $fieldName, 'Id_')); ?>;
 
     public function get<?php echo ucfirst(rtrim((string) $fieldName, 'Id_')); ?>(): <?php echo $e($targetEntity); ?> {

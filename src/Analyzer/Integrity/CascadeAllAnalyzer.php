@@ -37,7 +37,7 @@ use Webmozart\Assert\Assert;
  * - Unpredictable behavior in production
  * Example of CRITICAL issue:
  * class Order {
- *     @ManyToOne(targetEntity="Customer", cascade={"all"})
+ *     #[ORM\ManyToOne(targetEntity: Customer::class, cascade: ['all'])]
  *     private Customer $customer;
  * }
  * → Deleting an Order will DELETE the Customer!
@@ -251,21 +251,21 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         $suggestions = [
             'cascade="all" should be avoided',
             '',
-            sprintf('Current: @%s(cascade={"all"}) private %s $%s', $type, $shortTargetName, $fieldName),
+            sprintf('Current: #[ORM\%s(cascade: [\'all\'])] private %s $%s', $type, $shortTargetName, $fieldName),
         ];
 
         // Provide specific recommendations based on association type
         if ('ManyToOne' === $type || 'ManyToMany' === $type) {
             $suggestions[] = sprintf('→ Risks: duplicate %ss and data loss on delete', $shortTargetName);
             $suggestions[] = '';
-            $suggestions[] = sprintf('Solution: @%s private %s $%s (no cascade)', $type, $shortTargetName, $fieldName);
+            $suggestions[] = sprintf('Solution: #[ORM\%s] private %s $%s (no cascade)', $type, $shortTargetName, $fieldName);
         } elseif ('OneToMany' === $type) {
             $suggestions[] = '';
             $suggestions[] = 'For composition (parent owns children):';
-            $suggestions[] = sprintf('@OneToMany(cascade={"persist","remove"}, orphanRemoval=true)');
+            $suggestions[] = "#[ORM\OneToMany(cascade: ['persist', 'remove'], orphanRemoval: true)]";
         } else {
             $suggestions[] = '';
-            $suggestions[] = 'Composition: cascade={"persist","remove"}, orphanRemoval=true';
+            $suggestions[] = "Composition: cascade: ['persist', 'remove'], orphanRemoval: true";
             $suggestions[] = 'Association: no cascade';
         }
 

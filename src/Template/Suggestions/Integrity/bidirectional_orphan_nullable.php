@@ -31,12 +31,13 @@ ob_start();
     <h4>Current code</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($parentClass); ?> {
-    /** @OneToMany(orphanRemoval=true) */
+    #[ORM\OneToMany(orphanRemoval: true)]
     private Collection $<?php echo $e($parentField); ?>;
 }
 
 class <?php echo $e($childClass); ?> {
-    /** @ManyToOne @JoinColumn(nullable=true) */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
     private ?<?php echo $e($parentClass); ?> $<?php echo $e($childField); ?>;
 }</code></pre>
     </div>
@@ -44,7 +45,8 @@ class <?php echo $e($childClass); ?> {
     <h4>Fix</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($childClass); ?> {
-    /** @ManyToOne @JoinColumn(nullable=false, onDelete="CASCADE") */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private <?php echo $e($parentClass); ?> $<?php echo $e($childField); ?>;
 }</code></pre>
     </div>

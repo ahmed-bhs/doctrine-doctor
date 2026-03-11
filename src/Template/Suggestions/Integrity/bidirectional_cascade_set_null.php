@@ -30,12 +30,13 @@ ob_start();
     <h4>Fix</h4>
     <div class="query-item">
         <pre><code class="language-php">class <?php echo $e($parentClass); ?> {
-    /** @OneToMany(cascade={"remove"}) */
+    #[ORM\OneToMany(cascade: ['remove'])]
     private Collection $<?php echo $e($parentField); ?>;
 }
 
 class <?php echo $e($childClass); ?> {
-    /** @ManyToOne @JoinColumn(nullable=false, onDelete="CASCADE") */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private <?php echo $e($parentClass); ?> $<?php echo $e($childField); ?>;
 }</code></pre>
     </div>

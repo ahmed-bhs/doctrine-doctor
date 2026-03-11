@@ -35,7 +35,7 @@ use Webmozart\Assert\Assert;
  * - But deleting the parent does NOT delete children (no cascade remove)
  * Example:
  *  class Order {
- *     @OneToMany(orphanRemoval=true)
+ *     #[ORM\OneToMany(orphanRemoval: true)]
  *     private Collection $items;
  * }
  * Behavior:
