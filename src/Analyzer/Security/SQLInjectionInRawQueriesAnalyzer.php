@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Security;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\DQLPatternMatcher;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -51,13 +52,17 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 
     private readonly PhpCodeParser $phpCodeParser;
 
+    private readonly DQLPatternMatcher $dqlPatternMatcher;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly ?LoggerInterface $logger = null,
         ?PhpCodeParser $phpCodeParser = null,
+        ?DQLPatternMatcher $dqlPatternMatcher = null,
     ) {
         $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
+        $this->dqlPatternMatcher = $dqlPatternMatcher ?? new DQLPatternMatcher();
     }
 
     /**
@@ -128,73 +133,78 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         );
     }
 
-    /**
-     * Analyze a single query for SQL injection vulnerabilities.
-     */
     private function analyzeQuery(\AhmedBhs\DoctrineDoctor\DTO\QueryData $queryData): ?SecurityIssue
     {
         $sql = $queryData->sql;
         $params = $queryData->params;
 
-        // Check if this is a raw SQL query (SELECT, INSERT, UPDATE, DELETE)
         if (1 !== preg_match('/^\s*(SELECT|INSERT|UPDATE|DELETE)/i', $sql)) {
             return null;
         }
 
-        // If query has parameters, it's likely using prepared statements - generally safe
         if (!empty($params)) {
             return null;
         }
 
-        // Check for SQL injection patterns
-        $hasInjectionPattern = $this->detectRuntimeInjectionPatterns($sql);
-
-        if (!$hasInjectionPattern) {
+        if ($this->dqlPatternMatcher->hasDoctrineSQLPattern($sql)) {
             return null;
         }
 
-        // Create issue for detected SQL injection vulnerability
-        $description = sprintf(
-            'Detected potential SQL injection in query: %s. ' .
-            'The query contains suspicious patterns and no bound parameters. ' .
-            'Always use prepared statements with parameter binding to prevent SQL injection attacks.',
-            substr($sql, 0, 100) . (strlen($sql) > 100 ? '...' : ''),
-        );
+        $hasActiveAttack = $this->detectActiveAttackPatterns($sql);
 
-        return new SecurityIssue([
-            'title' => 'SQL Injection: Suspicious query without parameters',
-            'description' => $description,
-            'severity' => 'critical',
-            'suggestion' => $this->createRuntimeQuerySuggestion($sql),
-            'backtrace' => $queryData->backtrace,
-            'queries' => [$queryData],
-        ]);
+        if ($hasActiveAttack) {
+            return new SecurityIssue([
+                'title' => 'SQL Injection: Active attack pattern detected',
+                'description' => sprintf(
+                    'Detected active SQL injection attack in query: %s. '
+                    . 'The query contains malicious patterns (e.g. OR 1=1, UNION SELECT) and no bound parameters.',
+                    substr($sql, 0, 100) . (strlen($sql) > 100 ? '...' : ''),
+                ),
+                'severity' => 'critical',
+                'suggestion' => $this->createRuntimeQuerySuggestion($sql),
+                'backtrace' => $queryData->backtrace,
+                'queries' => [$queryData],
+            ]);
+        }
+
+        if ($this->hasLiteralInWhereClause($sql)) {
+            return new SecurityIssue([
+                'title' => 'SQL Injection Risk: Unparameterized literal in raw query',
+                'description' => sprintf(
+                    'Raw SQL query contains literal values in WHERE clause without parameter binding: %s. '
+                    . 'This indicates string concatenation was used to build the query, '
+                    . 'which is vulnerable to SQL injection. Use prepared statements with bound parameters.',
+                    substr($sql, 0, 100) . (strlen($sql) > 100 ? '...' : ''),
+                ),
+                'severity' => 'critical',
+                'suggestion' => $this->createRuntimeQuerySuggestion($sql),
+                'backtrace' => $queryData->backtrace,
+                'queries' => [$queryData],
+            ]);
+        }
+
+        return null;
     }
 
-    /**
-     * Detect SQL injection patterns in runtime queries.
-     */
-    private function detectRuntimeInjectionPatterns(string $sql): bool
+    private function detectActiveAttackPatterns(string $sql): bool
     {
         $patterns = [
-            // SQL comment injection
-            '/--/',
-            '/\/\*.*?\*\//',
-            // Classic injection patterns
             '/\'\s*OR\s*[\'"]?\d+[\'"]?\s*=\s*[\'"]?\d+/i',
             '/\'\s*OR\s*TRUE/i',
-            // UNION injection
             '/UNION\s+SELECT/i',
-            // Stacked queries
             '/;\s*DROP\s+TABLE/i',
             '/;\s*DELETE\s+FROM/i',
-            // Time-based blind injection
             '/SLEEP\s*\(/i',
             '/BENCHMARK\s*\(/i',
         ];
 
-        Assert::isIterable($patterns, '$patterns must be iterable');
         return array_any($patterns, fn ($pattern) => 1 === preg_match($pattern, $sql));
+    }
+
+    private function hasLiteralInWhereClause(string $sql): bool
+    {
+        return 1 === preg_match("/WHERE\s+.+=\s*'[^']*'/i", $sql)
+            || 1 === preg_match('/WHERE\s+.+=\s*"[^"]*"/i', $sql);
     }
 
     /**

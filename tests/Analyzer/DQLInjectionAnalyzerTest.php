@@ -352,17 +352,60 @@ final class DQLInjectionAnalyzerTest extends TestCase
     #[Test]
     public function it_does_not_flag_safe_parameterized_queries(): void
     {
-        // Arrange: Only safe queries with proper parameters
         $queries = QueryDataBuilder::create()
             ->addQuery('SELECT * FROM users WHERE id = ?')
             ->addQuery('SELECT * FROM products WHERE name = :name')
             ->addQuery('SELECT * FROM orders WHERE user_id = :userId AND status = :status')
             ->build();
 
-        // Act
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert: Safe queries should not trigger any issues
         self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_detects_doctrine_sql_with_literal_and_no_params(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery("SELECT t0_.id AS id_1, t0_.status AS status_2 FROM orders t0_ WHERE t0_.status = 'pending'")
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        $issuesArray = $issues->toArray();
+        self::assertCount(1, $issuesArray);
+        self::assertStringContainsString('concatenated literal', $issuesArray[0]->getTitle());
+        self::assertEquals('critical', $issuesArray[0]->getSeverity()->value);
+    }
+
+    #[Test]
+    public function it_ignores_doctrine_sql_with_bound_params(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithParams(
+                'SELECT t0_.id AS id_1, t0_.status AS status_2 FROM orders t0_ WHERE t0_.status = ?',
+                ['pending'],
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(0, $issues->toArray());
+    }
+
+    #[Test]
+    public function it_ignores_non_doctrine_raw_sql_with_literal(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM orders WHERE status = 'pending'")
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        $dqlIssues = array_filter(
+            $issues->toArray(),
+            fn ($issue) => str_contains($issue->getTitle(), 'concatenated literal'),
+        );
+        self::assertCount(0, $dqlIssues);
     }
 }
