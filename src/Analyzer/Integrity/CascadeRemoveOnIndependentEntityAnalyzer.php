@@ -286,12 +286,8 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
                 ? ($firstJoinColumn['nullable'] ?? false)
                 : ($firstJoinColumn->nullable ?? false);
 
-            // If FK is NOT NULL, it's a strong indicator of composition
             if (!$nullable) {
-                // Additional check: look for unique constraints involving this FK
-                if ($this->hasUniqueConstraintWithFK($metadata, $joinColumns)) {
-                    return true; // Strong composition indicator
-                }
+                return true;
             }
         }
 
