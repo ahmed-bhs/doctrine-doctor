@@ -193,5 +193,4 @@ class OneToOneInverseSideAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             return null;
         }
     }
-
 }
