@@ -111,6 +111,11 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
     private static array $hasComplexWhereConditionsCache = [];
 
     /**
+     * @var array<string, array{table: string, column: string}|null> Cache for repeated lookup pattern detection
+     */
+    private static array $repeatedLookupCache = [];
+
+    /**
      * @var int Cache hit counter
      */
     private static int $hits = 0;
@@ -488,7 +493,8 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
             + count(self::$hasGroupByCache)
             + count(self::$groupByColumnsCache)
             + count(self::$hasLeadingWildcardLikeCache)
-            + count(self::$hasDistinctCache);
+            + count(self::$hasDistinctCache)
+            + count(self::$repeatedLookupCache);
 
         return [
             'hits' => self::$hits,
@@ -496,6 +502,26 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
             'hitRate' => $total > 0 ? round((self::$hits / $total) * 100, 2) : 0.0,
             'entries' => $entries,
         ];
+    }
+
+    /**
+     * @return array{table: string, column: string}|null
+     */
+    #[\Override]
+    public function detectRepeatedLookupPattern(string $sql): ?array
+    {
+        $key = md5($sql);
+
+        if (array_key_exists($key, self::$repeatedLookupCache)) {
+            ++self::$hits;
+
+            return self::$repeatedLookupCache[$key];
+        }
+
+        ++self::$misses;
+        self::$repeatedLookupCache[$key] = parent::detectRepeatedLookupPattern($sql);
+
+        return self::$repeatedLookupCache[$key];
     }
 
     /**
@@ -518,6 +544,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         self::$groupByColumnsCache = [];
         self::$hasLeadingWildcardLikeCache = [];
         self::$hasDistinctCache = [];
+        self::$repeatedLookupCache = [];
         self::$hits = 0;
         self::$misses = 0;
     }

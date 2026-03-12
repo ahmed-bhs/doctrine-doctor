@@ -203,7 +203,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
      *
      * OPTIMIZED: Uses CachedSqlStructureExtractor (transparent via DI) for 1000x+ speedup
      *
-     * @return array{type: 'proxy'|'collection'|'unknown', hasLimit: bool}
+     * @return array{type: 'proxy'|'collection'|'lookup'|'unknown', hasLimit: bool}
      */
     private function detectNPlusOneType(string $sql): array
     {
@@ -220,6 +220,11 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         // Collection pattern: WHERE foreign_key_id = ? (loads collection)
         if (null !== $this->sqlExtractor->detectNPlusOnePattern($sql)) {
             return ['type' => 'collection', 'hasLimit' => false];
+        }
+
+        // Repeated lookup pattern: WHERE column = ? (e.g., slug, email, code)
+        if (null !== $this->sqlExtractor->detectRepeatedLookupPattern($sql)) {
+            return ['type' => 'lookup', 'hasLimit' => false];
         }
 
         return ['type' => 'unknown', 'hasLimit' => false];
@@ -278,6 +283,32 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
                         severity: $severity,
                         title: sprintf('Proxy N+1 Query: %d queries for %s.%s', $queryCount, $entity, 'relation'),
                         tags: ['performance', 'doctrine', 'batch-fetch', 'n+1', 'proxy'],
+                    ),
+                );
+            }
+        }
+
+        // Repeated lookup: WHERE column = ? (e.g., slug, email, code)
+        if ('lookup' === $type['type']) {
+            $lookupPattern = $this->sqlExtractor->detectRepeatedLookupPattern($sql);
+            if (null !== $lookupPattern) {
+                $entity = $this->tableToEntity($lookupPattern['table']);
+                $column = $lookupPattern['column'];
+                $severity = $this->calculateEagerLoadingSeverity($queryCount);
+
+                return $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Performance/repeated_lookup',
+                    context: [
+                        'entity' => $entity,
+                        'column' => $column,
+                        'query_count' => $queryCount,
+                        'trigger_location' => $triggerLocation,
+                    ],
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::performance(),
+                        severity: $severity,
+                        title: sprintf('Repeated Lookup: %d queries for %s by %s', $queryCount, $entity, $column),
+                        tags: ['performance', 'doctrine', 'repeated-lookup', 'n+1', 'batch'],
                     ),
                 );
             }
@@ -688,6 +719,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         $typeLabel = match ($detectedType['type']) {
             'proxy' => 'Proxy N+1 (ManyToOne/OneToOne)',
             'collection' => $detectedType['hasLimit'] ? 'Collection N+1 with partial access' : 'Collection N+1 (OneToMany/ManyToMany)',
+            'lookup' => 'Repeated Lookup (findBy/findOneBy in loop)',
             default => 'N+1 Query',
         };
 
@@ -719,6 +751,8 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             $description .= "\nProxy initialization detected in a loop. Consider using a fetch join (join + addSelect) for better performance.";
         } elseif ('collection' === $detectedType['type'] && $detectedType['hasLimit']) {
             $description .= "\nDetected partial collection access (LIMIT in query). EXTRA_LAZY fetch mode is usually ideal here.";
+        } elseif ('lookup' === $detectedType['type']) {
+            $description .= "\nRepeated lookup by non-key column detected. Consider using an IN query to batch-load all needed rows, or add an in-memory cache to avoid duplicate queries within the same request.";
         }
 
         if ($isLowTimeHighCount) {

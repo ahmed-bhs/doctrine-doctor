@@ -183,9 +183,10 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 
     private function createMissingConstructorIssue(string $entityClass, string $fieldName, array|object $mapping): IntegrityIssue
     {
-        $shortClassName = $this->shortClassName($entityClass);
-        $targetEntity   = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
+        $shortClassName  = $this->shortClassName($entityClass);
+        $targetEntity    = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
         $associationType = $this->getAssociationType($mapping);
+        $mappedBy        = MappingHelper::getString($mapping, 'mappedBy');
 
         /** @var IntegrityIssue $issue */
         $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
@@ -206,6 +207,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                     'field_name' => $fieldName,
                     'target_entity' => $targetEntity,
                     'association_type' => $associationType,
+                    'mapped_by' => $mappedBy,
                     'has_constructor' => false,
                     'backtrace' => null,
                 ],
@@ -230,9 +232,10 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         array|object $mapping,
         \ReflectionMethod $reflectionMethod,
     ): IntegrityIssue {
-        $shortClassName = $this->shortClassName($entityClass);
-        $targetEntity   = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
+        $shortClassName  = $this->shortClassName($entityClass);
+        $targetEntity    = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
         $associationType = $this->getAssociationType($mapping);
+        $mappedBy        = MappingHelper::getString($mapping, 'mappedBy');
 
         /** @var IntegrityIssue $issue */
         $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
@@ -253,6 +256,7 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                     'field_name' => $fieldName,
                     'target_entity' => $targetEntity,
                     'association_type' => $associationType,
+                    'mapped_by' => $mappedBy,
                     'has_constructor' => true,
                     'backtrace' => sprintf('%s:%d', $reflectionMethod->getFileName() ?: 'unknown', $reflectionMethod->getStartLine() ?: 0),
                 ],

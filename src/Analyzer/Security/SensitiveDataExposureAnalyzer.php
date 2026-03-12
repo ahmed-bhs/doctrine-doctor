@@ -193,6 +193,12 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             if ($issue instanceof SecurityIssue) {
                 $issues[] = $issue;
             }
+
+            $getterIssue = $this->checkPublicGetter($entityClass, $sensitiveField, $reflectionClass);
+
+            if ($getterIssue instanceof SecurityIssue) {
+                $issues[] = $getterIssue;
+            }
         }
 
         return $issues;
@@ -404,6 +410,111 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         }
 
         return null;
+    }
+
+    private function checkPublicGetter(
+        string $entityClass,
+        string $fieldName,
+        \ReflectionClass $reflectionClass,
+    ): ?SecurityIssue {
+        $getterNames = [
+            'get' . ucfirst($fieldName),
+            $fieldName,
+        ];
+
+        foreach ($getterNames as $getterName) {
+            if (!$reflectionClass->hasMethod($getterName)) {
+                continue;
+            }
+
+            $method = $reflectionClass->getMethod($getterName);
+
+            if (!$method->isPublic()) {
+                continue;
+            }
+
+            if ($method->getDeclaringClass()->getName() !== $entityClass) {
+                continue;
+            }
+
+            $hasProtection = false;
+            $attributes = $method->getAttributes();
+
+            foreach ($attributes as $attribute) {
+                if (str_contains($attribute->getName(), 'Ignore') || str_contains($attribute->getName(), 'SensitiveParameter')) {
+                    $hasProtection = true;
+                    break;
+                }
+            }
+
+            $docComment = $method->getDocComment();
+            if (false !== $docComment && (str_contains($docComment, '@internal') || str_contains($docComment, '@Ignore'))) {
+                $hasProtection = true;
+            }
+
+            if ($hasProtection) {
+                continue;
+            }
+
+            return new SecurityIssue([
+                'title' => sprintf('Public getter exposes sensitive field: %s::%s()', $this->shortClassName($entityClass), $getterName),
+                'description' => sprintf(
+                    'Entity "%s" has a public getter "%s()" that returns the sensitive field "$%s". '
+                    . 'Public getters on sensitive fields allow any caller to access raw sensitive data. '
+                    . 'Consider restricting visibility, adding #[Ignore] for serialization, '
+                    . 'or returning a masked/hashed value instead.',
+                    $this->shortClassName($entityClass),
+                    $getterName,
+                    $fieldName,
+                ),
+                'severity' => 'info',
+                'suggestion' => $this->createGetterSuggestion($entityClass, $fieldName, $getterName, $method),
+                'backtrace' => [
+                    'file' => $method->getFileName(),
+                    'line' => $method->getStartLine(),
+                ],
+                'queries' => [],
+            ]);
+        }
+
+        return null;
+    }
+
+    private function createGetterSuggestion(
+        string $entityClass,
+        string $fieldName,
+        string $getterName,
+        \ReflectionMethod $reflectionMethod,
+    ): SuggestionInterface {
+        $shortClassName = $this->shortClassName($entityClass);
+
+        $code = "// Option 1: Restrict access via Symfony Serializer\n";
+        $code .= "#[Ignore]\n";
+        $code .= "public function {$getterName}(): string\n";
+        $code .= "{\n";
+        $code .= "    return \$this->{$fieldName};\n";
+        $code .= "}\n\n";
+        $code .= "// Option 2: Return masked value for display\n";
+        $code .= "public function getMasked" . ucfirst($fieldName) . "(): string\n";
+        $code .= "{\n";
+        $code .= "    return str_repeat('*', max(0, strlen(\$this->{$fieldName}) - 4))\n";
+        $code .= "        . substr(\$this->{$fieldName}, -4);\n";
+        $code .= '}';
+
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'description' => sprintf('Protect getter %s::%s() from exposing sensitive data', $shortClassName, $getterName),
+                'code' => $code,
+                'file_path' => $this->getFileLocation($reflectionMethod),
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::security(),
+                severity: Severity::info(),
+                title: sprintf('Protect Sensitive Getter %s::%s()', $shortClassName, $getterName),
+                tags: ['security', 'sensitive-data', 'getter'],
+            ),
+        );
     }
 
     private function createToStringSuggestion(string $entityClass, \ReflectionMethod $reflectionMethod): SuggestionInterface
