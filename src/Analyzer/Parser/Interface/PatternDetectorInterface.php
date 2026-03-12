@@ -71,6 +71,15 @@ interface PatternDetectorInterface
     public function detectInsertQuery(string $sql): ?string;
 
     /**
+     * Detects repeated lookup pattern: SELECT ... FROM table WHERE column = ?
+     * where column is not an ID or foreign key (e.g., slug, email, code).
+     * This pattern suggests repeated findOneBy/findBy calls in a loop.
+     *
+     * @return array{table: string, column: string}|null
+     */
+    public function detectRepeatedLookupPattern(string $sql): ?array;
+
+    /**
      * Checks if a SQL query is a SELECT statement.
      */
     public function isSelectQuery(string $sql): bool;
