@@ -208,6 +208,54 @@ final readonly class SqlPatternDetector implements PatternDetectorInterface
         return $statement->into->dest->table ?? null;
     }
 
+    public function detectRepeatedLookupPattern(string $sql): ?array
+    {
+        $parser = new Parser($sql);
+        $statement = $parser->statements[0] ?? null;
+
+        if (!$statement instanceof SelectStatement) {
+            return null;
+        }
+
+        $mainTable = $this->joinExtractor->extractMainTable($sql);
+        if (null === $mainTable || null === $mainTable['table']) {
+            return null;
+        }
+
+        if (null === $statement->where || [] === $statement->where) {
+            return null;
+        }
+
+        if (null !== $statement->join && [] !== $statement->join) {
+            return null;
+        }
+
+        $conditions = [];
+        foreach ($statement->where as $condition) {
+            if (!$condition instanceof Condition) {
+                continue;
+            }
+
+            $expr = trim((string) $condition->expr);
+
+            if (1 === preg_match('/(?:\w+\.)?(\w+)\s*=\s*(?:\?|\d+|\'[^\']*\'|"[^"]*")/i', $expr, $matches)) {
+                $column = strtolower($matches[1]);
+                if ('id' !== $column && !str_ends_with($column, '_id')) {
+                    $conditions[] = $column;
+                }
+            }
+        }
+
+        if (1 === count($conditions)) {
+            return [
+                'table' => $mainTable['table'],
+                'column' => $conditions[0],
+            ];
+        }
+
+        return null;
+    }
+
     public function isSelectQuery(string $sql): bool
     {
         $parser = new Parser($sql);
