@@ -21,6 +21,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `PropertyTypeMismatchAnalyzer`: now attaches concrete fix suggestions for PHP/Doctrine type mismatches, including nullability mismatches.
 - `CollectionInitializationAnalyzer` suggestion template now uses the actual `mappedBy` value when available.
 
+## [2.7.2] - 2026-03-12
+
+### Fixed
+
+- `CollectionInitializationAnalyzer`: now supports PHP constructor promotion when detecting collection initialization, fixing the false positive reported in issue `#67`.
+
+### Changed
+
+- Refactored collection initialization detection around dedicated initialization patterns, including promoted properties.
+- Removed the duplicate regex-based `CollectionEmptyAccessAnalyzer` in favor of the AST-based collection initialization analysis path.
+
 ## [2.7.1] - 2026-03-11
 
 ### Fixed
