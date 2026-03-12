@@ -16,7 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * BlogPost entity WITHOUT collection initialization - FOR TESTING ONLY.
- * This entity intentionally has uninitialized collections to test CollectionEmptyAccessAnalyzer.
+ * This entity intentionally has uninitialized collections to test CollectionInitializationAnalyzer.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'blog_posts_no_init')]
