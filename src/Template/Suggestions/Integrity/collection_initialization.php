@@ -10,11 +10,12 @@ $entityClass = (string) ($context['entity_class'] ?? 'Entity');
 $fieldName = (string) ($context['field_name'] ?? 'items');
 $targetEntity = (string) ($context['target_entity'] ?? 'Item');
 $associationType = (string) ($context['association_type'] ?? 'OneToMany');
+$mappedByValue = (string) ($context['mapped_by'] ?? 'yourPropertyName');
 $hasConstructor = (bool) ($context['has_constructor'] ?? false);
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 $lastBackslash = strrchr($entityClass, '\\');
 $shortClass = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClass;
-$mappedBy = 'OneToMany' === $associationType ? ", mappedBy: 'parent'" : '';
+$mappedBy = 'OneToMany' === $associationType ? ", mappedBy: '" . $mappedByValue . "'" : '';
 ob_start();
 ?>
 <div class="suggestion-header"><h4>Uninitialized collection</h4></div>

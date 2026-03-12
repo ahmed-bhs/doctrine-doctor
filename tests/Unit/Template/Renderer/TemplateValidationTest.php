@@ -312,6 +312,32 @@ final class TemplateValidationTest extends TestCase
         self::assertStringContainsString($expectedShortName, $result['description']);
     }
 
+    public function test_collection_initialization_uses_mapped_by_context_for_one_to_many(): void
+    {
+        $result = $this->renderer->render('Integrity/collection_initialization', [
+            'entity_class' => 'App\\Entity\\Order',
+            'field_name' => 'items',
+            'target_entity' => 'OrderItem',
+            'association_type' => 'OneToMany',
+            'mapped_by' => 'order',
+        ]);
+
+        self::assertStringContainsString("mappedBy: 'order'", $result['code']);
+        self::assertStringNotContainsString("mappedBy: 'parent'", $result['code']);
+    }
+
+    public function test_collection_initialization_falls_back_to_placeholder_without_mapped_by(): void
+    {
+        $result = $this->renderer->render('Integrity/collection_initialization', [
+            'entity_class' => 'App\\Entity\\Order',
+            'field_name' => 'items',
+            'target_entity' => 'OrderItem',
+            'association_type' => 'OneToMany',
+        ]);
+
+        self::assertStringContainsString("mappedBy: 'yourPropertyName'", $result['code']);
+    }
+
     public function test_dto_hydration_handles_missing_aggregations(): void
     {
         $result = $this->renderer->render('Performance/dto_hydration', [
