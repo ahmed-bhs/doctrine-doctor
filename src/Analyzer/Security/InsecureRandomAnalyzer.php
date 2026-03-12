@@ -194,24 +194,64 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         return $issues;
     }
 
+    private const array NON_SENSITIVE_SUFFIXES = [
+        'timestamp',
+        'counter',
+        'count',
+        'log',
+        'date',
+        'at',
+        'time',
+        'delay',
+        'interval',
+        'duration',
+        'attempt',
+    ];
+
     private function isSensitiveContext(string $methodName, string $source): bool
     {
         $lowerMethodName = strtolower($methodName);
+        $lowerSource = strtolower($source);
 
         $hasSensitiveKeyword = array_any(
             self::SENSITIVE_CONTEXTS,
             fn ($context) => str_contains($lowerMethodName, (string) $context),
         );
 
-        if (!$hasSensitiveKeyword) {
+        if ($hasSensitiveKeyword) {
+            if ($this->endsWithNonSensitiveSuffix($lowerMethodName)) {
+                return false;
+            }
+
+            $generationVerbs = ['generate', 'create', 'make', 'build', 'new', 'init', 'refresh', 'renew', 'regenerate', 'set', 'reset'];
+
+            return array_any(
+                $generationVerbs,
+                fn ($verb) => str_contains($lowerMethodName, $verb),
+            );
+        }
+
+        $assignmentPatterns = [
+            'token',
+            'secret',
+            'apikey',
+            'api_key',
+            'nonce',
+            'salt',
+        ];
+
+        $hasAssignment = array_any(
+            $assignmentPatterns,
+            fn ($pattern) => 1 === preg_match('/\$[\w]*' . preg_quote((string) $pattern, '/') . '[\w]*\s*=/i', $source),
+        );
+
+        if (!$hasAssignment) {
             return false;
         }
 
-        $generationVerbs = ['generate', 'create', 'make', 'build', 'new', 'init', 'refresh', 'renew', 'regenerate'];
-
         return array_any(
-            $generationVerbs,
-            fn ($verb) => str_contains($lowerMethodName, $verb),
+            self::INSECURE_FUNCTIONS,
+            fn ($func) => 1 === preg_match('/\b' . preg_quote((string) $func, '/') . '\s*\(/i', $lowerSource),
         );
     }
 
@@ -376,6 +416,14 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         }
 
         return sprintf('%s:%d', $filename, $line);
+    }
+
+    private function endsWithNonSensitiveSuffix(string $lowerMethodName): bool
+    {
+        return array_any(
+            self::NON_SENSITIVE_SUFFIXES,
+            static fn ($suffix) => str_ends_with($lowerMethodName, (string) $suffix),
+        );
     }
 
     private function getMethodSource(\ReflectionMethod $reflectionMethod): ?string
