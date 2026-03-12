@@ -316,39 +316,6 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         return false;
     }
 
-    /**
-     * Check if entity has a unique constraint that includes the FK column.
-     * Example: user_id + provider UNIQUE (one OAuth account per provider per user)
-     */
-    private function hasUniqueConstraintWithFK(ClassMetadata $metadata, array $joinColumns): bool
-    {
-        if ([] === $joinColumns) {
-            return false;
-        }
-
-        $firstJoinColumn = reset($joinColumns);
-        $fkColumnName = is_array($firstJoinColumn)
-            ? ($firstJoinColumn['name'] ?? null)
-            : ($firstJoinColumn->name ?? null);
-
-        if (null === $fkColumnName) {
-            return false;
-        }
-
-        // Check table unique constraints
-        $table = $metadata->table ?? [];
-        $uniqueConstraints = $table['uniqueConstraints'] ?? [];
-
-        foreach ($uniqueConstraints as $constraint) {
-            $columns = $constraint['columns'] ?? [];
-            if (in_array($fkColumnName, $columns, true)) {
-                return true; // FK is part of a unique constraint
-            }
-        }
-
-        return false;
-    }
-
     private function createCriticalIssue(
         string $entityClass,
         string $fieldName,

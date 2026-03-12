@@ -98,6 +98,10 @@ parameters:
         # Return unused types: Methods may return null for future extensibility
         - identifier: return.unusedType
 
+        # Doctrine DBAL Connection::getParams() is @internal but has no public alternative
+        # Needed by diagnostic analyzers to inspect connection configuration
+        - identifier: method.internal
+
     # Parallel processing for better performance
     parallel:
         maximumNumberOfProcesses: 4
