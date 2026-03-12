@@ -207,6 +207,7 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
 
         return $issues;
     }
+
     private function isSensitiveContext(string $methodName, string $source): bool
     {
         $lowerMethodName = strtolower($methodName);
