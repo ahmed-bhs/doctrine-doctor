@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
+use Symfony\Component\Yaml\Yaml;
 
 class HardcodedDatabaseCredentialsAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
@@ -28,6 +29,7 @@ class HardcodedDatabaseCredentialsAnalyzer implements \AhmedBhs\DoctrineDoctor\A
     public function __construct(
         private readonly Connection $connection,
         private readonly SuggestionFactoryInterface $suggestionFactory,
+        private readonly ?string $projectDir = null,
     ) {
     }
 
@@ -35,6 +37,15 @@ class HardcodedDatabaseCredentialsAnalyzer implements \AhmedBhs\DoctrineDoctor\A
     {
         return IssueCollection::fromGenerator(
             function () {
+                $configIssues = $this->analyzeDoctrineConfiguration();
+                if ($this->hasDoctrineConfigurationFiles()) {
+                    foreach ($configIssues as $issue) {
+                        yield $issue;
+                    }
+
+                    return;
+                }
+
                 $params = $this->connection->getParams();
 
                 if (isset($params['url']) && \is_string($params['url'])) {
@@ -67,6 +78,146 @@ class HardcodedDatabaseCredentialsAnalyzer implements \AhmedBhs\DoctrineDoctor\A
                 }
             },
         );
+    }
+
+    /**
+     * @return list<SecurityIssue>
+     */
+    private function analyzeDoctrineConfiguration(): array
+    {
+        if (null === $this->projectDir || '' === $this->projectDir) {
+            return [];
+        }
+
+        $issues = [];
+
+        foreach ([
+            $this->projectDir . '/config/packages/doctrine.yaml',
+            $this->projectDir . '/config/packages/prod/doctrine.yaml',
+        ] as $configPath) {
+            if (!is_file($configPath)) {
+                continue;
+            }
+
+            try {
+                $config = Yaml::parseFile($configPath);
+            } catch (\Throwable) {
+                continue;
+            }
+
+            if (!\is_array($config)) {
+                continue;
+            }
+
+            foreach ($this->extractDbalConfigurations($config) as $dbalConfig) {
+                $issue = $this->createIssueFromDbalConfig($dbalConfig);
+                if ($issue instanceof SecurityIssue) {
+                    $issues[] = $issue;
+                }
+            }
+        }
+
+        return $issues;
+    }
+
+    private function hasDoctrineConfigurationFiles(): bool
+    {
+        if (null === $this->projectDir || '' === $this->projectDir) {
+            return false;
+        }
+
+        foreach ([
+            $this->projectDir . '/config/packages/doctrine.yaml',
+            $this->projectDir . '/config/packages/prod/doctrine.yaml',
+        ] as $configPath) {
+            if (is_file($configPath)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function extractDbalConfigurations(array $config): array
+    {
+        $dbalConfigs = [];
+
+        if (isset($config['doctrine']['dbal']) && \is_array($config['doctrine']['dbal'])) {
+            $dbalConfigs[] = $config['doctrine']['dbal'];
+        }
+
+        if (isset($config['when@prod']['doctrine']['dbal']) && \is_array($config['when@prod']['doctrine']['dbal'])) {
+            $dbalConfigs[] = $config['when@prod']['doctrine']['dbal'];
+        }
+
+        return $dbalConfigs;
+    }
+
+    /**
+     * @param array<string, mixed> $dbalConfig
+     */
+    private function createIssueFromDbalConfig(array $dbalConfig): ?SecurityIssue
+    {
+        foreach ($this->flattenConnectionConfigs($dbalConfig) as $connectionConfig) {
+            if (isset($connectionConfig['url']) && \is_string($connectionConfig['url'])) {
+                if ($this->isEnvVar($connectionConfig['url'])) {
+                    continue;
+                }
+
+                $parsed = parse_url($connectionConfig['url']);
+                if (\is_array($parsed) && (isset($parsed['user']) || isset($parsed['pass']))) {
+                    return $this->createHardcodedUrlIssue($connectionConfig['url']);
+                }
+            }
+
+            $hardcodedFields = [];
+
+            if (isset($connectionConfig['user']) && \is_string($connectionConfig['user']) && '' !== $connectionConfig['user'] && !$this->isEnvVar($connectionConfig['user'])) {
+                $hardcodedFields[] = 'user';
+            }
+
+            if (isset($connectionConfig['password']) && \is_string($connectionConfig['password']) && '' !== $connectionConfig['password'] && !$this->isEnvVar($connectionConfig['password'])) {
+                $hardcodedFields[] = 'password';
+            }
+
+            if (isset($connectionConfig['host']) && \is_string($connectionConfig['host']) && '' !== $connectionConfig['host'] && !$this->isEnvVar($connectionConfig['host']) && !\in_array($connectionConfig['host'], ['localhost', '127.0.0.1', '::1'], true)) {
+                $hardcodedFields[] = 'host';
+            }
+
+            if ([] !== $hardcodedFields) {
+                return $this->createHardcodedParamsIssue($hardcodedFields);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $dbalConfig
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function flattenConnectionConfigs(array $dbalConfig): array
+    {
+        $connections = [];
+
+        if (isset($dbalConfig['connections']) && \is_array($dbalConfig['connections'])) {
+            foreach ($dbalConfig['connections'] as $connectionConfig) {
+                if (\is_array($connectionConfig)) {
+                    $connections[] = $connectionConfig;
+                }
+            }
+        }
+
+        $topLevelConnection = array_intersect_key($dbalConfig, array_flip(['url', 'user', 'password', 'host']));
+        if ([] !== $topLevelConnection) {
+            $connections[] = $topLevelConnection;
+        }
+
+        return $connections;
     }
 
     private function isEnvVar(string $value): bool
