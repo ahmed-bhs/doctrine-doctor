@@ -347,6 +347,7 @@ services:
         arguments:
             $connection: '@doctrine.dbal.default_connection'
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $projectDir: '%kernel.project_dir%'
         tags:
             - { name: doctrine_doctor.analyzer }
 
