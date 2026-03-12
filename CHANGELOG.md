@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.3] - 2026-03-12
+
+### Added
+
+- New `OverprivilegedDatabaseUserAnalyzer`: detects privileged, empty, or passwordless database users and suggests switching to a least-privilege account.
+- New `HardcodedDatabaseCredentialsAnalyzer`: detects database credentials embedded directly in DBAL configuration and suggests moving them to environment variables.
+- Repeated lookup detection in `NPlusOneAnalyzer`: identifies repeated `findBy()`/`findOneBy()`-style lookups on non-key columns and suggests batching with `IN` queries or request-level caching.
+
+### Changed
+
+- `SensitiveDataExposureAnalyzer`: now also flags public getters that expose sensitive entity fields without explicit protection.
+- `PropertyTypeMismatchAnalyzer`: now attaches concrete fix suggestions for PHP/Doctrine type mismatches, including nullability mismatches.
+- `CollectionInitializationAnalyzer` suggestion template now uses the actual `mappedBy` value when available.
+
 ## [2.7.1] - 2026-03-11
 
 ### Fixed
