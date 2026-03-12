@@ -16,7 +16,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 
 /**
  * Issue for uninitialized Doctrine Collections.
- * Detected by CollectionEmptyAccessAnalyzer.
+ * Detected by CollectionInitializationAnalyzer.
  */
 class CollectionUninitializedIssue extends AbstractIssue
 {
