@@ -495,13 +495,6 @@ services:
         tags:
             - { name: doctrine_doctor.analyzer }
 
-    # Psalm-inspired Analyzers
-    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CollectionEmptyAccessAnalyzer:
-        arguments:
-            $entityManager: '@doctrine_doctor.entity_manager'
-        tags:
-            - { name: doctrine_doctor.analyzer }
-
     # Advanced Runtime Analyzers
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\TransactionBoundaryAnalyzer:
         arguments:
