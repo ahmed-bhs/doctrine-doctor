@@ -302,6 +302,100 @@ final class CollectionInitializationVisitorTest extends TestCase
     }
 
     // ========================================================================
+    // Constructor Promotion Tests
+    // ========================================================================
+
+    public function test_detects_promoted_property_with_array_collection_default(): void
+    {
+        $code = <<<'PHP'
+        <?php
+        class Test {
+            public function __construct(
+                private \Doctrine\Common\Collections\Collection $items = new \Doctrine\Common\Collections\ArrayCollection(),
+            ) {
+            }
+        }
+        PHP;
+
+        $visitor = new CollectionInitializationVisitor('items');
+        $this->traverseCode($code, $visitor);
+
+        self::assertTrue($visitor->hasInitialization());
+    }
+
+    public function test_detects_promoted_property_with_short_class_name(): void
+    {
+        $code = <<<'PHP'
+        <?php
+        class Test {
+            public function __construct(
+                private Collection $items = new ArrayCollection(),
+            ) {
+            }
+        }
+        PHP;
+
+        $visitor = new CollectionInitializationVisitor('items');
+        $this->traverseCode($code, $visitor);
+
+        self::assertTrue($visitor->hasInitialization());
+    }
+
+    public function test_detects_promoted_property_with_empty_array_default(): void
+    {
+        $code = <<<'PHP'
+        <?php
+        class Test {
+            public function __construct(
+                private array $items = [],
+            ) {
+            }
+        }
+        PHP;
+
+        $visitor = new CollectionInitializationVisitor('items');
+        $this->traverseCode($code, $visitor);
+
+        self::assertTrue($visitor->hasInitialization());
+    }
+
+    public function test_ignores_non_promoted_parameter_with_collection_default(): void
+    {
+        $code = <<<'PHP'
+        <?php
+        class Test {
+            public function __construct(
+                Collection $items = new ArrayCollection(),
+            ) {
+            }
+        }
+        PHP;
+
+        $visitor = new CollectionInitializationVisitor('items');
+        $this->traverseCode($code, $visitor);
+
+        self::assertFalse($visitor->hasInitialization());
+    }
+
+    public function test_ignores_promoted_property_with_different_field_name(): void
+    {
+        $code = <<<'PHP'
+        <?php
+        class Test {
+            public function __construct(
+                private Collection $orders = new ArrayCollection(),
+            ) {
+            }
+        }
+        PHP;
+
+        $visitor = new CollectionInitializationVisitor('items');
+        $this->traverseCode($code, $visitor);
+
+        self::assertFalse($visitor->hasInitialization());
+    }
+
+    // ========================================================================
     // Helper Methods
     // ========================================================================
 
