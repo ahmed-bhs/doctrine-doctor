@@ -185,31 +185,34 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     {
         $shortClassName = $this->shortClassName($entityClass);
         $targetEntity   = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
+        $associationType = $this->getAssociationType($mapping);
 
         /** @var IntegrityIssue $issue */
         $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => 'Missing constructor for collection initialization in ' . $shortClassName,
             'description' => sprintf(
-                'Entity "%s" has a collection property "$%s" (relation to %s) but no constructor. ' .
-                'Collections must be initialized to prevent null pointer exceptions. ' .
-                'Without initialization, accessing the collection will cause a fatal error.',
+                'Entity "%s" has a collection property "$%s" (%s to %s) but no constructor. ' .
+                'Collections must be initialized to avoid "Call to a member function on null" errors.',
                 $shortClassName,
                 $fieldName,
+                $associationType,
                 $targetEntity,
             ),
             'severity'   => 'critical',
             'suggestion' => $this->suggestionFactory->createFromTemplate(
                 templateName: 'Integrity/collection_initialization',
                 context: [
-                    'entity_class' => $this->shortClassName($entityClass),
+                    'entity_class' => $shortClassName,
                     'field_name' => $fieldName,
+                    'target_entity' => $targetEntity,
+                    'association_type' => $associationType,
                     'has_constructor' => false,
                     'backtrace' => null,
                 ],
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::critical(),
-                    title: sprintf('Uninitialized Collection: %s::$%s', $this->shortClassName($entityClass), $fieldName),
+                    title: sprintf('Uninitialized Collection: %s::$%s', $shortClassName, $fieldName),
                     tags: ['code-quality', 'doctrine', 'collection'],
                 ),
             ),
@@ -229,31 +232,34 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     ): IntegrityIssue {
         $shortClassName = $this->shortClassName($entityClass);
         $targetEntity   = $this->shortClassName(MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown');
+        $associationType = $this->getAssociationType($mapping);
 
         /** @var IntegrityIssue $issue */
         $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => sprintf('Uninitialized collection in %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
-                'Entity "%s" has a collection property "$%s" (relation to %s) that is not initialized in the constructor. ' .
-                'This will cause "Call to a member function on null" errors when trying to add or access items. ' .
-                'Collections should always be initialized with "new ArrayCollection()" in the constructor.',
+                'Entity "%s" has a collection property "$%s" (%s to %s) that is not initialized in the constructor. ' .
+                'This will cause "Call to a member function on null" errors when trying to add or access items.',
                 $shortClassName,
                 $fieldName,
+                $associationType,
                 $targetEntity,
             ),
             'severity'   => 'critical',
             'suggestion' => $this->suggestionFactory->createFromTemplate(
                 templateName: 'Integrity/collection_initialization',
                 context: [
-                    'entity_class' => $this->shortClassName($entityClass),
+                    'entity_class' => $shortClassName,
                     'field_name' => $fieldName,
+                    'target_entity' => $targetEntity,
+                    'association_type' => $associationType,
                     'has_constructor' => true,
                     'backtrace' => sprintf('%s:%d', $reflectionMethod->getFileName() ?: 'unknown', $reflectionMethod->getStartLine() ?: 0),
                 ],
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::integrity(),
                     severity: Severity::critical(),
-                    title: sprintf('Uninitialized Collection: %s::$%s', $this->shortClassName($entityClass), $fieldName),
+                    title: sprintf('Uninitialized Collection: %s::$%s', $shortClassName, $fieldName),
                     tags: ['code-quality', 'doctrine', 'collection'],
                 ),
             ),
@@ -266,6 +272,29 @@ class CollectionInitializationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             'field'   => $fieldName,
         ]);
         return $issue;
+    }
+
+    private function getAssociationType(array|object $mapping): string
+    {
+        if (is_object($mapping)) {
+            $className = $mapping::class;
+            if (str_contains($className, 'OneToMany')) {
+                return 'OneToMany';
+            }
+            if (str_contains($className, 'ManyToMany')) {
+                return 'ManyToMany';
+            }
+
+            return 'relation';
+        }
+
+        $type = MappingHelper::getInt($mapping, 'type');
+
+        return match ($type) {
+            ClassMetadata::ONE_TO_MANY => 'OneToMany',
+            ClassMetadata::MANY_TO_MANY => 'ManyToMany',
+            default => 'relation',
+        };
     }
 
     /**
