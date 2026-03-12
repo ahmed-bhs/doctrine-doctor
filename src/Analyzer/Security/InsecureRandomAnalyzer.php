@@ -66,6 +66,20 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         'secretkey',
     ];
 
+    private const array NON_SENSITIVE_SUFFIXES = [
+        'timestamp',
+        'counter',
+        'count',
+        'log',
+        'date',
+        'at',
+        'time',
+        'delay',
+        'interval',
+        'duration',
+        'attempt',
+    ];
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
@@ -193,21 +207,6 @@ class InsecureRandomAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
 
         return $issues;
     }
-
-    private const array NON_SENSITIVE_SUFFIXES = [
-        'timestamp',
-        'counter',
-        'count',
-        'log',
-        'date',
-        'at',
-        'time',
-        'delay',
-        'interval',
-        'duration',
-        'attempt',
-    ];
-
     private function isSensitiveContext(string $methodName, string $source): bool
     {
         $lowerMethodName = strtolower($methodName);
