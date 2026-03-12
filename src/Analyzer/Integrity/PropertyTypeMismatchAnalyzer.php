@@ -16,10 +16,13 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use ReflectionEnum;
@@ -44,6 +47,7 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly IssueFactoryInterface $issueFactory,
+        private readonly ?SuggestionFactoryInterface $suggestionFactory = null,
     ) {
     }
 
@@ -342,15 +346,95 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         $description .= "Impact: Doctrine may detect false changes and issue unnecessary UPDATE queries.\n";
         $description .= "Impact: Persisted values can diverge from PHP expectations at runtime.";
 
+        $suggestion = $this->buildSuggestion($shortClassName, $fieldName, $expectedType, $actualType, $severity);
+
         $issueData = new IssueData(
             type: IssueType::PROPERTY_TYPE_MISMATCH->value,
             title: sprintf('Type Mismatch: %s::\$%s', $shortClassName, $fieldName),
             description: $description,
             severity: $severity,
-            suggestion: null,
+            suggestion: $suggestion,
             queries: [],
         );
 
         return $this->issueFactory->create($issueData);
+    }
+
+    private function buildSuggestion(
+        string $shortClassName,
+        string $fieldName,
+        string $expectedType,
+        string $actualType,
+        Severity $severity,
+    ): ?\AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface {
+        if (null === $this->suggestionFactory) {
+            return null;
+        }
+
+        $isNullabilityMismatch = str_contains($expectedType, 'nullable');
+
+        if ($isNullabilityMismatch && str_contains($expectedType, 'non-nullable') && str_contains($actualType, 'nullable')) {
+            $baseType = preg_replace('/^\?/', '', preg_replace('/\s*\(nullable\)/', '', $actualType));
+            $badCode = sprintf("#[ORM\\Column(type: '...')]  // nullable not set (defaults to false)\nprivate ?%s \$%s = null;", $baseType, $fieldName);
+            $goodCode = sprintf(
+                "// Option 1: Make the column nullable\n#[ORM\\Column(type: '...', nullable: true)]\nprivate ?%s \$%s = null;\n\n// Option 2: Make the PHP property non-nullable\n#[ORM\\Column(type: '...')]\nprivate %s \$%s;",
+                $baseType,
+                $fieldName,
+                $baseType,
+                $fieldName,
+            );
+            $descriptionText = sprintf(
+                'Property %s::$%s is declared as nullable in PHP (?%s) but the Doctrine column is non-nullable. Either add nullable: true to the mapping or remove the ? from the type hint.',
+                $shortClassName,
+                $fieldName,
+                $baseType,
+            );
+        } elseif ($isNullabilityMismatch && str_contains($expectedType, 'nullable') && str_contains($actualType, 'non-nullable')) {
+            $baseType = preg_replace('/\s*\(non-nullable\)/', '', $actualType);
+            $badCode = sprintf("#[ORM\\Column(type: '...', nullable: true)]\nprivate %s \$%s;", $baseType, $fieldName);
+            $goodCode = sprintf(
+                "// Option 1: Make the PHP property nullable\n#[ORM\\Column(type: '...', nullable: true)]\nprivate ?%s \$%s = null;\n\n// Option 2: Remove nullable from the column\n#[ORM\\Column(type: '...')]\nprivate %s \$%s;",
+                $baseType,
+                $fieldName,
+                $baseType,
+                $fieldName,
+            );
+            $descriptionText = sprintf(
+                'Property %s::$%s is declared as non-nullable in PHP (%s) but the Doctrine column is nullable. Either add ? to the type hint or remove nullable: true from the mapping.',
+                $shortClassName,
+                $fieldName,
+                $baseType,
+            );
+        } else {
+            $badCode = sprintf("private %s \$%s;  // Doctrine expects: %s", $actualType, $fieldName, $expectedType);
+            $goodCode = sprintf("private %s \$%s;", preg_replace('/\s*\(.*\)/', '', $expectedType), $fieldName);
+            $descriptionText = sprintf(
+                'Property %s::$%s has type %s but Doctrine expects %s.',
+                $shortClassName,
+                $fieldName,
+                $actualType,
+                $expectedType,
+            );
+        }
+
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/type_hint_mismatch',
+            context: [
+                'bad_code' => $badCode,
+                'good_code' => $goodCode,
+                'description' => $descriptionText,
+                'performance_impact' => [
+                    'Unnecessary UPDATE queries executed on every flush',
+                    'Increased database load from phantom changes',
+                    'Potential runtime errors from null/non-null mismatch',
+                ],
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: $severity,
+                title: sprintf('Fix type mismatch on %s::$%s', $shortClassName, $fieldName),
+                tags: ['integrity', 'doctrine', 'type-mismatch', 'property'],
+            ),
+        );
     }
 }

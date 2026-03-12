@@ -336,6 +336,20 @@ services:
         tags:
             - { name: doctrine_doctor.analyzer }
 
+    AhmedBhs\DoctrineDoctor\Analyzer\Security\OverprivilegedDatabaseUserAnalyzer:
+        arguments:
+            $connection: '@doctrine.dbal.default_connection'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Security\HardcodedDatabaseCredentialsAnalyzer:
+        arguments:
+            $connection: '@doctrine.dbal.default_connection'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\ForeignKeyMappingAnalyzer:
         arguments:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
@@ -492,6 +506,7 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\PropertyTypeMismatchAnalyzer:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
