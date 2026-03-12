@@ -43,10 +43,6 @@ use PHPUnit\Framework\Attributes\Test;
  * 1. Entity WITHOUT constructor but with collections (CRITICAL)
  * 2. Collection NOT initialized in constructor (CRITICAL) - reads source code
  * 3. Patterns: $this->fieldName = new ArrayCollection() or $this->fieldName = []
- *
- * Difference with CollectionEmptyAccessAnalyzer:
- * - CollectionEmptyAccess: verifies LOADED instances in UnitOfWork
- * - CollectionInitialization: analyzes constructor SOURCE CODE
  */
 final class CollectionInitializationAnalyzerTest extends DatabaseTestCase
 {

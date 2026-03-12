@@ -132,10 +132,6 @@ final class DoctrineDoctorExtensionTest extends TestCase
                 'JoinOptimizationAnalyzer',
                 'join_optimization',
             ],
-            'collection_empty' => [
-                'CollectionEmptyAccessAnalyzer',
-                'collection_empty_access',
-            ],
             'missing_embeddable' => [
                 'MissingEmbeddableOpportunityAnalyzer',
                 'missing_embeddable_opportunity',
