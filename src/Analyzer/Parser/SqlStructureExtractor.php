@@ -189,6 +189,14 @@ class SqlStructureExtractor
         return $this->patternDetector->detectPartialCollectionLoad($sql);
     }
 
+    /**
+     * @return array{table: string, column: string}|null
+     */
+    public function detectRepeatedLookupPattern(string $sql): ?array
+    {
+        return $this->patternDetector->detectRepeatedLookupPattern($sql);
+    }
+
     // ==================== CONDITION ANALYZER DELEGATION ====================
 
     /**
