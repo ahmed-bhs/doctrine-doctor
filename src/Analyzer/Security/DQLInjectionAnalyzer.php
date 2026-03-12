@@ -83,8 +83,8 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
      */
     private function yieldPatternBasedIssues(array $suspiciousQueries): \Generator
     {
-        $criticalQueries = array_values(array_filter($suspiciousQueries, function (array $q): bool {
-            $riskLevel = $q['risk_level'];
+        $criticalQueries = array_values(array_filter($suspiciousQueries, function (array $query): bool {
+            $riskLevel = $query['risk_level'];
             Assert::integer($riskLevel);
             return $riskLevel >= 3;
         }));
@@ -128,8 +128,8 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             ));
         }
 
-        $highRiskQueries = array_values(array_filter($suspiciousQueries, function (array $q): bool {
-            $riskLevel = $q['risk_level'];
+        $highRiskQueries = array_values(array_filter($suspiciousQueries, function (array $query): bool {
+            $riskLevel = $query['risk_level'];
             Assert::integer($riskLevel);
             return 2 === $riskLevel;
         }));
