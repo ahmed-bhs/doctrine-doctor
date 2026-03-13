@@ -11,6 +11,7 @@ This guide walks you through every step needed to add a new analyzer to Doctrine
 - [Step 4 — Craft the Issue Title, Description and Severity](#step-4--craft-the-issue-title-description-and-severity)
 - [Step 5 — Create the Suggestion Template](#step-5--create-the-suggestion-template)
 - [Step 6 — Register the Service](#step-6--register-the-service)
+- [Putting It All Together](#putting-it-all-together)
 - [Step 7 — Write Tests](#step-7--write-tests)
 - [Using the AST Parser Instead of Regex](#using-the-ast-parser-instead-of-regex)
 - [Creating a Custom Visitor](#creating-a-custom-visitor)
@@ -126,23 +127,33 @@ This enum value is used in `IssueData` and by the `IssueFactory` to resolve the 
 Use `QueryDataCollection` methods to filter and group queries:
 
 ```php
-// Filter to SELECT queries only
+// 1. Filter to SELECT queries only
 $selects = $queryDataCollection->filter(
     fn (QueryData $q): bool => $q->isSelect(),
 );
 
-// Group by normalized SQL pattern
+// 2. Group by normalized SQL pattern
 $groups = $selects->groupByPattern(
     fn (string $sql): string => $this->normalizeQuery($sql),
 );
 
-// Check thresholds
+// 3. Check thresholds
 foreach ($groups as $pattern => $group) {
     if ($group->count() >= $this->threshold) {
         yield $this->createIssue($group);
     }
 }
 ```
+
+**Why these three steps?**
+
+This pipeline filters noise at each stage to surface real problems:
+
+1. **Filter SELECT queries** — Only reads can produce N+1 patterns. INSERT, UPDATE, DELETE are write operations that serve a different purpose. Keeping them in the dataset would pollute the grouping step with irrelevant noise.
+
+2. **Group by normalized SQL** — Normalization replaces concrete values with placeholders so that `SELECT * FROM users WHERE id = 1` and `SELECT * FROM users WHERE id = 42` become the same pattern. Grouping by that pattern reveals repetitive queries: if the same pattern appears 50 times, something is loading entities one by one in a loop instead of using a single `JOIN` or `WHERE IN`.
+
+3. **Compare against the threshold** — Not every repeated query is a problem. Two identical SELECTs can be perfectly normal (e.g., a guard query at the start and end of a request). The threshold (default: 5) is the boundary between "normal usage" and "likely N+1". It is configurable per project: a high-traffic API might lower it to 3 to catch issues early, while a batch command might raise it to 20 to avoid false positives on intentional loops.
 
 `QueryData` exposes everything captured at runtime:
 
@@ -392,52 +403,330 @@ AhmedBhs\DoctrineDoctor\Analyzer\Performance\YourAnalyzer:
 
 ---
 
-## Step 7 — Write Tests
+## Putting It All Together
 
-Create a test in `tests/Analyzer/{Category}/` or `tests/Unit/Analyzer/`:
+Below is a complete, working analyzer that detects repeated identical INSERT queries (a sign that batch inserts should be used instead of single-row inserts in a loop). Every step from the guide is applied.
+
+### The analyzer class
 
 ```php
-final class YourAnalyzerTest extends DatabaseTestCase
+<?php
+
+declare(strict_types=1);
+
+namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
+
+use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
+use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
+use AhmedBhs\DoctrineDoctor\DTO\IssueData;
+use AhmedBhs\DoctrineDoctor\DTO\QueryData;
+use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
+
+// Step 1 — Implement AnalyzerInterface
+class RepeatedInsertAnalyzer implements AnalyzerInterface
 {
-    private YourAnalyzer $analyzer;
+    // Reuse ShortClassNameTrait for entity names in titles/descriptions
+    use ShortClassNameTrait;
 
-    protected function setUp(): void
+    public function __construct(
+        private readonly IssueFactoryInterface $issueFactory,         // creates Issue objects
+        private readonly SuggestionFactoryInterface $suggestionFactory, // renders suggestion templates
+        private readonly int $threshold = 10,                          // configurable threshold
+    ) {
+    }
+
+    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
-        parent::setUp();
-        $this->createSchema([Entity::class]);
+        // Use generator for lazy evaluation — memory efficient
+        return IssueCollection::fromGenerator(
+            function () use ($queryDataCollection) {
+                // Step 3a — Filter: keep only INSERT queries
+                $inserts = $queryDataCollection->filter(
+                    fn (QueryData $query): bool => $query->isInsert(),
+                );
 
-        $this->analyzer = new YourAnalyzer(
-            PlatformAnalyzerTestHelper::createIssueFactory(),
-            PlatformAnalyzerTestHelper::createSuggestionFactory(),
+                // Step 3b — Group by normalized SQL pattern
+                // "INSERT INTO users (name) VALUES ('Alice')" and
+                // "INSERT INTO users (name) VALUES ('Bob')"
+                // become the same pattern
+                $groups = $inserts->groupByPattern(
+                    fn (string $sql): string => preg_replace(
+                        '/VALUES\s*\(.*?\)/i',
+                        'VALUES (?)',
+                        $sql,
+                    ) ?? $sql,
+                );
+
+                // Step 3c — Check threshold
+                foreach ($groups as $pattern => $group) {
+                    if ($group->count() < $this->threshold) {
+                        continue;
+                    }
+
+                    $queriesArray = $group->toArray();
+                    $firstQuery = $queriesArray[0];
+                    $table = $this->extractTableName($firstQuery->sql);
+
+                    // Step 4 — Build the issue with title, description, severity
+                    $title = sprintf('Repeated INSERT on %s (%d times)', $table, $group->count());
+
+                    $description = DescriptionHighlighter::highlight(
+                        '{count} identical {keyword} queries executed on {table}. '
+                        . 'This typically means entities are persisted one by one in a loop. '
+                        . 'Use batch inserts with periodic flush() and clear() to reduce '
+                        . 'database round-trips.',
+                        [
+                            'count'   => (string) $group->count(),
+                            'keyword' => 'INSERT',
+                            'table'   => $table,
+                        ],
+                    );
+
+                    // Step 5 — Create the suggestion from a template
+                    $suggestion = $this->suggestionFactory->createFromTemplate(
+                        templateName: 'Performance/repeated_insert',
+                        context: [
+                            'table'       => $table,
+                            'insert_count' => $group->count(),
+                            'threshold'   => $this->threshold,
+                        ],
+                        suggestionMetadata: new SuggestionMetadata(
+                            type: SuggestionType::performance(),
+                            severity: Severity::warning(),
+                            title: sprintf('Use batch inserts for %s', $table),
+                            tags: ['performance', 'doctrine', 'batch', 'insert'],
+                        ),
+                    );
+
+                    // Assemble the IssueData DTO
+                    $issueData = new IssueData(
+                        type: IssueType::BULK_OPERATION->value,
+                        title: $title,
+                        description: $description,
+                        severity: Severity::warning(),
+                        suggestion: $suggestion,
+                        queries: $queriesArray,     // displayed in profiler with execution times
+                        backtrace: $firstQuery->backtrace, // pinpoints trigger location
+                    );
+
+                    yield $this->issueFactory->create($issueData);
+                }
+            },
         );
     }
 
-    public function test_it_detects_the_problem(): void
+    private function extractTableName(string $sql): string
     {
-        $queries = QueryDataBuilder::create()
-            ->addSelect('SELECT * FROM users WHERE id = ?', executionMs: 1.5)
-            ->addSelect('SELECT * FROM users WHERE id = ?', executionMs: 2.0)
-            ->build();
+        if (1 === preg_match('/INSERT\s+INTO\s+[`"]?(\w+)/i', $sql, $matches)) {
+            return $matches[1];
+        }
 
-        $issues = $this->analyzer->analyze($queries);
-        $issuesArray = $issues->toArray();
-
-        self::assertCount(1, $issuesArray);
-        self::assertStringContainsString('expected keyword', $issuesArray[0]->getTitle());
-    }
-
-    public function test_it_does_not_flag_when_below_threshold(): void
-    {
-        $queries = QueryDataBuilder::create()
-            ->addSelect('SELECT * FROM users WHERE id = ?')
-            ->build();
-
-        $issues = $this->analyzer->analyze($queries);
-
-        self::assertCount(0, $issues->toArray());
+        return 'unknown';
     }
 }
 ```
+
+### The suggestion template
+
+`src/Template/Suggestions/Performance/repeated_insert.php`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+$table = (string) ($context['table'] ?? 'entities');
+$insertCount = (int) ($context['insert_count'] ?? 0);
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+ob_start();
+?>
+<div class="suggestion-header"><h4>Use batch inserts</h4></div>
+<div class="suggestion-content">
+
+<div class="alert alert-warning">
+    <strong><?php echo $insertCount; ?></strong> individual INSERT queries on
+    <code><?php echo $e($table); ?></code>
+</div>
+
+<p>Inserting entities one by one forces a database round-trip for each row.
+Batch processing reduces this to one round-trip per batch.</p>
+
+<h4>Before</h4>
+<div class="query-item"><pre><code class="language-php">foreach ($items as $item) {
+    $entityManager->persist($item);
+    $entityManager->flush(); // INSERT on every iteration
+}</code></pre></div>
+
+<h4>After</h4>
+<div class="query-item"><pre><code class="language-php">$batchSize = 50;
+
+foreach ($items as $i => $item) {
+    $entityManager->persist($item);
+
+    if (0 === ($i + 1) % $batchSize) {
+        $entityManager->flush();
+        $entityManager->clear();
+    }
+}
+
+$entityManager->flush(); // remaining items</code></pre></div>
+
+<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/batch-processing.html"
+      target="_blank" rel="noopener noreferrer" class="doc-link">
+    Doctrine ORM Batch Processing
+</a></p>
+
+</div>
+<?php
+$code = ob_get_clean();
+
+return [
+    'code' => $code,
+    'description' => sprintf('Use batch inserts for %s table', $e($table)),
+];
+```
+
+### The service registration
+
+`config/services.yaml`:
+
+```yaml
+AhmedBhs\DoctrineDoctor\Analyzer\Performance\RepeatedInsertAnalyzer:
+    arguments:
+        $threshold: '%doctrine_doctor.analyzers.repeated_insert.threshold%'
+    tags:
+        - { name: doctrine_doctor.analyzer }
+```
+
+### The IssueType enum entry
+
+`src/ValueObject/IssueType.php` — uses the existing `BULK_OPERATION` case here, but if your analyzer covers a new concept, add a new case:
+
+```php
+case REPEATED_INSERT = 'repeated_insert';
+```
+
+### The tests
+
+```php
+final class RepeatedInsertAnalyzerTest extends TestCase
+{
+    private RepeatedInsertAnalyzer $analyzer;
+
+    protected function setUp(): void
+    {
+        $this->analyzer = new RepeatedInsertAnalyzer(
+            PlatformAnalyzerTestHelper::createIssueFactory(),
+            PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            threshold: 5,
+        );
+    }
+
+    public function test_it_detects_repeated_inserts_above_threshold(): void
+    {
+        // Arrange — 6 identical INSERT queries (above threshold of 5)
+        $builder = QueryDataBuilder::create();
+        for ($i = 0; $i < 6; ++$i) {
+            $builder->addInsert(
+                "INSERT INTO products (name) VALUES ('Product $i')",
+                executionMs: 1.2,
+            );
+        }
+
+        // Act
+        $issues = $this->analyzer->analyze($builder->build());
+        $issuesArray = $issues->toArray();
+
+        // Assert
+        self::assertCount(1, $issuesArray);
+        self::assertStringContainsString('products', $issuesArray[0]->getTitle());
+        self::assertStringContainsString('6 times', $issuesArray[0]->getTitle());
+        self::assertSame('warning', $issuesArray[0]->getSeverity()->value);
+        self::assertNotNull($issuesArray[0]->getSuggestion());
+    }
+
+    public function test_it_ignores_inserts_below_threshold(): void
+    {
+        // Arrange — 3 INSERTs (below threshold of 5)
+        $builder = QueryDataBuilder::create();
+        for ($i = 0; $i < 3; ++$i) {
+            $builder->addInsert("INSERT INTO products (name) VALUES ('Product $i')");
+        }
+
+        // Act
+        $issues = $this->analyzer->analyze($builder->build());
+
+        // Assert — no issue raised
+        self::assertCount(0, $issues->toArray());
+    }
+
+    public function test_it_ignores_select_queries(): void
+    {
+        // Arrange — many SELECTs, no INSERTs
+        $builder = QueryDataBuilder::create();
+        for ($i = 0; $i < 20; ++$i) {
+            $builder->addSelect('SELECT * FROM products WHERE id = ?');
+        }
+
+        // Act
+        $issues = $this->analyzer->analyze($builder->build());
+
+        // Assert — not this analyzer's concern
+        self::assertCount(0, $issues->toArray());
+    }
+
+    public function test_it_groups_different_tables_separately(): void
+    {
+        // Arrange — 6 inserts on products, 6 on categories
+        $builder = QueryDataBuilder::create();
+        for ($i = 0; $i < 6; ++$i) {
+            $builder->addInsert("INSERT INTO products (name) VALUES ('P$i')");
+            $builder->addInsert("INSERT INTO categories (name) VALUES ('C$i')");
+        }
+
+        // Act
+        $issues = $this->analyzer->analyze($builder->build());
+
+        // Assert — two separate issues, one per table
+        self::assertCount(2, $issues->toArray());
+    }
+
+    public function test_it_attaches_queries_and_backtrace_to_issue(): void
+    {
+        $builder = QueryDataBuilder::create();
+        for ($i = 0; $i < 6; ++$i) {
+            $builder->addInsert(
+                "INSERT INTO orders (total) VALUES ($i)",
+                executionMs: 2.0,
+            );
+        }
+
+        $issues = $this->analyzer->analyze($builder->build());
+        $issue = $issues->toArray()[0];
+
+        // Queries are attached for display in the profiler
+        self::assertNotEmpty($issue->getQueries());
+
+        // Suggestion contains rendered HTML
+        self::assertNotNull($issue->getSuggestion());
+        self::assertStringContainsString('batch', strtolower($issue->getSuggestion()->getCode()));
+    }
+}
+```
+
+---
+
+## Step 7 — Write Tests
+
+Create a test in `tests/Analyzer/{Category}/` or `tests/Unit/Analyzer/`.
 
 Use `QueryDataBuilder` to build test query collections and `PlatformAnalyzerTestHelper` to create factory instances for tests.
 
