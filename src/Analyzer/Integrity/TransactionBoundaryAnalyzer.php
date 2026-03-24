@@ -55,8 +55,6 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             function () use ($queryDataCollection) {
                 $state = $this->initializeTransactionState();
 
-                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
                 foreach ($queryDataCollection as $queryData) {
                     $this->updateTimeState($queryData, $state);
 

@@ -42,8 +42,6 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
             function () use ($queryDataCollection) {
                 $flushPatterns = $this->detectFlushPatterns($queryDataCollection);
 
-                Assert::isIterable($flushPatterns, '$flushPatterns must be iterable');
-
                 foreach ($flushPatterns as $flushPattern) {
                     Assert::isArray($flushPattern);
                     $flushCount = $flushPattern['flush_count'] ?? 0;
@@ -130,8 +128,6 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         $lastFlushIndex           = -1;
         $operationsSinceLastFlush = 0;
 
-        Assert::isIterable($queriesArray, '$queriesArray must be iterable');
-
         foreach ($queriesArray as $index => $queryData) {
             Assert::integer($index, 'Array index must be int');
 
@@ -196,8 +192,6 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
     {
         $affectedQueries = [];
         $totalTime       = 0;
-
-        Assert::isIterable($flushGroups, '$flushGroups must be iterable');
 
         foreach ($flushGroups as $flushGroup) {
             for ($i = $flushGroup['start_index']; $i <= $flushGroup['end_index']; ++$i) {

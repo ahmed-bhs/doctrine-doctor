@@ -24,7 +24,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects queries using LIMIT (from setMaxResults) with collection joins.
@@ -65,8 +64,6 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
                 foreach ($queryDataCollection as $queryData) {
                     if (!$queryData->isSelect()) {
                         continue;

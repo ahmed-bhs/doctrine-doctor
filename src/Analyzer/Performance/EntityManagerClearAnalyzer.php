@@ -22,7 +22,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
-use Webmozart\Assert\Assert;
 
 class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
@@ -55,8 +54,6 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                 $insertUpdateQueries = [];
 
                 // Group INSERT/UPDATE/DELETE queries by table
-                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
                 foreach ($queryDataCollection as $index => $queryData) {
                     // Extract table name using SQL parser
                     $table = null;
@@ -82,8 +79,6 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                 }
 
                 // Detect potential batch operations without clear()
-                Assert::isIterable($insertUpdateQueries, '$insertUpdateQueries must be iterable');
-
                 foreach ($insertUpdateQueries as $table => $tableQueries) {
                     if ($this->isMigrationTable($table)) {
                         continue;
@@ -97,8 +92,6 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
 
                         if ($isSequential) {
                             $queryDetails = [];
-
-                            Assert::isIterable($tableQueries, '$tableQueries must be iterable');
 
                             foreach ($tableQueries as $tableQuery) {
                                 $queryData = $tableQuery['query'];

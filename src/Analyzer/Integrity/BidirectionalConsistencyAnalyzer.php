@@ -71,18 +71,12 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                 // Create metadata map for quick lookup
                 $metadataMap = [];
 
-                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                 foreach ($allMetadata as $metadata) {
                     $metadataMap[$metadata->getName()] = $metadata;
                 }
 
-                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                 foreach ($allMetadata as $metadata) {
                     $entityIssues = $this->analyzeEntity($metadata, $metadataMap);
-
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -147,8 +141,6 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 
             // Check for inconsistencies
             $inconsistencies = $this->checkBidirectionalConsistency($associationMapping, $targetMetadata, $mappedBy);
-
-            Assert::isIterable($inconsistencies, '$inconsistencies must be iterable');
 
             foreach ($inconsistencies as $inconsistency) {
                 $issue    = $this->createIssue($entityClass, $fieldName, $associationMapping, $inconsistency);

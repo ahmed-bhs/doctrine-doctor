@@ -42,6 +42,11 @@ final class MissingIndexAnalyzerConfig
          * @readonly
          */
         public bool $enabled = true,
+        /**
+         * Maximum number of EXPLAIN queries to execute per request
+         * @readonly
+         */
+        public int $maxExplainQueries = 10,
     ) {
     }
 

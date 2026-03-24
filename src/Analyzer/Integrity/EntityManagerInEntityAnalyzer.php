@@ -27,7 +27,6 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects EntityManager injection in entity classes.
@@ -77,12 +76,8 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                     $metadataFactory = $this->entityManager->getMetadataFactory();
                     $allMetadata     = $metadataFactory->getAllMetadata();
 
-                    Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                     foreach ($allMetadata as $metadata) {
                         $entityIssues = $this->analyzeEntity($metadata);
-
-                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                         foreach ($entityIssues as $entityIssue) {
                             yield $entityIssue;
@@ -123,8 +118,6 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         // Check 2: EntityManager as property (injected or created)
         $emProperties = $this->findEntityManagerProperties($reflectionClass);
 
-        Assert::isIterable($emProperties, '$emProperties must be iterable');
-
         foreach ($emProperties as $emProperty) {
             $issue = $this->createEntityManagerPropertyIssue($entityClass, $emProperty);
             if ($issue instanceof IntegrityIssue) {
@@ -134,8 +127,6 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 
         // Check 3: EntityManager usage in methods (flush, persist, etc.)
         $methodsUsingEM = $this->findMethodsUsingEntityManager($reflectionClass);
-
-        Assert::isIterable($methodsUsingEM, '$methodsUsingEM must be iterable');
 
         foreach ($methodsUsingEM as $methodUsing) {
             $issue = $this->createEntityManagerUsageIssue($entityClass, $methodUsing);
@@ -268,7 +259,6 @@ class EntityManagerInEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             EntityManager::class,
         ];
 
-        Assert::isIterable($entityManagerTypes, '$entityManagerTypes must be iterable');
         return array_any($entityManagerTypes, fn ($entityManagerType) => str_contains($typeName, (string) $entityManagerType));
     }
 

@@ -53,8 +53,6 @@ class FlushInLoopAnalyzerModern implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
                 $queriesArray  = iterator_to_array($queryDataCollection);
                 $flushPatterns = $this->detectFlushPatterns($queriesArray);
 
-                Assert::isIterable($flushPatterns, '$flushPatterns must be iterable');
-
                 foreach ($flushPatterns as $flushPattern) {
                     if ($flushPattern['flush_count'] >= $this->flushCountThreshold) {
                         $flushCount = $flushPattern['flush_count'];
@@ -137,8 +135,6 @@ class FlushInLoopAnalyzerModern implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         $lastFlushIndex           = -1;
         $operationsSinceLastFlush = 0;
 
-        Assert::isIterable($queries, '$queries must be iterable');
-
         foreach ($queries as $index => $queryData) {
             Assert::integer($index, 'Array index must be int');
 
@@ -200,8 +196,6 @@ class FlushInLoopAnalyzerModern implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         $affectedQueries = [];
         $totalTime       = 0;
 
-        Assert::isIterable($flushGroups, '$flushGroups must be iterable');
-
         foreach ($flushGroups as $flushGroup) {
             for ($i = $flushGroup['start_index']; $i <= $flushGroup['end_index']; ++$i) {
                 if (isset($queries[$i])) {
@@ -249,8 +243,6 @@ class FlushInLoopAnalyzerModern implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         if (null === $backtrace || [] === $backtrace || !is_array($backtrace)) {
             return '';
         }
-
-        Assert::isIterable($backtrace, '$backtrace must be iterable');
 
         foreach ($backtrace as $frame) {
             if (isset($frame['file'], $frame['line'])) {

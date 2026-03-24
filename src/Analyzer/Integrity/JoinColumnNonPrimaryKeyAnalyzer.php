@@ -48,8 +48,6 @@ class JoinColumnNonPrimaryKeyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
                     $metadataFactory = $this->entityManager->getMetadataFactory();
                     $allMetadata = $metadataFactory->getAllMetadata();
 
-                    Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                     foreach ($allMetadata as $metadata) {
                         $issues = $this->analyzeEntity($metadata);
 

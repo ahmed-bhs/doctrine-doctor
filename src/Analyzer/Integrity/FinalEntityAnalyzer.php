@@ -68,8 +68,6 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                     return IssueCollection::empty();
                 }
 
-                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                 foreach ($allMetadata as $metadata) {
                     // Skip already checked entities
                     $entityClass = $metadata->getName();
@@ -144,7 +142,6 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                 count($lazyAssociations),
             );
 
-            Assert::isIterable($lazyAssociations, '$lazyAssociations must be iterable');
             $pairs = [];
             foreach ($lazyAssociations as $assocName => $targetEntity) {
                 $pairs[] = sprintf('%s -> %s', $assocName, $this->shortClassName($targetEntity));

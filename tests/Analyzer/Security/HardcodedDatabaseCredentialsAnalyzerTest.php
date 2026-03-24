@@ -45,7 +45,7 @@ doctrine:
 YAML);
 
         $analyzer = new HardcodedDatabaseCredentialsAnalyzer(
-            $this->createStub(Connection::class),
+            self::createStub(Connection::class),
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
             $this->tempDir,
         );
@@ -65,7 +65,7 @@ doctrine:
 YAML);
 
         $analyzer = new HardcodedDatabaseCredentialsAnalyzer(
-            $this->createStub(Connection::class),
+            self::createStub(Connection::class),
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
             $this->tempDir,
         );

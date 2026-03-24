@@ -25,7 +25,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Psr\Log\LoggerInterface;
-use Webmozart\Assert\Assert;
 
 class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
@@ -52,8 +51,6 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                 $this->logger?->info('[GetReferenceAnalyzer] Starting analysis...');
 
                 // Detect simple SELECT queries by primary key
-                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
                 foreach ($queryDataCollection as $queryData) {
                     ++$queriesExamined;
 
@@ -101,8 +98,6 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
                     // Collect all queries from all tables
                     $allQueries = [];
-
-                    Assert::isIterable($simpleSelectQueries, '$simpleSelectQueries must be iterable');
 
                     foreach ($simpleSelectQueries as $simpleSelectQuery) {
                         $allQueries = array_merge($allQueries, $simpleSelectQuery);
@@ -256,7 +251,6 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             '/SELECT\s+.*\s+FROM\s+\w+\s+WHERE\s+\w*_?id\s*=\s*\?/i',
         ];
 
-        Assert::isIterable($patterns, '$patterns must be iterable');
         return array_any($patterns, fn ($pattern) => 1 === preg_match($pattern, $sql));
     }
 
@@ -278,8 +272,6 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     private function groupIdenticalQueries(array $queries): array
     {
         $groups = [];
-
-        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             // Normalize query to group identical patterns

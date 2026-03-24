@@ -22,17 +22,20 @@ use Doctrine\DBAL\Platforms\SQLServerPlatform;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
-use Webmozart\Assert\Assert;
 
 /**
  * Helper for collecting database information.
  * Extracted from DoctrineDoctorDataCollector to reduce complexity.
  */
-final readonly class DatabaseInfoCollector
+final class DatabaseInfoCollector
 {
+    private static ?string $cachedDoctrineVersion = null;
+
+    private static bool $versionDetected = false;
+
     public function __construct(
-        private LoggerInterface $logger,
-        private DataCollectorConfig $dataCollectorConfig = new DataCollectorConfig(),
+        private readonly LoggerInterface $logger,
+        private readonly DataCollectorConfig $dataCollectorConfig = new DataCollectorConfig(),
     ) {
     }
 
@@ -79,13 +82,19 @@ final readonly class DatabaseInfoCollector
      */
     private function detectDoctrineVersion(): ?string
     {
-        // Method 1: Using Composer lock file (most reliable for Doctrine 3.x)
+        if (self::$versionDetected) {
+            return self::$cachedDoctrineVersion;
+        }
+
+        self::$versionDetected = true;
+
         $doctrineVersion = $this->getVersionFromComposerLock();
 
-        // Method 2: Using Doctrine\ORM\Version class (for Doctrine 2.x)
         if (null === $doctrineVersion && class_exists('Doctrine\ORM\Version')) {
-            return $this->getVersionFromReflection();
+            $doctrineVersion = $this->getVersionFromReflection();
         }
+
+        self::$cachedDoctrineVersion = $doctrineVersion;
 
         return $doctrineVersion;
     }
@@ -100,8 +109,6 @@ final readonly class DatabaseInfoCollector
                 __DIR__ . '/../../../composer.lock', // Inside the bundle itself
                 dirname(__DIR__, 6) . '/composer.lock', // Project root
             ];
-
-            Assert::isIterable($possiblePaths, '$possiblePaths must be iterable');
 
             foreach ($possiblePaths as $possiblePath) {
                 if (file_exists($possiblePath)) {

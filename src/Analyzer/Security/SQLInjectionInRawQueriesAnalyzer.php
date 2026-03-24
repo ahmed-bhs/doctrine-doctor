@@ -77,8 +77,6 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             function () use ($queryDataCollection) {
                 try {
                     // Analyze runtime queries from the collection
-                    Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
                     foreach ($queryDataCollection as $queryData) {
                         $issue = $this->analyzeQuery($queryData);
                         if (null !== $issue) {
@@ -92,12 +90,8 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                         $metadataFactory = $this->entityManager->getMetadataFactory();
                         $allMetadata     = $metadataFactory->getAllMetadata();
 
-                        Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                         foreach ($allMetadata as $metadata) {
                             $entityIssues = $this->analyzeEntity($metadata);
-
-                            Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                             foreach ($entityIssues as $entityIssue) {
                                 yield $entityIssue;
@@ -105,15 +99,11 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                         }
 
                         // Also analyze repositories
-                        Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                         foreach ($allMetadata as $metadata) {
                             $repositoryClass = $metadata->customRepositoryClassName;
 
                             if (null !== $repositoryClass && class_exists($repositoryClass)) {
                                 $repositoryIssues = $this->analyzeClass($repositoryClass);
-
-                                Assert::isIterable($repositoryIssues, '$repositoryIssues must be iterable');
 
                                 foreach ($repositoryIssues as $repositoryIssue) {
                                     yield $repositoryIssue;

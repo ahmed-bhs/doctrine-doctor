@@ -23,7 +23,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
-use Webmozart\Assert\Assert;
 
 class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
@@ -51,8 +50,6 @@ class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
                 $seenPatterns = [];
 
                 foreach ($queryDataCollection as $queryData) {

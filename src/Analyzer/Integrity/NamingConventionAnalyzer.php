@@ -80,13 +80,9 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                 $classMetadataFactory = $this->entityManager->getMetadataFactory();
                 $allMetadata          = $classMetadataFactory->getAllMetadata();
 
-                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                 foreach ($allMetadata as $metadata) {
                     // Check table naming
                     $tableIssues = $this->analyzeTableNaming($metadata);
-
-                    Assert::isIterable($tableIssues, '$tableIssues must be iterable');
 
                     foreach ($tableIssues as $tableIssue) {
                         yield $tableIssue;
@@ -95,8 +91,6 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                     // Check column naming
                     $columnIssues = $this->analyzeColumnNaming($metadata);
 
-                    Assert::isIterable($columnIssues, '$columnIssues must be iterable');
-
                     foreach ($columnIssues as $columnIssue) {
                         yield $columnIssue;
                     }
@@ -104,16 +98,12 @@ class NamingConventionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                     // Check foreign key naming
                     $fkIssues = $this->analyzeForeignKeyNaming($metadata);
 
-                    Assert::isIterable($fkIssues, '$fkIssues must be iterable');
-
                     foreach ($fkIssues as $fkIssue) {
                         yield $fkIssue;
                     }
 
                     // Check index naming
                     $indexIssues = $this->analyzeIndexNaming($metadata);
-
-                    Assert::isIterable($indexIssues, '$indexIssues must be iterable');
 
                     foreach ($indexIssues as $indexIssue) {
                         yield $indexIssue;

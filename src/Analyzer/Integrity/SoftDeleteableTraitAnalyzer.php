@@ -95,8 +95,6 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
 
                     $entityIssues = $this->analyzeEntity($classMetadatum);
 
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
-
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
                     }
@@ -117,8 +115,6 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         if ([] === $softDeleteFields) {
             return $issues;
         }
-
-        Assert::isIterable($softDeleteFields, '$softDeleteFields must be iterable');
 
         foreach ($softDeleteFields as $fieldName => $mapping) {
             // CRITICAL: Check if deletedAt is NOT nullable (must be nullable!)
@@ -271,8 +267,6 @@ class SoftDeleteableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             $joinColumns = MappingHelper::getArray($mapping, 'joinColumns');
 
             if (is_array($joinColumns)) {
-                Assert::isIterable($joinColumns, '$joinColumns must be iterable');
-
                 foreach ($joinColumns as $joinColumn) {
                     if (isset($joinColumn['onDelete']) && 'CASCADE' === strtoupper((string) $joinColumn['onDelete'])) {
                         $issues[] = $this->createCascadeDeleteConflictIssue($classMetadata, $fieldName);

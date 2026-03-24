@@ -45,17 +45,6 @@ class QueryData
          */
         public ?int $rowCount = null,
     ) {
-        Assert::stringNotEmpty($sql, 'SQL query cannot be empty');
-        Assert::isInstanceOf($executionTime, QueryExecutionTime::class, 'Execution time must be an instance of QueryExecutionTime');
-        Assert::isArray($params, 'Query parameters must be an array');
-
-        if (null !== $backtrace) {
-            Assert::isArray($backtrace, 'Backtrace must be an array or null');
-        }
-
-        if (null !== $rowCount) {
-            Assert::greaterThanEq($rowCount, 0, 'Row count must be non-negative, got %s');
-        }
     }
 
     /**

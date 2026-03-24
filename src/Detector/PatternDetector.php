@@ -28,8 +28,6 @@ class PatternDetector implements DetectorInterface
     {
         $detected = [];
 
-        Assert::isIterable($queries, '$queries must be iterable');
-
         foreach ($queries as $query) {
             Assert::isArray($query, 'query must be array with sql key');
             Assert::keyExists($query, 'sql', 'query must be array with sql key');

@@ -47,8 +47,6 @@ class DuplicatePrivateFieldInHierarchyAnalyzer implements \AhmedBhs\DoctrineDoct
                     $metadataFactory = $this->entityManager->getMetadataFactory();
                     $allMetadata = $metadataFactory->getAllMetadata();
 
-                    Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                     $checked = [];
 
                     foreach ($allMetadata as $metadata) {

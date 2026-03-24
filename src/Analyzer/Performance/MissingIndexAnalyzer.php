@@ -96,8 +96,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     {
         $queryPatterns = [];
 
-        Assert::isIterable($queriesArray, '$queriesArray must be iterable');
-
         foreach ($queriesArray as $queryArray) {
             $pattern = $this->normalizeQuery($queryArray->sql);
 
@@ -124,8 +122,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     private function selectQueriesToExplain(array $queriesArray, array $queryPatterns, array &$debugStats): array
     {
         $queriesToExplain = [];
-
-        Assert::isIterable($queriesArray, '$queriesArray must be iterable');
 
         foreach ($queriesArray as $queryArray) {
             $executionTime = $queryArray->executionTime->inMilliseconds();
@@ -164,11 +160,16 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
      */
     private function analyzeSelectedQueries(array $queriesToExplain, array &$debugStats): \Generator
     {
-        Assert::isIterable($queriesToExplain, '$queriesToExplain must be iterable');
+        $explainCount = 0;
 
         foreach ($queriesToExplain as $pattern => $queryData) {
+            if ($explainCount >= $this->missingIndexAnalyzerConfig->maxExplainQueries) {
+                break;
+            }
+
             try {
                 yield from $this->analyzeQueryWithExplain($pattern, $queryData, $debugStats);
+                ++$explainCount;
             } catch (\Throwable $e) {
                 $this->recordExplainError($debugStats, $pattern, $e);
             }
@@ -206,8 +207,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
      */
     private function processExplainRows(array $explain, QueryData $queryData, array &$debugStats): \Generator
     {
-        Assert::isIterable($explain, '$explain must be iterable');
-
         foreach ($explain as $row) {
             Assert::isArray($row);
             $shouldSuggest = $this->shouldSuggestIndex($row);

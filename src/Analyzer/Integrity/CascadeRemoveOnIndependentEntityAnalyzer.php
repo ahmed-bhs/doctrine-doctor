@@ -22,7 +22,6 @@ use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects cascade="remove" on associations to independent entities.
@@ -75,13 +74,9 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
                 // Build reference count map
                 $referenceCountMap = $this->buildReferenceCountMap($allMetadata);
 
-                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                 foreach ($allMetadata as $metadata) {
                     assert([] === $referenceCountMap || is_array($referenceCountMap));
                     $entityIssues = $this->analyzeEntity($metadata, $referenceCountMap);
-
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -108,8 +103,6 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
     {
         /** @var array<string, int> $map */
         $map = [];
-
-        Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
         foreach ($allMetadata as $metadata) {
             foreach ($metadata->getAssociationMappings() as $mapping) {

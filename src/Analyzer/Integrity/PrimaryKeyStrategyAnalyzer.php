@@ -22,7 +22,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Webmozart\Assert\Assert;
 
 /**
  * Educational analyzer about primary key strategies (Auto-increment vs UUID).
@@ -70,8 +69,6 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                 $allMetadata = $classMetadataFactory->getAllMetadata();
 
                 $statistics = $this->gatherStatistics($allMetadata);
-
-                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
                 foreach ($allMetadata as $metadata) {
                     // Skip mapped superclasses and embeddables
@@ -173,8 +170,6 @@ class PrimaryKeyStrategyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
             'autoIncrementEntities' => [],
             'uuidEntities' => [],
         ];
-
-        Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
         foreach ($allMetadata as $metadata) {
             if ($metadata->isMappedSuperclass) {

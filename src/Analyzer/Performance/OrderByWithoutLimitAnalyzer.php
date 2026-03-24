@@ -20,7 +20,6 @@ use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects ORDER BY clauses without LIMIT, which can cause massive table scans.
@@ -51,8 +50,6 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
              */
             function () use ($queryDataCollection) {
                 $seenIssues = [];
-
-                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
                 foreach ($queryDataCollection as $query) {
                     $sql = $this->extractSQL($query);
@@ -226,8 +223,6 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             'findBy',
             'findAll',
         ];
-
-        Assert::isIterable($backtrace, '$backtrace must be iterable');
 
         foreach ($backtrace as $frame) {
             $function = $frame['function'] ?? '';

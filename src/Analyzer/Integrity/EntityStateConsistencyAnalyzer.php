@@ -21,7 +21,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects entity state inconsistencies via static metadata analysis.
@@ -48,12 +47,8 @@ class EntityStateConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
                 $metadataFactory = $this->entityManager->getMetadataFactory();
                 $allMetadata = $metadataFactory->getAllMetadata();
 
-                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                 foreach ($allMetadata as $metadata) {
                     $entityIssues = $this->analyzeEntity($metadata);
-
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;

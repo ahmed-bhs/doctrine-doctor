@@ -21,7 +21,6 @@ use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects queries that could benefit from result caching.
@@ -103,8 +102,6 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         /** @var array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array, uniqueParamSets: array<string, true>}> */
         $queryDetails = [];
 
-        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
         foreach ($queryDataCollection as $query) {
             $sql = $this->extractSQL($query);
             $executionTime = $this->extractExecutionTime($query);
@@ -150,8 +147,6 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
      */
     private function generateFrequentQueryIssues(array $queryFrequencies, array $queryDetails): \Generator
     {
-        Assert::isIterable($queryFrequencies, '$queryFrequencies must be iterable');
-
         foreach ($queryFrequencies as $normalized => $count) {
             if ($count < $this->frequencyThreshold) {
                 continue;
@@ -182,8 +177,6 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     private function generateStaticTableIssues(QueryDataCollection $queryDataCollection): \Generator
     {
         $reportedStaticTables = [];
-
-        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
         foreach ($queryDataCollection as $query) {
             $sql = $this->extractSQL($query);

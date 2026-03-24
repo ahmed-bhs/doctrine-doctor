@@ -19,7 +19,6 @@ use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects LIKE patterns with leading wildcards that prevent index usage.
@@ -68,8 +67,6 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
             function () use ($queryDataCollection) {
                 $seenIssues = [];
 
-                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
                 foreach ($queryDataCollection as $query) {
                     $sql = $this->extractSQL($query);
                     $executionTime = $this->extractExecutionTime($query);
@@ -88,8 +85,6 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
                     }
 
                     if (preg_match_all(self::LIKE_LEADING_WILDCARD_PATTERN, $sql, $matches, PREG_SET_ORDER) >= 1) {
-                        Assert::isIterable($matches, '$matches must be iterable');
-
                         foreach ($matches as $match) {
                             $pattern = $match[2]; // The LIKE pattern (e.g., '%search%')
 

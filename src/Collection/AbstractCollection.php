@@ -39,7 +39,6 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
     protected function __construct(
         private readonly iterable $items = [],
     ) {
-        Assert::isIterable($items, 'Items must be iterable, got %s');
     }
 
     /**
@@ -238,8 +237,6 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
     {
         $result = [];
 
-        Assert::isIterable($this, '$this must be iterable');
-
         foreach ($this as $item) {
             $result[] = $mapper($item);
         }
@@ -253,8 +250,6 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
      */
     public function any(callable $predicate): bool
     {
-        Assert::isIterable($this, '$this must be iterable');
-
         foreach ($this as $item) {
             if ($predicate($item)) {
                 return true;
@@ -270,8 +265,6 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
      */
     public function all(callable $predicate): bool
     {
-        Assert::isIterable($this, '$this must be iterable');
-
         foreach ($this as $item) {
             if (!$predicate($item)) {
                 return false;
@@ -290,8 +283,6 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
     public function groupBy(callable $keySelector): array
     {
         $groups = [];
-
-        Assert::isIterable($this, '$this must be iterable');
 
         foreach ($this as $item) {
             $key = $keySelector($item);

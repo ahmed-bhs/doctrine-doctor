@@ -47,8 +47,6 @@ class SlowQueryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInt
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($slowQueries) {
-                Assert::isIterable($slowQueries, '$slowQueries must be iterable');
-
                 foreach ($slowQueries as $slowQuery) {
                     $executionTimeMs = $slowQuery->executionTime->inMilliseconds();
 

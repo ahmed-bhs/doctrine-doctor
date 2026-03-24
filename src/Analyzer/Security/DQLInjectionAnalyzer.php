@@ -41,8 +41,6 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $suspiciousQueries = [];
         $unparameterizedDqlQueries = [];
 
-        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
         foreach ($queryDataCollection as $queryData) {
             $injectionRisk = $this->detectInjectionRisk($queryData->sql);
             Assert::isArray($injectionRisk);
@@ -234,8 +232,6 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     private function aggregateIndicators(array $queries): array
     {
         $allIndicators = [];
-
-        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             $indicators = $query['indicators'] ?? [];

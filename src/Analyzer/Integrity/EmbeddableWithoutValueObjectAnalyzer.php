@@ -71,8 +71,6 @@ class EmbeddableWithoutValueObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\A
 
                     $entityIssues = $this->analyzeEmbeddable($classMetadatum);
 
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
-
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
                     }

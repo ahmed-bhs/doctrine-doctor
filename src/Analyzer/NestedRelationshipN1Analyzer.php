@@ -24,7 +24,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects nested relationship N+1 queries.
@@ -68,8 +67,6 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
              */
             function () use ($queries) {
                 $chains = $this->detectQueryChains($queries);
-
-                Assert::isIterable($chains, '$chains must be iterable');
 
                 foreach ($chains as $chain) {
                     if ($chain['depth'] >= self::MIN_CHAIN_LENGTH && $chain['count'] >= $this->threshold) {

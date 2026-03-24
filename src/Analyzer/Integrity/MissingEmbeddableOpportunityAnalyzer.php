@@ -23,7 +23,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects groups of properties that should be refactored into Doctrine Embeddables.
@@ -113,8 +112,6 @@ class MissingEmbeddableOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\A
 
                     $entityIssues = $this->analyzeEntity($classMetadatum);
 
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
-
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
                     }
@@ -164,8 +161,6 @@ class MissingEmbeddableOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\A
         $optionalFields = $pattern['optional'] ?? [];
 
         // Check if all required fields exist
-        Assert::isIterable($requiredFields, '$requiredFields must be iterable');
-
         foreach ($requiredFields as $requiredField) {
             $requiredFieldLower = strtolower($requiredField);
 
@@ -178,8 +173,6 @@ class MissingEmbeddableOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\A
         }
 
         // Add optional fields if they exist
-        Assert::isIterable($optionalFields, '$optionalFields must be iterable');
-
         foreach ($optionalFields as $optionalField) {
             $optionalFieldLower = strtolower($optionalField);
 

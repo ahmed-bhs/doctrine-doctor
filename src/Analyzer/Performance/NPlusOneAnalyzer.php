@@ -28,7 +28,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
-use Webmozart\Assert\Assert;
 
 class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
@@ -79,8 +78,6 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryGroups) {
-                Assert::isIterable($queryGroups, '$queryGroups must be iterable');
-
                 foreach ($queryGroups as $pattern => $group) {
                     if ($group->count() >= $this->threshold) {
                         $groupArray = $group->toArray();
@@ -647,8 +644,6 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
 
         try {
             $metadatas = $this->entityManager->getMetadataFactory()->getAllMetadata();
-
-            Assert::isIterable($metadatas, '$metadatas must be iterable');
 
             foreach ($metadatas as $metadata) {
                 $this->tableToEntityCache[$metadata->getTableName()] = $metadata->getName();

@@ -48,8 +48,6 @@ class CartesianProductAnalyzer implements AnalyzerInterface
     {
         return IssueCollection::fromGenerator(
             function () use ($queryDataCollection) {
-                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
                 $metadataMap = $this->collectionJoinDetector->buildMetadataMap();
                 $seenKeys = [];
 

@@ -122,12 +122,8 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                     $metadataFactory = $this->entityManager->getMetadataFactory();
                     $allMetadata     = $metadataFactory->getAllMetadata();
 
-                    Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                     foreach ($allMetadata as $metadata) {
                         $entityIssues = $this->analyzeEntity($metadata);
-
-                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                         foreach ($entityIssues as $entityIssue) {
                             yield $entityIssue;
@@ -184,8 +180,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
                 $issues[] = $issue;
             }
         }
-
-        Assert::isIterable($sensitiveFields, '$sensitiveFields must be iterable');
 
         foreach ($sensitiveFields as $sensitiveField) {
             $issue = $this->checkSerializationProtection($entityClass, $sensitiveField, $reflectionClass);
@@ -282,7 +276,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
     ): ?SecurityIssue {
         $reflectionMethod = $reflectionClass->getMethod('jsonSerialize');
 
-        Assert::isIterable($sensitiveFields, '$sensitiveFields must be iterable');
         Assert::allString($sensitiveFields, '$sensitiveFields must contain only strings');
         /** @var array<string> $sensitiveFields */
         $exposedFields = $this->phpCodeParser->detectExposedSensitiveFields(
@@ -320,7 +313,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
     ): ?SecurityIssue {
         $reflectionMethod = $reflectionClass->getMethod('toArray');
 
-        Assert::isIterable($sensitiveFields, '$sensitiveFields must be iterable');
         Assert::allString($sensitiveFields, '$sensitiveFields must contain only strings');
         /** @var array<string> $sensitiveFields */
         $exposedFields = $this->phpCodeParser->detectExposedSensitiveFields(
@@ -373,8 +365,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
             }
 
             $attributes = $property->getAttributes();
-
-            Assert::isIterable($attributes, '$attributes must be iterable');
 
             foreach ($attributes as $attribute) {
                 $attrName = $attribute->getName();
@@ -591,8 +581,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
         $code .= "        // DO NOT include:
 ";
 
-        Assert::isIterable($exposedFields, '$exposedFields must be iterable');
-
         foreach ($exposedFields as $exposedField) {
             $code .= "        // '{$exposedField}' => \$this->{$exposedField}, // SENSITIVE!
 ";
@@ -642,8 +630,6 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
 ";
         $code .= "        // DO NOT include sensitive fields:
 ";
-
-        Assert::isIterable($exposedFields, '$exposedFields must be iterable');
 
         foreach ($exposedFields as $exposedField) {
             $code .= "        // '{$exposedField}' => \$this->{$exposedField}, // SENSITIVE DATA!

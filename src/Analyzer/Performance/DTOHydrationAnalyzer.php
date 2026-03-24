@@ -76,8 +76,6 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
                 $patterns = $this->groupQueriesByPattern($aggregationQueries);
 
-                Assert::isIterable($patterns, '$patterns must be iterable');
-
                 foreach ($patterns as $pattern => $queryGroup) {
                     if (count($queryGroup) < self::MIN_OCCURRENCES) {
                         continue;
@@ -102,8 +100,6 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     {
 
         $result = [];
-
-        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
         foreach ($queryDataCollection as $query) {
             $sql      = $query->sql;
@@ -182,8 +178,6 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     {
 
         $patterns = [];
-
-        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             $sql     = is_array($query) ? ($query['sql'] ?? '') : $query->sql;
@@ -287,8 +281,6 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     {
         $total = 0;
         $count = 0;
-
-        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             if (is_array($query)) {
