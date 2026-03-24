@@ -24,7 +24,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects usage of float/double types for monetary values.
@@ -151,8 +150,6 @@ class FloatForMoneyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                     }
 
                     $entityIssues = $this->analyzeEntity($classMetadatum);
-
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;

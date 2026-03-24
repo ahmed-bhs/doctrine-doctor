@@ -24,7 +24,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects unused eager loading (JOIN FETCH) that wastes memory and bandwidth.
@@ -78,8 +77,6 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                Assert::isIterable($queryDataCollection->toArray(), '$queryDataCollection must be iterable');
-
                 foreach ($queryDataCollection->toArray() as $queryData) {
                     $sql = $queryData->sql;
 

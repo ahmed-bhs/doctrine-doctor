@@ -22,7 +22,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
-use Webmozart\Assert\Assert;
 
 /**
  * Analyzes QueryBuilder usage for common pitfalls and best practices.
@@ -52,8 +51,6 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
-                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
                 foreach ($queryDataCollection as $query) {
                     $sql = $query->sql;
 

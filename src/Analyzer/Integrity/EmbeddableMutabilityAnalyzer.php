@@ -72,8 +72,6 @@ class EmbeddableMutabilityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
 
                     $entityIssues = $this->analyzeEmbeddable($classMetadatum);
 
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
-
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
                     }

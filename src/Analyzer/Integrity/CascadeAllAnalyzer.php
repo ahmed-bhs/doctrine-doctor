@@ -27,7 +27,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects the dangerous use of cascade="all" in entity associations.
@@ -78,12 +77,8 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                     $metadataFactory = $this->entityManager->getMetadataFactory();
                     $allMetadata     = $metadataFactory->getAllMetadata();
 
-                    Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                     foreach ($allMetadata as $metadata) {
                         $entityIssues = $this->analyzeEntity($metadata);
-
-                        Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                         foreach ($entityIssues as $entityIssue) {
                             yield $entityIssue;
@@ -307,8 +302,6 @@ class CascadeAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 
         // Count how many cascade operations match "all" operations
         $matchCount = 0;
-
-        Assert::isIterable($allOperations, '$allOperations must be iterable');
 
         foreach ($allOperations as $operation) {
             if (in_array($operation, $cascade, true)) {

@@ -31,7 +31,6 @@ use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\Service\ResetInterface;
-use Webmozart\Assert\Assert;
 
 /**
  * DataCollector for Doctrine Doctor.
@@ -73,15 +72,13 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function collect(Request $_request, Response $_response, ?\Throwable $_exception = null): void
     {
-        $databaseInfo = $this->dataCollectorHelpers->databaseInfoCollector->collectDatabaseInfo($this->entityManager);
-
         $this->data = [
             'enabled'           => (bool) $this->doctrineDataCollector,
             'show_debug_info'   => $this->showDebugInfo,
             'timeline_queries'  => [],
             'issues'            => [],
             'skipped_analyzers' => 0,
-            'database_info'     => $databaseInfo,
+            'database_info'     => [],
             'profiler_overhead' => [
                 'analysis_time_ms' => 0,
                 'db_info_time_ms'  => 0,
@@ -93,14 +90,12 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             return;
         }
 
-        $queries = $this->doctrineDataCollector->getQueries();
+        $this->data['database_info'] = $this->dataCollectorHelpers->databaseInfoCollector->collectDatabaseInfo($this->entityManager);
 
-        Assert::isIterable($queries, '$queries must be iterable');
+        $queries = $this->doctrineDataCollector->getQueries();
 
         foreach ($queries as $query) {
             if (is_array($query)) {
-                Assert::isIterable($query, '$query must be iterable');
-
                 foreach ($query as $connectionQuery) {
                     $this->data['timeline_queries'][] = $connectionQuery;
                 }
@@ -220,6 +215,12 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             return $this->memoizedStats;
         }
 
+        if (isset($this->data['stats'])) {
+            $this->memoizedStats = $this->data['stats'];
+
+            return $this->memoizedStats;
+        }
+
         $issueCollection = IssueCollection::fromArray($this->getIssues());
         $counts          = $issueCollection->statistics()->countBySeverity();
 
@@ -242,8 +243,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     public function getTimelineQueries(): \Generator
     {
         $queries = $this->data['timeline_queries'] ?? [];
-
-        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             yield $query;
@@ -284,8 +283,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $grouped = [];
 
         foreach ($this->getTimelineQueries() as $query) {
-            Assert::isArray($query, 'Query must be an array');
-
             $rawSql = $query['sql'] ?? '';
             $sql = is_string($rawSql) ? $rawSql : '';
             $executionTime = (float) ($query['executionMS'] ?? 0.0);
@@ -402,14 +399,17 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     {
         $this->stopwatch?->start('doctrine_doctor.analysis', 'doctrine_doctor_profiling');
 
-        SqlNormalizationCache::warmUp($this->data['timeline_queries']);
-        CachedSqlStructureExtractor::warmUp($this->data['timeline_queries']);
+        if ([] !== $this->data['timeline_queries']) {
+            SqlNormalizationCache::warmUp($this->data['timeline_queries']);
+        }
 
         $this->data['issues'] = $this->analyzeQueriesLazy(
             $this->analyzers,
             $this->dataCollectorHelpers->dataCollectorLogger,
             $this->dataCollectorHelpers->issueDeduplicator,
         );
+
+        $this->data['stats'] = $this->computeStatsFromRawIssues($this->data['issues']);
 
         $analysisEvent = $this->stopwatch?->stop('doctrine_doctor.analysis');
 
@@ -438,11 +438,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     }
 
     /**
-     * Analyze queries lazily (heavy processing - called ONLY when profiler is viewed).
-     *  OPTIMIZED with generators for memory efficiency
-     *  Only executed when getIssues() is called (profiler view)
-     *  NOT executed during request handling
-     *  Uses services from static cache (survives serialization)
      * @param iterable              $analyzers           Analyzers from static cache
      * @param DataCollectorLogger   $dataCollectorLogger Logger for conditional logging
      * @param IssueDeduplicator     $issueDeduplicator   Service to deduplicate redundant issues
@@ -462,40 +457,42 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $filteredQueries = $this->filterQueriesByPaths($queries, $this->excludePaths);
         }
 
-        $createQueryDTOsGenerator = function () use ($filteredQueries, $dataCollectorLogger) {
-            foreach ($filteredQueries as $query) {
-                try {
-                    yield QueryData::fromArray($query);
-                } catch (\Throwable $e) {
-                    $dataCollectorLogger->logWarningIfDebugEnabled('Failed to convert query to DTO', $e);
-                }
+        $queryDTOs = [];
+        foreach ($filteredQueries as $query) {
+            try {
+                $queryDTOs[] = QueryData::fromArray($query);
+            } catch (\Throwable $e) {
+                $dataCollectorLogger->logWarningIfDebugEnabled('Failed to convert query to DTO', $e);
             }
-        };
+        }
+
+        $queryCollection = QueryDataCollection::fromArray($queryDTOs);
+        unset($queryDTOs);
 
         $allIssues = [];
         $memoryThreshold = (int) (self::getMemoryLimitBytes() * 0.70);
+        $issueCount = 0;
 
         foreach ($analyzers as $analyzer) {
-            if (memory_get_usage(true) >= $memoryThreshold) {
+            if (0 === $issueCount % 50 && memory_get_usage(true) >= $memoryThreshold) {
                 ++$this->data['skipped_analyzers'];
 
                 continue;
             }
 
             try {
-                $queryCollection = QueryDataCollection::fromGenerator($createQueryDTOsGenerator);
                 $issueCollection = $analyzer->analyze($queryCollection);
 
                 foreach ($issueCollection as $issue) {
                     $allIssues[] = $issue;
+                    ++$issueCount;
 
-                    if (memory_get_usage(true) >= $memoryThreshold) {
+                    if (0 === $issueCount % 50 && memory_get_usage(true) >= $memoryThreshold) {
                         break;
                     }
                 }
 
-                unset($issueCollection, $queryCollection);
-                gc_collect_cycles();
+                unset($issueCollection);
             } catch (\Throwable $e) {
                 $dataCollectorLogger->logErrorIfDebugEnabled('Analyzer failed: ' . $analyzer::class, $e);
             }
@@ -510,6 +507,34 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $deduplicatedCollection = $deduplicatedCollection->sorting()->bySeverityDescending();
 
         return $deduplicatedCollection->toArrayOfArrays();
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $rawIssues
+     * @return array{total_issues: int, critical: int, warning: int, info: int, skipped_analyzers: int}
+     */
+    private function computeStatsFromRawIssues(array $rawIssues): array
+    {
+        $critical = 0;
+        $warning = 0;
+        $info = 0;
+
+        foreach ($rawIssues as $issue) {
+            $severity = $issue['severity'] ?? 'info';
+            match ($severity) {
+                'critical' => ++$critical,
+                'warning' => ++$warning,
+                default => ++$info,
+            };
+        }
+
+        return [
+            'total_issues'      => count($rawIssues),
+            'critical'          => $critical,
+            'warning'           => $warning,
+            'info'              => $info,
+            'skipped_analyzers' => $this->data['skipped_analyzers'] ?? 0,
+        ];
     }
 
     private function resolveIssueReconstructor(): IssueReconstructor
@@ -537,11 +562,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
         $filtered = [];
 
-        Assert::isIterable($queries, '$queries must be iterable');
-
         foreach ($queries as $query) {
-            Assert::isArray($query, 'Query must be an array');
-
             if (!$this->isQueryFromExcludedPaths($query, $excludedPaths)) {
                 $filtered[] = $query;
             }
@@ -576,8 +597,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         if (null === $backtrace || !is_array($backtrace) || [] === $backtrace) {
             return false;
         }
-
-        Assert::isIterable($backtrace, '$backtrace must be iterable');
 
         $firstAppFrame = null;
         $hasValidFrames = false; // Track if we found at least one valid frame

@@ -22,7 +22,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
-use Webmozart\Assert\Assert;
 
 class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
@@ -43,8 +42,6 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
              */
             function () use ($queryDataCollection) {
                 $lazyLoadPatterns = $this->detectLazyLoadingPatterns($queryDataCollection);
-
-                Assert::isIterable($lazyLoadPatterns, '$lazyLoadPatterns must be iterable');
 
                 foreach ($lazyLoadPatterns as $lazyLoadPattern) {
                     if ($lazyLoadPattern['count'] >= $this->threshold) {
@@ -105,8 +102,6 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         $sequentialQueries = [];
 
         // Detect SELECT queries that load single entities by ID (lazy loading pattern)
-        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
         foreach ($queryDataCollection as $index => $queryData) {
             // Detect lazy loading pattern using SQL parser
             // Pattern: SELECT ... FROM table WHERE id = ? (single entity load)
@@ -128,8 +123,6 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         }
 
         // Analyze sequential patterns
-        Assert::isIterable($sequentialQueries, '$sequentialQueries must be iterable');
-
         foreach ($sequentialQueries as $table => $queryGroup) {
             if (count($queryGroup) >= $this->threshold) {
                 $indices      = array_column($queryGroup, 'index');
@@ -138,8 +131,6 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                 if ($isSequential) {
                     $totalTime    = 0;
                     $queryDetails = [];
-
-                    Assert::isIterable($queryGroup, '$queryGroup must be iterable');
 
                     foreach ($queryGroup as $item) {
                         $queryData = $item['query'];
@@ -203,8 +194,6 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         }
 
         // Try to find getter methods in backtrace
-        Assert::isIterable($backtrace, '$backtrace must be iterable');
-
         foreach ($backtrace as $frame) {
             // Pattern: Simple pattern match: /^get([A-Z]\w+)/
             if (isset($frame['function']) && 1 === preg_match('/^get([A-Z]\w+)/', $frame['function'], $matches)) {

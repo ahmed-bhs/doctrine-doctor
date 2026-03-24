@@ -104,8 +104,6 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
 
                 $entityIssues = $this->analyzeEntity($classMetadatum);
 
-                Assert::isIterable($entityIssues, '$entityIssues must be iterable');
-
                 foreach ($entityIssues as $entityIssue) {
                     yield $entityIssue;
                 }
@@ -142,8 +140,6 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             }
             return $issues;
         }
-
-        Assert::isIterable($blameableFields, '$blameableFields must be iterable');
 
         foreach ($blameableFields as $fieldName => $mapping) {
             // Check if createdBy is nullable
@@ -374,8 +370,6 @@ class BlameableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
 
         // Check for KnpLabs trait usage
         $traits = $reflectionClass->getTraitNames();
-        Assert::isIterable($traits, '$traits must be iterable');
-
         foreach ($traits as $trait) {
             if (str_contains($trait, 'BlameableEntity') ||
                 str_contains($trait, 'Blameable') ||

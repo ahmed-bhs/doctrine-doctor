@@ -24,7 +24,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects usage of float/double types in Money Embeddables.
@@ -84,8 +83,6 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
 
                             $entityIssues = $this->analyzeEmbeddable($classMetadatum);
 
-                            Assert::isIterable($entityIssues, '$entityIssues must be iterable');
-
                             foreach ($entityIssues as $entityIssue) {
                                 yield $entityIssue;
                             }
@@ -106,8 +103,6 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
                                     /** @var class-string $embeddableClassName */
                                     $embeddableMetadata = $classMetadataFactory->getMetadataFor($embeddableClassName);
                                     $embeddableIssues = $this->analyzeEmbeddable($embeddableMetadata);
-
-                                    Assert::isIterable($embeddableIssues, '$embeddableIssues must be iterable');
 
                                     foreach ($embeddableIssues as $embeddableIssue) {
                                         yield $embeddableIssue;
@@ -166,7 +161,6 @@ class FloatInMoneyEmbeddableAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         }
 
         // Check if it has currency field (strong indicator)
-        Assert::isIterable($fieldNames, '$fieldNames must be iterable');
         return array_any($fieldNames, fn ($fieldName) => str_contains(strtolower((string) $fieldName), 'currency'));
     }
 

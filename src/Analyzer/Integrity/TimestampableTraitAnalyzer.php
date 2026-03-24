@@ -121,8 +121,6 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
 
                     $entityIssues = $this->analyzeEntity($classMetadatum, $allTimestampFields);
 
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
-
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
                     }
@@ -168,8 +166,6 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
         if ([] === $timestampFields) {
             return $issues;
         }
-
-        Assert::isIterable($timestampFields, '$timestampFields must be iterable');
 
         foreach ($timestampFields as $fieldName => $mapping) {
             // Check for DateTime instead of DateTimeImmutable
@@ -346,8 +342,6 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     {
         // Check for KnpLabs trait usage
         $traits = $reflectionClass->getTraitNames();
-        Assert::isIterable($traits, '$traits must be iterable');
-
         foreach ($traits as $trait) {
             if (str_contains($trait, 'TimestampableEntity') ||
                 str_contains($trait, 'Timestampable') ||
