@@ -23,7 +23,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects type hint mismatches between Doctrine column types and PHP property types.
@@ -106,8 +105,6 @@ final readonly class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDocto
                     }
 
                     $entityIssues = $this->analyzeEntity($classMetadatum);
-
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -244,8 +241,6 @@ final readonly class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDocto
         );
 
         // Check if any of the union types match expected types
-        Assert::isIterable($actualTypes, '$actualTypes must be iterable');
-
         foreach ($actualTypes as $actualType) {
             if ($this->isCompatibleType($actualType, $expectedTypes)) {
                 return null; // At least one type matches
@@ -308,8 +303,6 @@ final readonly class TypeHintMismatchAnalyzer implements \AhmedBhs\DoctrineDocto
     {
         // Normalize type names
         $actualType = $this->normalizeTypeName($actualType);
-
-        Assert::isIterable($expectedTypes, '$expectedTypes must be iterable');
 
         foreach ($expectedTypes as $expectedType) {
             $expectedType = $this->normalizeTypeName($expectedType);

@@ -25,7 +25,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Psr\Log\LoggerInterface;
-use Webmozart\Assert\Assert;
 
 class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
@@ -51,8 +50,6 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($bulkOperations) {
-                Assert::isIterable($bulkOperations, '$bulkOperations must be iterable');
-
                 foreach ($bulkOperations as $bulkOperation) {
                     if ($bulkOperation['count'] >= $this->threshold) {
                         $suggestion = $this->suggestionFactory->createFromTemplate(
@@ -107,8 +104,6 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         $this->logger?->info('[BulkOperationAnalyzer] detectBulkOperations() called');
 
         // Group UPDATE/DELETE queries by table and pattern
-        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
         $queryCount = 0;
         foreach ($queryDataCollection as $index => $queryData) {
             $queryCount++;
@@ -177,8 +172,6 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         $this->logger?->info('[BulkOperationAnalyzer] Found ' . count($updateDeleteQueries) . ' unique UPDATE/DELETE patterns');
 
         // Analyze patterns
-        Assert::isIterable($updateDeleteQueries, '$updateDeleteQueries must be iterable');
-
         foreach ($updateDeleteQueries as $updateDeleteQuery) {
             $count = count($updateDeleteQuery['queries']);
 
@@ -221,8 +214,6 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
 
         // Check if queries have similar structure using SQL parser
         $patterns = [];
-
-        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             // Use SQL parser to normalize query pattern

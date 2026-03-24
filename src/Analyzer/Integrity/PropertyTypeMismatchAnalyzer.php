@@ -26,7 +26,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use ReflectionEnum;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects type mismatches between entity property declarations and Doctrine mappings.
@@ -58,12 +57,8 @@ class PropertyTypeMismatchAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
                 $metadataFactory = $this->entityManager->getMetadataFactory();
                 $allMetadata = $metadataFactory->getAllMetadata();
 
-                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                 foreach ($allMetadata as $metadata) {
                     $entityIssues = $this->analyzeEntity($metadata);
-
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;

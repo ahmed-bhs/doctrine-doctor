@@ -22,7 +22,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Webmozart\Assert\Assert;
 
 /**
  * Analyzes decimal column configurations for precision and scale issues.
@@ -70,8 +69,6 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                     }
 
                     $entityIssues = $this->analyzeEntity($classMetadatum);
-
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -215,7 +212,6 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $moneyPatterns = ['price', 'amount', 'cost', 'total', 'balance', 'fee', 'charge', 'payment'];
         $fieldLower    = strtolower($fieldName);
 
-        Assert::isIterable($moneyPatterns, '$moneyPatterns must be iterable');
         return array_any($moneyPatterns, fn ($moneyPattern) => str_contains($fieldLower, (string) $moneyPattern));
     }
 
@@ -224,7 +220,6 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $percentagePatterns = ['percent', 'percentage', 'rate', 'ratio'];
         $fieldLower         = strtolower($fieldName);
 
-        Assert::isIterable($percentagePatterns, '$percentagePatterns must be iterable');
         return array_any($percentagePatterns, fn ($percentagePattern) => str_contains($fieldLower, (string) $percentagePattern));
     }
 

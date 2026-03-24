@@ -21,7 +21,6 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects incorrect NULL comparisons using = or != operators.
@@ -58,8 +57,6 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             function () use ($queryDataCollection) {
                 $seenComparisons = [];
 
-                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
                 foreach ($queryDataCollection as $query) {
                     $sql = $this->extractSQL($query);
                     if ('' === $sql) {
@@ -73,8 +70,6 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                     $cleaned = $this->stripStringLiterals($this->removeSqlComments($sql));
 
                     if (preg_match_all(self::NULL_COMPARISON_PATTERN, $cleaned, $matches, PREG_SET_ORDER) >= 1) {
-                        Assert::isIterable($matches, '$matches must be iterable');
-
                         foreach ($matches as $match) {
                             $fullMatch = $match[0];
                             $field     = $match[1];

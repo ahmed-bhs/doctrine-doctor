@@ -78,8 +78,6 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                 // Group queries by their DQL pattern
                 $queryPatterns = $this->groupQueriesByPattern(QueryDataCollection::fromArray($queriesArray));
 
-                Assert::isIterable($queryPatterns, '$queryPatterns must be iterable');
-
                 foreach ($queryPatterns as $pattern => $queryGroup) {
                     if (count($queryGroup) < $this->threshold) {
                         continue;
@@ -117,8 +115,6 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     {
 
         $patterns = [];
-
-        Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
 
         foreach ($queryDataCollection as $query) {
             $sql = $query->sql;
@@ -243,8 +239,6 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     {
         $total = 0;
         $count = 0;
-
-        Assert::isIterable($queries, '$queries must be iterable');
 
         foreach ($queries as $query) {
             if ($query instanceof QueryData) {

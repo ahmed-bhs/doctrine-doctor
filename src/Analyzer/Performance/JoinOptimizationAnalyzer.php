@@ -46,8 +46,6 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                 $metadataMap = $this->collectionJoinDetector->buildMetadataMap();
                 $seenIssues  = [];
 
-                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
                 foreach ($queryDataCollection as $query) {
                     $context = $this->extractQueryContext($query);
 
@@ -140,8 +138,6 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
      */
     private function checkAndYieldJoinIssues(array $context, array $joins, array $metadataMap, array &$seenIssues, array|object $query): \Generator
     {
-        Assert::isIterable($joins, '$joins must be iterable');
-
         foreach ($joins as $join) {
             yield from $this->checkAndYieldSuboptimalJoin($join, $metadataMap, $context, $seenIssues, $query);
             yield from $this->checkAndYieldUnusedJoin($join, $context['sql'], $seenIssues, $query);

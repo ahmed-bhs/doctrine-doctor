@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Helper;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
-use Webmozart\Assert\Assert;
 
 /**
  * Extracts column names from SQL queries for index suggestions.
@@ -105,8 +104,6 @@ final readonly class QueryColumnExtractor
 
         $filtered = [];
 
-        Assert::isIterable($columns, '$columns must be iterable');
-
         foreach ($columns as $column) {
             if (!in_array(strtoupper($column), $sqlKeywords, true)) {
                 $filtered[] = strtolower($column);
@@ -124,8 +121,6 @@ final readonly class QueryColumnExtractor
     private function removeDuplicateColumns(array $columns): array
     {
         $unique = [];
-
-        Assert::isIterable($columns, '$columns must be iterable');
 
         foreach ($columns as $column) {
             if (!in_array($column, $unique, true)) {

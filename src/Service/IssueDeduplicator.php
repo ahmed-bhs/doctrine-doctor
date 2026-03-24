@@ -15,7 +15,6 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Issue\DeduplicatableIssueInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
-use Webmozart\Assert\Assert;
 
 /**
  * Deduplicates issues to avoid showing the same problem multiple times.
@@ -37,8 +36,6 @@ final class IssueDeduplicator
 
         // Step 2: Apply deduplication rules within each group
         $deduplicatedIssues = [];
-        Assert::isIterable($groupedIssues, '$groupedIssues must be iterable');
-
         foreach ($groupedIssues as $group) {
             $result = $this->selectBestIssueWithDuplicates($group);
             if (null !== $result) {
@@ -56,8 +53,6 @@ final class IssueDeduplicator
     private function groupIssues(IssueCollection $issues): array
     {
         $groups = [];
-
-        Assert::isIterable($issues, '$issues must be iterable');
 
         foreach ($issues as $issue) {
             $signature = $this->getIssueSignature($issue);
@@ -357,15 +352,12 @@ final class IssueDeduplicator
         $bestSeverity = -1;
         $duplicates = [];
 
-        Assert::isIterable($issues, '$issues must be iterable');
-
         foreach ($issues as $issue) {
             $title = $issue->getTitle();
             $severity = $this->getSeverityWeight($issue->getSeverity());
 
             // Find matching priority
             $priority = 0;
-            Assert::isIterable($priorities, '$priorities must be iterable');
 
             foreach ($priorities as $keyword => $weight) {
                 if (str_contains($title, $keyword)) {

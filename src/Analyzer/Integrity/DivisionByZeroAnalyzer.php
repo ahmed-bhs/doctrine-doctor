@@ -19,7 +19,6 @@ use AhmedBhs\DoctrineDoctor\Issue\SecurityIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
-use Webmozart\Assert\Assert;
 
 /**
  * Detects division operations that could result in division by zero errors.
@@ -57,8 +56,6 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             function () use ($queryDataCollection) {
                 $seenDivisions = [];
 
-                Assert::isIterable($queryDataCollection, '$queryDataCollection must be iterable');
-
                 foreach ($queryDataCollection as $query) {
                     $sql = $this->extractSQL($query);
                     if ('' === $sql) {
@@ -70,8 +67,6 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                     }
 
                     if (preg_match_all(self::DIVISION_PATTERN, $sql, $matches, PREG_SET_ORDER) >= 1) {
-                        Assert::isIterable($matches, '$matches must be iterable');
-
                         foreach ($matches as $match) {
                             $fullMatch = $match[0];
                             $dividend  = $match[1];

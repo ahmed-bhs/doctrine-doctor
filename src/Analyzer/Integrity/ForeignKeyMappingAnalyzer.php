@@ -105,12 +105,8 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
                 $classMetadataFactory = $this->entityManager->getMetadataFactory();
                 $allMetadata          = $classMetadataFactory->getAllMetadata();
 
-                Assert::isIterable($allMetadata, '$allMetadata must be iterable');
-
                 foreach ($allMetadata as $metadata) {
                     $entityIssues = $this->analyzeEntity($metadata, $allMetadata);
-
-                    Assert::isIterable($entityIssues, '$entityIssues must be iterable');
 
                     foreach ($entityIssues as $entityIssue) {
                         yield $entityIssue;
@@ -130,8 +126,6 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         $entityClass = $classMetadata->getName();
 
         $fieldMappings = $classMetadata->fieldMappings;
-
-        Assert::isIterable($fieldMappings, '$fieldMappings must be iterable');
 
         foreach ($fieldMappings as $fieldName => $mapping) {
             $type = MappingHelper::getString($mapping, 'type');
@@ -271,7 +265,6 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
 
         $associations = $classMetadata->getAssociationNames();
 
-        Assert::isIterable($associations, '$associations must be iterable');
         return array_any($associations, fn ($association) => strtolower((string) $association) === strtolower($baseName));
     }
 
@@ -333,8 +326,6 @@ class ForeignKeyMappingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
         }
 
         $baseNameLower = strtolower($baseName);
-
-        Assert::isIterable($allMetadata, '$allMetadata must be iterable');
 
         foreach ($allMetadata as $metadata) {
             $className = $metadata->getName();
