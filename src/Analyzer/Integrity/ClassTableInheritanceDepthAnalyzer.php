@@ -11,10 +11,10 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
@@ -26,8 +26,9 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
-class ClassTableInheritanceDepthAnalyzer implements AnalyzerInterface
+class ClassTableInheritanceDepthAnalyzer implements MetadataAnalyzerInterface
 {
+    use MetadataAnalyzerTrait;
     use ShortClassNameTrait;
 
     public function __construct(
@@ -37,7 +38,7 @@ class ClassTableInheritanceDepthAnalyzer implements AnalyzerInterface
     ) {
     }
 
-    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+    public function analyzeMetadata(): IssueCollection
     {
         return IssueCollection::fromGenerator(function () {
             try {

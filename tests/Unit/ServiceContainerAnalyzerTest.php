@@ -111,19 +111,14 @@ final class ServiceContainerAnalyzerTest extends TestCase
         }
 
         // Extract namespace
-        if (0 === preg_match('/namespace\s+([^;]+);/', $content, $namespaceMatch)) {
+        if (1 !== preg_match('/namespace\s+([^;]+);/', $content, $namespaceMatch)) {
             return null;
         }
 
-        $namespace = $namespaceMatch[1];
-
-        // Extract class name
-        if (0 === preg_match('/(?:class|interface|trait)\s+(\w+)/', $content, $classMatch)) {
+        if (1 !== preg_match('/(?:class|interface|trait)\s+(\w+)/', $content, $classMatch)) {
             return null;
         }
 
-        $className = $classMatch[1];
-
-        return $namespace . '\\' . $className;
+        return $namespaceMatch[1] . '\\' . $classMatch[1];
     }
 }

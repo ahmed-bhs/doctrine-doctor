@@ -11,8 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
@@ -58,8 +59,10 @@ use Webmozart\Assert\Assert;
  * - Add indexes on timestamp fields used in WHERE clauses
  * - Use Doctrine lifecycle callbacks or extensions
  */
-class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
+class TimestampableTraitAnalyzer implements MetadataAnalyzerInterface
 {
+    use MetadataAnalyzerTrait;
+
     /**
      * Common field names for timestamps.
      */
@@ -100,7 +103,7 @@ class TimestampableTraitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     ) {
     }
 
-    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+    public function analyzeMetadata(): IssueCollection
     {
         return IssueCollection::fromGenerator(
             /**

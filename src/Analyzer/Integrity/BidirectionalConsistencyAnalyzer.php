@@ -11,9 +11,10 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
@@ -46,8 +47,9 @@ use Webmozart\Assert\Assert;
  *     private ?Order $order;
  * }
  */
-class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
+class BidirectionalConsistencyAnalyzer implements MetadataAnalyzerInterface
 {
+    use MetadataAnalyzerTrait;
     use ShortClassNameTrait;
 
     public function __construct(
@@ -57,7 +59,7 @@ class BidirectionalConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     ) {
     }
 
-    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+    public function analyzeMetadata(): IssueCollection
     {
         return IssueCollection::fromGenerator(
             /**
