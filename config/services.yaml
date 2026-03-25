@@ -556,3 +556,27 @@ services:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\SingleTableInheritanceSparseTableAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $sparseThreshold: '%doctrine_doctor.analyzers.single_table_inheritance_sparse_table.sparse_threshold%'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\ClassTableInheritanceThinSubclassAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $minFieldsThreshold: '%doctrine_doctor.analyzers.class_table_inheritance_thin_subclass.min_fields_threshold%'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\ClassTableInheritanceDepthAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $maxDepth: '%doctrine_doctor.analyzers.class_table_inheritance_depth.max_depth%'
+        tags:
+            - { name: doctrine_doctor.analyzer }

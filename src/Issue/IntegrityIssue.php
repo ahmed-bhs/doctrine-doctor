@@ -64,6 +64,9 @@ class IntegrityIssue extends AbstractIssue
             IssueType::DUPLICATE_PRIVATE_FIELD_IN_HIERARCHY->value,
             IssueType::COMPOSITE_KEY_COMPLEXITY->value,
             IssueType::ONE_TO_ONE_INVERSE_SIDE->value,
+            IssueType::STI_SPARSE_TABLE->value,
+            IssueType::CTI_THIN_SUBCLASS->value,
+            IssueType::CTI_DEEP_HIERARCHY->value,
         ];
     }
 
