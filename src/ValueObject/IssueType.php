@@ -101,6 +101,7 @@ enum IssueType: string
     case STI_NON_NULLABLE_SUBCLASS_COLUMN = 'sti_non_nullable_subclass_column';
     case MAPPED_SUPERCLASS_ONE_TO_MANY = 'mapped_superclass_one_to_many';
     case UNIQUE_ENTITY_WITHOUT_INDEX = 'unique_entity_without_index';
+    case DENORMALIZED_AGGREGATE_WITHOUT_LOCKING = 'denormalized_aggregate_without_locking';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';
