@@ -93,6 +93,9 @@ enum IssueType: string
     case DUPLICATE_PRIVATE_FIELD_IN_HIERARCHY = 'duplicate_private_field_in_hierarchy';
     case COMPOSITE_KEY_COMPLEXITY = 'composite_key_complexity';
     case ONE_TO_ONE_INVERSE_SIDE = 'one_to_one_inverse_side';
+    case STI_SPARSE_TABLE = 'sti_sparse_table';
+    case CTI_THIN_SUBCLASS = 'cti_thin_subclass';
+    case CTI_DEEP_HIERARCHY = 'cti_deep_hierarchy';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';

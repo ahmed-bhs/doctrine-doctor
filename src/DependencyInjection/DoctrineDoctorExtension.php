@@ -135,6 +135,11 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
 
         $containerBuilder->setParameter('doctrine_doctor.analyzers.transaction_boundary.max_flush_per_transaction', $analyzers['transaction_boundary']['max_flush_per_transaction']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.transaction_boundary.max_transaction_duration', $analyzers['transaction_boundary']['max_transaction_duration']);
+
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.single_table_inheritance_sparse_table.sparse_threshold', $analyzers['single_table_inheritance_sparse_table']['sparse_threshold']);
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.single_table_inheritance_sparse_table.min_unused_columns', $analyzers['single_table_inheritance_sparse_table']['min_unused_columns']);
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.class_table_inheritance_thin_subclass.min_fields_threshold', $analyzers['class_table_inheritance_thin_subclass']['min_fields_threshold']);
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.class_table_inheritance_depth.max_depth', $analyzers['class_table_inheritance_depth']['max_depth']);
     }
 
     /**
