@@ -27,6 +27,8 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
+use Symfony\Component\Validator\Mapping\Factory\MetadataFactoryInterface as ValidatorMetadataFactoryInterface;
 
 /**
  * Detects entities using Symfony's #[UniqueEntity] constraint without a
@@ -35,6 +37,9 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  * The #[UniqueEntity] validator only checks uniqueness at the PHP level by
  * executing a SELECT query before persisting. Without a UNIQUE index in the
  * database, concurrent requests can bypass validation and insert duplicate rows.
+ *
+ * Supports constraints declared via PHP attributes, YAML, or XML by using
+ * Symfony's ValidatorMetadataFactory when available.
  *
  * @see https://github.com/symfony/symfony-docs/issues/7305
  */
@@ -49,6 +54,7 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly IssueFactoryInterface $issueFactory,
+        private readonly ?ValidatorMetadataFactoryInterface $validatorMetadataFactory = null,
     ) {
     }
 
@@ -88,15 +94,11 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
      */
     private function analyzeEntity(ClassMetadata $metadata): iterable
     {
-        $reflectionClass = $metadata->getReflectionClass();
         $entityClass = $metadata->getName();
-        $shortName = $reflectionClass->getShortName();
+        $shortName = $metadata->getReflectionClass()->getShortName();
 
-        $attributes = $reflectionClass->getAttributes(self::UNIQUE_ENTITY_CLASS, \ReflectionAttribute::IS_INSTANCEOF);
-
-        foreach ($attributes as $attribute) {
-            $instance = $attribute->newInstance();
-            $fields = $this->extractFields($instance);
+        foreach ($this->getUniqueEntityConstraints($metadata) as $uniqueEntity) {
+            $fields = $this->extractFields($uniqueEntity);
 
             if ([] === $fields) {
                 continue;
@@ -120,7 +122,7 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
                 . 'Add a UNIQUE constraint at the database level to guarantee data integrity.',
                 [
                     'class' => $shortName,
-                    'constraint' => '#[UniqueEntity]',
+                    'constraint' => 'UniqueEntity',
                     'fields' => implode(', ', $fields),
                 ],
             );
@@ -142,6 +144,69 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
 
             yield $issue;
         }
+    }
+
+    /**
+     * @return list<object>
+     */
+    private function getUniqueEntityConstraints(ClassMetadata $metadata): array
+    {
+        if (null !== $this->validatorMetadataFactory) {
+            return $this->getConstraintsFromValidatorMetadata($metadata);
+        }
+
+        return $this->getConstraintsFromAttributes($metadata);
+    }
+
+    /**
+     * @return list<object>
+     */
+    private function getConstraintsFromValidatorMetadata(ClassMetadata $metadata): array
+    {
+        $validatorMetadataFactory = $this->validatorMetadataFactory;
+
+        if (null === $validatorMetadataFactory) {
+            return [];
+        }
+
+        $entityClass = $metadata->getName();
+
+        if (!$validatorMetadataFactory->hasMetadataFor($entityClass)) {
+            return [];
+        }
+
+        $validatorMetadata = $validatorMetadataFactory->getMetadataFor($entityClass);
+
+        if (!$validatorMetadata instanceof ClassMetadataInterface) {
+            return [];
+        }
+
+        $constraints = [];
+
+        foreach ($validatorMetadata->getConstraints() as $constraint) {
+            if ($constraint instanceof \Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity) {
+                $constraints[] = $constraint;
+            }
+        }
+
+        return $constraints;
+    }
+
+    /**
+     * @return list<object>
+     */
+    private function getConstraintsFromAttributes(ClassMetadata $metadata): array
+    {
+        $reflectionClass = $metadata->getReflectionClass();
+        $attributes = $reflectionClass->getAttributes(self::UNIQUE_ENTITY_CLASS, \ReflectionAttribute::IS_INSTANCEOF);
+
+        $constraints = [];
+
+        foreach ($attributes as $attribute) {
+            $constraints[] = $attribute->newInstance();
+        }
+
+        return $constraints;
     }
 
     /**
