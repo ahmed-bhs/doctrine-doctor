@@ -100,6 +100,7 @@ enum IssueType: string
     case INHERITANCE_TYPE_ON_NON_ROOT = 'inheritance_type_on_non_root';
     case STI_NON_NULLABLE_SUBCLASS_COLUMN = 'sti_non_nullable_subclass_column';
     case MAPPED_SUPERCLASS_ONE_TO_MANY = 'mapped_superclass_one_to_many';
+    case UNIQUE_ENTITY_WITHOUT_INDEX = 'unique_entity_without_index';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';
