@@ -11,8 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Configuration;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\PlatformAnalysisStrategyFactory;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
@@ -42,8 +43,10 @@ use Psr\Log\LoggerInterface;
  * - SQLite: ⏭️ Partial support (foreign_keys check only)
  * - Doctrine DBAL: 2.x and 3.x+ compatible
  */
-class StrictModeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
+class StrictModeAnalyzer implements MetadataAnalyzerInterface
 {
+    use MetadataAnalyzerTrait;
+
     public function __construct(
         private readonly Connection $connection,
         private readonly SuggestionFactoryInterface $suggestionFactory,
@@ -53,10 +56,7 @@ class StrictModeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
     ) {
     }
 
-    /**
-     * @param QueryDataCollection $queryDataCollection - Not used, config analyzers run independently
-     */
-    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+    public function analyzeMetadata(): IssueCollection
     {
         return IssueCollection::fromGenerator(
             /**

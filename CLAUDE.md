@@ -58,10 +58,17 @@ Dependencies only point inward: Domain imports nothing from Application/Infrastr
 
 ### Analyzer pattern (Strategy)
 
-Every analyzer implements `AnalyzerInterface`:
+Two contracts:
+
+- **`AnalyzerInterface`**: for query-based analyzers that need `QueryDataCollection`
+- **`MetadataAnalyzerInterface`** (extends `AnalyzerInterface`): for metadata-based analyzers (Integrity, Configuration, Security) that work on Doctrine metadata or database connections. Uses `MetadataAnalyzerTrait` to bridge `analyze()` -> `analyzeMetadata()`.
 
 ```php
+// Query analyzers
 public function analyze(QueryDataCollection $queryDataCollection): IssueCollection;
+
+// Metadata analyzers
+public function analyzeMetadata(): IssueCollection; // via MetadataAnalyzerInterface + trait
 ```
 
 - Auto-discovered via DI tag `doctrine_doctor.analyzer`
@@ -100,7 +107,7 @@ Key `QueryDataCollection` methods: `onlySelects()`, `onlyInserts()`, `groupByPat
 ## Adding an analyzer
 
 1. Create class in `src/Analyzer/{Category}/`
-2. Implement `AnalyzerInterface`
+2. Implement `AnalyzerInterface` (query-based) or `MetadataAnalyzerInterface` (metadata-based)
 3. Create suggestion template in `src/Template/Suggestions/{Category}/`
 4. Register in `config/services.yaml` with tag `doctrine_doctor.analyzer`
 5. Add tests in `tests/Unit/Analyzer/` or `tests/Analyzer/`
@@ -191,7 +198,7 @@ EXPLAIN output parsing differs per platform — always go through the abstractio
 
 | Purpose | Path |
 |---|---|
-| Analyzer interface | `src/Analyzer/AnalyzerInterface.php` |
+| Analyzer interfaces | `src/Analyzer/AnalyzerInterface.php`, `src/Analyzer/MetadataAnalyzerInterface.php` |
 | Data collector (orchestrator) | `src/Collector/DoctrineDoctorDataCollector.php` |
 | Service wiring | `config/services.yaml` |
 | Bundle config options | `src/DependencyInjection/Configuration.php` |

@@ -11,7 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
@@ -38,8 +40,9 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  * @see https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/faq.html
  * @see https://github.com/doctrine/orm/issues/4389
  */
-class OneToOneInverseSideAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
+class OneToOneInverseSideAnalyzer implements MetadataAnalyzerInterface
 {
+    use MetadataAnalyzerTrait;
     use ShortClassNameTrait;
 
     public function __construct(
@@ -49,7 +52,7 @@ class OneToOneInverseSideAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     ) {
     }
 
-    public function analyze(mixed $subject = null): IssueCollection
+    public function analyzeMetadata(): IssueCollection
     {
         return IssueCollection::fromGenerator(
             function () {
