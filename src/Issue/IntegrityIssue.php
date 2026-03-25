@@ -71,6 +71,7 @@ class IntegrityIssue extends AbstractIssue
             IssueType::INHERITANCE_TYPE_ON_NON_ROOT->value,
             IssueType::STI_NON_NULLABLE_SUBCLASS_COLUMN->value,
             IssueType::MAPPED_SUPERCLASS_ONE_TO_MANY->value,
+            IssueType::UNIQUE_ENTITY_WITHOUT_INDEX->value,
         ];
     }
 
