@@ -46,7 +46,7 @@ make qa                      # alias for check
 
 ## Architecture (Deptrac)
 
-```
+```text
 Domain        : ValueObject, DTO, Issue, Suggestion, Collection
 Application   : Analyzer, Detector, Helper
 Infrastructure: Factory, Strategy, Collector, Template, Generator, Utils, Service

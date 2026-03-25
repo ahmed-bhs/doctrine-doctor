@@ -102,11 +102,11 @@ final class MetadataAnalyzerInterfaceContractTest extends TestCase
             return null;
         }
 
-        if (0 === preg_match('/namespace\s+([^;]+);/', $content, $namespaceMatch)) {
+        if (1 !== preg_match('/namespace\s+([^;]+);/', $content, $namespaceMatch)) {
             return null;
         }
 
-        if (0 === preg_match('/class\s+(\w+)/', $content, $classMatch)) {
+        if (1 !== preg_match('/class\s+(\w+)/', $content, $classMatch)) {
             return null;
         }
 

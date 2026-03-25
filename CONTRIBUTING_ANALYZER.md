@@ -23,7 +23,7 @@ This guide walks you through every step needed to add a new analyzer to Doctrine
 
 ## Architecture Overview
 
-```
+```text
 Analyzer
   │  implements AnalyzerInterface or MetadataAnalyzerInterface
   │  returns IssueCollection (generator-based, memory efficient)
@@ -65,7 +65,7 @@ Analyzer
 
 Create a new file in the appropriate namespace:
 
-```
+```text
 src/Analyzer/{Category}/YourAnalyzer.php
 ```
 
@@ -232,6 +232,7 @@ $title = sprintf('Uninitialized collection in %s::$%s', $shortClassName, $fieldN
 ```
 
 Rules:
+
 - Under 80 characters.
 - Start with the problem, not the solution.
 - Include the concrete entity/field/query pattern.
@@ -304,7 +305,7 @@ yield $this->issueFactory->create($issueData);
 
 Create a PHP template in `src/Template/Suggestions/{Category}/`:
 
-```
+```text
 src/Template/Suggestions/Performance/your_template.php
 ```
 
@@ -815,7 +816,7 @@ When `PhpCodeParser` does not have a built-in method for your detection, create 
 
 ### 1. Create the visitor class
 
-```
+```text
 src/Analyzer/Parser/Visitor/YourPatternVisitor.php
 ```
 
