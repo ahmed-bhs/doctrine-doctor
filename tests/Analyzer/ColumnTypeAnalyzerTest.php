@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithArray
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithCorrectTypes;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithEnumOpportunity;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithMixedIssues;
+use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithMutableDatetime;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithObjectType;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithSimpleArray;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
@@ -185,6 +186,31 @@ final class ColumnTypeAnalyzerTest extends TestCase
         self::assertStringContainsString('$type', $allDescriptions);
         self::assertStringContainsString('$role', $allDescriptions);
         self::assertStringContainsString('$priority', $allDescriptions);
+    }
+
+    #[Test]
+    public function it_detects_mutable_datetime_types_as_warning(): void
+    {
+        $issues = $this->analyzer->analyze(QueryDataCollection::empty());
+
+        $datetimeIssues = array_filter(
+            iterator_to_array($issues),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithMutableDatetime')
+                && str_contains((string) $issue->getTitle(), 'Mutable datetime'),
+        );
+
+        self::assertCount(4, $datetimeIssues);
+
+        foreach ($datetimeIssues as $issue) {
+            self::assertEquals(Severity::WARNING, $issue->getSeverity());
+            self::assertStringContainsString('silent state corruption', $issue->getDescription());
+        }
+
+        $allDescriptions = implode(' ', array_map(fn ($issue) => $issue->getDescription(), $datetimeIssues));
+        self::assertStringContainsString('datetime_immutable', $allDescriptions);
+        self::assertStringContainsString('date_immutable', $allDescriptions);
+        self::assertStringContainsString('time_immutable', $allDescriptions);
+        self::assertStringContainsString('datetimetz_immutable', $allDescriptions);
     }
 
     #[Test]
@@ -435,7 +461,8 @@ final class ColumnTypeAnalyzerTest extends TestCase
                 str_contains($suggestionCode, 'Benefits') ||
                 str_contains($suggestionDescription, 'Replace') ||
                 str_contains($suggestionDescription, 'json') ||
-                str_contains($suggestionDescription, 'enum'),
+                str_contains($suggestionDescription, 'enum') ||
+                str_contains($suggestionDescription, 'immutable'),
                 'Suggestion should contain migration guidance',
             );
         }
@@ -454,9 +481,9 @@ final class ColumnTypeAnalyzerTest extends TestCase
         // EntityWithMixedIssues: 1 object + 1 array + 1 simple_array + 1 enum
         // EntityWithCorrectTypes: 0 issues
 
-        // Minimum expected: 2 + 2 + 2 + 4 + 4 = 14 issues
+        // Minimum expected: 2 + 2 + 2 + 4 + 4 + 4 (mutable datetime) = 18 issues
         // But enum detection requires data, so we expect at least the non-enum issues
-        self::assertGreaterThanOrEqual(9, count($issues));
+        self::assertGreaterThanOrEqual(13, count($issues));
     }
 
     #[Test]
@@ -639,6 +666,18 @@ final class ColumnTypeAnalyzerTest extends TestCase
                 );
             }
 
+            // Mutable datetime should be WARNING
+            if (str_contains($description, 'mutable type "datetime"')
+                || str_contains($description, 'mutable type "date"')
+                || str_contains($description, 'mutable type "time"')
+                || str_contains($description, 'mutable type "datetimetz"')) {
+                self::assertEquals(
+                    Severity::WARNING,
+                    $severity,
+                    'Mutable datetime types should be WARNING',
+                );
+            }
+
             // Simple array and enum opportunities should be INFO
             if (str_contains($description, 'simple_array') || str_contains($description, 'enum')) {
                 self::assertEquals(
@@ -662,6 +701,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
             self::assertTrue(
                 str_contains($description, 'json') ||
                 str_contains($description, 'enum') ||
+                str_contains($description, 'immutable') ||
                 str_contains($description, 'instead') ||
                 str_contains($description, 'Use'),
                 'Description should provide a replacement suggestion',
@@ -788,6 +828,17 @@ final class ColumnTypeAnalyzerTest extends TestCase
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name VARCHAR(255) NOT NULL,
                 data TEXT
+            )
+        ');
+
+        // Create EntityWithMutableDatetime table
+        $connection->executeStatement('
+            CREATE TABLE EntityWithMutableDatetime (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                createdAt DATETIME NOT NULL,
+                birthDate DATE NOT NULL,
+                startTime TIME NOT NULL,
+                publishedAt DATETIME NOT NULL
             )
         ');
     }

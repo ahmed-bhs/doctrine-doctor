@@ -53,6 +53,13 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
         ],
     ];
 
+    private const array MUTABLE_DATETIME_TYPES = [
+        'datetime'   => 'datetime_immutable',
+        'date'       => 'date_immutable',
+        'time'       => 'time_immutable',
+        'datetimetz' => 'datetimetz_immutable',
+    ];
+
     // Types that need validation
     private const int SIMPLE_ARRAY_MAX_LENGTH = 255;
 
@@ -129,6 +136,15 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
                 if ($issue instanceof IntegrityIssue) {
                     $issues[] = $issue;
                 }
+            }
+
+            // Check for mutable datetime types
+            if (isset(self::MUTABLE_DATETIME_TYPES[$type])) {
+                $issues[] = $this->createMutableDatetimeIssue(
+                    $entityClass,
+                    $fieldName,
+                    $type,
+                );
             }
 
             // Check for missing enum type (PHP 8.1+)
@@ -250,6 +266,56 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
             'entity'    => $entityClass,
             'field'     => $fieldName,
         ]);
+        return $issue;
+    }
+
+    private function createMutableDatetimeIssue(
+        string $entityClass,
+        string $fieldName,
+        string $type,
+    ): IntegrityIssue {
+        $shortClassName   = $this->shortClassName($entityClass);
+        $immutableType    = self::MUTABLE_DATETIME_TYPES[$type];
+
+        /** @var IntegrityIssue $issue */
+        $issue = $this->issueFactory->createFromArray([
+            'type'        => IssueType::INTEGRITY_GENERIC->value,
+            'title'       => sprintf(
+                'Mutable datetime type "%s" in %s::$%s',
+                $type,
+                $shortClassName,
+                $fieldName,
+            ),
+            'description' => sprintf(
+                'Field "%s::$%s" uses mutable type "%s". '
+                . 'Use "%s" instead. Mutable DateTime objects can cause silent state corruption: '
+                . 'modifying a value returned by a getter changes the entity state without Doctrine detecting it.',
+                $shortClassName,
+                $fieldName,
+                $type,
+                $immutableType,
+            ),
+            'severity'    => 'warning',
+            'suggestion'  => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Integrity/code_suggestion',
+                context: [
+                    'description' => sprintf('Replace "%s" with "%s"', $type, $immutableType),
+                    'code'        => $this->generateDatetimeImmutableMigrationCode($entityClass, $fieldName, $type, $immutableType),
+                    'file_path'   => $entityClass,
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::integrity(),
+                    severity: Severity::warning(),
+                    title: 'Use Immutable DateTime Type',
+                    tags: ['code-quality'],
+                ),
+            ),
+            'backtrace' => null,
+            'queries'   => [],
+            'entity'    => $entityClass,
+            'field'     => $fieldName,
+        ]);
+
         return $issue;
     }
 
@@ -661,10 +727,52 @@ class ColumnTypeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerIn
 ";
     }
 
-    /**
-     * Check if an entity class is from a vendor dependency.
-     * Simply checks if the file path contains /vendor/ directory.
-     */
+    private function generateDatetimeImmutableMigrationCode(
+        string $entityClass,
+        string $fieldName,
+        string $mutableType,
+        string $immutableType,
+    ): string {
+        $shortClassName = $this->shortClassName($entityClass);
+        $immutableClass = '\\DateTimeImmutable';
+
+        return <<<CODE
+// In {$shortClassName} entity:
+
+// BEFORE:
+#[ORM\Column(type: '{$mutableType}')]
+private \DateTime \${$fieldName};
+
+// AFTER:
+#[ORM\Column(type: '{$immutableType}')]
+private {$immutableClass} \${$fieldName};
+
+// Update getter return type:
+public function get{$this->ucFirst($fieldName)}(): {$immutableClass}
+{
+    return \$this->{$fieldName};
+}
+
+// Update setter parameter type:
+public function set{$this->ucFirst($fieldName)}({$immutableClass} \${$fieldName}): self
+{
+    \$this->{$fieldName} = \${$fieldName};
+    return \$this;
+}
+
+// Migration:
+// 1. Change type in mapping to '{$immutableType}'
+// 2. Update PHP types to DateTimeImmutable
+// 3. Run: doctrine:migrations:diff
+// 4. The database column type does not change (no data migration needed)
+CODE;
+    }
+
+    private function ucFirst(string $string): string
+    {
+        return ucfirst($string);
+    }
+
     private function isVendorEntity(string $entityClass): bool
     {
         try {
