@@ -70,7 +70,7 @@ Doctrine Doctor follows a **layered architecture** pattern with clear separation
 
 ### 2.1 Strategy Pattern (Analyzers)
 
-Each analyzer implements the `AnalyzerInterface`, enabling runtime composition. This pattern provides:
+Each analyzer implements `AnalyzerInterface` (query-based) or `MetadataAnalyzerInterface` (metadata-based), enabling runtime composition. This pattern provides:
 
 - **Open/Closed Principle compliance** - Add new analyzers without modifying existing code
 - **Easy addition of new analyzers** - Simply implement the interface and tag the service
@@ -201,17 +201,21 @@ sequenceDiagram
 
 ```php
 /**
- * Analyzer Interface - Strategy Pattern
+ * Analyzer Interface - Strategy Pattern (query-based analyzers)
  */
 interface AnalyzerInterface
 {
-    /**
-     * Analyze queries and return issues.
-     *
-     * @param QueryDataCollection $queryDataCollection Collected query data
-     * @return IssueCollection Collection of detected issues
-     */
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection;
+}
+
+/**
+ * Metadata Analyzer Interface (metadata-based analyzers)
+ * Extends AnalyzerInterface for backward compatibility.
+ * Uses MetadataAnalyzerTrait to bridge analyze() -> analyzeMetadata().
+ */
+interface MetadataAnalyzerInterface extends AnalyzerInterface
+{
+    public function analyzeMetadata(): IssueCollection;
 }
 
 /**

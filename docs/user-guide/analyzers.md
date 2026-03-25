@@ -383,16 +383,31 @@ doctrine_doctor:
 
 ### 8.1 Custom Analyzers
 
-Create custom analyzers by implementing `AnalyzerInterface`:
+Create custom analyzers by implementing `AnalyzerInterface` (query-based) or `MetadataAnalyzerInterface` (metadata-based):
 
 ```php
+// Query-based analyzer
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 
-final class CustomAnalyzer implements AnalyzerInterface
+final class CustomQueryAnalyzer implements AnalyzerInterface
 {
-    public function analyze(QueryDataCollection $queries): iterable
+    public function analyze(QueryDataCollection $queries): IssueCollection
     {
-        // Custom detection logic
+        // Detection logic based on captured SQL queries
+    }
+}
+
+// Metadata-based analyzer
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
+
+final class CustomMetadataAnalyzer implements MetadataAnalyzerInterface
+{
+    use MetadataAnalyzerTrait;
+
+    public function analyzeMetadata(): IssueCollection
+    {
+        // Detection logic based on Doctrine metadata or database connection
     }
 }
 ```

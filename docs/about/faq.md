@@ -96,7 +96,7 @@ Typically low overhead in `dev`; it should remain disabled in production.
 
 ### Can I create custom analyzers?
 
-Yes! Implement `AnalyzerInterface` and tag with `doctrine_doctor.analyzer`. [See guide]({{ site.baseurl }}/contributing/creating-analyzers).
+Yes! Implement `AnalyzerInterface` (query-based) or `MetadataAnalyzerInterface` (metadata-based) and tag with `doctrine_doctor.analyzer`. [See guide]({{ site.baseurl }}/contributing/creating-analyzers).
 
 ### Which analyzers are most important?
 
