@@ -581,3 +581,12 @@ services:
             $maxDepth: '%doctrine_doctor.analyzers.class_table_inheritance_depth.max_depth%'
         tags:
             - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\UniqueEntityWithoutDatabaseIndexAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+            $validatorMetadataFactory: '@?validator.mapping.class_metadata_factory'
+        tags:
+            - { name: doctrine_doctor.analyzer }
