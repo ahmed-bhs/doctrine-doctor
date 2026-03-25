@@ -16,6 +16,9 @@ use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Mapping\ClassMetadata as ValidatorClassMetadata;
+use Symfony\Component\Validator\Mapping\Factory\MetadataFactoryInterface as ValidatorMetadataFactoryInterface;
 
 final class UniqueEntityWithoutDatabaseIndexAnalyzerTest extends TestCase
 {
@@ -142,5 +145,39 @@ final class UniqueEntityWithoutDatabaseIndexAnalyzerTest extends TestCase
         );
 
         self::assertEmpty($noConstraintIssues, 'Should not flag entities without #[UniqueEntity]');
+    }
+
+    #[Test]
+    public function it_detects_constraints_from_validator_metadata_factory(): void
+    {
+        $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager([
+            __DIR__ . '/../../Fixtures/Entity/UniqueEntityTest',
+        ]);
+
+        $validatorMetadata = new ValidatorClassMetadata(
+            \AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\UniqueEntityTest\EntityWithoutUniqueEntity::class,
+        );
+        $validatorMetadata->addConstraint(new UniqueEntity(fields: ['name']));
+
+        $validatorMetadataFactory = $this->createMock(ValidatorMetadataFactoryInterface::class);
+        $validatorMetadataFactory->method('hasMetadataFor')->willReturn(true);
+        $validatorMetadataFactory->method('getMetadataFor')->willReturn($validatorMetadata);
+
+        $analyzer = new UniqueEntityWithoutDatabaseIndexAnalyzer(
+            $entityManager,
+            PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            PlatformAnalyzerTestHelper::createIssueFactory(),
+            $validatorMetadataFactory,
+        );
+
+        $issues = $analyzer->analyzeMetadata();
+        $issueArray = $issues->toArray();
+
+        $yamlIssues = array_filter(
+            $issueArray,
+            static fn (IssueInterface $issue): bool => str_contains($issue->getTitle(), 'EntityWithoutUniqueEntity'),
+        );
+
+        self::assertNotEmpty($yamlIssues, 'Should detect UniqueEntity from validator metadata (YAML/XML config)');
     }
 }
