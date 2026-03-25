@@ -582,6 +582,14 @@ services:
         tags:
             - { name: doctrine_doctor.analyzer }
 
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\DenormalizedAggregateWithoutLockingAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\UniqueEntityWithoutDatabaseIndexAnalyzer:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'

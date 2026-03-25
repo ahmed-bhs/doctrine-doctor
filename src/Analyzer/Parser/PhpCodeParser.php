@@ -341,6 +341,40 @@ final class PhpCodeParser
     }
 
     /**
+     * @param list<string> $numericFields
+     * @param list<string> $collectionFields
+     * @return array{mutated_fields: list<string>, accessed_collections: list<string>, has_both: bool}
+     */
+    public function detectAggregateFieldMutation(
+        ReflectionMethod $method,
+        array $numericFields,
+        array $collectionFields,
+    ): array {
+        $default = ['mutated_fields' => [], 'accessed_collections' => [], 'has_both' => false];
+
+        $code = $this->extractMethodCode($method);
+        if (null === $code) {
+            return $default;
+        }
+
+        $ast = $this->parse($code);
+        if (null === $ast) {
+            return $default;
+        }
+
+        $visitor = new Visitor\AggregateFieldMutationVisitor($numericFields, $collectionFields);
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor($visitor);
+        $traverser->traverse($ast);
+
+        return [
+            'mutated_fields' => $visitor->getMutatedNumericFields(),
+            'accessed_collections' => $visitor->getAccessedCollections(),
+            'has_both' => $visitor->hasBothMutations(),
+        ];
+    }
+
+    /**
      * Clear the AST cache.
      * Useful for long-running processes to free memory.
      */
