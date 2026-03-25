@@ -99,7 +99,7 @@ class SingleTableInheritanceSparseTableAnalyzer implements AnalyzerInterface
             $unusedColumns = $totalColumns - count($ownFields);
             $sparseRatio = $unusedColumns / $totalColumns;
 
-            if ($sparseRatio < $this->sparseThreshold) {
+            if ($sparseRatio < $this->sparseThreshold || $unusedColumns < 5) {
                 continue;
             }
 
