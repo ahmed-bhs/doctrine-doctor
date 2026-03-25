@@ -67,6 +67,10 @@ class IntegrityIssue extends AbstractIssue
             IssueType::STI_SPARSE_TABLE->value,
             IssueType::CTI_THIN_SUBCLASS->value,
             IssueType::CTI_DEEP_HIERARCHY->value,
+            IssueType::MAPPED_SUPERCLASS_AS_TARGET->value,
+            IssueType::INHERITANCE_TYPE_ON_NON_ROOT->value,
+            IssueType::STI_NON_NULLABLE_SUBCLASS_COLUMN->value,
+            IssueType::MAPPED_SUPERCLASS_ONE_TO_MANY->value,
         ];
     }
 
