@@ -518,6 +518,10 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             return $rows >= $this->missingIndexAnalyzerConfig->minRowsScanned;
         }
 
+        if (null !== $key) {
+            return false;
+        }
+
         return $rows >= $this->missingIndexAnalyzerConfig->minRowsScanned;
     }
 
