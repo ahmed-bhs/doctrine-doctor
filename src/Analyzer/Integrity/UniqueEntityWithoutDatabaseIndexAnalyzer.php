@@ -257,39 +257,62 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
     }
 
     /**
+     * @SuppressWarnings("PHPMD.NPathComplexity")
+     *
      * @param list<string> $columns
      */
     private function hasMatchingUniqueIndex(ClassMetadata $metadata, array $columns): bool
     {
         sort($columns);
 
-        if (1 === \count($columns)) {
-            $fieldName = $this->findFieldByColumn($metadata, $columns[0]);
+        return $this->hasSingleColumnUniqueMapping($metadata, $columns)
+            || $this->hasMatchingUniqueConstraint($metadata, $columns)
+            || $this->hasMatchingUniqueTableIndex($metadata, $columns);
+    }
 
-            if (null !== $fieldName && $metadata->hasField($fieldName)) {
-                $fieldMapping = $metadata->getFieldMapping($fieldName);
-                if (isset($fieldMapping['unique']) && true === $fieldMapping['unique']) {
-                    return true;
-                }
-            }
+    /**
+     * @param list<string> $columns
+     */
+    private function hasSingleColumnUniqueMapping(ClassMetadata $metadata, array $columns): bool
+    {
+        if (1 !== \count($columns)) {
+            return false;
         }
 
+        $fieldName = $this->findFieldByColumn($metadata, $columns[0]);
+
+        if (null === $fieldName || !$metadata->hasField($fieldName)) {
+            return false;
+        }
+
+        $fieldMapping = $metadata->getFieldMapping($fieldName);
+
+        return isset($fieldMapping['unique']) && true === $fieldMapping['unique'];
+    }
+
+    /**
+     * @param list<string> $columns
+     */
+    private function hasMatchingUniqueConstraint(ClassMetadata $metadata, array $columns): bool
+    {
         $table = $metadata->table ?? [];
         $uniqueConstraints = $table['uniqueConstraints'] ?? [];
 
         foreach ($uniqueConstraints as $constraint) {
-            $constraintColumns = \is_array($constraint)
-                ? ($constraint['columns'] ?? [])
-                : (property_exists($constraint, 'columns') ? $constraint->columns ?? [] : []);
-
-            $sorted = $constraintColumns;
-            sort($sorted);
-
-            if ($sorted === $columns) {
+            if ($this->columnsMatch($this->extractConstraintColumns($constraint), $columns)) {
                 return true;
             }
         }
 
+        return false;
+    }
+
+    /**
+     * @param list<string> $columns
+     */
+    private function hasMatchingUniqueTableIndex(ClassMetadata $metadata, array $columns): bool
+    {
+        $table = $metadata->table ?? [];
         $indexes = $table['indexes'] ?? [];
 
         foreach ($indexes as $index) {
@@ -301,19 +324,40 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
                 continue;
             }
 
-            $indexColumns = \is_array($index)
-                ? ($index['columns'] ?? [])
-                : (property_exists($index, 'columns') ? $index->columns ?? [] : []);
-
-            $sorted = $indexColumns;
-            sort($sorted);
-
-            if ($sorted === $columns) {
+            if ($this->columnsMatch($this->extractConstraintColumns($index), $columns)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function extractConstraintColumns(mixed $constraint): array
+    {
+        if (\is_array($constraint)) {
+            return $constraint['columns'] ?? [];
+        }
+
+        if (\is_object($constraint) && property_exists($constraint, 'columns')) {
+            return $constraint->columns ?? [];
+        }
+
+        return [];
+    }
+
+    /**
+     * @param list<string> $constraintColumns
+     * @param list<string> $expectedColumns
+     */
+    private function columnsMatch(array $constraintColumns, array $expectedColumns): bool
+    {
+        $sorted = $constraintColumns;
+        sort($sorted);
+
+        return $sorted === $expectedColumns;
     }
 
     private function findFieldByColumn(ClassMetadata $metadata, string $columnName): ?string
