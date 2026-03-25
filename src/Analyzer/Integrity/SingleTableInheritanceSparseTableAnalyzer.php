@@ -34,6 +34,7 @@ class SingleTableInheritanceSparseTableAnalyzer implements AnalyzerInterface
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly float $sparseThreshold = 0.6,
+        private readonly int $minUnusedColumns = 5,
     ) {
     }
 
@@ -99,7 +100,7 @@ class SingleTableInheritanceSparseTableAnalyzer implements AnalyzerInterface
             $unusedColumns = $totalColumns - count($ownFields);
             $sparseRatio = $unusedColumns / $totalColumns;
 
-            if ($sparseRatio < $this->sparseThreshold || $unusedColumns < 5) {
+            if ($sparseRatio < $this->sparseThreshold || $unusedColumns < $this->minUnusedColumns) {
                 continue;
             }
 
