@@ -15,14 +15,18 @@ Guide pratique pour ajouter un analyzer compatible avec l'API actuelle de Doctri
 
 Un analyzer doit:
 
-- implémenter `AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface`
-- exposer `analyze(QueryDataCollection $queryDataCollection): IssueCollection`
+- implémenter `AnalyzerInterface` (query-based) ou `MetadataAnalyzerInterface` (metadata-based)
+- exposer `analyze(QueryDataCollection)` ou `analyzeMetadata()` selon le contrat
 - rester stateless (pas d'état mutable partagé)
 - être enregistré avec le tag `doctrine_doctor.analyzer`
+
+Les analyzers metadata (Integrity, Configuration, Security) utilisent `MetadataAnalyzerInterface` + `MetadataAnalyzerTrait` pour ne pas recevoir un `QueryDataCollection` inutile.
 
 Références:
 
 - `src/Analyzer/AnalyzerInterface.php`
+- `src/Analyzer/MetadataAnalyzerInterface.php`
+- `src/Analyzer/Concern/MetadataAnalyzerTrait.php`
 - `src/Collection/QueryDataCollection.php`
 - `src/Collection/IssueCollection.php`
 
