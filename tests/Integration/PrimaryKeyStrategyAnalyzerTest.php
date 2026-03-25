@@ -52,7 +52,7 @@ final class PrimaryKeyStrategyAnalyzerTest extends TestCase
             ->method('getMetadataFactory')
             ->willReturn($classMetadataFactory);
 
-        $issueCollection = $this->primaryKeyStrategyAnalyzer->analyze();
+        $issueCollection = $this->primaryKeyStrategyAnalyzer->analyzeMetadata();
 
         // Should detect auto-increment on User entity (UUID candidate)
         self::assertGreaterThanOrEqual(1, $issueCollection->count());
@@ -74,7 +74,7 @@ final class PrimaryKeyStrategyAnalyzerTest extends TestCase
             ->method('getMetadataFactory')
             ->willReturn($classMetadataFactory);
 
-        $issueCollection = $this->primaryKeyStrategyAnalyzer->analyze();
+        $issueCollection = $this->primaryKeyStrategyAnalyzer->analyzeMetadata();
 
         // Should not report Product (not a UUID candidate like User/Session)
         self::assertCount(0, $issueCollection);
@@ -90,7 +90,7 @@ final class PrimaryKeyStrategyAnalyzerTest extends TestCase
             ->method('getMetadataFactory')
             ->willReturn($classMetadataFactory);
 
-        $issueCollection = $this->primaryKeyStrategyAnalyzer->analyze();
+        $issueCollection = $this->primaryKeyStrategyAnalyzer->analyzeMetadata();
 
         // Should suggest UUID v7 instead of v4
         self::assertGreaterThanOrEqual(1, $issueCollection->count());
@@ -120,7 +120,7 @@ final class PrimaryKeyStrategyAnalyzerTest extends TestCase
             ->method('getMetadataFactory')
             ->willReturn($classMetadataFactory);
 
-        $issueCollection = $this->primaryKeyStrategyAnalyzer->analyze();
+        $issueCollection = $this->primaryKeyStrategyAnalyzer->analyzeMetadata();
 
         // Should report mixed strategies
         $foundMixedIssue = false;
@@ -149,7 +149,7 @@ final class PrimaryKeyStrategyAnalyzerTest extends TestCase
             ->method('getMetadataFactory')
             ->willReturn($classMetadataFactory);
 
-        $issueCollection = $this->primaryKeyStrategyAnalyzer->analyze();
+        $issueCollection = $this->primaryKeyStrategyAnalyzer->analyzeMetadata();
 
         // Should ignore mapped superclasses
         self::assertCount(0, $issueCollection);
@@ -168,7 +168,7 @@ final class PrimaryKeyStrategyAnalyzerTest extends TestCase
             ->method('getMetadataFactory')
             ->willReturn($classMetadataFactory);
 
-        $issueCollection = $this->primaryKeyStrategyAnalyzer->analyze();
+        $issueCollection = $this->primaryKeyStrategyAnalyzer->analyzeMetadata();
 
         // All issues should be INFO (educational)
         foreach ($issueCollection as $issue) {

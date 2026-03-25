@@ -25,9 +25,17 @@ This guide walks you through every step needed to add a new analyzer to Doctrine
 
 ```
 Analyzer
-  │  implements AnalyzerInterface
-  │  receives QueryDataCollection (captured SQL queries)
+  │  implements AnalyzerInterface or MetadataAnalyzerInterface
   │  returns IssueCollection (generator-based, memory efficient)
+  │
+  ├── AnalyzerInterface
+  │     receives QueryDataCollection (captured SQL queries)
+  │     used by: Performance analyzers, hybrid analyzers
+  │
+  ├── MetadataAnalyzerInterface (extends AnalyzerInterface)
+  │     analyzeMetadata() — no QueryDataCollection parameter
+  │     used by: Integrity, Configuration, Security analyzers
+  │     uses MetadataAnalyzerTrait for backward-compatible bridging
   │
   ├── Detection logic
   │     query-based  → filter/group QueryDataCollection
@@ -61,7 +69,7 @@ Create a new file in the appropriate namespace:
 src/Analyzer/{Category}/YourAnalyzer.php
 ```
 
-Implement `AnalyzerInterface`. This is the only required contract:
+Implement `AnalyzerInterface` (for query-based analyzers) or `MetadataAnalyzerInterface` (for metadata-based analyzers):
 
 ```php
 <?php
@@ -165,28 +173,36 @@ This pipeline filters noise at each stage to surface real problems:
 | `$backtrace` | `?array` | PHP call stack at query time |
 | `$rowCount` | `?int` | Rows returned/affected |
 
-### Metadata-based detection (Integrity analyzers)
+### Metadata-based detection (Integrity / Configuration analyzers)
 
-Iterate Doctrine metadata via `EntityManagerInterface`:
+Analyzers that work on Doctrine metadata or database connections (not on captured SQL queries) should implement `MetadataAnalyzerInterface` instead of `AnalyzerInterface`. This interface extends `AnalyzerInterface` for backward compatibility and provides a dedicated `analyzeMetadata()` method that does not receive a `QueryDataCollection`:
 
 ```php
-public function __construct(
-    private readonly EntityManagerInterface $entityManager,
-    // ...
-) {
-}
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 
-public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+class YourAnalyzer implements MetadataAnalyzerInterface
 {
-    return IssueCollection::fromGenerator(
-        function () {
-            $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
+    use MetadataAnalyzerTrait;
 
-            foreach ($allMetadata as $classMetadata) {
-                yield from $this->analyzeEntity($classMetadata);
-            }
-        },
-    );
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        // ...
+    ) {
+    }
+
+    public function analyzeMetadata(): IssueCollection
+    {
+        return IssueCollection::fromGenerator(
+            function () {
+                $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
+
+                foreach ($allMetadata as $classMetadata) {
+                    yield from $this->analyzeEntity($classMetadata);
+                }
+            },
+        );
+    }
 }
 ```
 
