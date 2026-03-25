@@ -165,30 +165,12 @@ class HardcodedDatabaseCredentialsAnalyzer implements MetadataAnalyzerInterface
     private function createIssueFromDbalConfig(array $dbalConfig): ?SecurityIssue
     {
         foreach ($this->flattenConnectionConfigs($dbalConfig) as $connectionConfig) {
-            if (isset($connectionConfig['url']) && \is_string($connectionConfig['url'])) {
-                if ($this->isEnvVar($connectionConfig['url'])) {
-                    continue;
-                }
-
-                $parsed = parse_url($connectionConfig['url']);
-                if (\is_array($parsed) && (isset($parsed['user']) || isset($parsed['pass']))) {
-                    return $this->createHardcodedUrlIssue($connectionConfig['url']);
-                }
+            $urlIssue = $this->checkUrlCredentials($connectionConfig);
+            if ($urlIssue instanceof SecurityIssue) {
+                return $urlIssue;
             }
 
-            $hardcodedFields = [];
-
-            if (isset($connectionConfig['user']) && \is_string($connectionConfig['user']) && '' !== $connectionConfig['user'] && !$this->isEnvVar($connectionConfig['user'])) {
-                $hardcodedFields[] = 'user';
-            }
-
-            if (isset($connectionConfig['password']) && \is_string($connectionConfig['password']) && '' !== $connectionConfig['password'] && !$this->isEnvVar($connectionConfig['password'])) {
-                $hardcodedFields[] = 'password';
-            }
-
-            if (isset($connectionConfig['host']) && \is_string($connectionConfig['host']) && '' !== $connectionConfig['host'] && !$this->isEnvVar($connectionConfig['host']) && !\in_array($connectionConfig['host'], ['localhost', '127.0.0.1', '::1'], true)) {
-                $hardcodedFields[] = 'host';
-            }
+            $hardcodedFields = $this->detectHardcodedFields($connectionConfig);
 
             if ([] !== $hardcodedFields) {
                 return $this->createHardcodedParamsIssue($hardcodedFields);
@@ -196,6 +178,59 @@ class HardcodedDatabaseCredentialsAnalyzer implements MetadataAnalyzerInterface
         }
 
         return null;
+    }
+
+    /**
+     * @param array<string, mixed> $connectionConfig
+     */
+    private function checkUrlCredentials(array $connectionConfig): ?SecurityIssue
+    {
+        if (!isset($connectionConfig['url']) || !\is_string($connectionConfig['url'])) {
+            return null;
+        }
+
+        if ($this->isEnvVar($connectionConfig['url'])) {
+            return null;
+        }
+
+        $parsed = parse_url($connectionConfig['url']);
+        if (\is_array($parsed) && (isset($parsed['user']) || isset($parsed['pass']))) {
+            return $this->createHardcodedUrlIssue($connectionConfig['url']);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $connectionConfig
+     *
+     * @return list<string>
+     */
+    private function detectHardcodedFields(array $connectionConfig): array
+    {
+        $hardcodedFields = [];
+
+        if ($this->isHardcodedStringField($connectionConfig, 'user')) {
+            $hardcodedFields[] = 'user';
+        }
+
+        if ($this->isHardcodedStringField($connectionConfig, 'password')) {
+            $hardcodedFields[] = 'password';
+        }
+
+        if ($this->isHardcodedStringField($connectionConfig, 'host') && !\in_array($connectionConfig['host'], ['localhost', '127.0.0.1', '::1'], true)) {
+            $hardcodedFields[] = 'host';
+        }
+
+        return $hardcodedFields;
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function isHardcodedStringField(array $config, string $field): bool
+    {
+        return isset($config[$field]) && \is_string($config[$field]) && '' !== $config[$field] && !$this->isEnvVar($config[$field]);
     }
 
     /**
