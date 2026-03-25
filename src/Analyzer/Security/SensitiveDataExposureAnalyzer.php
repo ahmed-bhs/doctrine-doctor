@@ -11,10 +11,11 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Security;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\SecurityIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
@@ -34,8 +35,9 @@ use Webmozart\Assert\Assert;
  * - __toString() methods that expose sensitive data
  * - Missing JsonIgnore/SerializedIgnore annotations
  */
-class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
+class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
 {
+    use MetadataAnalyzerTrait;
     use ShortClassNameTrait;
 
     private const array DEFAULT_SENSITIVE_PATTERNS = [
@@ -111,7 +113,7 @@ class SensitiveDataExposureAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer
     /**
      * @return IssueCollection<SecurityIssue>
      */
-    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+    public function analyzeMetadata(): IssueCollection
     {
         return IssueCollection::fromGenerator(
             /**

@@ -11,10 +11,11 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CompositionRelationshipDetector;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
@@ -35,8 +36,9 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  * $em->flush();
  * // This will delete the Customer and all related Orders
  */
-class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
+class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterface
 {
+    use MetadataAnalyzerTrait;
     use ShortClassNameTrait;
 
     /**
@@ -61,7 +63,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements \AhmedBhs\DoctrineDoct
         $this->compositionDetector = $compositionDetector ?? new CompositionRelationshipDetector($entityManager);
     }
 
-    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+    public function analyzeMetadata(): IssueCollection
     {
         return IssueCollection::fromGenerator(
             /**

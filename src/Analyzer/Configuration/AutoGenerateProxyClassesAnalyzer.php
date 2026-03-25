@@ -11,8 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Configuration;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -36,8 +37,10 @@ use Symfony\Component\Yaml\Yaml;
  *
  * This is a critical production configuration issue that many developers miss.
  */
-class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
+class AutoGenerateProxyClassesAnalyzer implements MetadataAnalyzerInterface
 {
+    use MetadataAnalyzerTrait;
+
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly string $projectDir,
@@ -45,10 +48,7 @@ class AutoGenerateProxyClassesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     ) {
     }
 
-    /**
-     * @param QueryDataCollection $queryDataCollection - Not used, config analyzers run independently
-     */
-    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+    public function analyzeMetadata(): IssueCollection
     {
         return IssueCollection::fromGenerator(
             /**

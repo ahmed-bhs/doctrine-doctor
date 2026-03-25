@@ -11,8 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
@@ -31,8 +32,10 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  * - Scale mismatch with currency requirements (usually 2 for most currencies)
  * - Excessive precision causing storage waste
  */
-class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
+class DecimalPrecisionAnalyzer implements MetadataAnalyzerInterface
 {
+    use MetadataAnalyzerTrait;
+
     /**
      * Recommended configurations for common decimal use cases.
      */
@@ -50,7 +53,7 @@ class DecimalPrecisionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     ) {
     }
 
-    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+    public function analyzeMetadata(): IssueCollection
     {
         return IssueCollection::fromGenerator(
             /**
