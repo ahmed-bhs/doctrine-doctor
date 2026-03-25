@@ -11,8 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Configuration;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\PlatformAnalysisStrategyFactory;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
@@ -38,8 +39,10 @@ use Psr\Log\LoggerInterface;
  * - SQLite: ⏭️ Skipped (no timezone support)
  * - Doctrine DBAL: 2.x and 3.x+ compatible
  */
-class TimeZoneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
+class TimeZoneAnalyzer implements MetadataAnalyzerInterface
 {
+    use MetadataAnalyzerTrait;
+
     private ?PlatformAnalysisStrategyFactory $platformAnalysisStrategyFactory = null;
 
     public function __construct(
@@ -50,10 +53,7 @@ class TimeZoneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
     ) {
     }
 
-    /**
-     * @param QueryDataCollection $queryDataCollection - Not used, config analyzers run independently
-     */
-    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+    public function analyzeMetadata(): IssueCollection
     {
         return IssueCollection::fromGenerator(
             /**

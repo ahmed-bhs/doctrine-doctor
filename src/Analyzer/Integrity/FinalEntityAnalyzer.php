@@ -11,9 +11,10 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
@@ -34,8 +35,9 @@ use Webmozart\Assert\Assert;
  * - Final classes used in lazy-loaded relationships
  * - Proxy instantiation failures due to final modifier
  */
-class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
+class FinalEntityAnalyzer implements MetadataAnalyzerInterface
 {
+    use MetadataAnalyzerTrait;
     use ShortClassNameTrait;
 
     /** @var array<string, bool> Cache of checked entities to avoid duplicate issues */
@@ -48,7 +50,7 @@ class FinalEntityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
     ) {
     }
 
-    public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+    public function analyzeMetadata(): IssueCollection
     {
         //  Article pattern: Use generator instead of array
         return IssueCollection::fromGenerator(
