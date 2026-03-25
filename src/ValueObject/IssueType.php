@@ -96,6 +96,10 @@ enum IssueType: string
     case STI_SPARSE_TABLE = 'sti_sparse_table';
     case CTI_THIN_SUBCLASS = 'cti_thin_subclass';
     case CTI_DEEP_HIERARCHY = 'cti_deep_hierarchy';
+    case MAPPED_SUPERCLASS_AS_TARGET = 'mapped_superclass_as_target';
+    case INHERITANCE_TYPE_ON_NON_ROOT = 'inheritance_type_on_non_root';
+    case STI_NON_NULLABLE_SUBCLASS_COLUMN = 'sti_non_nullable_subclass_column';
+    case MAPPED_SUPERCLASS_ONE_TO_MANY = 'mapped_superclass_one_to_many';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';
