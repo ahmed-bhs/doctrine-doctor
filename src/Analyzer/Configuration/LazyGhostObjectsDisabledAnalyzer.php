@@ -19,6 +19,7 @@ use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
+use Composer\InstalledVersions;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Yaml\Yaml;
@@ -40,10 +41,13 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
 {
     use MetadataAnalyzerTrait;
 
+    private const NATIVE_LAZY_OBJECTS_KEY = 'enable_native_lazy_objects';
+
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly string $projectDir,
         private readonly ?LoggerInterface $logger = null,
+        private readonly ?string $doctrineBundleVersion = null,
     ) {
     }
 
@@ -60,15 +64,20 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
                         return;
                     }
 
-                    $enabled = $this->readLazyGhostConfig();
+                    if ($this->areNativeLazyObjectsAlwaysEnabled()) {
+                        $this->logger?->info('LazyGhostObjectsDisabledAnalyzer: native lazy objects are always enabled on this DoctrineBundle version');
+                        return;
+                    }
+
+                    $enabled = $this->readNativeLazyObjectsConfig();
 
                     if (null === $enabled) {
-                        $this->logger?->info('LazyGhostObjectsDisabledAnalyzer: no Doctrine YAML config found');
+                        $this->logger?->info('LazyGhostObjectsDisabledAnalyzer: no explicit native lazy objects config found');
                         return;
                     }
 
                     if (true === $enabled) {
-                        $this->logger?->info('LazyGhostObjectsDisabledAnalyzer: lazy ghost objects already enabled');
+                        $this->logger?->info('LazyGhostObjectsDisabledAnalyzer: native lazy objects already enabled');
                         return;
                     }
 
@@ -86,10 +95,10 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
     }
 
     /**
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings("PHPMD.CyclomaticComplexity")
+     * @SuppressWarnings("PHPMD.NPathComplexity")
      */
-    private function readLazyGhostConfig(): ?bool
+    private function readNativeLazyObjectsConfig(): ?bool
     {
         $configPaths = [
             $this->projectDir . '/config/packages/prod/doctrine.yaml',
@@ -140,17 +149,17 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
         }
     }
 
-    private function extractLazyGhostValue(array $config, string $configPath): bool
+    private function extractLazyGhostValue(array $config, string $configPath): ?bool
     {
         $lookupPaths = [
-            ['when@prod', 'doctrine', 'orm', 'enable_lazy_ghost_objects'],
+            ['when@prod', 'doctrine', 'orm', self::NATIVE_LAZY_OBJECTS_KEY],
         ];
 
         if (str_contains($configPath, '/prod/')) {
-            $lookupPaths[] = ['doctrine', 'orm', 'enable_lazy_ghost_objects'];
+            $lookupPaths[] = ['doctrine', 'orm', self::NATIVE_LAZY_OBJECTS_KEY];
         }
 
-        $lookupPaths[] = ['doctrine', 'orm', 'enable_lazy_ghost_objects'];
+        $lookupPaths[] = ['doctrine', 'orm', self::NATIVE_LAZY_OBJECTS_KEY];
 
         foreach ($lookupPaths as $keys) {
             $value = $this->getNestedValue($config, $keys);
@@ -167,11 +176,11 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
             }
         }
 
-        $this->logger?->debug('LazyGhostObjectsDisabledAnalyzer: enable_lazy_ghost_objects not found in config', [
+        $this->logger?->debug('LazyGhostObjectsDisabledAnalyzer: enable_native_lazy_objects not found in config', [
             'path' => $configPath,
         ]);
 
-        return false;
+        return null;
     }
 
     private function getNestedValue(array $config, array $keys): mixed
@@ -216,10 +225,9 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
     private function createIssue(): DatabaseConfigIssue
     {
         return new DatabaseConfigIssue([
-            'title' => 'Lazy Ghost Objects not enabled',
-            'description' => 'Doctrine ORM lazy ghost objects are not enabled in your configuration. '
-                . 'Ghost objects (available since Symfony 6.2) are more efficient proxies that avoid classic proxy limitations. '
-                . 'Enable this feature to improve performance and gain compatibility with final classes.',
+            'title' => 'Native lazy objects not enabled',
+            'description' => 'Doctrine ORM native lazy objects are explicitly disabled in your configuration. '
+                . 'Enable them to use the modern proxy mechanism with better performance and compatibility.',
             'severity' => Severity::info(),
             'suggestion' => $this->suggestionFactory->createFromTemplate(
                 templateName: 'Configuration/lazy_ghost_objects_disabled',
@@ -227,12 +235,32 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::configuration(),
                     severity: Severity::info(),
-                    title: 'Enable Lazy Ghost Objects for better performance',
+                    title: 'Enable native lazy objects for better performance',
                     tags: ['configuration', 'performance'],
                 ),
             ),
             'backtrace' => null,
             'queries' => [],
         ]);
+    }
+
+    private function areNativeLazyObjectsAlwaysEnabled(): bool
+    {
+        $version = $this->resolveDoctrineBundleVersion();
+
+        return null !== $version && version_compare($version, '3.1.0', '>=');
+    }
+
+    private function resolveDoctrineBundleVersion(): ?string
+    {
+        if (null !== $this->doctrineBundleVersion) {
+            return $this->doctrineBundleVersion;
+        }
+
+        if (!class_exists(InstalledVersions::class) || !InstalledVersions::isInstalled('doctrine/doctrine-bundle')) {
+            return null;
+        }
+
+        return InstalledVersions::getVersion('doctrine/doctrine-bundle');
     }
 }
