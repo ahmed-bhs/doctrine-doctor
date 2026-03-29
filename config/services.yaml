@@ -598,6 +598,14 @@ services:
         tags:
             - { name: doctrine_doctor.analyzer }
 
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\FlushInEventListenerAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\DenormalizedAggregateWithoutLockingAnalyzer:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'
@@ -620,6 +628,13 @@ services:
             $entityManager: '@doctrine_doctor.entity_manager'
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $logger: '@?logger'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MissingVersionFieldForConcurrencyAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
