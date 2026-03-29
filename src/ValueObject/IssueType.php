@@ -105,6 +105,7 @@ enum IssueType: string
     case MAPPED_SUPERCLASS_ONE_TO_MANY = 'mapped_superclass_one_to_many';
     case UNIQUE_ENTITY_WITHOUT_INDEX = 'unique_entity_without_index';
     case DENORMALIZED_AGGREGATE_WITHOUT_LOCKING = 'denormalized_aggregate_without_locking';
+    case MANY_TO_MANY_EXTRA_COLUMNS = 'many_to_many_extra_columns';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';
