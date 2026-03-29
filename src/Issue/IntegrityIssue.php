@@ -74,6 +74,8 @@ class IntegrityIssue extends AbstractIssue
             IssueType::UNIQUE_ENTITY_WITHOUT_INDEX->value,
             IssueType::DENORMALIZED_AGGREGATE_WITHOUT_LOCKING->value,
             IssueType::MANY_TO_MANY_EXTRA_COLUMNS->value,
+            IssueType::MISSING_VERSION_FIELD_FOR_CONCURRENCY->value,
+            IssueType::FLUSH_IN_LIFECYCLE_CALLBACK->value,
         ];
     }
 
