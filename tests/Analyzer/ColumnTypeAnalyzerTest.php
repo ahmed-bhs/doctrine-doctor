@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithArray
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithCorrectTypes;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithEnumOpportunity;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithMixedIssues;
+use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithMutableDatetime;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithObjectType;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\ColumnTypeTest\EntityWithSimpleArray;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
@@ -452,11 +453,12 @@ final class ColumnTypeAnalyzerTest extends TestCase
         // EntityWithSimpleArray: 2 fields with length <= 255 (tags, categories)
         // EntityWithEnumOpportunity: 4+ enum opportunities (status, type, role, priority)
         // EntityWithMixedIssues: 1 object + 1 array + 1 simple_array + 1 enum
+        // EntityWithMutableDatetime: 5 mutable datetime fields (createdAt, updatedAt, birthDate, startTime, publishedAt)
         // EntityWithCorrectTypes: 0 issues
 
-        // Minimum expected: 2 + 2 + 2 + 4 + 4 = 14 issues
+        // Minimum expected: 2 + 2 + 2 + 4 + 4 + 5 = 19 issues
         // But enum detection requires data, so we expect at least the non-enum issues
-        self::assertGreaterThanOrEqual(9, count($issues));
+        self::assertGreaterThanOrEqual(14, count($issues));
     }
 
     #[Test]
@@ -639,12 +641,12 @@ final class ColumnTypeAnalyzerTest extends TestCase
                 );
             }
 
-            // Simple array and enum opportunities should be INFO
-            if (str_contains($description, 'simple_array') || str_contains($description, 'enum')) {
+            // Simple array, enum opportunities, and mutable datetime should be INFO
+            if (str_contains($description, 'simple_array') || str_contains($description, 'enum') || str_contains($description, 'Mutable datetime')) {
                 self::assertEquals(
                     Severity::INFO,
                     $severity,
-                    'Simple array and enum suggestions should be INFO',
+                    'Simple array, enum suggestions, and mutable datetime should be INFO',
                 );
             }
         }
@@ -751,6 +753,80 @@ final class ColumnTypeAnalyzerTest extends TestCase
         }
     }
 
+    #[Test]
+    public function it_detects_mutable_datetime_types_as_info(): void
+    {
+        $issues = iterator_to_array($this->analyzer->analyze(QueryDataCollection::empty()));
+
+        $mutableDatetimeIssues = array_filter(
+            $issues,
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithMutableDatetime')
+                && str_contains((string) $issue->getTitle(), 'Mutable datetime'),
+        );
+
+        // Should detect 5 mutable datetime fields: createdAt, updatedAt, birthDate, startTime, publishedAt
+        self::assertCount(5, $mutableDatetimeIssues);
+
+        foreach ($mutableDatetimeIssues as $issue) {
+            self::assertEquals(Severity::INFO, $issue->getSeverity());
+            self::assertStringContainsString('Mutable datetime type', $issue->getTitle());
+            self::assertStringContainsString('silently changes entity state', $issue->getDescription());
+            self::assertStringContainsString('_immutable', $issue->getDescription());
+        }
+    }
+
+    #[Test]
+    public function it_does_not_flag_immutable_datetime_types(): void
+    {
+        $issues = iterator_to_array($this->analyzer->analyze(QueryDataCollection::empty()));
+
+        $mutableDatetimeIssues = array_filter(
+            $issues,
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithMutableDatetime'),
+        );
+
+        // Should only detect mutable types, not the immutable one
+        foreach ($mutableDatetimeIssues as $issue) {
+            // No issue should mention archivedAt (which uses datetime_immutable)
+            self::assertStringNotContainsString('$archivedAt', $issue->getTitle());
+        }
+
+        // EntityWithCorrectTypes uses datetime_immutable and should have 0 issues
+        $correctTypeIssues = array_filter(
+            $issues,
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithCorrectTypes'),
+        );
+
+        self::assertCount(0, $correctTypeIssues, 'Entity with datetime_immutable should not be flagged');
+    }
+
+    #[Test]
+    public function it_includes_immutable_replacement_in_description(): void
+    {
+        $issues = iterator_to_array($this->analyzer->analyze(QueryDataCollection::empty()));
+
+        $mutableDatetimeIssues = array_filter(
+            $issues,
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithMutableDatetime')
+                && str_contains((string) $issue->getTitle(), 'Mutable datetime'),
+        );
+
+        self::assertGreaterThan(0, count($mutableDatetimeIssues), 'Should have mutable datetime issues');
+
+        foreach ($mutableDatetimeIssues as $issue) {
+            $description = $issue->getDescription();
+
+            // Should mention the immutable type replacement
+            self::assertTrue(
+                str_contains($description, 'datetime_immutable') ||
+                str_contains($description, 'date_immutable') ||
+                str_contains($description, 'time_immutable') ||
+                str_contains($description, 'datetimetz_immutable'),
+                'Description should mention the immutable type replacement',
+            );
+        }
+    }
+
     /**
      * Create tables manually for enum testing (avoiding problematic types like 'object').
      */
@@ -788,6 +864,19 @@ final class ColumnTypeAnalyzerTest extends TestCase
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name VARCHAR(255) NOT NULL,
                 data TEXT
+            )
+        ');
+
+        // Create EntityWithMutableDatetime table
+        $connection->executeStatement('
+            CREATE TABLE EntityWithMutableDatetime (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                createdAt TEXT NOT NULL,
+                updatedAt TEXT NOT NULL,
+                birthDate TEXT NOT NULL,
+                startTime TEXT NOT NULL,
+                publishedAt TEXT NOT NULL,
+                archivedAt TEXT NOT NULL
             )
         ');
     }

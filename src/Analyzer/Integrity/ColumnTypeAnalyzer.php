@@ -35,6 +35,7 @@ use ReflectionClass;
  * - Use of 'simple_array' for complex data
  * - Missing 'json' type for structured data
  * - Improper use of 'enum' type
+ * - Use of mutable datetime types (should use immutable variants)
  */
 class ColumnTypeAnalyzer implements MetadataAnalyzerInterface
 {
@@ -53,6 +54,13 @@ class ColumnTypeAnalyzer implements MetadataAnalyzerInterface
             'reason'      => 'Uses PHP serialize() which breaks with class changes',
             'replacement' => 'json',
         ],
+    ];
+
+    private const array MUTABLE_DATETIME_TYPES = [
+        'datetime'    => 'datetime_immutable',
+        'date'        => 'date_immutable',
+        'time'        => 'time_immutable',
+        'datetimetz'  => 'datetimetz_immutable',
     ];
 
     // Types that need validation
@@ -137,6 +145,16 @@ class ColumnTypeAnalyzer implements MetadataAnalyzerInterface
 
             if ($issue instanceof IntegrityIssue) {
                 $issues[] = $issue;
+            }
+
+            // Check for mutable datetime types
+            if (isset(self::MUTABLE_DATETIME_TYPES[$type])) {
+                $issues[] = $this->createMutableDatetimeIssue(
+                    $entityClass,
+                    $fieldName,
+                    $type,
+                    self::MUTABLE_DATETIME_TYPES[$type],
+                );
             }
         }
 
@@ -715,5 +733,76 @@ class ColumnTypeAnalyzer implements MetadataAnalyzerInterface
 ";
 
         return $code;
+    }
+
+    private function createMutableDatetimeIssue(
+        string $entityClass,
+        string $fieldName,
+        string $type,
+        string $immutableType,
+    ): IntegrityIssue {
+        $shortClassName = $this->shortClassName($entityClass);
+
+        /** @var IntegrityIssue $issue */
+        $issue = $this->issueFactory->createFromArray([
+            'type' => IssueType::INTEGRITY_GENERIC->value,
+            'title' => sprintf(
+                'Mutable datetime type "%s" in %s::$%s',
+                $type,
+                $shortClassName,
+                $fieldName,
+            ),
+            'description' => sprintf(
+                'Field "%s::$%s" uses mutable type "%s". '
+                . 'Mutating a DateTime returned by a getter silently changes entity state '
+                . 'without Doctrine\'s change tracking detecting it. '
+                . 'Use "%s" with \DateTimeImmutable instead.',
+                $shortClassName,
+                $fieldName,
+                $type,
+                $immutableType,
+            ),
+            'severity'   => 'info',
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Integrity/code_suggestion',
+                context: [
+                    'description' => sprintf('Replace "%s" with "%s"', $type, $immutableType),
+                    'code' => $this->generateMutableDatetimeCode($entityClass, $fieldName, $type, $immutableType),
+                    'file_path' => $entityClass,
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::integrity(),
+                    severity: Severity::info(),
+                    title: 'Use Immutable Datetime Type',
+                    tags: ['code-quality'],
+                ),
+            ),
+            'backtrace' => null,
+            'queries'   => [],
+            'entity'    => $entityClass,
+            'field'     => $fieldName,
+        ]);
+
+        return $issue;
+    }
+
+    private function generateMutableDatetimeCode(
+        string $entityClass,
+        string $fieldName,
+        string $type,
+        string $immutableType,
+    ): string {
+        $shortClassName = $this->shortClassName($entityClass);
+
+        return "// In {$shortClassName} entity:\n\n"
+            . "// BEFORE - mutable, silent corruption risk:\n"
+            . "#[ORM\Column(type: '{$type}')]\n"
+            . "private \DateTime \${$fieldName};\n\n"
+            . "// AFTER - immutable, safe:\n"
+            . "#[ORM\Column(type: '{$immutableType}')]\n"
+            . "private \DateTimeImmutable \${$fieldName};\n\n"
+            . "// Getters/setters: update type hints accordingly\n"
+            . "public function get" . ucfirst($fieldName) . "(): \DateTimeImmutable { ... }\n"
+            . "public function set" . ucfirst($fieldName) . "(\DateTimeImmutable \${$fieldName}): void { ... }\n";
     }
 }
