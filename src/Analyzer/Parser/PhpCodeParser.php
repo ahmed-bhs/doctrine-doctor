@@ -172,6 +172,26 @@ final class PhpCodeParser
         return $visitor->hasMethodCall();
     }
 
+    public function hasFlushCall(\ReflectionMethod $method): bool
+    {
+        $code = $this->extractMethodCode($method);
+        if (null === $code) {
+            return false;
+        }
+
+        $ast = $this->parse($code);
+        if (null === $ast) {
+            return false;
+        }
+
+        $visitor = new Visitor\FlushCallVisitor();
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor($visitor);
+        $traverser->traverse($ast);
+
+        return $visitor->hasFlushCall();
+    }
+
     /**
      * Detect insecure random number generator usage in a method.
      *
