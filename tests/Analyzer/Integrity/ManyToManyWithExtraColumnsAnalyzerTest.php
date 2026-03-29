@@ -49,7 +49,7 @@ final class ManyToManyWithExtraColumnsAnalyzerTest extends DatabaseTestCase
 
         // Add extra columns to orderform2m_productform2m join table
         $this->connection->executeStatement(
-            'ALTER TABLE enrollmentowner_enrollmenttarget ADD COLUMN quantity INTEGER DEFAULT 1'
+            'ALTER TABLE enrollmentowner_enrollmenttarget ADD COLUMN quantity INTEGER DEFAULT 1',
         );
 
         $issues = $this->analyzer->analyzeMetadata();
@@ -114,7 +114,7 @@ final class ManyToManyWithExtraColumnsAnalyzerTest extends DatabaseTestCase
         $this->createSchema([EnrollmentOwner::class, EnrollmentTarget::class]);
 
         $this->connection->executeStatement(
-            'ALTER TABLE enrollmentowner_enrollmenttarget ADD COLUMN quantity INTEGER DEFAULT 1'
+            'ALTER TABLE enrollmentowner_enrollmenttarget ADD COLUMN quantity INTEGER DEFAULT 1',
         );
 
         $issues = $this->analyzer->analyzeMetadata();
@@ -132,7 +132,7 @@ final class ManyToManyWithExtraColumnsAnalyzerTest extends DatabaseTestCase
         $this->createSchema([EnrollmentOwner::class, EnrollmentTarget::class]);
 
         $this->connection->executeStatement(
-            'ALTER TABLE enrollmentowner_enrollmenttarget ADD COLUMN quantity INTEGER DEFAULT 1'
+            'ALTER TABLE enrollmentowner_enrollmenttarget ADD COLUMN quantity INTEGER DEFAULT 1',
         );
 
         $issues = $this->analyzer->analyzeMetadata();
@@ -155,10 +155,10 @@ final class ManyToManyWithExtraColumnsAnalyzerTest extends DatabaseTestCase
         $this->createSchema([EnrollmentOwner::class, EnrollmentTarget::class]);
 
         $this->connection->executeStatement(
-            'ALTER TABLE enrollmentowner_enrollmenttarget ADD COLUMN quantity INTEGER DEFAULT 1'
+            'ALTER TABLE enrollmentowner_enrollmenttarget ADD COLUMN quantity INTEGER DEFAULT 1',
         );
         $this->connection->executeStatement(
-            'ALTER TABLE enrollmentowner_enrollmenttarget ADD COLUMN discount_percent DECIMAL(5, 2) DEFAULT 0'
+            'ALTER TABLE enrollmentowner_enrollmenttarget ADD COLUMN discount_percent DECIMAL(5, 2) DEFAULT 0',
         );
 
         $issues = $this->analyzer->analyzeMetadata();

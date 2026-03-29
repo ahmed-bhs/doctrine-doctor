@@ -7,6 +7,8 @@ declare(strict_types=1);
  * Context variables: none required
  */
 
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+
 ob_start();
 ?>
 
