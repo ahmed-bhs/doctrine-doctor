@@ -36,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolved CI regressions around ECS, PHPMD, and template validation, including complexity cleanup in `LazyGhostObjectsDisabledAnalyzer`.
 - Added dedicated tests for `MetadataAnalyzerTrait` and the split analyzer interface contract.
 
+### References
+
+- Related PRs: #76, #77, #78, #79, #80, #81, #82, #97, #98, #99, #100.
+
 ## [2.7.3] - 2026-03-12
 
 ### Added
@@ -50,6 +54,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `PropertyTypeMismatchAnalyzer`: now attaches concrete fix suggestions for PHP/Doctrine type mismatches, including nullability mismatches.
 - `CollectionInitializationAnalyzer` suggestion template now uses the actual `mappedBy` value when available.
 
+### References
+
+- Related PRs: #69.
+
 ## [2.7.2] - 2026-03-12
 
 ### Fixed
@@ -60,6 +68,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Refactored collection initialization detection around dedicated initialization patterns, including promoted properties.
 - Removed the duplicate regex-based `CollectionEmptyAccessAnalyzer` in favor of the AST-based collection initialization analysis path.
+
+### References
+
+- Related issues: #67.
+- Related PRs: #68.
 
 ## [2.7.1] - 2026-03-11
 
@@ -78,6 +91,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `CompositeKeyComplexityAnalyzer`: use `ShortClassNameTrait`, proper return types, and `MappingHelper` for Doctrine 2/3/4 compatibility.
+
+### References
+
+- Related PRs: #66.
 
 ## [2.6.0] - 2026-03-10
 
@@ -108,6 +125,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `DuplicatePrivateFieldInHierarchyAnalyzer`: detects private fields with the same name in an entity and its mapped parent classes, which triggers MappingException or unpredictable Collection filtering.
 - Configuration nodes for `join_column_non_primary_key`, `duplicate_private_field_in_hierarchy`, `overprivileged_database_user`, and `hardcoded_database_credentials` analyzers.
 
+### References
+
+- Related PRs: #63.
+
 ## [2.3.0] - 2026-03-08
 
 ### Fixed
@@ -123,6 +144,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use Webmozart Assert instead of native assert for type narrowing.
 - Analyzer and suggestion wording polish.
 - Analyzer config values made user-configurable with config coverage gaps fixed.
+
+### References
+
+- Related PRs: #61.
 
 ## [2.2.2] - 2026-03-04
 
@@ -188,6 +213,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template code rendering safety for apostrophes/quotes in dynamic snippets.
 - Deduplication contract checks hardened in tests and CI static-analysis regressions resolved.
 
+### References
+
+- Related PRs: #47, #48, #49, #50, #51, #52, #53, #55, #56, #57, #58, #59.
+
 ## [2.1.1] - 2026-02-25
 
 ### Fixed
@@ -198,6 +227,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Tests for extension enabled/disabled behavior (#44)
+
+### References
+
+- Related PRs: #32, #43, #44.
 
 ## [2.1.0] - 2026-02-24
 
@@ -214,6 +247,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Widen `webmozart/assert` constraint to support v2.x
 - Remove unused `bitbag/coding-standard` dependency
+
+### References
+
+- Related PRs: #10.
 
 ## [2.0.0] - 2026-02-20
 
@@ -255,6 +292,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - GetReferenceAnalyzer: SQL parsing cache (159ms -> 31ms)
 - Cache warmup on unique SQL patterns only
+
+### References
+
+- Related PRs: #7, #8.
 
 ## [1.0.0] - Initial Release
 
