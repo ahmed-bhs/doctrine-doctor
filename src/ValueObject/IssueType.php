@@ -106,6 +106,8 @@ enum IssueType: string
     case UNIQUE_ENTITY_WITHOUT_INDEX = 'unique_entity_without_index';
     case DENORMALIZED_AGGREGATE_WITHOUT_LOCKING = 'denormalized_aggregate_without_locking';
     case MANY_TO_MANY_EXTRA_COLUMNS = 'many_to_many_extra_columns';
+    case MISSING_VERSION_FIELD_FOR_CONCURRENCY = 'missing_version_field_for_concurrency';
+    case FLUSH_IN_LIFECYCLE_CALLBACK = 'flush_in_lifecycle_callback';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';
