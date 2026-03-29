@@ -606,3 +606,11 @@ services:
             $validatorMetadataFactory: '@?validator.mapping.class_metadata_factory'
         tags:
             - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Performance\GedmoExtensionPerformanceAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $logger: '@?logger'
+        tags:
+            - { name: doctrine_doctor.analyzer }
