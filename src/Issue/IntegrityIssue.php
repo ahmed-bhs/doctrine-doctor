@@ -73,6 +73,7 @@ class IntegrityIssue extends AbstractIssue
             IssueType::MAPPED_SUPERCLASS_ONE_TO_MANY->value,
             IssueType::UNIQUE_ENTITY_WITHOUT_INDEX->value,
             IssueType::DENORMALIZED_AGGREGATE_WITHOUT_LOCKING->value,
+            IssueType::MANY_TO_MANY_EXTRA_COLUMNS->value,
         ];
     }
 
