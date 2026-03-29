@@ -33,6 +33,7 @@ enum IssueType: string
     case CARTESIAN_PRODUCT = 'cartesian_product';
     case CARTESIAN_PRODUCT_RISK = 'cartesian_product_risk';
     case UNUSED_EAGER_LOAD = 'unused_eager_load';
+    case EAGER_LOADING_MAPPING = 'eager_loading_mapping';
     case NESTED_N_PLUS_ONE = 'nested_n_plus_one';
     case AGGREGATION_WITH_INNER_JOIN = 'aggregation_with_inner_join';
     case SET_MAX_RESULTS_WITH_COLLECTION_JOIN = 'setMaxResults_with_collection_join';
