@@ -32,10 +32,7 @@ final class LazyGhostObjectsDisabledAnalyzerTest extends TestCase
         mkdir($this->tempDir, 0777, true);
         mkdir($this->tempDir . '/config/packages', 0777, true);
 
-        $this->analyzer = new LazyGhostObjectsDisabledAnalyzer(
-            new SuggestionFactory(new PhpTemplateRenderer()),
-            $this->tempDir,
-        );
+        $this->analyzer = $this->createAnalyzer();
     }
 
     protected function tearDown(): void
@@ -50,7 +47,7 @@ final class LazyGhostObjectsDisabledAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_detects_absent_lazy_ghost_objects_config(): void
+    public function it_does_not_flag_absent_native_lazy_objects_config_on_modern_doctrine_bundle(): void
     {
         $this->writeConfig('doctrine.yaml', <<<'YAML'
             doctrine:
@@ -61,47 +58,53 @@ final class LazyGhostObjectsDisabledAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataCollection::empty());
         $issuesArray = $issues->toArray();
 
-        self::assertNotEmpty($issuesArray, 'Should detect missing lazy ghost objects config');
+        self::assertEmpty($issuesArray, 'Should not flag missing native lazy objects config on DoctrineBundle >= 3.1');
     }
 
     #[Test]
-    public function it_detects_explicitly_disabled_lazy_ghost_objects(): void
+    public function it_detects_explicitly_disabled_native_lazy_objects_on_doctrine_bundle_3_0(): void
     {
+        $this->analyzer = $this->createAnalyzer('3.0.0');
+
         $this->writeConfig('doctrine.yaml', <<<'YAML'
             doctrine:
                 orm:
-                    enable_lazy_ghost_objects: false
+                    enable_native_lazy_objects: false
             YAML);
 
         $issues = $this->analyzer->analyze(QueryDataCollection::empty());
         $issuesArray = $issues->toArray();
 
-        self::assertNotEmpty($issuesArray, 'Should detect explicitly disabled lazy ghost objects');
+        self::assertNotEmpty($issuesArray, 'Should detect explicitly disabled native lazy objects on DoctrineBundle 3.0');
     }
 
     #[Test]
     public function it_does_not_flag_when_enabled_in_global_config(): void
     {
+        $this->analyzer = $this->createAnalyzer('3.0.0');
+
         $this->writeConfig('doctrine.yaml', <<<'YAML'
             doctrine:
                 orm:
-                    enable_lazy_ghost_objects: true
+                    enable_native_lazy_objects: true
             YAML);
 
         $issues = $this->analyzer->analyze(QueryDataCollection::empty());
         $issuesArray = $issues->toArray();
 
-        self::assertEmpty($issuesArray, 'Should not flag when lazy ghost objects are enabled');
+        self::assertEmpty($issuesArray, 'Should not flag when native lazy objects are enabled');
     }
 
     #[Test]
     public function it_does_not_flag_when_enabled_in_when_at_prod_block(): void
     {
+        $this->analyzer = $this->createAnalyzer('3.0.0');
+
         $this->writeConfig('doctrine.yaml', <<<'YAML'
             when@prod:
                 doctrine:
                     orm:
-                        enable_lazy_ghost_objects: true
+                        enable_native_lazy_objects: true
             YAML);
 
         $issues = $this->analyzer->analyze(QueryDataCollection::empty());
@@ -113,11 +116,12 @@ final class LazyGhostObjectsDisabledAnalyzerTest extends TestCase
     #[Test]
     public function it_does_not_flag_when_enabled_in_prod_directory_config(): void
     {
+        $this->analyzer = $this->createAnalyzer('3.0.0');
         mkdir($this->tempDir . '/config/packages/prod', 0777, true);
         $this->writeConfig('prod/doctrine.yaml', <<<'YAML'
             doctrine:
                 orm:
-                    enable_lazy_ghost_objects: true
+                    enable_native_lazy_objects: true
             YAML);
 
         $issues = $this->analyzer->analyze(QueryDataCollection::empty());
@@ -138,10 +142,12 @@ final class LazyGhostObjectsDisabledAnalyzerTest extends TestCase
     #[Test]
     public function it_returns_info_severity(): void
     {
+        $this->analyzer = $this->createAnalyzer('3.0.0');
+
         $this->writeConfig('doctrine.yaml', <<<'YAML'
             doctrine:
                 orm:
-                    enable_lazy_ghost_objects: false
+                    enable_native_lazy_objects: false
             YAML);
 
         $issues = $this->analyzer->analyze(QueryDataCollection::empty());
@@ -156,10 +162,12 @@ final class LazyGhostObjectsDisabledAnalyzerTest extends TestCase
     #[Test]
     public function it_provides_a_suggestion(): void
     {
+        $this->analyzer = $this->createAnalyzer('3.0.0');
+
         $this->writeConfig('doctrine.yaml', <<<'YAML'
             doctrine:
                 orm:
-                    enable_lazy_ghost_objects: false
+                    enable_native_lazy_objects: false
             YAML);
 
         $issues = $this->analyzer->analyze(QueryDataCollection::empty());
@@ -171,27 +179,39 @@ final class LazyGhostObjectsDisabledAnalyzerTest extends TestCase
             self::assertNotNull($suggestion, 'Every issue should have a suggestion');
 
             $code = $suggestion->getCode();
-            self::assertStringContainsString('lazy ghost objects', strtolower($code));
+            self::assertStringContainsString('native lazy objects', strtolower($code));
         }
     }
 
     #[Test]
     public function it_prioritizes_when_at_prod_over_global(): void
     {
+        $this->analyzer = $this->createAnalyzer('3.0.0');
+
         $this->writeConfig('doctrine.yaml', <<<'YAML'
             doctrine:
                 orm:
-                    enable_lazy_ghost_objects: false
+                    enable_native_lazy_objects: false
             when@prod:
                 doctrine:
                     orm:
-                        enable_lazy_ghost_objects: true
+                        enable_native_lazy_objects: true
             YAML);
 
         $issues = $this->analyzer->analyze(QueryDataCollection::empty());
         $issuesArray = $issues->toArray();
 
         self::assertEmpty($issuesArray, 'when@prod block should override global config');
+    }
+
+    private function createAnalyzer(?string $doctrineBundleVersion = '3.2.2'): LazyGhostObjectsDisabledAnalyzer
+    {
+        return new LazyGhostObjectsDisabledAnalyzer(
+            new SuggestionFactory(new PhpTemplateRenderer()),
+            $this->tempDir,
+            null,
+            $doctrineBundleVersion,
+        );
     }
 
     private function writeConfig(string $filename, string $content): void
