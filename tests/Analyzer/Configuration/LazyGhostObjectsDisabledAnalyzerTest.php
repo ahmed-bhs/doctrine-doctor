@@ -211,7 +211,7 @@ final class LazyGhostObjectsDisabledAnalyzerTest extends TestCase
         }
 
         $files = scandir($path);
-        if ($files === false) {
+        if (false === $files) {
             return;
         }
 

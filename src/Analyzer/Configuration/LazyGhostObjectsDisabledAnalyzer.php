@@ -86,12 +86,8 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
     }
 
     /**
-     * Reads the enable_lazy_ghost_objects configuration from Doctrine YAML files.
-     * Checks multiple locations in priority order:
-     * - config/packages/prod/doctrine.yaml (dedicated prod file)
-     * - config/packages/doctrine.yaml (when@prod override OR global fallback)
-     *
-     * @return bool|null true if enabled, false if disabled or explicitly missing, null if no config file found
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     private function readLazyGhostConfig(): ?bool
     {
@@ -108,88 +104,89 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
                 continue;
             }
 
-            try {
-                $config = Yaml::parseFile($configPath);
+            $result = $this->parseConfigFile($configPath);
 
-                if (!is_array($config)) {
-                    $this->logger?->debug('LazyGhostObjectsDisabledAnalyzer: config is not array', [
-                        'path' => $configPath,
-                        'type' => get_debug_type($config),
-                    ]);
-                    continue;
-                }
-
-                // Priority 1: Check when@prod block first (explicit production override)
-                if (isset($config['when@prod'])
-                    && is_array($config['when@prod'])
-                    && isset($config['when@prod']['doctrine'])
-                    && is_array($config['when@prod']['doctrine'])
-                    && isset($config['when@prod']['doctrine']['orm'])
-                    && is_array($config['when@prod']['doctrine']['orm'])
-                    && isset($config['when@prod']['doctrine']['orm']['enable_lazy_ghost_objects'])) {
-                    $value = $this->normalizeBoolValue(
-                        $config['when@prod']['doctrine']['orm']['enable_lazy_ghost_objects'],
-                    );
-                    $this->logger?->debug('LazyGhostObjectsDisabledAnalyzer: found when@prod config', [
-                        'path' => $configPath,
-                        'value' => $value ? 'true' : 'false',
-                    ]);
-
-                    return $value;
-                }
-
-                // Priority 2: For prod/doctrine.yaml, check direct config
-                if (str_contains($configPath, '/prod/')
-                    && isset($config['doctrine'])
-                    && is_array($config['doctrine'])
-                    && isset($config['doctrine']['orm'])
-                    && is_array($config['doctrine']['orm'])
-                    && isset($config['doctrine']['orm']['enable_lazy_ghost_objects'])) {
-                    $value = $this->normalizeBoolValue(
-                        $config['doctrine']['orm']['enable_lazy_ghost_objects'],
-                    );
-                    $this->logger?->debug('LazyGhostObjectsDisabledAnalyzer: found prod/doctrine.yaml config', [
-                        'path' => $configPath,
-                        'value' => $value ? 'true' : 'false',
-                    ]);
-
-                    return $value;
-                }
-
-                // Priority 3: Fallback to global config
-                if (isset($config['doctrine'])
-                    && is_array($config['doctrine'])
-                    && isset($config['doctrine']['orm'])
-                    && is_array($config['doctrine']['orm'])
-                    && isset($config['doctrine']['orm']['enable_lazy_ghost_objects'])) {
-                    $value = $this->normalizeBoolValue(
-                        $config['doctrine']['orm']['enable_lazy_ghost_objects'],
-                    );
-                    $this->logger?->debug('LazyGhostObjectsDisabledAnalyzer: found global config', [
-                        'path' => $configPath,
-                        'value' => $value ? 'true' : 'false',
-                    ]);
-
-                    return $value;
-                }
-
-                $this->logger?->debug('LazyGhostObjectsDisabledAnalyzer: enable_lazy_ghost_objects not found in config', [
-                    'path' => $configPath,
-                ]);
-
-                // If we found a config file but the key is missing, return false (not explicitly enabled)
-                return false;
-            } catch (\Throwable $throwable) {
-                $this->logger?->warning('LazyGhostObjectsDisabledAnalyzer: failed to parse config file', [
-                    'file' => $configPath,
-                    'exception' => $throwable::class,
-                    'message' => $throwable->getMessage(),
-                ]);
+            if (null !== $result) {
+                return $result;
             }
         }
 
-        // No config files found at all
         return null;
+    }
+
+    private function parseConfigFile(string $configPath): ?bool
+    {
+        try {
+            $config = Yaml::parseFile($configPath);
+
+            if (!is_array($config)) {
+                $this->logger?->debug('LazyGhostObjectsDisabledAnalyzer: config is not array', [
+                    'path' => $configPath,
+                    'type' => get_debug_type($config),
+                ]);
+
+                return null;
+            }
+
+            return $this->extractLazyGhostValue($config, $configPath);
+        } catch (\Throwable $throwable) {
+            $this->logger?->warning('LazyGhostObjectsDisabledAnalyzer: failed to parse config file', [
+                'file' => $configPath,
+                'exception' => $throwable::class,
+                'message' => $throwable->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    private function extractLazyGhostValue(array $config, string $configPath): bool
+    {
+        $lookupPaths = [
+            ['when@prod', 'doctrine', 'orm', 'enable_lazy_ghost_objects'],
+        ];
+
+        if (str_contains($configPath, '/prod/')) {
+            $lookupPaths[] = ['doctrine', 'orm', 'enable_lazy_ghost_objects'];
+        }
+
+        $lookupPaths[] = ['doctrine', 'orm', 'enable_lazy_ghost_objects'];
+
+        foreach ($lookupPaths as $keys) {
+            $value = $this->getNestedValue($config, $keys);
+
+            if (null !== $value) {
+                $normalized = $this->normalizeBoolValue($value);
+                $this->logger?->debug('LazyGhostObjectsDisabledAnalyzer: found config', [
+                    'path' => $configPath,
+                    'keys' => implode('.', $keys),
+                    'value' => $normalized ? 'true' : 'false',
+                ]);
+
+                return $normalized;
+            }
+        }
+
+        $this->logger?->debug('LazyGhostObjectsDisabledAnalyzer: enable_lazy_ghost_objects not found in config', [
+            'path' => $configPath,
+        ]);
+
+        return false;
+    }
+
+    private function getNestedValue(array $config, array $keys): mixed
+    {
+        $current = $config;
+
+        foreach ($keys as $key) {
+            if (!is_array($current) || !isset($current[$key])) {
+                return null;
+            }
+
+            $current = $current[$key];
+        }
+
+        return $current;
     }
 
     private function normalizeBoolValue(mixed $value): bool
