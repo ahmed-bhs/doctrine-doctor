@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-03-29
+
+### Added
+
+- New `InheritanceStrategyAnalyzer` family: detects invalid or risky inheritance mappings, including missing discriminator maps in STI, sparse STI tables, unsupported OneToMany associations on mapped superclasses, non-root `#[InheritanceType]` declarations, non-nullable subclass columns in STI, deep CTI hierarchies, and thin CTI subclasses.
+- New `UniqueEntityWithoutDatabaseIndexAnalyzer`: detects `#[UniqueEntity]` constraints that are not backed by a database `UNIQUE` index, including Symfony validation metadata declared with attributes, YAML, and XML.
+- New `DenormalizedAggregateWithoutLockingAnalyzer`: detects denormalized aggregate fields updated alongside collections without optimistic or pessimistic locking.
+- Mutable datetime detection in `ColumnTypeAnalyzer`: flags mutable Doctrine date/time column types and suggests immutable equivalents to avoid silent state corruption.
+- New `EagerLoadingMappingAnalyzer`: detects associations declared with `fetch: 'EAGER'` in entity mapping and suggests deferring fetch strategy decisions to queries.
+- New `GedmoExtensionPerformanceAnalyzer`: detects entities using Gedmo `Loggable` or `Translatable` patterns that implicitly generate extra database queries.
+- New `LazyGhostObjectsDisabledAnalyzer`: detects Doctrine ORM configurations where `enable_lazy_ghost_objects` is not enabled on supported Symfony versions.
+- New `ManyToManyWithExtraColumnsAnalyzer`: detects ManyToMany join tables containing extra columns and recommends promoting them to an explicit join entity.
+- New `MissingVersionFieldForConcurrencyAnalyzer`: detects entities involved in concurrent write patterns without an `#[ORM\Version]` field for optimistic locking.
+- New `FlushInEventListenerAnalyzer`: detects `flush()` calls inside Doctrine lifecycle callbacks that can trigger re-entrant UnitOfWork computation or infinite loops.
+
+### Changed
+
+- Split the analyzer contract into dedicated query and metadata interfaces, enabling metadata-based analyzers without changing existing integration points.
+- `UniqueEntityWithoutDatabaseIndexAnalyzer` now supports Symfony validation metadata declared in YAML and XML in addition to PHP attributes.
+- Reduced NPath complexity in `HardcodedDatabaseCredentialsAnalyzer` and `UniqueEntityWithoutDatabaseIndexAnalyzer`.
+- Improved the contribution and analyzer documentation around the detection pipeline and metadata analyzer workflow.
+
+### Fixed
+
+- `MissingIndexAnalyzer`: no longer reports a false positive when the relevant index is already used.
+- Prevented XSS in profiler backtrace JSON output.
+- Resolved CI regressions around ECS, PHPMD, and template validation, including complexity cleanup in `LazyGhostObjectsDisabledAnalyzer`.
+- Added dedicated tests for `MetadataAnalyzerTrait` and the split analyzer interface contract.
+
 ## [2.7.3] - 2026-03-12
 
 ### Added
