@@ -19,7 +19,6 @@ use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
-use Composer\InstalledVersions;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Yaml\Yaml;
@@ -43,11 +42,14 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
 
     private const NATIVE_LAZY_OBJECTS_KEY = 'enable_native_lazy_objects';
 
+    /**
+     * @param (\Closure(): ?string)|null $doctrineBundleVersionResolver
+     */
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly string $projectDir,
         private readonly ?LoggerInterface $logger = null,
-        private readonly ?string $doctrineBundleVersion = null,
+        private readonly ?\Closure $doctrineBundleVersionResolver = null,
     ) {
     }
 
@@ -253,14 +255,10 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
 
     private function resolveDoctrineBundleVersion(): ?string
     {
-        if (null !== $this->doctrineBundleVersion) {
-            return $this->doctrineBundleVersion;
-        }
-
-        if (!class_exists(InstalledVersions::class) || !InstalledVersions::isInstalled('doctrine/doctrine-bundle')) {
+        if (null === $this->doctrineBundleVersionResolver) {
             return null;
         }
 
-        return InstalledVersions::getVersion('doctrine/doctrine-bundle');
+        return ($this->doctrineBundleVersionResolver)();
     }
 }

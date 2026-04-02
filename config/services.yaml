@@ -296,11 +296,21 @@ services:
         tags:
             - { name: doctrine_doctor.analyzer }
 
+    AhmedBhs\DoctrineDoctor\Factory\DoctrineBundleVersionResolver:
+        public: false
+
+    doctrine_doctor.doctrine_bundle_version_resolver_closure:
+        class: Closure
+        factory: ['Closure', 'fromCallable']
+        arguments:
+            - ['@AhmedBhs\DoctrineDoctor\Factory\DoctrineBundleVersionResolver', '__invoke']
+
     AhmedBhs\DoctrineDoctor\Analyzer\Configuration\LazyGhostObjectsDisabledAnalyzer:
         arguments:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $projectDir: '%kernel.project_dir%'
             $logger: '@?logger'
+            $doctrineBundleVersionResolver: '@doctrine_doctor.doctrine_bundle_version_resolver_closure'
         tags:
             - { name: doctrine_doctor.analyzer }
 

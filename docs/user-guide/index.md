@@ -17,4 +17,4 @@ This section covers:
 | Page | Description |
 |------|-------------|
 | [Configuration](configuration) | Complete configuration reference |
-| [Analyzers Catalog](analyzers) | All 66 analyzers documented |
+| [Analyzers Catalog](analyzers) | All 90+ analyzers documented |

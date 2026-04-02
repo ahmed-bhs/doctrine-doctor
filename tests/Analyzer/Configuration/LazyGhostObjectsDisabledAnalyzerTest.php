@@ -206,11 +206,15 @@ final class LazyGhostObjectsDisabledAnalyzerTest extends TestCase
 
     private function createAnalyzer(?string $doctrineBundleVersion = '3.2.2'): LazyGhostObjectsDisabledAnalyzer
     {
+        $resolver = null !== $doctrineBundleVersion
+            ? static fn (): string => $doctrineBundleVersion
+            : null;
+
         return new LazyGhostObjectsDisabledAnalyzer(
             new SuggestionFactory(new PhpTemplateRenderer()),
             $this->tempDir,
             null,
-            $doctrineBundleVersion,
+            $resolver,
         );
     }
 

@@ -301,7 +301,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- 66 specialized analyzers for Doctrine ORM
+- 90+ specialized analyzers for Doctrine ORM
 - Integration with Symfony Web Profiler
 - Real-time performance analysis during development
 - N+1 query detection with backtrace

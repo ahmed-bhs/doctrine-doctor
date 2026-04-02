@@ -1,7 +1,7 @@
 # Doctrine Doctor
 
 Runtime analysis bundle for Doctrine ORM, integrated into Symfony Web Profiler.
-66+ analyzers across 4 categories: Performance, Security, Integrity, Configuration.
+90+ analyzers across 4 categories: Performance, Security, Integrity, Configuration.
 
 - Namespace: `AhmedBhs\DoctrineDoctor`
 - PHP 8.4+ / Symfony 6-8 / Doctrine ORM 3-4

@@ -1,10 +1,12 @@
 <?php
 
 /*
- * This file is part of the Doctrine Doctor.
- * (c) 2025 Ahmed EBEN HASSINE
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+<ul>
+<li>This file is part of the Doctrine Doctor.</li>
+<li>(c) 2025 Ahmed EBEN HASSINE</li>
+<li>For the full copyright and license information, please view the LICENSE</li>
+<li>file that was distributed with this source code.</li>
+</ul>
  */
 
 declare(strict_types=1);
@@ -36,17 +38,21 @@ ob_start();
     <h4>When this is acceptable</h4>
     <div class="query-item">
         <pre><code class="language-bash">Most web applications:
-   - Store everything in UTC
-   - Convert to user timezone in PHP
-   - Simple and works well</code></pre>
+<ul>
+<li>Store everything in UTC</li>
+<li>Convert to user timezone in PHP</li>
+<li>Simple and works well</code></pre></li>
+</ul>
     </div>
 
     <h4>When to use datetimetz</h4>
     <div class="query-item">
         <pre><code class="language-bash">Multi-timezone applications:
-   - Users in different timezones
-   - Direct SQL reports or BI tools
-   - Need to preserve original timezone</code></pre>
+<ul>
+<li>Users in different timezones</li>
+<li>Direct SQL reports or BI tools</li>
+<li>Need to preserve original timezone</code></pre></li>
+</ul>
     </div>
 
     <h4>Switching to datetimetz</h4>
