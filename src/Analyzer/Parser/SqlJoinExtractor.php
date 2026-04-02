@@ -206,7 +206,7 @@ final class SqlJoinExtractor implements JoinExtractorInterface
         }
 
         // Check FROM clause
-        $fromClause = $statement->from ?? [];
+        $fromClause = $statement->from;
         if ([] !== $fromClause) {
             foreach ($fromClause as $fromTable) {
                 $alias = $fromTable->alias ?? $fromTable->table;

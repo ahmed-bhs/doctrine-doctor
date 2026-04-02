@@ -88,7 +88,7 @@ final class SqlQueryNormalizer implements QueryNormalizerInterface
         $parts[] = '*';
 
         // FROM clause
-        $fromClauses = $statement->from ?? [];
+        $fromClauses = $statement->from;
         if ([] !== $fromClauses) {
             $parts[] = 'FROM';
             $fromTables = [];

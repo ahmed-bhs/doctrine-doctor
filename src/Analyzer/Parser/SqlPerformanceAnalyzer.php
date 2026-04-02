@@ -83,7 +83,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         }
 
         // Check SELECT clause for subqueries
-        $selectExprs = $statement->expr ?? [];
+        $selectExprs = $statement->expr;
         if ([] !== $selectExprs) {
             foreach ($selectExprs as $expr) {
                 if ($this->expressionContainsSubquery($expr)) {
@@ -105,7 +105,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         }
 
         // Check FROM clause for derived tables (subqueries)
-        $fromClauses = $statement->from ?? [];
+        $fromClauses = $statement->from;
         if ([] !== $fromClauses) {
             foreach ($fromClauses as $fromExpr) {
                 // Derived table pattern: FROM (...subquery...) AS alias
@@ -167,7 +167,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         }
 
         // Check for DISTINCT in aggregation functions (COUNT(DISTINCT ...), etc.)
-        $selectExpressions = $statement->expr ?? [];
+        $selectExpressions = $statement->expr;
         foreach ($selectExpressions as $expr) {
             if ($expr instanceof Expression) {
                 // Look for DISTINCT inside function calls

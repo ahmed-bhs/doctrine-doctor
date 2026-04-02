@@ -316,7 +316,7 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         $aliasPattern = '/\b' . preg_quote($alias, '/') . '\b\./';
 
         // Check SELECT clause
-        $selectExprs = $statement->expr ?? [];
+        $selectExprs = $statement->expr;
         if ([] !== $selectExprs) {
             foreach ($statement->expr as $expr) {
                 $exprStr = (string) $expr;
