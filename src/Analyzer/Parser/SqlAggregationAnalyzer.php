@@ -34,7 +34,7 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
         }
 
         $aggregations = [];
-        $selectExpressions = $statement->expr ?? [];
+        $selectExpressions = $statement->expr;
 
         foreach ($selectExpressions as $expr) {
             if ($expr instanceof Expression) {
@@ -95,7 +95,7 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
             // OrderSortKeyword is an enum (PHP 8.1+), get its name
             $type = '';
             if (null !== $orderItem->type && $orderItem->type instanceof \UnitEnum) {
-                $type = strtoupper($orderItem->type->name); // Asc or Desc ’ ASC or DESC
+                $type = strtoupper($orderItem->type->name); // Asc or Desc ï¿½ ASC or DESC
             }
 
             if ('' !== $expr) {
@@ -162,7 +162,7 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
             return [];
         }
 
-        // Pattern: t0_.column, t1_.column ’ extract t0, t1
+        // Pattern: t0_.column, t1_.column ï¿½ extract t0, t1
         $matchResult = preg_match_all('/(\w+)_\.\w+/', $selectClause, $matches);
         if (false === $matchResult || 0 === $matchResult) {
             return [];

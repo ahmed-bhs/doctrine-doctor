@@ -303,7 +303,7 @@ class InjectionPatternDetector
             if (false !== stripos($expr, 'LIKE')) {
                 $result['has_like'] = true;
 
-                $rightOperand = $condition->rightOperand ?? '';
+                $rightOperand = $condition->rightOperand;
                 if ('' !== $rightOperand && 1 === preg_match("/^['\"](.*)['\"]\$/", $rightOperand, $matches)) {
                     $result['like_values'][] = $matches[1];
                 } elseif (1 === preg_match("/LIKE\s+['\"]([^'\"]*)['\"]/" . 'i', $expr, $matches)) {
@@ -311,7 +311,7 @@ class InjectionPatternDetector
                 }
             }
 
-            $rightOperand = $condition->rightOperand ?? '';
+            $rightOperand = $condition->rightOperand;
             if ('' !== $rightOperand && 1 === preg_match("/^['\"](.*)['\"]\$/", $rightOperand, $matches)) {
                 $result['literals'][] = $matches[1];
             } elseif (1 === preg_match_all("/=\s*['\"]([^'\"]*)['\"]/", $expr, $matches)) {
