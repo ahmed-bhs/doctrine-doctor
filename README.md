@@ -35,7 +35,7 @@
 
 ## Features
 
-### 66 Specialized Analyzers
+### 90+ Specialized Analyzers
 
 - **Performance** — Detects N+1 queries, missing database indexes, slow queries, excessive hydration,
   findAll() without limits, setMaxResults() with collection joins, too many JOINs, and query caching
@@ -144,7 +144,7 @@ execution time, points to the exact template line, and suggests eager loading wi
 
 | Document | Description |
 |----------|-------------|
-| [**Full Analyzers List**](docs/user-guide/analyzers.md) | Complete catalog of all **66 analyzers** covering performance, security, integrity, and configuration - find the perfect analyzer for your specific needs |
+| [**Full Analyzers List**](docs/user-guide/analyzers.md) | Complete catalog of all **90+ analyzers** covering performance, security, integrity, and configuration - find the perfect analyzer for your specific needs |
 | [**Architecture Guide**](docs/advanced/architecture.md) | Deep dive into **system design**, architecture patterns, and technical internals - understand how Doctrine Doctor works under the hood |
 | [**Configuration Reference**](docs/user-guide/configuration.md) | Comprehensive guide to **all configuration options** - customize analyzers, thresholds, and outputs to match your workflow |
 | [**Template Security**](docs/advanced/template-security.md) | Essential **security best practices** for PHP templates - prevent XSS attacks and ensure safe template rendering |

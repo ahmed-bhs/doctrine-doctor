@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 /**
  * Suggestion template for proxy auto-generation in production.
- *
  * Context variables: none required
  * Note: This template doesn't display dynamic context variables, so htmlspecialchars() is not needed
  */

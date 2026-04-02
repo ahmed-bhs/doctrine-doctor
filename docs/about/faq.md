@@ -88,7 +88,7 @@ Typically low overhead in `dev`; it should remain disabled in production.
 
 ### How many analyzers are there?
 
-**66 specialized analyzers** across 4 categories:
+**90+ specialized analyzers** across 4 categories:
 - Performance (19)
 - Security (4)
 - Code Quality / Integrity (35)
@@ -191,7 +191,7 @@ Doctrine Doctor extends it:
 | **N+1 detection** | ❌ No | ✅ Yes |
 | **Suggestions** | ❌ No | ✅ Yes + code |
 | **Security checks** | ❌ No | ✅ Yes |
-| **66 analyzers** | ❌ No | ✅ Yes |
+| **90+ analyzers** | ❌ No | ✅ Yes |
 
 ---
 

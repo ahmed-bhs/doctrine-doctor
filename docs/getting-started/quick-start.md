@@ -98,6 +98,6 @@ doctrine:
 ## Next Steps
 
 - [Configure analyzers]({{ site.baseurl }}/user-guide/configuration) to match your needs
-- [Explore all 66 analyzers]({{ site.baseurl }}/user-guide/analyzers) available
+- [Explore all 90+ analyzers]({{ site.baseurl }}/user-guide/analyzers) available
 - [Learn about the architecture]({{ site.baseurl }}/advanced/architecture)
 - [See more examples]({{ site.baseurl }}/examples/n-plus-one)

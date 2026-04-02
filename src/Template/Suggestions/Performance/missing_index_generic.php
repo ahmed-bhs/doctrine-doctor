@@ -5,7 +5,6 @@ declare(strict_types=1);
 /**
  * Template for Missing Database Index suggestions (generic version).
  * Used when specific columns cannot be automatically extracted from the query.
- *
  * Context variables:
  * @var string $table_display - Table name with alias (e.g., "time_entry t0_")
  * @var string $real_table_name - Real table name (e.g., "time_entry")

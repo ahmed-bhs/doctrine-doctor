@@ -2,7 +2,7 @@
 layout: home
 title: Home
 nav_order: 1
-description: "Doctrine Doctor - Runtime Analysis Tool for Doctrine ORM. Detects N+1 queries, missing indexes, security issues, and 66+ performance problems."
+description: "Doctrine Doctor - Runtime Analysis Tool for Doctrine ORM. Detects N+1 queries, missing indexes, security issues, and 90+ performance problems."
 permalink: /
 ---
 
@@ -44,7 +44,7 @@ Unlike static analysis tools (PHPStan, Psalm) that analyze code without executio
 
 ## Features
 
-### 66 Specialized Analyzers
+### 90+ Specialized Analyzers
 
 - **Performance** — Detects N+1 queries, missing database indexes, slow queries, excessive hydration,
   findAll() without limits, setMaxResults() with collection joins, too many JOINs, and query caching
@@ -152,7 +152,7 @@ $users = $repository
 | Document | Description |
 |----------|-------------|
 | [**Configuration Reference**](user-guide/configuration) | Comprehensive guide to all configuration options - customize analyzers, thresholds, and outputs to match your workflow |
-| [**Full Analyzers List**](user-guide/analyzers) | Complete catalog of all 66 analyzers covering performance, security, code quality, and configuration |
+| [**Full Analyzers List**](user-guide/analyzers) | Complete catalog of all 90+ analyzers covering performance, security, code quality, and configuration |
 | [**Architecture Guide**](advanced/architecture) | Deep dive into system design, architecture patterns, and technical internals |
 | [**Template Security**](advanced/template-security) | Essential security best practices for PHP templates - prevent XSS attacks and ensure safe template rendering |
 

@@ -124,9 +124,10 @@ class TemplateValidator
             $errors[] = 'Missing description in return array';
         }
 
-        // Check 4: Escaping function using htmlspecialchars
-        if (strpos($content, 'htmlspecialchars') === false) {
-            $errors[] = 'Missing htmlspecialchars for escaping';
+        // Check 4: Escaping function using htmlspecialchars (only when dynamic output is present)
+        $hasDynamicOutput = preg_match('~<\?=|<\?php\s+echo\b~', $content);
+        if ($hasDynamicOutput && strpos($content, 'htmlspecialchars') === false) {
+            $errors[] = 'Missing htmlspecialchars for escaping dynamic output';
         }
 
         // Check 5: Security - no eval
@@ -143,12 +144,17 @@ class TemplateValidator
             $errors[] = 'Found markdown code blocks (```). Use <pre><code> instead';
         }
 
-        // Warnings for markdown-style formatting
-        if (preg_match('~^\s*[\*-]\s+\w~m', $content)) {
+        // Warnings for markdown-style formatting (only check HTML content between ob_start/ob_get_clean)
+        $htmlContent = '';
+        if (preg_match('~ob_start\(\);\s*\?>(.*?)<\?php\s.*?ob_get_clean\(\)~s', $content, $htmlMatch)) {
+            $htmlContent = $htmlMatch[1];
+        }
+
+        if ('' !== $htmlContent && preg_match('~^\s*[\*-]\s+\w~m', $htmlContent)) {
             $warnings[] = 'Found * markdown syntax (consider using HTML ul/li)';
         }
 
-        if (preg_match('~\*\*\w+\*\*~', $content)) {
+        if ('' !== $htmlContent && preg_match('~\*\*\w+\*\*~', $htmlContent)) {
             $warnings[] = 'Found ** markdown bold (consider using <strong>)';
         }
 

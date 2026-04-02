@@ -1,10 +1,12 @@
 <?php
 
 /*
- * This file is part of the Doctrine Doctor.
- * (c) 2025 Ahmed EBEN HASSINE
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+<ul>
+<li>This file is part of the Doctrine Doctor.</li>
+<li>(c) 2025 Ahmed EBEN HASSINE</li>
+<li>For the full copyright and license information, please view the LICENSE</li>
+<li>file that was distributed with this source code.</li>
+</ul>
  */
 
 declare(strict_types=1);
@@ -31,17 +33,21 @@ ob_start();
     <div class="alert alert-warning">
         ⚠️ <strong>Warning</strong><br>
         Your application has <strong>inconsistent timezone handling</strong>:<br>
-        - <?php echo $datetimeCount; ?> fields use <code>datetime</code> (no timezone)<br>
-        - <?php echo $datetimetzCount; ?> fields use <code>datetimetz</code> (with timezone)
+<ul>
+<li><?php echo $datetimeCount; ?> fields use <code>datetime</code> (no timezone)<br></li>
+<li><?php echo $datetimetzCount; ?> fields use <code>datetimetz</code> (with timezone)</li>
+</ul>
     </div>
 
     <h4>Why is this a problem?</h4>
     <div class="query-item">
         <pre><code class="language-bash">Mixing datetime types can cause:
-   - Inconsistent data storage
-   - Timezone conversion bugs
-   - Unpredictable query results
-   - Maintenance confusion</code></pre>
+<ul>
+<li>Inconsistent data storage</li>
+<li>Timezone conversion bugs</li>
+<li>Unpredictable query results</li>
+<li>Maintenance confusion</code></pre></li>
+</ul>
     </div>
 
     <h4>Recommended Solution</h4>

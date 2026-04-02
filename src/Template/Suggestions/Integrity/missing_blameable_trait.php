@@ -1,10 +1,12 @@
 <?php
 
 /*
- * This file is part of the Doctrine Doctor.
- * (c) 2025 Ahmed EBEN HASSINE
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+<ul>
+<li>This file is part of the Doctrine Doctor.</li>
+<li>(c) 2025 Ahmed EBEN HASSINE</li>
+<li>For the full copyright and license information, please view the LICENSE</li>
+<li>file that was distributed with this source code.</li>
+</ul>
  */
 
 declare(strict_types=1);

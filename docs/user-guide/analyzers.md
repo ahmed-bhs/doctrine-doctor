@@ -11,7 +11,7 @@ nav_order: 2
 
 ## 1. Overview
 
-Doctrine Doctor implements **66 specialized analyzers** organized into four categories that detect Doctrine ORM anti-patterns and performance issues.
+Doctrine Doctor implements **90+ specialized analyzers** organized into four categories that detect Doctrine ORM anti-patterns and performance issues.
 
 ### 1.1 Severity Classification
 
