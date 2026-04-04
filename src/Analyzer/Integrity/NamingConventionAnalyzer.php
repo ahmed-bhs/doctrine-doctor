@@ -242,15 +242,16 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
         $entityClass = $classMetadata->getName();
 
         foreach ($classMetadata->getAssociationMappings() as $assocName => $associationMapping) {
-            // Only check owning side (ManyToOne, OneToOne with joinColumns)
-            if (!isset($associationMapping['joinColumns'])) {
+            $joinColumns = is_object($associationMapping) ? ($associationMapping->joinColumns ?? null) : ($associationMapping['joinColumns'] ?? null);
+
+            if (null === $joinColumns) {
                 continue;
             }
 
-            Assert::isIterable($associationMapping['joinColumns'], 'joinColumns must be iterable');
+            Assert::isIterable($joinColumns, 'joinColumns must be iterable');
 
-            foreach ($associationMapping['joinColumns'] as $joinColumn) {
-                $columnName = $joinColumn['name'] ?? null;
+            foreach ($joinColumns as $joinColumn) {
+                $columnName = is_object($joinColumn) ? ($joinColumn->name ?? null) : ($joinColumn['name'] ?? null);
 
                 if (null === $columnName) {
                     continue;
