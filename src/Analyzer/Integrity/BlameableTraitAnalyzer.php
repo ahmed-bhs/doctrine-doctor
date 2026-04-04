@@ -145,19 +145,21 @@ class BlameableTraitAnalyzer implements MetadataAnalyzerInterface
         }
 
         foreach ($blameableFields as $fieldName => $mapping) {
-            // Check if createdBy is nullable
-            if ($this->isCreatedByNullable($fieldName, $mapping)) {
-                $issues[] = $this->createNullableCreatedByIssue($classMetadata, $fieldName);
+            $isAssociation = $mapping instanceof ManyToOneAssociationMapping
+                || (is_array($mapping) && isset($mapping['type']) && ClassMetadata::MANY_TO_ONE === $mapping['type']);
+
+            if ($isAssociation) {
+                if ($this->isCreatedByNullable($fieldName, $mapping)) {
+                    $issues[] = $this->createNullableCreatedByIssue($classMetadata, $fieldName);
+                }
+
+                if ($this->hasWrongTargetEntity($mapping)) {
+                    $issues[] = $this->createWrongTargetEntityIssue($classMetadata, $fieldName, $mapping);
+                }
             }
 
-            // Check for public setters
             if ($this->hasPublicSetter($classMetadata, $fieldName)) {
                 $issues[] = $this->createPublicSetterIssue($classMetadata, $fieldName);
-            }
-
-            // Check target entity
-            if ($this->hasWrongTargetEntity($mapping)) {
-                $issues[] = $this->createWrongTargetEntityIssue($classMetadata, $fieldName, $mapping);
             }
         }
 
@@ -170,13 +172,18 @@ class BlameableTraitAnalyzer implements MetadataAnalyzerInterface
      */
     private function checkMissingBlameableOpportunity(ClassMetadata $classMetadata): ?IssueInterface
     {
-        // DEBUG
         $className = $classMetadata->getName();
+
+        Assert::classExists($className);
+        $reflectionClass = new ReflectionClass($className);
+        if ($this->usesBlameableExtension($reflectionClass)) {
+            return null;
+        }
 
         $timestampFields = $this->findTimestampFields($classMetadata);
 
         if ([] === $timestampFields) {
-            return null; // No timestamp fields, not relevant
+            return null;
         }
 
         // If entity has createdAt/updatedAt but no createdBy/updatedBy, suggest trait
@@ -266,6 +273,12 @@ class BlameableTraitAnalyzer implements MetadataAnalyzerInterface
             }
         }
 
+        foreach ($classMetadata->fieldMappings as $fieldName => $mapping) {
+            if ($this->isBlameableScalarField($fieldName, $mapping)) {
+                $blameableFields[$fieldName] = $mapping;
+            }
+        }
+
         return $blameableFields;
     }
 
@@ -289,6 +302,24 @@ class BlameableTraitAnalyzer implements MetadataAnalyzerInterface
 
                 // Doctrine ORM 3+: Check class name
                 return $mapping instanceof ManyToOneAssociationMapping;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array<string, mixed>|object $mapping
+     */
+    private function isBlameableScalarField(string $fieldName, array|object $mapping): bool
+    {
+        $fieldLower = strtolower($fieldName);
+
+        foreach (self::BLAMEABLE_FIELD_PATTERNS as $pattern) {
+            if (str_contains($fieldLower, strtolower($pattern))) {
+                $type = is_array($mapping) ? ($mapping['type'] ?? null) : ($mapping->type ?? null);
+
+                return in_array($type, ['string', 'text'], true);
             }
         }
 

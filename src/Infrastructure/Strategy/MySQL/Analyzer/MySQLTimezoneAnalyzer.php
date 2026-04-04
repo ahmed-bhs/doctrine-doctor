@@ -129,7 +129,11 @@ final readonly class MySQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
             $row = $this->databasePlatformDetector->fetchAssociative($result);
 
             return ($row['count'] ?? 0) > 0;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            if (str_contains($e->getMessage(), '1142') || str_contains($e->getMessage(), 'command denied')) {
+                return true;
+            }
+
             return false;
         }
     }

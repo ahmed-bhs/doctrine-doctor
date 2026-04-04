@@ -85,6 +85,11 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                             continue;
                         }
 
+                        // Skip queries with WHERE ... IN (...) — bounded result set
+                        if ($this->hasBoundedWhereInClause($sql)) {
+                            continue;
+                        }
+
                         // Detect query context from backtrace
                         $context = $this->detectQueryContext($query);
 
@@ -190,6 +195,14 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         }
 
         return is_object($query) && property_exists($query, 'backtrace') ? ($query->backtrace ?? null) : null;
+    }
+
+    /**
+     * Detect if the query has a WHERE ... IN (...) clause, indicating a bounded result set.
+     */
+    private function hasBoundedWhereInClause(string $sql): bool
+    {
+        return 1 === preg_match('/\bWHERE\b.*\bIN\s*\(/i', $sql);
     }
 
     /**

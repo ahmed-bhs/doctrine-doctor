@@ -153,6 +153,11 @@ class PropertyTypeMismatchAnalyzer implements MetadataAnalyzerInterface
             return $nullabilityIssue;
         }
 
+        $enumType = MappingHelper::getProperty($fieldMapping, 'enumType');
+        if (null !== $enumType && \is_string($enumType) && enum_exists($enumType)) {
+            return $this->checkEnumBackingType($classMetadata->getName(), $fieldName, $enumType, $doctrineType);
+        }
+
         $expectedPhpType = $this->doctrineTypeToPhpType($doctrineType);
 
         if ('mixed' !== $expectedPhpType && $phpTypeName !== $expectedPhpType && !$this->isTypeCompatible($phpTypeName, $expectedPhpType)) {
@@ -163,11 +168,6 @@ class PropertyTypeMismatchAnalyzer implements MetadataAnalyzerInterface
                 $phpTypeName,
                 Severity::warning(),
             );
-        }
-
-        $enumType = MappingHelper::getProperty($fieldMapping, 'enumType');
-        if (null !== $enumType && \is_string($enumType) && enum_exists($enumType)) {
-            return $this->checkEnumBackingType($classMetadata->getName(), $fieldName, $enumType, $doctrineType);
         }
 
         return null;

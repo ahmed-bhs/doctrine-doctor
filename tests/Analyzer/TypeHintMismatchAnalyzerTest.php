@@ -292,6 +292,23 @@ final class TypeHintMismatchAnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_does_not_flag_enum_type_properties(): void
+    {
+        $queries = QueryDataBuilder::create()->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        $issuesArray = $issues->toArray();
+        $enumIssues = array_filter(
+            $issuesArray,
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'OrderWithEnumStatus')
+                && str_contains((string) $issue->getDescription(), 'status'),
+        );
+
+        self::assertCount(0, $enumIssues, 'Enum type properties with enumType mapping should not be flagged');
+    }
+
+    #[Test]
     public function it_has_correct_analyzer_metadata(): void
     {
         // Assert
