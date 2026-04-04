@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\PropertyTypeMismatchAnalyzer;
+use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\TypeMismatch\ProductWithEnumType;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\TypeMismatch\ProductWithTypeMismatch;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
@@ -326,6 +327,39 @@ final class PropertyTypeMismatchAnalyzerTest extends TestCase
         );
 
         self::assertCount(0, $stringIssues, 'String type for string columns should be accepted');
+    }
+
+    #[Test]
+    public function it_does_not_flag_enum_type_properties(): void
+    {
+        $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager([
+            __DIR__ . '/../Fixtures/Entity/TypeMismatch',
+        ]);
+
+        $schemaTool = new SchemaTool($entityManager);
+        $metadata = $entityManager->getClassMetadata(ProductWithEnumType::class);
+        $schemaTool->createSchema([$metadata]);
+
+        $product = new ProductWithEnumType();
+        $product->setName('Test');
+
+        $entityManager->persist($product);
+        $entityManager->flush();
+
+        $analyzer = new PropertyTypeMismatchAnalyzer(
+            $entityManager,
+            PlatformAnalyzerTestHelper::createIssueFactory(),
+        );
+
+        $queries = QueryDataBuilder::create()->build();
+        $issues = $analyzer->analyze($queries);
+
+        $statusIssues = array_filter(
+            $issues->toArray(),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'status'),
+        );
+
+        self::assertCount(0, $statusIssues, 'Enum type properties with enumType mapping should not be flagged as type mismatch');
     }
 
     /**

@@ -201,6 +201,11 @@ final readonly class TypeHintMismatchAnalyzer implements MetadataAnalyzerInterfa
             return null;
         }
 
+        $enumType = MappingHelper::getProperty($mapping, 'enumType');
+        if (null !== $enumType && \is_string($enumType) && enum_exists($enumType)) {
+            return null;
+        }
+
         $reflectionClass = $classMetadata->getReflectionClass();
         if (!$reflectionClass->hasProperty($fieldName)) {
             return null;
