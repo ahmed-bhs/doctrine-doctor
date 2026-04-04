@@ -318,13 +318,13 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $bestMatchCount = 0;
 
         foreach ($classMetadata->getAssociationMappings() as $associationMapping) {
-            if (!isset($associationMapping['joinColumns'])) {
+            $joinColumns = is_object($associationMapping) ? ($associationMapping->joinColumns ?? null) : ($associationMapping['joinColumns'] ?? null);
+
+            if (null === $joinColumns) {
                 continue;
             }
 
-            Assert::isIterable($associationMapping['joinColumns'], 'joinColumns must be iterable');
-
-            $joinColumns = $associationMapping['joinColumns'];
+            Assert::isIterable($joinColumns, 'joinColumns must be iterable');
 
             if (!is_array($joinColumns)) {
                 $joinColumns = iterator_to_array($joinColumns);
@@ -334,7 +334,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
             $allNullable = true;
 
             foreach ($joinColumns as $joinColumn) {
-                $columnName = $joinColumn['name'] ?? null;
+                $columnName = is_object($joinColumn) ? ($joinColumn->name ?? null) : ($joinColumn['name'] ?? null);
 
                 if (null === $columnName) {
                     continue;
@@ -345,7 +345,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                 if (in_array($columnNameLower, $columnsInOnClause, true)) {
                     ++$matchedColumns;
 
-                    $isNullable = $joinColumn['nullable'] ?? true;
+                    $isNullable = is_object($joinColumn) ? ($joinColumn->nullable ?? true) : ($joinColumn['nullable'] ?? true);
                     if (false === $isNullable) {
                         $allNullable = false;
                     }
