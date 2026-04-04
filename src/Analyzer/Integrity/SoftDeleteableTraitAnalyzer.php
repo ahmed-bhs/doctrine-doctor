@@ -271,7 +271,8 @@ class SoftDeleteableTraitAnalyzer implements MetadataAnalyzerInterface
 
             if (is_array($joinColumns)) {
                 foreach ($joinColumns as $joinColumn) {
-                    if (isset($joinColumn['onDelete']) && 'CASCADE' === strtoupper((string) $joinColumn['onDelete'])) {
+                    $onDelete = is_object($joinColumn) ? ($joinColumn->onDelete ?? null) : ($joinColumn['onDelete'] ?? null);
+                    if (null !== $onDelete && 'CASCADE' === strtoupper((string) $onDelete)) {
                         $issues[] = $this->createCascadeDeleteConflictIssue($classMetadata, $fieldName);
                     }
                 }
