@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\PaginatorQueryDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -106,7 +107,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
         $issues = [];
 
         // Pattern 1: Detect JOINs with unused aliases
-        $unusedJoins = $this->detectUnusedJoinAliases($sql);
+        $unusedJoins = $this->detectUnusedJoinAliases($sql, $backtrace);
         if (\count($unusedJoins) > 0) {
             $issues[] = $this->createUnusedJoinIssue($sql, $unusedJoins, $backtrace);
         }
@@ -125,8 +126,12 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
      *
      * @return array<int, array{type: string, table: string, alias: ?string}>
      */
-    private function detectUnusedJoinAliases(string $sql): array
+    private function detectUnusedJoinAliases(string $sql, ?array $backtrace = null): array
     {
+        if (PaginatorQueryDetector::isPaginatorQuery($backtrace)) {
+            return [];
+        }
+
         $joins = $this->sqlExtractor->extractJoins($sql);
         $unusedJoins = [];
 

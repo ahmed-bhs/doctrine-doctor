@@ -325,6 +325,51 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_does_not_flag_unused_join_in_paginator_subquery(): void
+    {
+        $paginatorBacktrace = [
+            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 127, 'class' => 'Doctrine\ORM\Tools\Pagination\Paginator', 'function' => 'getIterator'],
+        ];
+
+        $sql = 'SELECT DISTINCT u0_.id AS id_0, u0_.last_name AS last_name_1 '
+            . 'FROM `user` u0_ '
+            . 'LEFT JOIN eco_organization e1_ ON u0_.eco_organization_id = e1_.id '
+            . 'ORDER BY u0_.last_name ASC LIMIT 20';
+
+        $collection = QueryDataBuilder::create()->addQueryWithBacktrace($sql, $paginatorBacktrace, 0.010)->build();
+
+        $issues = $this->analyzer->analyze($collection);
+        $unusedJoinIssues = array_filter(
+            $issues->toArray(),
+            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+        );
+
+        self::assertCount(0, $unusedJoinIssues, 'Should NOT flag unused JOIN in Doctrine Paginator subquery');
+    }
+
+    #[Test]
+    public function it_does_not_flag_unused_join_in_paginator_count_query(): void
+    {
+        $paginatorBacktrace = [
+            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 96, 'class' => 'Doctrine\ORM\Tools\Pagination\Paginator', 'function' => 'count'],
+        ];
+
+        $sql = 'SELECT count(DISTINCT u0_.id) AS sclr_0 '
+            . 'FROM `user` u0_ '
+            . 'LEFT JOIN eco_organization e1_ ON u0_.eco_organization_id = e1_.id';
+
+        $collection = QueryDataBuilder::create()->addQueryWithBacktrace($sql, $paginatorBacktrace, 0.010)->build();
+
+        $issues = $this->analyzer->analyze($collection);
+        $unusedJoinIssues = array_filter(
+            $issues->toArray(),
+            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+        );
+
+        self::assertCount(0, $unusedJoinIssues, 'Should NOT flag unused JOIN in Doctrine Paginator count query');
+    }
+
+    #[Test]
     public function it_detects_over_eager_loading_with_many_joins(): void
     {
         $sql = 'SELECT a.id FROM article a '
