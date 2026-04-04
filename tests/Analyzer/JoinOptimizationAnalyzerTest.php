@@ -233,6 +233,55 @@ final class JoinOptimizationAnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_does_not_flag_unused_join_in_paginator_subquery(): void
+    {
+        $paginatorBacktrace = [
+            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 127, 'class' => 'Doctrine\ORM\Tools\Pagination\Paginator', 'function' => 'getIterator'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace(
+                'SELECT DISTINCT u0_.id AS id_0, u0_.last_name AS last_name_1 ' .
+                'FROM `user` u0_ ' .
+                'LEFT JOIN eco_organization e1_ ON u0_.eco_organization_id = e1_.id ' .
+                'ORDER BY u0_.last_name ASC LIMIT 20',
+                $paginatorBacktrace,
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        $issuesArray = $issues->toArray();
+        $unusedIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Unused'));
+
+        self::assertCount(0, $unusedIssues, 'Should NOT flag unused JOIN in Doctrine Paginator subquery');
+    }
+
+    #[Test]
+    public function it_does_not_flag_unused_join_in_paginator_count_query(): void
+    {
+        $paginatorBacktrace = [
+            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 96, 'class' => 'Doctrine\ORM\Tools\Pagination\Paginator', 'function' => 'count'],
+        ];
+
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithBacktrace(
+                'SELECT count(DISTINCT u0_.id) AS sclr_0 ' .
+                'FROM `user` u0_ ' .
+                'LEFT JOIN eco_organization e1_ ON u0_.eco_organization_id = e1_.id',
+                $paginatorBacktrace,
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        $issuesArray = $issues->toArray();
+        $unusedIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Unused'));
+
+        self::assertCount(0, $unusedIssues, 'Should NOT flag unused JOIN in Doctrine Paginator count query');
+    }
+
+    #[Test]
     public function it_normalizes_left_outer_join_to_left(): void
     {
         // Arrange: Query with "LEFT OUTER JOIN" (should normalize to "LEFT")
