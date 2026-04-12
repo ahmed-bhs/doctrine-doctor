@@ -140,6 +140,8 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $containerBuilder->setParameter('doctrine_doctor.analyzers.single_table_inheritance_sparse_table.min_unused_columns', $analyzers['single_table_inheritance_sparse_table']['min_unused_columns']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.class_table_inheritance_thin_subclass.min_fields_threshold', $analyzers['class_table_inheritance_thin_subclass']['min_fields_threshold']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.class_table_inheritance_depth.max_depth', $analyzers['class_table_inheritance_depth']['max_depth']);
+
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.missing_embeddable_opportunity.min_entities', $analyzers['missing_embeddable_opportunity']['min_entities']);
     }
 
     /**

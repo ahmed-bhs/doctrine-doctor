@@ -556,6 +556,7 @@ services:
             $entityManager: '@doctrine_doctor.entity_manager'
             $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $minEntities: '%doctrine_doctor.analyzers.missing_embeddable_opportunity.min_entities%'
         tags:
             - { name: doctrine_doctor.analyzer }
 

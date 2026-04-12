@@ -14,137 +14,118 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MissingEmbeddableOpportunityAnalyzer;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
-use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
-use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
-use AhmedBhs\DoctrineDoctor\Template\Renderer\TwigTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
-use Doctrine\DBAL\DriverManager;
-use Doctrine\ORM\EntityManager;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Twig\Environment;
-use Twig\Loader\ArrayLoader;
 
-/**
- * Integration test for MissingEmbeddableOpportunityAnalyzer.
- *
- * Tests the analyzer's ability to detect issues with entity metadata.
- */
 final class MissingEmbeddableOpportunityAnalyzerIntegrationTest extends TestCase
 {
-    private EntityManager $entityManager;
-
-    protected function setUp(): void
+    #[Test]
+    public function it_does_not_report_pattern_found_in_single_entity(): void
     {
-        if (!extension_loaded('pdo_sqlite')) {
-            self::markTestSkipped('PDO SQLite extension is not available');
-        }
+        $analyzer = $this->createAnalyzerForFixtures(
+            [__DIR__ . '/../../Fixtures/Entity/EmbeddableTest'],
+        );
 
-        $configuration = PlatformAnalyzerTestHelper::createTestConfiguration([__DIR__ . '/../../Fixtures/Entity']);
+        $issues = $analyzer->analyze(QueryDataCollection::empty())->toArray();
 
-        $connection = DriverManager::getConnection([
-            'driver' => 'pdo_sqlite',
-            'memory' => true,
-        ]);
+        $personNameIssues = array_filter(
+            $issues,
+            fn ($issue) => str_contains($issue->getTitle(), 'PersonName'),
+        );
 
-        $this->entityManager = new EntityManager($connection, $configuration);
+        self::assertCount(0, $personNameIssues);
+    }
+
+    #[Test]
+    public function it_reports_pattern_found_in_multiple_entities(): void
+    {
+        $analyzer = $this->createAnalyzerForFixtures(
+            [__DIR__ . '/../../Fixtures/Entity/EmbeddableTest'],
+        );
+
+        $issues = $analyzer->analyze(QueryDataCollection::empty())->toArray();
+
+        $addressIssues = array_filter(
+            $issues,
+            fn ($issue) => str_contains($issue->getTitle(), 'Address'),
+        );
+
+        self::assertCount(2, $addressIssues);
+    }
+
+    #[Test]
+    public function it_reports_single_entity_when_min_entities_is_one(): void
+    {
+        $analyzer = $this->createAnalyzerForFixtures(
+            [__DIR__ . '/../../Fixtures/Entity/EmbeddableTest'],
+            minEntities: 1,
+        );
+
+        $issues = $analyzer->analyze(QueryDataCollection::empty())->toArray();
+
+        $personNameIssues = array_filter(
+            $issues,
+            fn ($issue) => str_contains($issue->getTitle(), 'PersonName'),
+        );
+
+        self::assertCount(1, $personNameIssues);
     }
 
     #[Test]
     public function it_analyzes_without_errors(): void
     {
-        $missingEmbeddableOpportunityAnalyzer = $this->createAnalyzer();
-        $issueCollection = $missingEmbeddableOpportunityAnalyzer->analyze(QueryDataCollection::empty());
+        $analyzer = $this->createAnalyzerForFixtures(
+            [__DIR__ . '/../../Fixtures/Entity/EmbeddableTest'],
+        );
+
+        $issueCollection = $analyzer->analyze(QueryDataCollection::empty());
 
         self::assertInstanceOf(IssueCollection::class, $issueCollection);
-    }
-
-    #[Test]
-    public function it_handles_entities_gracefully(): void
-    {
-        $missingEmbeddableOpportunityAnalyzer = $this->createAnalyzer();
-        $issueCollection = $missingEmbeddableOpportunityAnalyzer->analyze(QueryDataCollection::empty());
-
-        foreach ($issueCollection as $issue) {
-            self::assertNotNull($issue);
-        }
-
-        self::assertTrue(true); // No exceptions thrown
-    }
-
-    #[Test]
-    public function it_analyzes_all_entities_without_errors(): void
-    {
-        $missingEmbeddableOpportunityAnalyzer = $this->createAnalyzer();
-        $issueCollection = $missingEmbeddableOpportunityAnalyzer->analyze(QueryDataCollection::empty());
-
-        self::assertInstanceOf(IssueCollection::class, $issueCollection);
-
-        // Iterate through all issues to ensure they're valid
-        $issueCount = 0;
-        foreach ($issueCollection as $issue) {
-            $issueCount++;
-
-            // Every issue must have these properties
-            self::assertNotNull($issue->getTitle(), 'Issue must have a title');
-            self::assertIsString($issue->getTitle());
-            self::assertNotEmpty($issue->getTitle());
-
-            self::assertNotNull($issue->getDescription(), 'Issue must have a description');
-            self::assertIsString($issue->getDescription());
-
-            self::assertNotNull($issue->getSeverity(), 'Issue must have severity');
-            self::assertInstanceOf(Severity::class, $issue->getSeverity());
-        }
-
-        // Should analyze without throwing exceptions
-        self::assertGreaterThanOrEqual(0, $issueCount);
     }
 
     #[Test]
     public function it_returns_consistent_results(): void
     {
-        $missingEmbeddableOpportunityAnalyzer = $this->createAnalyzer();
+        $analyzer = $this->createAnalyzerForFixtures(
+            [__DIR__ . '/../../Fixtures/Entity/EmbeddableTest'],
+        );
 
-        // Run analysis twice
-        $issueCollection = $missingEmbeddableOpportunityAnalyzer->analyze(QueryDataCollection::empty());
-        $issues2 = $missingEmbeddableOpportunityAnalyzer->analyze(QueryDataCollection::empty());
+        $issues1 = $analyzer->analyze(QueryDataCollection::empty());
+        $issues2 = $analyzer->analyze(QueryDataCollection::empty());
 
-        // Should return same number of issues
-        self::assertCount(count($issueCollection), $issues2, 'Analyzer should return consistent results on repeated analysis');
+        self::assertCount(count($issues1), $issues2);
     }
 
     #[Test]
     public function it_validates_issue_severity_is_appropriate(): void
     {
-        $missingEmbeddableOpportunityAnalyzer = $this->createAnalyzer();
-        $issueCollection = $missingEmbeddableOpportunityAnalyzer->analyze(QueryDataCollection::empty());
+        $analyzer = $this->createAnalyzerForFixtures(
+            [__DIR__ . '/../../Fixtures/Entity/EmbeddableTest'],
+        );
 
+        $issues = $analyzer->analyze(QueryDataCollection::empty());
         $validSeverities = ['critical', 'warning', 'info'];
 
-        foreach ($issueCollection as $issue) {
-            $severityValue = $issue->getSeverity()->value;
-            self::assertContains($severityValue, $validSeverities, "Issue severity must be one of: " . implode(', ', $validSeverities));
+        foreach ($issues as $issue) {
+            self::assertInstanceOf(Severity::class, $issue->getSeverity());
+            self::assertContains($issue->getSeverity()->value, $validSeverities);
         }
     }
 
-    private function createAnalyzer(): MissingEmbeddableOpportunityAnalyzer
+    /**
+     * @param array<string> $entityPaths
+     */
+    private function createAnalyzerForFixtures(array $entityPaths, int $minEntities = 2): MissingEmbeddableOpportunityAnalyzer
     {
-        $entityManager = $this->entityManager;
-        $issueFactory = new IssueFactory();
-        $suggestionFactory = new SuggestionFactory($this->createTwigRenderer());
+        $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager($entityPaths);
 
-        return new MissingEmbeddableOpportunityAnalyzer($entityManager, $issueFactory, $suggestionFactory);
-    }
-
-    private function createTwigRenderer(): TwigTemplateRenderer
-    {
-        $arrayLoader = new ArrayLoader([
-            'default' => 'Suggestion: {{ message }}',
-        ]);
-        $twigEnvironment = new Environment($arrayLoader);
-
-        return new TwigTemplateRenderer($twigEnvironment);
+        return new MissingEmbeddableOpportunityAnalyzer(
+            $entityManager,
+            PlatformAnalyzerTestHelper::createIssueFactory(),
+            PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            $minEntities,
+        );
     }
 }

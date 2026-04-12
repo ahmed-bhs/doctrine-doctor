@@ -168,8 +168,26 @@ final class NamingConventionAnalyzerTest extends TestCase
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
         self::assertNotFalse($issue);
         $data = $issue->getData();
-        self::assertEquals('orders', $data['suggested_name']);
+        self::assertEquals('app_order', $data['suggested_name']);
         self::assertEquals('info', $issue->getSeverity()->value, 'Reserved keywords should be INFO level (Doctrine handles them)');
+    }
+
+    #[Test]
+    public function it_skips_reserved_keyword_when_table_matches_entity_name(): void
+    {
+        $queries = QueryDataBuilder::create()->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        $issuesArray = $issues->toArray();
+        $orderEntityIssues = array_filter($issuesArray, static function ($issue) {
+            $data = $issue->getData();
+            return str_contains($data['entity'] ?? '', 'NamingConventionTest\\Order')
+                && !str_contains($data['entity'] ?? '', 'EntityWithReservedKeyword')
+                && ($data['violation_type'] ?? '') === 'reserved_keyword';
+        });
+
+        self::assertCount(0, $orderEntityIssues, 'Should not flag reserved keyword when table name matches entity snake_case name');
     }
 
     #[Test]

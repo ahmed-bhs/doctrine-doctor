@@ -92,6 +92,7 @@ class MissingEmbeddableOpportunityAnalyzer implements MetadataAnalyzerInterface
         private readonly EntityManagerInterface $entityManager,
         private readonly IssueFactoryInterface $issueFactory,
         private readonly SuggestionFactoryInterface $suggestionFactory,
+        private readonly int $minEntities = 2,
     ) {
     }
 
@@ -104,51 +105,47 @@ class MissingEmbeddableOpportunityAnalyzer implements MetadataAnalyzerInterface
             function () {
                 $classMetadataFactory = $this->entityManager->getMetadataFactory();
 
+                /** @var array<string, array<array{metadata: ClassMetadata<object>, fields: array<string>}>> $matchesByPattern */
+                $matchesByPattern = [];
+
                 foreach ($classMetadataFactory->getAllMetadata() as $classMetadatum) {
-                    if ($classMetadatum->isMappedSuperclass) {
+                    if ($classMetadatum->isMappedSuperclass || $classMetadatum->isEmbeddedClass) {
                         continue;
                     }
 
-                    if ($classMetadatum->isEmbeddedClass) {
+                    $fieldNames   = array_keys($classMetadatum->fieldMappings);
+                    $fieldLowerMap = array_combine(
+                        array_map(strtolower(...), $fieldNames),
+                        $fieldNames,
+                    );
+
+                    foreach (self::EMBEDDABLE_PATTERNS as $embeddableName => $pattern) {
+                        $matchedFields = $this->findMatchingFields($fieldLowerMap, $pattern);
+
+                        if ([] !== $matchedFields) {
+                            $matchesByPattern[$embeddableName][] = [
+                                'metadata' => $classMetadatum,
+                                'fields' => $matchedFields,
+                            ];
+                        }
+                    }
+                }
+
+                foreach ($matchesByPattern as $embeddableName => $matches) {
+                    if (\count($matches) < $this->minEntities) {
                         continue;
                     }
 
-                    $entityIssues = $this->analyzeEntity($classMetadatum);
-
-                    foreach ($entityIssues as $entityIssue) {
-                        yield $entityIssue;
+                    foreach ($matches as $match) {
+                        yield $this->createMissingEmbeddableIssue(
+                            $match['metadata'],
+                            $embeddableName,
+                            $match['fields'],
+                        );
                     }
                 }
             },
         );
-    }
-
-    /**
-     * @param ClassMetadata<object> $classMetadata
-     * @return array<\AhmedBhs\DoctrineDoctor\Issue\IssueInterface>
-     */
-    private function analyzeEntity(ClassMetadata $classMetadata): array
-    {
-        $issues       = [];
-        $fieldNames   = array_keys($classMetadata->fieldMappings);
-        $fieldLowerMap = array_combine(
-            array_map(strtolower(...), $fieldNames),
-            $fieldNames,
-        );
-
-        foreach (self::EMBEDDABLE_PATTERNS as $embeddableName => $pattern) {
-            $matchedFields = $this->findMatchingFields($fieldLowerMap, $pattern);
-
-            if ([] !== $matchedFields) {
-                $issues[] = $this->createMissingEmbeddableIssue(
-                    $classMetadata,
-                    $embeddableName,
-                    $matchedFields,
-                );
-            }
-        }
-
-        return $issues;
     }
 
     /**
