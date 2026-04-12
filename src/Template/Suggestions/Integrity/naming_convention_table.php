@@ -11,12 +11,10 @@ declare(strict_types=1);
  */
 
 /** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context for clarity
 $current = $context['current'] ?? null;
 $suggested = $context['suggested'] ?? null;
 $entityClass = $context['entity_class'] ?? 'Entity';
 
-// Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -28,7 +26,8 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong>Table naming violation:</strong> '<?php echo $e($current); ?>' should be '<?php echo $e($suggested); ?>'
+        <strong>Schema change</strong>
+        <p>Table naming violation: '<?php echo $e($current); ?>' should be '<?php echo $e($suggested); ?>'</p>
     </div>
 
     <h4>Current</h4>
@@ -39,7 +38,7 @@ class <?php echo $e($entityClass); ?> {}</code></pre>
     <pre><code class="language-php">#[ORM\Table(name: '<?php echo $e($suggested); ?>')]
 class <?php echo $e($entityClass); ?> {}</code></pre>
 
-    <p><strong>Convention:</strong> snake_case, plural (users, order_items). Avoid SQL keywords. Create migration with <code>make:migration</code>.</p>
+    <p><strong>Convention:</strong> snake_case, singular (user, order_item). Avoid SQL reserved keywords. Generate a migration with <code>make:migration</code> after renaming.</p>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/naming-strategy.html" target="_blank" class="doc-link">

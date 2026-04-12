@@ -159,13 +159,17 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
         }
 
         // Check 3: SQL reserved keyword (INFO level - Doctrine quotes identifiers by default)
-        if ($this->isSQLReservedKeyword($tableName)) {
+        // Skip if the table name matches the entity's snake_case short name (Symfony convention: User -> user, Order -> order)
+        $entityShortName = $this->shortClassName($entityClass);
+        $expectedTableName = $this->helper->toSnakeCase($entityShortName);
+
+        if ($this->isSQLReservedKeyword($tableName) && $tableName !== $expectedTableName) {
             $issues[] = $this->createTableNamingIssue(
                 $entityClass,
                 $tableName,
                 'reserved_keyword',
-                $tableName . 's',
-                'info',  // Changed from 'warning' to 'info' - Doctrine handles this automatically
+                'app_' . $tableName,
+                'info',
             );
         }
 
@@ -564,8 +568,8 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
                 ['table' => $tableName],
             ),
             'reserved_keyword' => DescriptionHighlighter::highlight(
-                "Table {table} is a SQL reserved keyword. While Doctrine quotes identifiers automatically, consider using a different name (e.g., {suggested}) for better portability and readability.",
-                ['table' => $tableName, 'suggested' => $tableName . 's'],
+                "Table {table} is a SQL reserved keyword (reserved in PostgreSQL, MySQL, etc.). Doctrine quotes identifiers automatically, but raw SQL queries, database tools (DBeaver, Adminer), and migration scripts may fail or require manual quoting. Consider prefixing the table name (e.g., app_{table}) to avoid issues.",
+                ['table' => $tableName],
             ),
             'special_characters' => DescriptionHighlighter::highlight(
                 "Table {table} contains special characters (only letters, numbers, and underscores allowed).",

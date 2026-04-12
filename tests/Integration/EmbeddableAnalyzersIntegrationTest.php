@@ -55,6 +55,7 @@ final class EmbeddableAnalyzersIntegrationTest extends TestCase
             $this->entityManager,
             $issueFactory,
             $suggestionFactory,
+            minEntities: 1,
         );
 
         // Ensure metadata is loaded
@@ -195,6 +196,7 @@ final class EmbeddableAnalyzersIntegrationTest extends TestCase
             $this->entityManager,
             $issueFactory,
             $suggestionFactory,
+            minEntities: 1,
         );
 
         $embeddableMutabilityAnalyzer = new EmbeddableMutabilityAnalyzer(
