@@ -77,4 +77,44 @@ final class FindAllAnalyzerFalsePositiveTest extends TestCase
 
         self::assertCount(0, $findAllIssues);
     }
+
+    #[Test]
+    public function it_ignores_select_distinct_count_paginator_query(): void
+    {
+        $sql = 'SELECT DISTINCT count(DISTINCT u0_.id) AS sclr_0 FROM `user` u0_ '
+            . 'LEFT JOIN user_eco_organization u2_ ON u0_.id = u2_.user_id '
+            . 'LEFT JOIN eco_organization e1_ ON e1_.id = u2_.eco_organization_id';
+
+        $collection = QueryDataBuilder::create()
+            ->addQuery($sql, 0.5)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection);
+
+        $findAllIssues = array_filter(
+            $issues->toArray(),
+            static fn ($issue): bool => str_contains($issue->getType(), 'find_all'),
+        );
+
+        self::assertCount(0, $findAllIssues);
+    }
+
+    #[Test]
+    public function it_ignores_select_distinct_aggregate_functions(): void
+    {
+        foreach (['MAX', 'MIN', 'SUM', 'AVG'] as $aggregate) {
+            $collection = QueryDataBuilder::create()
+                ->addQuery(sprintf('SELECT DISTINCT %s(t0_.amount) FROM orders t0_', $aggregate), 0.5)
+                ->build();
+
+            $issues = $this->analyzer->analyze($collection);
+
+            $findAllIssues = array_filter(
+                $issues->toArray(),
+                static fn ($issue): bool => str_contains($issue->getType(), 'find_all'),
+            );
+
+            self::assertCount(0, $findAllIssues, sprintf('SELECT DISTINCT %s(...) should not be flagged', $aggregate));
+        }
+    }
 }
