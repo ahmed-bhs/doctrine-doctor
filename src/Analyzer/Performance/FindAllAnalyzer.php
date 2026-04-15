@@ -97,11 +97,11 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             return false;
         }
 
-        if (preg_match('/SELECT\s+(COUNT|MAX|MIN|SUM|AVG)\s*\(/i', $sql) > 0) {
+        if (preg_match('/^\s*SELECT\s+(DISTINCT\s+)?(COUNT|MAX|MIN|SUM|AVG)\s*\(/i', $sql) > 0) {
             return false;
         }
 
-        if (preg_match('/SELECT\s+EXISTS\s*\(/i', $sql) > 0) {
+        if (preg_match('/^\s*SELECT\s+(DISTINCT\s+)?EXISTS\s*\(/i', $sql) > 0) {
             return false;
         }
 
