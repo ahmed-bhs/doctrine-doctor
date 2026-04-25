@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.6] - 2026-04-25
+
+### Fixed
+
+- `ColumnTypeAnalyzer`: added configurable `excluded_fields` list (default: `mimeType`, `contentType`, `mediaType`, `fileType`) to prevent false enum opportunity alerts on MIME-type fields that match enum patterns but are not enums.
+- `OrderByWithoutLimitAnalyzer`: added configurable `min_execution_time_ms` threshold (default: `10ms`); array-result queries below the threshold are now flagged as `info` instead of `warning`, with a description warning that production data growth will degrade performance.
+- `OrderByWithoutLimitAnalyzer`: improved suggestion template for bounded array-result queries (WHERE clause present) — now recommends adding an index on the ORDER BY column, adding `setMaxResults`, or suppressing the alert via config when the collection is guaranteed small.
+- `GetReferenceAnalyzer`: removed wildcard `*_id` column patterns that caused false positives on FK columns (e.g. `deposit_request_id`). Detection is now restricted to strict `id` primary key columns only, since FK columns return collections and are not candidates for `getReference()`.
+- `DoctrineDoctorDataCollector`: bootstrap entry points (`index.php`, `autoload_runtime.php`, `autoload.php`) are now excluded when searching for the first application frame in `exclude_paths` filtering. Previously these files appeared at the bottom of every backtrace and short-circuited vendor exclusion for framework-internal queries (e.g. EasyAdmin entity loading).
+
 ## [2.8.0] - 2026-03-29
 
 ### Added
