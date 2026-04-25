@@ -263,6 +263,13 @@ services:
         tags:
             - { name: doctrine_doctor.analyzer }
 
+    AhmedBhs\DoctrineDoctor\Analyzer\Performance\OrderByWithoutLimitAnalyzer:
+        arguments:
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $minExecutionTimeMs: '%doctrine_doctor.analyzers.order_by_without_limit.min_execution_time_ms%'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
     AhmedBhs\DoctrineDoctor\Analyzer\Configuration\StrictModeAnalyzer:
         arguments:
             $connection: '@doctrine.dbal.default_connection'
@@ -516,6 +523,12 @@ services:
             - { name: doctrine_doctor.analyzer }
 
     # New Analyzers inspired by PHPStan Doctrine
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\ColumnTypeAnalyzer:
+        arguments:
+            $excludedFields: '%doctrine_doctor.analyzers.column_type.excluded_fields%'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\FinalEntityAnalyzer:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'

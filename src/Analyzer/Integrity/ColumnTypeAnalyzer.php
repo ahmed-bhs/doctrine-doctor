@@ -71,6 +71,7 @@ class ColumnTypeAnalyzer implements MetadataAnalyzerInterface
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly IssueFactoryInterface $issueFactory,
         private readonly ?LoggerInterface $logger = null,
+        private readonly array $excludedFields = ['mimeType', 'contentType', 'mediaType', 'fileType'],
     ) {
     }
 
@@ -337,6 +338,10 @@ class ColumnTypeAnalyzer implements MetadataAnalyzerInterface
         $type = $mapping['type'] ?? null;
 
         if ('string' !== $type) {
+            return null;
+        }
+
+        if (\in_array($fieldName, $this->excludedFields, true)) {
             return null;
         }
 

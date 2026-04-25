@@ -116,6 +116,8 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $containerBuilder->setParameter('doctrine_doctor.analyzers.flush_in_loop.flush_count_threshold', $analyzers['flush_in_loop']['flush_count_threshold']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.flush_in_loop.time_window_ms', $analyzers['flush_in_loop']['time_window_ms']);
 
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.order_by_without_limit.min_execution_time_ms', $analyzers['order_by_without_limit']['min_execution_time_ms']);
+
         $containerBuilder->setParameter('doctrine_doctor.analyzers.join_optimization.max_joins_recommended', $analyzers['join_optimization']['max_joins_recommended']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.join_optimization.max_joins_critical', $analyzers['join_optimization']['max_joins_critical']);
 
@@ -142,6 +144,8 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $containerBuilder->setParameter('doctrine_doctor.analyzers.class_table_inheritance_depth.max_depth', $analyzers['class_table_inheritance_depth']['max_depth']);
 
         $containerBuilder->setParameter('doctrine_doctor.analyzers.missing_embeddable_opportunity.min_entities', $analyzers['missing_embeddable_opportunity']['min_entities']);
+
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.column_type.excluded_fields', $analyzers['column_type']['excluded_fields']);
     }
 
     /**
