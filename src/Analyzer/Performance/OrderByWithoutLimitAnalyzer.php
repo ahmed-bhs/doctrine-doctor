@@ -39,6 +39,7 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+        private readonly float $minExecutionTimeMs = 10.0,
     ) {
     }
 
@@ -93,7 +94,7 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                         // Detect query context from backtrace
                         $context = $this->detectQueryContext($query);
 
-                        if ('single_result' === $context && $executionTime < 10.0) {
+                        if ('single_result' === $context && $executionTime < $this->minExecutionTimeMs) {
                             continue;
                         }
 
@@ -291,13 +292,15 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             $severity = match (true) {
                 $executionTime > 500 => Severity::critical(),
                 $executionTime > 100 => Severity::warning(),
-                default => Severity::warning(), // Always warn for array results without LIMIT
+                $executionTime >= $this->minExecutionTimeMs => Severity::warning(),
+                default => Severity::info(),
             };
             $title = sprintf('ORDER BY Without LIMIT in Array Query (%s)', $executionTimeStr);
             $description = sprintf(
                 "Query uses ORDER BY without LIMIT and returns an array of results (getResult/findBy). " .
-                "This sorts the entire result set without limiting rows, which can cause performance issues. " .
-                "Execution time: %s. Add LIMIT for pagination or to restrict the number of returned rows. " .
+                "This sorts the entire result set without limiting rows. " .
+                "Current execution time is %s, but as data volume grows in production this query will become significantly slower. " .
+                "Add LIMIT for pagination or to restrict the number of returned rows. " .
                 "ORDER BY clause: %s",
                 $executionTimeStr,
                 $orderByClause,

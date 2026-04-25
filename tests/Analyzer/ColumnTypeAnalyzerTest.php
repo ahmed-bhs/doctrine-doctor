@@ -920,6 +920,28 @@ final class ColumnTypeAnalyzerTest extends TestCase
         }
     }
 
+    #[Test]
+    public function it_does_not_suggest_enum_for_excluded_fields(): void
+    {
+        $analyzer = new ColumnTypeAnalyzer(
+            $this->entityManager,
+            $this->createSuggestionFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
+            null,
+            ['status', 'type', 'role', 'priority'],
+        );
+
+        $issues = iterator_to_array($analyzer->analyze(QueryDataCollection::empty()));
+
+        $enumIssuesForEntity = array_filter(
+            $issues,
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'EntityWithEnumOpportunity')
+                && str_contains((string) $issue->getTitle(), 'enum'),
+        );
+
+        self::assertCount(0, $enumIssuesForEntity, 'Excluded fields must not trigger enum opportunity detection');
+    }
+
     private function createSuggestionFactory(): SuggestionFactory
     {
         $arrayLoader = new ArrayLoader([
