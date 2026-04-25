@@ -601,6 +601,9 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $firstAppFrame = null;
         $hasValidFrames = false; // Track if we found at least one valid frame
 
+        // Bootstrap files that appear in every backtrace but are not application code
+        $bootstrapFiles = ['index.php', 'autoload_runtime.php', 'autoload.php'];
+
         foreach ($backtrace as $frame) {
             if (!is_array($frame)) {
                 continue;
@@ -615,6 +618,12 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $hasValidFrames = true;
 
             $normalizedPath = str_replace('\\', '/', $file);
+
+            // Skip bootstrap entry points — they are not meaningful application frames
+            $basename = basename($normalizedPath);
+            if (\in_array($basename, $bootstrapFiles, true)) {
+                continue;
+            }
 
             $isExcluded = false;
             foreach ($excludedPaths as $excludedPath) {
