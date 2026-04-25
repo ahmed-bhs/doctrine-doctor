@@ -223,32 +223,14 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             return false;
         }
 
-        // Match patterns for simple SELECT by ID:
-        // 1. SELECT ... FROM table t0_ WHERE t0_.id = ?
-        // 2. SELECT ... FROM table WHERE id = ?
-        // 3. SELECT ... FROM table WHERE id = 123 (literal)
-        // 4. SELECT ... FROM table t0_ WHERE t0_.id = 123
-        // 5. SELECT ... FROM table alias WHERE alias.id = ?
-        // 6. Support for various column names: id, user_id, *_id
-
+        // Only match SELECT by primary key (column named exactly 'id').
+        // FK columns like deposit_request_id, eco_organization_id are intentionally excluded —
+        // they return collections, not single entities, so getReference() is not applicable.
         $patterns = [
-            // Pattern 1: WITH alias, parameterized (?), standard 'id' column
             '/SELECT\s+.*\s+FROM\s+\w+\s+(\w+)\s+WHERE\s+\1\.id\s*=\s*\?/i',
-
-            // Pattern 2: NO alias, parameterized (?), standard 'id' column
             '/SELECT\s+.*\s+FROM\s+\w+\s+WHERE\s+id\s*=\s*\?/i',
-
-            // Pattern 3: WITH alias, LITERAL number, standard 'id' column
             '/SELECT\s+.*\s+FROM\s+\w+\s+(\w+)\s+WHERE\s+\1\.id\s*=\s*\d+/i',
-
-            // Pattern 4: NO alias, LITERAL number, standard 'id' column
             '/SELECT\s+.*\s+FROM\s+\w+\s+WHERE\s+id\s*=\s*\d+/i',
-
-            // Pattern 5: WITH alias, parameterized (?), ANY *_id column
-            '/SELECT\s+.*\s+FROM\s+\w+\s+(\w+)\s+WHERE\s+\1\.\w*_?id\s*=\s*\?/i',
-
-            // Pattern 6: NO alias, parameterized (?), ANY *_id column
-            '/SELECT\s+.*\s+FROM\s+\w+\s+WHERE\s+\w*_?id\s*=\s*\?/i',
         ];
 
         return array_any($patterns, fn ($pattern) => 1 === preg_match($pattern, $sql));

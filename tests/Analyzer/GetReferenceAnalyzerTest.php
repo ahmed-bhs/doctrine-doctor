@@ -100,16 +100,16 @@ final class GetReferenceAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_detects_select_by_custom_id_column(): void
+    public function it_does_not_detect_fk_columns_as_get_reference_candidates(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE user_id = ?')
-            ->addQuery('SELECT * FROM products WHERE product_id = ?')
+            ->addQuery('SELECT * FROM deposit_request_document WHERE deposit_request_id = ?')
+            ->addQuery('SELECT * FROM deposit_request_document WHERE deposit_request_id = ?')
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
 
-        self::assertGreaterThan(0, count($issues));
+        self::assertCount(0, $issues);
     }
 
     #[Test]
@@ -352,12 +352,11 @@ final class GetReferenceAnalyzerTest extends TestCase
     {
         $queries = QueryDataBuilder::create()
             ->addQuery('SELECT t0_.* FROM users t0_ WHERE t0_.id = ?')
-            ->addQuery('SELECT a.* FROM products a WHERE a.product_id = ?')
+            ->addQuery('SELECT a.* FROM products a WHERE a.id = ?')
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
 
-        // Should detect both patterns
         self::assertCount(1, $issues);
     }
 
