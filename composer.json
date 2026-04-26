@@ -73,7 +73,7 @@
     "symfony/validator": "^8.0",
     "symfony/var-dumper": "^6.0|^7.0|^8.0",
     "symfony/var-exporter": "^6.4|^7.0|^8.0",
-    "symplify/easy-coding-standard": "^12.6",
+    "symplify/easy-coding-standard": "^13.0",
     "twig/twig": "^3.0"
   },
   "autoload": {
