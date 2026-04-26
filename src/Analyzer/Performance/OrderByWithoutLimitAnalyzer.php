@@ -91,6 +91,14 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                             continue;
                         }
 
+                        // Skip fast queries bounded by a FK equality (e.g. WHERE deposit_request_id = ?).
+                        // These are aggregate-child collections whose size is capped by the parent lifecycle,
+                        // not by data volume. If they ever slow down the executionTime guard will re-enable the warning.
+                        if ($executionTime < $this->minExecutionTimeMs
+                            && $this->hasFkEqualityWhereClause($sql)) {
+                            continue;
+                        }
+
                         // Detect query context from backtrace
                         $context = $this->detectQueryContext($query);
 
@@ -204,6 +212,11 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function hasBoundedWhereInClause(string $sql): bool
     {
         return 1 === preg_match('/\bWHERE\b.*\bIN\s*\(/i', $sql);
+    }
+
+    private function hasFkEqualityWhereClause(string $sql): bool
+    {
+        return 1 === preg_match('/\bWHERE\b.*?\b\w+_id\s*=\s*\?/i', $sql);
     }
 
     /**

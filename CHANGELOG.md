@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `DoctrineCacheAnalyzer`: the YAML-based scan now detects missing `metadata_cache_driver`, `query_cache_driver`, and `result_cache_driver` keys inside an existing `when@prod` section, not only the explicit `type: array` case. Previously, a `when@prod` block that omitted these keys entirely was silently ignored, causing the critical performance issue (entity metadata reparsed on every request, -50 to -80%) to go unreported in dev. The absence of `when@prod` altogether is still not flagged to avoid false positives on projects using split `config/packages/prod/` files.
+- Added `missing_cache_production.php` suggestion template used for the new "not configured" issues, distinct from `array_cache_production.php` which covers the explicit array cache case.
+- `OrderByWithoutLimitAnalyzer`: fast queries (below `min_execution_time_ms`) with a FK equality predicate in the WHERE clause (e.g. `WHERE deposit_request_id = ?`) are now silently skipped. These are aggregate-child collections whose size is bounded by the parent entity lifecycle, not by data volume. If the query ever degrades (execution time exceeds the threshold), the alert re-enables automatically.
+- `FinalEntityAnalyzer`: added early-return guard when `enable_native_lazy_objects` (PHP 8.4 ghost objects) is active. Ghost objects decorate rather than subclass the entity, so `final` classes are safe — the previous behavior produced false-positive CRITICAL issues on PHP 8.4 projects.
+
 ## [2.8.6] - 2026-04-25
 
 ### Fixed

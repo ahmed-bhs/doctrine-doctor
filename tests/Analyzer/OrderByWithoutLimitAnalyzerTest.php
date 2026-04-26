@@ -579,4 +579,34 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
         // Should be detected as array_result context
         self::assertStringContainsString('Array Query', $issue->getTitle());
     }
+
+    #[Test]
+    public function it_skips_fast_fk_bounded_query(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery(
+                'SELECT d0_.id, d0_.occurred_at FROM deposit_request_history d0_ WHERE d0_.deposit_request_id = ? ORDER BY d0_.occurred_at ASC',
+                0.001,
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_does_not_skip_slow_fk_bounded_query(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery(
+                'SELECT d0_.id, d0_.occurred_at FROM deposit_request_history d0_ WHERE d0_.deposit_request_id = ? ORDER BY d0_.occurred_at ASC',
+                0.050,
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertGreaterThan(0, count($issues));
+    }
 }
