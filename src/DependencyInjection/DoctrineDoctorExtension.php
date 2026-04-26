@@ -127,6 +127,8 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
 
         $containerBuilder->setParameter('doctrine_doctor.analyzers.query_caching_opportunity.static_tables', $analyzers['query_caching_opportunity']['static_tables']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.query_caching_opportunity.frequency_threshold', $analyzers['query_caching_opportunity']['frequency_threshold']);
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.query_caching_opportunity.second_level_cache_threshold', $analyzers['query_caching_opportunity']['second_level_cache_threshold']);
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.query_caching_opportunity.second_level_cache_max_avg_ms', $analyzers['query_caching_opportunity']['second_level_cache_max_avg_ms']);
 
         $containerBuilder->setParameter('doctrine_doctor.analyzers.sensitive_data_exposure.sensitive_patterns', $analyzers['sensitive_data_exposure']['sensitive_patterns']);
 

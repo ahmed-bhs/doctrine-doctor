@@ -45,6 +45,9 @@
     "issues": "https://github.com/ahmed-bhs/doctrine-doctor/issues",
     "source": "https://github.com/ahmed-bhs/doctrine-doctor"
   },
+  "suggest": {
+    "symfony/ai-symfony-mate-extension": "Required for AI Mate / MCP integration of Doctrine Doctor profiler issues"
+  },
   "require": {
     "php": "^8.4",
     "doctrine/doctrine-bundle": "^3.0",
@@ -160,6 +163,14 @@
   "extra": {
     "branch-alias": {
       "dev-main": "2.x-dev"
+    },
+    "ai-mate": {
+      "scan-dirs": [
+        "src/AiMate/Capability"
+      ],
+      "includes": [
+        "src/AiMate/config.php"
+      ]
     },
     "symfony": {
       "allow-contrib": false,

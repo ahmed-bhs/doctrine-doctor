@@ -578,6 +578,8 @@ services:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $staticTables: '%doctrine_doctor.analyzers.query_caching_opportunity.static_tables%'
             $frequencyThreshold: '%doctrine_doctor.analyzers.query_caching_opportunity.frequency_threshold%'
+            $secondLevelCacheThreshold: '%doctrine_doctor.analyzers.query_caching_opportunity.second_level_cache_threshold%'
+            $secondLevelCacheMaxAvgMs: '%doctrine_doctor.analyzers.query_caching_opportunity.second_level_cache_max_avg_ms%'
         tags:
             - { name: doctrine_doctor.analyzer }
 
