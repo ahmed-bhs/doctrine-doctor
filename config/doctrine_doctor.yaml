@@ -168,6 +168,8 @@ doctrine_doctor:
         query_caching_opportunity:
             enabled: true
             frequency_threshold: 3  # Minimum query executions to suggest caching
+            second_level_cache_threshold: 5  # Minimum repeated fast SELECTs (with varying params) to suggest Doctrine 2LC
+            second_level_cache_max_avg_ms: 2.0  # Max average query time (ms) for 2LC opportunity
             # static_tables: ['countries', 'currencies', 'languages', ...]  # Tables considered static/rarely-changing
 
         # Float for Money Detection

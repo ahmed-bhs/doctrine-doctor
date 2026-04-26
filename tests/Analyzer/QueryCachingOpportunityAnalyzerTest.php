@@ -740,4 +740,54 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         self::assertContains('Frequent Query Executed 3 Times', $titles, 'Should detect taxon duplicate (3 times)');
         self::assertContains('Frequent Query Executed 3 Times', $titles, 'Should detect product duplicate (3 times)');
     }
+
+    #[Test]
+    public function it_detects_doctrine_2lc_opportunity_for_repeated_fast_selects_with_varying_params(): void
+    {
+        $rawQueries = [
+            ['sql' => 'SELECT * FROM product WHERE id = ?', 'executionMS' => 0.0012, 'params' => [101]],
+            ['sql' => 'SELECT * FROM product WHERE id = ?', 'executionMS' => 0.0013, 'params' => [102]],
+            ['sql' => 'SELECT * FROM product WHERE id = ?', 'executionMS' => 0.0011, 'params' => [103]],
+            ['sql' => 'SELECT * FROM product WHERE id = ?', 'executionMS' => 0.0014, 'params' => [104]],
+            ['sql' => 'SELECT * FROM product WHERE id = ?', 'executionMS' => 0.0012, 'params' => [105]],
+        ];
+
+        $queryDataObjects = array_map(
+            \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray(...),
+            $rawQueries,
+        );
+        $queries = \AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection::fromArray($queryDataObjects);
+
+        $issues = $this->analyzer->analyze($queries)->toArray();
+
+        self::assertCount(1, $issues, 'Should detect a single 2LC opportunity');
+        self::assertStringContainsString('Doctrine 2LC Opportunity', $issues[0]->getTitle());
+        self::assertSame('warning', $issues[0]->getSeverity()->value);
+
+        $suggestion = $issues[0]->getSuggestion();
+        self::assertNotNull($suggestion);
+        self::assertStringContainsString('second-level cache', strtolower($suggestion->getCode()));
+    }
+
+    #[Test]
+    public function it_does_not_report_2lc_opportunity_for_complex_join_queries(): void
+    {
+        $rawQueries = [
+            ['sql' => 'SELECT p.*, c.* FROM product p JOIN category c ON c.id = p.category_id WHERE p.id = ?', 'executionMS' => 0.0012, 'params' => [101]],
+            ['sql' => 'SELECT p.*, c.* FROM product p JOIN category c ON c.id = p.category_id WHERE p.id = ?', 'executionMS' => 0.0013, 'params' => [102]],
+            ['sql' => 'SELECT p.*, c.* FROM product p JOIN category c ON c.id = p.category_id WHERE p.id = ?', 'executionMS' => 0.0011, 'params' => [103]],
+            ['sql' => 'SELECT p.*, c.* FROM product p JOIN category c ON c.id = p.category_id WHERE p.id = ?', 'executionMS' => 0.0014, 'params' => [104]],
+            ['sql' => 'SELECT p.*, c.* FROM product p JOIN category c ON c.id = p.category_id WHERE p.id = ?', 'executionMS' => 0.0012, 'params' => [105]],
+        ];
+
+        $queryDataObjects = array_map(
+            \AhmedBhs\DoctrineDoctor\DTO\QueryData::fromArray(...),
+            $rawQueries,
+        );
+        $queries = \AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection::fromArray($queryDataObjects);
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(0, $issues, 'Complex JOIN queries should not trigger 2LC heuristic');
+    }
 }

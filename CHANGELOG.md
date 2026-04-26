@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Optional AI Mate / MCP integration for `doctrine_doctor`: added a profiler collector formatter, an MCP tool (`doctrine-doctor-issues`), and a sanitization layer for issue hints, traces, and SQL snippets so profiler findings can be consumed safely by AI agents when `symfony/ai-symfony-mate-extension` is installed in the host Symfony application.
+- `QueryCachingOpportunityAnalyzer`: added `Doctrine 2LC Opportunity` detection for repeated fast `SELECT` entity-load patterns with varying parameter sets, plus a dedicated suggestion template and configuration thresholds for second-level cache candidates.
+
 ### Fixed
 
 - `DoctrineCacheAnalyzer`: the YAML-based scan now detects missing `metadata_cache_driver`, `query_cache_driver`, and `result_cache_driver` keys inside an existing `when@prod` section, not only the explicit `type: array` case. Previously, a `when@prod` block that omitted these keys entirely was silently ignored, causing the critical performance issue (entity metadata reparsed on every request, -50 to -80%) to go unreported in dev. The absence of `when@prod` altogether is still not flagged to avoid false positives on projects using split `config/packages/prod/` files.
