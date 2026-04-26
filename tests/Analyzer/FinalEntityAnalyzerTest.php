@@ -44,7 +44,6 @@ final class FinalEntityAnalyzerTest extends TestCase
 
     protected function setUp(): void
     {
-        // Create in-memory entity manager with specific fixtures
         $configuration = PlatformAnalyzerTestHelper::createTestConfiguration([__DIR__ . '/../Fixtures/Entity/FinalEntityTest']);
 
         $connection = DriverManager::getConnection([
@@ -53,10 +52,22 @@ final class FinalEntityAnalyzerTest extends TestCase
         ]);
 
         $this->entityManager = new EntityManager($connection, $configuration);
-        $this->analyzer = new FinalEntityAnalyzer(
-            $this->entityManager,
-            new IssueFactory(),
-        );
+        $this->analyzer = $this->createAnalyzerWithGhostObjectsDisabled();
+    }
+
+    private function createAnalyzerWithGhostObjectsDisabled(): FinalEntityAnalyzer
+    {
+        $entityManager = $this->createMock(\Doctrine\ORM\EntityManagerInterface::class);
+        $configuration = $this->createMock(\Doctrine\ORM\Configuration::class);
+
+        if (method_exists($configuration, 'isLazyGhostObjectEnabled')) {
+            $configuration->method('isLazyGhostObjectEnabled')->willReturn(false);
+        }
+
+        $entityManager->method('getConfiguration')->willReturn($configuration);
+        $entityManager->method('getMetadataFactory')->willReturn($this->entityManager->getMetadataFactory());
+
+        return new FinalEntityAnalyzer($entityManager, new IssueFactory());
     }
 
     #[Test]

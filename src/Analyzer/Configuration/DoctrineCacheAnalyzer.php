@@ -155,7 +155,18 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             if (isset($config['when@prod']['doctrine']['orm'])) {
                 $prodOrmConfig = $config['when@prod']['doctrine']['orm'];
 
-                if (isset($prodOrmConfig['metadata_cache_driver']['type'])
+                if (!isset($prodOrmConfig['metadata_cache_driver'])) {
+                    $issues[] = $this->createYamlIssue(
+                        'critical',
+                        'Missing Metadata Cache in Production Config',
+                        'Production configuration (when@prod) does not define metadata_cache_driver. ' .
+                        'Doctrine will reparse all entity metadata on EVERY request in production!',
+                        'metadata',
+                        'not configured',
+                        '-50 to -80%',
+                        $configFile,
+                    );
+                } elseif (isset($prodOrmConfig['metadata_cache_driver']['type'])
                     && 'array' === $prodOrmConfig['metadata_cache_driver']['type']) {
                     $issues[] = $this->createYamlIssue(
                         'critical',
@@ -169,7 +180,18 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
                     );
                 }
 
-                if (isset($prodOrmConfig['query_cache_driver']['type'])
+                if (!isset($prodOrmConfig['query_cache_driver'])) {
+                    $issues[] = $this->createYamlIssue(
+                        'critical',
+                        'Missing Query Cache in Production Config',
+                        'Production configuration (when@prod) does not define query_cache_driver. ' .
+                        'DQL queries will be recompiled on EVERY execution in production!',
+                        'query',
+                        'not configured',
+                        '-30 to -50%',
+                        $configFile,
+                    );
+                } elseif (isset($prodOrmConfig['query_cache_driver']['type'])
                     && 'array' === $prodOrmConfig['query_cache_driver']['type']) {
                     $issues[] = $this->createYamlIssue(
                         'critical',
@@ -183,7 +205,18 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
                     );
                 }
 
-                if (isset($prodOrmConfig['result_cache_driver']['type'])
+                if (!isset($prodOrmConfig['result_cache_driver'])) {
+                    $issues[] = $this->createYamlIssue(
+                        'warning',
+                        'Missing Result Cache in Production Config',
+                        'Production configuration (when@prod) does not define result_cache_driver. ' .
+                        'Query results cannot be cached across requests in production.',
+                        'result',
+                        'not configured',
+                        'Varies (0-50%)',
+                        $configFile,
+                    );
+                } elseif (isset($prodOrmConfig['result_cache_driver']['type'])
                     && 'array' === $prodOrmConfig['result_cache_driver']['type']) {
                     $issues[] = $this->createYamlIssue(
                         'warning',
@@ -238,8 +271,16 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             'second_level' => 'Second Level Cache',
             default => 'Cache',
         };
+        $isMissing = 'not configured' === $currentConfig;
+        $templateName = $isMissing
+            ? 'Configuration/missing_cache_production'
+            : 'Configuration/array_cache_production';
+        $suggestionTitle = $isMissing
+            ? sprintf('Missing Cache in Production (%s)', $cacheLabel)
+            : sprintf('ArrayCache in Production (%s)', $cacheLabel);
+
         $suggestion = $this->suggestionFactory->createFromTemplate(
-            templateName: 'Configuration/array_cache_production',
+            templateName: $templateName,
             context: [
                 'cache_type' => $cacheType,
                 'current_config' => $currentConfig,
@@ -248,7 +289,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::configuration(),
                 severity: 'metadata' === $cacheType ? Severity::critical() : Severity::warning(),
-                title: sprintf('ArrayCache in Production (%s)', $cacheLabel),
+                title: $suggestionTitle,
                 tags: ['configuration', 'cache', 'performance'],
             ),
         );

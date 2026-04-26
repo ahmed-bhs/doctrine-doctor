@@ -34,6 +34,9 @@ use Webmozart\Assert\Assert;
  * - Entity classes marked as final
  * - Final classes used in lazy-loaded relationships
  * - Proxy instantiation failures due to final modifier
+ *
+ * NOTE: This analyzer is a no-op when enable_native_lazy_objects (PHP lazy ghost objects) is
+ * enabled. Ghost objects do not subclass the entity, so final is safe.
  */
 class FinalEntityAnalyzer implements MetadataAnalyzerInterface
 {
@@ -58,6 +61,11 @@ class FinalEntityAnalyzer implements MetadataAnalyzerInterface
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () {
+                $config = $this->entityManager->getConfiguration();
+                if (method_exists($config, 'isLazyGhostObjectEnabled') && $config->isLazyGhostObjectEnabled()) {
+                    return; // @phpstan-ignore return.empty
+                }
+
                 $this->checkedEntities = [];
 
                 // Reset cache for each analysis
