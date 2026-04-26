@@ -67,7 +67,7 @@ final readonly class DoctrineDoctorIssuesTool
                 return ['error' => 'No profiler profiles found'];
             }
 
-            $token = $latest->token;
+            $token = $latest->getToken();
         }
 
         $profileData = $this->dataProvider->findProfile($token);
@@ -76,7 +76,7 @@ final readonly class DoctrineDoctorIssuesTool
             return ['error' => sprintf('Profile not found for token: %s', $token)];
         }
 
-        $collectors = $profileData->profile->getCollectors();
+        $collectors = $profileData->getProfile()->getCollectors();
 
         foreach ($collectors as $collector) {
             if (
@@ -99,4 +99,3 @@ final readonly class DoctrineDoctorIssuesTool
         ];
     }
 }
-
