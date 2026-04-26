@@ -16,7 +16,7 @@ return static function (ContainerConfigurator $configurator): void {
     $services = $configurator->services();
 
     $services->set(TraceSanitizer::class)
-        ->args([param('kernel.project_dir')]);
+        ->args([param('mate.root_dir')]);
 
     $services->set(DoctrineDoctorMcpSanitizer::class)
         ->args([service(TraceSanitizer::class)]);
