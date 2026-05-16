@@ -127,6 +127,7 @@ enum IssueType: string
     case TRANSACTION_MULTIPLE_FLUSH = 'transaction_multiple_flush';
     case TRANSACTION_UNCLOSED = 'transaction_unclosed';
     case TRANSACTION_TOO_LONG = 'transaction_too_long';
+    case MISSING_TRANSACTION_ON_BATCH = 'missing_transaction_on_batch';
 
     /**
      * Create from string value (for backward compatibility).
