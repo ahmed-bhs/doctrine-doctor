@@ -105,6 +105,14 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             return false;
         }
 
+        if (preg_match('/\b(GROUP\s+BY|HAVING)\b/i', $sql) > 0) {
+            return false;
+        }
+
+        if (preg_match('/\b(COUNT|SUM|AVG|MIN|MAX)\s*\(/i', $sql) > 0) {
+            return false;
+        }
+
         try {
             $hasWhere = !empty($this->sqlExtractor->extractWhereColumns($sql));
             $hasLimit = $this->sqlExtractor->hasLimit($sql);
