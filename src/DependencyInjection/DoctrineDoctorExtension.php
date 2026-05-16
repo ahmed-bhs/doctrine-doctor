@@ -150,6 +150,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $containerBuilder->setParameter('doctrine_doctor.analyzers.column_type.excluded_fields', $analyzers['column_type']['excluded_fields']);
     }
 
+
     /**
      * @param array<string, mixed> $config
      */
