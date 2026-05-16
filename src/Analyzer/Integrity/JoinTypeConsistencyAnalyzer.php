@@ -130,7 +130,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
 
                             $shouldAlert = false;
 
-                            if (null !== $fromTable) {
+                            if (null !== $fromTable && isset($metadataMap[$fromTable])) {
                                 // With metadata: check if JOIN is on collection
                                 foreach ($innerJoins as $join) {
                                     if ($this->isCollectionJoin($join, $metadataMap, $sql, $fromTable)) {
@@ -138,10 +138,6 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                                         break;
                                     }
                                 }
-                            } else {
-                                // Without metadata: fallback to conservative detection
-                                // Alert on any INNER JOIN with aggregation as it MIGHT be a collection
-                                $shouldAlert = true;
                             }
 
                             if ($shouldAlert) {
