@@ -151,13 +151,25 @@ class QueryBuilderPatternDetector
      */
     public function hasUnescapedLike(string $sql): bool
     {
-        // First check if LIKE is present
         if (!str_contains(strtoupper($sql), 'LIKE')) {
             return false;
         }
 
-        // Look for LIKE with quoted wildcards: LIKE '%something%' or LIKE "_test%"
-        return 1 === preg_match('/LIKE\s+[\'"][%_].*[%_]*[\'"]/', $sql);
+        if (1 !== preg_match('/LIKE\s+[\'"]([^\'"]*)[\'"]/', $sql, $m)) {
+            return false;
+        }
+
+        $pattern = $m[1];
+
+        if (!str_contains($pattern, '%') && !str_contains($pattern, '_')) {
+            return false;
+        }
+
+        if (strlen($pattern) > 64) {
+            return true;
+        }
+
+        return preg_match('/[;]|--|\bOR\b|\bAND\b|\bUNION\b|\bSELECT\b|\bDROP\b/i', $pattern) > 0;
     }
 
     /**
@@ -252,6 +264,10 @@ class QueryBuilderPatternDetector
         $value = $matches[2];
 
         if (1 === preg_match('/^[a-zA-Z0-9_-]+$/', $value) && strlen($value) <= 20) {
+            return false;
+        }
+
+        if (strlen($value) <= 64 && preg_match('/[;]|--|\bOR\b|\bAND\b|\bUNION\b|\bSELECT\b|\bDROP\b/i', $value) === 0) {
             return false;
         }
 
