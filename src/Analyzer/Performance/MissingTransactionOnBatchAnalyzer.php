@@ -33,7 +33,7 @@ final class MissingTransactionOnBatchAnalyzer implements AnalyzerInterface
             $unwrappedWrites = [];
 
             foreach ($queryDataCollection as $queryData) {
-                $sql = strtoupper(trim($queryData->sql));
+                $sql = strtoupper(trim($queryData->sql, " \t\n\r\0\x0B\"'`"));
 
                 if ($this->isBegin($sql)) {
                     $inTransaction = true;
