@@ -193,8 +193,36 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 
     private function hasLiteralInWhereClause(string $sql): bool
     {
-        return 1 === preg_match("/WHERE\s+.+=\s*'[^']*'/i", $sql)
-            || 1 === preg_match('/WHERE\s+.+=\s*"[^"]*"/i', $sql);
+        if (preg_match_all("/WHERE\s+.+?=\s*'([^']*)'/i", $sql, $matches) > 0) {
+            foreach ($matches[1] as $literal) {
+                if ($this->literalLooksSuspicious($literal)) {
+                    return true;
+                }
+            }
+        }
+
+        if (preg_match_all('/WHERE\s+.+?=\s*"([^"]*)"/i', $sql, $matches) > 0) {
+            foreach ($matches[1] as $literal) {
+                if ($this->literalLooksSuspicious($literal)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function literalLooksSuspicious(string $literal): bool
+    {
+        if (preg_match('/[;\-\-]|\bOR\b|\bAND\b|\bUNION\b|\bSELECT\b|\bDROP\b/i', $literal) > 0) {
+            return true;
+        }
+
+        if (strlen($literal) > 64) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
