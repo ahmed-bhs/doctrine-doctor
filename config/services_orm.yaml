@@ -1,0 +1,12 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    # Bind the decorated EntityManager to all analyzers automatically
+    # Analyzers request EntityManagerInterface and get our decorated version
+    _instanceof:
+        AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface:
+            bind:
+                Doctrine\ORM\EntityManagerInterface $entityManager: '@doctrine_doctor.entity_manager'

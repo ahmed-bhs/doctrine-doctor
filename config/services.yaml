@@ -32,13 +32,6 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $excludeVendorEntities: '%doctrine_doctor.analysis.exclude_third_party_entities%'
 
-    # Bind the decorated EntityManager to all analyzers automatically
-    # Analyzers request EntityManagerInterface and get our decorated version
-    _instanceof:
-        AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface:
-            bind:
-                Doctrine\ORM\EntityManagerInterface $entityManager: '@doctrine_doctor.entity_manager'
-
     # Tag all analyzers automatically
     AhmedBhs\DoctrineDoctor\Analyzer\:
         resource: '../src/Analyzer/{Performance,Security,Integrity,Configuration}/*'

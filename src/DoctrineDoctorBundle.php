@@ -52,6 +52,6 @@ class DoctrineDoctorBundle extends Bundle
         // When debug.internal_logging is false (default), all loggers become NullLogger
         // This saves ~133ms overhead from Monolog calls
         $container->addCompilerPass(new ConditionalLoggerPass());
-        $container->addCompilerPass(new RemoveOrmServicesPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, 100);
+        $container->addCompilerPass(new RemoveOrmServicesPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -100);
     }
 }
