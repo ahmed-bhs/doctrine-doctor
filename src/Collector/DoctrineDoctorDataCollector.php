@@ -42,6 +42,8 @@ use Symfony\Contracts\Service\ResetInterface;
  */
 class DoctrineDoctorDataCollector extends DataCollector implements LateDataCollectorInterface, ResetInterface
 {
+    private const int MAX_QUERIES_PER_REQUEST = 5000;
+
     private ?array $memoizedIssues = null;
 
     private ?array $memoizedDatabaseInfo = null;
@@ -458,12 +460,27 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         }
 
         $queryDTOs = [];
+        $maxQueries = self::MAX_QUERIES_PER_REQUEST;
+        $droppedQueries = 0;
+
         foreach ($filteredQueries as $query) {
+            if (count($queryDTOs) >= $maxQueries) {
+                ++$droppedQueries;
+                continue;
+            }
+
             try {
                 $queryDTOs[] = QueryData::fromArray($query);
             } catch (\Throwable $e) {
                 $dataCollectorLogger->logWarningIfDebugEnabled('Failed to convert query to DTO', $e);
             }
+        }
+
+        if ($droppedQueries > 0) {
+            $dataCollectorLogger->logWarningIfDebugEnabled(
+                sprintf('Query collection capped at %d entries; %d queries dropped to prevent memory exhaustion.', $maxQueries, $droppedQueries),
+                new \RuntimeException('query_cap_reached'),
+            );
         }
 
         $queryCollection = QueryDataCollection::fromArray($queryDTOs);
@@ -495,7 +512,33 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                 unset($issueCollection);
             } catch (\Throwable $e) {
                 $dataCollectorLogger->logErrorIfDebugEnabled('Analyzer failed: ' . $analyzer::class, $e);
+
+                $allIssues[] = new \AhmedBhs\DoctrineDoctor\Issue\ConfigurationIssue([
+                    'type' => 'analyzer_failure',
+                    'title' => 'Analyzer Failure: ' . (new \ReflectionClass($analyzer))->getShortName(),
+                    'description' => sprintf(
+                        'The analyzer %s failed during execution. This might be due to a bug or an incompatible environment state. Error: %s',
+                        $analyzer::class,
+                        $e->getMessage(),
+                    ),
+                    'severity' => 'warning',
+                    'queries' => [],
+                    'backtrace' => [['file' => $e->getFile(), 'line' => $e->getLine()]],
+                ]);
             }
+        }
+
+        if ($this->data['skipped_analyzers'] > 0) {
+            $allIssues[] = new \AhmedBhs\DoctrineDoctor\Issue\ConfigurationIssue([
+                'type' => 'analysis_incomplete',
+                'title' => 'Analysis Incomplete (Low Memory)',
+                'description' => sprintf(
+                    'To protect your application, %d analyzers were skipped because the PHP memory limit was reached (70%% threshold). Consider increasing your memory_limit if this happens frequently.',
+                    $this->data['skipped_analyzers'],
+                ),
+                'severity' => 'warning',
+                'queries' => [],
+            ]);
         }
 
         $issuesCollection = IssueCollection::fromArray($allIssues);
