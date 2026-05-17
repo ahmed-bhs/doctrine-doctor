@@ -87,6 +87,11 @@ class InjectionPatternDetector
             $indicators[] = 'Multiple conditions with literal strings (possible injection)';
         }
 
+        if ($this->hasSuspiciousLimitOrOffset($sql)) {
+            $riskLevel += 3;
+            $indicators[] = 'Quoted or non-numeric LIMIT/OFFSET value (injection vector)';
+        }
+
         if (!$this->hasSQLInjectionKeywords($sql) && !$hasMultipleLiterals && $riskLevel > 2) {
             $riskLevel = 2;
         }
@@ -125,15 +130,42 @@ class InjectionPatternDetector
      */
     public function hasSQLInjectionKeywords(string $sql): bool
     {
-        if (1 === preg_match("/'.*(?:UNION|OR\s+1\s*=\s*1|AND\s+1\s*=\s*1|\/\*).*'/i", $sql)) {
+        $normalized = $this->stripSqlComments($sql);
+
+        if (1 === preg_match('/\bUNION(?:\s+ALL)?\s+SELECT\b/is', $normalized)) {
             return true;
         }
 
-        if (1 === preg_match("/OR\s+['\"]?1['\"]?\s*=\s*['\"]?1['\"]?/i", $sql)) {
+        $tautologyPattern = '/\b(?:OR|AND)\s+'
+            . '(?:'
+            . "['\"]?(\d+)['\"]?\s*(?:=|<>|!=)\s*['\"]?\\1['\"]?"
+            . '|'
+            . "['\"]?([a-z_][\w]*)['\"]?\s*(?:=|<>|!=)\s*['\"]?\\2['\"]?"
+            . '|TRUE\b|FALSE\b'
+            . ')/is';
+
+        if (1 === preg_match($tautologyPattern, $normalized)) {
             return true;
         }
 
-        if (1 === preg_match("/AND\s+['\"]?1['\"]?\s*=\s*['\"]?1['\"]?/i", $sql)) {
+        if (1 === preg_match('/\'\s*(?:OR|AND)\s+\'/is', $normalized)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function hasSuspiciousLimitOrOffset(string $sql): bool
+    {
+        if (1 === preg_match("/\b(?:LIMIT|OFFSET)\s+['\"][^'\"]+['\"]/i", $sql)) {
+            return true;
+        }
+
+        if (1 === preg_match('/\b(?:LIMIT|OFFSET)\s+[^\d\s\?:][^\s,;]*/i', $sql)) {
+            return true;
+        }
+
+        if (1 === preg_match('/\b(?:LIMIT|OFFSET)\s+\d+\s*[;,]\s*\w+/i', $sql)) {
             return true;
         }
 
@@ -242,6 +274,14 @@ class InjectionPatternDetector
             'multiple_conditions' => 'Multiple conditions with literals - complex injection attempt',
             default => 'Unknown pattern',
         };
+    }
+
+    private function stripSqlComments(string $sql): string
+    {
+        $sql = preg_replace('#/\*.*?\*/#s', ' ', $sql) ?? $sql;
+        $sql = preg_replace('/--[^\n]*/', ' ', $sql) ?? $sql;
+
+        return preg_replace('/\s+/', ' ', $sql) ?? $sql;
     }
 
     private function likePatternLooksSuspicious(string $pattern): bool
