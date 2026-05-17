@@ -20,6 +20,12 @@ use Webmozart\Assert\Assert;
  */
 class QueryData
 {
+    private const array SENSITIVE_PARAM_KEYWORDS = [
+        'password', 'passwd', 'pwd', 'secret', 'token', 'api_key', 'apikey',
+        'authorization', 'auth', 'credential', 'private_key', 'private', 'session',
+        'csrf', 'access_token', 'refresh_token', 'bearer',
+    ];
+
     /**
      * @param array<string, mixed>                  $params    Query parameters
      * @param array<int, array<string, mixed>>|null $backtrace Stack trace of query execution
@@ -96,7 +102,7 @@ class QueryData
         return [
             'sql'         => $this->sql,
             'executionMS' => $this->executionTime->inMilliseconds(),
-            'params'      => $this->params,
+            'params'      => $this->redactSensitiveParams($this->params),
             'backtrace'   => $this->backtrace,
             'rowCount'    => $this->rowCount,
         ];
@@ -140,5 +146,43 @@ class QueryData
             0 === stripos($sql, 'DELETE') => 'DELETE',
             default                       => 'OTHER',
         };
+    }
+
+    /**
+     * @param array<mixed> $params
+     * @return array<mixed>
+     */
+    private function redactSensitiveParams(array $params): array
+    {
+        $redacted = [];
+
+        foreach ($params as $key => $value) {
+            $keyString = strtolower((string) $key);
+
+            if ($this->isSensitiveKey($keyString)) {
+                $redacted[$key] = '[REDACTED]';
+                continue;
+            }
+
+            if (is_array($value)) {
+                $redacted[$key] = $this->redactSensitiveParams($value);
+                continue;
+            }
+
+            $redacted[$key] = $value;
+        }
+
+        return $redacted;
+    }
+
+    private function isSensitiveKey(string $key): bool
+    {
+        foreach (self::SENSITIVE_PARAM_KEYWORDS as $keyword) {
+            if (str_contains($key, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
