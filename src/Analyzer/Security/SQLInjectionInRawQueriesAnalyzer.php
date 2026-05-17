@@ -612,13 +612,24 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             return null;
         }
 
-        $source = file($filename);
-
-        if (false === $source) {
+        try {
+            $file = new \SplFileObject($filename, 'r');
+        } catch (\Throwable) {
             return null;
         }
 
-        return implode('', array_slice($source, $startLine - 1, $endLine - $startLine + 1));
+        $lines = [];
+        $file->seek($startLine - 1);
+
+        for ($i = $startLine; $i <= $endLine && !$file->eof(); ++$i) {
+            $line = $file->current();
+            if (is_string($line)) {
+                $lines[] = $line;
+            }
+            $file->next();
+        }
+
+        return implode('', $lines);
     }
 
     private function getFileLocation(\ReflectionMethod $reflectionMethod): string
