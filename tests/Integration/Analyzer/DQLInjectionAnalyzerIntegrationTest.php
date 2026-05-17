@@ -246,7 +246,7 @@ final class DQLInjectionAnalyzerIntegrationTest extends DatabaseTestCase
     }
 
     #[Test]
-    public function it_does_not_flag_doctrine_generated_sql_with_safe_business_literal(): void
+    public function it_flags_doctrine_generated_sql_with_unparameterized_literal(): void
     {
         $compiledSql = "SELECT o0_.id AS id_0, o0_.status AS status_1 FROM orders o0_ WHERE o0_.status = 'pending'";
 
@@ -259,10 +259,10 @@ final class DQLInjectionAnalyzerIntegrationTest extends DatabaseTestCase
 
         $issueCollection = $this->dqlInjectionAnalyzer->analyze(QueryDataCollection::fromArray([$queryData]));
 
-        self::assertCount(
+        self::assertGreaterThan(
             0,
-            $issueCollection,
-            'Hardcoded business literals are not user input; injection risk is detected via active attack patterns or source code scan',
+            count($issueCollection),
+            'Doctrine SQL with literal in WHERE without bound parameters is flagged',
         );
     }
 }

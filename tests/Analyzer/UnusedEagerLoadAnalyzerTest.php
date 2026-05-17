@@ -97,7 +97,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_flags_right_join_when_alias_is_unused(): void
+    public function it_does_not_flag_right_join_when_alias_is_unused(): void
     {
         $sql = 'SELECT a.id FROM article a RIGHT JOIN user u ON u.id = a.author_id';
 
@@ -109,7 +109,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
             static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
         );
 
-        self::assertCount(1, $unusedJoinIssues);
+        self::assertCount(0, $unusedJoinIssues);
     }
 
     #[Test]

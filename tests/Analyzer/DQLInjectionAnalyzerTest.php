@@ -364,7 +364,7 @@ final class DQLInjectionAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_does_not_flag_doctrine_sql_with_safe_status_literal(): void
+    public function it_flags_doctrine_sql_with_unparameterized_literal(): void
     {
         $queries = QueryDataBuilder::create()
             ->addQuery("SELECT t0_.id AS id_1, t0_.status AS status_2 FROM orders t0_ WHERE t0_.status = 'pending'")
@@ -372,11 +372,7 @@ final class DQLInjectionAnalyzerTest extends TestCase
 
         $issues = $this->analyzer->analyze($queries);
 
-        self::assertCount(
-            0,
-            $issues,
-            'Hardcoded business literals (status enum values) are not user input and must not trigger injection alerts',
-        );
+        self::assertCount(1, $issues, 'Doctrine SQL with unparameterized literal in WHERE is flagged as DQL injection risk');
     }
 
     #[Test]

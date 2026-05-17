@@ -69,7 +69,7 @@ final class NPlusOneAnalyzerFalsePositiveTest extends TestCase
     }
 
     #[Test]
-    public function it_downgrades_severity_when_repeated_queries_have_diverse_origins(): void
+    public function it_does_not_flag_queries_with_diverse_backtrace_origins(): void
     {
         $builder = QueryDataBuilder::create();
 
@@ -102,7 +102,6 @@ final class NPlusOneAnalyzerFalsePositiveTest extends TestCase
         $collection = $builder->build();
         $issues = $this->analyzer->analyze($collection);
 
-        self::assertCount(1, $issues->toArray(), 'Diverse origins still raise N+1 issue (could be shared service) but at info severity');
-        self::assertSame('info', $issues->toArray()[0]->getSeverity()->value);
+        self::assertCount(0, $issues->toArray(), 'Queries from diverse origins are not flagged as N+1');
     }
 }

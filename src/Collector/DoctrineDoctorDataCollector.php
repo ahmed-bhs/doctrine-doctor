@@ -40,6 +40,9 @@ use Symfony\Contracts\Service\ResetInterface;
  * use EntityManager which becomes invalid after the request ends in persistent
  * PHP runtimes (FrankenPHP, RoadRunner, Swoole).
  */
+/**
+ * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
+ */
 class DoctrineDoctorDataCollector extends DataCollector implements LateDataCollectorInterface, ResetInterface
 {
     private const int MAX_QUERIES_PER_REQUEST = 5000;
