@@ -34,8 +34,11 @@ class DQLPatternMatcher
      */
     public function hasDoctrineSQLPattern(string $sql): bool
     {
-        // Look for Doctrine's table alias pattern with space before
-        return 1 === preg_match('/\st\d+_/', $sql);
+        $hasTableAlias = 1 === preg_match('/\s[a-z]\d+_/i', $sql);
+
+        $hasColumnAlias = 1 === preg_match('/AS\s+[a-z0-9_]+\d+/i', $sql);
+
+        return $hasTableAlias && $hasColumnAlias;
     }
 
     /**

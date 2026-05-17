@@ -37,6 +37,9 @@ use Webmozart\Assert\Assert;
  */
 class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    /** @var array<string, int> */
+    private array $sqliteRowCountCache = [];
+
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly Connection $connection,
@@ -382,12 +385,13 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         if ($databasePlatformDetector->isSQLite()) {
             return array_map(function (array $row): array {
                 $detail = $row['detail'] ?? '';
+                $table  = $this->extractTableFromSQLitePlan($detail);
 
                 return [
-                    'table'         => $this->extractTableFromSQLitePlan($detail),
+                    'table'         => $table,
                     'type'          => $this->extractTypeFromSQLitePlan($detail),
                     'key'           => $this->extractKeyFromSQLitePlan($detail),
-                    'rows'          => $this->extractRowsFromSQLitePlan($detail),
+                    'rows'          => $this->extractRowsFromSQLitePlan($detail, $table),
                     'possible_keys' => null,
                     'Extra'         => $detail,
                 ];
@@ -471,13 +475,30 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         return null; // No index used
     }
 
-    private function extractRowsFromSQLitePlan(string $detail): int
+    private function extractRowsFromSQLitePlan(string $detail, ?string $table): int
     {
-        if (false !== stripos($detail, 'SCAN ')) {
-            return 1000; // Assume full table scan = many rows
+        if (false === stripos($detail, 'SCAN ')) {
+            return 0;
         }
 
-        return 0;
+        if (null === $table) {
+            return 0;
+        }
+
+        if (isset($this->sqliteRowCountCache[$table])) {
+            return $this->sqliteRowCountCache[$table];
+        }
+
+        try {
+            $quoted = $this->connection->quoteIdentifier($table);
+            $count  = (int) $this->connection->fetchOne(sprintf('SELECT COUNT(*) FROM %s', $quoted));
+        } catch (\Throwable) {
+            $count = 0;
+        }
+
+        $this->sqliteRowCountCache[$table] = $count;
+
+        return $count;
     }
 
     private function shouldSuggestIndex(array $explainRow): bool
