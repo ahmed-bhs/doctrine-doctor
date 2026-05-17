@@ -126,14 +126,24 @@ final readonly class PhpTemplateRenderer implements TemplateRendererInterface, S
 
     private function getTemplatePath(string $templateName): string
     {
-        // Sanitize template name to prevent path traversal
-        // Allow forward slashes for category subdirectories (e.g., Performance/flush_in_loop)
-        // but remove ../ to prevent directory traversal attacks
-        $templateName = str_replace(['..'], '', $templateName);
-        // Normalize backslashes to forward slashes
-        $templateName = str_replace('\\', '/', $templateName);
+        if (1 !== preg_match('#^[A-Za-z0-9_\-]+(?:/[A-Za-z0-9_\-]+)*$#', $templateName)) {
+            throw new InvalidArgumentException(sprintf('Invalid template name: %s', $templateName));
+        }
 
-        return $this->templateDirectory . '/' . $templateName . '.php';
+        $path = $this->templateDirectory . '/' . $templateName . '.php';
+
+        $resolvedBase = realpath($this->templateDirectory);
+        $resolvedPath = realpath($path);
+
+        if (false === $resolvedBase || false === $resolvedPath) {
+            return $path;
+        }
+
+        if (!str_starts_with($resolvedPath, $resolvedBase . DIRECTORY_SEPARATOR)) {
+            throw new InvalidArgumentException(sprintf('Template path escapes base directory: %s', $templateName));
+        }
+
+        return $path;
     }
 
     private function getDefaultTemplateDirectory(): string
