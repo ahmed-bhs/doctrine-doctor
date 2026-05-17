@@ -124,20 +124,20 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                         $innerJoins = array_filter($joins, fn ($join) => 'INNER' === $join['type']);
 
                         if (!empty($innerJoins)) {
-                            // Check if any INNER JOIN is on a collection
                             $metadataMap = $this->getMetadataMap();
                             $fromTable = $this->extractFromTable($sql, $metadataMap);
 
                             $shouldAlert = false;
 
                             if (null !== $fromTable && isset($metadataMap[$fromTable])) {
-                                // With metadata: check if JOIN is on collection
                                 foreach ($innerJoins as $join) {
                                     if ($this->isCollectionJoin($join, $metadataMap, $sql, $fromTable)) {
                                         $shouldAlert = true;
                                         break;
                                     }
                                 }
+                            } elseif ([] === $metadataMap) {
+                                $shouldAlert = true;
                             }
 
                             if ($shouldAlert) {

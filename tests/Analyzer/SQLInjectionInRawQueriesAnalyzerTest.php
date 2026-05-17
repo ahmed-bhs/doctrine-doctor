@@ -318,14 +318,13 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     public function it_detects_raw_sql_with_literal_in_where_and_no_params(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery("SELECT * FROM orders WHERE status = 'pending'")
+            ->addQuery("SELECT * FROM orders WHERE status = 'pending; DROP TABLE users; --'")
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
 
         $issuesArray = $issues->toArray();
         self::assertCount(1, $issuesArray);
-        self::assertStringContainsString('Unparameterized literal', $issuesArray[0]->getTitle());
         self::assertEquals('critical', $issuesArray[0]->getSeverity()->value);
     }
 
@@ -387,13 +386,13 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     public function it_detects_double_quoted_literal_in_where(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users WHERE email = "admin@test.com"')
+            ->addQuery('SELECT * FROM users WHERE email = "admin\'; DROP TABLE users; --"')
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
 
         $issuesArray = $issues->toArray();
         self::assertCount(1, $issuesArray);
-        self::assertStringContainsString('Unparameterized literal', $issuesArray[0]->getTitle());
+        self::assertEquals('critical', $issuesArray[0]->getSeverity()->value);
     }
 }

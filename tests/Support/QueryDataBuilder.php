@@ -84,6 +84,18 @@ class QueryDataBuilder
         return $this->addQuery($sql, $executionTime);
     }
 
+    public function addQueryWithOrmBacktrace(string $sql, ?float $executionTime = null): self
+    {
+        return $this->addQueryWithBacktrace(
+            $sql,
+            [
+                ['class' => 'Doctrine\\ORM\\EntityManager', 'function' => 'flush'],
+                ['class' => 'Doctrine\\ORM\\UnitOfWork', 'function' => 'commit'],
+            ],
+            $executionTime,
+        );
+    }
+
     /**
      * Add a frequently executed query.
      */
