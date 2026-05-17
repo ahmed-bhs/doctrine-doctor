@@ -122,6 +122,11 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
 
         $containerBuilder->setParameter('doctrine_doctor.analyzers.order_by_without_limit.min_execution_time_ms', $analyzers['order_by_without_limit']['min_execution_time_ms']);
 
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.deep_offset_pagination.offset_warning_threshold', $analyzers['deep_offset_pagination']['offset_warning_threshold']);
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.deep_offset_pagination.offset_critical_threshold', $analyzers['deep_offset_pagination']['offset_critical_threshold']);
+
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.function_on_predicate_column.min_execution_time_ms', $analyzers['function_on_predicate_column']['min_execution_time_ms']);
+
         $containerBuilder->setParameter('doctrine_doctor.analyzers.join_optimization.max_joins_recommended', $analyzers['join_optimization']['max_joins_recommended']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.join_optimization.max_joins_critical', $analyzers['join_optimization']['max_joins_critical']);
 
