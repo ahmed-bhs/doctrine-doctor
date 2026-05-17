@@ -97,11 +97,8 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_does_not_flag_right_join_even_when_alias_is_unused(): void
+    public function it_flags_right_join_when_alias_is_unused(): void
     {
-        // RIGHT JOIN, like INNER JOIN, constrains the result set.
-        // The analyzer only checks for "LEFT" in the join type, so RIGHT JOINs
-        // with unused aliases silently pass through (false negative).
         $sql = 'SELECT a.id FROM article a RIGHT JOIN user u ON u.id = a.author_id';
 
         $collection = QueryDataBuilder::create()->addQuery($sql, 0.010)->build();
@@ -112,10 +109,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
             static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
         );
 
-        // RIGHT JOIN with unused alias is NOT flagged (false negative).
-        // This is acceptable since RIGHT JOINs are rare in Doctrine, but
-        // documents the gap.
-        self::assertCount(0, $unusedJoinIssues);
+        self::assertCount(1, $unusedJoinIssues);
     }
 
     #[Test]

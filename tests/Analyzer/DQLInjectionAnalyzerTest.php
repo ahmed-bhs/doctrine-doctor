@@ -364,7 +364,7 @@ final class DQLInjectionAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_detects_doctrine_sql_with_literal_and_no_params(): void
+    public function it_does_not_flag_doctrine_sql_with_safe_status_literal(): void
     {
         $queries = QueryDataBuilder::create()
             ->addQuery("SELECT t0_.id AS id_1, t0_.status AS status_2 FROM orders t0_ WHERE t0_.status = 'pending'")
@@ -372,10 +372,11 @@ final class DQLInjectionAnalyzerTest extends TestCase
 
         $issues = $this->analyzer->analyze($queries);
 
-        $issuesArray = $issues->toArray();
-        self::assertCount(1, $issuesArray);
-        self::assertStringContainsString('concatenated literal', $issuesArray[0]->getTitle());
-        self::assertEquals('critical', $issuesArray[0]->getSeverity()->value);
+        self::assertCount(
+            0,
+            $issues,
+            'Hardcoded business literals (status enum values) are not user input and must not trigger injection alerts',
+        );
     }
 
     #[Test]
