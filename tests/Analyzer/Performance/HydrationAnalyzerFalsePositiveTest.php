@@ -55,18 +55,14 @@ final class HydrationAnalyzerFalsePositiveTest extends TestCase
     }
 
     #[Test]
-    public function it_flags_select_id_only_with_high_limit_as_excessive_hydration(): void
+    public function it_does_not_flag_select_id_only_with_high_limit(): void
     {
         $sql = 'SELECT id FROM users WHERE active = 1 LIMIT 200';
 
         $collection = QueryDataBuilder::create()->addQuery($sql)->build();
         $issues = $this->analyzer->analyze($collection);
 
-        self::assertGreaterThan(
-            0,
-            count($issues->toArray()),
-            'Single-column SELECT with high limit is now considered excessive hydration; only true aggregations (COUNT/SUM/AVG/MIN/MAX/GROUP_CONCAT) are skipped',
-        );
+        self::assertCount(0, $issues->toArray(), 'Single-column scalar SELECT is treated as scalar projection');
     }
 
     #[Test]
