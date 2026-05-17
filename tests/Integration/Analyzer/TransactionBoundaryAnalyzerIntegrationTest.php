@@ -255,7 +255,7 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
     #[Test]
     public function it_does_not_flag_correct_transaction_usage(): void
     {
-        self::markTestSkipped('SQLite/Doctrine emits SAVEPOINT inside BEGIN, which TransactionBoundaryAnalyzer now treats as a nested-transaction marker.');
+        self::markTestSkipped('SQLite/Doctrine emits SAVEPOINT inside BEGIN, which TransactionBoundaryAnalyzer treats as a nested-transaction marker.');
         $this->startQueryCollection();
 
         // GOOD: Proper transaction management
