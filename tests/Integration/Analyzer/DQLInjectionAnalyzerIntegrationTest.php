@@ -244,4 +244,25 @@ final class DQLInjectionAnalyzerIntegrationTest extends DatabaseTestCase
         self::assertGreaterThan(0, count($issueCollection), 'Unsafe query should be flagged');
         self::assertCount(0, $safeIssues, 'Safe query should NOT be flagged');
     }
+
+    #[Test]
+    public function it_does_not_flag_doctrine_generated_sql_with_safe_business_literal(): void
+    {
+        $compiledSql = "SELECT o0_.id AS id_0, o0_.status AS status_1 FROM orders o0_ WHERE o0_.status = 'pending'";
+
+        $queryData = new QueryData(
+            sql: $compiledSql,
+            executionTime: QueryExecutionTime::fromMilliseconds(10.0),
+            params: [],
+            backtrace: debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5),
+        );
+
+        $issueCollection = $this->dqlInjectionAnalyzer->analyze(QueryDataCollection::fromArray([$queryData]));
+
+        self::assertCount(
+            0,
+            $issueCollection,
+            'Hardcoded business literals are not user input; injection risk is detected via active attack patterns or source code scan',
+        );
+    }
 }
