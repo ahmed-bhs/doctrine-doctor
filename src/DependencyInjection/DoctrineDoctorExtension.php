@@ -61,6 +61,10 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         );
         $yamlFileLoader->load('services.yaml');
 
+        if (interface_exists(\Doctrine\ORM\EntityManagerInterface::class)) {
+            $yamlFileLoader->load('services_orm.yaml');
+        }
+
         $this->disableAnalyzers($container, $config);
 
         if (isset($config['profiler']['show_in_toolbar']) && !$config['profiler']['show_in_toolbar']) {

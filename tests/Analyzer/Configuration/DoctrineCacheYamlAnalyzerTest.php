@@ -16,7 +16,6 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\PhpTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\DatabaseTestCase;
-use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use PHPUnit\Framework\Attributes\Test;
 
 final class DoctrineCacheYamlAnalyzerTest extends DatabaseTestCase
@@ -218,6 +217,7 @@ final class DoctrineCacheYamlAnalyzerTest extends DatabaseTestCase
         );
 
         $issue = reset($metadataIssues);
+        self::assertNotFalse($issue);
         $suggestion = $issue->getSuggestion();
 
         self::assertNotNull($suggestion);
@@ -250,7 +250,12 @@ final class DoctrineCacheYamlAnalyzerTest extends DatabaseTestCase
             return;
         }
 
-        foreach (scandir($path) as $entry) {
+        $entries = scandir($path);
+        if (false === $entries) {
+            return;
+        }
+
+        foreach ($entries as $entry) {
             if ('.' === $entry || '..' === $entry) {
                 continue;
             }

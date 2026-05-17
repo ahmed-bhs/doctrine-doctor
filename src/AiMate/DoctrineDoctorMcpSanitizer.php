@@ -1,22 +1,29 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025-2026 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\AiMate;
 
+use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
-use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
-use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use Throwable;
 
 final readonly class DoctrineDoctorMcpSanitizer
 {
     private const int MAX_QUERIES_PER_ISSUE = 3;
 
-    public function __construct(private TraceSanitizer $traceSanitizer)
-    {
+    public function __construct(
+        private TraceSanitizer $traceSanitizer,
+    ) {
     }
 
     /**
@@ -33,11 +40,11 @@ final readonly class DoctrineDoctorMcpSanitizer
         $filtered = array_filter(
             $issues,
             static function (IssueInterface $issue) use ($category, $severity): bool {
-                if ($category !== null && $issue->getCategory()->value !== $category) {
+                if (null !== $category && $issue->getCategory()->value !== $category) {
                     return false;
                 }
 
-                if ($severity !== null && $issue->getSeverity()->value !== $severity) {
+                if (null !== $severity && $issue->getSeverity()->value !== $severity) {
                     return false;
                 }
 
@@ -87,7 +94,7 @@ final readonly class DoctrineDoctorMcpSanitizer
             $summary = '';
         }
 
-        if ($summary === '') {
+        if ('' === $summary) {
             try {
                 $summary = $this->normalizeText(strip_tags($suggestion->getCode()));
             } catch (Throwable) {
@@ -131,7 +138,7 @@ final readonly class DoctrineDoctorMcpSanitizer
                     : (is_int($query['row_count'] ?? null) ? $query['row_count'] : null);
             }
 
-            if ($sql === '') {
+            if ('' === $sql) {
                 continue;
             }
 
@@ -140,7 +147,7 @@ final readonly class DoctrineDoctorMcpSanitizer
                 'execution_ms' => round($executionMs, 3),
             ];
 
-            if ($rowCount !== null) {
+            if (null !== $rowCount) {
                 $sanitized['row_count'] = $rowCount;
             }
 
@@ -170,4 +177,3 @@ final readonly class DoctrineDoctorMcpSanitizer
         return $normalized;
     }
 }
-

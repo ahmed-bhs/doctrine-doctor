@@ -43,7 +43,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name, price) VALUES ('Product {$i}', 19.99)", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name, price) VALUES ('Product {$i}', 19.99)", 0.002);
         }
 
         // Act
@@ -66,7 +66,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 22; $i++) {
-            $queries->addQuery("UPDATE users SET status = 'active' WHERE id = {$i}", 0.002);
+            $queries->addQueryWithOrmBacktrace("UPDATE users SET status = 'active' WHERE id = {$i}", 0.002);
         }
 
         // Act
@@ -88,7 +88,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 30; $i++) {
-            $queries->addQuery("DELETE FROM temp_data WHERE id = {$i}", 0.001);
+            $queries->addQueryWithOrmBacktrace("DELETE FROM temp_data WHERE id = {$i}", 0.001);
         }
 
         // Act
@@ -110,7 +110,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 15; $i++) {
-            $queries->addQuery("INSERT INTO products (name, price) VALUES ('Product {$i}', 19.99)", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name, price) VALUES ('Product {$i}', 19.99)", 0.002);
         }
 
         // Act
@@ -127,11 +127,11 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
         }
 
         // Act
@@ -155,7 +155,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
 
             // Add 15 unrelated queries between each operation (exceeds maxGap of 10)
             for ($j = 1; $j <= 15; $j++) {
@@ -177,7 +177,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
 
             // Add 2 unrelated queries (within maxGap)
             for ($j = 1; $j <= 2; $j++) {
@@ -201,7 +201,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
 
         // 20 close operations (70% of 25 = 17.5, so this should pass)
         for ($i = 1; $i <= 20; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
             if ($i <= 20) { // @phpstan-ignore-line Always true but kept for clarity
                 $queries->addQuery("SELECT 1", 0.1);  // Small gap
             }
@@ -212,7 +212,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
             for ($j = 1; $j <= 15; $j++) {
                 $queries->addQuery("SELECT * FROM other_table WHERE id = {$j}", 0.5);
             }
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -230,7 +230,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -250,7 +250,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -276,7 +276,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -297,7 +297,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -319,7 +319,10 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         for ($i = 1; $i <= 25; $i++) {
             $queries->addQueryWithBacktrace(
                 "INSERT INTO products (name) VALUES ('Product {$i}')",
-                [['file' => 'ProductImporter.php', 'line' => 42 + $i]],
+                [
+                    ['file' => 'ProductImporter.php', 'line' => 42 + $i],
+                    ['class' => 'Doctrine\\ORM\\EntityManager', 'function' => 'flush'],
+                ],
                 0.002,
             );
         }
@@ -344,7 +347,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -397,66 +400,66 @@ final class EntityManagerClearAnalyzerTest extends TestCase
     {
         // Arrange: Various SQL formats
         $queries = QueryDataBuilder::create()
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("INSERT INTO my_table (col) VALUES ('val')")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 1")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 2")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 3")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 4")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 5")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 6")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 7")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 8")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 9")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 10")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 11")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 12")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 13")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 14")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 15")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 16")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 17")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 18")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 19")
-            ->addQuery("UPDATE my_other_table SET col = 'val' WHERE id = 20")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 1")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 2")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 3")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 4")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 5")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 6")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 7")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 8")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 9")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 10")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 11")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 12")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 13")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 14")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 15")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 16")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 17")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 18")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 19")
-            ->addQuery("DELETE FROM yet_another_table WHERE id = 20");
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("INSERT INTO my_table (col) VALUES ('val')")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 1")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 2")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 3")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 4")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 5")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 6")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 7")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 8")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 9")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 10")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 11")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 12")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 13")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 14")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 15")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 16")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 17")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 18")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 19")
+            ->addQueryWithOrmBacktrace("UPDATE my_other_table SET col = 'val' WHERE id = 20")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 1")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 2")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 3")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 4")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 5")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 6")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 7")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 8")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 9")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 10")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 11")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 12")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 13")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 14")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 15")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 16")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 17")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 18")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 19")
+            ->addQueryWithOrmBacktrace("DELETE FROM yet_another_table WHERE id = 20");
 
         // Act
         $issues = $this->analyzer->analyze($queries->build());
@@ -480,7 +483,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -504,7 +507,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 25; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -529,7 +532,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
 
         // Only 30 operations (below high threshold)
         for ($i = 1; $i <= 30; $i++) {
-            $queries->addQuery("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO products (name) VALUES ('Product {$i}')", 0.002);
         }
 
         // Act
@@ -549,7 +552,10 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         for ($i = 1; $i <= 100; $i++) {
             $queries->addQueryWithBacktrace(
                 "INSERT INTO products (sku, name, price, stock) VALUES ('SKU{$i}', 'Product {$i}', 19.99, 100)",
-                [['file' => 'CsvImporter.php', 'line' => 87]],
+                [
+                    ['file' => 'CsvImporter.php', 'line' => 87],
+                    ['class' => 'Doctrine\\ORM\\EntityManager', 'function' => 'flush'],
+                ],
                 0.003,
             );
         }
@@ -573,15 +579,15 @@ final class EntityManagerClearAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create();
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("INSERT INTO logs (message) VALUES ('Log {$i}')", 0.001);
+            $queries->addQueryWithOrmBacktrace("INSERT INTO logs (message) VALUES ('Log {$i}')", 0.001);
         }
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("UPDATE logs SET processed = 1 WHERE id = {$i}", 0.001);
+            $queries->addQueryWithOrmBacktrace("UPDATE logs SET processed = 1 WHERE id = {$i}", 0.001);
         }
 
         for ($i = 1; $i <= 10; $i++) {
-            $queries->addQuery("DELETE FROM logs WHERE id = {$i}", 0.001);
+            $queries->addQueryWithOrmBacktrace("DELETE FROM logs WHERE id = {$i}", 0.001);
         }
 
         // Act

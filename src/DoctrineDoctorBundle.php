@@ -12,6 +12,8 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor;
 
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\ConditionalLoggerPass;
+use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\RemoveOrmServicesPass;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use function dirname;
@@ -50,5 +52,6 @@ class DoctrineDoctorBundle extends Bundle
         // When debug.internal_logging is false (default), all loggers become NullLogger
         // This saves ~133ms overhead from Monolog calls
         $container->addCompilerPass(new ConditionalLoggerPass());
+        $container->addCompilerPass(new RemoveOrmServicesPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -100);
     }
 }

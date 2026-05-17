@@ -58,7 +58,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                 foreach ($queryDataCollection as $queryData) {
                     $this->updateTimeState($queryData, $state);
 
-                    $sql = strtoupper(trim($queryData->sql));
+                    $sql = strtoupper(trim($queryData->sql, " \t\n\r\0\x0B\"'`"));
                     yield from $this->processQuery($sql, $queryData, $state);
                 }
 
@@ -221,7 +221,8 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     {
         return str_starts_with($sql, 'START TRANSACTION')
                || str_starts_with($sql, 'BEGIN')
-               || str_contains($sql, 'BEGIN TRANSACTION');
+               || str_contains($sql, 'BEGIN TRANSACTION')
+               || str_starts_with($sql, 'SAVEPOINT');
     }
 
     /**
@@ -239,7 +240,8 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      */
     private function isCommit(string $sql): bool
     {
-        return str_starts_with($sql, 'COMMIT');
+        return str_starts_with($sql, 'COMMIT')
+               || str_starts_with($sql, 'RELEASE SAVEPOINT');
     }
 
     /**

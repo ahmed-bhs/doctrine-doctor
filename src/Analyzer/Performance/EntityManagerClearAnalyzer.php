@@ -90,7 +90,7 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                         // Check if queries are in sequence (potential loop)
                         $isSequential = $this->areQueriesSequential($tableQueries);
 
-                        if ($isSequential) {
+                        if ($isSequential && $this->hasOrmContext($tableQueries)) {
                             $queryDetails = [];
 
                             foreach ($tableQueries as $tableQuery) {
@@ -143,6 +143,33 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     {
         $lowerTable = strtolower($table);
         return array_any(self::MIGRATION_TABLE_PATTERNS, fn ($pattern) => str_contains($lowerTable, (string) $pattern));
+    }
+
+    private function hasOrmContext(array $tableQueries): bool
+    {
+        foreach ($tableQueries as $tableQuery) {
+            $backtrace = $tableQuery['query']->backtrace ?? null;
+            if (!is_array($backtrace)) {
+                continue;
+            }
+
+            foreach ($backtrace as $frame) {
+                $class = $frame['class'] ?? '';
+                if (!is_string($class)) {
+                    continue;
+                }
+
+                if (str_starts_with($class, 'Doctrine\\ORM\\')
+                    || str_contains($class, '\\EntityManager')
+                    || str_contains($class, '\\UnitOfWork')
+                    || str_contains($class, '\\EntityRepository')
+                    || str_contains($class, 'ServiceEntityRepository')) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private function areQueriesSequential(array $queries): bool

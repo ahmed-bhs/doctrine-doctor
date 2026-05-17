@@ -16,7 +16,7 @@ class PaginatorQueryDetector
     /**
      * @param array<int, array<string, mixed>>|null $backtrace
      */
-    public static function isPaginatorQuery(?array $backtrace): bool
+    public function isPaginatorQuery(?array $backtrace): bool
     {
         if (null === $backtrace) {
             return false;

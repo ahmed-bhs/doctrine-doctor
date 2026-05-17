@@ -55,21 +55,6 @@ final class FinalEntityAnalyzerTest extends TestCase
         $this->analyzer = $this->createAnalyzerWithGhostObjectsDisabled();
     }
 
-    private function createAnalyzerWithGhostObjectsDisabled(): FinalEntityAnalyzer
-    {
-        $entityManager = $this->createMock(\Doctrine\ORM\EntityManagerInterface::class);
-        $configuration = $this->createMock(\Doctrine\ORM\Configuration::class);
-
-        if (method_exists($configuration, 'isLazyGhostObjectEnabled')) {
-            $configuration->method('isLazyGhostObjectEnabled')->willReturn(false);
-        }
-
-        $entityManager->method('getConfiguration')->willReturn($configuration);
-        $entityManager->method('getMetadataFactory')->willReturn($this->entityManager->getMetadataFactory());
-
-        return new FinalEntityAnalyzer($entityManager, new IssueFactory());
-    }
-
     #[Test]
     public function it_implements_analyzer_interface(): void
     {
@@ -441,5 +426,20 @@ final class FinalEntityAnalyzerTest extends TestCase
                 'Issue severity must be critical or warning',
             );
         }
+    }
+
+    private function createAnalyzerWithGhostObjectsDisabled(): FinalEntityAnalyzer
+    {
+        $entityManager = $this->createMock(\Doctrine\ORM\EntityManagerInterface::class);
+        $configuration = $this->createMock(\Doctrine\ORM\Configuration::class);
+
+        if (method_exists($configuration, 'isLazyGhostObjectEnabled')) {
+            $configuration->method('isLazyGhostObjectEnabled')->willReturn(false);
+        }
+
+        $entityManager->method('getConfiguration')->willReturn($configuration);
+        $entityManager->method('getMetadataFactory')->willReturn($this->entityManager->getMetadataFactory());
+
+        return new FinalEntityAnalyzer($entityManager, new IssueFactory());
     }
 }
