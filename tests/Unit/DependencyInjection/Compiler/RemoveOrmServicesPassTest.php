@@ -180,7 +180,11 @@ final class FakeOrmAnalyzer
 
 final class FakeTypedOrmAnalyzer
 {
+    private \Doctrine\ORM\EntityManagerInterface $entityManager;
+
     public function __construct(\Doctrine\ORM\EntityManagerInterface $em)
     {
+        $this->entityManager = $em;
+        assert($this->entityManager instanceof \Doctrine\ORM\EntityManagerInterface);
     }
 }

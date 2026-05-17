@@ -155,11 +155,11 @@ class QueryBuilderPatternDetector
             return false;
         }
 
-        if (1 !== preg_match('/LIKE\s+[\'"]([^\'"]*)[\'"]/', $sql, $m)) {
+        if (1 !== preg_match('/LIKE\s+[\'"]([^\'"]*)[\'"]/', $sql, $matches)) {
             return false;
         }
 
-        $pattern = $m[1];
+        $pattern = $matches[1];
 
         if (!str_contains($pattern, '%') && !str_contains($pattern, '_')) {
             return false;
@@ -267,7 +267,7 @@ class QueryBuilderPatternDetector
             return false;
         }
 
-        if (strlen($value) <= 64 && preg_match('/[;]|--|\bOR\b|\bAND\b|\bUNION\b|\bSELECT\b|\bDROP\b/i', $value) === 0) {
+        if (strlen($value) <= 64 && 0 === preg_match('/[;]|--|\bOR\b|\bAND\b|\bUNION\b|\bSELECT\b|\bDROP\b/i', $value)) {
             return false;
         }
 

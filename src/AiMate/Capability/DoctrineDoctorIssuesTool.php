@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025-2026 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\AiMate\Capability;
@@ -9,7 +16,6 @@ use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use Mcp\Capability\Attribute\McpTool;
 use Symfony\AI\Mate\Bridge\Symfony\Profiler\Service\ProfilerDataProvider;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
-
 use function implode;
 use function sprintf;
 
@@ -60,10 +66,10 @@ final readonly class DoctrineDoctorIssuesTool
      */
     private function getCollector(?string $token): DoctrineDoctorDataCollector|array
     {
-        if ($token === null) {
+        if (null === $token) {
             $latest = $this->dataProvider->getLatestProfile();
 
-            if ($latest === null) {
+            if (null === $latest) {
                 return ['error' => 'No profiler profiles found'];
             }
 
@@ -72,7 +78,7 @@ final readonly class DoctrineDoctorIssuesTool
 
         $profileData = $this->dataProvider->findProfile($token);
 
-        if ($profileData === null) {
+        if (null === $profileData) {
             return ['error' => sprintf('Profile not found for token: %s', $token)];
         }
 
@@ -80,7 +86,7 @@ final readonly class DoctrineDoctorIssuesTool
 
         foreach ($collectors as $collector) {
             if (
-                $collector->getName() === 'doctrine_doctor'
+                'doctrine_doctor' === $collector->getName()
                 && $collector instanceof DoctrineDoctorDataCollector
             ) {
                 return $collector;

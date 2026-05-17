@@ -33,6 +33,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         private readonly SqlStructureExtractor $sqlExtractor,
         private readonly int $maxJoinsRecommended = 5,
         private readonly int $maxJoinsCritical = 8,
+        private readonly PaginatorQueryDetector $paginatorQueryDetector = new PaginatorQueryDetector(),
     ) {
     }
 
@@ -302,15 +303,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
 
     private function isJoinNullable(array $join, string $sql, ClassMetadata $classMetadata): ?bool
     {
-        $onClause = $this->sqlExtractor->extractJoinOnClause($sql, (string) $join['full_match']);
-
-        if (null === $onClause) {
-            return null;
-        }
-
-        preg_match_all('/(?:\w+\.)?(\w+)\s*=/', $onClause, $matches);
-        $columnsInOnClause = array_map(strtolower(...), $matches[1]);
-
+        $columnsInOnClause = $this->extractColumnsInOnClause($join, $sql);
         if ([] === $columnsInOnClause) {
             return null;
         }
@@ -319,39 +312,12 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $bestMatchCount = 0;
 
         foreach ($classMetadata->getAssociationMappings() as $associationMapping) {
-            $joinColumns = is_object($associationMapping) ? ($associationMapping->joinColumns ?? null) : ($associationMapping['joinColumns'] ?? null);
-
-            if (null === $joinColumns) {
+            $joinColumns = $this->normalizeJoinColumns($associationMapping);
+            if ([] === $joinColumns) {
                 continue;
             }
 
-            Assert::isIterable($joinColumns, 'joinColumns must be iterable');
-
-            if (!is_array($joinColumns)) {
-                $joinColumns = iterator_to_array($joinColumns);
-            }
-
-            $matchedColumns = 0;
-            $allNullable = true;
-
-            foreach ($joinColumns as $joinColumn) {
-                $columnName = is_object($joinColumn) ? ($joinColumn->name ?? null) : ($joinColumn['name'] ?? null);
-
-                if (null === $columnName) {
-                    continue;
-                }
-
-                $columnNameLower = strtolower((string) $columnName);
-
-                if (in_array($columnNameLower, $columnsInOnClause, true)) {
-                    ++$matchedColumns;
-
-                    $isNullable = is_object($joinColumn) ? ($joinColumn->nullable ?? true) : ($joinColumn['nullable'] ?? true);
-                    if (false === $isNullable) {
-                        $allNullable = false;
-                    }
-                }
-            }
+            [$matchedColumns, $allNullable] = $this->matchJoinColumns($joinColumns, $columnsInOnClause);
 
             if ($matchedColumns === count($joinColumns) && $matchedColumns > $bestMatchCount) {
                 $bestMatchCount = $matchedColumns;
@@ -401,7 +367,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
             return null;
         }
 
-        if (PaginatorQueryDetector::isPaginatorQuery($this->extractBacktrace($query))) {
+        if ($this->paginatorQueryDetector->isPaginatorQuery($this->extractBacktrace($query))) {
             return null;
         }
 
@@ -429,6 +395,73 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         }
 
         return null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function extractColumnsInOnClause(array $join, string $sql): array
+    {
+        $onClause = $this->sqlExtractor->extractJoinOnClause($sql, (string) $join['full_match']);
+        if (null === $onClause) {
+            return [];
+        }
+
+        preg_match_all('/(?:\w+\.)?(\w+)\s*=/', $onClause, $matches);
+
+        return array_map(strtolower(...), $matches[1]);
+    }
+
+    /**
+     * @return list<object|array<string, mixed>>
+     */
+    private function normalizeJoinColumns(object|array $associationMapping): array
+    {
+        $joinColumns = is_object($associationMapping)
+            ? ($associationMapping->joinColumns ?? null)
+            : ($associationMapping['joinColumns'] ?? null);
+
+        if (null === $joinColumns) {
+            return [];
+        }
+
+        Assert::isIterable($joinColumns, 'joinColumns must be iterable');
+
+        $normalizedJoinColumns = is_array($joinColumns) ? $joinColumns : iterator_to_array($joinColumns);
+
+        return array_values($normalizedJoinColumns);
+    }
+
+    /**
+     * @param list<object|array<string, mixed>> $joinColumns
+     * @param list<string> $columnsInOnClause
+     *
+     * @return array{int, bool}
+     */
+    private function matchJoinColumns(array $joinColumns, array $columnsInOnClause): array
+    {
+        $matchedColumns = 0;
+        $allNullable = true;
+
+        foreach ($joinColumns as $joinColumn) {
+            $columnName = is_object($joinColumn) ? ($joinColumn->name ?? null) : ($joinColumn['name'] ?? null);
+            if (null === $columnName) {
+                continue;
+            }
+
+            if (!in_array(strtolower((string) $columnName), $columnsInOnClause, true)) {
+                continue;
+            }
+
+            ++$matchedColumns;
+
+            $isNullable = is_object($joinColumn) ? ($joinColumn->nullable ?? true) : ($joinColumn['nullable'] ?? true);
+            if (false === $isNullable) {
+                $allNullable = false;
+            }
+        }
+
+        return [$matchedColumns, $allNullable];
     }
 
     private function createTooManyJoinsSuggestion(int $joinCount, string $sql): SuggestionInterface
