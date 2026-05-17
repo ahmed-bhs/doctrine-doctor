@@ -227,4 +227,25 @@ final class SQLInjectionInRawQueriesAnalyzerIntegrationTest extends DatabaseTest
             }
         }
     }
+
+    #[Test]
+    public function it_does_not_flag_safe_business_literal_in_where_clause(): void
+    {
+        $sql = "SELECT * FROM orders WHERE status = 'pending'";
+
+        $queryData = new QueryData(
+            sql: $sql,
+            executionTime: QueryExecutionTime::fromMilliseconds(10.0),
+            params: [],
+            backtrace: debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5),
+        );
+
+        $issues = $this->sqlInjectionInRawQueriesAnalyzer->analyze(QueryDataCollection::fromArray([$queryData]));
+
+        self::assertCount(
+            0,
+            $issues,
+            'Hardcoded enum-like literals are filtered via safeStatics; real injection is caught by active attack patterns and source code scan',
+        );
+    }
 }
