@@ -37,6 +37,14 @@ final class OrmServicePruner
         'AhmedBhs\\DoctrineDoctor\\Service\\',
     ];
 
+    private const array ENTITY_MANAGER_SERVICE_IDS = [
+        'doctrine_doctor.entity_manager',
+        'doctrine_doctor.entity_manager.inner',
+        'doctrine_doctor.entity_manager_with_filtered_metadata',
+        'doctrine.orm.entity_manager',
+        'doctrine.orm.default_entity_manager',
+    ];
+
     public function __construct(
         private readonly ContainerBuilder $container,
     ) {
@@ -198,11 +206,21 @@ final class OrmServicePruner
         }
 
         $class = $definition->getClass();
-        if (null === $class || !class_exists($class)) {
+        if (null === $class) {
             return false;
         }
 
-        $constructor = (new \ReflectionClass($class))->getConstructor();
+        try {
+            if (!class_exists($class)) {
+                return false;
+            }
+
+            $reflection  = new \ReflectionClass($class);
+            $constructor = $reflection->getConstructor();
+        } catch (\Throwable) {
+            return true;
+        }
+
         if (null === $constructor) {
             return false;
         }
@@ -224,11 +242,7 @@ final class OrmServicePruner
     private function referenceTargetsEntityManager(mixed $value): bool
     {
         if ($value instanceof Reference) {
-            $target = (string) $value;
-
-            return 'doctrine_doctor.entity_manager' === $target
-                || 'doctrine.orm.entity_manager' === $target
-                || str_contains($target, 'entity_manager');
+            return in_array((string) $value, self::ENTITY_MANAGER_SERVICE_IDS, true);
         }
 
         if (!is_array($value)) {

@@ -69,7 +69,7 @@ final class NPlusOneAnalyzerFalsePositiveTest extends TestCase
     }
 
     #[Test]
-    public function it_falsely_flags_queries_with_different_backtraces_as_n_plus_one(): void
+    public function it_does_not_flag_queries_with_diverse_backtrace_origins(): void
     {
         $builder = QueryDataBuilder::create();
 
@@ -102,6 +102,6 @@ final class NPlusOneAnalyzerFalsePositiveTest extends TestCase
         $collection = $builder->build();
         $issues = $this->analyzer->analyze($collection);
 
-        self::assertCount(0, $issues->toArray(), 'Fixed: queries from different backtrace origins are grouped separately and no single group reaches the threshold');
+        self::assertCount(0, $issues->toArray(), 'Queries from diverse origins are not flagged as N+1');
     }
 }
