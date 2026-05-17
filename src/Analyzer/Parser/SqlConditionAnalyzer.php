@@ -410,15 +410,37 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
      */
     private function extractFunctionFromCondition(Condition $condition, array $targetFunctions): ?array
     {
-        // Get the raw expression string
         $expr = trim((string) $condition->expr);
 
         if ('' === $expr) {
             return null;
         }
 
-        // Pattern to match: FUNCTION(field) OPERATOR value
-        // Example: YEAR(created_at) = 2023
+        $strftimePattern = '/\bstrftime\s*\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*(\w+(?:\.\w+)?)\s*\)\s*(=|<>|!=|>|<|>=|<=)\s*([^\s]+)/i';
+        if (1 === preg_match($strftimePattern, $expr, $strftimeMatches)) {
+            $mapped = $this->mapStrftimeFormat($strftimeMatches[1]);
+            if (null !== $mapped) {
+                return [
+                    'function' => $mapped,
+                    'field' => $strftimeMatches[2],
+                    'operator' => $strftimeMatches[3],
+                    'value' => trim($strftimeMatches[4], "'\""),
+                    'raw' => $expr,
+                ];
+            }
+        }
+
+        $extractPattern = '/\bEXTRACT\s*\(\s*(YEAR|MONTH|DAY|HOUR|MINUTE|SECOND)\s+FROM\s+(\w+(?:\.\w+)?)\s*\)\s*(=|<>|!=|>|<|>=|<=)\s*([^\s]+)/i';
+        if (1 === preg_match($extractPattern, $expr, $extractMatches)) {
+            return [
+                'function' => strtoupper($extractMatches[1]),
+                'field' => $extractMatches[2],
+                'operator' => $extractMatches[3],
+                'value' => trim($extractMatches[4], "'\""),
+                'raw' => $expr,
+            ];
+        }
+
         foreach ($targetFunctions as $functionName) {
             $pattern = sprintf(
                 '/\b%s\s*\(\s*(\w+(?:\.\w+)?)\s*\)\s*(=|<>|!=|>|<|>=|<=)\s*([^\s]+)/i',
@@ -437,5 +459,18 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         }
 
         return null;
+    }
+
+    private function mapStrftimeFormat(string $format): ?string
+    {
+        return match ($format) {
+            '%Y'    => 'YEAR',
+            '%m'    => 'MONTH',
+            '%d'    => 'DAY',
+            '%H'    => 'HOUR',
+            '%M'    => 'MINUTE',
+            '%S'    => 'SECOND',
+            default => null,
+        };
     }
 }
