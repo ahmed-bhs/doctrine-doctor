@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025-2026 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\AiMate;
@@ -21,13 +28,13 @@ final readonly class TraceSanitizer
      */
     public function sanitize(?array $trace): array
     {
-        if ($trace === null || $trace === []) {
+        if (null === $trace || [] === $trace) {
             return [];
         }
 
         $sanitized = $this->filterFrames($trace, excludeInternal: true);
 
-        if ($sanitized === []) {
+        if ([] === $sanitized) {
             $sanitized = $this->filterFrames($trace, excludeInternal: false);
         }
 
@@ -45,7 +52,7 @@ final readonly class TraceSanitizer
         foreach ($trace as $frame) {
             $file = $frame['file'] ?? null;
 
-            if (!is_string($file) || $file === '') {
+            if (!is_string($file) || '' === $file) {
                 continue;
             }
 
@@ -58,11 +65,11 @@ final readonly class TraceSanitizer
                 'line' => is_int($frame['line'] ?? null) ? $frame['line'] : 0,
             ];
 
-            if (is_string($frame['class'] ?? null) && $frame['class'] !== '') {
+            if (is_string($frame['class'] ?? null) && '' !== $frame['class']) {
                 $sanitized['class'] = $frame['class'];
             }
 
-            if (is_string($frame['function'] ?? null) && $frame['function'] !== '') {
+            if (is_string($frame['function'] ?? null) && '' !== $frame['function']) {
                 $sanitized['function'] = $frame['function'];
             }
 
@@ -90,11 +97,10 @@ final readonly class TraceSanitizer
         $normalizedProjectDir = rtrim(str_replace('\\', '/', $this->projectDir), '/');
         $normalizedFile = str_replace('\\', '/', $file);
 
-        if ($normalizedProjectDir !== '' && str_starts_with($normalizedFile, $normalizedProjectDir . '/')) {
+        if ('' !== $normalizedProjectDir && str_starts_with($normalizedFile, $normalizedProjectDir . '/')) {
             return substr($normalizedFile, strlen($normalizedProjectDir) + 1);
         }
 
         return $normalizedFile;
     }
 }
-

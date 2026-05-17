@@ -67,6 +67,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
         private readonly EntityManagerInterface $entityManager,
         private readonly IssueFactoryInterface $issueFactory,
         private readonly SuggestionFactoryInterface $suggestionFactory,
+        private readonly PaginatorQueryDetector $paginatorQueryDetector = new PaginatorQueryDetector(),
         private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
     ) {
     }
@@ -128,7 +129,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
      */
     private function detectUnusedJoinAliases(string $sql, ?array $backtrace = null): array
     {
-        if (PaginatorQueryDetector::isPaginatorQuery($backtrace)) {
+        if ($this->paginatorQueryDetector->isPaginatorQuery($backtrace)) {
             return [];
         }
 

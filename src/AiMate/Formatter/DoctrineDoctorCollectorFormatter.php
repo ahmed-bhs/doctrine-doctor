@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025-2026 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\AiMate\Formatter;
@@ -14,8 +21,9 @@ use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
  */
 final readonly class DoctrineDoctorCollectorFormatter implements CollectorFormatterInterface
 {
-    public function __construct(private DoctrineDoctorMcpSanitizer $sanitizer)
-    {
+    public function __construct(
+        private DoctrineDoctorMcpSanitizer $sanitizer,
+    ) {
     }
 
     public function getName(): string
@@ -56,4 +64,3 @@ final readonly class DoctrineDoctorCollectorFormatter implements CollectorFormat
         return $collector->getStats();
     }
 }
-

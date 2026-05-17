@@ -41,4 +41,3 @@ return [
     'code' => $code,
     'description' => sprintf('Enable Doctrine 2LC for repeated fast entity loads (%d occurrences)', $count),
 ];
-
