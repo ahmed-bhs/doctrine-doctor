@@ -19,6 +19,10 @@ final class RemoveOrmServicesPass implements CompilerPassInterface
         'AhmedBhs\\DoctrineDoctor\\Metadata\\EntityManagerMetadataDecorator',
     ];
 
+    private const array ORM_ONLY_ANALYZERS = [
+        'AhmedBhs\\DoctrineDoctor\\Analyzer\\Integrity\\PartialObjectAnalyzer',
+    ];
+
     public function process(ContainerBuilder $container): void
     {
         if ($container->has('doctrine.orm.entity_manager')) {
@@ -28,6 +32,10 @@ final class RemoveOrmServicesPass implements CompilerPassInterface
         $this->removeOrmInstanceofBindings($container);
 
         foreach (self::CORE_ORM_SERVICES as $serviceId) {
+            $this->removeService($container, $serviceId);
+        }
+
+        foreach (self::ORM_ONLY_ANALYZERS as $serviceId) {
             $this->removeService($container, $serviceId);
         }
 
