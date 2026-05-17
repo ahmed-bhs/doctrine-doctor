@@ -171,14 +171,19 @@ class InjectionPatternDetector
     {
         if (!empty($parsedData['parsed']) && !empty($parsedData['has_like'])) {
             foreach ($parsedData['like_values'] ?? [] as $value) {
-                if (str_contains($value, '%') || str_contains($value, '_')) {
+                if ((str_contains($value, '%') || str_contains($value, '_'))
+                    && $this->likePatternLooksSuspicious($value)) {
                     return true;
                 }
             }
             return false;
         }
 
-        return 1 === preg_match("/LIKE\s+['\"][^?:]*%[^?:]*['\"]/i", $sql);
+        if (1 !== preg_match("/LIKE\s+['\"]([^'\"]*)['\"]/i", $sql, $matches)) {
+            return false;
+        }
+
+        return $this->likePatternLooksSuspicious($matches[1]);
     }
 
     /**
@@ -237,6 +242,19 @@ class InjectionPatternDetector
             'multiple_conditions' => 'Multiple conditions with literals - complex injection attempt',
             default => 'Unknown pattern',
         };
+    }
+
+    private function likePatternLooksSuspicious(string $pattern): bool
+    {
+        if (strlen($pattern) > 64) {
+            return true;
+        }
+
+        if (preg_match('/[;]|--|\bOR\b|\bAND\b|\bUNION\b|\bSELECT\b|\bDROP\b/i', $pattern) > 0) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

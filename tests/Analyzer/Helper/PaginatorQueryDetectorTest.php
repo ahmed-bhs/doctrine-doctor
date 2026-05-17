@@ -17,6 +17,13 @@ use PHPUnit\Framework\TestCase;
 
 final class PaginatorQueryDetectorTest extends TestCase
 {
+    private PaginatorQueryDetector $detector;
+
+    protected function setUp(): void
+    {
+        $this->detector = new PaginatorQueryDetector();
+    }
+
     #[Test]
     public function it_detects_doctrine_paginator_in_backtrace(): void
     {
@@ -25,7 +32,7 @@ final class PaginatorQueryDetectorTest extends TestCase
             ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 96, 'class' => 'Doctrine\ORM\Tools\Pagination\Paginator', 'function' => 'count'],
         ];
 
-        self::assertTrue(PaginatorQueryDetector::isPaginatorQuery($backtrace));
+        self::assertTrue($this->detector->isPaginatorQuery($backtrace));
     }
 
     #[Test]
@@ -35,19 +42,19 @@ final class PaginatorQueryDetectorTest extends TestCase
             ['file' => '/app/vendor/easycorp/easyadmin-bundle/src/Orm/EntityPaginator.php', 'line' => 72, 'class' => 'EasyCorp\Bundle\EasyAdminBundle\Orm\EntityPaginator', 'function' => 'paginate'],
         ];
 
-        self::assertTrue(PaginatorQueryDetector::isPaginatorQuery($backtrace));
+        self::assertTrue($this->detector->isPaginatorQuery($backtrace));
     }
 
     #[Test]
     public function it_returns_false_for_null_backtrace(): void
     {
-        self::assertFalse(PaginatorQueryDetector::isPaginatorQuery(null));
+        self::assertFalse($this->detector->isPaginatorQuery(null));
     }
 
     #[Test]
     public function it_returns_false_for_empty_backtrace(): void
     {
-        self::assertFalse(PaginatorQueryDetector::isPaginatorQuery([]));
+        self::assertFalse($this->detector->isPaginatorQuery([]));
     }
 
     #[Test]
@@ -58,6 +65,6 @@ final class PaginatorQueryDetectorTest extends TestCase
             ['file' => '/app/src/Controller/UserController.php', 'line' => 18, 'class' => 'App\Controller\UserController', 'function' => 'index'],
         ];
 
-        self::assertFalse(PaginatorQueryDetector::isPaginatorQuery($backtrace));
+        self::assertFalse($this->detector->isPaginatorQuery($backtrace));
     }
 }

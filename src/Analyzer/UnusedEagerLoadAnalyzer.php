@@ -67,6 +67,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
         private readonly EntityManagerInterface $entityManager,
         private readonly IssueFactoryInterface $issueFactory,
         private readonly SuggestionFactoryInterface $suggestionFactory,
+        private readonly PaginatorQueryDetector $paginatorQueryDetector = new PaginatorQueryDetector(),
         private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
     ) {
     }
@@ -128,7 +129,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
      */
     private function detectUnusedJoinAliases(string $sql, ?array $backtrace = null): array
     {
-        if (PaginatorQueryDetector::isPaginatorQuery($backtrace)) {
+        if ($this->paginatorQueryDetector->isPaginatorQuery($backtrace)) {
             return [];
         }
 
@@ -191,15 +192,11 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
         $fromTable = $this->extractFromTable($sql, $metadataMap);
 
         if (null === $fromTable) {
-            // Can't analyze without knowing the main table - use higher threshold
-            // since we can't determine if these are collection JOINs
-            $joinCount = $this->sqlExtractor->countJoins($sql);
+            return null;
+        }
 
-            if ($joinCount < 3) {
-                return null;
-            }
-
-            return $this->createOverEagerIssue($joinCount, $backtrace, isCollection: null);
+        if (!isset($metadataMap[$fromTable])) {
+            return null;
         }
 
         // Count collection JOINs specifically (these cause cartesian product)

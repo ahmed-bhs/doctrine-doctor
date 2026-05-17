@@ -79,7 +79,7 @@ final class DQLInjectionAnalyzerIntegrationTest extends DatabaseTestCase
     #[Test]
     public function it_detects_like_injection_vulnerability(): void
     {
-        $vulnerableQuery = "SELECT u FROM User u WHERE u.email LIKE '%admin%' OR u.name = 'test-injection'";
+        $vulnerableQuery = "SELECT u FROM User u WHERE u.email LIKE '%admin%' OR 1=1 UNION SELECT password FROM admins";
 
         $queryData = new QueryData(
             sql: $vulnerableQuery,

@@ -437,6 +437,45 @@ final class YearFunctionOptimizationAnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_detects_sqlite_strftime_year(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM orders WHERE strftime('%Y', created_at) = '2023'", 0.080)
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        self::assertEquals('YEAR() Function Prevents Index Usage', $issues->toArray()[0]->getTitle());
+    }
+
+    #[Test]
+    public function it_detects_sqlite_strftime_month(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery("SELECT * FROM orders WHERE strftime('%m', created_at) = '12'", 0.080)
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        self::assertEquals('MONTH() Function Prevents Index Usage', $issues->toArray()[0]->getTitle());
+    }
+
+    #[Test]
+    public function it_detects_standard_extract_year_from(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM orders WHERE EXTRACT(YEAR FROM created_at) = 2023', 0.080)
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(1, $issues);
+        self::assertEquals('YEAR() Function Prevents Index Usage', $issues->toArray()[0]->getTitle());
+    }
+
+    #[Test]
     public function it_returns_correct_analyzer_metadata(): void
     {
         // Act

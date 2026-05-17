@@ -31,7 +31,7 @@ final class GetReferenceAnalyzerFalsePositiveTest extends TestCase
     }
 
     #[Test]
-    public function it_falsely_flags_fk_lookup_as_find_by_id_candidate(): void
+    public function it_does_not_flag_fk_lookup_as_find_by_id_candidate(): void
     {
         $builder = QueryDataBuilder::create();
 
@@ -47,7 +47,7 @@ final class GetReferenceAnalyzerFalsePositiveTest extends TestCase
         $collection = $builder->build();
         $issues = $this->analyzer->analyze($collection);
 
-        self::assertGreaterThanOrEqual(1, \count($issues), 'Known false positive: Pattern 5/6 matches WHERE customer_id = ? and supplier_id = ? as simple find() candidates, but these are FK lookups that load related entities by foreign key, not by primary key. getReference() would not work here');
+        self::assertCount(0, $issues, 'FK lookups (WHERE customer_id / supplier_id) are not primary-key find() candidates and must not be flagged as getReference() opportunities.');
     }
 
     #[Test]
