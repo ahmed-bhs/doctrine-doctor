@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.0-beta.4] - 2026-05-18
+
 ### Added
 
 - `DeepOffsetPaginationAnalyzer` (Performance): detects deep `OFFSET` pagination in executed SQL — `OFFSET >= 1000` is flagged as a warning, `OFFSET >= 10000` as critical. Cost grows linearly with page depth because the database must read and discard every skipped row. Suggests keyset (seek) pagination via `WHERE id > :lastId ORDER BY id LIMIT N` or an application-level cap on the maximum offset. Handles both `LIMIT n OFFSET m` and MySQL `LIMIT m, n` forms. Thresholds are configurable via `doctrine_doctor.analyzers.deep_offset_pagination.offset_warning_threshold` and `offset_critical_threshold`.
