@@ -118,7 +118,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
     private function hasMissingParameters(QueryData $queryData): bool
     {
         $sql = $queryData->sql;
-        $params = $queryData->params ?? [];
+        $params = $queryData->params;
 
         $result = $this->patternDetector->detectMissingParameters($sql, $params);
         return $result['hasMissing'];

@@ -153,7 +153,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         // Check for DISTINCT in SELECT options (SELECT DISTINCT ...)
         $statementOptions = $statement->options ?? null;
         if (null !== $statementOptions) {
-            $options = $statementOptions->options ?? [];
+            $options = $statementOptions->options;
             if ([] !== $options) {
                 foreach ($options as $option) {
                     if (is_string($option)) {
