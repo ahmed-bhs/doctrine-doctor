@@ -68,7 +68,7 @@ final class SqlQueryNormalizer implements QueryNormalizerInterface
         $parts[] = 'SELECT';
         $statementOptions = $statement->options ?? null;
         if (null !== $statementOptions) {
-            $options = $statementOptions->options ?? [];
+            $options = $statementOptions->options;
             if ([] !== $options) {
                 foreach ($options as $option) {
                     if (is_string($option)) {

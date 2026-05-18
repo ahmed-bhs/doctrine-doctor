@@ -259,7 +259,7 @@ final class DatabaseInfoCollector
      */
     private function logErrorIfDebugEnabled(string $message, \Throwable $throwable): void
     {
-        if ($this->dataCollectorConfig->debugMode ?? false) {
+        if ($this->dataCollectorConfig->debugMode) {
             $this->logger->error('DoctrineDoctor: ' . $message, [
                 'exception' => $throwable::class,
                 'message'   => $throwable->getMessage(),
@@ -274,7 +274,7 @@ final class DatabaseInfoCollector
      */
     private function logWarningIfDebugEnabled(string $message, \Throwable $throwable): void
     {
-        if ($this->dataCollectorConfig->debugMode ?? false) {
+        if ($this->dataCollectorConfig->debugMode) {
             $this->logger->warning('DoctrineDoctor: ' . $message, [
                 'exception' => $throwable::class,
                 'message'   => $throwable->getMessage(),
@@ -289,7 +289,7 @@ final class DatabaseInfoCollector
      */
     private function logDebugIfEnabled(string $message, \Throwable $throwable): void
     {
-        if ($this->dataCollectorConfig->debugMode ?? false) {
+        if ($this->dataCollectorConfig->debugMode) {
             $this->logger->debug('DoctrineDoctor: ' . $message, [
                 'exception' => $throwable::class,
                 'message'   => $throwable->getMessage(),

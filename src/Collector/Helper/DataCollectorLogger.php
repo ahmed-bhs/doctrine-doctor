@@ -46,7 +46,7 @@ final readonly class DataCollectorLogger
      */
     public function logWarningIfDebugEnabled(string $message, \Throwable $throwable): void
     {
-        if ($this->dataCollectorConfig->debugMode ?? false) {
+        if ($this->dataCollectorConfig->debugMode) {
             $this->logger->warning('DoctrineDoctor: ' . $message, [
                 'exception' => $throwable::class,
                 'message'   => $throwable->getMessage(),
@@ -61,7 +61,7 @@ final readonly class DataCollectorLogger
      */
     public function logDebugIfEnabled(string $message, \Throwable $throwable): void
     {
-        if ($this->dataCollectorConfig->debugMode ?? false) {
+        if ($this->dataCollectorConfig->debugMode) {
             $this->logger->debug('DoctrineDoctor: ' . $message, [
                 'exception' => $throwable::class,
                 'message'   => $throwable->getMessage(),
@@ -77,7 +77,7 @@ final readonly class DataCollectorLogger
      */
     public function logInfoIfEnabled(string $message, array $context = []): void
     {
-        if ($this->dataCollectorConfig->debugMode ?? false) {
+        if ($this->dataCollectorConfig->debugMode) {
             $this->logger->info('DoctrineDoctor: ' . $message, $context);
         }
     }
