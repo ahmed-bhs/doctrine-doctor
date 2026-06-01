@@ -586,6 +586,8 @@ services:
         arguments:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
+            $collectionJoinDetector: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector'
+            $entityManager: '@doctrine_doctor.entity_manager'
         tags:
             - { name: doctrine_doctor.analyzer }
 
