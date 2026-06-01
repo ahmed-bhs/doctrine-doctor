@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -24,6 +25,8 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 
 /**
  * Detects queries using LIMIT (from setMaxResults) with collection joins.
@@ -53,6 +56,8 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
         private readonly IssueFactoryInterface $issueFactory,
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly SqlStructureExtractor $sqlExtractor,
+        private readonly CollectionJoinDetector $collectionJoinDetector,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -131,7 +136,81 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
             return false;
         }
 
+        // Metadata-aware confirmation. Only a true to-many fetch-join
+        // (OneToMany / ManyToMany) multiplies rows and makes LIMIT unsafe.
+        // A to-one fetch-join (ManyToOne / OneToOne) yields one row per root
+        // entity, so LIMIT is correct. The regex above cannot tell them apart.
+        // We suppress ONLY when every fetch-joined table is positively confirmed
+        // to-one by the mapping metadata (ground truth, order-independent). Any
+        // join we cannot resolve (unmapped table, parse failure, to-many) keeps
+        // the heuristic result, so we never silence a real data-loss warning.
+        if ($this->allFetchJoinsAreConfirmedToOne($sql)) {
+            return false;
+        }
+
         return true;
+    }
+
+    private function allFetchJoinsAreConfirmedToOne(string $sql): bool
+    {
+        $metadataMap = $this->collectionJoinDetector->buildMetadataMap();
+        $fromTable   = $this->collectionJoinDetector->extractFromTable($sql, $metadataMap);
+
+        if (null === $fromTable) {
+            return false;
+        }
+
+        $fromMetadata = $metadataMap[$fromTable] ?? null;
+
+        if (null === $fromMetadata) {
+            return false;
+        }
+
+        $joins = $this->sqlExtractor->extractJoins($sql);
+
+        if ([] === $joins) {
+            return false;
+        }
+
+        foreach ($joins as $join) {
+            $joinTable = $join['table'] ?? null;
+
+            if (!is_string($joinTable) || !$this->isConfirmedToOneJoin($fromMetadata, $joinTable)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function isConfirmedToOneJoin(ClassMetadata $fromMetadata, string $joinTable): bool
+    {
+        foreach ($fromMetadata->getAssociationMappings() as $associationMapping) {
+            $targetEntity = $associationMapping['targetEntity'] ?? null;
+
+            if (null === $targetEntity) {
+                continue;
+            }
+
+            try {
+                $targetMetadata = $this->entityManager->getClassMetadata($targetEntity);
+            } catch (\Exception) {
+                continue;
+            }
+
+            if ($targetMetadata->getTableName() !== $joinTable) {
+                continue;
+            }
+
+            if (
+                ClassMetadata::MANY_TO_ONE === $associationMapping['type']
+                || ClassMetadata::ONE_TO_ONE === $associationMapping['type']
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

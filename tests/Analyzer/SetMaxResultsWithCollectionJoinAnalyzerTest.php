@@ -42,7 +42,12 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         $suggestionFactory = new SuggestionFactory($renderer);
         $issueFactory = new IssueFactory();
         $sqlExtractor = new \AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor();
-        $this->analyzer = new SetMaxResultsWithCollectionJoinAnalyzer($issueFactory, $suggestionFactory, $sqlExtractor);
+        $entityManager = \AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper::createTestEntityManager();
+        $collectionJoinDetector = new \AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector(
+            $entityManager,
+            $sqlExtractor,
+        );
+        $this->analyzer = new SetMaxResultsWithCollectionJoinAnalyzer($issueFactory, $suggestionFactory, $sqlExtractor, $collectionJoinDetector, $entityManager);
     }
 
     #[Test]

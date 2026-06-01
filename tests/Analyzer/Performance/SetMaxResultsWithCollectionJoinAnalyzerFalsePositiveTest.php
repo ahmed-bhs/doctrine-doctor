@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Analyzer\Performance\SetMaxResultsWithCollectionJoinAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
@@ -24,10 +25,15 @@ final class SetMaxResultsWithCollectionJoinAnalyzerFalsePositiveTest extends Tes
 
     protected function setUp(): void
     {
+        $sqlExtractor = new SqlStructureExtractor();
+        $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager();
+
         $this->analyzer = new SetMaxResultsWithCollectionJoinAnalyzer(
             PlatformAnalyzerTestHelper::createIssueFactory(),
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
-            new SqlStructureExtractor(),
+            $sqlExtractor,
+            new CollectionJoinDetector($entityManager, $sqlExtractor),
+            $entityManager,
         );
     }
 
