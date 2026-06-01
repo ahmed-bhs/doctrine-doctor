@@ -43,10 +43,14 @@ final class SetMaxResultsWithCollectionJoinAnalyzerIntegrationTest extends Datab
 
         $this->createSchema([User::class, BlogPost::class, Comment::class]);
 
+        $sqlExtractor = new \AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor();
+
         $this->setMaxResultsWithCollectionJoinAnalyzer = new SetMaxResultsWithCollectionJoinAnalyzer(
             new IssueFactory(),
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
-            new \AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor(),
+            $sqlExtractor,
+            new \AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector($this->entityManager, $sqlExtractor),
+            $this->entityManager,
         );
     }
 
