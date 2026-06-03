@@ -14,6 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Service;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Issue\DeduplicatableIssueInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 
 /**
@@ -87,6 +88,17 @@ final class IssueDeduplicator
 
         if (str_contains($title, 'Suboptimal LEFT JOIN')) {
             return 'suboptimal_left_join:' . md5($sql . ':' . ($entityOrTable ?? ''));
+        }
+
+        // Self-contained diagnoses identified by a stable issue type: they
+        // describe an independent problem and must never be merged into another
+        // issue that happens to touch the same SQL.
+        $selfContainedTypes = [
+            IssueType::DTO_HYDRATION->value,
+        ];
+
+        if (in_array($type, $selfContainedTypes, true)) {
+            return $type . ':' . md5($sql);
         }
 
         $signature = $this->getEntityTypeSignature($type, $title, $description, $entityOrTable);
