@@ -38,6 +38,7 @@ enum IssueType: string
     case GEDMO_TRANSLATABLE = 'gedmo_translatable';
     case NESTED_N_PLUS_ONE = 'nested_n_plus_one';
     case AGGREGATION_WITH_INNER_JOIN = 'aggregation_with_inner_join';
+    case DTO_HYDRATION = 'dto_hydration';
     case SET_MAX_RESULTS_WITH_COLLECTION_JOIN = 'setMaxResults_with_collection_join';
 
     // Security issues
