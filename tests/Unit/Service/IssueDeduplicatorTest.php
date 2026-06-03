@@ -16,9 +16,11 @@ use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Issue\DeduplicatableIssueInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
+use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
+use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use PHPUnit\Framework\Attributes\Test;
@@ -155,6 +157,38 @@ final class IssueDeduplicatorTest extends TestCase
         self::assertCount(1, $deduplicated);
         $keptIssue = $deduplicated->toArray()[0];
         self::assertStringContainsString('N+1 Query', $keptIssue->getTitle());
+    }
+
+    #[Test]
+    public function it_keeps_orthogonal_aggregation_and_repeated_query_issues_on_same_sql(): void
+    {
+        $queryData = new QueryData(
+            sql: 'SELECT id, COUNT(x) FROM history GROUP BY id',
+            executionTime: QueryExecutionTime::fromMilliseconds(1.0),
+        );
+
+        $nPlusOneSqlIssue = new PerformanceIssue([
+            'type' => IssueType::N_PLUS_ONE->value,
+            'title' => 'N+1 SQL pattern (DBAL): 3 similar queries',
+            'description' => 'The same SQL pattern was executed 3 times',
+            'severity' => Severity::INFO->value,
+            'queries' => [$queryData],
+        ]);
+
+        $dtoHydrationIssue = new PerformanceIssue([
+            'type' => IssueType::DTO_HYDRATION->value,
+            'title' => 'Aggregation Query Without DTO Hydration',
+            'description' => 'Aggregation query that could use DTO hydration',
+            'severity' => Severity::WARNING->value,
+            'queries' => [$queryData],
+        ]);
+
+        $deduplicated = $this->deduplicator->deduplicate(IssueCollection::fromArray([
+            $nPlusOneSqlIssue,
+            $dtoHydrationIssue,
+        ]));
+
+        self::assertCount(2, $deduplicated, 'A repetition diagnosis and an aggregation/hydration diagnosis are orthogonal and must both survive');
     }
 
     #[Test]
