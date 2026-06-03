@@ -70,4 +70,37 @@ final class DTOHydrationAnalyzerFalsePositiveTest extends TestCase
 
         self::assertCount(0, $dtoIssues, 'Fixed: GROUP BY in subqueries is stripped before aggregation detection');
     }
+
+    #[Test]
+    public function it_does_not_flag_scalar_group_by_projection(): void
+    {
+        $sql = 'SELECT d0_.deposit_request_id AS sclr_0, COUNT(d0_.id) AS sclr_1 '
+            . 'FROM deposit_request_history d0_ WHERE d0_.event_name = ? '
+            . 'GROUP BY d0_.deposit_request_id';
+
+        $builder = QueryDataBuilder::create();
+        $builder->addQuery($sql, 1.0);
+        $builder->addQuery($sql, 1.0);
+
+        $issues = $this->analyzer->analyze($builder->build());
+
+        self::assertCount(0, $issues->toArray(), 'A GROUP BY query projecting only scalar aliases hydrates no entity and must not be flagged');
+    }
+
+    #[Test]
+    public function it_flags_aggregation_projecting_entity_columns(): void
+    {
+        $sql = 'SELECT d0_.id AS id_0, d0_.status AS status_1, COUNT(d1_.id) AS sclr_2 '
+            . 'FROM deposit_request d0_ '
+            . 'LEFT JOIN deposit_request_document d1_ ON d0_.id = d1_.deposit_request_id '
+            . 'GROUP BY d0_.id';
+
+        $builder = QueryDataBuilder::create();
+        $builder->addQuery($sql, 1.0);
+        $builder->addQuery($sql, 1.0);
+
+        $issues = $this->analyzer->analyze($builder->build());
+
+        self::assertCount(1, $issues->toArray(), 'An aggregation that also projects entity columns pays the hydration cost and must be flagged');
+    }
 }

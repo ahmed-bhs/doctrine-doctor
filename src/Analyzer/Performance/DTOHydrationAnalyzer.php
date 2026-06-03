@@ -82,9 +82,6 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                     }
 
                     Assert::string($pattern, 'Pattern key must be string');
-                    if ($this->usesDTOHydration($pattern)) {
-                        continue;
-                    }
 
                     $issue = $this->createDTOHydrationIssue($queryGroup);
                     yield $issue;
@@ -109,7 +106,7 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
             $hasGroupBy = str_contains($upperStripped, 'GROUP BY');
 
-            if ($hasAggregation && $this->isPureScalarAggregation($stripped)) {
+            if (($hasAggregation || $hasGroupBy) && $this->isScalarProjection($stripped)) {
                 continue;
             }
 
@@ -121,16 +118,80 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         return $result;
     }
 
-    private function isPureScalarAggregation(string $sql): bool
+    /**
+     * A query hydrates no entity when every projected column is a scalar
+     * expression (an aggregate or a Doctrine scalar alias "sclr_N"). Such
+     * queries (DQL "SELECT NEW", "getScalarResult()", "getArrayResult()") never
+     * pay the entity hydration cost, so DTO hydration brings no benefit.
+     */
+    private function isScalarProjection(string $sql): bool
     {
-        if (1 !== preg_match('/SELECT\s+(.*?)\s+FROM/is', $sql, $matches)) {
+        if (1 !== preg_match('/SELECT\s+(?:DISTINCT\s+)?(.*?)\s+FROM/is', $sql, $matches)) {
             return false;
         }
 
-        $selectPart = trim($matches[1]);
+        $columns = $this->splitTopLevel($matches[1]);
 
-        return 1 === preg_match('/^(?:COUNT|SUM|AVG|MIN|MAX|GROUP_CONCAT)\s*\(/i', $selectPart)
-            && !str_contains($selectPart, ',');
+        if ([] === $columns) {
+            return false;
+        }
+
+        foreach ($columns as $column) {
+            if (!$this->isScalarColumn($column)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function isScalarColumn(string $column): bool
+    {
+        $column = trim($column);
+
+        if (1 === preg_match('/^(?:COUNT|SUM|AVG|MIN|MAX|GROUP_CONCAT)\s*\(/i', $column)) {
+            return true;
+        }
+
+        return 1 === preg_match('/\bAS\s+sclr_\d+\s*$/i', $column);
+    }
+
+    /**
+     * Split a SELECT projection on top-level commas only, ignoring commas
+     * nested inside function calls such as COUNT(a, b) or GROUP_CONCAT(...).
+     *
+     * @return list<string>
+     */
+    private function splitTopLevel(string $projection): array
+    {
+        $columns = [];
+        $buffer  = '';
+        $depth   = 0;
+        $len     = strlen($projection);
+
+        for ($i = 0; $i < $len; ++$i) {
+            $char = $projection[$i];
+
+            if ('(' === $char) {
+                ++$depth;
+            } elseif (')' === $char) {
+                --$depth;
+            }
+
+            if (',' === $char && 0 === $depth) {
+                $columns[] = trim($buffer);
+                $buffer    = '';
+                continue;
+            }
+
+            $buffer .= $char;
+        }
+
+        if ('' !== trim($buffer)) {
+            $columns[] = trim($buffer);
+        }
+
+        return $columns;
     }
 
     private function stripSubqueries(string $sql): string
@@ -205,14 +266,6 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     private function normalizeQuery(string $sql): string
     {
         return SqlNormalizationCache::normalize($sql);
-    }
-
-    /**
-     * Check if query already uses DTO hydration (NEW syntax).
-     */
-    private function usesDTOHydration(string $sql): bool
-    {
-        return str_contains(strtoupper($sql), 'SELECT NEW ');
     }
 
     /**
