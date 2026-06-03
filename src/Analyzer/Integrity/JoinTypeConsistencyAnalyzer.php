@@ -444,8 +444,8 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             return false;
         }
 
-        $fromPKs = $fromMetadata->getIdentifierFieldNames();
-        $joinPKs = $joinMetadata->getIdentifierFieldNames();
+        $fromPKs = $fromMetadata->getIdentifierColumnNames();
+        $joinPKs = $joinMetadata->getIdentifierColumnNames();
 
         $conditions = $this->sqlExtractor->extractJoinOnConditions($sql, $joinTable);
 

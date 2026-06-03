@@ -40,6 +40,7 @@ class PerformanceIssue extends AbstractIssue
             IssueType::CARTESIAN_PRODUCT_RISK->value,
             IssueType::UNUSED_EAGER_LOAD->value,
             IssueType::AGGREGATION_WITH_INNER_JOIN->value,
+            IssueType::DTO_HYDRATION->value,
         ];
     }
 
