@@ -176,6 +176,13 @@ services:
         tags:
             - { name: doctrine_doctor.analyzer }
 
+    AhmedBhs\DoctrineDoctor\Analyzer\Performance\StructuralMissingIndexAnalyzer:
+        arguments:
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $connection: '@doctrine.dbal.default_connection'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\SlowQueryAnalyzer:
         arguments:
             $threshold: '%doctrine_doctor.analyzers.slow_query.threshold%'
