@@ -343,7 +343,7 @@ final class DoctrineDoctorDataCollectorTest extends TestCase
     /**
      * Create a minimal DoctrineDoctorDataCollector instance for testing.
      */
-    private function createDataCollector(): DoctrineDoctorDataCollector
+    private function createDataCollector(?bool $deferAnalysisToLateCollect = null): DoctrineDoctorDataCollector
     {
         // Create real instances of helper services (simpler than mocking final classes)
         $logger = new NullLogger();
@@ -367,6 +367,7 @@ final class DoctrineDoctorDataCollectorTest extends TestCase
             showDebugInfo: false,
             dataCollectorHelpers: $helpers,
             excludePaths: ['vendor/'],
+            deferAnalysisToLateCollect: $deferAnalysisToLateCollect,
         );
     }
 }
