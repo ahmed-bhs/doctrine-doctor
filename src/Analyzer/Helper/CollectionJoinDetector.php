@@ -63,8 +63,15 @@ class CollectionJoinDetector
             return false;
         }
 
-        $fromPKs = $fromMetadata->getIdentifierFieldNames();
-        $joinPKs = $joinMetadata->getIdentifierFieldNames();
+        // Compare against DB column names, not field paths: an entity with an
+        // embedded value-object identifier (e.g. #[Embedded] EntityId $id) has
+        // getIdentifierFieldNames() return "id.value" while the SQL join
+        // condition references the column "id". Using field names here makes
+        // every condition match neither side, so the comparison degrades to
+        // canBeCollection()'s table-wide fallback regardless of what this
+        // specific join actually is.
+        $fromPKs = $fromMetadata->getIdentifierColumnNames();
+        $joinPKs = $joinMetadata->getIdentifierColumnNames();
 
         $conditions = $this->sqlExtractor->extractJoinOnConditions($sql, $joinTable);
 
