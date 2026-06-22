@@ -67,6 +67,7 @@ enum IssueType: string
     case INTEGRITY_GENERIC = 'integrity_generic';
     case INTEGRITY_INCORRECT_NULL_COMPARISON = 'integrity_incorrect_null_comparison';
     case LEFT_JOIN_WITH_NOT_NULL = 'left_join_with_not_null';
+    case ORDER_BY_NULLABLE_LEADING_COLUMN = 'order_by_nullable_leading_column';
     case CASCADE_REMOVE_SET_NULL = 'cascade_remove_set_null';
     case ONDELETE_CASCADE_NO_ORM = 'ondelete_cascade_no_orm';
     case ORPHAN_REMOVAL_NO_PERSIST = 'orphan_removal_no_persist';
