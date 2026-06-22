@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\JoinTypeVoIdTest;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -25,4 +27,13 @@ class RequestReferencingOrganization
     #[ORM\ManyToOne(targetEntity: OrganizationWithVoId::class)]
     #[ORM\JoinColumn(name: 'organization_id', referencedColumnName: 'id', nullable: false)]
     public ?OrganizationWithVoId $organization = null;
+
+    /** @var Collection<int, RequestDocument> */
+    #[ORM\OneToMany(targetEntity: RequestDocument::class, mappedBy: 'request')]
+    public Collection $documents;
+
+    public function __construct()
+    {
+        $this->documents = new ArrayCollection();
+    }
 }
