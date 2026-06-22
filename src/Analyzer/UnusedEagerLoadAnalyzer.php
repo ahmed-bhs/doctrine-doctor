@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\PaginatorQueryDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -58,17 +59,13 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
     /** @var string Issue type identifier */
     private const string ISSUE_TYPE = 'unused_eager_load';
 
-    /**
-     * @var array<string, ClassMetadata>|null Cached metadata map
-     */
-    private ?array $metadataMapCache = null;
-
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly IssueFactoryInterface $issueFactory,
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly PaginatorQueryDetector $paginatorQueryDetector = new PaginatorQueryDetector(),
         private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+        private readonly ?CollectionJoinDetector $collectionJoinDetector = null,
     ) {
     }
 
@@ -94,6 +91,11 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
                 }
             },
         );
+    }
+
+    private function collectionJoinDetector(): CollectionJoinDetector
+    {
+        return $this->collectionJoinDetector ?? new CollectionJoinDetector($this->entityManager, $this->sqlExtractor);
     }
 
     /**
@@ -382,21 +384,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
      */
     private function getMetadataMap(): array
     {
-        if (null !== $this->metadataMapCache) {
-            return $this->metadataMapCache;
-        }
-
-        $map = [];
-        $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
-
-        foreach ($allMetadata as $metadata) {
-            $tableName = $metadata->getTableName();
-            $map[$tableName] = $metadata;
-        }
-
-        $this->metadataMapCache = $map;
-
-        return $map;
+        return $this->collectionJoinDetector()->buildMetadataMap();
     }
 
     /**
@@ -405,19 +393,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
      */
     private function extractFromTable(string $sql, array $metadataMap): ?string
     {
-        $mainTable = $this->sqlExtractor->extractMainTable($sql);
-
-        if (null === $mainTable) {
-            return null;
-        }
-
-        $tableName = $mainTable['table'];
-
-        if (!isset($metadataMap[$tableName])) {
-            return null;
-        }
-
-        return $tableName;
+        return $this->collectionJoinDetector()->extractFromTable($sql, $metadataMap);
     }
 
     /**
@@ -428,117 +404,14 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
     {
         $joins = $this->sqlExtractor->extractJoins($sql);
         $collectionCount = 0;
+        $detector = $this->collectionJoinDetector();
 
         foreach ($joins as $join) {
-            if ($this->isCollectionJoin($join, $metadataMap, $sql, $fromTable)) {
+            if ($detector->isCollectionJoin($join, $metadataMap, $sql, $fromTable)) {
                 ++$collectionCount;
             }
         }
 
         return $collectionCount;
-    }
-
-    /**
-     * Determine if a JOIN is on a collection (OneToMany/ManyToMany).
-     * Reuses logic from JoinOptimizationAnalyzer.
-     *
-     * @param array<string, mixed> $join
-     * @param array<string, ClassMetadata> $metadataMap
-     */
-    private function isCollectionJoin(array $join, array $metadataMap, string $sql, string $fromTable): bool
-    {
-        $joinTable = $join['table'];
-
-        if (!is_string($joinTable)) {
-            return false;
-        }
-
-        $metadata = $metadataMap[$joinTable] ?? null;
-
-        if (null === $metadata) {
-            return false;
-        }
-
-        return $this->isForeignKeyInJoinedTable($sql, $fromTable, $joinTable, $metadataMap);
-    }
-
-    /**
-     * Determine if FK is in joined table (making it a collection).
-     * Simplified version from JoinOptimizationAnalyzer.
-     *
-     * @param array<string, ClassMetadata> $metadataMap
-     */
-    private function isForeignKeyInJoinedTable(string $sql, string $fromTable, string $joinTable, array $metadataMap): bool
-    {
-        $fromMetadata = $metadataMap[$fromTable] ?? null;
-        $joinMetadata = $metadataMap[$joinTable] ?? null;
-
-        if (null === $fromMetadata || null === $joinMetadata) {
-            return false;
-        }
-
-        $fromPKs = $fromMetadata->getIdentifierFieldNames();
-        $joinPKs = $joinMetadata->getIdentifierFieldNames();
-
-        $conditions = $this->sqlExtractor->extractJoinOnConditions($sql, $joinTable);
-
-        if ([] === $conditions) {
-            return $this->canBeCollection($joinTable, $metadataMap);
-        }
-
-        $condition = $conditions[0];
-
-        $leftParts = explode('.', $condition['left']);
-        $rightParts = explode('.', $condition['right']);
-
-        $leftCol = end($leftParts);
-        $rightCol = end($rightParts);
-
-        // from.PK = join.nonPK → Collection
-        if (in_array($leftCol, $fromPKs, true) && !in_array($rightCol, $joinPKs, true)) {
-            return true;
-        }
-
-        // from.nonPK = join.PK → NOT collection
-        if (!in_array($leftCol, $fromPKs, true) && in_array($rightCol, $joinPKs, true)) {
-            return false;
-        }
-
-        // Uncertain - check metadata
-        return $this->canBeCollection($joinTable, $metadataMap);
-    }
-
-    /**
-     * Fallback: Check if table CAN be a collection based on metadata.
-     * @param array<string, ClassMetadata> $metadataMap
-     */
-    private function canBeCollection(string $tableName, array $metadataMap): bool
-    {
-        foreach ($metadataMap as $metadata) {
-            foreach ($metadata->getAssociationMappings() as $mapping) {
-                $targetEntity = $mapping['targetEntity'] ?? null;
-
-                if (null === $targetEntity) {
-                    continue;
-                }
-
-                try {
-                    $targetMetadata = $this->entityManager->getClassMetadata($targetEntity);
-
-                    if ($targetMetadata->getTableName() === $tableName) {
-                        if (
-                            ClassMetadata::ONE_TO_MANY === $mapping['type']
-                            || ClassMetadata::MANY_TO_MANY === $mapping['type']
-                        ) {
-                            return true;
-                        }
-                    }
-                } catch (\Exception) {
-                    continue;
-                }
-            }
-        }
-
-        return false;
     }
 }
