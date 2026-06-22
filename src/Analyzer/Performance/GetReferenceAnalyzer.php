@@ -223,6 +223,16 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             return false;
         }
 
+        // Exclude Doctrine/DBAL-internal single-column re-reads such as the
+        // #[ORM\Version] optimistic-lock check: "SELECT version FROM table
+        // WHERE id = ?". Real entity-hydrating SELECTs (ORM output or
+        // hand-written) either use "*"/"alias.*" or alias every column
+        // ("t0.email AS email_1"); a bare single non-star column with no
+        // alias is plumbing, not an entity lookup that getReference() applies to.
+        if ($this->isBareUnaliasedColumnSelect($sql)) {
+            return false;
+        }
+
         // Only match SELECT by primary key (column named exactly 'id').
         // FK columns like deposit_request_id, eco_organization_id are intentionally excluded —
         // they return collections, not single entities, so getReference() is not applicable.
@@ -234,6 +244,27 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         ];
 
         return array_any($patterns, fn ($pattern) => 1 === preg_match($pattern, $sql));
+    }
+
+    private function isBareUnaliasedColumnSelect(string $sql): bool
+    {
+        $selectClause = $this->sqlExtractor->extractSelectClause($sql);
+
+        if (null === $selectClause) {
+            return false;
+        }
+
+        $selectClause = trim($selectClause);
+
+        if (str_contains($selectClause, ',')) {
+            return false;
+        }
+
+        if (str_ends_with($selectClause, '*')) {
+            return false;
+        }
+
+        return 0 === preg_match('/\bAS\s+`?\w+`?/i', $selectClause);
     }
 
     private function extractTableName(string $sql): ?string
@@ -345,9 +376,15 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             'BasicEntityPersister::loadOneToManyCollection',
             'BasicEntityPersister::loadManyToManyCollection',
 
-            // Proxies (ManyToOne, OneToOne)
+            // Proxies (ManyToOne, OneToOne) — legacy generated-proxy mechanism
             'Proxy::__load',
             '__CG__::',  // Doctrine proxy class prefix
+
+            // Proxies (ManyToOne, OneToOne) — PHP 8.4+ native lazy ghost objects
+            // (Doctrine ORM 3.x default since enable_native_lazy_objects). No proxy
+            // class is generated; the field access triggers this initializer closure.
+            'ProxyFactory::createLazyInitializer',
+            'EntityPersister::loadById',
         ];
 
         // Check each frame in backtrace
