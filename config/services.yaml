@@ -35,8 +35,17 @@ services:
     # Tag all analyzers automatically
     AhmedBhs\DoctrineDoctor\Analyzer\:
         resource: '../src/Analyzer/{Performance,Security,Integrity,Configuration}/*'
-        exclude: '../src/Analyzer/{AnalyzerInterface.php,Helper,Config,Parser}'
+        exclude: '../src/Analyzer/{AnalyzerInterface.php,Helper,Config,Parser,Performance/FlushInLoopAnalyzerModern.php}'
         tags: ['doctrine_doctor.analyzer']
+
+    # FlushInLoopAnalyzerModern is a draft/comparison variant (see its docblock),
+    # never finished or wired with its own config node. Keeping it tagged alongside
+    # the legacy FlushInLoopAnalyzer caused every flush-in-loop finding to fire twice
+    # with diverging boundary heuristics (legacy: write->non-id-select; modern: also
+    # splits on backtrace-frame change, producing different flush_count values for
+    # the same request). Service kept registered (autowireable) but untagged so it
+    # stops double-firing; remove entirely once a decision is made to merge or drop it.
+    AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzerModern: ~
 
     # Data Collector Helpers (reduce coupling)
     # Configuration object for DataCollector helpers
