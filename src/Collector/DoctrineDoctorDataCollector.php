@@ -35,10 +35,16 @@ use Symfony\Contracts\Service\ResetInterface;
 /**
  * DataCollector for Doctrine Doctor.
  *
- * FrankenPHP Worker Mode Compatibility:
- * All analysis is performed in collect() (not lateCollect) because analyzers
- * use EntityManager which becomes invalid after the request ends in persistent
- * PHP runtimes (FrankenPHP, RoadRunner, Swoole).
+ * Runtime-dependent analysis timing:
+ * On persistent PHP runtimes (FrankenPHP worker mode, RoadRunner, Swoole),
+ * analysis runs in collect() because analyzers use EntityManager, which
+ * becomes invalid after the request ends in these runtimes, and lateCollect()
+ * would otherwise race the next request. Detected by the absence of
+ * fastcgi_finish_request(), which those runtimes do not implement.
+ *
+ * On classic php-fpm, fastcgi_finish_request() flushes the response to the
+ * client before kernel.terminate, so analysis is deferred to lateCollect()
+ * to keep the (often EXPLAIN-heavy) analyzers off the request's critical path.
  */
 /**
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
@@ -55,6 +61,8 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
     private ?array $memoizedDebugData = null;
 
+    private readonly bool $deferAnalysisToLateCollect;
+
     public function __construct(
         /**
          * @var AnalyzerInterface[]
@@ -69,7 +77,18 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
          * @var array<string> Paths to exclude from DBAL query analysis (e.g., ['vendor/', 'var/cache/'])
          */
         private readonly array $excludePaths = ['vendor/'],
+        /**
+         * Whether to defer analysis to lateCollect() (after the response is sent
+         * to the client) instead of running it in collect(). Defaults to whether
+         * fastcgi_finish_request() exists: present on classic php-fpm (deferring
+         * keeps analysis off the request's critical path), absent on persistent
+         * runtimes (FrankenPHP worker mode, RoadRunner, Swoole) where the
+         * EntityManager some analyzers depend on becomes invalid once the request
+         * ends, so analysis must still run in collect().
+         */
+        ?bool $deferAnalysisToLateCollect = null,
     ) {
+        $this->deferAnalysisToLateCollect = $deferAnalysisToLateCollect ?? \function_exists('fastcgi_finish_request');
     }
 
     /**
@@ -107,11 +126,16 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             }
         }
 
-        $this->runAnalysis();
+        if (!$this->deferAnalysisToLateCollect) {
+            $this->runAnalysis();
+        }
     }
 
     public function lateCollect(): void
     {
+        if ($this->deferAnalysisToLateCollect) {
+            $this->runAnalysis();
+        }
     }
 
     public function getName(): string
