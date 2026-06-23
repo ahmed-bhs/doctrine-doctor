@@ -409,7 +409,7 @@ final class PhpCodeParser
     /**
      * Get cache statistics.
      *
-     * @return array{ast_entries: int, analysis_entries: int, memory_bytes: int}
+     * @return array{ast_entries: int, analysis_entries: int, memory_bytes: int, memory_mb: float}
      */
     public function getCacheStats(): array
     {

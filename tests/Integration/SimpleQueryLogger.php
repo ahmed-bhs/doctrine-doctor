@@ -20,7 +20,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
  */
 class SimpleQueryLogger
 {
-    /** @var array<array{sql: string, params: mixed|null, time: float}> */
+    /** @var array<array{sql: string, params: mixed|null, time: float, backtrace?: array<int, array<string, mixed>>}> */
     private array $queries = [];
 
     private bool $enabled = false;
@@ -110,7 +110,7 @@ class SimpleQueryLogger
     /**
      * Get raw query data.
      *
-     * @return array<array{sql: string, params: mixed|null, time: float}>
+     * @return array<array{sql: string, params: mixed|null, time: float, backtrace?: array<int, array<string, mixed>>}>
      */
     public function getRawQueries(): array
     {
