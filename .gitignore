@@ -38,3 +38,8 @@ bin/act
 # MkDocs
 /site/
 .cache/
+
+# Local working notes
+/DOCTRINE_DOCTOR_REPORT.md
+/EXTERNAL_ANALYZER_IDEAS.md
+/ISSUE_DECOUPLING.md
