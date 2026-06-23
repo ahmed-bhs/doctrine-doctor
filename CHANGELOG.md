@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.4] - 2026-06-23
+
+### Added
+
+- `OrderByNullableLeadingColumnAnalyzer` (Performance/Integrity): flags `ORDER BY` on a nullable leading column combined with `LIMIT`. `NULL` placement (first or last) is platform- and configuration-dependent, so a query like `ORDER BY requested_at LIMIT 1` can silently skip rows whose sort column is `NULL` depending on the database engine. Info severity, flag-only, never auto-fixed since NULL-first/last is sometimes intentional. Configurable via `doctrine_doctor.analyzers.order_by_nullable_leading_column.enabled`.
+
+### Fixed
+
+- `FlushInLoopAnalyzer` / `FlushInLoopAnalyzerModern`: both were tagged `doctrine_doctor.analyzer` via the same glob registration, producing duplicate/conflicting findings for the same flush-in-loop pattern. `FlushInLoopAnalyzerModern` is now excluded from the tag glob while staying registered and autowireable.
+- `GetReferenceAnalyzer`: no longer flags Doctrine's own optimistic-lock version-check re-reads (`SELECT version FROM table WHERE id = ?`) or PHP 8.4 native lazy-ghost object initialization as `find()`-instead-of-`getReference()` candidates. Added `ProxyFactory::createLazyInitializer` / `EntityPersister::loadById` to the lazy-loading backtrace markers alongside the legacy `Proxy::__load` / `__CG__::` ones.
+- `DoctrineDoctorDataCollector`: expensive `runAnalysis()` work now runs in `lateCollect()` (after the HTTP response is sent) instead of `collect()` (before), on runtimes where this is safe. Auto-detected via `function_exists('fastcgi_finish_request')` so it works correctly on both php-fpm and persistent/worker-mode runtimes (FrankenPHP/RoadRunner/Swoole). No config flag needed.
+- `CollectionJoinDetector::isForeignKeyInJoinedTable()`: compared SQL column names against `getIdentifierFieldNames()` (PHP field paths) instead of `getIdentifierColumnNames()` (actual DB column names). Broke for entities with embedded value-object identifiers, causing `ManyToOne` joins to fall through to an overly-broad table-wide fallback and get misclassified as collection joins.
+- `UnusedEagerLoadAnalyzer`: carried its own copy of the now-fixed `CollectionJoinDetector` join-classification logic instead of reusing the shared helper, so it suffered the same value-object-identifier misclassification independently. Deduplicated to delegate to `CollectionJoinDetector`.
+
 ## [2.9.0] - 2026-05-23
 
 ### Added
