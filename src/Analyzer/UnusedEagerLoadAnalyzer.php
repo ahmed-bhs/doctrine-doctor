@@ -127,7 +127,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
     /**
      * Detects JOINs where the joined table's alias is never used.
      *
-     * @return array<int, array{type: string, table: string, alias: ?string}>
+     * @return array<int, array{type: string, table: string, alias: ?string, expr: mixed}>
      */
     private function detectUnusedJoinAliases(string $sql, ?array $backtrace = null): array
     {
@@ -248,7 +248,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
     }
 
     /**
-     * @param array<int, array{type: string, table: string, alias: ?string}> $unusedJoins
+     * @param array<int, array{type: string, table: string, alias: ?string, expr: mixed}> $unusedJoins
      * @param array<int, array<string, mixed>>|null                          $backtrace
      */
     private function createUnusedJoinIssue(string $sql, array $unusedJoins, ?array $backtrace): IssueData
@@ -285,7 +285,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
     }
 
     /**
-     * @param array<int, array{type: string, table: string, alias: ?string}> $unusedJoins
+     * @param array<int, array{type: string, table: string, alias: ?string, expr: mixed}> $unusedJoins
      */
     private function createSuggestion(array $unusedJoins): ?SuggestionInterface
     {

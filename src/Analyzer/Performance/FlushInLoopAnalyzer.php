@@ -101,7 +101,7 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
     }
 
     /**
-     * @return list<array{flush_count: int, operations_between_flush: float|int, queries: array<mixed>, backtrace: mixed}>
+     * @return list<array{flush_count: int, total_time: float, operations_between_flush: float|int, queries: array<mixed>, backtrace: mixed}>
      */
     private function detectFlushPatterns(QueryDataCollection $queryDataCollection): array
     {
@@ -156,7 +156,7 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
      * Analyze flush groups to detect loop patterns.
      * @param array<array{start_index: int, end_index: int, operations_between_flush: int}> $flushGroups
      * @param QueryData[]                                                                    $queriesArray
-     * @return array{flush_count: int, operations_between_flush: float|int, queries: array<mixed>, backtrace: mixed}|null
+     * @return array{flush_count: int, total_time: float, operations_between_flush: float|int, queries: array<mixed>, backtrace: mixed}|null
      */
     private function analyzeFlushGroups(array $flushGroups, array $queriesArray): ?array
     {

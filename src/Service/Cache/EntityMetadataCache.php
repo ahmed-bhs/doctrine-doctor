@@ -120,7 +120,7 @@ final class EntityMetadataCache
     /**
      * Get cache statistics.
      *
-     * @return array{total_entities: int, cache_hit: bool}
+     * @return array{total_entities: int, cache_hit: bool, cached_classes: int}
      */
     public function getStats(): array
     {
