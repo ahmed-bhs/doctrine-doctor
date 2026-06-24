@@ -41,8 +41,7 @@ final class FindAllAnalyzerTest extends TestCase
     {
         // Arrange: SELECT * without WHERE, returning 150 rows
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT * FROM users', 0.050, 150)
-
+            ->addQueryWithRowCount('SELECT * FROM users', 150, 0.050)
             ->build();
 
         // Act
@@ -50,12 +49,10 @@ final class FindAllAnalyzerTest extends TestCase
 
         // Assert
         $issuesArray = $issues->toArray();
-        self::assertCount(1, $issuesArray, 'Should detect unpaginated findAll()');
+        self::assertCount(1, $issuesArray, 'Should detect unpaginated query');
 
         $issue = $issuesArray[0];
-        self::assertStringContainsString('findAll()', $issue->getTitle());
-        // Title may vary, just check it's not empty
-        self::assertNotEmpty($issue->getTitle());
+        self::assertStringContainsString('150', $issue->getTitle());
     }
 
     #[Test]

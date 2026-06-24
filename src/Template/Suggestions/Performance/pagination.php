@@ -13,6 +13,8 @@ declare(strict_types=1);
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
+$resultCountLabel = null === $resultCount ? 'an unknown number of' : (string) $resultCount;
+
 // Start output buffering
 ob_start();
 ?>
@@ -23,7 +25,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <strong><?php echo $e($method); ?></strong> returned <?php echo $resultCount; ?> results without pagination.
+        <strong><?php echo $e($method); ?></strong> returned <?php echo $e($resultCountLabel); ?> results without pagination.
     </div>
 
     <h4>Solution: Add pagination</h4>
@@ -55,8 +57,8 @@ $code = ob_get_clean();
 return [
     'code'        => $code,
     'description' => sprintf(
-        'Loading %d results without pagination in %s',
-        $resultCount,
+        'Loading %s results without pagination in %s',
+        $resultCountLabel,
         $method,
     ),
 ];

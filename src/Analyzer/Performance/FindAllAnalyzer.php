@@ -15,7 +15,6 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
-use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
@@ -45,44 +44,67 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             function () use ($queryDataCollection) {
                 foreach ($queryDataCollection as $queryData) {
                     if ($this->isFindAllPattern($queryData->sql)) {
-                        $rowCount = $this->estimateRowCount($queryData);
+                        $rowCount = $queryData->rowCount;
 
-                        if ($rowCount > $this->threshold) {
-                            $suggestion = $this->suggestionFactory->createFromTemplate(
-                                templateName: 'Performance/pagination',
-                                context: [
-                                    'method' => 'findAll',
-                                    'result_count' => $rowCount,
-                                ],
-                                suggestionMetadata: new SuggestionMetadata(
-                                    type: SuggestionType::performance(),
-                                    severity: Severity::warning(),
-                                    title: sprintf('Missing Pagination: %s returned %d results', 'findAll', $rowCount),
-                                    tags: ['performance', 'pagination', 'memory'],
-                                ),
-                            );
-
-                            $issueData = new IssueData(
-                                type: IssueType::FIND_ALL->value,
-                                title: sprintf('Unpaginated Query: findAll() returned %d rows', $rowCount),
-                                description: DescriptionHighlighter::highlight(
-                                    'A query without a {where} or {limit} clause returned approximately {count} rows. ' .
-                                    'Consider adding pagination or filters (threshold: {threshold})',
-                                    [
-                                        'where' => 'WHERE',
-                                        'limit' => 'LIMIT',
-                                        'count' => $rowCount,
-                                        'threshold' => $this->threshold,
-                                    ],
-                                ),
-                                severity: $suggestion->getMetadata()->severity,
-                                suggestion: $suggestion,
-                                queries: [$queryData],
-                                backtrace: $queryData->backtrace,
-                            );
-
-                            yield $this->issueFactory->create($issueData);
+                        if (null !== $rowCount && $rowCount <= $this->threshold) {
+                            continue;
                         }
+
+                        $isKnownCount = null !== $rowCount;
+                        $severity = $isKnownCount ? Severity::warning() : Severity::info();
+
+                        $title = $isKnownCount
+                            ? sprintf('Unrestricted Query: %d rows selected without WHERE or LIMIT', $rowCount)
+                            : 'Unrestricted Query: no WHERE or LIMIT clause, row count unknown';
+
+                        $description = $isKnownCount
+                            ? DescriptionHighlighter::highlight(
+                                'A query without a {where} or {limit} clause returned {count} rows. ' .
+                                'This may come from findAll(), a custom repository method, or a hand-built ' .
+                                'QueryBuilder. Consider adding pagination or filters (threshold: {threshold})',
+                                [
+                                    'where' => 'WHERE',
+                                    'limit' => 'LIMIT',
+                                    'count' => $rowCount,
+                                    'threshold' => $this->threshold,
+                                ],
+                            )
+                            : DescriptionHighlighter::highlight(
+                                'A query without a {where} or {limit} clause was detected, but the actual row ' .
+                                'count could not be measured. This may come from findAll(), a custom repository ' .
+                                'method, or a hand-built QueryBuilder, and may load an unbounded number of rows ' .
+                                'into memory. Verify the table size and consider adding pagination or filters.',
+                                [
+                                    'where' => 'WHERE',
+                                    'limit' => 'LIMIT',
+                                ],
+                            );
+
+                        $suggestion = $this->suggestionFactory->createFromTemplate(
+                            templateName: 'Performance/pagination',
+                            context: [
+                                'method' => 'this query',
+                                'result_count' => $rowCount,
+                            ],
+                            suggestionMetadata: new SuggestionMetadata(
+                                type: SuggestionType::performance(),
+                                severity: $severity,
+                                title: $title,
+                                tags: ['performance', 'pagination', 'memory'],
+                            ),
+                        );
+
+                        $issueData = new IssueData(
+                            type: IssueType::FIND_ALL->value,
+                            title: $title,
+                            description: $description,
+                            severity: $severity,
+                            suggestion: $suggestion,
+                            queries: [$queryData],
+                            backtrace: $queryData->backtrace,
+                        );
+
+                        yield $this->issueFactory->create($issueData);
                     }
                 }
             },
@@ -131,12 +153,4 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         }
     }
 
-    private function estimateRowCount(QueryData $queryData): int
-    {
-        if (null !== $queryData->rowCount) {
-            return $queryData->rowCount;
-        }
-
-        return 999;
-    }
 }

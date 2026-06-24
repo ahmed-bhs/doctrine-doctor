@@ -18,18 +18,15 @@ class FindAllIssue extends AbstractIssue
 {
     public function __construct(array $data)
     {
-        $rowCount = $data['row_count'] ?? 0;
+        $data['type'] = IssueType::FIND_ALL;
 
-        $data['type']        = IssueType::FIND_ALL;
-        $data['title']       = 'Unrestricted findAll() or SELECT without LIMIT';
-        $data['description'] = sprintf(
-            'Query retrieves all rows from the table without WHERE or LIMIT clause. ' .
-            'This could load %d+ rows into memory, causing performance issues and potential out-of-memory errors. ' .
-            'Always use pagination or filters for large datasets.',
-            $rowCount,
-        );
-
-        parent::__construct($data);
+        parent::__construct(array_merge([
+            'title'       => 'Unrestricted Query: SELECT without WHERE or LIMIT',
+            'description' => 'Query retrieves rows from the table without a WHERE or LIMIT clause. ' .
+                'This may come from findAll(), a custom repository method, or a hand-built QueryBuilder, and ' .
+                'could load an unbounded number of rows into memory, causing performance issues and potential ' .
+                'out-of-memory errors. Always use pagination or filters for large datasets.',
+        ], $data));
     }
 
     public static function supportedTypes(): array
