@@ -30,7 +30,7 @@ final class FindAllAnalyzerFalsePositiveTest extends TestCase
     }
 
     #[Test]
-    public function it_falsely_estimates_999_rows_when_row_count_is_null(): void
+    public function it_flags_query_without_where_or_limit_as_info_when_row_count_is_unknown(): void
     {
         $collection = QueryDataBuilder::create()
             ->addQuery('SELECT t0_.id, t0_.name FROM small_lookup t0_', 0.5)
@@ -38,7 +38,8 @@ final class FindAllAnalyzerFalsePositiveTest extends TestCase
 
         $issues = $this->analyzer->analyze($collection);
 
-        self::assertGreaterThanOrEqual(1, \count($issues), 'Known false positive: rowCount is null (no profiler row count data), so estimateRowCount defaults to 999, exceeding the 99-row threshold even for small tables');
+        self::assertCount(1, $issues, 'A query without WHERE/LIMIT is still worth flagging even when the row count cannot be measured');
+        self::assertSame('info', $issues->toArray()[0]->getSeverity()->getValue(), 'Without a measured row count, severity must not be inflated to warning/critical');
     }
 
     #[Test]
