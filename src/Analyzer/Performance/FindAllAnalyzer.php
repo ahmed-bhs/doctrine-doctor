@@ -152,5 +152,4 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
             return !$hasWhere && !$hasLimit;
         }
     }
-
 }
