@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use PhpCsFixer\Fixer\Comment\HeaderCommentFixer;
+use PhpCsFixer\Fixer\PhpUnit\PhpUnitSetUpTearDownVisibilityFixer;
+use PhpCsFixer\Fixer\PhpUnit\PhpUnitTestAnnotationFixer;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
 
 $projectName   = 'Doctrine Doctor';
@@ -34,17 +36,16 @@ return ECSConfig::configure()
         spaces: true,
         namespaces: true,
         controlStructures: true,
-        phpunit: true,
         cleanCode: true,
-        strict: true,
         psr12: true,
     )
 
     // Additional rules (many are already in prepared sets)
     ->withRules([
-        // Types stricts
+        // Types stricts (manual, "strict" prepared set deprecated in ECS 13)
         PhpCsFixer\Fixer\Strict\DeclareStrictTypesFixer::class,
         PhpCsFixer\Fixer\Strict\StrictComparisonFixer::class,
+        PhpCsFixer\Fixer\Strict\StrictParamFixer::class,
         PhpCsFixer\Fixer\FunctionNotation\VoidReturnFixer::class,
 
         // Optimisations
@@ -53,6 +54,10 @@ return ECSConfig::configure()
 
         // Import
         PhpCsFixer\Fixer\Import\NoUnusedImportsFixer::class,
+
+        // PHPUnit (manual, "phpunit" prepared set deprecated in ECS 13)
+        PhpUnitTestAnnotationFixer::class,
+        PhpUnitSetUpTearDownVisibilityFixer::class,
     ])
 
     // Configured rules
