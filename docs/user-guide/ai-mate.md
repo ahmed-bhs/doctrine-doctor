@@ -59,8 +59,12 @@ start the MCP server:
 vendor/bin/mate serve
 ```
 
-Claude Code auto-detects the generated `mcp.json` at the project root — no manual server
-registration needed. Verify the tool is exposed with:
+`mate init` also writes a `.mcp.json` symlink at the project root. Claude Code reads it
+automatically when started from that directory — no `claude mcp add` needed. On first use
+it asks you to approve the MCP server once (it will not run an arbitrary server without
+your consent). Other clients (Cursor, Copilot) are pointed at the same `mcp.json`.
+
+Verify the tool is exposed with:
 
 ```bash
 vendor/bin/mate mcp:tools:list --filter="doctrine*"
