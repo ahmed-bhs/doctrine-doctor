@@ -106,16 +106,6 @@ This is **opt-in**. The bundle ships the integration code but pulls no AI depend
 by default. **Without AI Mate installed, nothing below applies and Doctrine Doctor
 runs exactly as before.**
 
-### How the pieces fit together
-
-| Package | Role | Who needs it |
-|---|---|---|
-| `ahmed-bhs/doctrine-doctor` | Ships the MCP tool + collector formatter (this bundle) | already installed |
-| `symfony/ai-mate` | The MCP server engine + `bin/mate` CLI | pulled in transitively |
-| `symfony/ai-symfony-mate-extension` | Symfony bridge (profiler access) the tool builds on | **you install this** |
-
-Installing the bridge pulls the core engine automatically, so a single `require` is enough.
-
 ### Setup in a Symfony project
 
 **1. Install the Symfony bridge** (dev only — this is a development/debugging tool,
