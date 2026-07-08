@@ -70,6 +70,7 @@
     "phpstan/phpstan-symfony": "^2.0",
     "phpunit/phpunit": "^10.0",
     "rector/rector": "^2.3",
+    "symfony/ai-symfony-mate-extension": "^0.10",
     "symfony/stopwatch": "^6.0|^7.0|^8.0",
     "symfony/validator": "^8.0",
     "symfony/var-dumper": "^6.0|^7.0|^8.0",
@@ -91,6 +92,7 @@
     "test": "phpunit",
     "test:coverage": "phpunit --coverage-html=coverage/",
     "test:unit": "phpunit --testsuite unit",
+    "test:integration": "phpunit --testsuite integration",
     "lint": "parallel-lint src tests",
     "phpstan": "phpstan analyse --memory-limit=1G",
     "phpstan:baseline": "phpstan analyse --generate-baseline --memory-limit=1G",
@@ -133,6 +135,8 @@
   },
   "scripts-descriptions": {
     "test": "Run PHPUnit tests",
+    "test:unit": "Run unit tests (excludes tests/Integration)",
+    "test:integration": "Run integration tests (tests/Integration)",
     "test:coverage": "Run tests with coverage report",
     "lint": "Check PHP syntax errors with parallel-lint",
     "phpstan": "Run PHPStan static analysis",
@@ -157,7 +161,8 @@
     "allow-plugins": {
       "phpstan/extension-installer": true,
       "dealerdirect/phpcodesniffer-composer-installer": true,
-      "symfony/flex": true
+      "symfony/flex": true,
+      "symfony/ai-mate-composer-plugin": true
     },
     "sort-packages": true
   },
