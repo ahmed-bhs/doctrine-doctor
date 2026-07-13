@@ -6,8 +6,12 @@
          stopOnFailure="false"
          cacheDirectory=".phpunit.cache">
     <testsuites>
-        <testsuite name="Doctrine Doctor Test Suite">
+        <testsuite name="unit">
             <directory>tests</directory>
+            <exclude>tests/Integration</exclude>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
 

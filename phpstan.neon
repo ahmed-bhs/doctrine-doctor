@@ -104,6 +104,27 @@ parameters:
         # Needed by diagnostic analyzers to inspect connection configuration
         - identifier: method.internal
 
+        # AI Mate extension classes are marked @internal but are the only integration
+        # surface for the optional profiler/MCP bridge (symfony/ai-symfony-mate-extension)
+        - identifier: method.internalClass
+          paths:
+            - src/AiMate/*
+            - tests/AiMate/*
+        - identifier: property.internalClass
+          paths:
+            - src/AiMate/*
+            - tests/AiMate/*
+        - identifier: classConstant.internalClass
+          paths:
+            - src/AiMate/*
+            - tests/AiMate/*
+        - identifier: parameter.internalClass
+          paths:
+            - src/AiMate/*
+            - tests/AiMate/*
+        - identifier: new.internalClass
+          path: tests/AiMate/*
+
     # Parallel processing for better performance
     parallel:
         maximumNumberOfProcesses: 4

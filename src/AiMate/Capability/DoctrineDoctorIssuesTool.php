@@ -32,9 +32,13 @@ final readonly class DoctrineDoctorIssuesTool
      */
     #[McpTool(
         'doctrine-doctor-issues',
-        'List Doctrine Doctor issues from a Symfony Profiler request. '
-        . 'Filter by category (performance, security, integrity, configuration) '
-        . 'or severity (critical, warning, info). If no token is provided, uses the latest profiler request.',
+        'List Doctrine ORM issues detected by Doctrine Doctor for a single Symfony '
+        . 'Profiler request (one captured HTTP request). Covers runtime performance '
+        . '(N+1 queries, slow queries, missing indexes, excessive hydration), security '
+        . '(DQL/SQL injection, sensitive data exposure), integrity (cascade, mapping, '
+        . 'embeddables, type mismatches), and configuration. If no token is provided, '
+        . 'uses the latest profiler request. Filter by category (performance, security, '
+        . 'integrity, configuration) or severity (critical, warning, info).',
     )]
     public function getIssues(
         ?string $token = null,

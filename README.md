@@ -94,6 +94,22 @@ doctrine:
 
 ---
 
+## AI Mate / MCP integration (optional)
+
+Doctrine Doctor can expose its profiler findings to AI assistants (Claude Code,
+Cursor, GitHub Copilot, …) over [MCP](https://modelcontextprotocol.io) through
+[Symfony AI Mate](https://symfony.com/doc/current/ai/mate.html). It registers an MCP
+tool, `doctrine-doctor-issues`, that reads a profiler request and returns the detected
+issues — already sanitized for safe AI consumption.
+
+This is **opt-in**. The bundle ships the integration code but pulls no AI dependency
+by default. **Without AI Mate installed, this does not apply and Doctrine Doctor
+runs exactly as before.**
+
+[Setup guide & tool reference →](docs/user-guide/ai-mate.md)
+
+---
+
 ## Example: N+1 Query Detection
 
 <table>
@@ -148,6 +164,7 @@ execution time, points to the exact template line, and suggests eager loading wi
 | [**Architecture Guide**](docs/advanced/architecture.md) | Deep dive into **system design**, architecture patterns, and technical internals - understand how Doctrine Doctor works under the hood |
 | [**Configuration Reference**](docs/user-guide/configuration.md) | Comprehensive guide to **all configuration options** - customize analyzers, thresholds, and outputs to match your workflow |
 | [**Template Security**](docs/advanced/template-security.md) | Essential **security best practices** for PHP templates - prevent XSS attacks and ensure safe template rendering |
+| [**AI Mate / MCP integration**](docs/user-guide/ai-mate.md) | Optional **AI assistant integration** - expose profiler issues to Claude Code, Cursor, and other MCP clients through Symfony AI Mate |
 
 ---
 
