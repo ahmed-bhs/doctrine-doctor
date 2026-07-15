@@ -31,20 +31,18 @@ final readonly class ExportController
         $collector = $profile->getCollector('doctrine_doctor');
         assert($collector instanceof DoctrineDoctorDataCollector);
 
-        return new JsonResponse(self::createExport($collector));
+        $response = new JsonResponse(self::createExport($collector));
+        $response->setEncodingOptions($response->getEncodingOptions() | \JSON_PRETTY_PRINT);
+        $response->headers->set('Content-Disposition', sprintf('attachment; filename="doctrine-doctor-%s.json"', $token));
+        
+        return $response;
     }
 
     /**
      * @return array{
-     *  issues: array<int, array{0: string, 1: mixed}>,
-     *  stats: array{
-     *   total_issues: int,
-     *   critical: int,
-     *   warning: int,
-     *   info: int,
-     *   skipped_analyzers: int
-     *  },
-     *  grouped_queries_by_time: array<int, array{
+     *  issues: array<int, array<string, mixed>>,
+     *  stats: array<string, mixed>,
+     *  queries: array<int, array{
      *     sql: string,
      *     count: int,
      *     totalTimeMs: float,
@@ -64,9 +62,9 @@ final readonly class ExportController
     }
 
     /**
-     * Extract issue information from the collector. Call toArray() on the indivdual issue object.
+     * Extract issue information from the collector. Call toArray() on each issue object.
      *
-     * @return array<int, array{0: string, 1: mixed}>
+     * @return array<int, array<string, mixed>>
      */
     private static function extractIssues(DoctrineDoctorDataCollector $collector): array
     {
@@ -82,10 +80,10 @@ final readonly class ExportController
      * @return array<int, array{
      *     sql: string,
      *     count: int,
-     *     total_time_ms: float,
-     *     avg_time_ms: float,
-     *     max_time_ms: float,
-     *     min_time_ms: float,
+     *     totalTimeMs: float,
+     *     avgTimeMs: float,
+     *     maxTimeMs: float,
+     *     minTimeMs: float,
      * }>
      */
     private static function extractQueries(DoctrineDoctorDataCollector $collector): array
@@ -95,10 +93,11 @@ final readonly class ExportController
                 return [
                     'sql' => $query['sql'],
                     'count' => $query['count'],
-                    'total_time_ms' => $query['totalTimeMs'],
-                    'avg_time_ms' => $query['avgTimeMs'],
-                    'max_time_ms' => $query['maxTimeMs'],
-                    'min_time_ms' => $query['minTimeMs'],
+                    'totalTimeMs' => $query['totalTimeMs'],
+                    'avgTimeMs' => $query['avgTimeMs'],
+                    'maxTimeMs' => $query['maxTimeMs'],
+                    'minTimeMs' => $query['minTimeMs'],
+                    // Note: we ignore first query here because it can't be serialized without errors.
                 ];
             },
             $collector->getGroupedQueriesByTime(),
