@@ -297,6 +297,12 @@
 {% block panel %}
     <h2>Doctrine Doctor</h2>
 
+    <div class="metric">
+        <a href="{{ path('doctrine_doctor_export', {'token': token}) }}">
+            📥 Export JSON
+        </a>
+    </div>
+
     {% set dbInfo = collector.getDatabaseInfo %}
 
     {# Database + Analysis Metrics (single row) #}

@@ -38,6 +38,12 @@ services:
         exclude: '../src/Analyzer/{AnalyzerInterface.php,Helper,Config,Parser,Performance/FlushInLoopAnalyzerModern.php}'
         tags: ['doctrine_doctor.analyzer']
 
+    # Auto-discover controllers
+    AhmedBhs\DoctrineDoctor\Controller\:
+        resource: '../src/Controller/*'
+        autoconfigure: true
+        public: true
+
     # FlushInLoopAnalyzerModern is a draft/comparison variant (see its docblock),
     # never finished or wired with its own config node. Keeping it tagged alongside
     # the legacy FlushInLoopAnalyzer caused every flush-in-loop finding to fire twice
