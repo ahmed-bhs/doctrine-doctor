@@ -57,7 +57,7 @@ final readonly class ExportController
         return [
             'issues' => self::extractIssues($collector),
             'stats' => $collector->getStats(),
-            'grouped_queries_by_time' => self::extractQueries($collector),
+            'queries' => self::extractQueries($collector),
         ];
     }
 
@@ -75,7 +75,7 @@ final readonly class ExportController
     }
 
     /**
-     * Extract query information from the collector and avoid to extract non serializable information.
+     * Extract query information from the collector and avoid extracting non-serializable information.
      *
      * @return array<int, array{
      *     sql: string,
