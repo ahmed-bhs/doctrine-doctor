@@ -12,9 +12,9 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Service;
 
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
+use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\Service\ExportDataFormatter;
-use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use DateTimeImmutable;
@@ -186,9 +186,11 @@ final class ExportDataFormatterTest extends TestCase
                 'avgTimeMs' => 10.0,
                 'maxTimeMs' => 10.0,
                 'minTimeMs' => 10.0,
-                'backtrace' => [['file' => 'test.php']],
-                'connection' => new \stdClass(),
-                'unexpected_field' => 'should be filtered',
+                'firstQuery' => [
+                    'backtrace' => [['file' => 'test.php']],
+                    'connection' => new \stdClass(),
+                    'unexpected_field' => 'should be filtered',
+                ],
             ],
         ];
 
@@ -200,9 +202,7 @@ final class ExportDataFormatterTest extends TestCase
         $export = $this->formatter->format($collector);
 
         $query = $export['queries'][0];
-        self::assertArrayNotHasKey('backtrace', $query);
-        self::assertArrayNotHasKey('connection', $query);
-        self::assertArrayNotHasKey('unexpected_field', $query);
+        self::assertArrayNotHasKey('firstQuery', $query);
     }
 
     #[Test]

@@ -37,7 +37,7 @@ final readonly class ExportController
         $response = new JsonResponse($this->formatter->format($collector));
         $response->setEncodingOptions($response->getEncodingOptions() | \JSON_PRETTY_PRINT);
         $response->headers->set('Content-Disposition', sprintf('attachment; filename="doctrine-doctor-%s.json"', $token));
-        
+
         return $response;
     }
 }
