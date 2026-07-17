@@ -25,7 +25,7 @@ final readonly class ExportController
         private ExportDataFormatter $formatter,
     ) {}
 
-    #[Route('/_profiler/{token}/doctrine_doctor_export', name: 'doctrine_doctor_export', methods: ['GET'])]
+    #[Route('/doctrine-doctor/{token}/export', name: 'doctrine_doctor_export', methods: ['GET'], requirements: ['token' => '[A-Za-z0-9]++'])]
     public function export(string $token): JsonResponse
     {
         $profile = $this->profiler->loadProfile($token);
