@@ -174,7 +174,8 @@ final class PrimaryKeyStrategyAnalyzerTest extends TestCase
         foreach ($issueCollection as $issue) {
             self::assertSame(
                 'info',
-                $issue->getSeverity()->value,
+                $issue->getSeverity()
+->value,
                 sprintf('Issue "%s" should have INFO severity', $issue->getTitle()),
             );
         }
@@ -194,9 +195,12 @@ final class PrimaryKeyStrategyAnalyzerTest extends TestCase
 
         // Mock reflection
         $reflectionClass = $this->createMock(\ReflectionClass::class);
-        $reflectionClass->method('getShortName')->willReturn($shortName);
-        $reflectionClass->method('getFileName')->willReturn('/fake/path/' . $shortName . '.php');
-        $reflectionClass->method('getStartLine')->willReturn(10);
+        $reflectionClass->method('getShortName')
+->willReturn($shortName);
+        $reflectionClass->method('getFileName')
+->willReturn('/fake/path/' . $shortName . '.php');
+        $reflectionClass->method('getStartLine')
+->willReturn(10);
 
         $classMetadata->reflClass = $reflectionClass;
 
@@ -220,9 +224,12 @@ final class PrimaryKeyStrategyAnalyzerTest extends TestCase
 
         // Mock reflection
         $reflectionClass = $this->createMock(\ReflectionClass::class);
-        $reflectionClass->method('getShortName')->willReturn($shortName);
-        $reflectionClass->method('getFileName')->willReturn('/fake/path/' . $shortName . '.php');
-        $reflectionClass->method('getStartLine')->willReturn(10);
+        $reflectionClass->method('getShortName')
+->willReturn($shortName);
+        $reflectionClass->method('getFileName')
+->willReturn('/fake/path/' . $shortName . '.php');
+        $reflectionClass->method('getStartLine')
+->willReturn(10);
 
         $classMetadata->reflClass = $reflectionClass;
 
@@ -237,7 +244,8 @@ final class PrimaryKeyStrategyAnalyzerTest extends TestCase
     private function createMetadataFactory(array $allMetadata): ClassMetadataFactory
     {
         $metadataFactory = $this->createMock(ClassMetadataFactory::class);
-        $metadataFactory->method('getAllMetadata')->willReturn($allMetadata);
+        $metadataFactory->method('getAllMetadata')
+->willReturn($allMetadata);
 
         return $metadataFactory;
     }

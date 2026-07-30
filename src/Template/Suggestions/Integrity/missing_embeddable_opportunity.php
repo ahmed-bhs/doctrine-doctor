@@ -34,19 +34,19 @@ ob_start();
     <div class="query-item">
         <pre><code class="language-php">// Before: separate fields
 class <?= $e($entityClass) ?> {
-<?php foreach ($fields as $field): ?>
+<?php foreach ($fields as $field) { ?>
     private string $<?= $e($field) ?>;
-<?php endforeach; ?>
+<?php } ?>
 }
 
 // After: grouped as value object
 #[ORM\Embeddable]
 readonly class Address {
     public function __construct(
-<?php foreach ($fields as $i => $field): ?>
+<?php foreach ($fields as $i => $field) { ?>
         private string $<?= $e($field) ?><?= $i < count($fields) - 1 ? ',' : '' ?>
 
-<?php endforeach; ?>
+<?php } ?>
     ) {}
 }
 

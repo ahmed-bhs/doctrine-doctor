@@ -51,7 +51,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         $this->startQueryCollection();
 
         // BAD: Start transaction but never commit
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
 
         $product = new Product();
         $product->setName('Product 1');
@@ -78,7 +79,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
 
         // Cleanup
         try {
-            $this->entityManager->getConnection()->rollBack();
+            $this->entityManager->getConnection()
+->rollBack();
         } catch (\Exception) {
             // Already rolled back
         }
@@ -90,7 +92,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         $this->startQueryCollection();
 
         // BAD: Start transaction but never commit (no flush)
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
 
         // Just start transaction, no operations
 
@@ -108,7 +111,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
 
         // Cleanup
         try {
-            $this->entityManager->getConnection()->rollBack();
+            $this->entityManager->getConnection()
+->rollBack();
         } catch (\Exception) {
             // Already rolled back
         }
@@ -164,7 +168,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         }
         $this->startQueryCollection();
 
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
 
         // First flush
         $product1 = new Product();
@@ -190,7 +195,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         $this->entityManager->persist($product3);
         $this->entityManager->flush();
 
-        $this->entityManager->getConnection()->commit();
+        $this->entityManager->getConnection()
+->commit();
 
         $queryDataCollection = $this->stopQueryCollection();
 
@@ -216,7 +222,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
     {
         $this->startQueryCollection();
 
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
 
         // Create multiple products to make transaction longer
         for ($i = 0; $i < 10; $i++) {
@@ -236,7 +243,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
                 ->getResult();
         }
 
-        $this->entityManager->getConnection()->commit();
+        $this->entityManager->getConnection()
+->commit();
 
         $queryDataCollection = $this->stopQueryCollection();
 
@@ -263,7 +271,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         $this->startQueryCollection();
 
         // GOOD: Proper transaction management
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
 
         try {
             $product = new Product();
@@ -273,9 +282,11 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
             $this->entityManager->persist($product);
             $this->entityManager->flush();
 
-            $this->entityManager->getConnection()->commit();
+            $this->entityManager->getConnection()
+->commit();
         } catch (\Exception $exception) {
-            $this->entityManager->getConnection()->rollBack();
+            $this->entityManager->getConnection()
+->rollBack();
             throw $exception;
         }
 
@@ -293,7 +304,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
     {
         $this->startQueryCollection();
 
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
 
         $product = new Product();
         $product->setName('Product 1');
@@ -303,7 +315,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         $this->entityManager->flush();
 
         // Rollback instead of commit
-        $this->entityManager->getConnection()->rollBack();
+        $this->entityManager->getConnection()
+->rollBack();
 
         $queryDataCollection = $this->stopQueryCollection();
 
@@ -332,7 +345,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
     {
         $this->startQueryCollection();
 
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
         $product = new Product();
         $product->setName('Product 1');
         $product->setPrice(9.99);
@@ -358,7 +372,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
 
         // Cleanup
         try {
-            $this->entityManager->getConnection()->rollBack();
+            $this->entityManager->getConnection()
+->rollBack();
         } catch (\Exception) {
             // Already rolled back
         }
@@ -413,7 +428,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
     {
         // Test 1: Unclosed transaction - CRITICAL
         $this->startQueryCollection();
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
         $product = new Product();
         $product->setName('Test');
         $product->setPrice(9.99);
@@ -431,7 +447,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         }
 
         try {
-            $this->entityManager->getConnection()->rollBack();
+            $this->entityManager->getConnection()
+->rollBack();
         } catch (\Exception) {
         }
         $this->entityManager->clear();
@@ -439,11 +456,13 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         // Test 2: Nested transaction - CRITICAL
         $this->queryLogger->reset();
         $this->startQueryCollection();
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
         // Simulate nested transaction
         $this->queryLogger->log('BEGIN TRANSACTION');
         $this->queryLogger->log('COMMIT');
-        $this->entityManager->getConnection()->commit();
+        $this->entityManager->getConnection()
+->commit();
         $queries2 = $this->stopQueryCollection();
 
         $issues2 = $this->transactionBoundaryAnalyzer->analyze($queries2);
@@ -458,7 +477,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         // Test 3: Multiple flush - WARNING
         $this->queryLogger->reset();
         $this->startQueryCollection();
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
         $p1 = new Product();
         $p1->setName('P1');
         $p1->setPrice(1.0);
@@ -471,7 +491,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         $p2->setStock(2);
         $this->entityManager->persist($p2);
         $this->entityManager->flush();
-        $this->entityManager->getConnection()->commit();
+        $this->entityManager->getConnection()
+->commit();
         $queries3 = $this->stopQueryCollection();
 
         $issues3 = $this->transactionBoundaryAnalyzer->analyze($queries3);
@@ -490,27 +511,32 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         $this->startQueryCollection();
 
         // First transaction - proper
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
         $product1 = new Product();
         $product1->setName('Product 1');
         $product1->setPrice(9.99);
         $product1->setStock(100);
         $this->entityManager->persist($product1);
         $this->entityManager->flush();
-        $this->entityManager->getConnection()->commit();
+        $this->entityManager->getConnection()
+->commit();
 
         // Second transaction - proper
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
         $product2 = new Product();
         $product2->setName('Product 2');
         $product2->setPrice(19.99);
         $product2->setStock(50);
         $this->entityManager->persist($product2);
         $this->entityManager->flush();
-        $this->entityManager->getConnection()->commit();
+        $this->entityManager->getConnection()
+->commit();
 
         // Third transaction - unclosed (problem)
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
         $product3 = new Product();
         $product3->setName('Product 3');
         $product3->setPrice(29.99);
@@ -530,7 +556,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
 
         // Cleanup
         try {
-            $this->entityManager->getConnection()->rollBack();
+            $this->entityManager->getConnection()
+->rollBack();
         } catch (\Exception) {
         }
     }
@@ -562,7 +589,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
     {
         $this->startQueryCollection();
 
-        $this->entityManager->getConnection()->beginTransaction();
+        $this->entityManager->getConnection()
+->beginTransaction();
         $product = new Product();
         $product->setName('Product 1');
         $product->setPrice(9.99);
@@ -592,7 +620,8 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
 
         // Cleanup
         try {
-            $this->entityManager->getConnection()->rollBack();
+            $this->entityManager->getConnection()
+->rollBack();
         } catch (\Exception) {
         }
     }

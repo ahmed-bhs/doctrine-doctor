@@ -65,7 +65,8 @@ final class EntityMetadataCache
         $this->logger?->debug('EntityMetadataCache: Cache MISS for getAllMetadata(), loading...');
 
         $start = microtime(true);
-        $this->allMetadataCache = $this->entityManager->getMetadataFactory()->getAllMetadata();
+        $this->allMetadataCache = $this->entityManager->getMetadataFactory()
+->getAllMetadata();
         $duration = (microtime(true) - $start) * 1000;
 
         $this->logger?->info('EntityMetadataCache: Loaded metadata', [
@@ -91,7 +92,8 @@ final class EntityMetadataCache
 
         $this->logger?->debug('EntityMetadataCache: Cache MISS for class', ['class' => $className]);
 
-        $metadata = $this->entityManager->getMetadataFactory()->getMetadataFor($className);
+        $metadata = $this->entityManager->getMetadataFactory()
+->getMetadataFor($className);
         $this->metadataByClassCache[$className] = $metadata;
 
         return $metadata;

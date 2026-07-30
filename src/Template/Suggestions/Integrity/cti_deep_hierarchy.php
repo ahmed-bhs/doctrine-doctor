@@ -32,12 +32,12 @@ ob_start();
         Every query for this entity requires <strong><?php echo $joinsRequired; ?> JOIN(s)</strong>.
     </div>
 
-    <?php if ([] !== $chain): ?>
+    <?php if ([] !== $chain) { ?>
     <h4>Inheritance chain</h4>
     <div class="query-item">
         <pre><code><?php echo $e(implode(' -> ', $chain)); ?></code></pre>
     </div>
-    <?php endif; ?>
+    <?php } ?>
 
     <h4>Why this matters</h4>
     <p>Each level in a JOINED hierarchy adds a mandatory JOIN to every SELECT, UPDATE, and DELETE.

@@ -384,7 +384,8 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $criticalIssues = array_filter(
             $issuesArray,
-            fn ($issue) => 'critical' === $issue->getSeverity()->value &&
+            fn ($issue) => 'critical' === $issue->getSeverity()
+->value &&
                           (str_contains((string) $issue->getTitle(), 'Not Nullable') ||
                            str_contains((string) $issue->getTitle(), 'CASCADE DELETE')),
         );

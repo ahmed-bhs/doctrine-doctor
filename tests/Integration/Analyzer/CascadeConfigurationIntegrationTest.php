@@ -203,7 +203,8 @@ final class CascadeConfigurationIntegrationTest extends DatabaseTestCase
         // Act: Remove one item from order
         $savedOrder = $this->entityManager->find(Order::class, $order->getId());
         self::assertInstanceOf(Order::class, $savedOrder);
-        $items = $savedOrder->getItems()->toArray();
+        $items = $savedOrder->getItems()
+->toArray();
         $savedOrder->removeItem($items[0]);
 
         $this->entityManager->flush();

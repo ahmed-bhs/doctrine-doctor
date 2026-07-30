@@ -315,27 +315,33 @@ class DuplicatePrivateFieldInHierarchyAnalyzer implements MetadataAnalyzerInterf
     ): array {
         $backtrace = [];
 
-        $childFile = $childProperty->getDeclaringClass()->getFileName();
-        $childLine = $childProperty->getDeclaringClass()->getStartLine();
+        $childFile = $childProperty->getDeclaringClass()
+->getFileName();
+        $childLine = $childProperty->getDeclaringClass()
+->getStartLine();
 
         if (false !== $childFile && false !== $childLine) {
             $backtrace[] = [
                 'file' => $childFile,
                 'line' => $childLine,
-                'class' => $childProperty->getDeclaringClass()->getName(),
+                'class' => $childProperty->getDeclaringClass()
+->getName(),
                 'function' => '$' . $childProperty->getName(),
                 'type' => '::',
             ];
         }
 
-        $parentFile = $parentProperty->getDeclaringClass()->getFileName();
-        $parentLine = $parentProperty->getDeclaringClass()->getStartLine();
+        $parentFile = $parentProperty->getDeclaringClass()
+->getFileName();
+        $parentLine = $parentProperty->getDeclaringClass()
+->getStartLine();
 
         if (false !== $parentFile && false !== $parentLine) {
             $backtrace[] = [
                 'file' => $parentFile,
                 'line' => $parentLine,
-                'class' => $parentProperty->getDeclaringClass()->getName(),
+                'class' => $parentProperty->getDeclaringClass()
+->getName(),
                 'function' => '$' . $parentProperty->getName(),
                 'type' => '::',
             ];

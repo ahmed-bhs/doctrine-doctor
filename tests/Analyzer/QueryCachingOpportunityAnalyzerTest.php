@@ -758,7 +758,8 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         );
         $queries = \AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection::fromArray($queryDataObjects);
 
-        $issues = $this->analyzer->analyze($queries)->toArray();
+        $issues = $this->analyzer->analyze($queries)
+->toArray();
 
         self::assertCount(1, $issues, 'Should detect a single 2LC opportunity');
         self::assertStringContainsString('Doctrine 2LC Opportunity', $issues[0]->getTitle());

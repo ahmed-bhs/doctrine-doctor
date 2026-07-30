@@ -110,7 +110,8 @@ final class CompositionRelationshipDetectorTest extends TestCase
     {
         // Given: A OneToMany with cascade remove and suggestive child name
         $metadata = $this->createMock(ClassMetadata::class);
-        $metadata->method('getName')->willReturn('Order');
+        $metadata->method('getName')
+->willReturn('Order');
 
         $mapping = [
             'type' => ClassMetadata::ONE_TO_MANY,
@@ -183,7 +184,8 @@ final class CompositionRelationshipDetectorTest extends TestCase
     public function test_detects_composition_child_names(string $entityName, bool $expectedResult): void
     {
         $metadata = $this->createMock(ClassMetadata::class);
-        $metadata->method('getName')->willReturn('Parent');
+        $metadata->method('getName')
+->willReturn('Parent');
 
         $mapping = [
             'type' => ClassMetadata::ONE_TO_MANY,

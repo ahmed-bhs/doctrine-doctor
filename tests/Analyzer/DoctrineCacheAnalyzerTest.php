@@ -385,7 +385,8 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
 
         $criticalIssues = array_filter(
             $issuesArray,
-            fn ($issue) => 'critical' === $issue->getSeverity()->value,
+            fn ($issue) => 'critical' === $issue->getSeverity()
+->value,
         );
 
         self::assertNotEmpty($criticalIssues, 'Should have CRITICAL issues for metadata ArrayCache');
@@ -397,7 +398,8 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
 
         $warningIssues = array_filter(
             $issuesArray2,
-            fn ($issue) => 'warning' === $issue->getSeverity()->value,
+            fn ($issue) => 'warning' === $issue->getSeverity()
+->value,
         );
 
         self::assertNotEmpty($warningIssues, 'Should have WARNING issues for filesystem cache');

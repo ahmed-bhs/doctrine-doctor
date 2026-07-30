@@ -82,7 +82,8 @@ class SlowQueryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInt
                                 'threshold' => $this->threshold,
                             ],
                         ),
-                        severity: $suggestion->getMetadata()->severity,
+                        severity: $suggestion->getMetadata()
+->severity,
                         suggestion: $suggestion,
                         queries: [$slowQuery],
                         backtrace: $slowQuery->backtrace,

@@ -38,14 +38,16 @@ class TransparentFilteringIntegrationTest extends TestCase
         $decoratedEM = new EntityManagerMetadataDecorator($originalEM, $metadataProvider);
 
         // Test that decorated EM returns filtered metadata
-        $filteredMetadata = $decoratedEM->getMetadataFactory()->getAllMetadata();
+        $filteredMetadata = $decoratedEM->getMetadataFactory()
+->getAllMetadata();
 
         // Should have metadata (not empty)
         self::assertNotEmpty($filteredMetadata);
 
         // All metadata should be from non-vendor paths
         foreach ($filteredMetadata as $metadata) {
-            $filename = $metadata->getReflectionClass()->getFileName();
+            $filename = $metadata->getReflectionClass()
+->getFileName();
             self::assertIsString($filename, 'Filename should be a string');
             $normalizedPath = str_replace('\\', '/', $filename);
 
@@ -86,14 +88,16 @@ class TransparentFilteringIntegrationTest extends TestCase
         $decoratedEM = new EntityManagerMetadataDecorator($originalEM, $metadataProvider);
 
         // Simulate what an analyzer does: call getAllMetadata()
-        $metadata = $decoratedEM->getMetadataFactory()->getAllMetadata();
+        $metadata = $decoratedEM->getMetadataFactory()
+->getAllMetadata();
 
         // Should receive filtered metadata automatically
         self::assertNotEmpty($metadata);
 
         // Verify no vendor entities
         foreach ($metadata as $meta) {
-            $filename = $meta->getReflectionClass()->getFileName();
+            $filename = $meta->getReflectionClass()
+->getFileName();
             self::assertIsString($filename, 'Filename should be a string');
             self::assertStringNotContainsString('/vendor/', $filename);
         }

@@ -82,7 +82,8 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                                     'threshold' => $this->threshold,
                                 ],
                             ),
-                            severity: $suggestion->getMetadata()->severity,
+                            severity: $suggestion->getMetadata()
+->severity,
                             suggestion: $suggestion,
                             queries: $lazyLoadPattern['queries'],
                             backtrace: $lazyLoadPattern['backtrace'] ?? null,

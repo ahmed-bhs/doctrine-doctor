@@ -141,7 +141,8 @@ final class HydrationAnalyzerIntegrationTest extends DatabaseTestCase
         $issueCollection = $this->hydrationAnalyzer->analyze($queryDataCollection);
 
         self::assertCount(1, $issueCollection);
-        $suggestion = $issueCollection->toArray()[0]->getSuggestion();
+        $suggestion = $issueCollection->toArray()[0]
+->getSuggestion();
         self::assertInstanceOf(SuggestionInterface::class, $suggestion, 'Should provide a suggestion for hydration optimization');
         // Check that suggestion contains optimization advice
         $description = $suggestion->getDescription();

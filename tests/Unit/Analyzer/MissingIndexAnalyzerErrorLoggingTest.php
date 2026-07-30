@@ -54,7 +54,8 @@ final class MissingIndexAnalyzerErrorLoggingTest extends TestCase
             );
 
         $connection = $this->createMock(Connection::class);
-        $connection->method('getDatabasePlatform')->willReturn(new SQLitePlatform());
+        $connection->method('getDatabasePlatform')
+->willReturn(new SQLitePlatform());
 
         $analyzer = new MissingIndexAnalyzer(
             suggestionFactory: new SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
@@ -84,8 +85,10 @@ final class MissingIndexAnalyzerErrorLoggingTest extends TestCase
         // For now, we document this behavior with a test that verifies resilience:
 
         $connection = $this->createMock(Connection::class);
-        $connection->method('getDatabasePlatform')->willReturn(new SQLitePlatform());
-        $connection->method('executeQuery')->willThrowException(new \RuntimeException('EXPLAIN query failed'));
+        $connection->method('getDatabasePlatform')
+->willReturn(new SQLitePlatform());
+        $connection->method('executeQuery')
+->willThrowException(new \RuntimeException('EXPLAIN query failed'));
 
         $analyzer = new MissingIndexAnalyzer(
             suggestionFactory: new SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),
@@ -118,8 +121,10 @@ final class MissingIndexAnalyzerErrorLoggingTest extends TestCase
     {
         // Arrange: Connection that throws on executeQuery
         $connection = $this->createMock(Connection::class);
-        $connection->method('getDatabasePlatform')->willReturn(new SQLitePlatform());
-        $connection->method('executeQuery')->willThrowException(new \RuntimeException('EXPLAIN failed'));
+        $connection->method('getDatabasePlatform')
+->willReturn(new SQLitePlatform());
+        $connection->method('executeQuery')
+->willThrowException(new \RuntimeException('EXPLAIN failed'));
 
         $analyzer = new MissingIndexAnalyzer(
             suggestionFactory: new SuggestionFactory(new PhpTemplateRenderer(__DIR__ . '/../../../src/Template/Suggestions')),

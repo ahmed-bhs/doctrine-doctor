@@ -207,7 +207,8 @@ abstract class AbstractIssue implements DeduplicatableIssueInterface
             'duplicatedIssues'  => array_map(fn (IssueInterface $issue) => [
                 'title'       => $issue->getTitle(),
                 'type'        => $issue->getType(),
-                'severity'    => $issue->getSeverity()->value,
+                'severity'    => $issue->getSeverity()
+->value,
                 'description' => self::createDuplicateDescriptionExcerpt($issue->getDescription(), 200),
                 'entityClass' => self::extractDuplicateEntityClass($issue),
                 'fieldName'   => self::extractDuplicateFieldName($issue),

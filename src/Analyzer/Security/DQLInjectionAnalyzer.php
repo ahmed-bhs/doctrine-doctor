@@ -119,7 +119,8 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                         'indicators' => implode(', ', $indicators),
                     ],
                 ),
-                severity: $suggestion->getMetadata()->severity,
+                severity: $suggestion->getMetadata()
+->severity,
                 suggestion: $suggestion,
                 queries: $queryObjects,
                 backtrace: $criticalQueries[0]['query']->backtrace,
@@ -162,7 +163,8 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                     count($highRiskQueries),
                     implode(', ', $indicators),
                 ),
-                severity: $suggestion->getMetadata()->severity,
+                severity: $suggestion->getMetadata()
+->severity,
                 suggestion: $suggestion,
                 queries: $queryObjects,
                 backtrace: $highRiskQueries[0]['query']->backtrace,
@@ -210,7 +212,8 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                 . 'Use parameterized DQL: $qb->setParameter() or $query->setParameter().',
                 ['query' => substr($queryData->sql, 0, 120)],
             ),
-            severity: $suggestion->getMetadata()->severity,
+            severity: $suggestion->getMetadata()
+->severity,
             suggestion: $suggestion,
             queries: [$queryData],
             backtrace: $queryData->backtrace,

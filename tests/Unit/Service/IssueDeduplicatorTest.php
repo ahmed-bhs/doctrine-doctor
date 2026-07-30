@@ -536,7 +536,8 @@ final class IssueDeduplicatorTest extends TestCase
                     'title' => $this->title,
                     'description' => $this->description,
                     'severity' => $this->severity->value,
-                    'category' => $this->getCategory()->value,
+                    'category' => $this->getCategory()
+->value,
                     'queries' => $this->queries,
                 ];
             }

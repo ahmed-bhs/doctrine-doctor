@@ -22,22 +22,22 @@ ob_start();
 <div class="suggestion-content">
 <div class="alert alert-danger"><strong><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></strong> is not initialized</div>
 
-<?php if ($hasConstructor): ?>
+<?php if ($hasConstructor) { ?>
 <p>The constructor exists but does not initialize <code>$<?php echo $e($fieldName); ?></code>. Add the initialization or use constructor promotion.</p>
-<?php else: ?>
+<?php } else { ?>
 <p>This entity has no constructor. Collections must be initialized to avoid null pointer errors.</p>
-<?php endif; ?>
+<?php } ?>
 
 <h4>Current code</h4>
 <div class="query-item"><pre><code class="language-php">class <?php echo $e($shortClass); ?> {
     #[ORM\<?php echo $e($associationType); ?>(targetEntity: <?php echo $e($targetEntity); ?>::class<?php echo $e($mappedBy); ?>)]
     private Collection $<?php echo $e($fieldName); ?>;
-<?php if ($hasConstructor): ?>
+<?php if ($hasConstructor) { ?>
 
     public function __construct() {
         // $<?php echo $e($fieldName); ?> is not initialized here
     }
-<?php endif; ?>
+<?php } ?>
 }</code></pre></div>
 
 <h4>Option 1 — Constructor initialization</h4>

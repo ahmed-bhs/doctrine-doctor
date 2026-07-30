@@ -68,7 +68,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function filterBySeverity(string $severity): self
     {
-        return $this->filtering()->bySeverity($severity);
+        return $this->filtering()
+->bySeverity($severity);
     }
 
     /**
@@ -76,7 +77,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function onlyCritical(): self
     {
-        return $this->filtering()->onlyCritical();
+        return $this->filtering()
+->onlyCritical();
     }
 
     /**
@@ -84,7 +86,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function onlyWarnings(): self
     {
-        return $this->filtering()->onlyWarnings();
+        return $this->filtering()
+->onlyWarnings();
     }
 
     /**
@@ -92,7 +95,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function filterByType(string $type): self
     {
-        return $this->filtering()->byType($type);
+        return $this->filtering()
+->byType($type);
     }
 
     /**
@@ -101,7 +105,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function groupBySeverity(): array
     {
-        return $this->statistics()->groupBySeverity();
+        return $this->statistics()
+->groupBySeverity();
     }
 
     /**
@@ -110,7 +115,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function groupByType(): array
     {
-        return $this->statistics()->groupByType();
+        return $this->statistics()
+->groupByType();
     }
 
     /**
@@ -119,7 +125,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function countBySeverity(): array
     {
-        return $this->statistics()->countBySeverity();
+        return $this->statistics()
+->countBySeverity();
     }
 
     /**
@@ -128,7 +135,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function countByType(): array
     {
-        return $this->statistics()->countByType();
+        return $this->statistics()
+->countByType();
     }
 
     /**
@@ -136,7 +144,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function hasCritical(): bool
     {
-        return $this->statistics()->hasCritical();
+        return $this->statistics()
+->hasCritical();
     }
 
     /**
@@ -144,7 +153,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function hasWarnings(): bool
     {
-        return $this->statistics()->hasWarnings();
+        return $this->statistics()
+->hasWarnings();
     }
 
     /**
@@ -153,7 +163,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function sortBySeverity(): self
     {
-        return $this->sorting()->bySeverityDescending();
+        return $this->sorting()
+->bySeverityDescending();
     }
 
     /**
@@ -161,7 +172,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function mostSevere(): ?IssueInterface
     {
-        return $this->statistics()->mostSevere();
+        return $this->statistics()
+->mostSevere();
     }
 
     /**
@@ -170,7 +182,8 @@ final class IssueCollection extends AbstractCollection
      */
     public function getUniqueTypes(): array
     {
-        return $this->statistics()->uniqueTypes();
+        return $this->statistics()
+->uniqueTypes();
     }
 
     /**

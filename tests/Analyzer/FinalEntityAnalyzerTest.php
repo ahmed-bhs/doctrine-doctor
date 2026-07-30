@@ -434,11 +434,14 @@ final class FinalEntityAnalyzerTest extends TestCase
         $configuration = $this->createMock(\Doctrine\ORM\Configuration::class);
 
         if (method_exists($configuration, 'isLazyGhostObjectEnabled')) {
-            $configuration->method('isLazyGhostObjectEnabled')->willReturn(false);
+            $configuration->method('isLazyGhostObjectEnabled')
+->willReturn(false);
         }
 
-        $entityManager->method('getConfiguration')->willReturn($configuration);
-        $entityManager->method('getMetadataFactory')->willReturn($this->entityManager->getMetadataFactory());
+        $entityManager->method('getConfiguration')
+->willReturn($configuration);
+        $entityManager->method('getMetadataFactory')
+->willReturn($this->entityManager->getMetadataFactory());
 
         return new FinalEntityAnalyzer($entityManager, new IssueFactory());
     }

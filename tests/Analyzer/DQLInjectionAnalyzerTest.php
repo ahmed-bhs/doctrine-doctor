@@ -228,7 +228,8 @@ final class DQLInjectionAnalyzerTest extends TestCase
 
         $criticalIssues = array_filter(
             $issuesArray,
-            fn ($issue) => 'critical' === $issue->getSeverity()->value,
+            fn ($issue) => 'critical' === $issue->getSeverity()
+->value,
         );
 
         self::assertGreaterThan(0, count($criticalIssues), 'Should have critical issues');

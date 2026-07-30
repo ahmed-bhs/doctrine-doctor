@@ -35,7 +35,9 @@ final class JoinTypeConsistencyVoIdTest extends TestCase
 
         $queries = QueryDataBuilder::create()->addQuery($sql, 1.0)->build();
 
-        $issues = $this->createAnalyzer()->analyze($queries)->toArray();
+        $issues = $this->createAnalyzer()
+->analyze($queries)
+->toArray();
 
         $aggregationIssues = array_filter(
             $issues,

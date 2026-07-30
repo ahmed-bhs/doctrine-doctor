@@ -55,7 +55,8 @@ final class DoctrineCacheYamlAnalyzerTest extends DatabaseTestCase
                             pool: doctrine.result_cache_pool
             YAML);
 
-        $issues = $this->createAnalyzer()->analyze(QueryDataCollection::empty());
+        $issues = $this->createAnalyzer()
+->analyze(QueryDataCollection::empty());
         $issuesArray = $issues->toArray();
 
         $metadataIssues = array_filter(
@@ -85,7 +86,8 @@ final class DoctrineCacheYamlAnalyzerTest extends DatabaseTestCase
                             pool: doctrine.result_cache_pool
             YAML);
 
-        $issues = $this->createAnalyzer()->analyze(QueryDataCollection::empty());
+        $issues = $this->createAnalyzer()
+->analyze(QueryDataCollection::empty());
         $issuesArray = $issues->toArray();
 
         $queryIssues = array_filter(
@@ -114,7 +116,8 @@ final class DoctrineCacheYamlAnalyzerTest extends DatabaseTestCase
                             pool: doctrine.system_cache_pool
             YAML);
 
-        $issues = $this->createAnalyzer()->analyze(QueryDataCollection::empty());
+        $issues = $this->createAnalyzer()
+->analyze(QueryDataCollection::empty());
         $issuesArray = $issues->toArray();
 
         $resultIssues = array_filter(
@@ -138,7 +141,8 @@ final class DoctrineCacheYamlAnalyzerTest extends DatabaseTestCase
                         auto_mapping: true
             YAML);
 
-        $issues = $this->createAnalyzer()->analyze(QueryDataCollection::empty());
+        $issues = $this->createAnalyzer()
+->analyze(QueryDataCollection::empty());
         $issuesArray = $issues->toArray();
 
         $missingIssues = array_filter(
@@ -167,7 +171,8 @@ final class DoctrineCacheYamlAnalyzerTest extends DatabaseTestCase
                             pool: doctrine.result_cache_pool
             YAML);
 
-        $issues = $this->createAnalyzer()->analyze(QueryDataCollection::empty());
+        $issues = $this->createAnalyzer()
+->analyze(QueryDataCollection::empty());
         $issuesArray = $issues->toArray();
 
         $missingIssues = array_filter(
@@ -187,7 +192,8 @@ final class DoctrineCacheYamlAnalyzerTest extends DatabaseTestCase
                     auto_mapping: true
             YAML);
 
-        $issues = $this->createAnalyzer()->analyze(QueryDataCollection::empty());
+        $issues = $this->createAnalyzer()
+->analyze(QueryDataCollection::empty());
         $issuesArray = $issues->toArray();
 
         self::assertEmpty($issuesArray, 'Should not flag when when@prod section is entirely absent (may use split config files)');
@@ -208,7 +214,8 @@ final class DoctrineCacheYamlAnalyzerTest extends DatabaseTestCase
                             pool: doctrine.result_cache_pool
             YAML);
 
-        $issues = $this->createAnalyzer()->analyze(QueryDataCollection::empty());
+        $issues = $this->createAnalyzer()
+->analyze(QueryDataCollection::empty());
         $issuesArray = $issues->toArray();
 
         $metadataIssues = array_filter(

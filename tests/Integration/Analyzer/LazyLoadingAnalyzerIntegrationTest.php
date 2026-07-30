@@ -145,7 +145,8 @@ final class LazyLoadingAnalyzerIntegrationTest extends DatabaseTestCase
             ->getResult();
 
         foreach ($posts as $post) {
-            $authorName = $post->getAuthor()->getName(); // No extra query!
+            $authorName = $post->getAuthor()
+->getName(); // No extra query!
         }
 
         $queryDataCollection = $this->stopQueryCollection();
@@ -233,7 +234,8 @@ final class LazyLoadingAnalyzerIntegrationTest extends DatabaseTestCase
         // Trigger N+1
         $posts = $this->entityManager->getRepository(BlogPost::class)->findAll();
         foreach ($posts as $post) {
-            $post->getAuthor()->getName();
+            $post->getAuthor()
+->getName();
         }
 
         $queryDataCollection = $this->stopQueryCollection();
@@ -284,7 +286,8 @@ final class LazyLoadingAnalyzerIntegrationTest extends DatabaseTestCase
 
         $posts = $this->entityManager->getRepository(BlogPost::class)->findAll();
         foreach ($posts as $post) {
-            $post->getAuthor()->getName();
+            $post->getAuthor()
+->getName();
         }
 
         $queryDataCollection = $this->stopQueryCollection();

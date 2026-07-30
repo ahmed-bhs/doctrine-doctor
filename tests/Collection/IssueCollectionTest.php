@@ -251,18 +251,26 @@ final class IssueCollectionTest extends TestCase
     private function createMockIssue(string $type, string $severity): IssueInterface
     {
         $issue = $this->createMock(IssueInterface::class);
-        $issue->method('getType')->willReturn($type);
-        $issue->method('getSeverity')->willReturn(Severity::from($severity));
-        $issue->method('getTitle')->willReturn('Test Issue');
-        $issue->method('getDescription')->willReturn('Test description');
-        $issue->method('getSuggestion')->willReturn(null);
-        $issue->method('getBacktrace')->willReturn(null);
-        $issue->method('getQueries')->willReturn([]);
-        $issue->method('toArray')->willReturn([
-            'type' => $type,
-            'severity' => $severity,
-            'title' => 'Test Issue',
-        ]);
+        $issue->method('getType')
+->willReturn($type);
+        $issue->method('getSeverity')
+->willReturn(Severity::from($severity));
+        $issue->method('getTitle')
+->willReturn('Test Issue');
+        $issue->method('getDescription')
+->willReturn('Test description');
+        $issue->method('getSuggestion')
+->willReturn(null);
+        $issue->method('getBacktrace')
+->willReturn(null);
+        $issue->method('getQueries')
+->willReturn([]);
+        $issue->method('toArray')
+->willReturn([
+    'type' => $type,
+    'severity' => $severity,
+    'title' => 'Test Issue',
+]);
 
         return $issue;
     }

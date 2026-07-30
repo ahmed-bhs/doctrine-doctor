@@ -75,7 +75,8 @@ final class OrphanRemovalIntegrationTest extends DatabaseTestCase
 
         self::assertInstanceOf(Order::class, $order, 'Should have at least one order');
 
-        $initialItemCount = $order->getItems()->count();
+        $initialItemCount = $order->getItems()
+->count();
         self::assertGreaterThan(0, $initialItemCount, 'Order should have items');
 
         // Count items in database
@@ -84,7 +85,8 @@ final class OrphanRemovalIntegrationTest extends DatabaseTestCase
             ->count([]);
 
         // Remove one item from the order
-        $itemToRemove = $order->getItems()->first();
+        $itemToRemove = $order->getItems()
+->first();
         $order->removeItem($itemToRemove);
 
         $this->entityManager->flush();
@@ -159,7 +161,8 @@ final class OrphanRemovalIntegrationTest extends DatabaseTestCase
 
         self::assertInstanceOf(Order::class, $order);
 
-        $itemCount = $order->getItems()->count();
+        $itemCount = $order->getItems()
+->count();
         self::assertGreaterThan(0, $itemCount);
 
         // Count total items in database
@@ -220,7 +223,8 @@ final class OrphanRemovalIntegrationTest extends DatabaseTestCase
         self::assertCount(1, $reloadedOrder->getItems());
 
         // Remove item (orphan removal)
-        $reloadedOrder->getItems()->clear();
+        $reloadedOrder->getItems()
+->clear();
         $this->entityManager->flush();
         $this->entityManager->clear();
 

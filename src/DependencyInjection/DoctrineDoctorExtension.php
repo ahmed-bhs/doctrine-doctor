@@ -218,7 +218,8 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
                 continue;
             }
 
-            $resolved = $container->getParameterBag()->resolveValue($config['enabled']);
+            $resolved = $container->getParameterBag()
+->resolveValue($config['enabled']);
 
             if (\is_string($resolved)) {
                 $parsed = filter_var(trim($resolved), \FILTER_VALIDATE_BOOLEAN, \FILTER_NULL_ON_FAILURE);

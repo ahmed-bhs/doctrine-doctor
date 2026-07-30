@@ -376,7 +376,8 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         }
 
         $map = [];
-        $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
+        $allMetadata = $this->entityManager->getMetadataFactory()
+->getAllMetadata();
 
         foreach ($allMetadata as $metadata) {
             $tableName = $metadata->getTableName();

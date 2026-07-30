@@ -57,7 +57,8 @@ class DenormalizedAggregateWithoutLockingAnalyzer implements MetadataAnalyzerInt
     {
         return IssueCollection::fromGenerator(
             function () {
-                $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
+                $allMetadata = $this->entityManager->getMetadataFactory()
+->getAllMetadata();
 
                 foreach ($allMetadata as $metadata) {
                     if ($metadata->isMappedSuperclass || $metadata->isEmbeddedClass) {
@@ -205,7 +206,8 @@ class DenormalizedAggregateWithoutLockingAnalyzer implements MetadataAnalyzerInt
         array $mutatedFields,
         array $accessedCollections,
     ): IntegrityIssue {
-        $shortName = $metadata->getReflectionClass()->getShortName();
+        $shortName = $metadata->getReflectionClass()
+->getShortName();
         $entityClass = $metadata->getName();
 
         $description = DescriptionHighlighter::highlight(
@@ -288,7 +290,8 @@ class DenormalizedAggregateWithoutLockingAnalyzer implements MetadataAnalyzerInt
         return [[
             'file' => $fileName,
             'line' => $startLine,
-            'class' => $method->getDeclaringClass()->getName(),
+            'class' => $method->getDeclaringClass()
+->getName(),
             'function' => $method->getName(),
             'type' => '->',
         ]];

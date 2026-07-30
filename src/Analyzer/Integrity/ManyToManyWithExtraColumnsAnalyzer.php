@@ -59,7 +59,8 @@ class ManyToManyWithExtraColumnsAnalyzer implements MetadataAnalyzerInterface
              */
             function () {
                 try {
-                    $schemaManager = $this->entityManager->getConnection()->createSchemaManager();
+                    $schemaManager = $this->entityManager->getConnection()
+->createSchemaManager();
                     $tableNames = $schemaManager->listTableNames();
 
                     $metadataFactory = $this->entityManager->getMetadataFactory();

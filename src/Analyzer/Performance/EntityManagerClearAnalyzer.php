@@ -125,7 +125,8 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                                         'threshold' => $this->batchSizeThreshold,
                                     ],
                                 ),
-                                severity: $suggestion->getMetadata()->severity,
+                                severity: $suggestion->getMetadata()
+->severity,
                                 suggestion: $suggestion,
                                 queries: $queryDetails,
                                 backtrace: $queryDetails[0]->backtrace,

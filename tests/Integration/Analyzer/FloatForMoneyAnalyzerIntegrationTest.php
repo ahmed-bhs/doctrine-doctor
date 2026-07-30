@@ -154,7 +154,8 @@ final class FloatForMoneyAnalyzerIntegrationTest extends DatabaseTestCase
         ");
 
         // Retrieve
-        $result = $connection->executeQuery("SELECT price FROM correct_product")->fetchOne();
+        $result = $connection->executeQuery("SELECT price FROM correct_product")
+->fetchOne();
 
         // With DECIMAL, we get exact precision
         self::assertEquals('19.99', $result, 'DECIMAL preserves exact precision');

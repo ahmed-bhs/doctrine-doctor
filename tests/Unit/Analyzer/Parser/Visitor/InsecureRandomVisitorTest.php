@@ -203,7 +203,8 @@ final class InsecureRandomVisitorTest extends TestCase
      */
     private function detectInsecureCalls(string $code): array
     {
-        $parser = new ParserFactory()->createForNewestSupportedVersion();
+        $parser = new ParserFactory()
+->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
         self::assertIsArray($ast, 'Parser should return an array');
 

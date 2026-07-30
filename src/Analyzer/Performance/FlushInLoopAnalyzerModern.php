@@ -86,7 +86,8 @@ class FlushInLoopAnalyzerModern implements \AhmedBhs\DoctrineDoctor\Analyzer\Ana
                                 $flushPattern['operations_between_flush'],
                                 $this->flushCountThreshold,
                             ),
-                            severity: $suggestion->getMetadata()->severity, //  NEW: Get severity from suggestion
+                            severity: $suggestion->getMetadata()
+->severity, //  NEW: Get severity from suggestion
                             suggestion: $suggestion,
                             queries: $flushPattern['queries'],
                             backtrace: $flushPattern['backtrace'] ?? null,

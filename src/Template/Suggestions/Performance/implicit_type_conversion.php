@@ -29,7 +29,7 @@ ob_start();
         <pre><code class="language-sql"><?= $e((string) $originalQuery) ?></code></pre>
     </div>
 
-<?php if ($isNumericVsString): ?>
+<?php if ($isNumericVsString) { ?>
     <h4>Fix: bind with the correct PHP type</h4>
     <div class="query-item">
         <pre><code class="language-php">// Before: integer value passed as string disables the index
@@ -47,7 +47,7 @@ $qb-&gt;setParameter('id', $id, \PDO::PARAM_INT);</code></pre>
     <h4>Why it matters</h4>
     <p>Most engines (MySQL, MariaDB) silently coerce one side and lose the ability to use the index on the column.
     PostgreSQL is stricter and may refuse the comparison outright. Either way, the cost is a full table scan or worse.</p>
-<?php else: ?>
+<?php } else { ?>
     <h4>Fix: pass a typed date, not an integer</h4>
     <div class="query-item">
         <pre><code class="language-php">// Before: timestamp as integer
@@ -61,7 +61,7 @@ $qb-&gt;andWhere('o.createdAt &gt;= :since')
 // Or pass an ISO 8601 string with an explicit Types::DATETIME_IMMUTABLE binding
 $qb-&gt;setParameter('since', $date, \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE);</code></pre>
     </div>
-<?php endif; ?>
+<?php } ?>
 
     <p><a href="https://use-the-index-luke.com/sql/where-clause/obfuscation/numeric-strings" target="_blank" rel="noopener noreferrer" class="doc-link">Use The Index, Luke! Numeric strings</a></p>
 </div>

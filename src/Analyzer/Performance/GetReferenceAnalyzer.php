@@ -153,7 +153,8 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                                     'threshold' => $this->threshold,
                                 ],
                             ),
-                            severity: $suggestion->getMetadata()->severity,
+                            severity: $suggestion->getMetadata()
+->severity,
                             suggestion: $suggestion,
                             queries: $representativeQueries,
                             backtrace: $allQueries[0]->backtrace ?? [],
@@ -189,7 +190,8 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                                     'threshold' => $this->threshold,
                                 ],
                             ),
-                            severity: $suggestion->getMetadata()->severity,
+                            severity: $suggestion->getMetadata()
+->severity,
                             suggestion: $suggestion,
                             queries: $representativeQueries,
                             backtrace: $allQueries[0]->backtrace ?? [],

@@ -109,7 +109,8 @@ final class DoctrineDoctorDataCollectorDeferralTest extends TestCase
         // returns immediately when it is absent, before reaching the deferral
         // check this test suite covers. getQueries() returning [] is enough.
         $doctrineDataCollector = self::createStub(DoctrineDataCollector::class);
-        $doctrineDataCollector->method('getQueries')->willReturn([]);
+        $doctrineDataCollector->method('getQueries')
+->willReturn([]);
 
         return new DoctrineDoctorDataCollector(
             analyzers: [],

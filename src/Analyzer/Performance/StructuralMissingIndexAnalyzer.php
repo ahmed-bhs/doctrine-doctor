@@ -153,7 +153,8 @@ class StructuralMissingIndexAnalyzer implements AnalyzerInterface
     private function tableExists(string $tableName): bool
     {
         try {
-            return $this->connection->createSchemaManager()->tablesExist([$tableName]);
+            return $this->connection->createSchemaManager()
+->tablesExist([$tableName]);
         } catch (DbalException) {
             return false;
         }

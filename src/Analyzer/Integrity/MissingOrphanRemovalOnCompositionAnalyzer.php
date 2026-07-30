@@ -372,7 +372,8 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements MetadataAnalyzerInter
 
             if ($reflectionClass->hasProperty($fieldName)) {
                 $reflectionProperty = $reflectionClass->getProperty($fieldName);
-                $propertyLine       = $reflectionProperty->getDeclaringClass()->getStartLine();
+                $propertyLine       = $reflectionProperty->getDeclaringClass()
+->getStartLine();
 
                 if (false !== $propertyLine) {
                     $lineNumber = $propertyLine;

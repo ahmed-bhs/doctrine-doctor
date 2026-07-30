@@ -476,7 +476,8 @@ final class NamingConventionAnalyzerTest extends TestCase
 
         foreach ($issuesArray as $issue) {
             $data = $issue->getData();
-            $severity = $issue->getSeverity()->value;
+            $severity = $issue->getSeverity()
+->value;
 
             switch ($data['violation_type'] ?? '') {
                 case 'not_snake_case':

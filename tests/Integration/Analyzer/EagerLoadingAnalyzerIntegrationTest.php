@@ -103,7 +103,8 @@ final class EagerLoadingAnalyzerIntegrationTest extends DatabaseTestCase
         LEFT JOIN p.comments comments
         DQL;
 
-        $this->entityManager->createQuery($dql)->getResult();
+        $this->entityManager->createQuery($dql)
+->getResult();
 
         $queryDataCollection = $this->stopQueryCollection();
 
@@ -145,7 +146,8 @@ final class EagerLoadingAnalyzerIntegrationTest extends DatabaseTestCase
         JOIN p.author a
         DQL;
 
-        $this->entityManager->createQuery($dql)->getResult();
+        $this->entityManager->createQuery($dql)
+->getResult();
 
         $queryDataCollection = $this->stopQueryCollection();
 
@@ -176,7 +178,8 @@ final class EagerLoadingAnalyzerIntegrationTest extends DatabaseTestCase
         SQL;
 
         // Execute the query
-        $this->entityManager->getConnection()->executeQuery($sql);
+        $this->entityManager->getConnection()
+->executeQuery($sql);
 
         $queryDataCollection = $this->stopQueryCollection();
 
@@ -205,7 +208,8 @@ final class EagerLoadingAnalyzerIntegrationTest extends DatabaseTestCase
         LEFT JOIN orders o ON o.user_id = a.id
         SQL;
 
-        $this->entityManager->getConnection()->executeQuery($sql);
+        $this->entityManager->getConnection()
+->executeQuery($sql);
 
         $queryDataCollection = $this->stopQueryCollection();
 
@@ -246,7 +250,8 @@ final class EagerLoadingAnalyzerIntegrationTest extends DatabaseTestCase
         LEFT JOIN users ca ON c.author_id = ca.id
         SQL;
 
-        $this->entityManager->getConnection()->executeQuery($sql);
+        $this->entityManager->getConnection()
+->executeQuery($sql);
 
         $queryDataCollection = $this->stopQueryCollection();
 
@@ -332,7 +337,8 @@ final class EagerLoadingAnalyzerIntegrationTest extends DatabaseTestCase
         LEFT JOIN orders o ON o.user_id = a.id
         SQL;
 
-        $this->entityManager->getConnection()->executeQuery($sql);
+        $this->entityManager->getConnection()
+->executeQuery($sql);
 
         $queryDataCollection = $this->stopQueryCollection();
 

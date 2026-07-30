@@ -38,7 +38,8 @@ class InheritanceTypeOnNonRootEntityAnalyzer implements AnalyzerInterface
         return IssueCollection::fromGenerator(function () {
             try {
                 /** @var array<ClassMetadata<object>> $allMetadata */
-                $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
+                $allMetadata = $this->entityManager->getMetadataFactory()
+->getAllMetadata();
             } catch (\Throwable) {
                 return;
             }

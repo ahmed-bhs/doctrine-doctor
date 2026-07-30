@@ -419,7 +419,9 @@ class ColumnTypeAnalyzer implements MetadataAnalyzerInterface
                 $columnName,
                 $tableName,
             );
-            $result = $this->entityManager->getConnection()->executeQuery($sql)->fetchAssociative();
+            $result = $this->entityManager->getConnection()
+->executeQuery($sql)
+->fetchAssociative();
 
             if (false === $result || 0 === (int) $result['t']) {
                 return ['distinct' => 0, 'total' => 0, 'ratio' => 1.0];

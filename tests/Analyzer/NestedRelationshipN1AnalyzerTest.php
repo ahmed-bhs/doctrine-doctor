@@ -143,7 +143,8 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
         $issue = $issues->toArray()[0];
         // Deep nesting with many queries should be higher than info severity
         self::assertTrue(
-            $issue->getSeverity()->isHigherThan(\AhmedBhs\DoctrineDoctor\ValueObject\Severity::info()),
+            $issue->getSeverity()
+->isHigherThan(\AhmedBhs\DoctrineDoctor\ValueObject\Severity::info()),
             'Deep nested N+1 should have warning or critical severity',
         );
     }
@@ -519,7 +520,8 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
 
         self::assertGreaterThanOrEqual(1, \count($issues));
 
-        $description = $issues->toArray()[0]->getDescription();
+        $description = $issues->toArray()[0]
+->getDescription();
 
         // Should mention at least 2 of the 3 tables in the chain
         $lowerDescription = strtolower($description);
