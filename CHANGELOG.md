@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.10.0] - 2026-07-30
+
 ### Added
 
 - JSON report export from the profiler panel: an `Export JSON` button on the Doctrine Doctor panel heading downloads the current report (issues, stats, and grouped query timings) as a `.json` file. The payload is rendered into the panel and saved client-side via a `Blob`, so the feature needs no route and no routing configuration in the host application. Query entries are whitelisted field by field to drop the non-serializable `firstQuery` payload (backtrace, connection). Contributed by [@makomweb](https://github.com/makomweb) in [#120](https://github.com/ahmed-bhs/doctrine-doctor/pull/120).
