@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Collector\Helper\DataCollectorLogger;
 use AhmedBhs\DoctrineDoctor\Collector\Helper\IssueReconstructor;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
+use AhmedBhs\DoctrineDoctor\Service\ExportDataFormatter;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
 use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
@@ -343,6 +344,33 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         usort($result, fn (array $queryA, array $queryB): int => $queryB['totalTimeMs'] <=> $queryA['totalTimeMs']);
 
         return $result;
+    }
+
+    /**
+     * Build the JSON export payload for the profiler panel's download button.
+     *
+     * Rendered inline into the panel rather than served from a route, so the
+     * export works without registering any routing in the host application.
+     */
+    public function getExportJson(): string
+    {
+        $payload = new ExportDataFormatter()->format(
+            $this->getIssues(),
+            $this->getStats(),
+            $this->getGroupedQueriesByTime(),
+        );
+
+        // JSON_HEX_TAG is required, not cosmetic: the payload is inlined in a
+        // <script> block, and captured SQL can contain both "</script>" and the
+        // "<!--<script" sequence that flips the HTML parser into double-escaped
+        // state, where a later "</script>" no longer closes the element. Escaping
+        // angle brackets to < / > makes the payload inert while staying
+        // valid JSON. Output is not pretty-printed because it ships on every panel
+        // render; the downloaded file is still well-formed JSON.
+        return json_encode(
+            $payload,
+            \JSON_HEX_TAG | \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_PARTIAL_OUTPUT_ON_ERROR,
+        ) ?: '{}';
     }
 
     /**
