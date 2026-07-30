@@ -200,7 +200,8 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                     } else {
                         $qb->where('1 = 0'); // No result
                     }
-                    PHP,
+                    PHP
+                ,
                 'pros' => ['Clear intent', 'No database query if array is empty'],
                 'cons' => ['Requires explicit handling'],
             ],
@@ -226,7 +227,8 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                             ->getQuery()
                             ->getResult();
                     }
-                    PHP,
+                    PHP
+                ,
                 'pros' => ['Avoids unnecessary query building', 'Clean code flow'],
                 'cons' => ['Duplicates empty array logic'],
             ],
@@ -242,7 +244,8 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                     }
                     // If $ids is empty, no filter is applied
                     return $qb->getQuery()->getResult();
-                    PHP,
+                    PHP
+                ,
                 'pros' => ['Flexible query building'],
                 'cons' => ['May return all results if empty (might not be desired)'],
             ],
@@ -298,7 +301,8 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                     {
                         return addcslashes($value, '%_');
                     }
-                    PHP,
+                    PHP
+                    ,
                     'file_path' => null,
                 ],
                 suggestionMetadata: new SuggestionMetadata(
@@ -343,7 +347,8 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                            'id' => $id,
                            'status' => $status,
                        ]);
-                    PHP,
+                    PHP
+                    ,
                     'file_path' => null,
                 ],
                 suggestionMetadata: new SuggestionMetadata(

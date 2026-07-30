@@ -83,7 +83,7 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                             severity: $suggestion->getMetadata()->severity,
                             suggestion: $suggestion,
                             queries: $bulkOperation['queries'],
-                            backtrace: $bulkOperation['backtrace'] ?? null,
+                            backtrace: $bulkOperation['backtrace'],
                         );
 
                         yield $this->issueFactory->create($issueData);

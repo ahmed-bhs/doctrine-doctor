@@ -106,7 +106,7 @@ class DecimalPrecisionAnalyzer implements MetadataAnalyzerInterface
                 $mapping = (array) $mapping;
             }
 
-            if (($mapping['type'] ?? null) !== 'decimal') {
+            if ('decimal' !== $mapping['type']) {
                 continue;
             }
 

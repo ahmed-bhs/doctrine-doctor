@@ -78,7 +78,7 @@ final class SqlJoinExtractor implements JoinExtractorInterface
         }
 
         $from = $statement->from[0];
-        $table = $from->table ?? null;
+        $table = $from->table;
 
         if (null === $table) {
             return null;
@@ -86,7 +86,7 @@ final class SqlJoinExtractor implements JoinExtractorInterface
 
         return [
             'table' => $table,
-            'alias' => $from->alias ?? null,
+            'alias' => $from->alias,
         ];
     }
 

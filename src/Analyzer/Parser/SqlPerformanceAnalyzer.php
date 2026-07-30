@@ -109,7 +109,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         if ([] !== $fromClauses) {
             foreach ($fromClauses as $fromExpr) {
                 // Derived table pattern: FROM (...subquery...) AS alias
-                $exprValue = $fromExpr->expr ?? null;
+                $exprValue = $fromExpr->expr;
                 if (null !== $exprValue) {
                     $exprStr = (string) $exprValue;
                     if (str_contains($exprStr, '(') && str_contains(strtoupper($exprStr), 'SELECT')) {
@@ -151,7 +151,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
         }
 
         // Check for DISTINCT in SELECT options (SELECT DISTINCT ...)
-        $statementOptions = $statement->options ?? null;
+        $statementOptions = $statement->options;
         if (null !== $statementOptions) {
             $options = $statementOptions->options;
             if ([] !== $options) {

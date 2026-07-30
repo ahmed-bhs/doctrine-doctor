@@ -27,11 +27,11 @@ ob_start();
         This happens when accessing a ManyToOne or OneToOne relation inside a loop where each proxy is lazily initialized.
     </div>
 
-<?php if (null !== $triggerLocation && '' !== $triggerLocation): ?>
+<?php if (null !== $triggerLocation && '' !== $triggerLocation) { ?>
     <div class="alert alert-info">
         <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
     </div>
-<?php endif; ?>
+<?php } ?>
 
     <h4>Problem: Proxy Initialization in Loop</h4>
     <div class="query-item">

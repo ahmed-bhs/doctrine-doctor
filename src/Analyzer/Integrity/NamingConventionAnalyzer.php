@@ -27,6 +27,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\ToOneOwningSideMapping;
 use ReflectionClass;
 use Webmozart\Assert\Assert;
 
@@ -246,7 +247,9 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
         $entityClass = $classMetadata->getName();
 
         foreach ($classMetadata->getAssociationMappings() as $assocName => $associationMapping) {
-            $joinColumns = is_object($associationMapping) ? ($associationMapping->joinColumns ?? null) : ($associationMapping['joinColumns'] ?? null);
+            $joinColumns = is_object($associationMapping)
+                ? ($associationMapping instanceof ToOneOwningSideMapping ? $associationMapping->joinColumns : null)
+                : ($associationMapping['joinColumns'] ?? null);
 
             if (null === $joinColumns) {
                 continue;

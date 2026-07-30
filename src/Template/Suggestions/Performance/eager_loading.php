@@ -27,11 +27,11 @@ ob_start();
         <?php echo $queryCount; ?> queries loading <code><?php echo $e($relation); ?></code>
     </div>
 
-<?php if (null !== $triggerLocation && '' !== $triggerLocation): ?>
+<?php if (null !== $triggerLocation && '' !== $triggerLocation) { ?>
     <div class="alert alert-info">
         <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
     </div>
-<?php endif; ?>
+<?php } ?>
 
     <h4>Eager load with JOIN</h4>
     <div class="query-item">

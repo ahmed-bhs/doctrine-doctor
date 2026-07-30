@@ -27,18 +27,18 @@ ob_start();
     <div class="alert alert-warning">
         <strong>Collection N+1 Query Detected<?php echo $hasLimit ? ' (Partial Access)' : ''; ?></strong><br>
         Detected <strong><?php echo $queryCount; ?> sequential queries</strong> loading <code><?php echo $e($relation); ?></code> collection.
-        <?php if ($hasLimit): ?>
+        <?php if ($hasLimit) { ?>
             Your queries use LIMIT, suggesting you only need part of the collection.
-        <?php else: ?>
+        <?php } else { ?>
             This happens when accessing a lazy-loaded collection inside a loop.
-        <?php endif; ?>
+        <?php } ?>
     </div>
 
-<?php if (null !== $triggerLocation && '' !== $triggerLocation): ?>
+<?php if (null !== $triggerLocation && '' !== $triggerLocation) { ?>
     <div class="alert alert-info">
         <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
     </div>
-<?php endif; ?>
+<?php } ?>
 
     <h4>Problem: Collection Loading in Loop</h4>
     <div class="query-item">
@@ -47,19 +47,19 @@ $entities = $repository->findAll();
 Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
-    <?php if ($hasLimit): ?>
+    <?php if ($hasLimit) { ?>
     // Counting or partial access still loads entire collection
     echo count($entity->get<?php echo ucfirst((string) $relation); ?>()); // Full collection loaded!
-    <?php else: ?>
+    <?php } else { ?>
     foreach ($entity->get<?php echo ucfirst((string) $relation); ?>() as $item) { // Collection loaded here!
         // Process items...
     }
-    <?php endif; ?>
+    <?php } ?>
 }
 // Result: <?php echo $queryCount; ?> queries instead of 1<?php echo $hasLimit ? ' (even if you only need counts!)' : ''; ?></code></pre>
     </div>
 
-    <?php if ($hasLimit): ?>
+    <?php if ($hasLimit) { ?>
     <h4>Solution 1: EXTRA_LAZY (Recommended for Partial Access)</h4>
     <div class="query-item">
         <pre><code class="language-php">// BEST for counts, contains(), slice(), etc.
@@ -86,7 +86,7 @@ foreach ($entities as $entity) {
 }
 // Result: Optimized queries (COUNT, LIMIT, EXISTS)</code></pre>
     </div>
-    <?php else: ?>
+    <?php } else { ?>
     <h4>Solution 1: EXTRA_LAZY (For Partial Access)</h4>
     <div class="query-item">
         <pre><code class="language-php">// GOOD if you only need counts or partial access
@@ -99,7 +99,7 @@ private Collection $<?php echo $e($relation); ?>;
 $count = $entity->get<?php echo ucfirst((string) $relation); ?>()->count(); // COUNT query only
 $first5 = $entity->get<?php echo ucfirst((string) $relation); ?>()->slice(0, 5); // LIMIT query only</code></pre>
     </div>
-    <?php endif; ?>
+    <?php } ?>
 
     <h4>Solution 2: JOIN FETCH (For Full Access)</h4>
     <div class="query-item">
@@ -185,12 +185,12 @@ public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
         ℹ️ <strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Current:</strong> <?php echo $queryCount; ?> queries<?php echo $hasLimit ? ' (loading partial data each time)' : ''; ?></li>
-            <?php if ($hasLimit): ?>
+            <?php if ($hasLimit) { ?>
             <li><strong>With EXTRA_LAZY:</strong> <?php echo $queryCount; ?> optimized COUNT/LIMIT queries (much faster)</li>
-            <?php else: ?>
+            <?php } else { ?>
             <li><strong>With JOIN FETCH:</strong> 1 query (if full access needed)</li>
             <li><strong>With EXTRA_LAZY:</strong> <?php echo $queryCount; ?> COUNT queries (if only counting)</li>
-            <?php endif; ?>
+            <?php } ?>
         </ul>
     </div>
 

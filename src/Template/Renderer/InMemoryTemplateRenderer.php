@@ -27,7 +27,6 @@ class InMemoryTemplateRenderer implements TemplateRendererInterface, SuggestionR
     private array $templates = [];
 
     /**
-     * Register a template.
      * @param string   $name     Template identifier
      * @param callable $template Callable that receives context and returns ['code' => string, 'description' => string]
      */
