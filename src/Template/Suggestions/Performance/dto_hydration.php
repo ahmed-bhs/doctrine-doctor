@@ -25,7 +25,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        <?php echo $queryCount; ?> aggregation <?php echo $queryCount > 1 ? 'queries' : 'query'; ?><?php if ([] !== $aggregations): ?> (<?php echo implode(', ', array_map(static fn (mixed $aggregation): string => $e((string) $aggregation), $aggregations)); ?>)<?php endif; ?>. DTO hydration is 3-5x faster and type-safe.
+        <?php echo $queryCount; ?> aggregation <?php echo $queryCount > 1 ? 'queries' : 'query'; ?><?php if ([] !== $aggregations) { ?> (<?php echo implode(', ', array_map(static fn (mixed $aggregation): string => $e((string) $aggregation), $aggregations)); ?>)<?php } ?>. DTO hydration is 3-5x faster and type-safe.
     </div>
 
     <h4>Solution: Use DTO with NEW syntax</h4>

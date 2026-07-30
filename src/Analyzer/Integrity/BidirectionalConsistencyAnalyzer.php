@@ -126,7 +126,7 @@ class BidirectionalConsistencyAnalyzer implements MetadataAnalyzerInterface
             }
 
             // Only check bidirectional associations
-            $mappedBy = MappingHelper::getString($associationMapping, 'mappedBy') ?? null;
+            $mappedBy = MappingHelper::getString($associationMapping, 'mappedBy');
 
             if (null === $mappedBy) {
                 continue;

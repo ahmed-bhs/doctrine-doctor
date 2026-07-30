@@ -141,7 +141,7 @@ class CascadeAnalyzer implements MetadataAnalyzerInterface
         array $referenceCountMap,
     ): ?IntegrityIssue {
         $cascade = MappingHelper::getArray($mapping, 'cascade') ?? [];
-        $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? null;
+        $targetEntity = MappingHelper::getString($mapping, 'targetEntity');
 
         // Priority 1: cascade="all" - ALWAYS critical
         if ($this->hasAllCascadeOperations($cascade)) {
@@ -496,7 +496,7 @@ class CascadeAnalyzer implements MetadataAnalyzerInterface
 
         foreach ($allMetadata as $metadata) {
             foreach ($metadata->getAssociationMappings() as $associationMapping) {
-                $targetEntity = MappingHelper::getString($associationMapping, 'targetEntity') ?? null;
+                $targetEntity = MappingHelper::getString($associationMapping, 'targetEntity');
 
                 if (null !== $targetEntity) {
                     if (!isset($map[$targetEntity])) {

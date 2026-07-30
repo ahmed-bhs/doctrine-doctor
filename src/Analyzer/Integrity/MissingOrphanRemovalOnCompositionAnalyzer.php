@@ -136,7 +136,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements MetadataAnalyzerInter
      */
     private function isCompositionRelationship(array|object $mapping, array $allMetadata): bool
     {
-        $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? null;
+        $targetEntity = MappingHelper::getString($mapping, 'targetEntity');
 
         if (null === $targetEntity) {
             return false;

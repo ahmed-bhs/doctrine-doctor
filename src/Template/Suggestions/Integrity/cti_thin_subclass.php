@@ -32,14 +32,14 @@ ob_start();
         Every polymorphic query pays a JOIN cost for very little additional data.
     </div>
 
-    <?php if ([] !== $ownFields): ?>
+    <?php if ([] !== $ownFields) { ?>
     <h4>Fields added by <?php echo $e($subclass); ?></h4>
     <ul>
-        <?php foreach ($ownFields as $field): ?>
+        <?php foreach ($ownFields as $field) { ?>
         <li><code><?php echo $e((string) $field); ?></code></li>
-        <?php endforeach; ?>
+        <?php } ?>
     </ul>
-    <?php endif; ?>
+    <?php } ?>
 
     <h4>Consider: Switch to Single Table Inheritance (SINGLE_TABLE)</h4>
     <p>When subclasses add minimal fields, STI avoids JOIN overhead at the cost of a few nullable columns:</p>

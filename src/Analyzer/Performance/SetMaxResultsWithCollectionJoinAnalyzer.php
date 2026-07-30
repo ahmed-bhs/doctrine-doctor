@@ -173,7 +173,7 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
         }
 
         foreach ($joins as $join) {
-            $joinTable = $join['table'] ?? null;
+            $joinTable = $join['table'];
 
             if (!is_string($joinTable) || !$this->isConfirmedToOneJoin($fromMetadata, $joinTable)) {
                 return false;

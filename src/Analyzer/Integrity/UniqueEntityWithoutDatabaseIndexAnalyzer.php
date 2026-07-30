@@ -244,7 +244,7 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
 
                 if ([] !== $joinColumns) {
                     $firstJoin = $joinColumns[0] ?? [];
-                    $columnName = \is_array($firstJoin) ? ($firstJoin['name'] ?? null) : (MappingHelper::getString($firstJoin, 'name') ?? null);
+                    $columnName = \is_array($firstJoin) ? ($firstJoin['name'] ?? null) : MappingHelper::getString($firstJoin, 'name');
 
                     if (\is_string($columnName)) {
                         $columns[] = $columnName;

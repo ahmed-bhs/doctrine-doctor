@@ -135,7 +135,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
 
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $associationMapping) {
             $cascade      = MappingHelper::getArray($associationMapping, 'cascade') ?? [];
-            $targetEntity = MappingHelper::getString($associationMapping, 'targetEntity') ?? null;
+            $targetEntity = MappingHelper::getString($associationMapping, 'targetEntity');
 
             // Check if has cascade remove
             if (!in_array('remove', $cascade, true) && !in_array('all', $cascade, true)) {
@@ -288,7 +288,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
 
         // Indicator 2: Check if inverse side has orphanRemoval=true
         $targetEntity = MappingHelper::getString($association, 'targetEntity');
-        $mappedBy = MappingHelper::getString($association, 'inversedBy') ?? null;
+        $mappedBy = MappingHelper::getString($association, 'inversedBy');
 
         if (null !== $targetEntity && null !== $mappedBy) {
             try {

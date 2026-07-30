@@ -25,11 +25,11 @@ ob_start();
         Each access to this collection triggers a separate SQL query.
     </div>
 
-<?php if (null !== $triggerLocation && '' !== $triggerLocation): ?>
+<?php if (null !== $triggerLocation && '' !== $triggerLocation) { ?>
     <div class="alert alert-info">
         <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
     </div>
-<?php endif; ?>
+<?php } ?>
 
     <h4>Root Cause</h4>
     <p>
