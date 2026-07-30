@@ -243,8 +243,7 @@ class CascadeConfigurationAnalyzer implements MetadataAnalyzerInterface
         if (ClassMetadata::ONE_TO_MANY === $type) {
             try {
                 /** @var class-string $targetEntity */
-                $targetMetadata = $this->entityManager->getMetadataFactory()
-->getMetadataFor($targetEntity);
+                $targetMetadata = $this->entityManager->getMetadataFactory()->getMetadataFor($targetEntity);
                 foreach ($targetMetadata->getAssociationMappings() as $assoc) {
                     if (ClassMetadata::MANY_TO_ONE !== $this->getAssociationTypeConstant($assoc)) {
                         continue;
@@ -485,8 +484,7 @@ class CascadeConfigurationAnalyzer implements MetadataAnalyzerInterface
 
             if ($reflectionClass->hasProperty($fieldName)) {
                 $reflectionProperty = $reflectionClass->getProperty($fieldName);
-                $propertyLine       = $reflectionProperty->getDeclaringClass()
-->getStartLine();
+                $propertyLine       = $reflectionProperty->getDeclaringClass()->getStartLine();
 
                 if (false !== $propertyLine) {
                     $lineNumber = $propertyLine;

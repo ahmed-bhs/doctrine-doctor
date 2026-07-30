@@ -54,8 +54,7 @@ class EntityWithVulnerableMethods
         $connection = $em->getConnection();
         $sql = "SELECT * FROM categories WHERE name = '" . $category . "'";
 
-        return $connection->executeQuery($sql)
-->fetchAllAssociative();
+        return $connection->executeQuery($sql)->fetchAllAssociative();
     }
 
     /**

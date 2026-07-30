@@ -157,8 +157,7 @@ final class NPlusOneAnalyzerIntegrationTest extends DatabaseTestCase
         foreach ($posts as $post) {
             foreach ($post->getComments() as $comment) {
                 // Accessing author triggers another query
-                $comment->getAuthor()
-->getName();
+                $comment->getAuthor()->getName();
             }
         }
 
@@ -182,8 +181,7 @@ final class NPlusOneAnalyzerIntegrationTest extends DatabaseTestCase
             ->findAll();
 
         foreach ($posts as $post) {
-            $post->getComments()
-->count();
+            $post->getComments()->count();
         }
 
         $queryDataCollection = $this->stopQueryCollection();
@@ -211,8 +209,7 @@ final class NPlusOneAnalyzerIntegrationTest extends DatabaseTestCase
             ->findAll();
 
         foreach ($posts as $post) {
-            $post->getComments()
-->count();
+            $post->getComments()->count();
         }
 
         $badQueryCount = $this->queryLogger->count();
@@ -234,8 +231,7 @@ final class NPlusOneAnalyzerIntegrationTest extends DatabaseTestCase
             ->getResult();
 
         foreach ($posts as $post) {
-            $post->getComments()
-->count();
+            $post->getComments()->count();
         }
 
         $goodQueryCount = $this->queryLogger->count();

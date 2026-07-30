@@ -167,8 +167,7 @@ final class RemoveOrmServicesPassTest extends TestCase
 
         (new RemoveOrmServicesPass())->process($container);
 
-        $remaining = $container->getAutoconfiguredInstanceof()[FakeOrmAnalyzer::class]
-->getBindings();
+        $remaining = $container->getAutoconfiguredInstanceof()[FakeOrmAnalyzer::class]->getBindings();
         self::assertArrayNotHasKey('$entityManager', $remaining);
         self::assertArrayNotHasKey('Doctrine\\ORM\\EntityManagerInterface', $remaining);
         self::assertArrayHasKey('$threshold', $remaining);

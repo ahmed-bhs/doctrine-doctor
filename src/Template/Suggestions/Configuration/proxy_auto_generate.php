@@ -7,6 +7,7 @@ declare(strict_types=1);
  * Context variables: none required
  * Note: This template doesn't display dynamic context variables, so htmlspecialchars() is not needed
  */
+
 ob_start();
 ?>
 

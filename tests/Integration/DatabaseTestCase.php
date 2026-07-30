@@ -117,8 +117,7 @@ abstract class DatabaseTestCase extends TestCase
     {
         try {
             $schemaTool = new SchemaTool($this->entityManager);
-            $metadata = $this->entityManager->getMetadataFactory()
-->getAllMetadata();
+            $metadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
 
             if ([] !== $metadata) {
                 $schemaTool->dropSchema($metadata);

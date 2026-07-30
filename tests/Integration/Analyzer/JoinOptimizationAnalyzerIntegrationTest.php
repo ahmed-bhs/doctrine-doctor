@@ -112,8 +112,7 @@ final class JoinOptimizationAnalyzerIntegrationTest extends DatabaseTestCase
         SQL;
 
         try {
-            $this->entityManager->getConnection()
-->executeQuery($sql);
+            $this->entityManager->getConnection()->executeQuery($sql);
         } catch (\Exception) {
             // May fail due to schema
         }

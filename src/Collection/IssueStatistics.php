@@ -64,8 +64,7 @@ final readonly class IssueStatistics
         ];
 
         foreach ($this->issueCollection as $issue) {
-            $severity          = $issue->getSeverity()
-->value;
+            $severity          = $issue->getSeverity()->value;
             $counts[$severity] = ($counts[$severity] ?? 0) + 1;
         }
 

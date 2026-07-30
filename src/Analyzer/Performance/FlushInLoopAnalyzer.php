@@ -87,8 +87,7 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                                     'threshold' => (string) $this->flushCountThreshold,
                                 ],
                             ),
-                            severity: $suggestion->getMetadata()
-->severity,
+                            severity: $suggestion->getMetadata()->severity,
                             suggestion: $suggestion,
                             queries: $queries,
                             backtrace: $backtrace,

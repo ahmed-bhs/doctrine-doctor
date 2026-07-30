@@ -392,10 +392,8 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
                     'severity'   => 'warning',
                     'suggestion' => $this->createProtectionSuggestion($entityClass, $fieldName),
                     'backtrace'  => [
-                        'file' => $property->getDeclaringClass()
-->getFileName(),
-                        'line' => $property->getDeclaringClass()
-->getStartLine(),
+                        'file' => $property->getDeclaringClass()->getFileName(),
+                        'line' => $property->getDeclaringClass()->getStartLine(),
                     ],
                     'queries' => [],
                 ]);

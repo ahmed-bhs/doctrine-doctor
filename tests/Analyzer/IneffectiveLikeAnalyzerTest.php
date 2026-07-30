@@ -516,12 +516,9 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         $slowIssues = $this->analyzer->analyze($slowQuery);
 
         // Assert: Suggestion titles differ based on severity
-        $fastSuggestion = $fastIssues->toArray()[0]
-->getSuggestion();
-        $mediumSuggestion = $mediumIssues->toArray()[0]
-->getSuggestion();
-        $slowSuggestion = $slowIssues->toArray()[0]
-->getSuggestion();
+        $fastSuggestion = $fastIssues->toArray()[0]->getSuggestion();
+        $mediumSuggestion = $mediumIssues->toArray()[0]->getSuggestion();
+        $slowSuggestion = $slowIssues->toArray()[0]->getSuggestion();
 
         // Fast and medium queries: both < 100ms -> same title (prevents index usage)
         self::assertNotNull($fastSuggestion);

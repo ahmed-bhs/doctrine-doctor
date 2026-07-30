@@ -51,8 +51,7 @@ class EntityMetadataProvider
             return $this->cachedFilteredMetadata;
         }
 
-        $allMetadata = $this->entityManager->getMetadataFactory()
-->getAllMetadata();
+        $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
 
         // If filtering disabled, cache and return all
         if (!$this->excludeVendorEntities) {
@@ -75,8 +74,7 @@ class EntityMetadataProvider
     public function getMetadataFor(string $className): ClassMetadata
     {
         /** @var class-string $className */
-        return $this->entityManager->getMetadataFactory()
-->getMetadataFor($className);
+        return $this->entityManager->getMetadataFactory()->getMetadataFor($className);
     }
 
     /**

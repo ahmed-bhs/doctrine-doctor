@@ -50,30 +50,30 @@ foreach ($<?php echo lcfirst((string) $entities[0]); ?>s as $<?php echo lcfirst(
     // Level 1: Accessing <?php echo $entities[1] ?? 'relation'; ?>
 
     echo $<?php echo lcfirst((string) $entities[0]); ?>->get<?php echo $entities[1] ?? 'Relation'; ?>()
-<?php if (isset($entities[2])) { ?>
+<?php if (isset($entities[2])): ?>
         // Level 2: Accessing <?php echo $entities[2]; ?> through <?php echo $entities[1]; ?>
 
         ->get<?php echo $entities[2]; ?>()
-<?php } ?>
-<?php if (isset($entities[3])) { ?>
+<?php endif; ?>
+<?php if (isset($entities[3])): ?>
         // Level 3: Accessing <?php echo $entities[3]; ?> through <?php echo $entities[2]; ?>
 
         ->get<?php echo $entities[3]; ?>()
-<?php } ?>
+<?php endif; ?>
         ->getName();
 }
 
 // Result for 100 <?php echo lcfirst((string) $entities[0]); ?>s:
 // - 100 queries for <?php echo $entities[1] ?? 'relations'; ?>
 
-<?php if (isset($entities[2])) { ?>
+<?php if (isset($entities[2])): ?>
 // - 100 queries for <?php echo $entities[2]; ?>
 
-<?php } ?>
-<?php if (isset($entities[3])) { ?>
+<?php endif; ?>
+<?php if (isset($entities[3])): ?>
 // - 100 queries for <?php echo $entities[3]; ?>
 
-<?php } ?>
+<?php endif; ?>
 // - Total: <?php echo $totalQueries; ?> queries!</code></pre>
     </div>
 
@@ -81,14 +81,14 @@ foreach ($<?php echo lcfirst((string) $entities[0]); ?>s as $<?php echo lcfirst(
     <div class="query-item">
         <pre><code class="language-php">// GOOD: Eager load entire chain with nested JOINs
 $query = $em->createQuery('
-    SELECT <?php echo strtolower((string) $entities[0][0]); ?><?php foreach (array_slice($entities, 1) as $i => $entity) { ?>, <?php echo strtolower((string) $entity[0]); ?><?php } ?>
+    SELECT <?php echo strtolower((string) $entities[0][0]); ?><?php foreach (array_slice($entities, 1) as $i => $entity): ?>, <?php echo strtolower((string) $entity[0]); ?><?php endforeach; ?>
 
     FROM App\Entity\<?php echo $e($entities[0]); ?> <?php echo strtolower((string) $entities[0][0]); ?>
 
-    <?php foreach (array_slice($entities, 1) as $i => $entity) { ?>
+    <?php foreach (array_slice($entities, 1) as $i => $entity): ?>
 LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirst((string) $entity); ?> <?php echo strtolower((string) $entity[0]); ?>
 
-    <?php } ?>
+    <?php endforeach; ?>
 ');
 
 $<?php echo lcfirst((string) $entities[0]); ?>s = $query->getResult();
@@ -96,12 +96,12 @@ $<?php echo lcfirst((string) $entities[0]); ?>s = $query->getResult();
 // Now access the chain without any extra queries:
 foreach ($<?php echo lcfirst((string) $entities[0]); ?>s as $<?php echo lcfirst((string) $entities[0]); ?>) {
     echo $<?php echo lcfirst((string) $entities[0]); ?>->get<?php echo $entities[1] ?? 'Relation'; ?>()
-<?php if (isset($entities[2])) { ?>
+<?php if (isset($entities[2])): ?>
         ->get<?php echo $entities[2]; ?>()
-<?php } ?>
-<?php if (isset($entities[3])) { ?>
+<?php endif; ?>
+<?php if (isset($entities[3])): ?>
         ->get<?php echo $entities[3]; ?>()
-<?php } ?>
+<?php endif; ?>
         ->getName(); // No queries!
 }
 
@@ -117,10 +117,10 @@ foreach ($<?php echo lcfirst((string) $entities[0]); ?>s as $<?php echo lcfirst(
 public function findAllWithNested<?php echo $entities[1] ?? 'Relations'; ?>(): array
 {
     return $this->createQueryBuilder('<?php echo strtolower((string) $entities[0][0]); ?>')
-<?php foreach (array_slice($entities, 1) as $i => $entity) { ?>
+<?php foreach (array_slice($entities, 1) as $i => $entity): ?>
         ->leftJoin('<?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirst((string) $entity); ?>', '<?php echo strtolower((string) $entity[0]); ?>')
         ->addSelect('<?php echo strtolower((string) $entity[0]); ?>')
-<?php } ?>
+<?php endforeach; ?>
         ->getQuery()
         ->getResult();
 }
@@ -142,10 +142,10 @@ $results = $em->createQuery('
     )
     FROM App\Entity\<?php echo $e($entities[0]); ?> <?php echo strtolower((string) $entities[0][0]); ?>
 
-    <?php foreach (array_slice($entities, 1) as $i => $entity) { ?>
+    <?php foreach (array_slice($entities, 1) as $i => $entity): ?>
 LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirst((string) $entity); ?> <?php echo strtolower((string) $entity[0]); ?>
 
-    <?php } ?>
+    <?php endforeach; ?>
 ')->getResult();
 
 // Result: 1 query, scalar data, no hydration overhead!

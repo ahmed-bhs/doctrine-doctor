@@ -93,8 +93,7 @@ final class CompositeKeyComplexityAnalyzerTest extends TestCase
         $issue = reset($orderItemIssues);
         self::assertNotFalse($issue);
 
-        $severity = $issue->getSeverity()
-->value;
+        $severity = $issue->getSeverity()->value;
         self::assertContains($severity, ['warning', 'critical']);
     }
 

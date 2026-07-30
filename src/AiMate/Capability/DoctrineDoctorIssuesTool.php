@@ -82,8 +82,7 @@ final readonly class DoctrineDoctorIssuesTool
             return ['error' => sprintf('Profile not found for token: %s', $token)];
         }
 
-        $collectors = $profileData->getProfile()
-->getCollectors();
+        $collectors = $profileData->getProfile()->getCollectors();
 
         foreach ($collectors as $collector) {
             if (

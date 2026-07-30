@@ -269,8 +269,7 @@ final class BidirectionalConsistencyAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
 
         foreach ($issuesArray as $issue) {
-            $severity = $issue->getSeverity()
-->value;
+            $severity = $issue->getSeverity()->value;
             self::assertContains($severity, ['critical', 'warning', 'info'], 'Severity should be critical, warning, or info');
         }
     }
@@ -491,8 +490,7 @@ final class BidirectionalConsistencyAnalyzerTest extends TestCase
         self::assertGreaterThan(0, count($orphanNullableIssues));
 
         foreach ($orphanNullableIssues as $issue) {
-            $severity = $issue->getSeverity()
-->value;
+            $severity = $issue->getSeverity()->value;
             self::assertEquals('critical', $severity, 'orphan_removal_nullable_fk should have critical severity');
         }
 
@@ -505,8 +503,7 @@ final class BidirectionalConsistencyAnalyzerTest extends TestCase
         self::assertGreaterThan(0, count($cascadeSetNullIssues));
 
         foreach ($cascadeSetNullIssues as $issue) {
-            $severity = $issue->getSeverity()
-->value;
+            $severity = $issue->getSeverity()->value;
             self::assertEquals('warning', $severity, 'cascade_remove_set_null should have warning severity');
         }
     }

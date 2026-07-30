@@ -66,8 +66,7 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
                     return;
                 }
 
-                $allMetadata = $this->entityManager->getMetadataFactory()
-->getAllMetadata();
+                $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
 
                 foreach ($allMetadata as $metadata) {
                     if ($metadata->isMappedSuperclass || $metadata->isEmbeddedClass) {
@@ -96,8 +95,7 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
     private function analyzeEntity(ClassMetadata $metadata): iterable
     {
         $entityClass = $metadata->getName();
-        $shortName = $metadata->getReflectionClass()
-->getShortName();
+        $shortName = $metadata->getReflectionClass()->getShortName();
 
         foreach ($this->getUniqueEntityConstraints($metadata) as $uniqueEntity) {
             $fields = $this->extractFields($uniqueEntity);

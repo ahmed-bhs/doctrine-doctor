@@ -213,8 +213,7 @@ final class FlushInLoopAnalyzerModernTest extends TestCase
         $suggestion = $issue->getSuggestion();
         self::assertNotNull($suggestion);
         self::assertEquals(
-            $suggestion->getMetadata()
-->severity,
+            $suggestion->getMetadata()->severity,
             $issue->getSeverity(),
             'Issue severity should match suggestion metadata severity',
         );

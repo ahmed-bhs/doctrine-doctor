@@ -267,8 +267,7 @@ class JoinColumnNonPrimaryKeyAnalyzer implements MetadataAnalyzerInterface
 
             if ($reflectionClass->hasProperty($fieldName)) {
                 $property = $reflectionClass->getProperty($fieldName);
-                $line = $property->getDeclaringClass()
-->getStartLine();
+                $line = $property->getDeclaringClass()->getStartLine();
 
                 if (false !== $line) {
                     return sprintf('%s:%d', $fileName, $line);

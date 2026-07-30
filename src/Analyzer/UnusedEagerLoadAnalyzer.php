@@ -384,8 +384,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
      */
     private function getMetadataMap(): array
     {
-        return $this->collectionJoinDetector()
-->buildMetadataMap();
+        return $this->collectionJoinDetector()->buildMetadataMap();
     }
 
     /**
@@ -394,8 +393,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
      */
     private function extractFromTable(string $sql, array $metadataMap): ?string
     {
-        return $this->collectionJoinDetector()
-->extractFromTable($sql, $metadataMap);
+        return $this->collectionJoinDetector()->extractFromTable($sql, $metadataMap);
     }
 
     /**

@@ -61,7 +61,7 @@ $em->createQuery('
 
 ')->getResult(); // Result discarded - just re-hydrating
 
-<?php if ($joinCount > 2) { ?>
+<?php if ($joinCount > 2): ?>
 // Step 3: Re-hydrate with third collection
 $em->createQuery('
     SELECT PARTIAL u.{id}, <?php echo isset($tables[2]) ? 'c3' : 'collection3'; ?>
@@ -70,7 +70,7 @@ $em->createQuery('
     LEFT JOIN u.<?php echo isset($tables[2]) ? $e(basename($tables[2])) : 'thirdCollection'; ?> <?php echo isset($tables[2]) ? 'c3' : 'collection3'; ?>
 
 ')->getResult();
-<?php } ?>
+<?php endif; ?>
 
 // All collections are now loaded - use $users
 foreach ($users as $user) {

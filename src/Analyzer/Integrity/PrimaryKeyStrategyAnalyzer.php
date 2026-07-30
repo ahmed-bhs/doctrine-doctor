@@ -156,8 +156,7 @@ class PrimaryKeyStrategyAnalyzer implements MetadataAnalyzerInterface
      */
     private function isUuidCandidate(ClassMetadata $classMetadata): bool
     {
-        $shortName = $classMetadata->getReflectionClass()
-->getShortName();
+        $shortName = $classMetadata->getReflectionClass()->getShortName();
         return array_any(self::UUID_CANDIDATE_ENTITIES, fn ($candidate) => str_contains($shortName, (string) $candidate));
     }
 
@@ -213,8 +212,7 @@ class PrimaryKeyStrategyAnalyzer implements MetadataAnalyzerInterface
     private function createAutoIncrementEducationalIssue(ClassMetadata $classMetadata, array $statistics): IntegrityIssue
     {
         $entityName = $classMetadata->getName();
-        $shortName = $classMetadata->getReflectionClass()
-->getShortName();
+        $shortName = $classMetadata->getReflectionClass()->getShortName();
 
         $issueData = new IssueData(
             type: IssueType::AUTO_INCREMENT_EDUCATIONAL->value,
@@ -245,8 +243,7 @@ class PrimaryKeyStrategyAnalyzer implements MetadataAnalyzerInterface
     private function createUuidV4PerformanceIssue(ClassMetadata $classMetadata): IntegrityIssue
     {
         $entityName = $classMetadata->getName();
-        $shortName = $classMetadata->getReflectionClass()
-->getShortName();
+        $shortName = $classMetadata->getReflectionClass()->getShortName();
 
         $issueData = new IssueData(
             type: IssueType::UUID_V4_PERFORMANCE->value,

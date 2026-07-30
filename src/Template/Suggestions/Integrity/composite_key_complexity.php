@@ -29,15 +29,15 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-<?php if ($columnCount >= 3) { ?>
+<?php if ($columnCount >= 3): ?>
     <div class="alert alert-danger">
         <strong><?php echo $e($shortName); ?></strong> has a composite primary key with <strong><?php echo $columnCount; ?> columns</strong> (<code><?php echo $e(implode(', ', $identifierFields)); ?></code>). This severely limits Doctrine ORM features.
     </div>
-<?php } else { ?>
+<?php else: ?>
     <div class="alert alert-warning">
         <strong><?php echo $e($shortName); ?></strong> has a composite primary key (<code><?php echo $e(implode(', ', $identifierFields)); ?></code>). This limits Doctrine ORM features.
     </div>
-<?php } ?>
+<?php endif; ?>
 
     <h4>Limitations</h4>
     <ul>
@@ -48,15 +48,15 @@ ob_start();
         <li><code>$repository->find($id)</code> requires an array instead of a scalar</li>
     </ul>
 
-<?php if ([] !== $referencedBy) { ?>
+<?php if ([] !== $referencedBy): ?>
     <h4>Impacted entities</h4>
     <p>The following entities reference <strong><?php echo $e($shortName); ?></strong> and must carry the full composite foreign key:</p>
     <ul>
-<?php foreach ($referencedBy as $ref) { ?>
+<?php foreach ($referencedBy as $ref): ?>
         <li><code><?php echo $e((string) $ref); ?></code></li>
-<?php } ?>
+<?php endforeach; ?>
     </ul>
-<?php } ?>
+<?php endif; ?>
 
     <h4>Solution: Add a surrogate primary key</h4>
     <div class="query-item">
@@ -70,9 +70,9 @@ class <?php echo $e($shortName); ?>
     #[ORM\Column]
     private ?int $id = null;
 
-<?php foreach ($identifierFields as $field) { ?>
+<?php foreach ($identifierFields as $field): ?>
     // '<?php echo $e($field); ?>' is no longer part of the primary key
-<?php } ?>
+<?php endforeach; ?>
 }
 
 // Then generate a migration to update the schema</code></pre>

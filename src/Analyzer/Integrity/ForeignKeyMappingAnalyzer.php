@@ -395,8 +395,7 @@ class ForeignKeyMappingAnalyzer implements MetadataAnalyzerInterface
 
             if ($reflectionClass->hasProperty($fieldName)) {
                 $reflectionProperty = $reflectionClass->getProperty($fieldName);
-                $propertyLine       = $reflectionProperty->getDeclaringClass()
-->getStartLine();
+                $propertyLine       = $reflectionProperty->getDeclaringClass()->getStartLine();
 
                 if (false !== $propertyLine) {
                     $lineNumber = $propertyLine;

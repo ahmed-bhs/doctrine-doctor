@@ -51,7 +51,8 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
 
         $sharedBuffersIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains((string) $issue->getTitle(), 'shared_buffers'),
+            fn ($issue) =>
+            str_contains((string) $issue->getTitle(), 'shared_buffers'),
         );
 
         self::assertCount(1, $sharedBuffersIssues, 'Should detect shared_buffers < 128MB');
@@ -83,7 +84,8 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
 
         $sharedBuffersIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains((string) $issue->getTitle(), 'shared_buffers'),
+            fn ($issue) =>
+            str_contains((string) $issue->getTitle(), 'shared_buffers'),
         );
 
         self::assertCount(1, $sharedBuffersIssues);
@@ -115,7 +117,8 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
 
         $workMemIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains((string) $issue->getTitle(), 'work_mem'),
+            fn ($issue) =>
+            str_contains((string) $issue->getTitle(), 'work_mem'),
         );
 
         self::assertCount(1, $workMemIssues, 'Should detect work_mem < 4MB');
@@ -147,7 +150,8 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
 
         $syncCommitIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains((string) $issue->getTitle(), 'synchronous commit'),
+            fn ($issue) =>
+            str_contains((string) $issue->getTitle(), 'synchronous commit'),
         );
 
         self::assertCount(1, $syncCommitIssues, 'Should detect synchronous_commit = on');
@@ -179,7 +183,8 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
 
         $syncCommitIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains((string) $issue->getTitle(), 'synchronous commit'),
+            fn ($issue) =>
+            str_contains((string) $issue->getTitle(), 'synchronous commit'),
         );
 
         self::assertCount(0, $syncCommitIssues, 'Should not detect issue when synchronous_commit = off');
@@ -235,7 +240,8 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
 
         $sharedBuffersIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains((string) $issue->getTitle(), 'shared_buffers'),
+            fn ($issue) =>
+            str_contains((string) $issue->getTitle(), 'shared_buffers'),
         );
 
         self::assertCount(1, $sharedBuffersIssues, 'Should correctly parse kB format');

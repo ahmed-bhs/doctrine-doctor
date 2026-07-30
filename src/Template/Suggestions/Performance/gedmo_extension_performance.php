@@ -20,7 +20,7 @@ ob_start();
 <p>The entity <?php echo $e($entity_class); ?> uses Gedmo <?php echo $e($extension_type); ?> extension, which <?php echo $e($impact); ?>.</p>
 
 <h4>Understanding the Impact</h4>
-<?php if ('Loggable' === $extension_type) { ?>
+<?php if ('Loggable' === $extension_type): ?>
 <p><strong>Gedmo Loggable</strong> automatically creates audit log entries for tracked fields:</p>
 <ul>
 <li>Each field change triggers an INSERT into the changelog table</li>
@@ -44,7 +44,7 @@ ob_start();
 <li>Consider using <code>#[Versioned]</code> only on critical fields, not all</li>
 <li>Profile your application to measure the actual impact</li>
 </ul>
-<?php } elseif ('Translatable' === $extension_type) { ?>
+<?php elseif ('Translatable' === $extension_type): ?>
 <p><strong>Gedmo Translatable</strong> manages translations in separate tables:</p>
 <ul>
 <li>Each translatable field generates queries for each active locale</li>
@@ -68,7 +68,7 @@ ob_start();
 <li>Consider limiting the number of active locales</li>
 <li>Monitor query performance during locale expansion</li>
 </ul>
-<?php } ?>
+<?php endif; ?>
 
 <h4>Monitoring</h4>
 <ul>

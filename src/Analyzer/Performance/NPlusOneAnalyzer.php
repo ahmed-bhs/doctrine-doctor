@@ -643,8 +643,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         $this->tableToEntityCache = [];
 
         try {
-            $metadatas = $this->entityManager->getMetadataFactory()
-->getAllMetadata();
+            $metadatas = $this->entityManager->getMetadataFactory()->getAllMetadata();
 
             foreach ($metadatas as $metadata) {
                 $this->tableToEntityCache[$metadata->getTableName()] = $metadata->getName();

@@ -6,6 +6,7 @@ declare(strict_types=1);
  * Suggestion template for adding #[ORM\Version] field for optimistic locking.
  * Context variables: entity_class
  */
+
 $entity_class = (string) ($context['entity_class'] ?? '');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 

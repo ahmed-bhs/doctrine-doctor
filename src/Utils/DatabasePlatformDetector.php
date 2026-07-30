@@ -124,16 +124,14 @@ class DatabasePlatformDetector
 
             // Fallback to direct query
             if ($this->isMySQLFamily()) {
-                $result = $this->connection->executeQuery('SELECT VERSION()')
-->fetchOne();
+                $result = $this->connection->executeQuery('SELECT VERSION()')->fetchOne();
 
                 return is_string($result) ? $result : 'unknown';
             }
 
             // Fallback to direct query
             if ($this->isPostgreSQL()) {
-                $result = $this->connection->executeQuery('SELECT version()')
-->fetchOne();
+                $result = $this->connection->executeQuery('SELECT version()')->fetchOne();
 
                 return is_string($result) ? $result : 'unknown';
             }
@@ -270,8 +268,7 @@ class DatabasePlatformDetector
             // Fallback to direct query for MySQL/MariaDB
             $platform = $this->connection->getDatabasePlatform();
             if ($platform instanceof MySQLPlatform) {
-                $result = $this->connection->executeQuery('SELECT VERSION()')
-->fetchOne();
+                $result = $this->connection->executeQuery('SELECT VERSION()')->fetchOne();
                 return is_string($result) && false !== stripos($result, 'mariadb');
             }
 

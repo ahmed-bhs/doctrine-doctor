@@ -112,8 +112,7 @@ final class JoinTypeConsistencyAnalyzerIntegrationTest extends TestCase
         $validSeverities = ['critical', 'warning', 'info'];
 
         foreach ($issueCollection as $issue) {
-            $severityValue = $issue->getSeverity()
-->value;
+            $severityValue = $issue->getSeverity()->value;
             self::assertContains($severityValue, $validSeverities, "Issue severity must be one of: " . implode(', ', $validSeverities));
         }
 

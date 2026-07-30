@@ -32,7 +32,7 @@ ob_start();
         <code>#[UniqueEntity]</code> only validates at the PHP level. Without a database UNIQUE index, concurrent requests can insert duplicate rows.
     </div>
 
-<?php if ($isSingleColumn && 1 === count($fields)) { ?>
+<?php if ($isSingleColumn && 1 === count($fields)): ?>
     <h4>Option 1: Add <code>unique: true</code> to the column</h4>
     <div class="query-item">
         <pre><code class="language-php">#[UniqueEntity(fields: ['<?php echo $e($fields[0]); ?>'])]
@@ -53,7 +53,7 @@ class <?php echo $e($entityClass); ?>
 {
 }</code></pre>
     </div>
-<?php } else { ?>
+<?php else: ?>
     <h4>Add a <code>#[UniqueConstraint]</code> for the composite fields</h4>
     <div class="query-item">
         <pre><code class="language-php">#[UniqueEntity(fields: [<?php echo implode(', ', array_map(fn (string $f): string => "'" . $e($f) . "'", $fields)); ?>])]
@@ -63,7 +63,7 @@ class <?php echo $e($entityClass); ?>
 {
 }</code></pre>
     </div>
-<?php } ?>
+<?php endif; ?>
 
     <p>Then generate and run a migration:</p>
     <div class="query-item">

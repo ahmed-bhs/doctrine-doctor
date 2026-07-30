@@ -54,7 +54,6 @@ final readonly class TwigTemplateRenderer implements TemplateRendererInterface, 
 
     public function exists(string $templateName): bool
     {
-        return $this->twigEnvironment->getLoader()
-->exists($templateName);
+        return $this->twigEnvironment->getLoader()->exists($templateName);
     }
 }

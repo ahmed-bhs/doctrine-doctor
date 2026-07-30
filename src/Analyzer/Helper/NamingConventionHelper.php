@@ -102,6 +102,9 @@ final class NamingConventionHelper
         return 1 === preg_match('/[^a-zA-Z0-9_]/', $name);
     }
 
+    /**
+     * Remove special characters.
+     */
     public function removeSpecialCharacters(string $name): string
     {
         $result = preg_replace('/[^a-zA-Z0-9_]/', '_', $name);

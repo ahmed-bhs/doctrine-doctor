@@ -369,8 +369,7 @@ final class DoctrineDoctorExtensionTest extends TestCase
         $method = $reflection->getMethod('classNameToConfigKey');
 
         $configuration = new Configuration();
-        $tree = $configuration->getConfigTreeBuilder()
-->buildTree();
+        $tree = $configuration->getConfigTreeBuilder()->buildTree();
         Assert::isInstanceOf($tree, ArrayNode::class);
         $analyzersNode = $tree->getChildren()['analyzers'];
         Assert::isInstanceOf($analyzersNode, ArrayNode::class);

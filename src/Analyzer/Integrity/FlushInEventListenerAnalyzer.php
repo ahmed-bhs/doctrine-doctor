@@ -48,8 +48,7 @@ class FlushInEventListenerAnalyzer implements MetadataAnalyzerInterface
     {
         return IssueCollection::fromGenerator(
             function () {
-                $allMetadata = $this->entityManager->getMetadataFactory()
-->getAllMetadata();
+                $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
 
                 foreach ($allMetadata as $metadata) {
                     if ($metadata->isMappedSuperclass || $metadata->isEmbeddedClass) {
@@ -103,8 +102,7 @@ class FlushInEventListenerAnalyzer implements MetadataAnalyzerInterface
         \ReflectionMethod $method,
         string $event,
     ): IntegrityIssue {
-        $shortName = $metadata->getReflectionClass()
-->getShortName();
+        $shortName = $metadata->getReflectionClass()->getShortName();
         $entityClass = $metadata->getName();
 
         $description = DescriptionHighlighter::highlight(
@@ -180,8 +178,7 @@ class FlushInEventListenerAnalyzer implements MetadataAnalyzerInterface
         return [[
             'file' => $fileName,
             'line' => $startLine,
-            'class' => $method->getDeclaringClass()
-->getName(),
+            'class' => $method->getDeclaringClass()->getName(),
             'function' => $method->getName(),
             'type' => '->',
         ]];

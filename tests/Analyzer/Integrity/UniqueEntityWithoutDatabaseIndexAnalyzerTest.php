@@ -160,10 +160,8 @@ final class UniqueEntityWithoutDatabaseIndexAnalyzerTest extends TestCase
         $validatorMetadata->addConstraint(new UniqueEntity(fields: ['name']));
 
         $validatorMetadataFactory = $this->createMock(ValidatorMetadataFactoryInterface::class);
-        $validatorMetadataFactory->method('hasMetadataFor')
-->willReturn(true);
-        $validatorMetadataFactory->method('getMetadataFor')
-->willReturn($validatorMetadata);
+        $validatorMetadataFactory->method('hasMetadataFor')->willReturn(true);
+        $validatorMetadataFactory->method('getMetadataFor')->willReturn($validatorMetadata);
 
         $analyzer = new UniqueEntityWithoutDatabaseIndexAnalyzer(
             $entityManager,

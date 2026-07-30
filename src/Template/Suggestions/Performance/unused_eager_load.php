@@ -37,11 +37,11 @@ ob_start();
     <div class="alert alert-warning">
         <strong>Unused Eager Load Detected</strong><br>
         Found <strong><?php echo $count; ?> unused JOIN(s)</strong> loading data that is never accessed.
-        <?php if (1 === $count) { ?>
+        <?php if (1 === $count): ?>
         Table: <code><?php echo $e($unusedTables[0]); ?></code> (alias: <code><?php echo $e($unusedAliases[0]); ?></code>)
-        <?php } else { ?>
+        <?php else: ?>
         Tables: <code><?php echo implode('</code>, <code>', array_map($e(...), $unusedTables)); ?></code>
-        <?php } ?>
+        <?php endif; ?>
     </div>
 
     <h4>Problem: Loading Data You Never Use</h4>
@@ -59,13 +59,13 @@ LEFT JOIN <?php echo $e($unusedTables[0]); ?> <?php echo $e($unusedAliases[0]); 
     <div class="query-item">
         <pre><code class="language-php">// Your code probably looks like this:
 $query = $em->createQuery('
-    SELECT a<?php foreach ($unusedAliases as $alias) { ?>, <?php echo $e($alias); ?><?php } ?>
+    SELECT a<?php foreach ($unusedAliases as $alias): ?>, <?php echo $e($alias); ?><?php endforeach; ?>
 
     FROM App\Entity\Article a
-    <?php foreach ($unusedAliases as $alias) { ?>
+    <?php foreach ($unusedAliases as $alias): ?>
 LEFT JOIN a.relation<?php echo ucfirst($e($alias)); ?> <?php echo $e($alias); ?>
 
-    <?php } ?>
+    <?php endforeach; ?>
 ');
 
 $articles = $query->getResult();

@@ -28,11 +28,11 @@ ob_start();
         This happens when calling <code>findBy()</code> or <code>findOneBy()</code> repeatedly with different values for the same column.
     </div>
 
-<?php if (null !== $triggerLocation && '' !== $triggerLocation) { ?>
+<?php if (null !== $triggerLocation && '' !== $triggerLocation): ?>
     <div class="alert alert-info">
         <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
     </div>
-<?php } ?>
+<?php endif; ?>
 
     <h4>Problem: Repeated findBy/findOneBy in Loop</h4>
     <div class="query-item">

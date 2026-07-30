@@ -60,8 +60,7 @@ class CompositeKeyComplexityAnalyzer implements MetadataAnalyzerInterface
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () {
-                $allMetadata = $this->entityManager->getMetadataFactory()
-->getAllMetadata();
+                $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
 
                 foreach ($allMetadata as $metadata) {
                     if ($metadata->isMappedSuperclass || $metadata->isEmbeddedClass) {
@@ -97,8 +96,7 @@ class CompositeKeyComplexityAnalyzer implements MetadataAnalyzerInterface
         }
 
         $entityClass = $metadata->getName();
-        $shortName = $metadata->getReflectionClass()
-->getShortName();
+        $shortName = $metadata->getReflectionClass()->getShortName();
         $severity = $columnCount >= 3 ? Severity::critical() : Severity::warning();
 
         $referencedBy = $this->findEntitiesReferencingCompositeKey($metadata);

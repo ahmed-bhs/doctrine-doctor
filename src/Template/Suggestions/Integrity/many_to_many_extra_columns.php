@@ -6,6 +6,7 @@ declare(strict_types=1);
  * Suggestion template for refactoring ManyToMany with extra columns.
  * Context variables: entity_class, field_name, join_table, extra_columns
  */
+
 $entity_class = (string) ($context['entity_class'] ?? '');
 $field_name = (string) ($context['field_name'] ?? '');
 $join_table = (string) ($context['join_table'] ?? '');
@@ -21,9 +22,9 @@ ob_start();
 
 <p>Join table <code><?php echo $e($join_table); ?></code> has extra columns:</p>
 <ul>
-<?php foreach ($extra_columns as $col) { ?>
+<?php foreach ($extra_columns as $col): ?>
 <li><code><?php echo $e($col); ?></code></li>
-<?php } ?>
+<?php endforeach; ?>
 </ul>
 
 <h4>BEFORE — ManyToMany (no extra data)</h4>
@@ -53,11 +54,11 @@ class Enrollment {
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Course $course;
 
-<?php foreach ($extra_columns as $col) { ?>
+<?php foreach ($extra_columns as $col): ?>
     #[ORM\Column(type: 'string', nullable: true)]  // Adjust type as needed
     private ?string $<?php echo $e($col); ?> = null;
 
-<?php } ?>
+<?php endforeach; ?>
 }
 
 // Student.php (owning side)

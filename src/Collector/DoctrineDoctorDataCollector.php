@@ -251,8 +251,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         }
 
         $issueCollection = IssueCollection::fromArray($this->getIssues());
-        $counts          = $issueCollection->statistics()
-->countBySeverity();
+        $counts          = $issueCollection->statistics()->countBySeverity();
 
         $this->memoizedStats = [
             'total_issues'       => $issueCollection->count(),
@@ -575,8 +574,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $deduplicatedCollection = $issueDeduplicator->deduplicate($issuesCollection);
         unset($issuesCollection);
 
-        $deduplicatedCollection = $deduplicatedCollection->sorting()
-->bySeverityDescending();
+        $deduplicatedCollection = $deduplicatedCollection->sorting()->bySeverityDescending();
 
         return $deduplicatedCollection->toArrayOfArrays();
     }

@@ -56,8 +56,7 @@ class OneToOneInverseSideAnalyzer implements MetadataAnalyzerInterface
     {
         return IssueCollection::fromGenerator(
             function () {
-                $allMetadata = $this->entityManager->getMetadataFactory()
-->getAllMetadata();
+                $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
 
                 foreach ($allMetadata as $metadata) {
                     if ($metadata->isMappedSuperclass || $metadata->isEmbeddedClass) {

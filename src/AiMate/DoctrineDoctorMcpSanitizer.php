@@ -67,10 +67,8 @@ final readonly class DoctrineDoctorMcpSanitizer
             'type' => $issue->getType(),
             'title' => $issue->getTitle(),
             'description' => $this->normalizeText($issue->getDescription()),
-            'severity' => $issue->getSeverity()
-->value,
-            'category' => $issue->getCategory()
-->value,
+            'severity' => $issue->getSeverity()->value,
+            'category' => $issue->getCategory()->value,
             'hint' => $this->sanitizeHint($issue->getSuggestion()),
             'trace' => $this->traceSanitizer->sanitize($issue->getBacktrace()),
             'query_count' => count($issue->getQueries()),
@@ -105,8 +103,7 @@ final readonly class DoctrineDoctorMcpSanitizer
         }
 
         return [
-            'title' => $suggestion->getMetadata()
-->title,
+            'title' => $suggestion->getMetadata()->title,
             'summary' => $summary,
         ];
     }

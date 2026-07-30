@@ -20,11 +20,11 @@ ob_start();
 
 <p>The database <strong>cannot use indexes</strong> when the wildcard is at the start.</p>
 
-<?php if ('contains search' === $like_type) { ?>
+<?php if ('contains search' === $like_type): ?>
 <p><strong>Contains search</strong> (<code>LIKE '%value%'</code>) is the worst case for performance. Consider full-text search instead.</p>
-<?php } elseif ('ends-with search' === $like_type) { ?>
+<?php elseif ('ends-with search' === $like_type): ?>
 <p><strong>Ends-with search</strong> (<code>LIKE '%value'</code>) cannot use indexes. Consider reversing the column or a different approach.</p>
-<?php } ?>
+<?php endif; ?>
 
 <h4>Solution: Use full-text search</h4>
 <p>For text search, use MySQL's <code>MATCH...AGAINST</code> or an external search engine like Elasticsearch.</p>

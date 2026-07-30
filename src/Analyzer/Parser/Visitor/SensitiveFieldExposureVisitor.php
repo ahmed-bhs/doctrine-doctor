@@ -137,6 +137,9 @@ final class SensitiveFieldExposureVisitor extends NodeVisitorAbstract
         return in_array($keyValue, $this->sensitiveFields, true);
     }
 
+    /**
+     * Extract field name from array key.
+     */
     private function extractFieldNameFromArrayKey(Node $node): ?string
     {
         if (!$node instanceof ArrayItem || null === $node->key) {

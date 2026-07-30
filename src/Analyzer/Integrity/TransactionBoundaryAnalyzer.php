@@ -137,6 +137,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     }
 
     /**
+     * Handle transaction start.
      * @param array<string, mixed> $state
      * @return \Generator<IssueInterface>
      */

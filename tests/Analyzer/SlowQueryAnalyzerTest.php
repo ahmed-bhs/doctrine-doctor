@@ -222,8 +222,7 @@ final class SlowQueryAnalyzerTest extends TestCase
         $suggestion = $issue->getSuggestion();
         self::assertNotNull($suggestion);
         self::assertEquals(
-            $suggestion->getMetadata()
-->severity,
+            $suggestion->getMetadata()->severity,
             $issue->getSeverity(),
             'Severity should match suggestion metadata',
         );

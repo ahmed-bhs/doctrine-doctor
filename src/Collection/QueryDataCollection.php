@@ -196,7 +196,8 @@ final class QueryDataCollection extends AbstractCollection
         $items = $this->toArray();
         usort(
             $items,
-            fn (QueryData $queryA, QueryData $queryB): int => $queryB->executionTime->inMilliseconds() <=> $queryA->executionTime->inMilliseconds(),
+            fn (QueryData $queryA, QueryData $queryB): int =>
+            $queryB->executionTime->inMilliseconds() <=> $queryA->executionTime->inMilliseconds(),
         );
 
         return self::fromArray($items);
@@ -210,7 +211,8 @@ final class QueryDataCollection extends AbstractCollection
         $items = $this->toArray();
         usort(
             $items,
-            fn (QueryData $queryA, QueryData $queryB): int => $queryA->executionTime->inMilliseconds() <=> $queryB->executionTime->inMilliseconds(),
+            fn (QueryData $queryA, QueryData $queryB): int =>
+            $queryA->executionTime->inMilliseconds() <=> $queryB->executionTime->inMilliseconds(),
         );
 
         return self::fromArray($items);

@@ -24,12 +24,10 @@ class VulnerableRepository extends EntityRepository
      */
     public function findByNameUnsafe(string $name): array
     {
-        $connection = $this->getEntityManager()
-->getConnection();
+        $connection = $this->getEntityManager()->getConnection();
         $sql = "SELECT * FROM users WHERE name = '" . $name . "'"; // SQL injection!
 
-        return $connection->executeQuery($sql)
-->fetchAllAssociative();
+        return $connection->executeQuery($sql)->fetchAllAssociative();
     }
 
     /**
@@ -37,12 +35,10 @@ class VulnerableRepository extends EntityRepository
      */
     public function findByIdUnsafe(int $id): ?array
     {
-        $connection = $this->getEntityManager()
-->getConnection();
+        $connection = $this->getEntityManager()->getConnection();
         $sql = "SELECT * FROM users WHERE id = {$id}"; // Still vulnerable!
 
-        return $connection->executeQuery($sql)
-->fetchAssociative() ?: null;
+        return $connection->executeQuery($sql)->fetchAssociative() ?: null;
     }
 
     /**
@@ -50,14 +46,12 @@ class VulnerableRepository extends EntityRepository
      */
     public function searchUnsafe(string $search): array
     {
-        $connection = $this->getEntityManager()
-->getConnection();
+        $connection = $this->getEntityManager()->getConnection();
         $sql = "SELECT * FROM users WHERE name LIKE '%";
         $sql .= $search; // Concatenation
         $sql .= "%'";
 
-        return $connection->executeQuery($sql)
-->fetchAllAssociative();
+        return $connection->executeQuery($sql)->fetchAllAssociative();
     }
 
     /**
@@ -65,13 +59,11 @@ class VulnerableRepository extends EntityRepository
      */
     public function findByEmailUnsafe(): ?array
     {
-        $connection = $this->getEntityManager()
-->getConnection();
+        $connection = $this->getEntityManager()->getConnection();
         $email = $_GET['email'] ?? ''; // User input from GET parameter
         $sql = sprintf("SELECT * FROM users WHERE email = '%s'", $email); // SQL injection via sprintf!
 
-        return $connection->executeQuery($sql)
-->fetchAssociative() ?: null;
+        return $connection->executeQuery($sql)->fetchAssociative() ?: null;
     }
 
     /**
@@ -79,8 +71,7 @@ class VulnerableRepository extends EntityRepository
      */
     public function findByNameSafe(string $name): array
     {
-        $connection = $this->getEntityManager()
-->getConnection();
+        $connection = $this->getEntityManager()->getConnection();
         $sql = 'SELECT * FROM users WHERE name = :name';
 
         return $connection->executeQuery($sql, ['name' => $name])->fetchAllAssociative();
@@ -91,8 +82,7 @@ class VulnerableRepository extends EntityRepository
      */
     public function findByIdSafe(int $id): ?array
     {
-        $connection = $this->getEntityManager()
-->getConnection();
+        $connection = $this->getEntityManager()->getConnection();
         $qb = $connection->createQueryBuilder();
 
         $result = $qb->select('*')

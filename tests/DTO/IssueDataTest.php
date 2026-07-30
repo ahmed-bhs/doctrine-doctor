@@ -30,8 +30,7 @@ final class IssueDataTest extends TestCase
         for ($i = 1; $i <= 6; $i++) {
             $builder->addQuery('SELECT * FROM products WHERE id = ?', 0.5);
         }
-        $queries = $builder->build()
-->toArray();
+        $queries = $builder->build()->toArray();
 
         // Act: Create IssueData with 6 identical queries
         $issueData = new IssueData(

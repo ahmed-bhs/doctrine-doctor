@@ -80,8 +80,7 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                                     'threshold' => $this->threshold,
                                 ],
                             ),
-                            severity: $suggestion->getMetadata()
-->severity,
+                            severity: $suggestion->getMetadata()->severity,
                             suggestion: $suggestion,
                             queries: $bulkOperation['queries'],
                             backtrace: $bulkOperation['backtrace'] ?? null,

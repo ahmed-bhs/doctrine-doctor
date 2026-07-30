@@ -22,7 +22,7 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-<?php if ($isBoundedArrayResult) { ?>
+<?php if ($isBoundedArrayResult): ?>
     <div class="alert alert-info">
         This query filters by a foreign key (WHERE clause present), so the result set is bounded today.
         However, ORDER BY without LIMIT means the database must sort <strong>all matching rows</strong> in memory.
@@ -46,7 +46,7 @@ $qb->orderBy('h.occurredAt', 'ASC')
 
     <p><strong>Why it matters:</strong> A bounded query with 10 rows today can have 10,000 rows in two years.
     Adding an index on <code><?= $e((string) $orderByClause) ?></code> costs nothing and future-proofs the sort.</p>
-<?php } else { ?>
+<?php else: ?>
     <div class="alert alert-warning">
         Query uses ORDER BY without LIMIT — sorting large datasets is expensive and may not be needed.
     </div>
@@ -70,7 +70,7 @@ $qb->select('u')
     </div>
 
     <p><strong>Performance:</strong> Sorting 1M rows without LIMIT uses significant CPU/memory. Add LIMIT or remove ORDER BY.</p>
-<?php } ?>
+<?php endif; ?>
 
     <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#first-and-max-result-items-dql-query-only" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM First and Max Result Items</a></p>
 </div>

@@ -525,8 +525,7 @@ final class PhpCodeParser
         $cacheKey = sprintf(
             '%s:%s::%s:%d',
             $analysisType,
-            $method->getDeclaringClass()
-->getName(),
+            $method->getDeclaringClass()->getName(),
             $method->getName(),
             $mtime ?: 0, // mtime for auto-invalidation
         );

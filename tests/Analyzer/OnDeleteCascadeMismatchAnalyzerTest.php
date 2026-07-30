@@ -275,8 +275,7 @@ final class OnDeleteCascadeMismatchAnalyzerTest extends TestCase
         foreach ($issuesArray as $issue) {
             $data = $issue->getData();
             $type = $data['mismatch_type'] ?? '';
-            $severity = $issue->getSeverity()
-->value;
+            $severity = $issue->getSeverity()->value;
 
             if (in_array($type, ['orm_cascade_db_setnull', 'orm_orphan_db_setnull'], true)) {
                 self::assertEquals('critical', $severity, "Type '{$type}' should be critical");

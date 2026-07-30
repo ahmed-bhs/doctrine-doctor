@@ -45,16 +45,16 @@ class <?php echo $e($entityClass); ?>
     #[ORM\Column(type: 'integer')]
     private int $version = 0;
 
-<?php foreach ($mutatedFields as $field) { ?>
+<?php foreach ($mutatedFields as $field): ?>
     #[ORM\Column(type: 'integer')]
     private int $<?php echo $e($field); ?> = 0;
 
-<?php } ?>
-<?php foreach ($accessedCollections as $collection) { ?>
+<?php endforeach; ?>
+<?php foreach ($accessedCollections as $collection): ?>
     #[ORM\OneToMany(...)]
     private Collection $<?php echo $e($collection); ?>;
 
-<?php } ?>
+<?php endforeach; ?>
 }</code></pre>
     </div>
 

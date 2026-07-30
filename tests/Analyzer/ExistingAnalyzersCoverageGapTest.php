@@ -49,8 +49,7 @@ final class ExistingAnalyzersCoverageGapTest extends TestCase
             ->addQuery('SELECT * FROM countries WHERE id = 12', 0.003)
             ->build();
 
-        $issues = $analyzer->analyze($queries)
-->toArray();
+        $issues = $analyzer->analyze($queries)->toArray();
 
         self::assertGreaterThanOrEqual(1, \count($issues), 'Existing N+1 analyzer should detect repeated patterns');
 
@@ -79,8 +78,7 @@ final class ExistingAnalyzersCoverageGapTest extends TestCase
             ->addQuery('SELECT a.id FROM article a LEFT JOIN user u ON u.id = a.author_id')
             ->build();
 
-        $issues = $analyzer->analyze($queries)
-->toArray();
+        $issues = $analyzer->analyze($queries)->toArray();
 
         self::assertGreaterThanOrEqual(1, \count($issues), 'Existing JOIN analyzer should flag the unused JOIN');
 

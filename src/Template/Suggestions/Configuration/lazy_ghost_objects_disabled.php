@@ -6,6 +6,7 @@ declare(strict_types=1);
  * Suggestion template for enabling lazy ghost objects.
  * Context variables: none required
  */
+
 ob_start();
 ?>
 
