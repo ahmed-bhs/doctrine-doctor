@@ -248,7 +248,7 @@ class BlameableTraitAnalyzer implements MetadataAnalyzerInterface
 
                 // Must be datetime type
                 // Doctrine ORM 3+: mapping is an object, ORM 2.x: mapping is an array
-                $type = is_array($mapping) ? ($mapping['type'] ?? null) : $mapping->type;
+                $type = is_array($mapping) ? $mapping['type'] : $mapping->type;
                 if (in_array($type, ['datetime', 'datetime_immutable', 'datetimetz', 'datetimetz_immutable'], true)) {
                     $timestampFields[$fieldName] = $mapping;
                 }

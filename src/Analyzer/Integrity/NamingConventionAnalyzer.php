@@ -249,7 +249,7 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
         foreach ($classMetadata->getAssociationMappings() as $assocName => $associationMapping) {
             $joinColumns = is_object($associationMapping)
                 ? ($associationMapping instanceof ToOneOwningSideMapping ? $associationMapping->joinColumns : null)
-                : ($associationMapping['joinColumns'] ?? null);
+                : $associationMapping['joinColumns'];
 
             if (null === $joinColumns) {
                 continue;
@@ -258,7 +258,7 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
             Assert::isIterable($joinColumns, 'joinColumns must be iterable');
 
             foreach ($joinColumns as $joinColumn) {
-                $columnName = is_object($joinColumn) ? ($joinColumn->name ?? null) : ($joinColumn['name'] ?? null);
+                $columnName = is_object($joinColumn) ? ($joinColumn->name ?? null) : $joinColumn['name'];
 
                 if (null === $columnName) {
                     continue;
