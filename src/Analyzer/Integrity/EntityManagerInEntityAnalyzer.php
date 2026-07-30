@@ -36,7 +36,7 @@ use Psr\Log\LoggerInterface;
  * ```php
  * class Order {
  *     public function __construct(private EntityManagerInterface $em,
-        private readonly ?LoggerInterface $logger = null) {}
+ * private readonly ?LoggerInterface $logger = null) {}
  *     public function addItem(OrderItem $item) {
  *         $this->items->add($item);
  *         $this->em->persist($item);
@@ -403,7 +403,8 @@ class EntityManagerInEntityAnalyzer implements MetadataAnalyzerInterface
                         \$this->em->flush();
                     }
                 }
-                PHP,
+                PHP
+            ,
             'property' => <<<PHP
                 // BAD - EntityManager as property
                 class {$shortClassName} {
@@ -418,7 +419,8 @@ class EntityManagerInEntityAnalyzer implements MetadataAnalyzerInterface
                         \$this->em->flush();
                     }
                 }
-                PHP,
+                PHP
+            ,
             'method' => <<<PHP
                 // BAD - Persistence operations in entity method
                 class {$shortClassName} {
@@ -427,7 +429,8 @@ class EntityManagerInEntityAnalyzer implements MetadataAnalyzerInterface
                         \$this->em->flush(); // Hidden side effect
                     }
                 }
-                PHP,
+                PHP
+            ,
             default => ''
         };
 

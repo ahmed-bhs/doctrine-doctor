@@ -424,7 +424,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
     {
         $autoGenerate = $configuration->getAutoGenerateProxyClasses();
 
-        if (in_array($autoGenerate, [true, 1, 2], true)) {
+        if (in_array($autoGenerate, [1, 2], true)) {
             $configurationIssue = new ConfigurationIssue([
                 'cache_type'         => 'proxy',
                 'current_config'     => 'auto_generate: true',

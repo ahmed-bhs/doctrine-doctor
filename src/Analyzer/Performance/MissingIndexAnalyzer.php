@@ -225,9 +225,6 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         }
     }
 
-    /**
-     * Create a missing index issue.
-     */
     private function createMissingIndexIssue(array $row, QueryData $queryData): MissingIndexIssue
     {
         return new MissingIndexIssue([

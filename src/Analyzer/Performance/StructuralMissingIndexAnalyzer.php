@@ -82,7 +82,7 @@ class StructuralMissingIndexAnalyzer implements AnalyzerInterface
             return;
         }
 
-        $tableName = $table['table'] ?? null;
+        $tableName = $table['table'];
 
         if (!is_string($tableName) || '' === $tableName) {
             return;
@@ -166,7 +166,7 @@ class StructuralMissingIndexAnalyzer implements AnalyzerInterface
     {
         foreach ($indexes as $index) {
             $indexColumns = $index->getColumns();
-            $leadingColumn = $indexColumns[0] ?? null;
+            $leadingColumn = $indexColumns[0];
 
             if (null !== $leadingColumn && strtolower($leadingColumn) === $column) {
                 return true;

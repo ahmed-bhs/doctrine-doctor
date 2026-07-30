@@ -31,7 +31,7 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-<?php if ('orm_cascade_db_setnull' === $mismatchType): ?>
+<?php if ('orm_cascade_db_setnull' === $mismatchType) { ?>
     <div class="alert alert-danger">
         ORM <code>cascade: ['remove']</code> conflicts with DB <code>onDelete="SET NULL"</code>. <code>$em->remove()</code> deletes children, but a SQL DELETE sets FK to NULL.
     </div>
@@ -45,7 +45,7 @@ ob_start();
 // Then run migration to update database constraint</code></pre>
     </div>
 
-<?php elseif ('orm_orphan_db_setnull' === $mismatchType): ?>
+<?php } elseif ('orm_orphan_db_setnull' === $mismatchType) { ?>
     <div class="alert alert-danger">
         ORM <code>orphanRemoval=true</code> conflicts with DB <code>onDelete="SET NULL"</code>. ORM deletes orphans, but a SQL DELETE sets FK to NULL.
     </div>
@@ -59,7 +59,7 @@ ob_start();
 // Then run migration to update database constraint</code></pre>
     </div>
 
-<?php elseif ('db_cascade_no_orm' === $mismatchType): ?>
+<?php } elseif ('db_cascade_no_orm' === $mismatchType) { ?>
     <div class="alert alert-warning">
         DB has <code>onDelete="CASCADE"</code> but ORM has no <code>cascade: ['remove']</code>. SQL DELETEs cascade, but <code>$em->remove()</code> does not.
     </div>
@@ -70,7 +70,7 @@ ob_start();
 private Collection $<?php echo $e($fieldName); ?>;</code></pre>
     </div>
 
-<?php elseif ('orm_cascade_no_db' === $mismatchType): ?>
+<?php } elseif ('orm_cascade_no_db' === $mismatchType) { ?>
     <div class="alert alert-warning">
         ORM has <code>cascade: ['remove']</code> but no DB <code>onDelete</code> constraint. <code>$em->remove()</code> works, but direct SQL DELETEs may cause FK violations.
     </div>
@@ -84,7 +84,7 @@ private Collection $<?php echo $e($fieldName); ?>;</code></pre>
 // Then run migration to update database constraint</code></pre>
     </div>
 
-<?php endif; ?>
+<?php } ?>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn" target="_blank" class="doc-link">

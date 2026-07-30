@@ -112,6 +112,12 @@ return ECSConfig::configure()
         // Tests
         PhpCsFixer\Fixer\PhpUnit\PhpUnitTestClassRequiresCoversFixer::class,
 
+        // IMPORTANT: MethodChainingNewlineFixer breaks a call chain onto a new line
+        // without indenting it, because MethodChainingIndentationFixer (which would
+        // reindent it) is disabled above. Produces "$this->foo()\n->bar()" glued to
+        // column 0.
+        Symplify\CodingStandard\Fixer\Spacing\MethodChainingNewlineFixer::class,
+
         // Arrays (Symplify)
         Symplify\CodingStandard\Fixer\ArrayNotation\ArrayListItemNewlineFixer::class,
         Symplify\CodingStandard\Fixer\ArrayNotation\StandaloneLineInMultilineArrayFixer::class,

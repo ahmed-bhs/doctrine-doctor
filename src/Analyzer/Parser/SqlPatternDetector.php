@@ -169,7 +169,7 @@ final readonly class SqlPatternDetector implements PatternDetectorInterface
 
         $table = $statement->tables[0];
 
-        return $table->table ?? null;
+        return $table->table;
     }
 
     public function detectDeleteQuery(string $sql): ?string
@@ -188,7 +188,7 @@ final readonly class SqlPatternDetector implements PatternDetectorInterface
 
         $table = $statement->from[0];
 
-        return $table->table ?? null;
+        return $table->table;
     }
 
     public function detectInsertQuery(string $sql): ?string

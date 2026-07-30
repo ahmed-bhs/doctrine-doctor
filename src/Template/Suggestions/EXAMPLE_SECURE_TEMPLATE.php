@@ -79,10 +79,10 @@ declare(strict_types=1);
 ?>
 
 <ul>
-    <?php foreach ($context->items as $item): ?>
+    <?php foreach ($context->items as $item) { ?>
         <li><?php echo $item; ?></li>
         <!-- Each item is auto-escaped -->
-    <?php endforeach; ?>
+    <?php } ?>
 </ul>
 
 <?php

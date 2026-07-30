@@ -117,7 +117,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements MetadataAnalyzerInter
 
         foreach ($allMetadata as $metadata) {
             foreach ($metadata->getAssociationMappings() as $mapping) {
-                $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? null;
+                $targetEntity = MappingHelper::getString($mapping, 'targetEntity');
 
                 if (null !== $targetEntity) {
                     $map[$targetEntity] = ($map[$targetEntity] ?? 0) + 1;

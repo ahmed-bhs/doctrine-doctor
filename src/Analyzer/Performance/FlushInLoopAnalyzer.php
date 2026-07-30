@@ -71,7 +71,7 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                         );
 
                         $queries = $flushPattern['queries'] ?? [];
-                        $backtrace = $flushPattern['backtrace'] ?? null;
+                        $backtrace = $flushPattern['backtrace'];
                         Assert::isArray($queries);
 
                         $issueData = new IssueData(

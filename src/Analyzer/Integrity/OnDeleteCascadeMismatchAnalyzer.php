@@ -127,8 +127,8 @@ class OnDeleteCascadeMismatchAnalyzer implements MetadataAnalyzerInterface
      */
     private function detectMismatch(array|object $mapping, array $metadataMap): ?array
     {
-        $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? null;
-        $mappedBy     = MappingHelper::getString($mapping, 'mappedBy') ?? null;
+        $targetEntity = MappingHelper::getString($mapping, 'targetEntity');
+        $mappedBy     = MappingHelper::getString($mapping, 'mappedBy');
 
         if (null === $targetEntity || null === $mappedBy) {
             return null;
