@@ -295,14 +295,12 @@
 {% endblock %}
 
 {% block panel %}
-    <h2>Doctrine Doctor</h2>
+    <h2 style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+        <span>Doctrine Doctor</span>
+        <button type="button" class="btn btn-sm" id="dd-export-button">Export JSON</button>
+    </h2>
 
     <script type="application/json" id="dd-export-payload">{{ collector.getExportJson|raw }}</script>
-    <div class="metric">
-        <button type="button" class="btn btn-sm" id="dd-export-button">
-            Export JSON
-        </button>
-    </div>
     <script>
         (function () {
             var button = document.getElementById('dd-export-button');
