@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Collector\Helper\DataCollectorLogger;
 use AhmedBhs\DoctrineDoctor\Collector\Helper\IssueReconstructor;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
+use AhmedBhs\DoctrineDoctor\Service\ExportDataFormatter;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
 use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
@@ -343,6 +344,29 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         usort($result, fn (array $queryA, array $queryB): int => $queryB['totalTimeMs'] <=> $queryA['totalTimeMs']);
 
         return $result;
+    }
+
+    /**
+     * Build the JSON export payload for the profiler panel's download button.
+     *
+     * Rendered inline into the panel rather than served from a route, so the
+     * export works without registering any routing in the host application.
+     */
+    public function getExportJson(): string
+    {
+        $payload = new ExportDataFormatter()->format(
+            $this->getIssues(),
+            $this->getStats(),
+            $this->getGroupedQueriesByTime(),
+        );
+
+        // Slashes stay escaped on purpose: the payload is inlined in a <script>
+        // block and a "</script>" inside a captured SQL string would otherwise
+        // close it early and turn collected queries into executable markup.
+        return json_encode(
+            $payload,
+            \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_PARTIAL_OUTPUT_ON_ERROR,
+        ) ?: '{}';
     }
 
     /**

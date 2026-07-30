@@ -11,22 +11,25 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Service;
 
-use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use DateTimeImmutable;
 use DateTimeInterface;
 
 /**
- * Formats Doctrine Doctor collector data into a JSON-serializable export structure.
+ * Formats Doctrine Doctor analysis data into a JSON-serializable export structure.
  *
- * Extracts issues, statistics, and query metrics from a DataCollector instance
- * and prepares them for JSON export with proper field filtering to avoid
- * serialization issues (e.g., backtrace objects, connection instances).
+ * Works on plain issue objects and query arrays rather than the DataCollector
+ * itself, so the export payload stays decoupled from the profiler integration.
+ * Query entries are whitelisted field by field because the collector keeps the
+ * raw first occurrence (backtrace, connection) alongside the timing metrics,
+ * and those values are not JSON-encodable.
  */
 final readonly class ExportDataFormatter
 {
     /**
-     * Format complete export payload with issues, stats, and queries.
+     * @param array<int, IssueInterface>                                                                                               $issues
+     * @param array<string, mixed>                                                                                                     $stats
+     * @param array<int, array{sql: string, count: int, totalTimeMs: float, avgTimeMs: float, maxTimeMs: float, minTimeMs: float}>      $queries
      *
      * @return array{
      *  created: string,
@@ -42,40 +45,31 @@ final readonly class ExportDataFormatter
      *  }>
      * }
      */
-    public function format(DoctrineDoctorDataCollector $collector): array
+    public function format(array $issues, array $stats, array $queries): array
     {
         return [
             'created' => new DateTimeImmutable()->format(DateTimeInterface::ATOM),
-            'issues' => $this->formatIssues($collector->getIssues()),
-            'stats' => $collector->getStats(),
-            'queries' => $this->formatQueries($collector->getGroupedQueriesByTime()),
+            'issues' => $this->formatIssues($issues),
+            'stats' => $stats,
+            'queries' => $this->formatQueries($queries),
         ];
     }
 
     /**
-     * Extract issue information from collector issues.
-     *
-     * Calls toArray() on each issue object to extract serializable data.
-     *
      * @param array<int, IssueInterface> $issues
      *
      * @return array<int, array<string, mixed>>
      */
     public function formatIssues(array $issues): array
     {
-        return array_map(
-            static fn (IssueInterface $issue) => $issue->toArray(),
+        return array_values(array_map(
+            static fn (IssueInterface $issue): array => $issue->toArray(),
             $issues,
-        );
+        ));
     }
 
     /**
-     * Extract query information from grouped queries.
-     *
-     * Filters out non-serializable data (backtrace, connection) and extracts
-     * only the fields needed for the export (sql, count, timing metrics).
-     *
-     * @param array<int, array{sql: string, count: int, totalTimeMs: float, avgTimeMs: float, maxTimeMs: float, minTimeMs: float, ...}> $queries
+     * @param array<int, array{sql: string, count: int, totalTimeMs: float, avgTimeMs: float, maxTimeMs: float, minTimeMs: float}> $queries
      *
      * @return array<int, array{
      *     sql: string,
@@ -88,19 +82,16 @@ final readonly class ExportDataFormatter
      */
     public function formatQueries(array $queries): array
     {
-        return array_map(
-            static function (array $query): array {
-                return [
-                    'sql' => $query['sql'],
-                    'count' => $query['count'],
-                    'totalTimeMs' => $query['totalTimeMs'],
-                    'avgTimeMs' => $query['avgTimeMs'],
-                    'maxTimeMs' => $query['maxTimeMs'],
-                    'minTimeMs' => $query['minTimeMs'],
-                    // Note: we omit backtrace and connection here because they can't be serialized without errors.
-                ];
-            },
+        return array_values(array_map(
+            static fn (array $query): array => [
+                'sql' => $query['sql'],
+                'count' => $query['count'],
+                'totalTimeMs' => $query['totalTimeMs'],
+                'avgTimeMs' => $query['avgTimeMs'],
+                'maxTimeMs' => $query['maxTimeMs'],
+                'minTimeMs' => $query['minTimeMs'],
+            ],
             $queries,
-        );
+        ));
     }
 }

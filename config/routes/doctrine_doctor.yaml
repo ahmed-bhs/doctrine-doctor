@@ -1,9 +1,0 @@
-# Doctrine Doctor Routes
-# This file is auto-loaded during `composer require --dev ahmed-bhs/doctrine-doctor`
-# It registers the controller routes via attribute discovery
-
-doctrine_doctor:
-  resource:
-    path: ../../vendor/ahmed-bhs/doctrine-doctor/src/Controller/
-    namespace: AhmedBhs\DoctrineDoctor\Controller
-  type: attribute

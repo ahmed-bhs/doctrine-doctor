@@ -297,11 +297,33 @@
 {% block panel %}
     <h2>Doctrine Doctor</h2>
 
+    <script type="application/json" id="dd-export-payload">{{ collector.getExportJson|raw }}</script>
     <div class="metric">
-        <a href="{{ path('doctrine_doctor_export', {'token': token}) }}">
-            📥 Export JSON
-        </a>
+        <button type="button" class="btn btn-sm" id="dd-export-button" data-token="{{ token }}">
+            Export JSON
+        </button>
     </div>
+    <script>
+        (function () {
+            var button = document.getElementById('dd-export-button');
+            var payload = document.getElementById('dd-export-payload');
+            if (!button || !payload) {
+                return;
+            }
+
+            button.addEventListener('click', function () {
+                var blob = new Blob([payload.textContent], { type: 'application/json' });
+                var url = URL.createObjectURL(blob);
+                var link = document.createElement('a');
+                link.href = url;
+                link.download = 'doctrine-doctor-' + button.dataset.token + '.json';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            });
+        })();
+    </script>
 
     {% set dbInfo = collector.getDatabaseInfo %}
 
