@@ -360,12 +360,16 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $this->getGroupedQueriesByTime(),
         );
 
-        // Slashes stay escaped on purpose: the payload is inlined in a <script>
-        // block and a "</script>" inside a captured SQL string would otherwise
-        // close it early and turn collected queries into executable markup.
+        // JSON_HEX_TAG is required, not cosmetic: the payload is inlined in a
+        // <script> block, and captured SQL can contain both "</script>" and the
+        // "<!--<script" sequence that flips the HTML parser into double-escaped
+        // state, where a later "</script>" no longer closes the element. Escaping
+        // angle brackets to < / > makes the payload inert while staying
+        // valid JSON. Output is not pretty-printed because it ships on every panel
+        // render; the downloaded file is still well-formed JSON.
         return json_encode(
             $payload,
-            \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_PARTIAL_OUTPUT_ON_ERROR,
+            \JSON_HEX_TAG | \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_PARTIAL_OUTPUT_ON_ERROR,
         ) ?: '{}';
     }
 

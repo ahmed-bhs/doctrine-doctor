@@ -72,7 +72,29 @@ final class DoctrineDoctorDataCollectorExportTest extends TestCase
         $json = $collector->getExportJson();
 
         self::assertStringNotContainsString('</script>', $json);
-        self::assertStringContainsString('<\/script>', $json);
+        self::assertStringNotContainsString('<', $json);
+        self::assertStringNotContainsString('>', $json);
+        self::assertIsArray(json_decode($json, true, 512, \JSON_THROW_ON_ERROR));
+    }
+
+    #[Test]
+    public function it_neutralises_the_comment_sequence_that_flips_the_html_parser_into_double_escaped_state(): void
+    {
+        $collector = $this->createDataCollector();
+        $this->seedCollectorData($collector, [
+            'enabled' => true,
+            'timeline_queries' => [
+                ['sql' => 'SELECT 1 -- <!--<script>alert(1)', 'executionMS' => 0.01],
+            ],
+        ]);
+
+        $json = $collector->getExportJson();
+
+        self::assertStringNotContainsString('<!--', $json);
+        self::assertStringNotContainsString('<script', $json);
+
+        $decoded = json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame('SELECT 1 -- <!--<script>alert(1)', $decoded['queries'][0]['sql']);
     }
 
     /**

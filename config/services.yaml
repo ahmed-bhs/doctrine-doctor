@@ -134,9 +134,6 @@ services:
 
     AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator: ~
 
-    # Service for report serialization
-    AhmedBhs\DoctrineDoctor\Service\ExportDataFormatter: ~
-
     # Worker Mode Reset Subscriber
     # Required for FrankenPHP worker mode, RoadRunner, Swoole, and other persistent PHP runtimes
     # Clears ServiceHolder static state between requests to prevent segfaults from stale Doctrine objects
