@@ -217,8 +217,8 @@ class DenormalizedAggregateWithoutLockingAnalyzer implements MetadataAnalyzerInt
             [
                 'class' => $shortName,
                 'method' => $method->getName(),
-                'fields' => implode(', ', array_map(fn (string $f): string => '$' . $f, $mutatedFields)),
-                'collections' => implode(', ', array_map(fn (string $c): string => '$' . $c, $accessedCollections)),
+                'fields' => implode(', ', array_map(fn (string $field): string => '$' . $field, $mutatedFields)),
+                'collections' => implode(', ', array_map(fn (string $collection): string => '$' . $collection, $accessedCollections)),
             ],
         );
 

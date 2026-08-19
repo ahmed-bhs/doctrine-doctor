@@ -346,4 +346,119 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         // This is a CRITICAL issue due to silent data loss
         self::assertEquals('critical', $data['severity']);
     }
+
+    #[Test]
+    public function it_reports_the_observed_limit_and_join_count(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT t0_.id, t1_.id FROM posts t0_ LEFT JOIN comments t1_ ON t0_.id = t1_.post_id LIMIT 25')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+        $description = $issues->toArray()[0]->getDescription();
+
+        self::assertStringContainsString('Observed: LIMIT 25 applied across 1 fetch-joined table(s).', $description);
+    }
+
+    #[Test]
+    public function it_reports_the_row_count_when_the_profiler_provides_it(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithRowCount(
+                'SELECT t0_.id, t1_.id FROM posts t0_ LEFT JOIN comments t1_ ON t0_.id = t1_.post_id LIMIT 200',
+                200,
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+        $description = $issues->toArray()[0]->getDescription();
+
+        self::assertStringContainsString('the database returned 200 row(s) for this LIMIT 200', $description);
+        self::assertStringContainsString('truncated in the middle of a root entity', $description);
+    }
+
+    #[Test]
+    public function it_omits_the_row_count_facts_when_no_row_count_is_available(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT t0_.id, t1_.id FROM posts t0_ LEFT JOIN comments t1_ ON t0_.id = t1_.post_id LIMIT 200')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+        $description = $issues->toArray()[0]->getDescription();
+
+        self::assertStringNotContainsString('the database returned', $description);
+        self::assertStringContainsString('Observed: LIMIT 200', $description);
+    }
+
+    #[Test]
+    public function it_does_not_claim_truncation_when_the_row_count_stays_below_the_limit(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithRowCount(
+                'SELECT t0_.id, t1_.id FROM posts t0_ LEFT JOIN comments t1_ ON t0_.id = t1_.post_id LIMIT 200',
+                87,
+            )
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+        $description = $issues->toArray()[0]->getDescription();
+
+        self::assertStringContainsString('the database returned 87 row(s)', $description);
+        self::assertStringNotContainsString('truncated in the middle of a root entity', $description);
+    }
+
+    #[Test]
+    public function it_warns_about_skipped_root_entities_when_the_query_is_offset_past_the_first_page(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT t0_.id, t1_.id FROM posts t0_ LEFT JOIN comments t1_ ON t0_.id = t1_.post_id LIMIT 200 OFFSET 200')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+        $description = $issues->toArray()[0]->getDescription();
+
+        self::assertStringContainsString('non-zero OFFSET', $description);
+        self::assertStringContainsString('never read the remaining root entities', $description);
+    }
+
+    #[Test]
+    public function it_warns_about_skipped_root_entities_with_mysql_comma_limit_syntax(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT t0_.id, t1_.id FROM posts t0_ LEFT JOIN comments t1_ ON t0_.id = t1_.post_id LIMIT 200, 200')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+        $description = $issues->toArray()[0]->getDescription();
+
+        self::assertStringContainsString('non-zero OFFSET', $description);
+    }
+
+    #[Test]
+    public function it_does_not_warn_about_skipped_root_entities_on_the_first_page(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT t0_.id, t1_.id FROM posts t0_ LEFT JOIN comments t1_ ON t0_.id = t1_.post_id LIMIT 200 OFFSET 0')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+        $description = $issues->toArray()[0]->getDescription();
+
+        self::assertStringNotContainsString('non-zero OFFSET', $description);
+    }
+
+    #[Test]
+    public function it_suggests_both_remediations_in_the_description(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT t0_.id, t1_.id FROM posts t0_ LEFT JOIN comments t1_ ON t0_.id = t1_.post_id LIMIT 10')
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries);
+        $description = $issues->toArray()[0]->getDescription();
+
+        self::assertStringContainsString('WHERE id IN (:ids)', $description);
+        self::assertStringContainsString('Paginator', $description);
+    }
 }

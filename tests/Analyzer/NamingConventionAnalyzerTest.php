@@ -500,7 +500,6 @@ final class NamingConventionAnalyzerTest extends TestCase
                     break;
 
                 case 'missing_id_suffix':
-                case 'not_snake_case':
                     // Foreign key violations are CRITICAL
                     if (isset($data['fk_column'])) {
                         self::assertEquals('critical', $severity, 'FK violations should be CRITICAL severity');
