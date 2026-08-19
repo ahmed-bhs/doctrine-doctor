@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.10.1] - 2026-08-19
+
+### Changed
+
+- The `setMaxResults() with Collection Join` alert now carries the facts of the query that triggered it instead of a fixed block of theory: the LIMIT value and the number of fetch-joined tables, the row count when the profiler reports one, and an explicit note when a result set reached its LIMIT and was therefore very likely truncated in the middle of a root entity. When the query is offset past the first page, the alert also warns that a batch loop bounded by a root entity count can exit early and never read the remaining entities — whole entities lost, not just collection items. Both remediations are given, paginating on identifiers and `Paginator`, with the trade-off between them. Every enrichment degrades to the base message when no row count is available, so the alert stays complete either way. Detection logic is unchanged.
+
+### Fixed
+
+- `hasOffset()` reported an offset for every `LIMIT` query. The SQL parser exposes an offset of `0` for a bare `LIMIT`, and the guard tested it with `'' !== (string) $offset`, which holds for `"0"`; the standalone-`OFFSET` regex fallback matched `OFFSET 0` for the same reason. It now compares against `0` and ignores a zero offset, so it answers whether the query is actually past the first page. `PaginationWithoutOrderByAnalyzer` derives its severity from this call, so a plain `LIMIT` without `ORDER BY` was reported as `LIMIT/OFFSET pagination` at `warning` instead of `LIMIT` at `info`; both cases are now reported correctly. `OrderByWithoutLimitAnalyzer` is unaffected. The method had no test coverage; a case per pagination form was added, including MySQL comma syntax and explicit zero offsets.
+
 ## [2.10.0] - 2026-07-30
 
 ### Added
