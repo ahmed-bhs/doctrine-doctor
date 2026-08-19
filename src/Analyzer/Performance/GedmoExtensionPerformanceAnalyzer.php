@@ -64,11 +64,11 @@ class GedmoExtensionPerformanceAnalyzer implements MetadataAnalyzerInterface
                         }
 
                         $entityClass = $metadata->getName();
-                        $rc = new ReflectionClass($entityClass);
+                        $reflection = new ReflectionClass($entityClass);
 
-                        if ($this->isLoggable($rc)) {
+                        if ($this->isLoggable($reflection)) {
                             yield $this->createLoggableIssue($entityClass);
-                        } elseif ($this->isTranslatable($rc)) {
+                        } elseif ($this->isTranslatable($reflection)) {
                             yield $this->createTranslatableIssue($entityClass);
                         }
                     }

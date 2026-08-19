@@ -92,7 +92,7 @@ class ClassTableInheritanceDepthAnalyzer implements MetadataAnalyzerInterface
                         'root_fqcn' => $rootClass,
                         'depth' => $depth,
                         'joins_required' => $joinsRequired,
-                        'chain' => array_map(fn (string $c): string => $this->shortClassName($c), $chain),
+                        'chain' => array_map(fn (string $className): string => $this->shortClassName($className), $chain),
                     ],
                     new SuggestionMetadata(
                         SuggestionType::integrity(),

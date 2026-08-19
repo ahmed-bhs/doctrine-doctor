@@ -39,7 +39,7 @@ final class NPlusOneSqlAnalyzer implements AnalyzerInterface
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
         $selects = $queryDataCollection->filter(
-            fn (QueryData $q): bool => $this->sqlExtractor->isSelectQuery($q->sql),
+            fn (QueryData $query): bool => $this->sqlExtractor->isSelectQuery($query->sql),
         );
 
         $groups = $selects->groupByPattern(
