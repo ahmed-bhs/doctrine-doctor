@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- CI could not install dependencies on any branch. `composer.lock` is not tracked, so every run resolves afresh, and CVE-2026-53965 (reported 2026-08-14) covers `mcp/sdk` `>=0.5.0,<0.7.1`. `symfony/ai-symfony-mate-extension` was pinned to `^0.10`, whose `ai-mate` v0.10 requires `mcp/sdk ^0.6` exclusively, leaving no resolvable set. The constraint now allows `^0.11|^0.12`, which accept `mcp/sdk ^0.6|^0.7` and reach the patched v0.7.1.
+- Five pre-existing single-letter closure parameters started failing the PHPMD job: `phpmd/phpmd` is required as `3.x-dev`, and PHPMD 3 applies `ShortVariable` to closure parameters where 2.15 did not. Renamed rather than widening the ruleset exceptions.
+- A duplicate `case 'not_snake_case'` in the naming convention test's severity switch was unreachable dead code, reported by newer PHPStan as `switch.duplicateCase`. Removed; behaviour is unchanged.
 - `hasOffset()` reported an offset for every `LIMIT` query. The SQL parser exposes an offset of `0` for a bare `LIMIT`, and the guard tested it with `'' !== (string) $offset`, which holds for `"0"`; the standalone-`OFFSET` regex fallback matched `OFFSET 0` for the same reason. It now compares against `0` and ignores a zero offset, so it answers whether the query is actually past the first page. `PaginationWithoutOrderByAnalyzer` derives its severity from this call, so a plain `LIMIT` without `ORDER BY` was reported as `LIMIT/OFFSET pagination` at `warning` instead of `LIMIT` at `info`; both cases are now reported correctly. `OrderByWithoutLimitAnalyzer` is unaffected. The method had no test coverage; a case per pagination form was added, including MySQL comma syntax and explicit zero offsets.
 
 ## [2.10.0] - 2026-07-30
