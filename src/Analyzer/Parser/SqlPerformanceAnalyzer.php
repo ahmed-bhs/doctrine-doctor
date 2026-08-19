@@ -57,17 +57,20 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
             return false;
         }
 
-        // Check if OFFSET is part of LIMIT clause
+        // Check if OFFSET is part of LIMIT clause.
+        // The parser reports offset 0 for a bare LIMIT, so an offset only counts
+        // when it actually skips rows. Treating 0 as an offset would make this
+        // method true for every LIMIT query.
         if (null !== $statement->limit) {
             $limitOffset = $statement->limit->offset ?? null;
-            if (null !== $limitOffset && '' !== (string) $limitOffset) {
+            if (null !== $limitOffset && 0 !== (int) $limitOffset) {
                 return true;
             }
         }
 
         // Fallback: Some SQL dialects allow standalone OFFSET
         // The parser may not catch it, so use regex as backup
-        return 1 === preg_match('/\bOFFSET\b/i', $sql);
+        return 1 === preg_match('/\bOFFSET\s+(?!0+\b)\d+/i', $sql);
     }
 
     /**

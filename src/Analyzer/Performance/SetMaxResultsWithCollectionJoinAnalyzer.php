@@ -304,7 +304,7 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
             $lines[] = $fact;
         }
 
-        if ($this->hasNonZeroOffset($sql)) {
+        if ($this->sqlExtractor->hasOffset($sql)) {
             $lines[] = 'Impact: this query also carries a non-zero OFFSET, so it is part of a paginated '
                 . 'walk. OFFSET counts rows, not root entities: a batch loop whose bound comes from a '
                 . 'root-entity count can exit early and never read the remaining root entities at all. '
@@ -316,22 +316,6 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
             . 'with $fetchJoinCollection = true.';
 
         return implode("\n", $lines);
-    }
-
-    /**
-     * SqlStructureExtractor::hasOffset() reports true for any LIMIT clause,
-     * because the parser exposes a default offset of 0. We need the stricter
-     * question -- is this query actually offset past the first page -- so we
-     * read the offset value itself.
-     */
-    private function hasNonZeroOffset(string $sql): bool
-    {
-        if (1 === preg_match('/\bOFFSET\s+(\d+)/i', $sql, $matches)) {
-            return '0' !== $matches[1] && 0 !== (int) $matches[1];
-        }
-
-        return 1 === preg_match('/\bLIMIT\s+(\d+)\s*,\s*(\d+)/i', $sql, $matches)
-            && 0 !== (int) $matches[1];
     }
 
     /**
