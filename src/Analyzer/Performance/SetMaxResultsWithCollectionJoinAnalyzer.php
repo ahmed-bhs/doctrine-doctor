@@ -44,7 +44,27 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  *    ->setMaxResults(1);
  * ```
  * If Pet has 4 pictures, only 1 picture will be loaded due to LIMIT 1.
- * Solution: Use Doctrine's Paginator
+ * The severe variant adds setFirstResult() to build a batch loop:
+ * ```php
+ * $total = $repository->count([]);
+ * while ($offset < $total) {
+ *     $rows = $qb->leftJoin('r.tags', 't')->addSelect('t')
+ *         ->setFirstResult($offset)->setMaxResults(200)->getQuery()->getResult();
+ *     $offset += 200;
+ * }
+ * ```
+ * Here OFFSET walks over joined rows while $total counts root entities. With a
+ * row multiplication factor above 1 the loop exits after the first pass and the
+ * remaining root entities are never read at all: whole entities disappear, not
+ * just collection items.
+ * Solution: paginate on root identifiers, then fetch-join that batch
+ * ```php
+ * $ids = $qb->select('r.id')->setFirstResult($offset)->setMaxResults(200)
+ *     ->getQuery()->getSingleColumnResult();
+ * $rows = $qb2->leftJoin('r.tags', 't')->addSelect('t')
+ *     ->where('r.id IN (:ids)')->setParameter('ids', $ids)->getQuery()->getResult();
+ * ```
+ * Or use Doctrine's Paginator, which issues the identifier query for you
  * ```php
  * $paginator = new Paginator($query, $fetchJoinCollection = true);
  * ```
@@ -252,10 +272,7 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
         $issueData = new IssueData(
             type: IssueType::SET_MAX_RESULTS_WITH_COLLECTION_JOIN->value,
             title: 'setMaxResults() with Collection Join Detected',
-            description: 'LIMIT is used with a fetch-joined collection.' . "\n" .
-            'Impact: LIMIT is applied to SQL rows, not root entities.' . "\n" .
-            'Impact: Collections may be partially hydrated (silent data loss).' . "\n" .
-            'Impact: Result counts and application behavior may become incorrect.',
+            description: $this->buildDescription($queryData),
             severity: Severity::critical(),
             suggestion: $this->createSuggestion($mainTable),
             queries: [$queryData],
@@ -263,6 +280,89 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
         );
 
         return $this->issueFactory->create($issueData);
+    }
+
+    /**
+     * Build the issue description, enriched with the measured facts of this
+     * query whenever they are available.
+     * The base text is always present so the message stays complete when the
+     * profiler gives us no row count (rowCount is nullable) and when the query
+     * carries no OFFSET.
+     */
+    private function buildDescription(QueryData $queryData): string
+    {
+        $sql = $queryData->sql;
+
+        $lines = [
+            'LIMIT is used with a fetch-joined collection.',
+            'Impact: LIMIT is applied to SQL rows, not root entities.',
+            'Impact: Collections may be partially hydrated (silent data loss).',
+            'Impact: Result counts and application behavior may become incorrect.',
+        ];
+
+        foreach ($this->buildMeasuredFacts($queryData, $sql) as $fact) {
+            $lines[] = $fact;
+        }
+
+        if ($this->hasNonZeroOffset($sql)) {
+            $lines[] = 'Impact: this query also carries a non-zero OFFSET, so it is part of a paginated '
+                . 'walk. OFFSET counts rows, not root entities: a batch loop whose bound comes from a '
+                . 'root-entity count can exit early and never read the remaining root entities at all. '
+                . 'That loses whole entities, not just collection items.';
+        }
+
+        $lines[] = 'Fix: paginate on root entity identifiers, then fetch-join that batch '
+            . '(WHERE id IN (:ids)), or wrap the query in Doctrine\ORM\Tools\Pagination\Paginator '
+            . 'with $fetchJoinCollection = true.';
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * SqlStructureExtractor::hasOffset() reports true for any LIMIT clause,
+     * because the parser exposes a default offset of 0. We need the stricter
+     * question -- is this query actually offset past the first page -- so we
+     * read the offset value itself.
+     */
+    private function hasNonZeroOffset(string $sql): bool
+    {
+        if (1 === preg_match('/\bOFFSET\s+(\d+)/i', $sql, $matches)) {
+            return '0' !== $matches[1] && 0 !== (int) $matches[1];
+        }
+
+        return 1 === preg_match('/\bLIMIT\s+(\d+)\s*,\s*(\d+)/i', $sql, $matches)
+            && 0 !== (int) $matches[1];
+    }
+
+    /**
+     * @return string[]
+     */
+    private function buildMeasuredFacts(QueryData $queryData, string $sql): array
+    {
+        $facts = [];
+        $limit = $this->sqlExtractor->getLimitValue($sql);
+        $joinCount = $this->sqlExtractor->countJoins($sql);
+        $rowCount = $queryData->rowCount;
+
+        if (null !== $limit) {
+            $facts[] = sprintf('Observed: LIMIT %d applied across %d fetch-joined table(s).', $limit, $joinCount);
+        }
+
+        if (null === $limit || null === $rowCount) {
+            return $facts;
+        }
+
+        $facts[] = sprintf('Observed: the database returned %d row(s) for this LIMIT %d.', $rowCount, $limit);
+
+        if ($rowCount >= $limit) {
+            $facts[] = sprintf(
+                'Observed: the row count reached the LIMIT, so the result set was very likely '
+                . 'truncated in the middle of a root entity. Fewer than %d root entities were hydrated.',
+                $limit,
+            );
+        }
+
+        return $facts;
     }
 
     private function createSuggestion(string $entityHint): SuggestionInterface
