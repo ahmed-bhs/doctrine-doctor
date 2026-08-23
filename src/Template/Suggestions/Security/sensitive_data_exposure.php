@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entityClass
+ * @var string $entityClass
  * @var mixed $methodName
  * @var mixed $exposedFields
  * @var mixed $exposureType
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $entityClass = (string) ($context['entity_class'] ?? 'User');
 $methodName = (string) ($context['method_name'] ?? 'serialize');

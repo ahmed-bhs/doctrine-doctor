@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity
+ * @var string $entity
  * @var mixed $occurrences
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['entity' => $entity, 'occurrences' => $occurrences] = $context;
-$e                                                   = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$entity      = (string) ($context['entity'] ?? 'Entity');
+$occurrences = (int) ($context['occurrences'] ?? 0);
+$e                                                   = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 

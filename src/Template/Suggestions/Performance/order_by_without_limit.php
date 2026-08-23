@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $orderByClause
+ * @var string $orderByClause
  * @var mixed $originalQuery
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['order_by_clause' => $orderByClause, 'original_query' => $originalQuery, 'query_context' => $queryContext] = $context;
+$orderByClause = (string) ($context['order_by_clause'] ?? 'ORDER BY id');
+$originalQuery = (string) ($context['original_query'] ?? '');
+$queryContext  = (string) ($context['query_context'] ?? '');
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 $isBoundedArrayResult = 'array_result' === $queryContext

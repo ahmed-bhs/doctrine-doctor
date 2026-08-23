@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $code
+ * @var string $code
  * @var mixed $optimization
- * @var mixed $executionTime
+ * @var float $executionTime
  * @var mixed $threshold
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $code = (string) ($context['code'] ?? '');
 $optimization = (string) ($context['optimization'] ?? '');

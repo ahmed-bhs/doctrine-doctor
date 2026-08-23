@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $className
+ * @var string $className
  * @var mixed $methodName
- * @var mixed $vulnType
- * @var mixed $context
+ * @var string $vulnType
+ * @var array<string, mixed> $context
  */
 $className = (string) ($context['class_name'] ?? 'Repository');
 $methodName = (string) ($context['method_name'] ?? 'findByUnsafeInput');

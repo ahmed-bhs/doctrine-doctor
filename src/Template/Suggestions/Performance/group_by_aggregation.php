@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity
+ * @var string $entity
  * @var mixed $relation
  * @var mixed $queryCount
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $entity = (string) ($context['entity'] ?? 'Entity');
 $relation = (string) ($context['relation'] ?? 'items');

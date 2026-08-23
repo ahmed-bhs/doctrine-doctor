@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $joinCount
- * @var mixed $context
+ * @var int $joinCount
+ * @var array<string, mixed> $context
  */
-['join_count' => $joinCount] = $context;
-
+$joinCount = (int) ($context['join_count'] ?? 0);
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 

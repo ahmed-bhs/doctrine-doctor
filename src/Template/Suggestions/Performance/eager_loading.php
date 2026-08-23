@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity
+ * @var string $entity
  * @var mixed $relation
- * @var mixed $queryCount
- * @var mixed $context
+ * @var int $queryCount
+ * @var array<string, mixed> $context
  */
-['entity' => $entity, 'relation' => $relation, 'query_count' => $queryCount, 'trigger_location' => $triggerLocation] = $context;
-
+$entity          = (string) ($context['entity'] ?? 'Entity');
+$relation        = (string) ($context['relation'] ?? 'items');
+$queryCount      = (int) ($context['query_count'] ?? 0);
+$triggerLocation = (string) ($context['trigger_location'] ?? 'the calling code');
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
@@ -27,7 +29,7 @@ ob_start();
         <?php echo $queryCount; ?> queries loading <code><?php echo $e($relation); ?></code>
     </div>
 
-<?php if (null !== $triggerLocation && '' !== $triggerLocation) { ?>
+<?php if ('' !== $triggerLocation) { ?>
     <div class="alert alert-info">
         <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
     </div>

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $query
+ * @var string $query
  * @var mixed $vulnerableParams
- * @var mixed $riskLevel
- * @var mixed $context
+ * @var string $riskLevel
+ * @var array<string, mixed> $context
  */
 $query = (string) ($context['query'] ?? 'SELECT u FROM User u WHERE u.name = :username');
 $vulnerableParams = $context['vulnerable_parameters'] ?? ['username'];

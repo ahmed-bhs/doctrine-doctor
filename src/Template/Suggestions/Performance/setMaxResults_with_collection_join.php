@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entityHint
- * @var mixed $context
+ * @var string $entityHint
+ * @var array<string, mixed> $context
  */
-['entity_hint' => $entityHint] = $context;
-
+$entityHint = (string) ($context['entity_hint'] ?? 'Entity');
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 

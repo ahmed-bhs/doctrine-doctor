@@ -14,10 +14,9 @@ declare(strict_types=1);
 /**
  * Template for Global Timezone Warning.
  * Context variables provided by PhpTemplateRenderer::extract($context):
- * @var mixed $totalFields Number of timestamp fields found
+ * @var int $totalFields Number of timestamp fields found
  */
-['total_fields' => $totalFields] = $context;
-
+$totalFields = (int) ($context['total_fields'] ?? 0);
 // Escaping function
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 

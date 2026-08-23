@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $method
+ * @var string $method
  * @var mixed $resultCount
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['method' => $method, 'result_count' => $resultCount] = $context;
-
+$method      = (string) ($context['method'] ?? 'findAll');
+$resultCount = (int) ($context['result_count'] ?? 0);
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 

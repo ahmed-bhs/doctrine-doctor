@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $type
+ * @var string $type
  * @var mixed $table
- * @var mixed $alias
- * @var mixed $context
+ * @var string $alias
+ * @var array<string, mixed> $context
  */
 $type = (string) ($context['type'] ?? 'LEFT');
 $table = (string) ($context['table'] ?? 'related_table');

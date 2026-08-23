@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $badCode
+ * @var string $badCode
  * @var mixed $goodCode
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['bad_code' => $badCode, 'good_code' => $goodCode] = $context;
-
+$badCode  = (string) ($context['bad_code'] ?? '');
+$goodCode = (string) ($context['good_code'] ?? '');
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 

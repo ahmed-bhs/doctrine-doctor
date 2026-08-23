@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entityClass
+ * @var string $entityClass
  * @var mixed $timestampFields
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $entityClass = (string) ($context['entity_class'] ?? 'Entity');
 $timestampFields = $context['timestamp_fields'] ?? ['createdAt'];

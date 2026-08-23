@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $datetimeCount
+ * @var int $datetimeCount
  * @var mixed $datetimetzCount
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['datetime_count' => $datetimeCount, 'datetimetz_count' => $datetimetzCount] = $context;
-
+$datetimeCount   = (int) ($context['datetime_count'] ?? 0);
+$datetimetzCount = (int) ($context['datetimetz_count'] ?? 0);
 // Escaping function
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 

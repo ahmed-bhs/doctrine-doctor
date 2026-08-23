@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $embeddableClass
+ * @var string $embeddableClass
  * @var mixed $fieldName
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['embeddable_class' => $embeddableClass, 'field_name' => $fieldName] = $context;
+$embeddableClass = (string) ($context['embeddable_class'] ?? 'Money');
+$fieldName       = (string) ($context['field_name'] ?? 'created_at');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();

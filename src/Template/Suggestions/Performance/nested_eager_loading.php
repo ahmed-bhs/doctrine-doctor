@@ -8,7 +8,7 @@ declare(strict_types=1);
  * @var mixed $depth
  * @var mixed $queryCount
  * @var mixed $chain
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $entities = $context['entities'] ?? ['Entity', 'Relation'];
 if (!is_array($entities) || [] === $entities) {

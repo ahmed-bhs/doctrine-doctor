@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity_class
+ * @var string $entity_class
  * @var mixed $extension_type
- * @var mixed $impact
- * @var mixed $context
+ * @var string $impact
+ * @var array<string, mixed> $context
  */
 $entity_class = (string) ($context['entity_class'] ?? '');
 $extension_type = (string) ($context['extension_type'] ?? '');

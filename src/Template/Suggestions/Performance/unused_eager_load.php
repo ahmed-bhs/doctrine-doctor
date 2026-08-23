@@ -7,7 +7,7 @@ declare(strict_types=1);
  * @var mixed $unusedTables
  * @var mixed $unusedAliases
  * @var mixed $count
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $unusedTables = $context['unused_tables'] ?? ['related_table'];
 $unusedAliases = $context['unused_aliases'] ?? ['r'];

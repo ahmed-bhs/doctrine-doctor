@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity
+ * @var string $entity
  * @var mixed $column
- * @var mixed $queryCount
+ * @var int $queryCount
  * @var mixed $triggerLocation
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['entity' => $entity, 'column' => $column, 'query_count' => $queryCount, 'trigger_location' => $triggerLocation] = $context;
-
+$entity          = (string) ($context['entity'] ?? 'Entity');
+$column          = (string) ($context['column'] ?? 'column_name');
+$queryCount      = (int) ($context['query_count'] ?? 0);
+$triggerLocation = (string) ($context['trigger_location'] ?? 'the calling code');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -28,7 +30,7 @@ ob_start();
         This happens when calling <code>findBy()</code> or <code>findOneBy()</code> repeatedly with different values for the same column.
     </div>
 
-<?php if (null !== $triggerLocation && '' !== $triggerLocation) { ?>
+<?php if ('' !== $triggerLocation) { ?>
     <div class="alert alert-info">
         <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
     </div>

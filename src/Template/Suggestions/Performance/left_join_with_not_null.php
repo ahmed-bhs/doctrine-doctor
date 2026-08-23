@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $field
+ * @var string $field
  * @var mixed $entity
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['field' => $field, 'entity' => $entity] = $context;
+$field  = (string) ($context['field'] ?? 'created_at');
+$entity = (string) ($context['entity'] ?? 'Entity');
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();

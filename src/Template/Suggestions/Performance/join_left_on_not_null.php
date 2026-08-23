@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $table
+ * @var string $table
  * @var mixed $alias
- * @var mixed $entity
- * @var mixed $context
+ * @var string $entity
+ * @var array<string, mixed> $context
  */
 $table = (string) ($context['table'] ?? 'related_table');
 $alias = (string) ($context['alias'] ?? 'r');

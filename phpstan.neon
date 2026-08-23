@@ -15,7 +15,6 @@ parameters:
         - tests/Fixtures/*
         - vendor/*
         - var/*
-        - src/Template/Suggestions/*
 
     # Doctrine specific settings
     doctrine:

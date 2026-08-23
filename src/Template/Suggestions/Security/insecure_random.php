@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entityClass
+ * @var string $entityClass
  * @var mixed $methodName
- * @var mixed $insecureFunction
- * @var mixed $context
+ * @var string $insecureFunction
+ * @var array<string, mixed> $context
  */
 $entityClass = (string) ($context['entity_class'] ?? 'RandomGenerator');
 $methodName = (string) ($context['method_name'] ?? 'generate');

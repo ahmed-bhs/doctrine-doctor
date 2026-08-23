@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $embeddableClass
+ * @var string $embeddableClass
  * @var mixed $missingMethods
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $embeddableClass = (string) ($context['embeddable_class'] ?? 'Money');
 $missingMethods = $context['missing_methods'] ?? ['equals', '__toString'];

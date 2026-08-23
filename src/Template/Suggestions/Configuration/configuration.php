@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $setting
+ * @var string $setting
  * @var mixed $currentValue
- * @var mixed $recommendedValue
+ * @var string $recommendedValue
  * @var mixed $description
- * @var mixed $fixCommand
- * @var mixed $context
+ * @var string $fixCommand
+ * @var array<string, mixed> $context
  */
 $setting = (string) ($context['setting'] ?? 'unknown_setting');
 $currentValue = (string) ($context['current_value'] ?? '');

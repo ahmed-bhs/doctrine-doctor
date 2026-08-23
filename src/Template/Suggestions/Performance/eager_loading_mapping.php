@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity_class
+ * @var string $entity_class
  * @var mixed $field_name
- * @var mixed $target_entity
+ * @var string $target_entity
  * @var mixed $target_short_name
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $entity_class = (string) ($context['entity_class'] ?? '');
 $field_name = (string) ($context['field_name'] ?? '');

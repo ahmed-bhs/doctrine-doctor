@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $description
+ * @var string $description
  * @var mixed $code
- * @var mixed $filePath
- * @var mixed $context
+ * @var string $filePath
+ * @var array<string, mixed> $context
  */
 $description = (string) ($context['description'] ?? '');
 $code = (string) ($context['code'] ?? '');

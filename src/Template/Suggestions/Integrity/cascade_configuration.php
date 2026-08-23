@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entityClass
+ * @var string $entityClass
  * @var mixed $fieldName
- * @var mixed $issueType
+ * @var string $issueType
  * @var mixed $targetEntity
- * @var mixed $isComposition
- * @var mixed $context
+ * @var bool $isComposition
+ * @var array<string, mixed> $context
  */
 $entityClass = (string) ($context['entity_class'] ?? 'ParentEntity');
 $fieldName = (string) ($context['field_name'] ?? 'children');

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $table
+ * @var string $table
  * @var mixed $operationCount
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['table' => $table, 'operation_count' => $operationCount] = $context;
-$e                                                        = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$table          = (string) ($context['table'] ?? 'related_table');
+$operationCount = (int) ($context['operation_count'] ?? 0);
+$e                                                        = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 <div class="suggestion-header"><h4>Batch Processing Needed</h4></div>
