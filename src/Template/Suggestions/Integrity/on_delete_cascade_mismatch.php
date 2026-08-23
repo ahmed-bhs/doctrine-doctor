@@ -87,8 +87,8 @@ private Collection $<?php echo $e($fieldName); ?>;</code></pre>
 <?php } ?>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn" target="_blank" class="doc-link">
-            📜 Doctrine JoinColumn
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine JoinColumn
         </a>
     </p>
 </div>

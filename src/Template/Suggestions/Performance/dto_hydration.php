@@ -51,8 +51,8 @@ foreach ($results as $userRevenue) {
     <p>Performance: 10k rows with DTOs uses 70% less memory and runs 3x faster than arrays.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#new-operator-syntax" target="_blank" class="doc-link">
-            📜 Doctrine NEW operator
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#new-operator-syntax" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine NEW operator
         </a>
     </p>
 </div>

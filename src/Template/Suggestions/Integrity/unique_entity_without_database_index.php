@@ -72,11 +72,11 @@ php bin/console doctrine:migrations:migrate</code></pre>
     </div>
 
     <p>
-        <a href="https://symfony.com/doc/current/reference/constraints/UniqueEntity.html" target="_blank" class="doc-link">
+        <a href="https://symfony.com/doc/current/reference/constraints/UniqueEntity.html" target="_blank" rel="noopener noreferrer" class="doc-link">
             Symfony UniqueEntity documentation
         </a>
         &nbsp;|&nbsp;
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/attributes-reference.html#uniqueconstraint" target="_blank" class="doc-link">
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/attributes-reference.html#uniqueconstraint" target="_blank" rel="noopener noreferrer" class="doc-link">
             Doctrine UniqueConstraint reference
         </a>
     </p>

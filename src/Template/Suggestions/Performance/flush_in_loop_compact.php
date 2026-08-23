@@ -32,7 +32,7 @@ $em->flush();</code></pre></div>
 
 <p>
     ~<?php echo $estimatedGain; ?>% faster
-    | <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank">Docs</a>
+    | <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank" rel="noopener noreferrer">Docs</a>
 </p>
 </div>
 <?php

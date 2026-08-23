@@ -34,8 +34,8 @@ ob_start();
     <p>Check cascade settings, orphanRemoval, onDelete constraints, and nullable settings on both sides of the relationship. Make sure they're aligned.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html" target="_blank" class="doc-link">
-            📜 Doctrine Associations Documentation
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Associations Documentation
         </a>
     </p>
 </div>

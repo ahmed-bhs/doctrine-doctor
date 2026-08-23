@@ -44,8 +44,8 @@ private $<?php echo $e($assocName); ?>;</code></pre>
     <p><strong>Convention:</strong> snake_case with _id suffix (user_id, product_id).</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn" target="_blank" class="doc-link">
-            📜 Doctrine JoinColumn Documentation
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine JoinColumn Documentation
         </a>
     </p>
 </div>

@@ -55,8 +55,8 @@ ob_start();
     <p>Object relations give you automatic lazy loading, type safety, IDE autocomplete, and easier queries. This is what ORMs are for.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/association-mapping.html" target="_blank" class="doc-link">
-            📜 Doctrine Association Mapping
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/association-mapping.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Association Mapping
         </a>
     </p>
 </div>

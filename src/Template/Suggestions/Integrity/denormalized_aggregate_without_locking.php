@@ -78,7 +78,7 @@ $em->wrapInTransaction(function () use ($em, $id) {
     </p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/transactions-and-concurrency.html#locking-support" target="_blank" class="doc-link">
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/transactions-and-concurrency.html#locking-support" target="_blank" rel="noopener noreferrer" class="doc-link">
             Doctrine Locking documentation
         </a>
     </p>

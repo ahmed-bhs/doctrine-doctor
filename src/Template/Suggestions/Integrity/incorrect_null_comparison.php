@@ -40,8 +40,8 @@ ob_start();
     <p><code>IS NULL</code> and <code>IS NOT NULL</code> are the SQL standard. <code>= NULL</code> always returns UNKNOWN (three-valued logic), never TRUE or FALSE.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html#helper-methods" target="_blank" class="doc-link">
-            📜 Doctrine QueryBuilder Helper Methods
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html#helper-methods" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine QueryBuilder Helper Methods
         </a>
     </p>
 </div>

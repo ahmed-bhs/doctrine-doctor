@@ -45,8 +45,8 @@ $entities = $repository->createQueryBuilder('e')
     <p>Batch jobs: use <code>toIterable()</code> with periodic <code>flush()/clear()</code>. Pages: 10-50 for web, 100-1000 for APIs.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/pagination.html" target="_blank" class="doc-link">
-            📜 Doctrine pagination
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/pagination.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine pagination
         </a>
     </p>
 </div>

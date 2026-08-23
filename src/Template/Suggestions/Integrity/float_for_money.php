@@ -46,8 +46,8 @@ public function get<?php echo ucfirst((string) $fieldName); ?>(): Money
 $product->set<?php echo ucfirst((string) $fieldName); ?>(Money::EUR(1999)); // 19.99 EUR</code></pre>
 
     <p>
-        <a href="https://github.com/moneyphp/money" target="_blank" class="doc-link">
-            📜 Money PHP library
+        <a href="https://github.com/moneyphp/money" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Money PHP library
         </a>
     </p>
 </div>

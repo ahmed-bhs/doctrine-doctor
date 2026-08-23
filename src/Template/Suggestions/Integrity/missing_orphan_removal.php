@@ -57,8 +57,8 @@ $em->flush();</code></pre>
     <p>Use when parent owns children (Order → OrderItems). Don't use for shared entities (Order → Products).</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">
-            📜 Doctrine Orphan Removal
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Orphan Removal
         </a>
     </p>
 </div>

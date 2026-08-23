@@ -159,7 +159,7 @@ public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
         <li><code>get($key)</code>: Executes query to fetch single element by key</li>
     </ul>
 
-    <h4>⚖️ Trade-offs: EXTRA_LAZY</h4>
+    <h4>Trade-offs: EXTRA_LAZY</h4>
     <div class="alert alert-warning">
         <strong>Pros:</strong>
         <ul>
@@ -185,7 +185,7 @@ public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
     </ul>
 
     <div class="alert alert-info">
-        ℹ️ <strong>Expected Performance Improvement:</strong><br>
+        ℹ<strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Current:</strong> <?php echo $queryCount; ?> queries<?php echo $hasLimit ? ' (loading partial data each time)' : ''; ?></li>
             <?php if ($hasLimit) { ?>
@@ -198,8 +198,8 @@ public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
     </div>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/extra-lazy-associations.html" target="_blank" class="doc-link">
-            📜 Doctrine Extra Lazy Associations Documentation
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/extra-lazy-associations.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Extra Lazy Associations Documentation
         </a>
     </p>
 </div>

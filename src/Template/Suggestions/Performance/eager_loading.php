@@ -52,8 +52,8 @@ foreach ($entities as $entity) {
     <p>Avoid <code>fetch: 'EAGER'</code> globally.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">
-            📜 Doctrine DQL joins
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine DQL joins
         </a>
     </p>
 </div>

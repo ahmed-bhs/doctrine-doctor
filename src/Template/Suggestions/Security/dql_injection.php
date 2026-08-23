@@ -53,8 +53,8 @@ $result = $query->getResult();</code></pre>
     <p>Use <code>setParameter()</code> instead of concatenation.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#dql-query-parameters" target="_blank" class="doc-link">
-            📜 Doctrine DQL parameters
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#dql-query-parameters" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine DQL parameters
         </a>
     </p>
 </div>

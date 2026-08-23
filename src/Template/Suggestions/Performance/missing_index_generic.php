@@ -61,7 +61,7 @@ ob_start();
     </div>
 
     <div class="info-box">
-        <p><strong>💡 Tip:</strong> Focus on columns used in:</p>
+        <p><strong>Tip:</strong> Focus on columns used in:</p>
         <ul>
             <li>WHERE clauses (equality and range conditions)</li>
             <li>JOIN ON conditions</li>
@@ -71,8 +71,8 @@ ob_start();
     </div>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index" target="_blank" class="doc-link">
-            📜 Doctrine indexing documentation
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine indexing documentation
         </a>
     </p>
 </div>

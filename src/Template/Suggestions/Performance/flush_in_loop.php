@@ -55,8 +55,8 @@ $em->clear();
     <p>Use batch size 20-50. Always call <code>clear()</code> after <code>flush()</code>.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank" class="doc-link">
-            📜 Doctrine batch processing
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine batch processing
         </a>
     </p>
 </div>

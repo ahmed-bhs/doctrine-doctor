@@ -42,8 +42,8 @@ ob_start();
     <p>Typical needs: Money (10,2), Scientific (15,6), Crypto (20,8). Consider reducing if excessive.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal" target="_blank" class="doc-link">
-            📜 Doctrine Decimal Type
+        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Decimal Type
         </a>
     </p>
 </div>

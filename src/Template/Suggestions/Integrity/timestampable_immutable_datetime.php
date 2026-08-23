@@ -41,8 +41,8 @@ private \DateTimeImmutable $<?php echo $e($fieldName); ?>;</code></pre>
     <p>No database migration needed - Doctrine handles both types the same way.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/working-with-datetime.html" target="_blank" class="doc-link">
-            📜 Doctrine datetime docs
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/working-with-datetime.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine datetime docs
         </a>
     </p>
 </div>

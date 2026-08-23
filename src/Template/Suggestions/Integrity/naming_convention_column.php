@@ -44,8 +44,8 @@ private $<?php echo $e($fieldName); ?>;</code></pre>
     <p><strong>Convention:</strong> snake_case, lowercase (first_name, created_at). Avoid SQL keywords.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/naming-strategy.html" target="_blank" class="doc-link">
-            📜 Doctrine Naming Strategy Documentation
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/naming-strategy.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Naming Strategy Documentation
         </a>
     </p>
 </div>

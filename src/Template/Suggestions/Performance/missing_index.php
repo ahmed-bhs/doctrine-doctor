@@ -44,8 +44,8 @@ ob_start();
     <p>Or via entity annotation: <code>#[ORM\Index(name: '<?php echo $e($indexName); ?>', columns: [<?php echo implode(', ', array_map(fn ($c): string => "'" . $e(trim($c)) . "'", explode(',', (string) $columnsList))); ?>])]</code></p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index" target="_blank" class="doc-link">
-            📜 Doctrine indexing
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine indexing
         </a>
     </p>
 </div>

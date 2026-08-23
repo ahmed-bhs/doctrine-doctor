@@ -47,8 +47,8 @@ $addresses = $em->createQuery('SELECT a FROM Address a WHERE a.customer IN (:ids
     <p>Splitting improves performance by 50-70%. Consider DTOs for read-only data.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html" target="_blank" class="doc-link">
-            📜 Doctrine Query Builder
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Query Builder
         </a>
     </p>
 </div>

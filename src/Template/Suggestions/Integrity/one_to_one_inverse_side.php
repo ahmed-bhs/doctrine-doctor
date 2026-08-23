@@ -89,8 +89,8 @@ class <?php echo $e($targetClass); ?>
     </div>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/faq.html" target="_blank" class="doc-link">
-            📜 Doctrine FAQ: OneToOne Inverse Side
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/faq.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine FAQ: OneToOne Inverse Side
         </a>
     </p>
 </div>

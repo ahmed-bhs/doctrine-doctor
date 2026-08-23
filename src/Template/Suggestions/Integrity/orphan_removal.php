@@ -51,8 +51,8 @@ ob_start();
     <p>Complete composition requires both <code>cascade: ['persist', 'remove']</code> and <code>orphanRemoval: true</code>.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">
-            📜 Doctrine orphan removal
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine orphan removal
         </a>
     </p>
 </div>

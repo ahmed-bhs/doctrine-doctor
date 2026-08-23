@@ -152,14 +152,14 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
 // Perfect for APIs and read-only display</code></pre>
     </div>
 
-    <h4>⚠️ Why Nested N+1 Is Especially Bad</h4>
+    <h4>Why Nested N+1 Is Especially Bad</h4>
     <div class="alert alert-danger">
         <strong>Exponential Query Growth:</strong>
         <ul>
-            <li>🔥 <strong>Multiplies at each level</strong>: <?php echo $depth; ?> levels × <?php echo $queryCount; ?> queries = <?php echo $totalQueries; ?> total queries</li>
-            <li>⏱️ <strong>Latency compounds</strong>: Each level adds network round-trips</li>
-            <li>🐘 <strong>Database strain</strong>: <?php echo $totalQueries; ?> queries vs 1 with eager loading</li>
-            <li>📈 <strong>Scales terribly</strong>: With 1000 entities → <?php echo 1000 * $depth; ?> queries!</li>
+            <li><strong>Multiplies at each level</strong>: <?php echo $depth; ?> levels × <?php echo $queryCount; ?> queries = <?php echo $totalQueries; ?> total queries</li>
+            <li>⏱<strong>Latency compounds</strong>: Each level adds network round-trips</li>
+            <li><strong>Database strain</strong>: <?php echo $totalQueries; ?> queries vs 1 with eager loading</li>
+            <li><strong>Scales terribly</strong>: With 1000 entities → <?php echo 1000 * $depth; ?> queries!</li>
         </ul>
     </div>
 
@@ -183,7 +183,7 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
                 <td style="padding: 8px;">5-10ms</td>
             </tr>
             <tr>
-                <td style="padding: 8px;">⚡ Improvement</td>
+                <td style="padding: 8px;">Improvement</td>
                 <td style="padding: 8px;"><strong><?php echo $queryReduction; ?>%</strong></td>
                 <td style="padding: 8px;"><?php echo $speedGain; ?>% faster</td>
             </tr>
@@ -207,7 +207,7 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
     </ul>
 
     <div class="alert alert-info">
-        ℹ️ <strong>Expected Performance Improvement:</strong><br>
+        ℹ<strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Current:</strong> <?php echo $totalQueries; ?> queries (<?php echo $depth; ?> levels × <?php echo $queryCount; ?> per level)</li>
             <li><strong>With multi-level JOIN:</strong> 1 query total</li>
@@ -217,8 +217,8 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
     </div>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">
-            📜 Doctrine Multi-Level JOIN Documentation
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Multi-Level JOIN Documentation
         </a>
     </p>
 </div>

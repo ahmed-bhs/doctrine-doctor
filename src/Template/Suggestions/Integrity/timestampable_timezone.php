@@ -46,8 +46,8 @@ public function get<?php echo ucfirst((string) $fieldName); ?>Display(string $us
     <p>Or use <code>datetimetz_immutable</code> to preserve original timezone.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz" target="_blank" class="doc-link">
-            📜 Doctrine DateTimeTZ
+        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine DateTimeTZ
         </a>
     </p>
 </div>

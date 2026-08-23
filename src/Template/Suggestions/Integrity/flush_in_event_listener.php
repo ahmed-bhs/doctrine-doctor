@@ -74,7 +74,7 @@ class <?php echo $e($entityClass); ?>Listener
     </p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/events.html" target="_blank" class="doc-link">
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/events.html" target="_blank" rel="noopener noreferrer" class="doc-link">
             Doctrine Events documentation
         </a>
     </p>

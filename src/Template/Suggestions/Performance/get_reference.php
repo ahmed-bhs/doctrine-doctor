@@ -43,8 +43,8 @@ $order->setUser($user);</code></pre>
     <p>Use <code>find()</code> when you need to access the entity's data or validate it exists. Use <code>getReference()</code> when you only need the ID for a relationship.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-objects.html#entity-object-graph-traversal" target="_blank" class="doc-link">
-            📜 Doctrine getReference() docs
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-objects.html#entity-object-graph-traversal" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine getReference() docs
         </a>
     </p>
 </div>

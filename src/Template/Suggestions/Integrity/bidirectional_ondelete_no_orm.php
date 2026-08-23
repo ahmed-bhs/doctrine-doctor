@@ -35,8 +35,8 @@ ob_start();
     <p>Add cascade="remove" to match the database onDelete="CASCADE" so behavior is consistent.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" class="doc-link">
-            📜 Doctrine Cascade Operations
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Cascade Operations
         </a>
     </p>
 </div>

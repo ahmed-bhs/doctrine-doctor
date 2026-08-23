@@ -48,8 +48,8 @@ ob_start();
     </ul>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index" target="_blank" class="doc-link">
-            📜 Doctrine Index Documentation
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Index Documentation
         </a>
     </p>
 </div>

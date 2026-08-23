@@ -1,12 +1,10 @@
 <?php
 
 /*
-<ul>
-<li>This file is part of the Doctrine Doctor.</li>
-<li>(c) 2025 Ahmed EBEN HASSINE</li>
-<li>For the full copyright and license information, please view the LICENSE</li>
-<li>file that was distributed with this source code.</li>
-</ul>
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025-2026 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -64,7 +62,7 @@ private \DateTimeImmutable $createdAt;</code></pre>
 
     <p>
         <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz" target="_blank" rel="noopener noreferrer" class="doc-link">
-            📜 Doctrine: DateTimeTZ Type
+            Doctrine: DateTimeTZ Type
         </a>
     </p>
 </div>

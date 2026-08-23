@@ -46,8 +46,8 @@ ob_start();
     <p>Entities represent data. Services handle persistence.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/architecture.html" target="_blank" class="doc-link">
-            📜 Doctrine architecture
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/architecture.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine architecture
         </a>
     </p>
 </div>

@@ -51,7 +51,7 @@ ob_start();
     </ul>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html" target="_blank" class="doc-link">
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html" target="_blank" rel="noopener noreferrer" class="doc-link">
             Doctrine: Inheritance Mapping
         </a>
     </p>

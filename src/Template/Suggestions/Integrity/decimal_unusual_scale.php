@@ -38,8 +38,8 @@ ob_start();
     <?php } ?>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal" target="_blank" class="doc-link">
-            📜 Doctrine decimal type docs
+        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine decimal type docs
         </a>
     </p>
 </div>

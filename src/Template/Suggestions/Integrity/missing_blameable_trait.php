@@ -1,12 +1,10 @@
 <?php
 
 /*
-<ul>
-<li>This file is part of the Doctrine Doctor.</li>
-<li>(c) 2025 Ahmed EBEN HASSINE</li>
-<li>For the full copyright and license information, please view the LICENSE</li>
-<li>file that was distributed with this source code.</li>
-</ul>
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025-2026 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -131,8 +129,8 @@ class <?php echo $e($entityClass); ?>
     </ul>
 
     <p>
-        <a href="https://symfony.com/bundles/StofDoctrineExtensionsBundle/current/index.html#blameable" target="_blank" class="doc-link">
-            📜 Doctrine Extensions: Blameable
+        <a href="https://symfony.com/bundles/StofDoctrineExtensionsBundle/current/index.html#blameable" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Extensions: Blameable
         </a>
     </p>
 </div>

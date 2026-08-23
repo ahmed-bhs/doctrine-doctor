@@ -158,7 +158,27 @@ class TemplateValidator
             $warnings[] = 'Found ** markdown bold (consider using <strong>)';
         }
 
-        // Check 7: HTML tag validation (disabled - too many false positives)
+        // Check 7: External links must not leak the opener
+        if (preg_match_all('~<a\\b[^>]*target="_blank"[^>]*>~', $content, $linkMatches)) {
+            foreach ($linkMatches[0] as $tag) {
+                if (strpos($tag, 'noopener') === false) {
+                    $errors[] = 'Link with target="_blank" is missing rel="noopener noreferrer"';
+                    break;
+                }
+            }
+        }
+
+        // Check 8: No emoji in panel output
+        if (preg_match('~[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}\x{2B00}-\x{2BFF}]~u', $content)) {
+            $errors[] = 'Found emoji - keep the profiler output plain text';
+        }
+
+        // Check 9: Context keys must be read with a default so a missing key degrades gracefully
+        if (preg_match('~\]\s*=\s*\$context\s*;~', $content)) {
+            $errors[] = 'Destructures $context without defaults - use $context[\'key\'] ?? default';
+        }
+
+        // Check 10: HTML tag validation (disabled - too many false positives)
         // $this->validateHtmlTags($content, $errors);
 
         // Store results

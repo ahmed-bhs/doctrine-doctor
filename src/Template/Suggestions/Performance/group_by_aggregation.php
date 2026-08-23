@@ -132,7 +132,7 @@ $results = $query->getResult();
 // Result: 1 query with multiple aggregations!</code></pre>
     </div>
 
-    <h4>⚖️ Trade-offs: GROUP BY Aggregation</h4>
+    <h4>Trade-offs: GROUP BY Aggregation</h4>
     <div class="alert alert-warning">
         <strong>Pros:</strong>
         <ul>
@@ -168,7 +168,7 @@ $results = $query->getResult();
     </ul>
 
     <div class="alert alert-info">
-        ℹ️ <strong>Expected Performance Improvement:</strong><br>
+        ℹ<strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Current:</strong> <?php echo $queryCount; ?> queries</li>
             <li><strong>With GROUP BY:</strong> 1 query</li>
@@ -178,8 +178,8 @@ $results = $query->getResult();
     </div>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#grouping" target="_blank" class="doc-link">
-            📜 Doctrine DQL GROUP BY Documentation
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#grouping" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine DQL GROUP BY Documentation
         </a>
     </p>
 </div>

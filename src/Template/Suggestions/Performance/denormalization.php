@@ -147,7 +147,7 @@ AFTER INSERT OR DELETE ON <?php echo $e($relation); ?>
 FOR EACH ROW EXECUTE FUNCTION update_<?php echo strtolower($entity); ?>_<?php echo $e($counterField); ?>();</code></pre>
     </div>
 
-    <h4>⚖️ Trade-offs: Denormalization</h4>
+    <h4>Trade-offs: Denormalization</h4>
     <div class="alert alert-warning">
         <strong>Pros:</strong>
         <ul>
@@ -187,7 +187,7 @@ FOR EACH ROW EXECUTE FUNCTION update_<?php echo strtolower($entity); ?>_<?php ec
     </ul>
 
     <div class="alert alert-info">
-        ℹ️ <strong>Expected Performance Improvement:</strong><br>
+        ℹ<strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Current:</strong> <?php echo $queryCount; ?> COUNT queries</li>
             <li><strong>With Denormalization:</strong> 0 queries (reads from column)</li>
@@ -197,8 +197,8 @@ FOR EACH ROW EXECUTE FUNCTION update_<?php echo strtolower($entity); ?>_<?php ec
     </div>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/aggregate-fields.html" target="_blank" class="doc-link">
-            📜 Doctrine Aggregate Fields Documentation
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/aggregate-fields.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Aggregate Fields Documentation
         </a>
     </p>
 </div>

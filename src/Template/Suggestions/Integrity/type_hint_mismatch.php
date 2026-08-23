@@ -53,8 +53,8 @@ ob_start();
     <p>Doctrine's UnitOfWork uses strict comparison (===) to detect changes. When the property type doesn't match the column type, Doctrine thinks the value changed even when it didn't. This triggers unnecessary UPDATE statements.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/basic-mapping.html" target="_blank" class="doc-link">
-            📜 Doctrine basic mapping docs
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/basic-mapping.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine basic mapping docs
         </a>
     </p>
 </div>

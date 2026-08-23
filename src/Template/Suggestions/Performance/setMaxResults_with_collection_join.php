@@ -89,8 +89,8 @@ $orders = iterator_to_array($paginator);</code></pre>
     </div>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/current/tutorials/pagination.html" target="_blank" class="doc-link">
-            📜 Doctrine pagination docs
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/current/tutorials/pagination.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine pagination docs
         </a>
     </p>
 </div>

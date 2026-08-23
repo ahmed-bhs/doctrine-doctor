@@ -41,8 +41,8 @@ class <?php echo $e($entityClass); ?> {}</code></pre>
     <p><strong>Convention:</strong> snake_case, singular (user, order_item). Avoid SQL reserved keywords. Generate a migration with <code>make:migration</code> after renaming.</p>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/naming-strategy.html" target="_blank" class="doc-link">
-            📜 Doctrine Naming Strategy Documentation
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/naming-strategy.html" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine Naming Strategy Documentation
         </a>
     </p>
 </div>

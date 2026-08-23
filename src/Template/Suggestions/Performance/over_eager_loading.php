@@ -156,7 +156,7 @@ $results = $em->createQuery('
         </ul>
     </div>
 
-    <h4>⚖️ Trade-offs: Why Multiple Queries Can Be Better</h4>
+    <h4>Trade-offs: Why Multiple Queries Can Be Better</h4>
     <div class="alert alert-info">
         <strong>Common Misconception:</strong> "Fewer queries = better performance"<br>
         <strong>Reality:</strong> With JOINs on collections, ONE query can be worse than MULTIPLE queries!
@@ -209,7 +209,7 @@ $results = $em->createQuery('
     </ul>
 
     <div class="alert alert-info">
-        ℹ️ <strong>Expected Performance Improvement:</strong><br>
+        ℹ<strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Memory usage:</strong> 60-95% reduction</li>
             <li><strong>Hydration time:</strong> 70-90% faster</li>
@@ -219,8 +219,8 @@ $results = $em->createQuery('
     </div>
 
     <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">
-            📜 Doctrine DQL JOIN Documentation
+        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">
+            Doctrine DQL JOIN Documentation
         </a>
     </p>
 </div>
