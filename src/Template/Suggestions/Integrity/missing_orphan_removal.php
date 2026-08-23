@@ -48,7 +48,7 @@ ob_start();
 }
 
 // Removing from collection now deletes the record
-$<?php echo lcfirst($e($entityClass)); ?>->remove<?php echo ucfirst(rtrim($e($fieldName), 's')); ?>($item);
+$<?php echo $e(lcfirst($e($entityClass))); ?>->remove<?php echo $e(ucfirst(rtrim($e($fieldName), 's'))); ?>($item);
 $em->flush();</code></pre>
     </div>
 

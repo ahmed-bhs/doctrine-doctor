@@ -41,7 +41,7 @@ $entities = $repository->findAll();
 Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
-    echo $entity->get<?php echo ucfirst($relation); ?>()->count(); // COUNT query!
+    echo $entity->get<?php echo $e(ucfirst($relation)); ?>()->count(); // COUNT query!
 }
 // Result: <?php echo $queryCount; ?> COUNT queries</code></pre>
     </div>
@@ -58,16 +58,16 @@ class <?php echo $e($entity); ?>
     #[ORM\Column(type: 'integer')]
     private int $<?php echo $e($counterField); ?> = 0;
 
-    #[ORM\OneToMany(mappedBy: '<?php echo lcfirst($entity); ?>', cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(mappedBy: '<?php echo $e(lcfirst($entity)); ?>', cascade: ['persist', 'remove'])]
     private Collection $<?php echo $e($relation); ?>;
 
-    public function get<?php echo ucfirst((string) $counterField); ?>(): int
+    public function get<?php echo $e(ucfirst((string) $counterField)); ?>(): int
     {
         return $this-><?php echo $e($counterField); ?>;
     }
 
     // Update counter when adding/removing items
-    public function add<?php echo ucfirst(rtrim($relation, 's')); ?>(<?php echo ucfirst(rtrim($relation, 's')); ?> $item): self
+    public function add<?php echo $e(ucfirst(rtrim($relation, 's'))); ?>(<?php echo $e(ucfirst(rtrim($relation, 's'))); ?> $item): self
     {
         if (!$this-><?php echo $e($relation); ?>->contains($item)) {
             $this-><?php echo $e($relation); ?>[] = $item;
@@ -78,7 +78,7 @@ class <?php echo $e($entity); ?>
         return $this;
     }
 
-    public function remove<?php echo ucfirst(rtrim($relation, 's')); ?>(<?php echo ucfirst(rtrim($relation, 's')); ?> $item): self
+    public function remove<?php echo $e(ucfirst(rtrim($relation, 's'))); ?>(<?php echo $e(ucfirst(rtrim($relation, 's'))); ?> $item): self
     {
         if ($this-><?php echo $e($relation); ?>->removeElement($item)) {
             if ($item->get<?php echo $e($entity); ?>() === $this) {
@@ -93,7 +93,7 @@ class <?php echo $e($entity); ?>
 
 // Now use the cached counter:
 foreach ($entities as $entity) {
-    echo $entity->get<?php echo ucfirst((string) $counterField); ?>(); // No query!
+    echo $entity->get<?php echo $e(ucfirst((string) $counterField)); ?>(); // No query!
 }
 // Result: 0 extra queries!</code></pre>
     </div>
@@ -123,26 +123,26 @@ class <?php echo $e($entity); ?>
     <h4>Option 3: Database Trigger (Most Reliable)</h4>
     <div class="query-item">
         <pre><code class="language-sql">-- Create trigger to auto-update counter (PostgreSQL example)
-CREATE OR REPLACE FUNCTION update_<?php echo strtolower($entity); ?>_<?php echo $e($counterField); ?>()
+CREATE OR REPLACE FUNCTION update_<?php echo $e(strtolower($entity)); ?>_<?php echo $e($counterField); ?>()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        UPDATE <?php echo strtolower($entity); ?>
+        UPDATE <?php echo $e(strtolower($entity)); ?>
         SET <?php echo $e($counterField); ?> = <?php echo $e($counterField); ?> + 1
-        WHERE id = NEW.<?php echo strtolower($entity); ?>_id;
+        WHERE id = NEW.<?php echo $e(strtolower($entity)); ?>_id;
     ELSIF TG_OP = 'DELETE' THEN
-        UPDATE <?php echo strtolower($entity); ?>
+        UPDATE <?php echo $e(strtolower($entity)); ?>
         SET <?php echo $e($counterField); ?> = <?php echo $e($counterField); ?> - 1
-        WHERE id = OLD.<?php echo strtolower($entity); ?>_id;
+        WHERE id = OLD.<?php echo $e(strtolower($entity)); ?>_id;
     END IF;
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER update_<?php echo strtolower($entity); ?>_counter
+CREATE TRIGGER update_<?php echo $e(strtolower($entity)); ?>_counter
 AFTER INSERT OR DELETE ON <?php echo $e($relation); ?>
 
-FOR EACH ROW EXECUTE FUNCTION update_<?php echo strtolower($entity); ?>_<?php echo $e($counterField); ?>();</code></pre>
+FOR EACH ROW EXECUTE FUNCTION update_<?php echo $e(strtolower($entity)); ?>_<?php echo $e($counterField); ?>();</code></pre>
     </div>
 
     <h4>Trade-offs: Denormalization</h4>
@@ -178,8 +178,8 @@ FOR EACH ROW EXECUTE FUNCTION update_<?php echo strtolower($entity); ?>_<?php ec
         <li>Write tests to verify counter accuracy</li>
         <li>Consider soft deletes impact on counters</li>
         <li>Add migration to populate existing counters:
-            <pre><code>UPDATE <?php echo strtolower($entity); ?> SET <?php echo $e($counterField); ?> = (
-    SELECT COUNT(*) FROM <?php echo $e($relation); ?> WHERE <?php echo strtolower($entity); ?>_id = <?php echo strtolower($entity); ?>.id
+            <pre><code>UPDATE <?php echo $e(strtolower($entity)); ?> SET <?php echo $e($counterField); ?> = (
+    SELECT COUNT(*) FROM <?php echo $e($relation); ?> WHERE <?php echo $e(strtolower($entity)); ?>_id = <?php echo $e(strtolower($entity)); ?>.id
 );</code></pre>
         </li>
     </ul>

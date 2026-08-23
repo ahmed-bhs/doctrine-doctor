@@ -49,13 +49,13 @@ ob_start();
         <pre><code class="language-php">public function up(Schema $schema): void
 {
     // Replace [column1, column2] with actual columns from your WHERE/JOIN clauses
-    $this->addSql('CREATE INDEX IDX_<?php echo strtoupper($e($realTableName)); ?>_COLUMNS ON <?php echo $e($realTableName); ?> (column1, column2)');
+    $this->addSql('CREATE INDEX IDX_<?php echo $e(strtoupper($e($realTableName))); ?>_COLUMNS ON <?php echo $e($realTableName); ?> (column1, column2)');
 }</code></pre>
     </div>
 
     <h5>Example: Add index via entity annotation</h5>
     <div class="code-example">
-        <pre><code class="language-php">#[ORM\Index(name: 'IDX_<?php echo strtoupper($e($realTableName)); ?>_COLUMNS', columns: ['column1', 'column2'])]</code></pre>
+        <pre><code class="language-php">#[ORM\Index(name: 'IDX_<?php echo $e(strtoupper($e($realTableName))); ?>_COLUMNS', columns: ['column1', 'column2'])]</code></pre>
     </div>
 
     <div class="info-box">

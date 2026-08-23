@@ -44,7 +44,7 @@ ob_start();
         return null !== $this-><?php echo $e($fieldName); ?>;
     }
 
-    public function get<?php echo ucfirst($fieldName); ?>(): ?\DateTimeImmutable
+    public function get<?php echo $e(ucfirst($fieldName)); ?>(): ?\DateTimeImmutable
     {
         return $this-><?php echo $e($fieldName); ?>;
     }

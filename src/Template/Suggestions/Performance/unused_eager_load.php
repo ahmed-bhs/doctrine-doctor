@@ -61,7 +61,7 @@ $query = $em->createQuery('
 
     FROM App\Entity\Article a
     <?php foreach ($unusedAliases as $alias) { ?>
-LEFT JOIN a.relation<?php echo ucfirst($e($alias)); ?> <?php echo $e($alias); ?>
+LEFT JOIN a.relation<?php echo $e(ucfirst($e($alias))); ?> <?php echo $e($alias); ?>
 
     <?php } ?>
 ');

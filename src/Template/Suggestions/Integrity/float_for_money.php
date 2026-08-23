@@ -35,13 +35,13 @@ use Money\Currency;
 #[ORM\Column(type: 'integer')] // Store cents
 private int $<?php echo $e($fieldName); ?>Cents;
 
-public function get<?php echo ucfirst((string) $fieldName); ?>(): Money
+public function get<?php echo $e(ucfirst((string) $fieldName)); ?>(): Money
 {
     return new Money($this-><?php echo $e($fieldName); ?>Cents, new Currency('EUR'));
 }
 
 // Usage:
-$product->set<?php echo ucfirst((string) $fieldName); ?>(Money::EUR(1999)); // 19.99 EUR</code></pre>
+$product->set<?php echo $e(ucfirst((string) $fieldName)); ?>(Money::EUR(1999)); // 19.99 EUR</code></pre>
 
     <?php echo suggestionDocLink('https://github.com/moneyphp/money', 'Money PHP library'); ?>
 </div>

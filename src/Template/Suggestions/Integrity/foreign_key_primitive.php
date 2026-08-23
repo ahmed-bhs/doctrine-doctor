@@ -32,7 +32,7 @@ ob_start();
     #[ORM\Column(type: Types::INTEGER)]
     private int $<?php echo $e($fieldName); ?>;
 
-    public function get<?php echo ucfirst((string) $fieldName); ?>(): int {
+    public function get<?php echo $e(ucfirst((string) $fieldName)); ?>(): int {
         return $this-><?php echo $e($fieldName); ?>;
     }
 }</code></pre>
@@ -44,7 +44,7 @@ ob_start();
     #[ORM\<?php echo $e($associationType); ?>(targetEntity: <?php echo $e($targetEntity); ?>::class)]
     private <?php echo $e($targetEntity); ?> $<?php echo $e(rtrim((string) $fieldName, 'Id_')); ?>;
 
-    public function get<?php echo ucfirst(rtrim((string) $fieldName, 'Id_')); ?>(): <?php echo $e($targetEntity); ?> {
+    public function get<?php echo $e(ucfirst(rtrim((string) $fieldName, 'Id_'))); ?>(): <?php echo $e($targetEntity); ?> {
         return $this-><?php echo $e(rtrim((string) $fieldName, 'Id_')); ?>;
     }
 }</code></pre>

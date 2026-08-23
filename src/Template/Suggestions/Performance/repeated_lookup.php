@@ -53,7 +53,7 @@ ob_start();
 // Index by <?php echo $e($column); ?> for O(1) access
 $indexed = [];
 foreach ($entities as $entity) {
-    $indexed[$entity->get<?php echo ucfirst((string) $column); ?>()] = $entity;
+    $indexed[$entity->get<?php echo $e(ucfirst((string) $column)); ?>()] = $entity;
 }
 // Result: 1 query instead of <?php echo $queryCount; ?></code></pre>
     </div>
@@ -62,7 +62,7 @@ foreach ($entities as $entity) {
     <div class="query-item">
         <pre><code class="language-php">private array $cache = [];
 
-public function getBy<?php echo ucfirst((string) $column); ?>(string $<?php echo $e($column); ?>): ?<?php echo $e($entity); ?>
+public function getBy<?php echo $e(ucfirst((string) $column)); ?>(string $<?php echo $e($column); ?>): ?<?php echo $e($entity); ?>
 
 {
     if (array_key_exists($<?php echo $e($column); ?>, $this->cache)) {

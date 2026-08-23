@@ -30,7 +30,7 @@ ob_start();
         $this-><?php echo $e($fieldName); ?> = $<?php echo $e($fieldName); ?>;
     }
 
-    public function get<?php echo ucfirst($fieldName); ?>(): User
+    public function get<?php echo $e(ucfirst($fieldName)); ?>(): User
     {
         return $this-><?php echo $e($fieldName); ?>;
     }

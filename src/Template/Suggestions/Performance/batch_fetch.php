@@ -38,14 +38,14 @@ ob_start();
         <pre><code class="language-php">$entities = $repository->findAll();
 
 foreach ($entities as $entity) {
-    echo $entity->get<?php echo ucfirst((string) $relation); ?>()->getName(); // Query triggered here!
+    echo $entity->get<?php echo $e(ucfirst((string) $relation)); ?>()->getName(); // Query triggered here!
 }
 // Result: <?php echo $queryCount; ?> queries instead of 1</code></pre>
     </div>
 
     <h4>Solution: Fetch Join (join + addSelect)</h4>
     <div class="query-item">
-        <pre><code class="language-php">public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
+        <pre><code class="language-php">public function findAllWith<?php echo $e(ucfirst((string) $relation)); ?>(): array
 {
     return $this->createQueryBuilder('e')
         ->leftJoin('e.<?php echo $e($relation); ?>', 'r')

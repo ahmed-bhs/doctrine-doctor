@@ -181,7 +181,20 @@ class TemplateValidator
             $errors[] = 'Destructures $context without defaults - use $context[\'key\'] ?? default';
         }
 
-        // Check 10: HTML tag validation (disabled - too many false positives)
+        // Check 10: Values passed through a string function must still be escaped:
+        // echoing ucfirst($fieldName) directly bypasses the template's own $e().
+        if (preg_match_all('~<\\?(?:php\\s+echo|=)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(~', $content, $callMatches)) {
+            $escapers = ['e', 'escape', 'escapeContext', 'suggestionHeader', 'suggestionAlert',
+                'suggestionCodeBlock', 'suggestionDocLink', 'formatSqlWithHighlight', 'severityAlertClass',
+                'count', 'ceil', 'floor', 'round', 'number_format', 'implode', 'nl2br', 'isset'];
+            foreach (array_unique($callMatches[1]) as $callee) {
+                if (!in_array($callee, $escapers, true)) {
+                    $errors[] = sprintf('Output of %s() is echoed without escaping - wrap it in $e()', $callee);
+                }
+            }
+        }
+
+        // Check 11: HTML tag validation (disabled - too many false positives)
         // $this->validateHtmlTags($content, $errors);
 
         // Store results

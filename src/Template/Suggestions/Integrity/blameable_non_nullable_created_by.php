@@ -38,7 +38,7 @@ class <?= $e(basename(str_replace('\\', '/', $entityClass))) . "\n" ?>
         $this-><?= $e($fieldName) ?> = $<?= $e($fieldName) ?>;
     }
 
-    public function get<?= ucfirst($fieldName) ?>(): User
+    public function get<?= $e(ucfirst($fieldName)) ?>(): User
     {
         return $this-><?= $e($fieldName) ?>;
     }

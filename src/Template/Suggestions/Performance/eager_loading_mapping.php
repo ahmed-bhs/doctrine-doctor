@@ -34,10 +34,10 @@ ob_start();
 }
 
 // In your repository, eager load only when needed:
-$qb->select('e', '<?php echo substr($field_name, 0, 1); ?>')
+$qb->select('e', '<?php echo $e(substr($field_name, 0, 1)); ?>')
     ->from(<?php echo $e($entity_class); ?>::class, 'e')
-    ->leftJoin('e.<?php echo $e($field_name); ?>', '<?php echo substr($field_name, 0, 1); ?>')
-    ->addSelect('<?php echo substr($field_name, 0, 1); ?>');</code></pre></div>
+    ->leftJoin('e.<?php echo $e($field_name); ?>', '<?php echo $e(substr($field_name, 0, 1)); ?>')
+    ->addSelect('<?php echo $e(substr($field_name, 0, 1)); ?>');</code></pre></div>
 
 <h4>Why?</h4>
 <ul>

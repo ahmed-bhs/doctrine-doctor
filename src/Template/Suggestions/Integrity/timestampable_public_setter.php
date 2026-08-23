@@ -30,7 +30,7 @@ ob_start();
     #[Gedmo\Timestampable(on: 'create')]
     private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
 
-    public function set<?php echo ucfirst((string) $fieldName); ?>(\DateTimeImmutable $date): void {
+    public function set<?php echo $e(ucfirst((string) $fieldName)); ?>(\DateTimeImmutable $date): void {
         $this-><?php echo $e($fieldName); ?> = $date;
     }
 }</code></pre>
@@ -42,7 +42,7 @@ ob_start();
     #[Gedmo\Timestampable(on: 'create')]
     private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
 
-    public function get<?php echo ucfirst((string) $fieldName); ?>(): \DateTimeImmutable {
+    public function get<?php echo $e(ucfirst((string) $fieldName)); ?>(): \DateTimeImmutable {
         return $this-><?php echo $e($fieldName); ?>;
     }
 }</code></pre>

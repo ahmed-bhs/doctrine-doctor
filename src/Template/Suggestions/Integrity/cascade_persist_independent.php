@@ -40,7 +40,7 @@ ob_start();
 // Load existing <?php echo $e($targetEntity); ?> (or use getReference() for better performance)
 $entity = new <?php echo $e($entityClass); ?>();
 $<?php echo $e($fieldName); ?> = $em->find(<?php echo $e($targetEntity); ?>::class, $<?php echo $e($fieldName); ?>Id);
-$entity->set<?php echo ucfirst((string) $fieldName); ?>($<?php echo $e($fieldName); ?>);
+$entity->set<?php echo $e(ucfirst((string) $fieldName)); ?>($<?php echo $e($fieldName); ?>);
 $em->persist($entity);
 $em->flush();</code></pre>
     </div>
