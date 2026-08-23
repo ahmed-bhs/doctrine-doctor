@@ -25,7 +25,6 @@ return ECSConfig::configure()
     ->withSkip([
         __DIR__ . '/var',
         __DIR__ . '/vendor',
-        __DIR__ . '/src/Template/Suggestions', // Exclude template files with PHP interpolation (aligned with PHPStan, Deptrac, PHPMD)
     ])
 
     // Base sets
