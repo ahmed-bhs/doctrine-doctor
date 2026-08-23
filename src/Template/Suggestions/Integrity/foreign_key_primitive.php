@@ -16,9 +16,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Foreign Key Mapped as Primitive Type (Anti-Pattern)</h4>
-</div>
+<?php echo suggestionHeader('Foreign Key Mapped as Primitive Type (Anti-Pattern)'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -54,11 +52,7 @@ ob_start();
 
     <p>Object relations give you automatic lazy loading, type safety, IDE autocomplete, and easier queries. This is what ORMs are for.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/association-mapping.html" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine Association Mapping
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/association-mapping.html', 'Doctrine Association Mapping'); ?>
 </div>
 
 <?php

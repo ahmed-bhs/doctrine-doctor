@@ -30,9 +30,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Enable Result Cache for Frequent Query</h4>
-</div>
+<?php echo suggestionHeader('Enable Result Cache for Frequent Query'); ?>
 
 <div class="suggestion-content">
     <div class="alert <?php echo severityAlertClass($severity); ?>">
@@ -51,7 +49,7 @@ ob_start();
 
     <p>Cache durations: Static (countries) 24h, Products 1h, Stock 5min. Use descriptive keys: <code>'product_' . $id</code>.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Caching</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html', 'Doctrine ORM Caching'); ?>
 </div>
 
 <?php

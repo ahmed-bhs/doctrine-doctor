@@ -128,11 +128,7 @@ class <?php echo $e($entityClass); ?>
         <li><strong>Performance:</strong> Query by creator/modifier without expensive joins</li>
     </ul>
 
-    <p>
-        <a href="https://symfony.com/bundles/StofDoctrineExtensionsBundle/current/index.html#blameable" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine Extensions: Blameable
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://symfony.com/bundles/StofDoctrineExtensionsBundle/current/index.html#blameable', 'Doctrine Extensions: Blameable'); ?>
 </div>
 
 <?php

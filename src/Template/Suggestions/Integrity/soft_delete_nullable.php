@@ -10,7 +10,7 @@ $shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Soft delete field must be nullable</h4></div>
+<?php echo suggestionHeader('Soft delete field must be nullable'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger"><code><?php echo $e($fieldName); ?></code> is NOT NULL. This breaks soft delete functionality.</div>
 
@@ -44,7 +44,7 @@ class <?php echo $e($shortClass); ?>
 
 <p>Make the field nullable so it can be NULL when the entity is active.</p>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#doctrine-mapping-types" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Mapping Types</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#doctrine-mapping-types', 'Doctrine ORM Mapping Types'); ?>
 </div>
 <?php
 $code = ob_get_clean();

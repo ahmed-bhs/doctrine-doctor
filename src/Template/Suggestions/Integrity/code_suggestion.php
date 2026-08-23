@@ -15,7 +15,7 @@ $filePath = (string) ($context['file_path'] ?? '');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Suggestion</h4></div>
+<?php echo suggestionHeader('Suggestion'); ?>
 <div class="suggestion-content">
 <p><?php echo nl2br($e($description)); ?></p>
 <?php if ($filePath) { ?>

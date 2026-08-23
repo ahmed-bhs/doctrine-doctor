@@ -25,9 +25,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Denormalization (Counter Field)</h4>
-</div>
+<?php echo suggestionHeader('Denormalization (Counter Field)'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -196,11 +194,7 @@ FOR EACH ROW EXECUTE FUNCTION update_<?php echo strtolower($entity); ?>_<?php ec
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/aggregate-fields.html" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine Aggregate Fields Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/aggregate-fields.html', 'Doctrine Aggregate Fields Documentation'); ?>
 </div>
 
 <?php

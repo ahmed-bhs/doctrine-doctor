@@ -20,9 +20,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>N+1 query problem</h4>
-</div>
+<?php echo suggestionHeader('N+1 query problem'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -51,11 +49,7 @@ foreach ($entities as $entity) {
 
     <p>Avoid <code>fetch: 'EAGER'</code> globally.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine DQL joins
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL joins'); ?>
 </div>
 
 <?php

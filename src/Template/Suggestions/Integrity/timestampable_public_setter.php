@@ -15,9 +15,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Public setter on timestamp field</h4>
-</div>
+<?php echo suggestionHeader('Public setter on timestamp field'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-info">
@@ -52,7 +50,7 @@ ob_start();
 
     <p>Remove the setter.</p>
 
-    <p><a href="https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/timestampable.md" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Extensions Timestampable</a></p>
+    <?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/timestampable.md', 'Doctrine Extensions Timestampable'); ?>
 </div>
 
 <?php

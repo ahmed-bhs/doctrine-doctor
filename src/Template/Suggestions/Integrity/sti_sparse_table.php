@@ -62,11 +62,7 @@ class <?php echo $e($subclass); ?> extends <?php echo $e($rootClass); ?>
 }</code></pre>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html#class-table-inheritance" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine: Class Table Inheritance
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html#class-table-inheritance', 'Doctrine: Class Table Inheritance'); ?>
 </div>
 
 <?php

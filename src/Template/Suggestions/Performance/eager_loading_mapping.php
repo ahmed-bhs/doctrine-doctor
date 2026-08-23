@@ -17,7 +17,7 @@ $target_short_name = (string) ($context['target_short_name'] ?? $target_entity);
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Suggestion</h4></div>
+<?php echo suggestionHeader('Suggestion'); ?>
 <div class="suggestion-content">
 <p>Remove <code>fetch: 'EAGER'</code> from the mapping and use dynamic eager loading in your queries.</p>
 

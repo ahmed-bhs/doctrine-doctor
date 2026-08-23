@@ -15,9 +15,7 @@ $e                                                   = fn (?string $str): string
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Use getReference() for better performance</h4>
-</div>
+<?php echo suggestionHeader('Use getReference() for better performance'); ?>
 
 <div class="suggestion-content">
     <div class="alert <?php echo severityAlertClass($severity); ?>">
@@ -42,11 +40,7 @@ $order->setUser($user);</code></pre>
 
     <p>Use <code>find()</code> when you need to access the entity's data or validate it exists. Use <code>getReference()</code> when you only need the ID for a relationship.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-objects.html#entity-object-graph-traversal" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine getReference() docs
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-objects.html#entity-object-graph-traversal', 'Doctrine getReference() docs'); ?>
 </div>
 
 <?php

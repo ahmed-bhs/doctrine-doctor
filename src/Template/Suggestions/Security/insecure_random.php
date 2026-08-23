@@ -17,7 +17,7 @@ $lastBackslash                                                                  
 $shortClass                                                                                              = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClass;
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Insecure random generation</h4></div>
+<?php echo suggestionHeader('Insecure random generation'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger"><strong>Security risk</strong> - <?php echo $e($insecureFunction); ?>() in <?php echo $e($shortClass); ?>::<?php echo $e($methodName); ?>()</div>
 
@@ -33,7 +33,7 @@ $token = bin2hex(random_bytes(16));
 // Or for integers:
 $number = random_int(1000, 9999);</code></pre></div>
 
-<p><a href="https://www.php.net/manual/en/function.random-bytes.php" target="_blank" rel="noopener noreferrer" class="doc-link">PHP random_bytes() Documentation</a></p>
+<?php echo suggestionDocLink('https://www.php.net/manual/en/function.random-bytes.php', 'PHP random_bytes() Documentation'); ?>
 </div>
 <?php
 $code = ob_get_clean();

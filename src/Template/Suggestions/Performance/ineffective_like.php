@@ -11,7 +11,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Ineffective LIKE pattern detected</h4></div>
+<?php echo suggestionHeader('Ineffective LIKE pattern detected'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">Using <code>LIKE '<?php echo $e($pattern); ?>'</code> with a leading wildcard forces a full table scan.</div>
 

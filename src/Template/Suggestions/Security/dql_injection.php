@@ -20,9 +20,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>DQL Injection vulnerability</h4>
-</div>
+<?php echo suggestionHeader('DQL Injection vulnerability'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -52,11 +50,7 @@ $result = $query->getResult();</code></pre>
 
     <p>Use <code>setParameter()</code> instead of concatenation.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#dql-query-parameters" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine DQL parameters
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#dql-query-parameters', 'Doctrine DQL parameters'); ?>
 </div>
 
 <?php

@@ -27,9 +27,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Check array before using IN()</h4>
-</div>
+<?php echo suggestionHeader('Check array before using IN()'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -46,11 +44,7 @@ ob_start();
         <pre><code class="language-php"><?php echo $e($option['code'] ?? ''); ?></code></pre>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine QueryBuilder Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html', 'Doctrine QueryBuilder Documentation'); ?>
 </div>
 
 <?php

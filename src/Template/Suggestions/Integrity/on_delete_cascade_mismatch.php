@@ -26,9 +26,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Fix ORM Cascade / Database onDelete Mismatch</h4>
-</div>
+<?php echo suggestionHeader('Fix ORM Cascade / Database onDelete Mismatch'); ?>
 
 <div class="suggestion-content">
 <?php if ('orm_cascade_db_setnull' === $mismatchType) { ?>
@@ -86,11 +84,7 @@ private Collection $<?php echo $e($fieldName); ?>;</code></pre>
 
 <?php } ?>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine JoinColumn
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn', 'Doctrine JoinColumn'); ?>
 </div>
 
 <?php

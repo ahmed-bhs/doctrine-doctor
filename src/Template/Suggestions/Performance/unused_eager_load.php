@@ -29,9 +29,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Remove Unused Eager Loading</h4>
-</div>
+<?php echo suggestionHeader('Remove Unused Eager Loading'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -159,11 +157,7 @@ foreach ($articles as $article) {
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine DQL JOIN Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL JOIN Documentation'); ?>
 </div>
 
 <?php

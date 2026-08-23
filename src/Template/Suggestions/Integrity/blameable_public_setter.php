@@ -11,7 +11,7 @@ $shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Public setter on blameable field</h4></div>
+<?php echo suggestionHeader('Public setter on blameable field'); ?>
 <div class="suggestion-content">
 <div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($fieldName); ?></code> has a public setter, allowing the audit field to be changed.</div>
 
@@ -38,7 +38,7 @@ ob_start();
 
 <p>Remove the setter. Set in constructor.</p>
 
-<p><a href="https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Extensions Blameable</a></p>
+<?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md', 'Doctrine Extensions Blameable'); ?>
 </div>
 <?php
 $code = ob_get_clean();

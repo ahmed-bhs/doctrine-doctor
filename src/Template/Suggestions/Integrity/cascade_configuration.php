@@ -23,7 +23,7 @@ $lastBackslashTarget                                                            
 $shortTarget                                                                                                                                                   = false !== $lastBackslashTarget ? substr($lastBackslashTarget, 1) : (string) $targetEntity;
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Cascade configuration</h4></div>
+<?php echo suggestionHeader('Cascade configuration'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning"><strong><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></strong> - <?php echo $e($issueType); ?></div>
 
@@ -42,7 +42,7 @@ ob_start();
     private Collection $<?php echo $e($fieldName); ?>;
 }</code></pre></div>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Cascade Operations</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine ORM Cascade Operations'); ?>
 </div>
 <?php
 $code = ob_get_clean();

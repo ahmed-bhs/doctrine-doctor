@@ -25,9 +25,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Missing database index</h4>
-</div>
+<?php echo suggestionHeader('Missing database index'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -70,11 +68,7 @@ ob_start();
         <p>For composite indexes, put the most selective column first.</p>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine indexing documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index', 'Doctrine indexing documentation'); ?>
 </div>
 
 <?php

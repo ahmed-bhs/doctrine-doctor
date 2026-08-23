@@ -23,9 +23,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Missing database UNIQUE index</h4>
-</div>
+<?php echo suggestionHeader('Missing database UNIQUE index'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">

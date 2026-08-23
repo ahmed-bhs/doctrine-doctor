@@ -15,9 +15,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Mutable DateTime in timestamp field</h4>
-</div>
+<?php echo suggestionHeader('Mutable DateTime in timestamp field'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -40,11 +38,7 @@ private \DateTimeImmutable $<?php echo $e($fieldName); ?>;</code></pre>
 
     <p>No database migration needed - Doctrine handles both types the same way.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/working-with-datetime.html" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine datetime docs
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/working-with-datetime.html', 'Doctrine datetime docs'); ?>
 </div>
 
 <?php

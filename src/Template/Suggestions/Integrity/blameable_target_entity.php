@@ -12,7 +12,7 @@ $shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Blameable field points to wrong entity</h4></div>
+<?php echo suggestionHeader('Blameable field points to wrong entity'); ?>
 <div class="suggestion-content">
 <div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($fieldName); ?></code> should reference a User entity, but currently points to <code><?php echo $e($currentTarget); ?></code>.</div>
 
@@ -74,7 +74,7 @@ stof_doctrine_extensions:
     default:
       blameable: true</code></pre></div>
 
-<p><a href="https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Extensions Blameable</a></p>
+<?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md', 'Doctrine Extensions Blameable'); ?>
 </div>
 <?php
 $code = ob_get_clean();

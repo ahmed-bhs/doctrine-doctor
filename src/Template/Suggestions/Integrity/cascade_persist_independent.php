@@ -17,9 +17,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>cascade="persist" on Independent Entity (Risk of Duplicates)</h4>
-</div>
+<?php echo suggestionHeader('cascade="persist" on Independent Entity (Risk of Duplicates)'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -49,11 +47,7 @@ $em->flush();</code></pre>
 
     <p><strong>Use cascade="persist" only</strong> on composition relationships (Order → OrderItems) where children don't exist independently. <strong>Never</strong> on User, Customer, Product, Category, etc.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine Cascade Operations
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine Cascade Operations'); ?>
 </div>
 
 <?php

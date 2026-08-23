@@ -19,9 +19,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Repeated Lookup Query Problem</h4>
-</div>
+<?php echo suggestionHeader('Repeated Lookup Query Problem'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">

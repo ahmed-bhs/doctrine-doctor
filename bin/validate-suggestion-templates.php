@@ -124,10 +124,13 @@ class TemplateValidator
             $errors[] = 'Missing description in return array';
         }
 
-        // Check 4: Escaping function using htmlspecialchars (only when dynamic output is present)
+        // Check 4: Dynamic output must be escaped, either directly or through a
+        // shared helper from src/Template/helpers.php which escapes on the template's behalf.
         $hasDynamicOutput = preg_match('~<\?=|<\?php\s+echo\b~', $content);
-        if ($hasDynamicOutput && strpos($content, 'htmlspecialchars') === false) {
-            $errors[] = 'Missing htmlspecialchars for escaping dynamic output';
+        $escapesOutput = strpos($content, 'htmlspecialchars') !== false
+            || preg_match('~\b(escape|escapeContext|suggestionHeader|suggestionAlert|suggestionCodeBlock|suggestionDocLink|formatSqlWithHighlight)\s*\(~', $content) === 1;
+        if ($hasDynamicOutput && !$escapesOutput) {
+            $errors[] = 'Missing escaping for dynamic output (use escape() or a suggestion* helper)';
         }
 
         // Check 5: Security - no eval

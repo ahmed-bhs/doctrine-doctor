@@ -11,9 +11,7 @@ $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Function wraps predicate column</h4>
-</div>
+<?php echo suggestionHeader('Function wraps predicate column'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -56,7 +54,7 @@ CREATE INDEX idx_users_email_lower ON users (LOWER(email));
 ALTER TABLE users ADD INDEX idx_email_lower ((LOWER(email)));</code></pre>
     </div>
 
-    <p><a href="https://use-the-index-luke.com/sql/where-clause/obfuscation" target="_blank" rel="noopener noreferrer" class="doc-link">Use The Index, Luke! Obfuscated Conditions</a></p>
+    <?php echo suggestionDocLink('https://use-the-index-luke.com/sql/where-clause/obfuscation', 'Use The Index, Luke! Obfuscated Conditions'); ?>
 </div>
 
 <?php

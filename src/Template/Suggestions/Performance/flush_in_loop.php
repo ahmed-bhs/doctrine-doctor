@@ -21,9 +21,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>flush() in loop</h4>
-</div>
+<?php echo suggestionHeader('flush() in loop'); ?>
 
 <div class="suggestion-content">
     <div class="alert <?php echo severityAlertClass($severity); ?>">
@@ -54,11 +52,7 @@ $em->clear();
 
     <p>Use batch size 20-50. Always call <code>clear()</code> after <code>flush()</code>.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine batch processing
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html', 'Doctrine batch processing'); ?>
 </div>
 
 <?php

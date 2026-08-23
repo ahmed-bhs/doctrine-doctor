@@ -23,9 +23,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Inconsistent Timezone Usage</h4>
-</div>
+<?php echo suggestionHeader('Inconsistent Timezone Usage'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -124,11 +122,7 @@ php bin/console doctrine:migrations:migrate --dry-run
 php bin/console doctrine:migrations:migrate</code></pre>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetime" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine: DateTime Types
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetime', 'Doctrine: DateTime Types'); ?>
 </div>
 
 <?php

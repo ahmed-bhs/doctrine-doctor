@@ -15,9 +15,7 @@ $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Nullable Timestamp Field</h4>
-</div>
+<?php echo suggestionHeader('Nullable Timestamp Field'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -43,7 +41,7 @@ class <?= $e($entityClass) ?> {
 
     <p>Timestamps are always set automatically - they should never be NULL.</p>
 
-    <p><a href="https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/timestampable.md" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Extensions Timestampable</a></p>
+    <?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/timestampable.md', 'Doctrine Extensions Timestampable'); ?>
 </div>
 
 <?php

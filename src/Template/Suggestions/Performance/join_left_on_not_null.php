@@ -18,9 +18,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Suboptimal LEFT JOIN on NOT NULL Relation</h4>
-</div>
+<?php echo suggestionHeader('Suboptimal LEFT JOIN on NOT NULL Relation'); ?>
 
 <div class="suggestion-content">
     <div class="alert <?php echo severityAlertClass($severity); ?>">
@@ -38,7 +36,7 @@ $qb->innerJoin('o.relation', '<?php echo $e($alias); ?>');</code></pre>
 
     <p><strong>Rule:</strong> NOT NULL FK → INNER JOIN. Nullable FK → LEFT JOIN.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Joins</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins', 'Doctrine ORM Joins'); ?>
 </div>
 
 <?php

@@ -8,7 +8,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>ArrayCache in production</h4></div>
+<?php echo suggestionHeader('ArrayCache in production'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger"><?php echo $e($cacheLabel); ?> is using '<?php echo $e($currentConfig); ?>' in production.</div>
 
@@ -55,7 +55,7 @@ framework:
 <li>Monitor cache hit rate in production</li>
 </ol>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Caching Documentation</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html', 'Doctrine ORM Caching Documentation'); ?>
 </div>
 <?php
 $code = ob_get_clean();

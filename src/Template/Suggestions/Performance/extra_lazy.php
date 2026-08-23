@@ -22,9 +22,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Extra Lazy Collections</h4>
-</div>
+<?php echo suggestionHeader('Extra Lazy Collections'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -197,11 +195,7 @@ public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/extra-lazy-associations.html" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine Extra Lazy Associations Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/extra-lazy-associations.html', 'Doctrine Extra Lazy Associations Documentation'); ?>
 </div>
 
 <?php

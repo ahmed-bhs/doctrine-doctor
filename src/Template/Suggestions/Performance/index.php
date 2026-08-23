@@ -16,7 +16,7 @@ $e             = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_Q
 $columnsList   = is_array($columns) ? implode(', ', $columns) : (string) $columns;
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Add Database Index</h4></div>
+<?php echo suggestionHeader('Add Database Index'); ?>
 <div class="suggestion-content">
 <div class="alert alert-info"> <strong>Missing Index Suggestion</strong><br>
 Table: <code><?php echo $e($table); ?></code><br>

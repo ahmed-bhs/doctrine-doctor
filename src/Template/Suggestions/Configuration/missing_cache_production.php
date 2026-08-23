@@ -52,7 +52,7 @@ ob_start();
 <li>Warm up: <code>php bin/console cache:warmup --env=prod</code></li>
 </ol>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Caching Documentation</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html', 'Doctrine ORM Caching Documentation'); ?>
 </div>
 <?php
 $code = ob_get_clean();

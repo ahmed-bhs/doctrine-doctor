@@ -28,9 +28,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Consider Reducing Precision</h4>
-</div>
+<?php echo suggestionHeader('Consider Reducing Precision'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -41,11 +39,7 @@ ob_start();
 
     <p>Typical needs: Money (10,2), Scientific (15,6), Crypto (20,8). Consider reducing if excessive.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine Decimal Type
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal', 'Doctrine Decimal Type'); ?>
 </div>
 
 <?php

@@ -10,7 +10,7 @@ $shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Use DateTimeImmutable for soft delete</h4></div>
+<?php echo suggestionHeader('Use DateTimeImmutable for soft delete'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning"><code><?php echo $e($fieldName); ?></code> uses mutable <code>DateTime</code>. Use <code>DateTimeImmutable</code> instead.</div>
 
@@ -39,7 +39,7 @@ class <?php echo $e($shortClass); ?>
 
 <p>DateTimeImmutable is thread-safe. Once a deletion time is set, it should never change.</p>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#doctrine-mapping-types" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Mapping Types</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#doctrine-mapping-types', 'Doctrine ORM Mapping Types'); ?>
 </div>
 <?php
 $code = ob_get_clean();

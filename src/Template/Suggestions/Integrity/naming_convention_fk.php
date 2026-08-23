@@ -5,59 +5,30 @@ declare(strict_types=1);
 /**
  * Template for Foreign Key Naming Convention suggestions.
  * Context variables:
- * @var string $current - Current FK column name
- * @var string $suggested - Suggested FK column name
- * @var string $assoc_name - Association field name
- * @var string $entity_class - Short entity class name
+ * @var array<string, mixed> $context PHPStan: Template context
  */
-
-/** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context for clarity
-$current = $context['current'] ?? null;
-$suggested = $context['suggested'] ?? null;
-$assocName = $context['assoc_name'] ?? null;
-$entityClass = $context['entity_class'] ?? 'Entity';
-
-// Helper function for safe HTML escaping
-$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$current   = (string) ($context['current'] ?? 'fkColumn');
+$suggested = (string) ($context['suggested'] ?? 'user_id');
+$assocName = (string) ($context['assoc_name'] ?? 'user');
+$severity  = (string) ($context['severity'] ?? 'info');
 
 ob_start();
 ?>
-
-<div class="suggestion-header">
-    <h4>Fix Foreign Key Naming</h4>
-</div>
-
+<?php echo suggestionHeader('Fix Foreign Key Naming'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <strong>FK naming violation:</strong> '<?php echo $e($current); ?>' should be '<?php echo $e($suggested); ?>'
-    </div>
+<?php echo suggestionAlert($severity, '<strong>FK naming violation:</strong> \'' . escape($current) . '\' should be \'' . escape($suggested) . '\''); ?>
 
-    <h4>Current</h4>
-    <pre><code class="language-php">#[ORM\JoinColumn(name: '<?php echo $e($current); ?>')]
-private $<?php echo $e($assocName); ?>;</code></pre>
+<?php echo suggestionCodeBlock('Current', sprintf("#[ORM\\JoinColumn(name: '%s')]\nprivate \$%s;", $current, $assocName)); ?>
+<?php echo suggestionCodeBlock('Recommended', sprintf("#[ORM\\JoinColumn(name: '%s')]\nprivate \$%s;", $suggested, $assocName)); ?>
 
-    <h4>Recommended</h4>
-    <pre><code class="language-php">#[ORM\JoinColumn(name: '<?php echo $e($suggested); ?>')]
-private $<?php echo $e($assocName); ?>;</code></pre>
+<p><strong>Convention:</strong> snake_case with _id suffix (user_id, product_id).</p>
 
-    <p><strong>Convention:</strong> snake_case with _id suffix (user_id, product_id).</p>
-
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine JoinColumn Documentation
-        </a>
-    </p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn', 'Doctrine JoinColumn Documentation'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
-        "Rename foreign key from '%s' to '%s'",
-        $current,
-        $suggested,
-    ),
+    'description' => sprintf("Rename foreign key from '%s' to '%s'", $current, $suggested),
 ];

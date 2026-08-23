@@ -19,9 +19,7 @@ $isBoundedArrayResult = 'array_result' === $queryContext
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>ORDER BY without LIMIT</h4>
-</div>
+<?php echo suggestionHeader('ORDER BY without LIMIT'); ?>
 
 <div class="suggestion-content">
 <?php if ($isBoundedArrayResult) { ?>
@@ -74,7 +72,7 @@ $qb->select('u')
     <p><strong>Performance:</strong> Sorting 1M rows without LIMIT uses significant CPU/memory. Add LIMIT or remove ORDER BY.</p>
 <?php } ?>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#first-and-max-result-items-dql-query-only" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM First and Max Result Items</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#first-and-max-result-items-dql-query-only', 'Doctrine ORM First and Max Result Items'); ?>
 </div>
 
 <?php

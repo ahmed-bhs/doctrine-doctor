@@ -15,9 +15,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>setMaxResults() with collection join</h4>
-</div>
+<?php echo suggestionHeader('setMaxResults() with collection join'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -88,11 +86,7 @@ $orders = iterator_to_array($paginator);</code></pre>
         add no rows and stay safe with LIMIT.
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/current/tutorials/pagination.html" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine pagination docs
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/current/tutorials/pagination.html', 'Doctrine pagination docs'); ?>
 </div>
 
 <?php

@@ -17,9 +17,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>orphanRemoval=true with nullable FK</h4>
-</div>
+<?php echo suggestionHeader('orphanRemoval=true with nullable FK'); ?>
 
 <div class="suggestion-content">
     <div class="alert <?php echo severityAlertClass($severity); ?>">
@@ -54,11 +52,7 @@ class <?php echo $e($childClass); ?> {
 
     <p>Make the FK NOT NULL to match orphanRemoval=true. Children can't exist without a parent, so the FK should never be NULL.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine Orphan Removal Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal', 'Doctrine Orphan Removal Documentation'); ?>
 </div>
 
 <?php

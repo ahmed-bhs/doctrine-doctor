@@ -50,11 +50,7 @@ ob_start();
         <li><strong>Use composition</strong>: Replace deep inheritance with embeddables or associations</li>
     </ul>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine: Inheritance Mapping
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html', 'Doctrine: Inheritance Mapping'); ?>
 </div>
 
 <?php

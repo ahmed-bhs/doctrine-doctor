@@ -11,7 +11,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Consider UUID v7 instead of auto-increment</h4></div>
+<?php echo suggestionHeader('Consider UUID v7 instead of auto-increment'); ?>
 <div class="suggestion-content">
 <div class="alert <?php echo severityAlertClass($severity); ?>"><strong>Entity:</strong> <code><?php echo $e($short_name); ?></code></div>
 
@@ -36,7 +36,7 @@ public function __construct() {
 
 <p>Use UUID v7 for: API resources, distributed systems, security-sensitive entities.</p>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#identifier-generation-strategies" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Identifier Generation Strategies</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#identifier-generation-strategies', 'Doctrine ORM Identifier Generation Strategies'); ?>
 </div>
 <?php
 $code = ob_get_clean();

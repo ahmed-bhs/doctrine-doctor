@@ -10,9 +10,7 @@ $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Deep OFFSET pagination</h4>
-</div>
+<?php echo suggestionHeader('Deep OFFSET pagination'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -50,7 +48,7 @@ $qb-&gt;select('u')
         <li>Use a covering index when possible to avoid extra row lookups.</li>
     </ul>
 
-    <p><a href="https://use-the-index-luke.com/no-offset" target="_blank" rel="noopener noreferrer" class="doc-link">Use The Index, Luke! No Offset</a></p>
+    <?php echo suggestionDocLink('https://use-the-index-luke.com/no-offset', 'Use The Index, Luke! No Offset'); ?>
 </div>
 
 <?php

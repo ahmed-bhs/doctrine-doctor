@@ -16,9 +16,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Use IS NULL instead of = NULL</h4>
-</div>
+<?php echo suggestionHeader('Use IS NULL instead of = NULL'); ?>
 
 <div class="suggestion-content">
     <p>SQL NULL comparisons require IS NULL or IS NOT NULL operators. Direct equality comparisons with NULL always return NULL (unknown), not true or false.</p>
@@ -39,11 +37,7 @@ ob_start();
 
     <p><code>IS NULL</code> and <code>IS NOT NULL</code> are the SQL standard. <code>= NULL</code> always returns UNKNOWN (three-valued logic), never TRUE or FALSE.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html#helper-methods" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine QueryBuilder Helper Methods
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html#helper-methods', 'Doctrine QueryBuilder Helper Methods'); ?>
 </div>
 
 <?php

@@ -26,9 +26,7 @@ $eventAttribute = match ($event) {
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Remove flush() from lifecycle callback</h4>
-</div>
+<?php echo suggestionHeader('Remove flush() from lifecycle callback'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -73,11 +71,7 @@ class <?php echo $e($entityClass); ?>Listener
         or use the <code>onFlush</code> event with <code>UnitOfWork::computeChangeSet()</code>.
     </p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/events.html" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine Events documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/events.html', 'Doctrine Events documentation'); ?>
 </div>
 
 <?php

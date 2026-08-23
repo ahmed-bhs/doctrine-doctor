@@ -16,9 +16,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>SQL Injection vulnerability</h4>
-</div>
+<?php echo suggestionHeader('SQL Injection vulnerability'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -45,7 +43,7 @@ $result = $stmt->executeQuery();</code></pre>
 
     <p>Use prepared statements or prefer QueryBuilder/DQL over raw SQL.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/security.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Security</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/security.html', 'Doctrine ORM Security'); ?>
 </div>
 
 <?php

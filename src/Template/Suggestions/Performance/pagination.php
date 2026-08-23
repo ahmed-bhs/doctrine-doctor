@@ -19,9 +19,7 @@ $resultCountLabel = null === $resultCount ? 'an unknown number of' : (string) $r
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Consider adding pagination</h4>
-</div>
+<?php echo suggestionHeader('Consider adding pagination'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -44,11 +42,7 @@ $entities = $repository->createQueryBuilder('e')
 
     <p>Batch jobs: use <code>toIterable()</code> with periodic <code>flush()/clear()</code>. Pages: 10-50 for web, 100-1000 for APIs.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/pagination.html" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine pagination
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/pagination.html', 'Doctrine pagination'); ?>
 </div>
 
 <?php

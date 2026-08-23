@@ -20,9 +20,7 @@ $shortTarget = false !== $lastBackslashTarget ? substr($lastBackslashTarget, 1) 
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>cascade="remove" on ManyToOne</h4>
-</div>
+<?php echo suggestionHeader('cascade="remove" on ManyToOne'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -50,7 +48,7 @@ class <?= $e($shortClass) ?> {
 
     <p>On ManyToOne, the target entity is shared. Remove cascade="remove" to avoid deleting shared data.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Cascade Operations</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine ORM Cascade Operations'); ?>
 </div>
 
 <?php

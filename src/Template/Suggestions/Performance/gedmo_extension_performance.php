@@ -15,7 +15,7 @@ $impact = (string) ($context['impact'] ?? '');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Suggestion</h4></div>
+<?php echo suggestionHeader('Suggestion'); ?>
 <div class="suggestion-content">
 <p>The entity <?php echo $e($entity_class); ?> uses Gedmo <?php echo $e($extension_type); ?> extension, which <?php echo $e($impact); ?>.</p>
 

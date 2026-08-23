@@ -26,9 +26,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Fix Decimal/Float Type Mismatch</h4>
-</div>
+<?php echo suggestionHeader('Fix Decimal/Float Type Mismatch'); ?>
 
 <div class="suggestion-content">
     <p>The decimal type returns string from database but your property expects float. This causes performance issues and precision loss.</p>

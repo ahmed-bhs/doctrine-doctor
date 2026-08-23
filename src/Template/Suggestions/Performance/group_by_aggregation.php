@@ -20,9 +20,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>GROUP BY Aggregation Query</h4>
-</div>
+<?php echo suggestionHeader('GROUP BY Aggregation Query'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -177,11 +175,7 @@ $results = $query->getResult();
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#grouping" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine DQL GROUP BY Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#grouping', 'Doctrine DQL GROUP BY Documentation'); ?>
 </div>
 
 <?php

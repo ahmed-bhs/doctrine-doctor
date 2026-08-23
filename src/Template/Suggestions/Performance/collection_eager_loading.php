@@ -18,9 +18,7 @@ $lcCollectionField = lcfirst((string) $collectionField);
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Collection N+1 Query Problem</h4>
-</div>
+<?php echo suggestionHeader('Collection N+1 Query Problem'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -75,11 +73,7 @@ private Collection $<?php echo $e($collectionField); ?>;</code></pre>
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine DQL Joins Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL Joins Documentation'); ?>
 </div>
 
 <?php

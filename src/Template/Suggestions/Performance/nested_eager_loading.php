@@ -29,9 +29,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Resolve Nested Relationship N+1</h4>
-</div>
+<?php echo suggestionHeader('Resolve Nested Relationship N+1'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -216,11 +214,7 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine Multi-Level JOIN Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine Multi-Level JOIN Documentation'); ?>
 </div>
 
 <?php

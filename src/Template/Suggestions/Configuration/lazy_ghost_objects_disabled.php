@@ -34,7 +34,7 @@ doctrine:
 
 <p>Available in Symfony 6.2+. On newer DoctrineBundle versions, native lazy objects are enabled by default.</p>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/advanced-configuration.html#lazy-ghost-objects" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Lazy Ghost Objects Documentation</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/advanced-configuration.html#lazy-ghost-objects', 'Doctrine ORM Lazy Ghost Objects Documentation'); ?>
 
 <?php
 

@@ -15,9 +15,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>cascade="remove" with onDelete="SET NULL"</h4>
-</div>
+<?php echo suggestionHeader('cascade="remove" with onDelete="SET NULL"'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -43,7 +41,7 @@ class <?php echo $e($childClass); ?> {
 
     <p>Make cascade="remove" match onDelete="CASCADE" so behavior is consistent whether you delete via ORM or database.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Cascade Operations</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine ORM Cascade Operations'); ?>
 </div>
 
 <?php

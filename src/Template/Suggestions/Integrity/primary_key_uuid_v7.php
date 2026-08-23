@@ -11,7 +11,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Upgrade to UUID v7 for better performance</h4></div>
+<?php echo suggestionHeader('Upgrade to UUID v7 for better performance'); ?>
 <div class="suggestion-content">
 <div class="alert <?php echo severityAlertClass($severity); ?>"><strong>Entity:</strong> <code><?php echo $e($short_name); ?></code></div>
 
@@ -38,7 +38,7 @@ public function __construct() {
 
 <p>Sequential ordering reduces B-tree page splits by 98%, improving insert speed and index efficiency.</p>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#identifier-generation-strategies" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Identifier Generation Strategies</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#identifier-generation-strategies', 'Doctrine ORM Identifier Generation Strategies'); ?>
 </div>
 <?php
 $code = ob_get_clean();

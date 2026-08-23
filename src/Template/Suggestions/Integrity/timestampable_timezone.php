@@ -15,9 +15,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Missing timezone information</h4>
-</div>
+<?php echo suggestionHeader('Missing timezone information'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -45,11 +43,7 @@ public function get<?php echo ucfirst((string) $fieldName); ?>Display(string $us
 
     <p>Or use <code>datetimetz_immutable</code> to preserve original timezone.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine DateTimeTZ
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz', 'Doctrine DateTimeTZ'); ?>
 </div>
 
 <?php

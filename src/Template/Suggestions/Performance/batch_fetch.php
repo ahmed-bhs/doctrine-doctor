@@ -18,9 +18,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Proxy N+1 Query Problem</h4>
-</div>
+<?php echo suggestionHeader('Proxy N+1 Query Problem'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -73,11 +71,7 @@ foreach ($entities as $entity) {
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine DQL Joins Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL Joins Documentation'); ?>
 </div>
 
 <?php

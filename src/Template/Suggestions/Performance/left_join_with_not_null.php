@@ -16,9 +16,7 @@ $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>LEFT JOIN on NOT NULL Field</h4>
-</div>
+<?php echo suggestionHeader('LEFT JOIN on NOT NULL Field'); ?>
 
 <div class="suggestion-content">
     <div class="alert <?php echo severityAlertClass($severity); ?>">
@@ -40,7 +38,7 @@ $qb->select('e')
 
     <p><strong>Why:</strong> LEFT JOIN includes NULL checks which are unnecessary for NOT NULL fields. INNER JOIN is faster.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Joins</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins', 'Doctrine ORM Joins'); ?>
 </div>
 
 <?php

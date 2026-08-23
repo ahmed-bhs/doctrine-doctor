@@ -15,9 +15,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Float Used in Money Embeddable</h4>
-</div>
+<?php echo suggestionHeader('Float Used in Money Embeddable'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -54,7 +52,7 @@ readonly class <?php echo $e($embeddableClass); ?> {
 
     <p>Store monetary values as integers (smallest unit: cents, pence, etc.) to avoid float precision issues.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Embeddables</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html', 'Doctrine ORM Embeddables'); ?>
 </div>
 
 <?php

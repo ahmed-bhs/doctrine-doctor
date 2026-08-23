@@ -13,7 +13,7 @@ $operationCount = (int) ($context['operation_count'] ?? 0);
 $e                                                        = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Batch Processing Needed</h4></div>
+<?php echo suggestionHeader('Batch Processing Needed'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger">
 <?php echo $operationCount; ?> operations without clear() will cause memory usage to grow indefinitely.</div>
@@ -41,7 +41,7 @@ $em->flush();
 // Memory usage: Only 20 * entity size at any time</code></pre></div>
 <p><strong>Impact:</strong> Reduces memory from ~<?php echo round($operationCount / 20); ?>MB to ~1MB</p>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/batch-processing.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Batch Processing</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/batch-processing.html', 'Doctrine ORM Batch Processing'); ?>
 </div>
 <?php
 $code = ob_get_clean();

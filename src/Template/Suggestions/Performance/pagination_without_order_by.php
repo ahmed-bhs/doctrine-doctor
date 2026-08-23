@@ -9,9 +9,7 @@ $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Pagination without ORDER BY</h4>
-</div>
+<?php echo suggestionHeader('Pagination without ORDER BY'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -49,7 +47,7 @@ $qb-&gt;orderBy('u.createdAt', 'DESC')
     the relative order of tied rows is undefined. Always add the primary key as a secondary ORDER BY to make pagination
     fully deterministic.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/pagination.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Pagination</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/pagination.html', 'Doctrine ORM Pagination'); ?>
 </div>
 
 <?php

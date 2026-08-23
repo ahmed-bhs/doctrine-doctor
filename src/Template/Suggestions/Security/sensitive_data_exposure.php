@@ -23,7 +23,7 @@ $lastBackslash                                                                  
 $shortClass                                                                                                                          = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClass;
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Sensitive data exposure</h4></div>
+<?php echo suggestionHeader('Sensitive data exposure'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger"><strong>Security issue in <?php echo $e($shortClass); ?>::<?php echo $e($methodName); ?>()</strong><br>
 Exposure type: <?php echo $e($exposureType); ?><br>
@@ -44,7 +44,7 @@ class <?php echo $e($shortClass); ?> {
 
 <p>Use <code>#[Ignore]</code> or <code>#[Groups]</code> to exclude sensitive fields from serialization. Never expose passwords, tokens, or personally identifiable information.</p>
 
-<p><a href="https://symfony.com/doc/current/serializer.html#selecting-specific-properties" target="_blank" rel="noopener noreferrer" class="doc-link">Symfony Serializer Groups</a></p>
+<?php echo suggestionDocLink('https://symfony.com/doc/current/serializer.html#selecting-specific-properties', 'Symfony Serializer Groups'); ?>
 </div>
 <?php
 $code = ob_get_clean();

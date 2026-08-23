@@ -22,9 +22,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Review Decimal Scale</h4>
-</div>
+<?php echo suggestionHeader('Review Decimal Scale'); ?>
 
 <div class="suggestion-content">
     <p><?php echo $e($description); ?></p>
@@ -37,11 +35,7 @@ ob_start();
     </div>
     <?php } ?>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Doctrine decimal type docs
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal', 'Doctrine decimal type docs'); ?>
 </div>
 
 <?php

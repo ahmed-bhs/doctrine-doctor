@@ -15,9 +15,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Float used for money</h4>
-</div>
+<?php echo suggestionHeader('Float used for money'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -45,11 +43,7 @@ public function get<?php echo ucfirst((string) $fieldName); ?>(): Money
 // Usage:
 $product->set<?php echo ucfirst((string) $fieldName); ?>(Money::EUR(1999)); // 19.99 EUR</code></pre>
 
-    <p>
-        <a href="https://github.com/moneyphp/money" target="_blank" rel="noopener noreferrer" class="doc-link">
-            Money PHP library
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://github.com/moneyphp/money', 'Money PHP library'); ?>
 </div>
 
 <?php
