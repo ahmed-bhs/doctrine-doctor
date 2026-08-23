@@ -27,4 +27,4 @@ ob_start();
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => $description];
+return ['code' => $code, 'description' => '' !== $description ? $description : 'Apply the suggested code change'];
