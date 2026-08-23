@@ -56,6 +56,8 @@ final readonly class SuggestionFactory implements SuggestionFactoryInterface
             }
         }
 
+        $context['severity'] ??= $suggestionMetadata->severity->getValue();
+
         return new ModernSuggestion(
             $templateName,
             $context,

@@ -8,13 +8,14 @@ $uuid_count = $context['uuid_count'] ?? 0;
 $auto_increment_entities = $context['auto_increment_entities'] ?? [];
 $uuid_entities = $context['uuid_entities'] ?? [];
 
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 <div class="suggestion-header"><h4>Mixed primary key strategies</h4></div>
 <div class="suggestion-content">
-<div class="alert alert-warning">
+<div class="alert <?php echo severityAlertClass($severity); ?>">
     <strong><?php echo $e((string) $auto_increment_count); ?> entities</strong> with auto-increment (INT),
     <strong><?php echo $e((string) $uuid_count); ?> entities</strong> with UUIDs
 </div>

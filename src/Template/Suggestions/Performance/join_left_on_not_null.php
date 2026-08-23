@@ -12,6 +12,7 @@ declare(strict_types=1);
 $table = (string) ($context['table'] ?? 'related_table');
 $alias = (string) ($context['alias'] ?? 'r');
 $entity = (string) ($context['entity'] ?? 'Entity');
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -22,7 +23,7 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
+    <div class="alert <?php echo severityAlertClass($severity); ?>">
         <strong>Performance:</strong> LEFT JOIN on '<?php echo $e($table); ?>' which has NOT NULL FK. INNER JOIN would be 20-30% faster.
     </div>
 

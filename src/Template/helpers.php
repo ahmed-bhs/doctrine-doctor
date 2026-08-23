@@ -68,3 +68,19 @@ function escapeContext(string $str, string $context = 'html'): string
         default    => htmlspecialchars($str, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
     };
 }
+
+/**
+ * Map an issue severity onto the Bootstrap-style alert class used by the panel.
+ * Templates receive the severity through the 'severity' context key, injected by
+ * SuggestionFactory, so the banner always matches the severity the analyzer reported.
+ * @param string $severity One of critical, warning, info
+ * @return string The alert modifier class
+ */
+function severityAlertClass(string $severity): string
+{
+    return match ($severity) {
+        'critical' => 'alert-danger',
+        'warning'  => 'alert-warning',
+        default    => 'alert-info',
+    };
+}

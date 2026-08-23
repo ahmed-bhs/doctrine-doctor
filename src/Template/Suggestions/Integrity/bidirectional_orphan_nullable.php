@@ -11,6 +11,7 @@ $parentField = $context['parent_field'] ?? 'field';
 $childClass = $context['child_class'] ?? 'ClassName';
 $childField = $context['child_field'] ?? 'field';
 
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -21,7 +22,7 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
+    <div class="alert <?php echo severityAlertClass($severity); ?>">
         <code><?php echo $e($parentField); ?></code> has <code>orphanRemoval=true</code> but
         <code><?php echo $e($childField); ?></code> has <code>nullable=true</code>.
     </div>

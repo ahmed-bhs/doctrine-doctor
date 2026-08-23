@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @var array<string, mixed> $context
  */
 $embeddableClass = (string) ($context['embeddable_class'] ?? 'Money');
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -18,7 +19,7 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-    <div class="alert alert-info">
+    <div class="alert <?php echo severityAlertClass($severity); ?>">
         Embeddable <code><?= $e($embeddableClass) ?></code> has public setters - Value Objects should be immutable.
     </div>
 

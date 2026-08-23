@@ -10,6 +10,7 @@ declare(strict_types=1);
  */
 $field  = (string) ($context['field'] ?? 'created_at');
 $entity = (string) ($context['entity'] ?? 'Entity');
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -20,7 +21,7 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
+    <div class="alert <?php echo severityAlertClass($severity); ?>">
         This query uses LEFT JOIN on <code><?= $e($field) ?></code>, which is NOT NULL. Use INNER JOIN instead for better performance.
     </div>
 

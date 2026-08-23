@@ -15,6 +15,7 @@ $flushCount = $context['flush_count'] ?? null;
 $operationsBetweenFlush = $context['operations_between_flush'] ?? null;
 
 // Helper function for safe HTML escaping
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -25,7 +26,7 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-    <div class="alert alert-danger">
+    <div class="alert <?php echo severityAlertClass($severity); ?>">
         <?php echo $flushCount; ?> flush() calls = <?php echo $flushCount; ?> separate transactions
     </div>
 

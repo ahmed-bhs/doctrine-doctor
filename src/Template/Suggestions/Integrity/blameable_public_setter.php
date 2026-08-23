@@ -5,6 +5,7 @@ declare(strict_types=1);
 $entityClass = $context['entity_class'] ?? '';
 $fieldName = $context['field_name'] ?? '';
 
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 $shortClass = basename(str_replace('\\', '/', $entityClass));
 
@@ -12,7 +13,7 @@ ob_start();
 ?>
 <div class="suggestion-header"><h4>Public setter on blameable field</h4></div>
 <div class="suggestion-content">
-<div class="alert alert-warning"><code><?php echo $e($fieldName); ?></code> has a public setter, allowing the audit field to be changed.</div>
+<div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($fieldName); ?></code> has a public setter, allowing the audit field to be changed.</div>
 
 <p>Blameable fields should be set once and immutable.</p>
 

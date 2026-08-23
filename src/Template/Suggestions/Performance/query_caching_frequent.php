@@ -24,6 +24,7 @@ $timeSaved = max(0.0, $totalTime - ($avgTime + ($avgTime / 100) * max(0, $count 
 $improvement = $totalTime > 0.0 ? ($timeSaved / $totalTime) * 100 : 0.0;
 
 // Helper function for safe HTML escaping
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -34,7 +35,7 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
+    <div class="alert <?php echo severityAlertClass($severity); ?>">
         Query executed <?php echo $count; ?> times (<?php echo number_format($totalTime, 2); ?>ms total, <?php echo number_format($avgTime, 2); ?>ms avg). Result cache saves ~<?php echo number_format($improvement, 0); ?>%.
     </div>
 

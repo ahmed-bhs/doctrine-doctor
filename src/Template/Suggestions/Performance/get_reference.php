@@ -10,6 +10,7 @@ declare(strict_types=1);
  */
 $entity      = (string) ($context['entity'] ?? 'Entity');
 $occurrences = (int) ($context['occurrences'] ?? 0);
+$severity = (string) ($context['severity'] ?? 'info');
 $e                                                   = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
@@ -19,7 +20,7 @@ ob_start();
 </div>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
+    <div class="alert <?php echo severityAlertClass($severity); ?>">
         Found <strong><?php echo $occurrences; ?></strong> <?php echo $occurrences > 1 ? 'places' : 'place'; ?> where <code>find()</code> is used just to set a relationship.
     </div>
 
