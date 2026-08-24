@@ -12,7 +12,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Incorrect NULL comparison</h4></div>
+<?php echo suggestionHeader('Incorrect NULL comparison'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger"><code>NULL = NULL</code> returns UNKNOWN, not TRUE. Use <code>IS NULL</code> instead.</div>
 
@@ -25,7 +25,7 @@ ob_start();
 -- DQL example
 $qb->where('e.<?php echo $e((string) $field); ?> IS NULL');</code></pre></div>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Query Language (DQL)</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html', 'Doctrine Query Language (DQL)'); ?>
 </div>
 <?php
 $code = ob_get_clean();

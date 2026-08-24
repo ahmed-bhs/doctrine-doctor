@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity
+ * @var string $entity
  * @var mixed $occurrences
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['entity' => $entity, 'occurrences' => $occurrences] = $context;
-$e                                                   = fn (string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$entity      = (string) ($context['entity'] ?? 'Entity');
+$occurrences = (int) ($context['occurrences'] ?? 0);
+$severity = (string) ($context['severity'] ?? 'info');
+$e                                                   = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Use getReference() for better performance</h4>
-</div>
+<?php echo suggestionHeader('Use getReference() for better performance'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
+    <div class="alert <?php echo severityAlertClass($severity); ?>">
         Found <strong><?php echo $occurrences; ?></strong> <?php echo $occurrences > 1 ? 'places' : 'place'; ?> where <code>find()</code> is used just to set a relationship.
     </div>
 
@@ -40,11 +40,7 @@ $order->setUser($user);</code></pre>
 
     <p>Use <code>find()</code> when you need to access the entity's data or validate it exists. Use <code>getReference()</code> when you only need the ID for a relationship.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-objects.html#entity-object-graph-traversal" target="_blank" class="doc-link">
-            📜 Doctrine getReference() docs
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-objects.html#entity-object-graph-traversal', 'Doctrine getReference() docs'); ?>
 </div>
 
 <?php

@@ -11,17 +11,16 @@ $parentField = $context['parent_field'] ?? 'field';
 $childClass = $context['child_class'] ?? 'ClassName';
 $childField = $context['child_field'] ?? 'field';
 
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>orphanRemoval=true with nullable FK</h4>
-</div>
+<?php echo suggestionHeader('orphanRemoval=true with nullable FK'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
+    <div class="alert <?php echo severityAlertClass($severity); ?>">
         <code><?php echo $e($parentField); ?></code> has <code>orphanRemoval=true</code> but
         <code><?php echo $e($childField); ?></code> has <code>nullable=true</code>.
     </div>
@@ -53,11 +52,7 @@ class <?php echo $e($childClass); ?> {
 
     <p>Make the FK NOT NULL to match orphanRemoval=true. Children can't exist without a parent, so the FK should never be NULL.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">
-            📜 Doctrine Orphan Removal Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal', 'Doctrine Orphan Removal Documentation'); ?>
 </div>
 
 <?php

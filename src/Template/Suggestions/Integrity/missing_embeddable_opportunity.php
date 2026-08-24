@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entityClass
+ * @var string $entityClass
  * @var mixed $fields
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $entityClass = (string) ($context['entity_class'] ?? 'Entity');
 $fields = $context['fields'] ?? ['street', 'city'];
@@ -19,9 +19,7 @@ $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Consider extracting an embeddable</h4>
-</div>
+<?php echo suggestionHeader('Consider extracting an embeddable'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-info">
@@ -58,7 +56,7 @@ class <?= $e($entityClass) ?> {
 
     <p><strong>Benefits:</strong> Better encapsulation, reusability, validation in one place.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Embeddables</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html', 'Doctrine ORM Embeddables'); ?>
 </div>
 
 <?php

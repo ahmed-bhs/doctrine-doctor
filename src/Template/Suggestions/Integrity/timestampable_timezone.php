@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entityClass
+ * @var string $entityClass
  * @var mixed $fieldName
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['entity_class' => $entityClass, 'field_name' => $fieldName] = $context;
+$entityClass = (string) ($context['entity_class'] ?? 'Entity');
+$fieldName   = (string) ($context['field_name'] ?? 'created_at');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Missing timezone information</h4>
-</div>
+<?php echo suggestionHeader('Missing timezone information'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -34,7 +33,7 @@ public function onCreate(): void
     $this-><?php echo $e($fieldName); ?> = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 }
 
-public function get<?php echo ucfirst((string) $fieldName); ?>Display(string $userTimezone): string
+public function get<?php echo $e(ucfirst((string) $fieldName)); ?>Display(string $userTimezone): string
 {
     return $this-><?php echo $e($fieldName); ?>
         ->setTimezone(new \DateTimeZone($userTimezone))
@@ -44,11 +43,7 @@ public function get<?php echo ucfirst((string) $fieldName); ?>Display(string $us
 
     <p>Or use <code>datetimetz_immutable</code> to preserve original timezone.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz" target="_blank" class="doc-link">
-            📜 Doctrine DateTimeTZ
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz', 'Doctrine DateTimeTZ'); ?>
 </div>
 
 <?php

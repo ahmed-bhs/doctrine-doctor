@@ -124,10 +124,13 @@ class TemplateValidator
             $errors[] = 'Missing description in return array';
         }
 
-        // Check 4: Escaping function using htmlspecialchars (only when dynamic output is present)
+        // Check 4: Dynamic output must be escaped, either directly or through a
+        // shared helper from src/Template/helpers.php which escapes on the template's behalf.
         $hasDynamicOutput = preg_match('~<\?=|<\?php\s+echo\b~', $content);
-        if ($hasDynamicOutput && strpos($content, 'htmlspecialchars') === false) {
-            $errors[] = 'Missing htmlspecialchars for escaping dynamic output';
+        $escapesOutput = strpos($content, 'htmlspecialchars') !== false
+            || preg_match('~\b(escape|escapeContext|suggestionHeader|suggestionAlert|suggestionCodeBlock|suggestionDocLink|formatSqlWithHighlight)\s*\(~', $content) === 1;
+        if ($hasDynamicOutput && !$escapesOutput) {
+            $errors[] = 'Missing escaping for dynamic output (use escape() or a suggestion* helper)';
         }
 
         // Check 5: Security - no eval
@@ -158,7 +161,40 @@ class TemplateValidator
             $warnings[] = 'Found ** markdown bold (consider using <strong>)';
         }
 
-        // Check 7: HTML tag validation (disabled - too many false positives)
+        // Check 7: External links must not leak the opener
+        if (preg_match_all('~<a\\b[^>]*target="_blank"[^>]*>~', $content, $linkMatches)) {
+            foreach ($linkMatches[0] as $tag) {
+                if (strpos($tag, 'noopener') === false) {
+                    $errors[] = 'Link with target="_blank" is missing rel="noopener noreferrer"';
+                    break;
+                }
+            }
+        }
+
+        // Check 8: No emoji in panel output
+        if (preg_match('~[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}\x{2B00}-\x{2BFF}]~u', $content)) {
+            $errors[] = 'Found emoji - keep the profiler output plain text';
+        }
+
+        // Check 9: Context keys must be read with a default so a missing key degrades gracefully
+        if (preg_match('~\]\s*=\s*\$context\s*;~', $content)) {
+            $errors[] = 'Destructures $context without defaults - use $context[\'key\'] ?? default';
+        }
+
+        // Check 10: Values passed through a string function must still be escaped:
+        // echoing ucfirst($fieldName) directly bypasses the template's own $e().
+        if (preg_match_all('~<\\?(?:php\\s+echo|=)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(~', $content, $callMatches)) {
+            $escapers = ['e', 'escape', 'escapeContext', 'suggestionHeader', 'suggestionAlert',
+                'suggestionCodeBlock', 'suggestionDocLink', 'formatSqlWithHighlight', 'severityAlertClass',
+                'count', 'ceil', 'floor', 'round', 'number_format', 'implode', 'nl2br', 'isset'];
+            foreach (array_unique($callMatches[1]) as $callee) {
+                if (!in_array($callee, $escapers, true)) {
+                    $errors[] = sprintf('Output of %s() is echoed without escaping - wrap it in $e()', $callee);
+                }
+            }
+        }
+
+        // Check 11: HTML tag validation (disabled - too many false positives)
         // $this->validateHtmlTags($content, $errors);
 
         // Store results

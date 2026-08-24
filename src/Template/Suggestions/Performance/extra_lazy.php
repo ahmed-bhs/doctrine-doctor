@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity
+ * @var string $entity
  * @var mixed $relation
- * @var mixed $queryCount
+ * @var int $queryCount
  * @var mixed $hasLimit
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['entity' => $entity, 'relation' => $relation, 'query_count' => $queryCount, 'has_limit' => $hasLimit, 'trigger_location' => $triggerLocation] = $context;
-
+$entity          = (string) ($context['entity'] ?? 'Entity');
+$relation        = (string) ($context['relation'] ?? 'items');
+$queryCount      = (int) ($context['query_count'] ?? 0);
+$hasLimit        = (bool) ($context['has_limit'] ?? false);
+$triggerLocation = (string) ($context['trigger_location'] ?? 'the calling code');
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
@@ -19,9 +22,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Extra Lazy Collections</h4>
-</div>
+<?php echo suggestionHeader('Extra Lazy Collections'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -34,7 +35,7 @@ ob_start();
         <?php } ?>
     </div>
 
-<?php if (null !== $triggerLocation && '' !== $triggerLocation) { ?>
+<?php if ('' !== $triggerLocation) { ?>
     <div class="alert alert-info">
         <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
     </div>
@@ -49,9 +50,9 @@ Assert::isIterable($entities, '$entities must be iterable');
 foreach ($entities as $entity) {
     <?php if ($hasLimit) { ?>
     // Counting or partial access still loads entire collection
-    echo count($entity->get<?php echo ucfirst((string) $relation); ?>()); // Full collection loaded!
+    echo count($entity->get<?php echo $e(ucfirst((string) $relation)); ?>()); // Full collection loaded!
     <?php } else { ?>
-    foreach ($entity->get<?php echo ucfirst((string) $relation); ?>() as $item) { // Collection loaded here!
+    foreach ($entity->get<?php echo $e(ucfirst((string) $relation)); ?>() as $item) { // Collection loaded here!
         // Process items...
     }
     <?php } ?>
@@ -74,13 +75,13 @@ Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
     // COUNT query instead of loading all items!
-    echo count($entity->get<?php echo ucfirst((string) $relation); ?>());
+    echo count($entity->get<?php echo $e(ucfirst((string) $relation)); ?>());
 
     // LIMIT query instead of loading all items!
-    $first3 = $entity->get<?php echo ucfirst((string) $relation); ?>()->slice(0, 3);
+    $first3 = $entity->get<?php echo $e(ucfirst((string) $relation)); ?>()->slice(0, 3);
 
     // EXISTS query instead of loading all items!
-    if ($entity->get<?php echo ucfirst((string) $relation); ?>()->contains($someItem)) {
+    if ($entity->get<?php echo $e(ucfirst((string) $relation)); ?>()->contains($someItem)) {
         // ...
     }
 }
@@ -96,8 +97,8 @@ use Doctrine\ORM\Mapping as ORM;
 private Collection $<?php echo $e($relation); ?>;
 
 // Optimized for:
-$count = $entity->get<?php echo ucfirst((string) $relation); ?>()->count(); // COUNT query only
-$first5 = $entity->get<?php echo ucfirst((string) $relation); ?>()->slice(0, 5); // LIMIT query only</code></pre>
+$count = $entity->get<?php echo $e(ucfirst((string) $relation)); ?>()->count(); // COUNT query only
+$first5 = $entity->get<?php echo $e(ucfirst((string) $relation)); ?>()->slice(0, 5); // LIMIT query only</code></pre>
     </div>
     <?php } ?>
 
@@ -115,7 +116,7 @@ $entities = $entityManager
 Assert::isIterable($entities, '$entities must be iterable');
 
 foreach ($entities as $entity) {
-    foreach ($entity->get<?php echo ucfirst((string) $relation); ?>() as $item) { // Already loaded!
+    foreach ($entity->get<?php echo $e(ucfirst((string) $relation)); ?>() as $item) { // Already loaded!
         // Process items...
     }
 }
@@ -128,7 +129,7 @@ foreach ($entities as $entity) {
 /**
  * @return array<mixed>
  */
-public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
+public function findAllWith<?php echo $e(ucfirst((string) $relation)); ?>(): array
 {
     return $this->createQueryBuilder('e')
         ->leftJoin('e.<?php echo $e($relation); ?>', 'r')
@@ -156,7 +157,7 @@ public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
         <li><code>get($key)</code>: Executes query to fetch single element by key</li>
     </ul>
 
-    <h4>⚖️ Trade-offs: EXTRA_LAZY</h4>
+    <h4>Trade-offs: EXTRA_LAZY</h4>
     <div class="alert alert-warning">
         <strong>Pros:</strong>
         <ul>
@@ -182,7 +183,7 @@ public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
     </ul>
 
     <div class="alert alert-info">
-        ℹ️ <strong>Expected Performance Improvement:</strong><br>
+        ℹ<strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Current:</strong> <?php echo $queryCount; ?> queries<?php echo $hasLimit ? ' (loading partial data each time)' : ''; ?></li>
             <?php if ($hasLimit) { ?>
@@ -194,11 +195,7 @@ public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/extra-lazy-associations.html" target="_blank" class="doc-link">
-            📜 Doctrine Extra Lazy Associations Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/extra-lazy-associations.html', 'Doctrine Extra Lazy Associations Documentation'); ?>
 </div>
 
 <?php

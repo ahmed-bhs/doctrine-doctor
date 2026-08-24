@@ -7,7 +7,7 @@ declare(strict_types=1);
  * @var mixed $unusedTables
  * @var mixed $unusedAliases
  * @var mixed $count
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $unusedTables = $context['unused_tables'] ?? ['related_table'];
 $unusedAliases = $context['unused_aliases'] ?? ['r'];
@@ -29,9 +29,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Remove Unused Eager Loading</h4>
-</div>
+<?php echo suggestionHeader('Remove Unused Eager Loading'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -63,7 +61,7 @@ $query = $em->createQuery('
 
     FROM App\Entity\Article a
     <?php foreach ($unusedAliases as $alias) { ?>
-LEFT JOIN a.relation<?php echo ucfirst($e($alias)); ?> <?php echo $e($alias); ?>
+LEFT JOIN a.relation<?php echo $e(ucfirst($e($alias))); ?> <?php echo $e($alias); ?>
 
     <?php } ?>
 ');
@@ -116,15 +114,15 @@ foreach ($articles as $article) {
         </ul>
     </div>
 
-    <h4>⚖️ Why Unused Eager Loading Is Bad</h4>
+    <h4>Why Unused Eager Loading Is Bad</h4>
     <div class="alert alert-warning">
         <strong>Negative Impacts:</strong>
         <ul>
-            <li>💾 <strong>Memory waste</strong>: Entities loaded but never accessed</li>
-            <li>🌐 <strong>Bandwidth waste</strong>: Transferring unnecessary data</li>
-            <li>⏱️ <strong>Slower hydration</strong>: ORM must create objects you don't need</li>
-            <li>🐘 <strong>Database overhead</strong>: JOINs process more rows</li>
-            <li>📊 <strong>Result set bloat</strong>: Larger result sets to transfer</li>
+            <li><strong>Memory waste</strong>: Entities loaded but never accessed</li>
+            <li><strong>Bandwidth waste</strong>: Transferring unnecessary data</li>
+            <li>⏱<strong>Slower hydration</strong>: ORM must create objects you don't need</li>
+            <li><strong>Database overhead</strong>: JOINs process more rows</li>
+            <li><strong>Result set bloat</strong>: Larger result sets to transfer</li>
         </ul>
     </div>
 
@@ -151,7 +149,7 @@ foreach ($articles as $article) {
     </ul>
 
     <div class="alert alert-info">
-        ℹ️ <strong>Expected Performance Improvement:</strong><br>
+        ℹ<strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Memory usage:</strong> <?php echo $count; ?> fewer entities loaded per result</li>
             <li><strong>Hydration time:</strong> <?php echo $count * 15; ?>-<?php echo $count * 30; ?>% faster (estimated)</li>
@@ -159,11 +157,7 @@ foreach ($articles as $article) {
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">
-            📜 Doctrine DQL JOIN Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL JOIN Documentation'); ?>
 </div>
 
 <?php

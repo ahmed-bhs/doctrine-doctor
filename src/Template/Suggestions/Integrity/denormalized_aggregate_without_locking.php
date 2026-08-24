@@ -23,9 +23,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Add locking mechanism to aggregate root</h4>
-</div>
+<?php echo suggestionHeader('Add locking mechanism to aggregate root'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -77,11 +75,7 @@ $em->wrapInTransaction(function () use ($em, $id) {
         must handle retries. Pessimistic locking requires explicit transaction management and may reduce throughput.
     </p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/transactions-and-concurrency.html#locking-support" target="_blank" class="doc-link">
-            Doctrine Locking documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/transactions-and-concurrency.html#locking-support', 'Doctrine Locking documentation'); ?>
 </div>
 
 <?php

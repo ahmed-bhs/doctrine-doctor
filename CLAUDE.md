@@ -127,7 +127,7 @@ AhmedBhs\DoctrineDoctor\Analyzer\Performance\YourAnalyzer:
 
 ### ValueObjects
 
-- `Severity`: 5-level enum (info, low, medium, high, critical) with `getPriority()`, `isHigherThan()`
+- `Severity`: 3-level enum (info, warning, critical) with `getPriority()`, `isHigherThan()`
 - `SuggestionType`: performance(), security(), integrity(), configuration(), bestPractice(), refactoring()
 - `QueryExecutionTime`: factory methods `fromSeconds()`, `fromMilliseconds()`
 - `IssueType`: enum mapping all issue types

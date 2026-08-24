@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entityClass
+ * @var string $entityClass
  * @var mixed $fieldName
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $entityClass = (string) ($context['entity_class'] ?? 'Product');
 $fieldName = (string) ($context['field_name'] ?? 'price');
@@ -15,9 +15,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Float used for money</h4>
-</div>
+<?php echo suggestionHeader('Float used for money'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -37,19 +35,15 @@ use Money\Currency;
 #[ORM\Column(type: 'integer')] // Store cents
 private int $<?php echo $e($fieldName); ?>Cents;
 
-public function get<?php echo ucfirst((string) $fieldName); ?>(): Money
+public function get<?php echo $e(ucfirst((string) $fieldName)); ?>(): Money
 {
     return new Money($this-><?php echo $e($fieldName); ?>Cents, new Currency('EUR'));
 }
 
 // Usage:
-$product->set<?php echo ucfirst((string) $fieldName); ?>(Money::EUR(1999)); // 19.99 EUR</code></pre>
+$product->set<?php echo $e(ucfirst((string) $fieldName)); ?>(Money::EUR(1999)); // 19.99 EUR</code></pre>
 
-    <p>
-        <a href="https://github.com/moneyphp/money" target="_blank" class="doc-link">
-            📜 Money PHP library
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://github.com/moneyphp/money', 'Money PHP library'); ?>
 </div>
 
 <?php

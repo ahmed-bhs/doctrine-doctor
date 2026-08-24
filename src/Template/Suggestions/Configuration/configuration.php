@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $setting
+ * @var string $setting
  * @var mixed $currentValue
- * @var mixed $recommendedValue
+ * @var string $recommendedValue
  * @var mixed $description
- * @var mixed $fixCommand
- * @var mixed $context
+ * @var string $fixCommand
+ * @var array<string, mixed> $context
  */
 $setting = (string) ($context['setting'] ?? 'unknown_setting');
 $currentValue = (string) ($context['current_value'] ?? '');
@@ -32,7 +32,7 @@ ob_start();
 <div class="query-item"><pre><code class="language-bash"><?php echo $eCode($fixCommand); ?></code></pre></div>
 <?php } ?>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/advanced-configuration.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Advanced Configuration</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/advanced-configuration.html', 'Doctrine ORM Advanced Configuration'); ?>
 </div>
 <?php
 $code = ob_get_clean();

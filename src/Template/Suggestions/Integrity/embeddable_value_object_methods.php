@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $embeddableClass
+ * @var string $embeddableClass
  * @var mixed $missingMethods
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $embeddableClass = (string) ($context['embeddable_class'] ?? 'Money');
 $missingMethods = $context['missing_methods'] ?? ['equals', '__toString'];
@@ -19,9 +19,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Incomplete Value Object</h4>
-</div>
+<?php echo suggestionHeader('Incomplete Value Object'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-info">
@@ -66,7 +64,7 @@ readonly class <?php echo $e($embeddableClass); ?> {
 
     <p><strong>Value Object best practices:</strong> immutability (readonly), validation in constructor, equals(), domain methods.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Embeddables</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html', 'Doctrine ORM Embeddables'); ?>
 </div>
 
 <?php

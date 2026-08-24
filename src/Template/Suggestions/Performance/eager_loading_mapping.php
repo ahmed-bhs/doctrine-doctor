@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity_class
+ * @var string $entity_class
  * @var mixed $field_name
- * @var mixed $target_entity
+ * @var string $target_entity
  * @var mixed $target_short_name
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $entity_class = (string) ($context['entity_class'] ?? '');
 $field_name = (string) ($context['field_name'] ?? '');
@@ -17,7 +17,7 @@ $target_short_name = (string) ($context['target_short_name'] ?? $target_entity);
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Suggestion</h4></div>
+<?php echo suggestionHeader('Suggestion'); ?>
 <div class="suggestion-content">
 <p>Remove <code>fetch: 'EAGER'</code> from the mapping and use dynamic eager loading in your queries.</p>
 
@@ -34,10 +34,10 @@ ob_start();
 }
 
 // In your repository, eager load only when needed:
-$qb->select('e', '<?php echo substr($field_name, 0, 1); ?>')
+$qb->select('e', '<?php echo $e(substr($field_name, 0, 1)); ?>')
     ->from(<?php echo $e($entity_class); ?>::class, 'e')
-    ->leftJoin('e.<?php echo $e($field_name); ?>', '<?php echo substr($field_name, 0, 1); ?>')
-    ->addSelect('<?php echo substr($field_name, 0, 1); ?>');</code></pre></div>
+    ->leftJoin('e.<?php echo $e($field_name); ?>', '<?php echo $e(substr($field_name, 0, 1)); ?>')
+    ->addSelect('<?php echo $e(substr($field_name, 0, 1)); ?>');</code></pre></div>
 
 <h4>Why?</h4>
 <ul>

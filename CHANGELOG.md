@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.10.2] - 2026-08-24
+
+### Fixed
+
+- Suggestion banners ignored the severity the analyzer reported. `SuggestionMetadata` carries the `Severity`, but `render()` only ever receives the context array, so every template hardcoded its own `alert-danger` / `alert-warning` / `alert-info` class. `FlushInLoopAnalyzer` shows the cost most clearly: it picks critical, warning or info from the flush count, while the template always drew the critical red banner, so three flushes in a loop looked exactly as severe as sixty. `SuggestionFactory` now seeds the context with the metadata severity, leaving an explicit value untouched, and a `severityAlertClass()` helper maps it to the alert class. Applied to the twelve templates whose banner contradicted the severity they were rendered with.
+- Templates did not degrade when a context key was missing, though that is a documented requirement. 21 destructured the context array directly: `Performance/index` raised a `TypeError` as soon as any key was absent, and others rendered placeholder text such as `Rename table from '' to ''`. Every context read now has an explicit default and a cast, and `Integrity/code_suggestion` no longer returns an empty description.
+- Values routed through a string function skipped escaping. Bare variables went through the template's `$e()`, but `ucfirst($fieldName)`, `strtolower()` and `substr()` were echoed raw in 20 templates — 88 occurrences. These values come from Doctrine metadata rather than request input, so this was not exploitable, but the escaping was structurally absent rather than deliberately skipped.
+- Three license headers had been mangled into `<ul><li>` markup by a markdown conversion, 46 templates carried emoji in the profiler output, and 54 opened documentation links with `target="_blank"` and no `rel`.
+
+### Changed
+
+- The shared suggestion chrome — header block, severity banner, code sample and documentation link — was rewritten by hand in every template, so the markup drifted and each fix had to be repeated a hundred times. Four helpers in `src/Template/helpers.php` now own it, and the `naming_convention` cluster is rewritten on top of them as the worked example, from 165 lines to 53. Visible text is escaped with `ENT_NOQUOTES` so apostrophes stay readable in the panel, while attributes keep full quote escaping. Rendered output of all 113 templates was snapshotted before the change and compared after: no drift in rendered text or descriptions, and no CSS class or HTML tag lost.
+- `src/Template/Suggestions/` is no longer excluded from ECS and PHPStan. The exclusion was documented as covering "template files with PHP interpolation", but the templates pass both, level 8 included. Two test classes and five validator checks now guard the directory: every template renders with an empty context without raising, the banner follows the severity at all three levels, the layout helpers escape markup, and the validator rejects emoji, missing `rel` attributes, context destructuring without defaults, and echoing the result of a function that is not a known escaper.
+
+### Removed
+
+- `EXAMPLE_SECURE_TEMPLATE` shipped as documentation for the `SafeContext` auto-escaping API but was never referenced by any analyzer, factory or test, while still being picked up as a renderable template. `docs/advanced/template-security.md` covers the same ground, including the same example.
+
 ## [2.10.1] - 2026-08-19
 
 ### Changed

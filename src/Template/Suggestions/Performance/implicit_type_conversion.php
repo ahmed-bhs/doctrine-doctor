@@ -14,9 +14,7 @@ $isNumericVsString = 'numeric_column_vs_string_literal' === $kind;
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Implicit type conversion in WHERE</h4>
-</div>
+<?php echo suggestionHeader('Implicit type conversion in WHERE'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -63,7 +61,7 @@ $qb-&gt;setParameter('since', $date, \Doctrine\DBAL\Types\Types::DATETIME_IMMUTA
     </div>
 <?php } ?>
 
-    <p><a href="https://use-the-index-luke.com/sql/where-clause/obfuscation/numeric-strings" target="_blank" rel="noopener noreferrer" class="doc-link">Use The Index, Luke! Numeric strings</a></p>
+    <?php echo suggestionDocLink('https://use-the-index-luke.com/sql/where-clause/obfuscation/numeric-strings', 'Use The Index, Luke! Numeric strings'); ?>
 </div>
 
 <?php

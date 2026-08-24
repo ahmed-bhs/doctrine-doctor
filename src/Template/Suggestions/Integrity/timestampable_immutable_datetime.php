@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entityClass
+ * @var string $entityClass
  * @var mixed $fieldName
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['entity_class' => $entityClass, 'field_name' => $fieldName] = $context;
+$entityClass = (string) ($context['entity_class'] ?? 'Entity');
+$fieldName   = (string) ($context['field_name'] ?? 'created_at');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Mutable DateTime in timestamp field</h4>
-</div>
+<?php echo suggestionHeader('Mutable DateTime in timestamp field'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -39,11 +38,7 @@ private \DateTimeImmutable $<?php echo $e($fieldName); ?>;</code></pre>
 
     <p>No database migration needed - Doctrine handles both types the same way.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/working-with-datetime.html" target="_blank" class="doc-link">
-            📜 Doctrine datetime docs
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/working-with-datetime.html', 'Doctrine datetime docs'); ?>
 </div>
 
 <?php

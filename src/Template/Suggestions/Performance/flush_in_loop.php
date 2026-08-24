@@ -15,17 +15,16 @@ $flushCount = $context['flush_count'] ?? null;
 $operationsBetweenFlush = $context['operations_between_flush'] ?? null;
 
 // Helper function for safe HTML escaping
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>flush() in loop</h4>
-</div>
+<?php echo suggestionHeader('flush() in loop'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-danger">
+    <div class="alert <?php echo severityAlertClass($severity); ?>">
         <?php echo $flushCount; ?> flush() calls = <?php echo $flushCount; ?> separate transactions
     </div>
 
@@ -53,11 +52,7 @@ $em->clear();
 
     <p>Use batch size 20-50. Always call <code>clear()</code> after <code>flush()</code>.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank" class="doc-link">
-            📜 Doctrine batch processing
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html', 'Doctrine batch processing'); ?>
 </div>
 
 <?php

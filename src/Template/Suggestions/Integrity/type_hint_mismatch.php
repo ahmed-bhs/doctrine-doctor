@@ -33,9 +33,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Synchronize Property Type with Column Type</h4>
-</div>
+<?php echo suggestionHeader('Synchronize Property Type with Column Type'); ?>
 
 <div class="suggestion-content">
     <p><?php echo $e($description); ?></p>
@@ -52,11 +50,7 @@ ob_start();
 
     <p>Doctrine's UnitOfWork uses strict comparison (===) to detect changes. When the property type doesn't match the column type, Doctrine thinks the value changed even when it didn't. This triggers unnecessary UPDATE statements.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/basic-mapping.html" target="_blank" class="doc-link">
-            📜 Doctrine basic mapping docs
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/basic-mapping.html', 'Doctrine basic mapping docs'); ?>
 </div>
 
 <?php

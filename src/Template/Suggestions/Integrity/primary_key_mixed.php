@@ -8,13 +8,14 @@ $uuid_count = $context['uuid_count'] ?? 0;
 $auto_increment_entities = $context['auto_increment_entities'] ?? [];
 $uuid_entities = $context['uuid_entities'] ?? [];
 
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Mixed primary key strategies</h4></div>
+<?php echo suggestionHeader('Mixed primary key strategies'); ?>
 <div class="suggestion-content">
-<div class="alert alert-warning">
+<div class="alert <?php echo severityAlertClass($severity); ?>">
     <strong><?php echo $e((string) $auto_increment_count); ?> entities</strong> with auto-increment (INT),
     <strong><?php echo $e((string) $uuid_count); ?> entities</strong> with UUIDs
 </div>
@@ -24,7 +25,7 @@ ob_start();
 <p><strong>UUID entities:</strong> <?php if (!empty($uuid_entities)) { ?><?php foreach (array_slice($uuid_entities, 0, 3) as $entity) { ?><code><?php echo $e((string) $entity); ?></code> <?php } ?><?php if (count($uuid_entities) > 3) { ?>... +<?php echo count($uuid_entities) - 3; ?><?php } ?><?php } ?></p>
 <p><strong>Auto-increment:</strong> <?php if (!empty($auto_increment_entities)) { ?><?php foreach (array_slice($auto_increment_entities, 0, 3) as $entity) { ?><code><?php echo $e((string) $entity); ?></code> <?php } ?><?php if (count($auto_increment_entities) > 3) { ?>... +<?php echo count($auto_increment_entities) - 3; ?><?php } ?><?php } ?></p>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#identifier-generation-strategies" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Identifier Generation Strategies</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#identifier-generation-strategies', 'Doctrine ORM Identifier Generation Strategies'); ?>
 </div>
 <?php
 $code = ob_get_clean();

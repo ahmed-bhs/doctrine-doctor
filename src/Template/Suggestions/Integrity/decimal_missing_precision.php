@@ -39,9 +39,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Add Explicit Precision/Scale</h4>
-</div>
+<?php echo suggestionHeader('Add Explicit Precision/Scale'); ?>
 
 <div class="suggestion-content">
     <p>Always specify precision and scale for decimal columns to ensure consistent behavior across databases.</p>
@@ -52,11 +50,7 @@ ob_start();
 
     <p><strong>Precision</strong> is total digits, <strong>scale</strong> is digits after decimal. <?php echo $e($infoMessage); ?></p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal" target="_blank" class="doc-link">
-            📜 Doctrine decimal type docs
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal', 'Doctrine decimal type docs'); ?>
 </div>
 
 <?php

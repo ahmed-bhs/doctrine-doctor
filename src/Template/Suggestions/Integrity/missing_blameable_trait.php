@@ -1,21 +1,19 @@
 <?php
 
 /*
-<ul>
-<li>This file is part of the Doctrine Doctor.</li>
-<li>(c) 2025 Ahmed EBEN HASSINE</li>
-<li>For the full copyright and license information, please view the LICENSE</li>
-<li>file that was distributed with this source code.</li>
-</ul>
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025-2026 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entityClass
+ * @var string $entityClass
  * @var mixed $timestampFields
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $entityClass = (string) ($context['entity_class'] ?? 'Entity');
 $timestampFields = $context['timestamp_fields'] ?? ['createdAt'];
@@ -130,11 +128,7 @@ class <?php echo $e($entityClass); ?>
         <li><strong>Performance:</strong> Query by creator/modifier without expensive joins</li>
     </ul>
 
-    <p>
-        <a href="https://symfony.com/bundles/StofDoctrineExtensionsBundle/current/index.html#blameable" target="_blank" class="doc-link">
-            📜 Doctrine Extensions: Blameable
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://symfony.com/bundles/StofDoctrineExtensionsBundle/current/index.html#blameable', 'Doctrine Extensions: Blameable'); ?>
 </div>
 
 <?php

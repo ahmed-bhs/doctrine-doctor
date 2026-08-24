@@ -13,9 +13,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>orphanRemoval without cascade="persist"</h4>
-</div>
+<?php echo suggestionHeader('orphanRemoval without cascade="persist"'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -34,7 +32,7 @@ ob_start();
 
     <p>For full composition (Order → OrderItems), use <code>cascade={"persist", "remove"}</code> with <code>orphanRemoval=true</code>. This way both adding and removing children works automatically.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#orphan-removal" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Orphan Removal</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#orphan-removal', 'Doctrine ORM Orphan Removal'); ?>
 </div>
 
 <?php

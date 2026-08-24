@@ -4,21 +4,19 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $badCode
+ * @var string $badCode
  * @var mixed $goodCode
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['bad_code' => $badCode, 'good_code' => $goodCode] = $context;
-
+$badCode  = (string) ($context['bad_code'] ?? '');
+$goodCode = (string) ($context['good_code'] ?? '');
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Use IS NULL instead of = NULL</h4>
-</div>
+<?php echo suggestionHeader('Use IS NULL instead of = NULL'); ?>
 
 <div class="suggestion-content">
     <p>SQL NULL comparisons require IS NULL or IS NOT NULL operators. Direct equality comparisons with NULL always return NULL (unknown), not true or false.</p>
@@ -39,11 +37,7 @@ ob_start();
 
     <p><code>IS NULL</code> and <code>IS NOT NULL</code> are the SQL standard. <code>= NULL</code> always returns UNKNOWN (three-valued logic), never TRUE or FALSE.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html#helper-methods" target="_blank" class="doc-link">
-            📜 Doctrine QueryBuilder Helper Methods
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html#helper-methods', 'Doctrine QueryBuilder Helper Methods'); ?>
 </div>
 
 <?php

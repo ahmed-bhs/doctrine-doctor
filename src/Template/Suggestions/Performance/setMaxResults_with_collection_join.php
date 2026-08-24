@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entityHint
- * @var mixed $context
+ * @var string $entityHint
+ * @var array<string, mixed> $context
  */
-['entity_hint' => $entityHint] = $context;
-
+$entityHint = (string) ($context['entity_hint'] ?? 'Entity');
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
@@ -16,9 +15,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>setMaxResults() with collection join</h4>
-</div>
+<?php echo suggestionHeader('setMaxResults() with collection join'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -89,11 +86,7 @@ $orders = iterator_to_array($paginator);</code></pre>
         add no rows and stay safe with LIMIT.
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/current/tutorials/pagination.html" target="_blank" class="doc-link">
-            📜 Doctrine pagination docs
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/current/tutorials/pagination.html', 'Doctrine pagination docs'); ?>
 </div>
 
 <?php

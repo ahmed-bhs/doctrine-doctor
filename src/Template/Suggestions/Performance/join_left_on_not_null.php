@@ -4,25 +4,24 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $table
+ * @var string $table
  * @var mixed $alias
- * @var mixed $entity
- * @var mixed $context
+ * @var string $entity
+ * @var array<string, mixed> $context
  */
 $table = (string) ($context['table'] ?? 'related_table');
 $alias = (string) ($context['alias'] ?? 'r');
 $entity = (string) ($context['entity'] ?? 'Entity');
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Suboptimal LEFT JOIN on NOT NULL Relation</h4>
-</div>
+<?php echo suggestionHeader('Suboptimal LEFT JOIN on NOT NULL Relation'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
+    <div class="alert <?php echo severityAlertClass($severity); ?>">
         <strong>Performance:</strong> LEFT JOIN on '<?php echo $e($table); ?>' which has NOT NULL FK. INNER JOIN would be 20-30% faster.
     </div>
 
@@ -37,7 +36,7 @@ $qb->innerJoin('o.relation', '<?php echo $e($alias); ?>');</code></pre>
 
     <p><strong>Rule:</strong> NOT NULL FK → INNER JOIN. Nullable FK → LEFT JOIN.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Joins</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins', 'Doctrine ORM Joins'); ?>
 </div>
 
 <?php

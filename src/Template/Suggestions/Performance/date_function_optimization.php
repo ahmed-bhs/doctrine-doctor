@@ -12,7 +12,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Date function prevents index usage</h4></div>
+<?php echo suggestionHeader('Date function prevents index usage'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">Using <code><?php echo $e($function); ?>()</code> on <code><?php echo $e((string) $field); ?></code> prevents index usage, forcing a full table scan.</div>
 

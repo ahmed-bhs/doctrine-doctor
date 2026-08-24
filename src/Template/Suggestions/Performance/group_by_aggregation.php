@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity
+ * @var string $entity
  * @var mixed $relation
  * @var mixed $queryCount
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $entity = (string) ($context['entity'] ?? 'Entity');
 $relation = (string) ($context['relation'] ?? 'items');
@@ -20,9 +20,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>GROUP BY Aggregation Query</h4>
-</div>
+<?php echo suggestionHeader('GROUP BY Aggregation Query'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -41,7 +39,7 @@ $response = [];
 foreach ($entities as $entity) {
     $response[] = [
         'title' => $entity->getTitle(),
-        'count' => $entity->get<?php echo ucfirst((string) $relation); ?>()->count(), // N+1!
+        'count' => $entity->get<?php echo $e(ucfirst((string) $relation)); ?>()->count(), // N+1!
     ];
 }
 // Result: <?php echo $queryCount; ?> queries (even with EXTRA_LAZY)</code></pre>
@@ -51,7 +49,7 @@ foreach ($entities as $entity) {
     <div class="query-item">
         <pre><code class="language-php">// BEST: Aggregate in database with GROUP BY
 $query = $entityManager->createQuery('
-    SELECT e.id, e.title, COUNT(r.id) AS <?php echo lcfirst((string) $relation); ?>Count
+    SELECT e.id, e.title, COUNT(r.id) AS <?php echo $e(lcfirst((string) $relation)); ?>Count
     FROM App\\Entity\\<?php echo $e($entity); ?> e
     LEFT JOIN e.<?php echo $e($relation); ?> r
     GROUP BY e.id
@@ -64,7 +62,7 @@ $response = [];
 foreach ($results as $row) {
     $response[] = [
         'title' => $row['title'],
-        'count' => (int) $row['<?php echo lcfirst((string) $relation); ?>Count'], // From aggregation!
+        'count' => (int) $row['<?php echo $e(lcfirst((string) $relation)); ?>Count'], // From aggregation!
     ];
 }
 // Result: 1 query total!</code></pre>
@@ -74,12 +72,12 @@ foreach ($results as $row) {
     <div class="query-item">
         <pre><code class="language-php">// In <?php echo $e($entity); ?>Repository
 /**
- * @return array<int, array{id: int, title: string, <?php echo lcfirst((string) $relation); ?>Count: int}>
+ * @return array<int, array{id: int, title: string, <?php echo $e(lcfirst((string) $relation)); ?>Count: int}>
  */
-public function findAllWith<?php echo ucfirst((string) $relation); ?>Count(): array
+public function findAllWith<?php echo $e(ucfirst((string) $relation)); ?>Count(): array
 {
     return $this->createQueryBuilder('e')
-        ->select('e.id', 'e.title', 'COUNT(r.id) AS <?php echo lcfirst((string) $relation); ?>Count')
+        ->select('e.id', 'e.title', 'COUNT(r.id) AS <?php echo $e(lcfirst((string) $relation)); ?>Count')
         ->leftJoin('e.<?php echo $e($relation); ?>', 'r')
         ->groupBy('e.id')
         ->getQuery()
@@ -87,7 +85,7 @@ public function findAllWith<?php echo ucfirst((string) $relation); ?>Count(): ar
 }
 
 // Usage:
-$results = $repository->findAllWith<?php echo ucfirst((string) $relation); ?>Count();
+$results = $repository->findAllWith<?php echo $e(ucfirst((string) $relation)); ?>Count();
 // Result: 1 query with aggregation</code></pre>
     </div>
 
@@ -95,7 +93,7 @@ $results = $repository->findAllWith<?php echo ucfirst((string) $relation); ?>Cou
     <div class="query-item">
         <pre><code class="language-php">// If you need full entity objects + count
 $query = $entityManager->createQuery('
-    SELECT e, COUNT(r.id) AS HIDDEN <?php echo lcfirst((string) $relation); ?>Count
+    SELECT e, COUNT(r.id) AS HIDDEN <?php echo $e(lcfirst((string) $relation)); ?>Count
     FROM App\\Entity\\<?php echo $e($entity); ?> e
     LEFT JOIN e.<?php echo $e($relation); ?> r
     GROUP BY e.id
@@ -106,7 +104,7 @@ Assert::isIterable($results, '$results must be iterable');
 
 foreach ($results as $row) {
     $entity = $row[0]; // Full <?php echo $e($entity); ?> object
-    $count = $row['<?php echo lcfirst((string) $relation); ?>Count']; // Aggregated count
+    $count = $row['<?php echo $e(lcfirst((string) $relation)); ?>Count']; // Aggregated count
 
     echo $entity->getTitle() . ': ' . $count;
 }
@@ -120,7 +118,7 @@ $query = $entityManager->createQuery('
     SELECT
         e.id,
         e.title,
-        COUNT(r.id) AS <?php echo lcfirst((string) $relation); ?>Count,
+        COUNT(r.id) AS <?php echo $e(lcfirst((string) $relation)); ?>Count,
         SUM(CASE WHEN r.status = :published THEN 1 ELSE 0 END) AS publishedCount,
         MAX(r.createdAt) AS lastCreated
     FROM App\\Entity\\<?php echo $e($entity); ?> e
@@ -132,7 +130,7 @@ $results = $query->getResult();
 // Result: 1 query with multiple aggregations!</code></pre>
     </div>
 
-    <h4>⚖️ Trade-offs: GROUP BY Aggregation</h4>
+    <h4>Trade-offs: GROUP BY Aggregation</h4>
     <div class="alert alert-warning">
         <strong>Pros:</strong>
         <ul>
@@ -168,7 +166,7 @@ $results = $query->getResult();
     </ul>
 
     <div class="alert alert-info">
-        ℹ️ <strong>Expected Performance Improvement:</strong><br>
+        ℹ<strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Current:</strong> <?php echo $queryCount; ?> queries</li>
             <li><strong>With GROUP BY:</strong> 1 query</li>
@@ -177,11 +175,7 @@ $results = $query->getResult();
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#grouping" target="_blank" class="doc-link">
-            📜 Doctrine DQL GROUP BY Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#grouping', 'Doctrine DQL GROUP BY Documentation'); ?>
 </div>
 
 <?php

@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entityClass
+ * @var string $entityClass
  * @var mixed $fieldName
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['entity_class' => $entityClass, 'field_name' => $fieldName] = $context;
+$entityClass = (string) ($context['entity_class'] ?? 'Entity');
+$fieldName   = (string) ($context['field_name'] ?? 'created_at');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Public setter on timestamp field</h4>
-</div>
+<?php echo suggestionHeader('Public setter on timestamp field'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-info">
@@ -31,7 +30,7 @@ ob_start();
     #[Gedmo\Timestampable(on: 'create')]
     private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
 
-    public function set<?php echo ucfirst((string) $fieldName); ?>(\DateTimeImmutable $date): void {
+    public function set<?php echo $e(ucfirst((string) $fieldName)); ?>(\DateTimeImmutable $date): void {
         $this-><?php echo $e($fieldName); ?> = $date;
     }
 }</code></pre>
@@ -43,7 +42,7 @@ ob_start();
     #[Gedmo\Timestampable(on: 'create')]
     private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
 
-    public function get<?php echo ucfirst((string) $fieldName); ?>(): \DateTimeImmutable {
+    public function get<?php echo $e(ucfirst((string) $fieldName)); ?>(): \DateTimeImmutable {
         return $this-><?php echo $e($fieldName); ?>;
     }
 }</code></pre>
@@ -51,7 +50,7 @@ ob_start();
 
     <p>Remove the setter.</p>
 
-    <p><a href="https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/timestampable.md" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Extensions Timestampable</a></p>
+    <?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/timestampable.md', 'Doctrine Extensions Timestampable'); ?>
 </div>
 
 <?php

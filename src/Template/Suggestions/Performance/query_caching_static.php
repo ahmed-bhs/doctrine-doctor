@@ -12,7 +12,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Cache query on static table</h4></div>
+<?php echo suggestionHeader('Cache query on static table'); ?>
 <div class="suggestion-content">
 <div class="alert alert-info">Query on static table <code><?php echo $e($table_name); ?></code> (rarely-changing lookup data)</div>
 
@@ -34,7 +34,7 @@ ob_start();
 <h4>Invalidation (when data changes)</h4>
 <div class="query-item"><pre><code class="language-php">$cacheDriver->delete('<?php echo $e($table_name); ?>_all');</code></pre></div>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Caching</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html', 'Doctrine ORM Caching'); ?>
 </div>
 <?php
 $code = ob_get_clean();

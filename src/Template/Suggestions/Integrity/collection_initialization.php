@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $entityClass = (string) ($context['entity_class'] ?? 'Entity');
 $fieldName = (string) ($context['field_name'] ?? 'items');
@@ -18,7 +18,7 @@ $shortClass = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClas
 $mappedBy = 'OneToMany' === $associationType ? ", mappedBy: '" . $mappedByValue . "'" : '';
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Uninitialized collection</h4></div>
+<?php echo suggestionHeader('Uninitialized collection'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger"><strong><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></strong> is not initialized</div>
 
@@ -63,7 +63,7 @@ class <?php echo $e($shortClass); ?> {
     }
 }</code></pre></div>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Working with Associations</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html', 'Doctrine ORM Working with Associations'); ?>
 </div>
 <?php
 $code = ob_get_clean();

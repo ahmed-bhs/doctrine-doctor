@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $orderByClause
+ * @var string $orderByClause
  * @var mixed $originalQuery
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['order_by_clause' => $orderByClause, 'original_query' => $originalQuery, 'query_context' => $queryContext] = $context;
+$orderByClause = (string) ($context['order_by_clause'] ?? 'ORDER BY id');
+$originalQuery = (string) ($context['original_query'] ?? '');
+$queryContext  = (string) ($context['query_context'] ?? '');
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 $isBoundedArrayResult = 'array_result' === $queryContext
@@ -17,9 +19,7 @@ $isBoundedArrayResult = 'array_result' === $queryContext
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>ORDER BY without LIMIT</h4>
-</div>
+<?php echo suggestionHeader('ORDER BY without LIMIT'); ?>
 
 <div class="suggestion-content">
 <?php if ($isBoundedArrayResult) { ?>
@@ -72,7 +72,7 @@ $qb->select('u')
     <p><strong>Performance:</strong> Sorting 1M rows without LIMIT uses significant CPU/memory. Add LIMIT or remove ORDER BY.</p>
 <?php } ?>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#first-and-max-result-items-dql-query-only" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM First and Max Result Items</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#first-and-max-result-items-dql-query-only', 'Doctrine ORM First and Max Result Items'); ?>
 </div>
 
 <?php

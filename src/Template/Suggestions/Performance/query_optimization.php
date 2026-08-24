@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $code
+ * @var string $code
  * @var mixed $optimization
- * @var mixed $executionTime
+ * @var float $executionTime
  * @var mixed $threshold
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $code = (string) ($context['code'] ?? '');
 $optimization = (string) ($context['optimization'] ?? '');
@@ -16,7 +16,7 @@ $executionTime = (float) ($context['execution_time'] ?? 0.0);
 $threshold = (float) ($context['threshold'] ?? 0.0);
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Slow Query Optimization</h4></div>
+<?php echo suggestionHeader('Slow Query Optimization'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning"><strong>Slow Query Detected</strong><br>
 Execution time: <strong><?php echo number_format($executionTime, 2); ?>ms</strong> (threshold: <?php echo $threshold; ?>ms)</div>
@@ -44,7 +44,7 @@ if ($isPHP) {
 <li>Use Query Result Cache for repeated queries</li>
 </ul>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/improving-performance.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Improving Performance</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/improving-performance.html', 'Doctrine ORM Improving Performance'); ?>
 </div>
 <?php
 $code = ob_get_clean();

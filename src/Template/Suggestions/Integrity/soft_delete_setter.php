@@ -10,7 +10,7 @@ $shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Public setter on soft delete field</h4></div>
+<?php echo suggestionHeader('Public setter on soft delete field'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning"><code><?php echo $e($fieldName); ?></code> has a public setter, allowing direct manipulation of the deletion timestamp.</div>
 
@@ -44,7 +44,7 @@ ob_start();
         return null !== $this-><?php echo $e($fieldName); ?>;
     }
 
-    public function get<?php echo ucfirst($fieldName); ?>(): ?\DateTimeImmutable
+    public function get<?php echo $e(ucfirst($fieldName)); ?>(): ?\DateTimeImmutable
     {
         return $this-><?php echo $e($fieldName); ?>;
     }
@@ -52,7 +52,7 @@ ob_start();
 
 <p>Use <code>delete()</code> and <code>restore()</code> methods instead of a setter.</p>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#doctrine-mapping-types" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Mapping Types</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#doctrine-mapping-types', 'Doctrine ORM Mapping Types'); ?>
 </div>
 <?php
 $code = ob_get_clean();

@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity
+ * @var string $entity
  * @var mixed $relation
- * @var mixed $queryCount
- * @var mixed $context
+ * @var int $queryCount
+ * @var array<string, mixed> $context
  */
-['entity' => $entity, 'relation' => $relation, 'query_count' => $queryCount, 'trigger_location' => $triggerLocation] = $context;
-
+$entity          = (string) ($context['entity'] ?? 'Entity');
+$relation        = (string) ($context['relation'] ?? 'items');
+$queryCount      = (int) ($context['query_count'] ?? 0);
+$triggerLocation = (string) ($context['trigger_location'] ?? 'the calling code');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Proxy N+1 Query Problem</h4>
-</div>
+<?php echo suggestionHeader('Proxy N+1 Query Problem'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -27,7 +27,7 @@ ob_start();
         This happens when accessing a ManyToOne or OneToOne relation inside a loop where each proxy is lazily initialized.
     </div>
 
-<?php if (null !== $triggerLocation && '' !== $triggerLocation) { ?>
+<?php if ('' !== $triggerLocation) { ?>
     <div class="alert alert-info">
         <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
     </div>
@@ -38,14 +38,14 @@ ob_start();
         <pre><code class="language-php">$entities = $repository->findAll();
 
 foreach ($entities as $entity) {
-    echo $entity->get<?php echo ucfirst((string) $relation); ?>()->getName(); // Query triggered here!
+    echo $entity->get<?php echo $e(ucfirst((string) $relation)); ?>()->getName(); // Query triggered here!
 }
 // Result: <?php echo $queryCount; ?> queries instead of 1</code></pre>
     </div>
 
     <h4>Solution: Fetch Join (join + addSelect)</h4>
     <div class="query-item">
-        <pre><code class="language-php">public function findAllWith<?php echo ucfirst((string) $relation); ?>(): array
+        <pre><code class="language-php">public function findAllWith<?php echo $e(ucfirst((string) $relation)); ?>(): array
 {
     return $this->createQueryBuilder('e')
         ->leftJoin('e.<?php echo $e($relation); ?>', 'r')
@@ -71,11 +71,7 @@ foreach ($entities as $entity) {
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">
-            Doctrine DQL Joins Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL Joins Documentation'); ?>
 </div>
 
 <?php

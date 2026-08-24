@@ -68,3 +68,72 @@ function escapeContext(string $str, string $context = 'html'): string
         default    => htmlspecialchars($str, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
     };
 }
+
+/**
+ * Map an issue severity onto the Bootstrap-style alert class used by the panel.
+ * Templates receive the severity through the 'severity' context key, injected by
+ * SuggestionFactory, so the banner always matches the severity the analyzer reported.
+ * @param string $severity One of critical, warning, info
+ * @return string The alert modifier class
+ */
+function severityAlertClass(string $severity): string
+{
+    return match ($severity) {
+        'critical' => 'alert-danger',
+        'warning'  => 'alert-warning',
+        default    => 'alert-info',
+    };
+}
+
+/**
+ * Render the heading that opens a suggestion panel.
+ * @param string $title Human readable suggestion title
+ * @return string The header markup
+ */
+function suggestionHeader(string $title): string
+{
+    return '<div class="suggestion-header"><h4>' . htmlspecialchars($title, ENT_NOQUOTES | ENT_HTML5, 'UTF-8') . "</h4></div>\n";
+}
+
+/**
+ * Render the banner stating what was detected, coloured after the issue severity.
+ * @param string $severity One of critical, warning, info
+ * @param string $html     Already escaped banner markup
+ * @return string The alert markup
+ */
+function suggestionAlert(string $severity, string $html): string
+{
+    return '<div class="alert ' . severityAlertClass($severity) . '">' . $html . "</div>\n";
+}
+
+/**
+ * Render a titled block of example code.
+ * @param string $title    Block heading, omitted when empty
+ * @param string $code     Raw code, escaped here
+ * @param string $language Highlighter language hint
+ * @return string The code block markup
+ */
+function suggestionCodeBlock(string $title, string $code, string $language = 'php'): string
+{
+    $heading = '' === $title ? '' : '<h4>' . escape($title) . "</h4>\n";
+
+    return $heading
+        . '<div class="query-item"><pre><code class="language-' . escapeContext($language, 'css') . '">'
+        . escape($code)
+        . "</code></pre></div>\n";
+}
+
+/**
+ * Render a link to the upstream documentation.
+ * @param string $url   Absolute documentation URL
+ * @param string $label Link text
+ * @return string The link markup
+ */
+function suggestionDocLink(string $url, string $label): string
+{
+    // The label is element text, so quotes need no entity encoding: escaping them
+    // would render &apos; in the panel. The href stays attribute-escaped.
+    return '<p><a href="' . escape($url) . '" target="_blank" rel="noopener noreferrer" class="doc-link">'
+        . htmlspecialchars($label, ENT_NOQUOTES | ENT_HTML5, 'UTF-8')
+        . '</a></p>';
+}

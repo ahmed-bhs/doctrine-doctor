@@ -12,7 +12,7 @@ $e = static fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Doctrine 2LC Opportunity</h4></div>
+<?php echo suggestionHeader('Doctrine 2LC Opportunity'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
     Detected <?php echo $count; ?> fast repeated entity-load queries (avg <?php echo number_format($avgTime, 2); ?>ms).
@@ -32,7 +32,7 @@ class Product
 
 <p><strong>Safety notes:</strong> 2LC is best for stable/read-mostly entities. Validate invalidation behavior and consistency needs.</p>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/second-level-cache.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Second Level Cache</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/second-level-cache.html', 'Doctrine ORM Second Level Cache'); ?>
 </div>
 <?php
 $code = ob_get_clean();

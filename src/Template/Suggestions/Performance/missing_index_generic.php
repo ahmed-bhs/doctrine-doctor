@@ -25,9 +25,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Missing database index</h4>
-</div>
+<?php echo suggestionHeader('Missing database index'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -51,17 +49,17 @@ ob_start();
         <pre><code class="language-php">public function up(Schema $schema): void
 {
     // Replace [column1, column2] with actual columns from your WHERE/JOIN clauses
-    $this->addSql('CREATE INDEX IDX_<?php echo strtoupper($e($realTableName)); ?>_COLUMNS ON <?php echo $e($realTableName); ?> (column1, column2)');
+    $this->addSql('CREATE INDEX IDX_<?php echo $e(strtoupper($e($realTableName))); ?>_COLUMNS ON <?php echo $e($realTableName); ?> (column1, column2)');
 }</code></pre>
     </div>
 
     <h5>Example: Add index via entity annotation</h5>
     <div class="code-example">
-        <pre><code class="language-php">#[ORM\Index(name: 'IDX_<?php echo strtoupper($e($realTableName)); ?>_COLUMNS', columns: ['column1', 'column2'])]</code></pre>
+        <pre><code class="language-php">#[ORM\Index(name: 'IDX_<?php echo $e(strtoupper($e($realTableName))); ?>_COLUMNS', columns: ['column1', 'column2'])]</code></pre>
     </div>
 
     <div class="info-box">
-        <p><strong>💡 Tip:</strong> Focus on columns used in:</p>
+        <p><strong>Tip:</strong> Focus on columns used in:</p>
         <ul>
             <li>WHERE clauses (equality and range conditions)</li>
             <li>JOIN ON conditions</li>
@@ -70,11 +68,7 @@ ob_start();
         <p>For composite indexes, put the most selective column first.</p>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index" target="_blank" class="doc-link">
-            📜 Doctrine indexing documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index', 'Doctrine indexing documentation'); ?>
 </div>
 
 <?php

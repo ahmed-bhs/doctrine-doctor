@@ -6,14 +6,15 @@ $entityClass = $context['entity_class'] ?? '';
 $fieldName = $context['field_name'] ?? '';
 $currentTarget = $context['current_target'] ?? 'unknown';
 
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 $shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Blameable field points to wrong entity</h4></div>
+<?php echo suggestionHeader('Blameable field points to wrong entity'); ?>
 <div class="suggestion-content">
-<div class="alert alert-warning"><code><?php echo $e($fieldName); ?></code> should reference a User entity, but currently points to <code><?php echo $e($currentTarget); ?></code>.</div>
+<div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($fieldName); ?></code> should reference a User entity, but currently points to <code><?php echo $e($currentTarget); ?></code>.</div>
 
 <p>Blameable fields must reference the user/account entity to properly track who created or modified the entity.</p>
 <p>This rule applies to fields used with <code>Gedmo\Blameable</code> (or equivalent blameable behavior).</p>
@@ -73,7 +74,7 @@ stof_doctrine_extensions:
     default:
       blameable: true</code></pre></div>
 
-<p><a href="https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Extensions Blameable</a></p>
+<?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md', 'Doctrine Extensions Blameable'); ?>
 </div>
 <?php
 $code = ob_get_clean();

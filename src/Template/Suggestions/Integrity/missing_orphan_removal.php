@@ -28,9 +28,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Missing orphanRemoval</h4>
-</div>
+<?php echo suggestionHeader('Missing orphanRemoval'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -50,17 +48,13 @@ ob_start();
 }
 
 // Removing from collection now deletes the record
-$<?php echo lcfirst($e($entityClass)); ?>->remove<?php echo ucfirst(rtrim($e($fieldName), 's')); ?>($item);
+$<?php echo $e(lcfirst($e($entityClass))); ?>->remove<?php echo $e(ucfirst(rtrim($e($fieldName), 's'))); ?>($item);
 $em->flush();</code></pre>
     </div>
 
     <p>Use when parent owns children (Order → OrderItems). Don't use for shared entities (Order → Products).</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">
-            📜 Doctrine Orphan Removal
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal', 'Doctrine Orphan Removal'); ?>
 </div>
 
 <?php

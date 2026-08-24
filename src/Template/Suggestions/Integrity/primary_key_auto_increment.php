@@ -6,13 +6,14 @@ declare(strict_types=1);
 $entity_name = $context['entity_name'] ?? 'App\Entity\Example';
 $short_name = $context['short_name'] ?? 'Example';
 
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Consider UUID v7 instead of auto-increment</h4></div>
+<?php echo suggestionHeader('Consider UUID v7 instead of auto-increment'); ?>
 <div class="suggestion-content">
-<div class="alert alert-warning"><strong>Entity:</strong> <code><?php echo $e($short_name); ?></code></div>
+<div class="alert <?php echo severityAlertClass($severity); ?>"><strong>Entity:</strong> <code><?php echo $e($short_name); ?></code></div>
 
 <p>Auto-increment INT is simple but exposes business metrics, enables enumeration attacks, and doesn't work for distributed systems.</p>
 
@@ -35,7 +36,7 @@ public function __construct() {
 
 <p>Use UUID v7 for: API resources, distributed systems, security-sensitive entities.</p>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#identifier-generation-strategies" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Identifier Generation Strategies</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#identifier-generation-strategies', 'Doctrine ORM Identifier Generation Strategies'); ?>
 </div>
 <?php
 $code = ob_get_clean();

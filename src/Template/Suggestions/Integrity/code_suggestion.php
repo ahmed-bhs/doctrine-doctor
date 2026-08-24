@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $description
+ * @var string $description
  * @var mixed $code
- * @var mixed $filePath
- * @var mixed $context
+ * @var string $filePath
+ * @var array<string, mixed> $context
  */
 $description = (string) ($context['description'] ?? '');
 $code = (string) ($context['code'] ?? '');
@@ -15,7 +15,7 @@ $filePath = (string) ($context['file_path'] ?? '');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Suggestion</h4></div>
+<?php echo suggestionHeader('Suggestion'); ?>
 <div class="suggestion-content">
 <p><?php echo nl2br($e($description)); ?></p>
 <?php if ($filePath) { ?>
@@ -27,4 +27,4 @@ ob_start();
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => $description];
+return ['code' => $code, 'description' => '' !== $description ? $description : 'Apply the suggested code change'];

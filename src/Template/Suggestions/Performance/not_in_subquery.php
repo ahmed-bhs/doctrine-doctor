@@ -10,9 +10,7 @@ $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>NOT IN (SELECT ...) NULL pitfall</h4>
-</div>
+<?php echo suggestionHeader('NOT IN (SELECT ...) NULL pitfall'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -58,7 +56,7 @@ WHERE u.id NOT IN (
 );</code></pre>
     </div>
 
-    <p><a href="https://use-the-index-luke.com/sql/where-clause/null/not-in" target="_blank" rel="noopener noreferrer" class="doc-link">Use The Index, Luke! NOT IN and NULLs</a></p>
+    <?php echo suggestionDocLink('https://use-the-index-luke.com/sql/where-clause/null/not-in', 'Use The Index, Luke! NOT IN and NULLs'); ?>
 </div>
 
 <?php

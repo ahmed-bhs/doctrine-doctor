@@ -8,7 +8,7 @@ declare(strict_types=1);
  * @var mixed $depth
  * @var mixed $queryCount
  * @var mixed $chain
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
 $entities = $context['entities'] ?? ['Entity', 'Relation'];
 if (!is_array($entities) || [] === $entities) {
@@ -29,9 +29,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Resolve Nested Relationship N+1</h4>
-</div>
+<?php echo suggestionHeader('Resolve Nested Relationship N+1'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -44,12 +42,12 @@ ob_start();
     <h4>Problem: Multi-Level Relationship Access in Loop</h4>
     <div class="query-item">
         <pre><code class="language-php">// BAD: Nested relationship access causes exponential queries
-$<?php echo lcfirst((string) $entities[0]); ?>s = $repository->findAll();
+$<?php echo $e(lcfirst((string) $entities[0])); ?>s = $repository->findAll();
 
-foreach ($<?php echo lcfirst((string) $entities[0]); ?>s as $<?php echo lcfirst((string) $entities[0]); ?>) {
+foreach ($<?php echo $e(lcfirst((string) $entities[0])); ?>s as $<?php echo $e(lcfirst((string) $entities[0])); ?>) {
     // Level 1: Accessing <?php echo $entities[1] ?? 'relation'; ?>
 
-    echo $<?php echo lcfirst((string) $entities[0]); ?>->get<?php echo $entities[1] ?? 'Relation'; ?>()
+    echo $<?php echo $e(lcfirst((string) $entities[0])); ?>->get<?php echo $entities[1] ?? 'Relation'; ?>()
 <?php if (isset($entities[2])) { ?>
         // Level 2: Accessing <?php echo $entities[2]; ?> through <?php echo $entities[1]; ?>
 
@@ -63,7 +61,7 @@ foreach ($<?php echo lcfirst((string) $entities[0]); ?>s as $<?php echo lcfirst(
         ->getName();
 }
 
-// Result for 100 <?php echo lcfirst((string) $entities[0]); ?>s:
+// Result for 100 <?php echo $e(lcfirst((string) $entities[0])); ?>s:
 // - 100 queries for <?php echo $entities[1] ?? 'relations'; ?>
 
 <?php if (isset($entities[2])) { ?>
@@ -81,21 +79,21 @@ foreach ($<?php echo lcfirst((string) $entities[0]); ?>s as $<?php echo lcfirst(
     <div class="query-item">
         <pre><code class="language-php">// GOOD: Eager load entire chain with nested JOINs
 $query = $em->createQuery('
-    SELECT <?php echo strtolower((string) $entities[0][0]); ?><?php foreach (array_slice($entities, 1) as $i => $entity) { ?>, <?php echo strtolower((string) $entity[0]); ?><?php } ?>
+    SELECT <?php echo $e(strtolower((string) $entities[0][0])); ?><?php foreach (array_slice($entities, 1) as $i => $entity) { ?>, <?php echo $e(strtolower((string) $entity[0])); ?><?php } ?>
 
-    FROM App\Entity\<?php echo $e($entities[0]); ?> <?php echo strtolower((string) $entities[0][0]); ?>
+    FROM App\Entity\<?php echo $e($entities[0]); ?> <?php echo $e(strtolower((string) $entities[0][0])); ?>
 
     <?php foreach (array_slice($entities, 1) as $i => $entity) { ?>
-LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirst((string) $entity); ?> <?php echo strtolower((string) $entity[0]); ?>
+LEFT JOIN <?php echo $e(strtolower((string) $entities[$i][0])); ?>.<?php echo $e(lcfirst((string) $entity)); ?> <?php echo $e(strtolower((string) $entity[0])); ?>
 
     <?php } ?>
 ');
 
-$<?php echo lcfirst((string) $entities[0]); ?>s = $query->getResult();
+$<?php echo $e(lcfirst((string) $entities[0])); ?>s = $query->getResult();
 
 // Now access the chain without any extra queries:
-foreach ($<?php echo lcfirst((string) $entities[0]); ?>s as $<?php echo lcfirst((string) $entities[0]); ?>) {
-    echo $<?php echo lcfirst((string) $entities[0]); ?>->get<?php echo $entities[1] ?? 'Relation'; ?>()
+foreach ($<?php echo $e(lcfirst((string) $entities[0])); ?>s as $<?php echo $e(lcfirst((string) $entities[0])); ?>) {
+    echo $<?php echo $e(lcfirst((string) $entities[0])); ?>->get<?php echo $entities[1] ?? 'Relation'; ?>()
 <?php if (isset($entities[2])) { ?>
         ->get<?php echo $entities[2]; ?>()
 <?php } ?>
@@ -116,17 +114,17 @@ foreach ($<?php echo lcfirst((string) $entities[0]); ?>s as $<?php echo lcfirst(
  */
 public function findAllWithNested<?php echo $entities[1] ?? 'Relations'; ?>(): array
 {
-    return $this->createQueryBuilder('<?php echo strtolower((string) $entities[0][0]); ?>')
+    return $this->createQueryBuilder('<?php echo $e(strtolower((string) $entities[0][0])); ?>')
 <?php foreach (array_slice($entities, 1) as $i => $entity) { ?>
-        ->leftJoin('<?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirst((string) $entity); ?>', '<?php echo strtolower((string) $entity[0]); ?>')
-        ->addSelect('<?php echo strtolower((string) $entity[0]); ?>')
+        ->leftJoin('<?php echo $e(strtolower((string) $entities[$i][0])); ?>.<?php echo $e(lcfirst((string) $entity)); ?>', '<?php echo $e(strtolower((string) $entity[0])); ?>')
+        ->addSelect('<?php echo $e(strtolower((string) $entity[0])); ?>')
 <?php } ?>
         ->getQuery()
         ->getResult();
 }
 
 // Usage:
-$<?php echo lcfirst((string) $entities[0]); ?>s = $repository->findAllWithNested<?php echo $entities[1] ?? 'Relations'; ?>();
+$<?php echo $e(lcfirst((string) $entities[0])); ?>s = $repository->findAllWithNested<?php echo $entities[1] ?? 'Relations'; ?>();
 // Result: 1 query with all nested relations loaded!</code></pre>
     </div>
 
@@ -135,15 +133,15 @@ $<?php echo lcfirst((string) $entities[0]); ?>s = $repository->findAllWithNested
         <pre><code class="language-php">// BEST for read-only data: Use custom DTO with single query
 $results = $em->createQuery('
     SELECT NEW App\DTO\<?php echo $e($entities[0]); ?>DTO(
-        <?php echo strtolower((string) $entities[0][0]); ?>.id,
-        <?php echo strtolower((string) $entities[0][0]); ?>.title,
+        <?php echo $e(strtolower((string) $entities[0][0])); ?>.id,
+        <?php echo $e(strtolower((string) $entities[0][0])); ?>.title,
         <?php echo isset($entities[1]) ? strtolower((string) $entities[1][0]) : 'r'; ?>.name,
         <?php echo isset($entities[2]) ? strtolower((string) $entities[2][0]) : 'c'; ?>.name
     )
-    FROM App\Entity\<?php echo $e($entities[0]); ?> <?php echo strtolower((string) $entities[0][0]); ?>
+    FROM App\Entity\<?php echo $e($entities[0]); ?> <?php echo $e(strtolower((string) $entities[0][0])); ?>
 
     <?php foreach (array_slice($entities, 1) as $i => $entity) { ?>
-LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirst((string) $entity); ?> <?php echo strtolower((string) $entity[0]); ?>
+LEFT JOIN <?php echo $e(strtolower((string) $entities[$i][0])); ?>.<?php echo $e(lcfirst((string) $entity)); ?> <?php echo $e(strtolower((string) $entity[0])); ?>
 
     <?php } ?>
 ')->getResult();
@@ -152,14 +150,14 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
 // Perfect for APIs and read-only display</code></pre>
     </div>
 
-    <h4>⚠️ Why Nested N+1 Is Especially Bad</h4>
+    <h4>Why Nested N+1 Is Especially Bad</h4>
     <div class="alert alert-danger">
         <strong>Exponential Query Growth:</strong>
         <ul>
-            <li>🔥 <strong>Multiplies at each level</strong>: <?php echo $depth; ?> levels × <?php echo $queryCount; ?> queries = <?php echo $totalQueries; ?> total queries</li>
-            <li>⏱️ <strong>Latency compounds</strong>: Each level adds network round-trips</li>
-            <li>🐘 <strong>Database strain</strong>: <?php echo $totalQueries; ?> queries vs 1 with eager loading</li>
-            <li>📈 <strong>Scales terribly</strong>: With 1000 entities → <?php echo 1000 * $depth; ?> queries!</li>
+            <li><strong>Multiplies at each level</strong>: <?php echo $depth; ?> levels × <?php echo $queryCount; ?> queries = <?php echo $totalQueries; ?> total queries</li>
+            <li>⏱<strong>Latency compounds</strong>: Each level adds network round-trips</li>
+            <li><strong>Database strain</strong>: <?php echo $totalQueries; ?> queries vs 1 with eager loading</li>
+            <li><strong>Scales terribly</strong>: With 1000 entities → <?php echo 1000 * $depth; ?> queries!</li>
         </ul>
     </div>
 
@@ -183,7 +181,7 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
                 <td style="padding: 8px;">5-10ms</td>
             </tr>
             <tr>
-                <td style="padding: 8px;">⚡ Improvement</td>
+                <td style="padding: 8px;">Improvement</td>
                 <td style="padding: 8px;"><strong><?php echo $queryReduction; ?>%</strong></td>
                 <td style="padding: 8px;"><?php echo $speedGain; ?>% faster</td>
             </tr>
@@ -207,7 +205,7 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
     </ul>
 
     <div class="alert alert-info">
-        ℹ️ <strong>Expected Performance Improvement:</strong><br>
+        ℹ<strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Current:</strong> <?php echo $totalQueries; ?> queries (<?php echo $depth; ?> levels × <?php echo $queryCount; ?> per level)</li>
             <li><strong>With multi-level JOIN:</strong> 1 query total</li>
@@ -216,11 +214,7 @@ LEFT JOIN <?php echo strtolower((string) $entities[$i][0]); ?>.<?php echo lcfirs
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">
-            📜 Doctrine Multi-Level JOIN Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine Multi-Level JOIN Documentation'); ?>
 </div>
 
 <?php

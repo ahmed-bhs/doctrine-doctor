@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity_class
+ * @var string $entity_class
  * @var mixed $extension_type
- * @var mixed $impact
- * @var mixed $context
+ * @var string $impact
+ * @var array<string, mixed> $context
  */
 $entity_class = (string) ($context['entity_class'] ?? '');
 $extension_type = (string) ($context['extension_type'] ?? '');
@@ -15,7 +15,7 @@ $impact = (string) ($context['impact'] ?? '');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Suggestion</h4></div>
+<?php echo suggestionHeader('Suggestion'); ?>
 <div class="suggestion-content">
 <p>The entity <?php echo $e($entity_class); ?> uses Gedmo <?php echo $e($extension_type); ?> extension, which <?php echo $e($impact); ?>.</p>
 

@@ -16,9 +16,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Foreign Key Mapped as Primitive Type (Anti-Pattern)</h4>
-</div>
+<?php echo suggestionHeader('Foreign Key Mapped as Primitive Type (Anti-Pattern)'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -34,7 +32,7 @@ ob_start();
     #[ORM\Column(type: Types::INTEGER)]
     private int $<?php echo $e($fieldName); ?>;
 
-    public function get<?php echo ucfirst((string) $fieldName); ?>(): int {
+    public function get<?php echo $e(ucfirst((string) $fieldName)); ?>(): int {
         return $this-><?php echo $e($fieldName); ?>;
     }
 }</code></pre>
@@ -46,7 +44,7 @@ ob_start();
     #[ORM\<?php echo $e($associationType); ?>(targetEntity: <?php echo $e($targetEntity); ?>::class)]
     private <?php echo $e($targetEntity); ?> $<?php echo $e(rtrim((string) $fieldName, 'Id_')); ?>;
 
-    public function get<?php echo ucfirst(rtrim((string) $fieldName, 'Id_')); ?>(): <?php echo $e($targetEntity); ?> {
+    public function get<?php echo $e(ucfirst(rtrim((string) $fieldName, 'Id_'))); ?>(): <?php echo $e($targetEntity); ?> {
         return $this-><?php echo $e(rtrim((string) $fieldName, 'Id_')); ?>;
     }
 }</code></pre>
@@ -54,11 +52,7 @@ ob_start();
 
     <p>Object relations give you automatic lazy loading, type safety, IDE autocomplete, and easier queries. This is what ORMs are for.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/association-mapping.html" target="_blank" class="doc-link">
-            📜 Doctrine Association Mapping
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/association-mapping.html', 'Doctrine Association Mapping'); ?>
 </div>
 
 <?php

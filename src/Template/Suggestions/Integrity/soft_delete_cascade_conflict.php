@@ -10,7 +10,7 @@ $shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>CASCADE DELETE vs Soft Delete conflict</h4></div>
+<?php echo suggestionHeader('CASCADE DELETE vs Soft Delete conflict'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger">Your entity uses soft delete but has a relation with <code>onDelete="CASCADE"</code>. This causes data loss.</div>
 
@@ -38,7 +38,7 @@ class <?php echo $e($shortClass); ?>
 
 <p>Use SET NULL to orphan children, or ORM cascade to soft delete children too. Never mix soft delete with database CASCADE DELETE.</p>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Cascade Operations</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine ORM Cascade Operations'); ?>
 </div>
 <?php
 $code = ob_get_clean();

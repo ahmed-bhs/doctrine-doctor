@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $type
+ * @var string $type
  * @var mixed $table
- * @var mixed $alias
- * @var mixed $context
+ * @var string $alias
+ * @var array<string, mixed> $context
  */
 $type = (string) ($context['type'] ?? 'LEFT');
 $table = (string) ($context['table'] ?? 'related_table');
@@ -17,9 +17,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Unused JOIN Detected</h4>
-</div>
+<?php echo suggestionHeader('Unused JOIN Detected'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -59,7 +57,7 @@ ob_start();
         Removing unused JOIN: 10-20% faster
     </div>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Joins</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins', 'Doctrine ORM Joins'); ?>
 </div>
 
 <?php

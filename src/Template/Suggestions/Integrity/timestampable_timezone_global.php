@@ -1,12 +1,10 @@
 <?php
 
 /*
-<ul>
-<li>This file is part of the Doctrine Doctor.</li>
-<li>(c) 2025 Ahmed EBEN HASSINE</li>
-<li>For the full copyright and license information, please view the LICENSE</li>
-<li>file that was distributed with this source code.</li>
-</ul>
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025-2026 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -14,10 +12,9 @@ declare(strict_types=1);
 /**
  * Template for Global Timezone Warning.
  * Context variables provided by PhpTemplateRenderer::extract($context):
- * @var mixed $totalFields Number of timestamp fields found
+ * @var int $totalFields Number of timestamp fields found
  */
-['total_fields' => $totalFields] = $context;
-
+$totalFields = (int) ($context['total_fields'] ?? 0);
 // Escaping function
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
@@ -63,11 +60,7 @@ private \DateTimeImmutable $createdAt;</code></pre>
 
     <p>If you're not sure, stick with <code>datetime</code> and UTC. It's simpler and works for most cases. Only switch to <code>datetimetz</code> if you have a specific need to preserve timezones.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz" target="_blank" rel="noopener noreferrer" class="doc-link">
-            📜 Doctrine: DateTimeTZ Type
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz', 'Doctrine: DateTimeTZ Type'); ?>
 </div>
 
 <?php

@@ -17,9 +17,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>cascade="persist" on Independent Entity (Risk of Duplicates)</h4>
-</div>
+<?php echo suggestionHeader('cascade="persist" on Independent Entity (Risk of Duplicates)'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -42,18 +40,14 @@ ob_start();
 // Load existing <?php echo $e($targetEntity); ?> (or use getReference() for better performance)
 $entity = new <?php echo $e($entityClass); ?>();
 $<?php echo $e($fieldName); ?> = $em->find(<?php echo $e($targetEntity); ?>::class, $<?php echo $e($fieldName); ?>Id);
-$entity->set<?php echo ucfirst((string) $fieldName); ?>($<?php echo $e($fieldName); ?>);
+$entity->set<?php echo $e(ucfirst((string) $fieldName)); ?>($<?php echo $e($fieldName); ?>);
 $em->persist($entity);
 $em->flush();</code></pre>
     </div>
 
     <p><strong>Use cascade="persist" only</strong> on composition relationships (Order → OrderItems) where children don't exist independently. <strong>Never</strong> on User, Customer, Product, Category, etc.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#transitive-persistence-cascade-operations" target="_blank" class="doc-link">
-            📜 Doctrine Cascade Operations
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine Cascade Operations'); ?>
 </div>
 
 <?php

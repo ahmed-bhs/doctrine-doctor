@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $entity
+ * @var string $entity
  * @var mixed $column
- * @var mixed $queryCount
+ * @var int $queryCount
  * @var mixed $triggerLocation
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['entity' => $entity, 'column' => $column, 'query_count' => $queryCount, 'trigger_location' => $triggerLocation] = $context;
-
+$entity          = (string) ($context['entity'] ?? 'Entity');
+$column          = (string) ($context['column'] ?? 'column_name');
+$queryCount      = (int) ($context['query_count'] ?? 0);
+$triggerLocation = (string) ($context['trigger_location'] ?? 'the calling code');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Repeated Lookup Query Problem</h4>
-</div>
+<?php echo suggestionHeader('Repeated Lookup Query Problem'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -28,7 +28,7 @@ ob_start();
         This happens when calling <code>findBy()</code> or <code>findOneBy()</code> repeatedly with different values for the same column.
     </div>
 
-<?php if (null !== $triggerLocation && '' !== $triggerLocation) { ?>
+<?php if ('' !== $triggerLocation) { ?>
     <div class="alert alert-info">
         <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
     </div>
@@ -53,7 +53,7 @@ ob_start();
 // Index by <?php echo $e($column); ?> for O(1) access
 $indexed = [];
 foreach ($entities as $entity) {
-    $indexed[$entity->get<?php echo ucfirst((string) $column); ?>()] = $entity;
+    $indexed[$entity->get<?php echo $e(ucfirst((string) $column)); ?>()] = $entity;
 }
 // Result: 1 query instead of <?php echo $queryCount; ?></code></pre>
     </div>
@@ -62,7 +62,7 @@ foreach ($entities as $entity) {
     <div class="query-item">
         <pre><code class="language-php">private array $cache = [];
 
-public function getBy<?php echo ucfirst((string) $column); ?>(string $<?php echo $e($column); ?>): ?<?php echo $e($entity); ?>
+public function getBy<?php echo $e(ucfirst((string) $column)); ?>(string $<?php echo $e($column); ?>): ?<?php echo $e($entity); ?>
 
 {
     if (array_key_exists($<?php echo $e($column); ?>, $this->cache)) {

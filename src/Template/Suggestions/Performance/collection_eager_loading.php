@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['parent_entity' => $parentEntity, 'collection_field' => $collectionField, 'child_entity' => $childEntity, 'query_count' => $queryCount, 'trigger_location' => $triggerLocation] = $context;
-
+$parentEntity    = (string) ($context['parent_entity'] ?? 'Entity');
+$collectionField = (string) ($context['collection_field'] ?? 'items');
+$childEntity     = (string) ($context['child_entity'] ?? 'RelatedEntity');
+$queryCount      = (int) ($context['query_count'] ?? 0);
+$triggerLocation = (string) ($context['trigger_location'] ?? 'the calling code');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 $lcCollectionField = lcfirst((string) $collectionField);
@@ -15,9 +18,7 @@ $lcCollectionField = lcfirst((string) $collectionField);
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Collection N+1 Query Problem</h4>
-</div>
+<?php echo suggestionHeader('Collection N+1 Query Problem'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -25,7 +26,7 @@ ob_start();
         Each access to this collection triggers a separate SQL query.
     </div>
 
-<?php if (null !== $triggerLocation && '' !== $triggerLocation) { ?>
+<?php if ('' !== $triggerLocation) { ?>
     <div class="alert alert-info">
         <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
     </div>
@@ -72,11 +73,7 @@ private Collection $<?php echo $e($collectionField); ?>;</code></pre>
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">
-            Doctrine DQL Joins Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL Joins Documentation'); ?>
 </div>
 
 <?php

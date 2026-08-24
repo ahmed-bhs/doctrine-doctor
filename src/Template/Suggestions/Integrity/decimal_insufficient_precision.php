@@ -30,9 +30,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Increase Decimal Precision</h4>
-</div>
+<?php echo suggestionHeader('Increase Decimal Precision'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -47,11 +45,7 @@ ob_start();
 
     <p><?php echo $e($infoMessage); ?> - Prevents data truncation and runtime errors.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal" target="_blank" class="doc-link">
-            📜 Doctrine Decimal Type Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal', 'Doctrine Decimal Type Documentation'); ?>
 </div>
 
 <?php

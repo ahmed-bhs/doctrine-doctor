@@ -24,9 +24,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>EntityManager in Entity</h4>
-</div>
+<?php echo suggestionHeader('EntityManager in Entity'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -45,11 +43,7 @@ ob_start();
 
     <p>Entities represent data. Services handle persistence.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/architecture.html" target="_blank" class="doc-link">
-            📜 Doctrine architecture
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/architecture.html', 'Doctrine architecture'); ?>
 </div>
 
 <?php

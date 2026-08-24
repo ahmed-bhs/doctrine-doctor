@@ -18,9 +18,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Multi-Step Hydration for Collection JOINs</h4>
-</div>
+<?php echo suggestionHeader('Multi-Step Hydration for Collection JOINs'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -97,11 +95,7 @@ foreach ($users as $user) {
         <strong>Pro Tip:</strong> Use <code>PARTIAL u.{id}</code> in subsequent queries to avoid re-hydrating scalar fields that are already in memory.
     </div>
 
-    <p>
-        <a href="https://ocramius.github.io/blog/doctrine-orm-optimization-hydration" target="_blank" class="doc-link">
-            📜 Read Marco Pivetta's article on multi-step hydration
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://ocramius.github.io/blog/doctrine-orm-optimization-hydration', 'Read Marco Pivetta\'s article on multi-step hydration'); ?>
 </div>
 
 <?php

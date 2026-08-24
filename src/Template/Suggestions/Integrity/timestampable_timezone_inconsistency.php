@@ -1,37 +1,33 @@
 <?php
 
 /*
-<ul>
-<li>This file is part of the Doctrine Doctor.</li>
-<li>(c) 2025 Ahmed EBEN HASSINE</li>
-<li>For the full copyright and license information, please view the LICENSE</li>
-<li>file that was distributed with this source code.</li>
-</ul>
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025-2026 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $datetimeCount
+ * @var int $datetimeCount
  * @var mixed $datetimetzCount
- * @var mixed $context
+ * @var array<string, mixed> $context
  */
-['datetime_count' => $datetimeCount, 'datetimetz_count' => $datetimetzCount] = $context;
-
+$datetimeCount   = (int) ($context['datetime_count'] ?? 0);
+$datetimetzCount = (int) ($context['datetimetz_count'] ?? 0);
 // Escaping function
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>⚠️ Inconsistent Timezone Usage</h4>
-</div>
+<?php echo suggestionHeader('Inconsistent Timezone Usage'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        ⚠️ <strong>Warning</strong><br>
+        <strong>Warning</strong><br>
         Your application has <strong>inconsistent timezone handling</strong>:<br>
 <ul>
 <li><?php echo $datetimeCount; ?> fields use <code>datetime</code> (no timezone)<br></li>
@@ -52,7 +48,7 @@ ob_start();
 
     <h4>Recommended Solution</h4>
     <div class="alert alert-success">
-        💡 <strong>Choose ONE approach for your entire application:</strong>
+        <strong>Choose ONE approach for your entire application:</strong>
     </div>
 
     <h4>Option 1: Use datetime everywhere (Recommended for most apps)</h4>
@@ -104,7 +100,7 @@ private \DateTimeImmutable $createdAt;
     </table>
 
     <div class="alert alert-info">
-        💡 <strong>Our recommendation:</strong> Use <code>datetime</code> everywhere with UTC storage.<br>
+        <strong>Our recommendation:</strong> Use <code>datetime</code> everywhere with UTC storage.<br>
         This is the industry standard for 99% of applications (Symfony, Laravel, Rails, etc.).
     </div>
 
@@ -126,11 +122,7 @@ php bin/console doctrine:migrations:migrate --dry-run
 php bin/console doctrine:migrations:migrate</code></pre>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetime" target="_blank" class="doc-link">
-            📜 Doctrine: DateTime Types
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetime', 'Doctrine: DateTime Types'); ?>
 </div>
 
 <?php

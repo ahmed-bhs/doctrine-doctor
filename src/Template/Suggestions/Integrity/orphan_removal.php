@@ -26,9 +26,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Incomplete composition setup</h4>
-</div>
+<?php echo suggestionHeader('Incomplete composition setup'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
@@ -50,11 +48,7 @@ ob_start();
 
     <p>Complete composition requires both <code>cascade: ['persist', 'remove']</code> and <code>orphanRemoval: true</code>.</p>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal" target="_blank" class="doc-link">
-            📜 Doctrine orphan removal
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal', 'Doctrine orphan removal'); ?>
 </div>
 
 <?php

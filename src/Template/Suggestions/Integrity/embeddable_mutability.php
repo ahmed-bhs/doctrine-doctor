@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $embeddableClass
- * @var mixed $context
+ * @var string $embeddableClass
+ * @var array<string, mixed> $context
  */
-['embeddable_class' => $embeddableClass] = $context;
+$embeddableClass = (string) ($context['embeddable_class'] ?? 'Money');
+$severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Embeddable Should Be Immutable</h4>
-</div>
+<?php echo suggestionHeader('Embeddable Should Be Immutable'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-info">
+    <div class="alert <?php echo severityAlertClass($severity); ?>">
         Embeddable <code><?= $e($embeddableClass) ?></code> has public setters - Value Objects should be immutable.
     </div>
 
@@ -55,7 +54,7 @@ readonly class <?= $e($embeddableClass) ?> {
 
     <p><strong>Best practice:</strong> Value Objects should be immutable. Use <code>readonly</code> and constructor injection.</p>
 
-    <p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine ORM Embeddables</a></p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html', 'Doctrine ORM Embeddables'); ?>
 </div>
 
 <?php

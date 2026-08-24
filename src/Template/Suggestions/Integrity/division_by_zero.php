@@ -12,7 +12,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Division by zero</h4></div>
+<?php echo suggestionHeader('Division by zero'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger"><strong>Unsafe:</strong> <code><?php echo $e($unsafe_division); ?></code></div>
 
@@ -30,7 +30,7 @@ $qb->select('(o.revenue / o.quantity) as avg_price');
 // Safe
 $qb->select('(o.revenue / NULLIF(o.quantity, 0)) as avg_price');</code></pre></div>
 
-<p><a href="https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html" target="_blank" rel="noopener noreferrer" class="doc-link">Doctrine Query Language (DQL)</a></p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html', 'Doctrine Query Language (DQL)'); ?>
 </div>
 <?php
 $code = ob_get_clean();

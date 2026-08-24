@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var mixed $joinCount
- * @var mixed $context
+ * @var int $joinCount
+ * @var array<string, mixed> $context
  */
-['join_count' => $joinCount] = $context;
-
+$joinCount = (int) ($context['join_count'] ?? 0);
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
@@ -16,9 +15,7 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 ob_start();
 ?>
 
-<div class="suggestion-header">
-    <h4>Reduce Over-Eager Loading</h4>
-</div>
+<?php echo suggestionHeader('Reduce Over-Eager Loading'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
@@ -157,7 +154,7 @@ $results = $em->createQuery('
         </ul>
     </div>
 
-    <h4>⚖️ Trade-offs: Why Multiple Queries Can Be Better</h4>
+    <h4>Trade-offs: Why Multiple Queries Can Be Better</h4>
     <div class="alert alert-info">
         <strong>Common Misconception:</strong> "Fewer queries = better performance"<br>
         <strong>Reality:</strong> With JOINs on collections, ONE query can be worse than MULTIPLE queries!
@@ -210,7 +207,7 @@ $results = $em->createQuery('
     </ul>
 
     <div class="alert alert-info">
-        ℹ️ <strong>Expected Performance Improvement:</strong><br>
+        ℹ<strong>Expected Performance Improvement:</strong><br>
         <ul>
             <li><strong>Memory usage:</strong> 60-95% reduction</li>
             <li><strong>Hydration time:</strong> 70-90% faster</li>
@@ -219,11 +216,7 @@ $results = $em->createQuery('
         </ul>
     </div>
 
-    <p>
-        <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins" target="_blank" class="doc-link">
-            📜 Doctrine DQL JOIN Documentation
-        </a>
-    </p>
+    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL JOIN Documentation'); ?>
 </div>
 
 <?php
