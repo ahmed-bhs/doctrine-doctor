@@ -321,7 +321,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
                 "INSERT INTO products (name) VALUES ('Product {$i}')",
                 [
                     ['file' => 'ProductImporter.php', 'line' => 42 + $i],
-                    ['class' => 'Doctrine\\ORM\\EntityManager', 'function' => 'flush'],
+                    ['class' => \Doctrine\ORM\EntityManager::class, 'function' => 'flush'],
                 ],
                 0.002,
             );
@@ -554,7 +554,7 @@ final class EntityManagerClearAnalyzerTest extends TestCase
                 "INSERT INTO products (sku, name, price, stock) VALUES ('SKU{$i}', 'Product {$i}', 19.99, 100)",
                 [
                     ['file' => 'CsvImporter.php', 'line' => 87],
-                    ['class' => 'Doctrine\\ORM\\EntityManager', 'function' => 'flush'],
+                    ['class' => \Doctrine\ORM\EntityManager::class, 'function' => 'flush'],
                 ],
                 0.003,
             );

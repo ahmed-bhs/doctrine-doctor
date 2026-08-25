@@ -371,7 +371,7 @@ class PropertyTypeMismatchAnalyzer implements MetadataAnalyzerInterface
         $isNullabilityMismatch = str_contains($expectedType, 'nullable');
 
         if ($isNullabilityMismatch && str_contains($expectedType, 'non-nullable') && str_contains($actualType, 'nullable')) {
-            $baseType = preg_replace('/^\?/', '', preg_replace('/\s*\(nullable\)/', '', $actualType));
+            $baseType = preg_replace('/^\?/', '', (string) preg_replace('/\s*\(nullable\)/', '', $actualType));
             $badCode = sprintf("#[ORM\\Column(type: '...')]  // nullable not set (defaults to false)\nprivate ?%s \$%s = null;", $baseType, $fieldName);
             $goodCode = sprintf(
                 "// Option 1: Make the column nullable\n#[ORM\\Column(type: '...', nullable: true)]\nprivate ?%s \$%s = null;\n\n// Option 2: Make the PHP property non-nullable\n#[ORM\\Column(type: '...')]\nprivate %s \$%s;",

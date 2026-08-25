@@ -61,7 +61,7 @@ final class DQLInjectionAnalyzerFalsePositiveTest extends TestCase
 
         $criticalIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Vulnerability'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Vulnerability'),
         );
 
         self::assertCount(0, $criticalIssues, 'Legitimate literal strings should not stack risk_level to critical (>=3)');

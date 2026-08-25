@@ -26,6 +26,7 @@ class DatabaseConfigIssue extends AbstractIssue
         ], $data));
     }
 
+    #[\Override]
     public static function supportedTypes(): array
     {
         return [

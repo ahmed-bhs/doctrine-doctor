@@ -39,7 +39,7 @@ final class QueryCachingOpportunityAnalyzerFalsePositiveTest extends TestCase
 
         $staticIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Static Table'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Static Table'),
         );
 
         self::assertGreaterThanOrEqual(1, \count($staticIssues), 'Known false positive: "categories" is hardcoded in STATIC_TABLES list, but in an e-commerce app categories change frequently (new products, seasonal categories, A/B tests)');
@@ -56,7 +56,7 @@ final class QueryCachingOpportunityAnalyzerFalsePositiveTest extends TestCase
 
         $staticIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Static Table'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Static Table'),
         );
 
         self::assertGreaterThanOrEqual(1, \count($staticIssues), 'Known false positive: "tags" is hardcoded in STATIC_TABLES list, but in a CMS or social platform, tags are user-generated and change constantly');
@@ -76,7 +76,7 @@ final class QueryCachingOpportunityAnalyzerFalsePositiveTest extends TestCase
 
         $frequentIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Frequent Query'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Frequent Query'),
         );
 
         self::assertGreaterThanOrEqual(1, \count($frequentIssues), 'Known false positive: identical queries with same params (all normalized to ?) are counted as frequent, but they may load different entities with different param values');

@@ -41,7 +41,7 @@ final class ClassTableInheritanceDepthAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $deepIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Deep CTI'));
+        $deepIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Deep CTI'));
 
         self::assertNotEmpty($deepIssues, 'Should detect deep CTI hierarchy (CtiRectangle is 3 levels deep)');
     }
@@ -52,7 +52,7 @@ final class ClassTableInheritanceDepthAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $rectangleIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'CtiRectangle'));
+        $rectangleIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'CtiRectangle'));
 
         self::assertNotEmpty($rectangleIssues, 'CtiRectangle (depth 3) should be flagged');
     }
@@ -63,7 +63,7 @@ final class ClassTableInheritanceDepthAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $carIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'CtiCar'));
+        $carIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'CtiCar'));
 
         self::assertEmpty($carIssues, 'CtiCar (depth 1) should not be flagged');
     }
@@ -74,7 +74,7 @@ final class ClassTableInheritanceDepthAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $deepIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Deep CTI'));
+        $deepIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Deep CTI'));
 
         foreach ($deepIssues as $issue) {
             self::assertInstanceOf(IntegrityIssue::class, $issue);
@@ -97,7 +97,7 @@ final class ClassTableInheritanceDepthAnalyzerTest extends TestCase
         $issues = $analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $rectangleIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'CtiRectangle'));
+        $rectangleIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'CtiRectangle'));
 
         self::assertNotEmpty($rectangleIssues);
         $issue = reset($rectangleIssues);
@@ -110,7 +110,7 @@ final class ClassTableInheritanceDepthAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $deepIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Deep CTI'));
+        $deepIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Deep CTI'));
 
         foreach ($deepIssues as $issue) {
             self::assertNotNull($issue->getSuggestion());
@@ -123,7 +123,7 @@ final class ClassTableInheritanceDepthAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $deepIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Deep CTI'));
+        $deepIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Deep CTI'));
 
         foreach ($deepIssues as $issue) {
             self::assertStringContainsString('JOIN', $issue->getDescription());

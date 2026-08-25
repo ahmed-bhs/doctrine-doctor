@@ -29,6 +29,7 @@ class FindAllIssue extends AbstractIssue
         ], $data));
     }
 
+    #[\Override]
     public static function supportedTypes(): array
     {
         return [

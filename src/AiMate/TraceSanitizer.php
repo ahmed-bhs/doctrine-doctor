@@ -82,14 +82,7 @@ final readonly class TraceSanitizer
     private function isInternalPath(string $file): bool
     {
         $normalized = str_replace('\\', '/', $file);
-
-        foreach ($this->excludedPathFragments as $fragment) {
-            if (str_contains($normalized, $fragment)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($this->excludedPathFragments, fn ($fragment) => str_contains($normalized, (string) $fragment));
     }
 
     private function relativizePath(string $file): string

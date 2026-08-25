@@ -136,14 +136,7 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         if ([] === $columns) {
             return false;
         }
-
-        foreach ($columns as $column) {
-            if (!$this->isScalarColumn($column)) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($columns, fn ($column) => $this->isScalarColumn($column));
     }
 
     private function isScalarColumn(string $column): bool

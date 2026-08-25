@@ -32,7 +32,7 @@ final class MissingEmbeddableOpportunityAnalyzerIntegrationTest extends TestCase
 
         $personNameIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'PersonName'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'PersonName'),
         );
 
         self::assertCount(0, $personNameIssues);
@@ -49,7 +49,7 @@ final class MissingEmbeddableOpportunityAnalyzerIntegrationTest extends TestCase
 
         $addressIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'Address'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Address'),
         );
 
         self::assertCount(2, $addressIssues);
@@ -67,7 +67,7 @@ final class MissingEmbeddableOpportunityAnalyzerIntegrationTest extends TestCase
 
         $personNameIssues = array_filter(
             $issues,
-            fn ($issue) => str_contains($issue->getTitle(), 'PersonName'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'PersonName'),
         );
 
         self::assertCount(1, $personNameIssues);

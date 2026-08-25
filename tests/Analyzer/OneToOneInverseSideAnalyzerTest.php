@@ -40,9 +40,7 @@ final class OneToOneInverseSideAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $countryIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'Country');
-        });
+        $countryIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Country'));
 
         self::assertCount(1, $countryIssues, 'Should detect Country as inverse side of OneToOne');
 
@@ -56,9 +54,7 @@ final class OneToOneInverseSideAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $capitalIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'CapitalCity');
-        });
+        $capitalIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'CapitalCity'));
 
         self::assertCount(0, $capitalIssues, 'Owning side should not be flagged');
     }
@@ -69,10 +65,8 @@ final class OneToOneInverseSideAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $profileIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'UserProfile')
-                || str_contains($issue->getTitle(), 'UserAccount');
-        });
+        $profileIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'UserProfile')
+            || str_contains((string) $issue->getTitle(), 'UserAccount'));
 
         self::assertCount(0, $profileIssues, 'Unidirectional OneToOne should not be flagged');
     }
@@ -83,9 +77,7 @@ final class OneToOneInverseSideAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $countryIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'Country');
-        });
+        $countryIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Country'));
 
         $issue = reset($countryIssues);
         self::assertNotFalse($issue);
@@ -98,9 +90,7 @@ final class OneToOneInverseSideAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $countryIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'Country');
-        });
+        $countryIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Country'));
 
         $issue = reset($countryIssues);
         self::assertNotFalse($issue);
@@ -113,9 +103,7 @@ final class OneToOneInverseSideAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $countryIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'Country');
-        });
+        $countryIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Country'));
 
         $issue = reset($countryIssues);
         self::assertNotFalse($issue);
@@ -129,9 +117,7 @@ final class OneToOneInverseSideAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $countryIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'Country');
-        });
+        $countryIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Country'));
 
         $issue = reset($countryIssues);
         self::assertNotFalse($issue);

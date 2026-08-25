@@ -91,8 +91,8 @@ final class ManyToManyWithExtraColumnsAnalyzerTest extends DatabaseTestCase
         // It should not be analyzed
         $courseStudentsIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains($issue->getDescription(), 'Course')
-                && str_contains($issue->getDescription(), 'students'),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'Course')
+                && str_contains((string) $issue->getDescription(), 'students'),
         );
 
         self::assertEmpty($courseStudentsIssues, 'Should not flag inverse side associations');

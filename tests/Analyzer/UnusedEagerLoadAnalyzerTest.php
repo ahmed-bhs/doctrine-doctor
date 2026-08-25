@@ -90,7 +90,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         self::assertCount(0, $unusedJoinIssues);
@@ -106,7 +106,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         self::assertCount(0, $unusedJoinIssues);
@@ -124,7 +124,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         // BUG: the outer "u" alias is not actually used (the subquery has its own
@@ -144,7 +144,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         self::assertCount(1, $unusedJoinIssues);
@@ -164,7 +164,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         // "u" is used in addr's ON clause, so it should NOT be flagged.
@@ -181,7 +181,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         self::assertCount(0, $unusedJoinIssues);
@@ -200,7 +200,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         self::assertCount(0, $unusedJoinIssues);
@@ -218,7 +218,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         self::assertCount(0, $unusedJoinIssues);
@@ -238,7 +238,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         // The alias IS used in the EXISTS subquery, so not flagged.
@@ -260,7 +260,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         // The regex looks for `\bs\b\.` (alias followed by dot). The column
@@ -279,7 +279,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         self::assertCount(0, $unusedJoinIssues);
@@ -295,7 +295,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         self::assertCount(0, $unusedJoinIssues);
@@ -312,7 +312,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         self::assertCount(1, $unusedJoinIssues);
@@ -322,7 +322,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
     public function it_does_not_flag_unused_join_in_paginator_subquery(): void
     {
         $paginatorBacktrace = [
-            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 127, 'class' => 'Doctrine\ORM\Tools\Pagination\Paginator', 'function' => 'getIterator'],
+            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 127, 'class' => \Doctrine\ORM\Tools\Pagination\Paginator::class, 'function' => 'getIterator'],
         ];
 
         $sql = 'SELECT DISTINCT u0_.id AS id_0, u0_.last_name AS last_name_1 '
@@ -335,7 +335,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         self::assertCount(0, $unusedJoinIssues, 'Should NOT flag unused JOIN in Doctrine Paginator subquery');
@@ -345,7 +345,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
     public function it_does_not_flag_unused_join_in_paginator_count_query(): void
     {
         $paginatorBacktrace = [
-            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 96, 'class' => 'Doctrine\ORM\Tools\Pagination\Paginator', 'function' => 'count'],
+            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 96, 'class' => \Doctrine\ORM\Tools\Pagination\Paginator::class, 'function' => 'count'],
         ];
 
         $sql = 'SELECT count(DISTINCT u0_.id) AS sclr_0 '
@@ -357,7 +357,7 @@ final class UnusedEagerLoadAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($collection);
         $unusedJoinIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Unused Eager Load'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Unused Eager Load'),
         );
 
         self::assertCount(0, $unusedJoinIssues, 'Should NOT flag unused JOIN in Doctrine Paginator count query');

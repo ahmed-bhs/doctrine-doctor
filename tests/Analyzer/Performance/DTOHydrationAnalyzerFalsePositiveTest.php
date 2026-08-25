@@ -41,8 +41,8 @@ final class DTOHydrationAnalyzerFalsePositiveTest extends TestCase
 
         $dtoIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getDescription(), 'DTO')
-                || str_contains($issue->getDescription(), 'aggregat'),
+            static fn ($issue): bool => str_contains((string) $issue->getDescription(), 'DTO')
+                || str_contains((string) $issue->getDescription(), 'aggregat'),
         );
 
         self::assertCount(0, $dtoIssues, 'Fixed: pure scalar aggregations like COUNT(*) are excluded from DTO hydration detection');
@@ -64,8 +64,8 @@ final class DTOHydrationAnalyzerFalsePositiveTest extends TestCase
 
         $dtoIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getDescription(), 'DTO')
-                || str_contains($issue->getDescription(), 'aggregat'),
+            static fn ($issue): bool => str_contains((string) $issue->getDescription(), 'DTO')
+                || str_contains((string) $issue->getDescription(), 'aggregat'),
         );
 
         self::assertCount(0, $dtoIssues, 'Fixed: GROUP BY in subqueries is stripped before aggregation detection');

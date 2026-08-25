@@ -48,7 +48,7 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
     use MetadataAnalyzerTrait;
     use ShortClassNameTrait;
 
-    private const string UNIQUE_ENTITY_CLASS = 'Symfony\\Bridge\\Doctrine\\Validator\\Constraints\\UniqueEntity';
+    private const string UNIQUE_ENTITY_CLASS = \Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity::class;
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
@@ -221,7 +221,7 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
         }
 
         if (\is_array($fields)) {
-            return array_values(array_filter($fields, '\is_string'));
+            return array_values(array_filter($fields, \is_string(...)));
         }
 
         return [];

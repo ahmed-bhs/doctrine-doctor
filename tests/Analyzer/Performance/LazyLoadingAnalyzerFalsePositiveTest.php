@@ -79,7 +79,7 @@ final class LazyLoadingAnalyzerFalsePositiveTest extends TestCase
 
         $lazyLoadIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Lazy Loading'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Lazy Loading'),
         );
 
         self::assertCount(0, $lazyLoadIssues, 'Fixed: avgGap threshold reduced from 5 to 1.5, interleaved queries with gap=2 are no longer flagged');

@@ -128,17 +128,10 @@ class HardcodedDatabaseCredentialsAnalyzer implements MetadataAnalyzerInterface
         if (null === $this->projectDir || '' === $this->projectDir) {
             return false;
         }
-
-        foreach ([
+        return array_any([
             $this->projectDir . '/config/packages/doctrine.yaml',
             $this->projectDir . '/config/packages/prod/doctrine.yaml',
-        ] as $configPath) {
-            if (is_file($configPath)) {
-                return true;
-            }
-        }
-
-        return false;
+        ], fn ($configPath) => is_file($configPath));
     }
 
     /**

@@ -33,15 +33,12 @@ class FlushInEventListenerAnalyzer implements MetadataAnalyzerInterface
     use MetadataAnalyzerTrait;
     use ShortClassNameTrait;
 
-    private readonly PhpCodeParser $phpCodeParser;
-
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly IssueFactoryInterface $issueFactory,
-        ?PhpCodeParser $phpCodeParser = null,
+        private readonly PhpCodeParser $phpCodeParser = new PhpCodeParser(),
     ) {
-        $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser();
     }
 
     public function analyzeMetadata(): IssueCollection

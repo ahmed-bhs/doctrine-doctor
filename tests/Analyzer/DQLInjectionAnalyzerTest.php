@@ -401,7 +401,7 @@ final class DQLInjectionAnalyzerTest extends TestCase
 
         $dqlIssues = array_filter(
             $issues->toArray(),
-            fn ($issue) => str_contains($issue->getTitle(), 'concatenated literal'),
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'concatenated literal'),
         );
         self::assertCount(0, $dqlIssues);
     }

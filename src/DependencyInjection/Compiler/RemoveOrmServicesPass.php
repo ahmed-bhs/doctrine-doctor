@@ -22,6 +22,6 @@ final class RemoveOrmServicesPass implements CompilerPassInterface
             return;
         }
 
-        (new OrmServicePruner($container))->prune();
+        new OrmServicePruner($container)->prune();
     }
 }

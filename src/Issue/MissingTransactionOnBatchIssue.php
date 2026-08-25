@@ -23,6 +23,7 @@ final class MissingTransactionOnBatchIssue extends AbstractIssue
         parent::__construct($data);
     }
 
+    #[\Override]
     public static function supportedTypes(): array
     {
         return [

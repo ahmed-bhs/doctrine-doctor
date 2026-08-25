@@ -177,12 +177,6 @@ class QueryData
 
     private function isSensitiveKey(string $key): bool
     {
-        foreach (self::SENSITIVE_PARAM_KEYWORDS as $keyword) {
-            if (str_contains($key, $keyword)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::SENSITIVE_PARAM_KEYWORDS, fn ($keyword) => str_contains($key, (string) $keyword));
     }
 }

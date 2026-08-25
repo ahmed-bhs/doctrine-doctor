@@ -23,11 +23,9 @@ use InvalidArgumentException;
  */
 class IssueFactory implements IssueFactoryInterface
 {
-    private readonly IssueTypeRegistryInterface $issueTypeRegistry;
-
-    public function __construct(?IssueTypeRegistryInterface $issueTypeRegistry = null)
-    {
-        $this->issueTypeRegistry = $issueTypeRegistry ?? new FilesystemIssueTypeRegistry();
+    public function __construct(
+        private readonly IssueTypeRegistryInterface $issueTypeRegistry = new FilesystemIssueTypeRegistry(),
+    ) {
     }
 
     public function create(IssueData $issueData): IssueInterface

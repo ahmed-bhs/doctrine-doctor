@@ -75,7 +75,7 @@ class MappedSuperclassAsTargetEntityAnalyzer implements AnalyzerInterface
                         ],
                     );
 
-                    yield new IntegrityIssue((new IssueData(
+                    yield new IntegrityIssue(new IssueData(
                         type: IssueType::MAPPED_SUPERCLASS_AS_TARGET->value,
                         title: sprintf(
                             'Association targets Mapped Superclass: %s::$%s -> %s',
@@ -85,7 +85,7 @@ class MappedSuperclassAsTargetEntityAnalyzer implements AnalyzerInterface
                         ),
                         description: $description,
                         severity: Severity::critical(),
-                    ))->toArray());
+                    )->toArray());
                 }
             }
         });

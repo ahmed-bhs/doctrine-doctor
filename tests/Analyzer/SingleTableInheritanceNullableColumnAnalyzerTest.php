@@ -37,7 +37,7 @@ final class SingleTableInheritanceNullableColumnAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'StiPhone'));
+        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'StiPhone'));
 
         self::assertNotEmpty($relevant, 'Should detect non-nullable column imei on StiPhone');
     }
@@ -48,7 +48,7 @@ final class SingleTableInheritanceNullableColumnAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $tabletIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'StiTablet'));
+        $tabletIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'StiTablet'));
 
         self::assertEmpty($tabletIssues, 'Should not flag nullable columns on StiTablet');
     }
@@ -69,7 +69,7 @@ final class SingleTableInheritanceNullableColumnAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'StiPhone'));
+        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'StiPhone'));
 
         foreach ($relevant as $issue) {
             self::assertStringContainsString('imei', $issue->getTitle());

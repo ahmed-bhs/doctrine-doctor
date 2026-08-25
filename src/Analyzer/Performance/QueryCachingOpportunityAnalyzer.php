@@ -414,7 +414,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
         $tableNames = $this->sqlExtractor->getAllTableNames($sql);
 
         foreach ($this->staticTables as $staticTable) {
-            if (in_array(strtolower($staticTable), $tableNames, true)) {
+            if (in_array(strtolower((string) $staticTable), $tableNames, true)) {
                 return $staticTable;
             }
         }

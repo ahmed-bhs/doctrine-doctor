@@ -29,7 +29,7 @@ final class OrmServicePrunerLeakTest extends TestCase
             FakeStatelessAnalyzer::class,
         )->setArguments([new Reference('app.custom.entity_manager_factory')]);
 
-        (new RemoveOrmServicesPass())->process($container);
+        new RemoveOrmServicesPass()->process($container);
 
         self::assertTrue(
             $container->has('AhmedBhs\\DoctrineDoctor\\Analyzer\\Custom\\StatelessAnalyzer'),

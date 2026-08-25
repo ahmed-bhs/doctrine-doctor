@@ -138,13 +138,13 @@ class ClassTableInheritanceThinSubclassAnalyzer implements MetadataAnalyzerInter
                 ),
             );
 
-            yield new IntegrityIssue((new IssueData(
+            yield new IntegrityIssue(new IssueData(
                 type: IssueType::CTI_THIN_SUBCLASS->value,
                 title: sprintf('Thin CTI Subclass: %s', $this->shortClassName($thin['class'])),
                 description: $description,
                 severity: Severity::info(),
                 suggestion: $suggestion,
-            ))->toArray());
+            )->toArray());
         }
     }
 

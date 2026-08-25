@@ -27,14 +27,14 @@ final class RemoveOrmServicesPassTest extends TestCase
         $container->register('doctrine.orm.entity_manager', \stdClass::class);
         $container->register('doctrine_doctor.entity_manager', \stdClass::class);
         $container->register(
-            'AhmedBhs\\DoctrineDoctor\\Analyzer\\Performance\\NPlusOneAnalyzer',
+            \AhmedBhs\DoctrineDoctor\Analyzer\Performance\NPlusOneAnalyzer::class,
             FakeOrmAnalyzer::class,
         )->setArguments([new Reference('doctrine_doctor.entity_manager')]);
 
-        (new RemoveOrmServicesPass())->process($container);
+        new RemoveOrmServicesPass()->process($container);
 
         self::assertTrue($container->has('doctrine_doctor.entity_manager'));
-        self::assertTrue($container->has('AhmedBhs\\DoctrineDoctor\\Analyzer\\Performance\\NPlusOneAnalyzer'));
+        self::assertTrue($container->has(\AhmedBhs\DoctrineDoctor\Analyzer\Performance\NPlusOneAnalyzer::class));
     }
 
     #[Test]
@@ -43,13 +43,13 @@ final class RemoveOrmServicesPassTest extends TestCase
         $container = new ContainerBuilder();
         $container->register('doctrine_doctor.entity_manager', \stdClass::class);
         $container->register('doctrine_doctor.entity_manager_with_filtered_metadata', \stdClass::class);
-        $container->register('AhmedBhs\\DoctrineDoctor\\Metadata\\EntityMetadataProvider', \stdClass::class);
+        $container->register(\AhmedBhs\DoctrineDoctor\Metadata\EntityMetadataProvider::class, \stdClass::class);
 
-        (new RemoveOrmServicesPass())->process($container);
+        new RemoveOrmServicesPass()->process($container);
 
         self::assertFalse($container->has('doctrine_doctor.entity_manager'));
         self::assertFalse($container->has('doctrine_doctor.entity_manager_with_filtered_metadata'));
-        self::assertFalse($container->has('AhmedBhs\\DoctrineDoctor\\Metadata\\EntityMetadataProvider'));
+        self::assertFalse($container->has(\AhmedBhs\DoctrineDoctor\Metadata\EntityMetadataProvider::class));
     }
 
     #[Test]
@@ -58,13 +58,13 @@ final class RemoveOrmServicesPassTest extends TestCase
         $container = new ContainerBuilder();
         $container->register('doctrine_doctor.entity_manager', \stdClass::class);
         $container->register(
-            'AhmedBhs\\DoctrineDoctor\\Analyzer\\Performance\\NPlusOneAnalyzer',
+            \AhmedBhs\DoctrineDoctor\Analyzer\Performance\NPlusOneAnalyzer::class,
             FakeOrmAnalyzer::class,
         )->setArguments([new Reference('doctrine_doctor.entity_manager')]);
 
-        (new RemoveOrmServicesPass())->process($container);
+        new RemoveOrmServicesPass()->process($container);
 
-        self::assertFalse($container->has('AhmedBhs\\DoctrineDoctor\\Analyzer\\Performance\\NPlusOneAnalyzer'));
+        self::assertFalse($container->has(\AhmedBhs\DoctrineDoctor\Analyzer\Performance\NPlusOneAnalyzer::class));
     }
 
     #[Test]
@@ -72,14 +72,14 @@ final class RemoveOrmServicesPassTest extends TestCase
     {
         $container = new ContainerBuilder();
         $container->register(
-            'AhmedBhs\\DoctrineDoctor\\Analyzer\\Integrity\\JoinTypeConsistencyAnalyzer',
+            \AhmedBhs\DoctrineDoctor\Analyzer\Integrity\JoinTypeConsistencyAnalyzer::class,
             FakeTypedOrmAnalyzer::class,
         );
 
-        (new RemoveOrmServicesPass())->process($container);
+        new RemoveOrmServicesPass()->process($container);
 
         self::assertFalse(
-            $container->has('AhmedBhs\\DoctrineDoctor\\Analyzer\\Integrity\\JoinTypeConsistencyAnalyzer'),
+            $container->has(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\JoinTypeConsistencyAnalyzer::class),
         );
     }
 
@@ -89,20 +89,20 @@ final class RemoveOrmServicesPassTest extends TestCase
         $container = new ContainerBuilder();
         $container->register('doctrine_doctor.entity_manager', \stdClass::class);
         $container->register(
-            'AhmedBhs\\DoctrineDoctor\\Analyzer\\Helper\\CollectionJoinDetector',
+            \AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector::class,
             FakeOrmAnalyzer::class,
         )->setArguments([new Reference('doctrine_doctor.entity_manager')]);
         $container->register(
-            'AhmedBhs\\DoctrineDoctor\\Analyzer\\Performance\\SetMaxResultsWithCollectionJoinAnalyzer',
+            \AhmedBhs\DoctrineDoctor\Analyzer\Performance\SetMaxResultsWithCollectionJoinAnalyzer::class,
             FakeOrmAnalyzer::class,
         )->setArguments([
-            new Reference('AhmedBhs\\DoctrineDoctor\\Analyzer\\Helper\\CollectionJoinDetector'),
+            new Reference(\AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector::class),
         ]);
 
-        (new RemoveOrmServicesPass())->process($container);
+        new RemoveOrmServicesPass()->process($container);
 
         self::assertFalse(
-            $container->has('AhmedBhs\\DoctrineDoctor\\Analyzer\\Performance\\SetMaxResultsWithCollectionJoinAnalyzer'),
+            $container->has(\AhmedBhs\DoctrineDoctor\Analyzer\Performance\SetMaxResultsWithCollectionJoinAnalyzer::class),
             'Analyzers depending on a removed ORM helper should also be removed.',
         );
     }
@@ -112,14 +112,14 @@ final class RemoveOrmServicesPassTest extends TestCase
     {
         $container = new ContainerBuilder();
         $container->register(
-            'AhmedBhs\\DoctrineDoctor\\Analyzer\\Integrity\\PartialObjectAnalyzer',
+            \AhmedBhs\DoctrineDoctor\Analyzer\Integrity\PartialObjectAnalyzer::class,
             FakeOrmAnalyzer::class,
         );
 
-        (new RemoveOrmServicesPass())->process($container);
+        new RemoveOrmServicesPass()->process($container);
 
         self::assertFalse(
-            $container->has('AhmedBhs\\DoctrineDoctor\\Analyzer\\Integrity\\PartialObjectAnalyzer'),
+            $container->has(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\PartialObjectAnalyzer::class),
             'PartialObjectAnalyzer is ORM-only because its recommendations rely on DQL syntax.',
         );
     }
@@ -129,23 +129,23 @@ final class RemoveOrmServicesPassTest extends TestCase
     {
         $container = new ContainerBuilder();
         $container->register(
-            'AhmedBhs\\DoctrineDoctor\\Collector\\DoctrineDoctorDataCollector',
+            \AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector::class,
             FakeOrmAnalyzer::class,
         );
         $container->register(
-            'AhmedBhs\\DoctrineDoctor\\Factory\\IssueFactory',
+            \AhmedBhs\DoctrineDoctor\Factory\IssueFactory::class,
             FakeOrmAnalyzer::class,
         );
         $container->register(
-            'AhmedBhs\\DoctrineDoctor\\Service\\IssueDeduplicator',
+            \AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator::class,
             FakeOrmAnalyzer::class,
         );
 
-        (new RemoveOrmServicesPass())->process($container);
+        new RemoveOrmServicesPass()->process($container);
 
-        self::assertTrue($container->has('AhmedBhs\\DoctrineDoctor\\Collector\\DoctrineDoctorDataCollector'));
-        self::assertTrue($container->has('AhmedBhs\\DoctrineDoctor\\Factory\\IssueFactory'));
-        self::assertTrue($container->has('AhmedBhs\\DoctrineDoctor\\Service\\IssueDeduplicator'));
+        self::assertTrue($container->has(\AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector::class));
+        self::assertTrue($container->has(\AhmedBhs\DoctrineDoctor\Factory\IssueFactory::class));
+        self::assertTrue($container->has(\AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator::class));
     }
 
     #[Test]
@@ -155,7 +155,7 @@ final class RemoveOrmServicesPassTest extends TestCase
         $instanceof = new Definition();
         $instanceof->setBindings([
             '$entityManager' => new Reference('doctrine_doctor.entity_manager'),
-            'Doctrine\\ORM\\EntityManagerInterface' => new Reference('doctrine_doctor.entity_manager'),
+            \Doctrine\ORM\EntityManagerInterface::class => new Reference('doctrine_doctor.entity_manager'),
             '$threshold' => 5,
         ]);
         $container->setDefinition(
@@ -165,11 +165,11 @@ final class RemoveOrmServicesPassTest extends TestCase
         $container->registerForAutoconfiguration(FakeOrmAnalyzer::class)
             ->setBindings($instanceof->getBindings());
 
-        (new RemoveOrmServicesPass())->process($container);
+        new RemoveOrmServicesPass()->process($container);
 
         $remaining = $container->getAutoconfiguredInstanceof()[FakeOrmAnalyzer::class]->getBindings();
         self::assertArrayNotHasKey('$entityManager', $remaining);
-        self::assertArrayNotHasKey('Doctrine\\ORM\\EntityManagerInterface', $remaining);
+        self::assertArrayNotHasKey(\Doctrine\ORM\EntityManagerInterface::class, $remaining);
         self::assertArrayHasKey('$threshold', $remaining);
     }
 }
@@ -178,13 +178,11 @@ final class FakeOrmAnalyzer
 {
 }
 
-final class FakeTypedOrmAnalyzer
+final readonly class FakeTypedOrmAnalyzer
 {
-    private \Doctrine\ORM\EntityManagerInterface $entityManager;
-
-    public function __construct(\Doctrine\ORM\EntityManagerInterface $em)
-    {
-        $this->entityManager = $em;
+    public function __construct(
+        private \Doctrine\ORM\EntityManagerInterface $entityManager,
+    ) {
         assert($this->entityManager instanceof \Doctrine\ORM\EntityManagerInterface);
     }
 }

@@ -202,7 +202,7 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
 
     private function normalizeFieldName(string $fieldName): string
     {
-        return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName));
+        return strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName));
     }
 
     private function getSensitiveFields(ClassMetadata $classMetadata): array
@@ -218,7 +218,7 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
             }
 
             foreach ($this->sensitivePatterns as $pattern) {
-                if (1 === preg_match('/(?:^|_)' . preg_quote($pattern, '/') . '(?:_|$)/', $normalized)) {
+                if (1 === preg_match('/(?:^|_)' . preg_quote((string) $pattern, '/') . '(?:_|$)/', $normalized)) {
                     $sensitiveFields[] = $fieldName;
                     break;
                 }

@@ -44,7 +44,7 @@ final class TransactionBoundaryAnalyzerFalsePositiveTest extends TestCase
 
         $multiFlushIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Multiple Flush'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Multiple Flush'),
         );
 
         self::assertCount(0, $multiFlushIssues, 'Consecutive INSERTs from a single Doctrine flush() should be grouped as one flush operation');
@@ -66,7 +66,7 @@ final class TransactionBoundaryAnalyzerFalsePositiveTest extends TestCase
 
         $longTxIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Long Transaction'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Long Transaction'),
         );
 
         self::assertCount(0, $longTxIssues, 'Transaction duration calculated from query execution times only (0.92s total) is under 1s threshold, but real PHP time between queries could push the actual transaction well over 1s -- the analyzer cannot detect this');

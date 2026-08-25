@@ -151,7 +151,7 @@ class FunctionOnPredicateColumnAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
         }
 
         $whereClause = $whereMatches[1];
-        $functionAlternation = implode('|', array_map('preg_quote', self::NON_SARGABLE_FUNCTIONS));
+        $functionAlternation = implode('|', array_map(preg_quote(...), self::NON_SARGABLE_FUNCTIONS));
 
         $pattern = '/\b(' . $functionAlternation . ')\s*\(\s*([a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?)/i';
         if (preg_match_all($pattern, $whereClause, $allMatches, PREG_SET_ORDER) < 1) {

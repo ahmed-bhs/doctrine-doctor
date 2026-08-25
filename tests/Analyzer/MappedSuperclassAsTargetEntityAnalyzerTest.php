@@ -37,7 +37,7 @@ final class MappedSuperclassAsTargetEntityAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Mapped Superclass'));
+        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Mapped Superclass'));
 
         self::assertNotEmpty($relevant, 'Should detect association targeting a Mapped Superclass');
     }
@@ -58,7 +58,7 @@ final class MappedSuperclassAsTargetEntityAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Mapped Superclass'));
+        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Mapped Superclass'));
 
         foreach ($relevant as $issue) {
             self::assertStringContainsString('AbstractPerson', $issue->getDescription());
@@ -75,7 +75,7 @@ final class MappedSuperclassAsTargetEntityAnalyzerTest extends TestCase
         $analyzer = new MappedSuperclassAsTargetEntityAnalyzer($entityManager);
         $issues = $analyzer->analyze(QueryDataBuilder::create()->build());
 
-        $relevant = array_filter($issues->toArray(), static fn ($issue) => str_contains($issue->getTitle(), 'Mapped Superclass'));
+        $relevant = array_filter($issues->toArray(), static fn ($issue) => str_contains((string) $issue->getTitle(), 'Mapped Superclass'));
 
         self::assertEmpty($relevant, 'Should not flag hierarchies without mapped superclass targets');
     }

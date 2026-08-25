@@ -214,7 +214,7 @@ class FloatForMoneyAnalyzer implements MetadataAnalyzerInterface
 
     private function normalizeFieldName(string $fieldName): string
     {
-        return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName));
+        return strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $fieldName));
     }
 
     private function matchesFieldPattern(string $normalizedField, string $pattern): bool

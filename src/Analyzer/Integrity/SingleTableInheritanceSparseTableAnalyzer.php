@@ -137,13 +137,13 @@ class SingleTableInheritanceSparseTableAnalyzer implements MetadataAnalyzerInter
                 ),
             );
 
-            yield new IntegrityIssue((new IssueData(
+            yield new IntegrityIssue(new IssueData(
                 type: IssueType::STI_SPARSE_TABLE->value,
                 title: sprintf('Sparse STI Table: %s', $this->shortClassName($rootClass)),
                 description: $description,
                 severity: Severity::warning(),
                 suggestion: $suggestion,
-            ))->toArray());
+            )->toArray());
         }
     }
 

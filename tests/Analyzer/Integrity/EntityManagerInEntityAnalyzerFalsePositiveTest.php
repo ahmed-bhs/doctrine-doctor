@@ -43,8 +43,8 @@ final class EntityManagerInEntityAnalyzerFalsePositiveTest extends TestCase
 
         $propertyIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'property')
-                && str_contains($issue->getDescription(), 'manager'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'property')
+                && str_contains((string) $issue->getDescription(), 'manager'),
         );
 
         self::assertCount(0, $propertyIssues, 'Should not flag a property named $manager when its type is not EntityManager');

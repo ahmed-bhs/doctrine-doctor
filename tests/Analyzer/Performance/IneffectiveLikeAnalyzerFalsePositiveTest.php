@@ -42,7 +42,7 @@ final class IneffectiveLikeAnalyzerFalsePositiveTest extends TestCase
 
         $paramIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getDescription(), '%pdf%'),
+            static fn ($issue): bool => str_contains((string) $issue->getDescription(), '%pdf%'),
         );
 
         self::assertCount(0, $paramIssues, 'Should not flag a param starting with % when it is not bound to a LIKE clause');
@@ -61,7 +61,7 @@ final class IneffectiveLikeAnalyzerFalsePositiveTest extends TestCase
 
         $archivedIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getDescription(), '%archived%'),
+            static fn ($issue): bool => str_contains((string) $issue->getDescription(), '%archived%'),
         );
 
         self::assertCount(0, $archivedIssues, 'Should not flag params with % that are not bound to the LIKE clause');

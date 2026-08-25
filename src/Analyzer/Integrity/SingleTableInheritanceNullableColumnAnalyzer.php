@@ -105,7 +105,7 @@ class SingleTableInheritanceNullableColumnAnalyzer implements AnalyzerInterface
                     ],
                 );
 
-                yield new IntegrityIssue((new IssueData(
+                yield new IntegrityIssue(new IssueData(
                     type: IssueType::STI_NON_NULLABLE_SUBCLASS_COLUMN->value,
                     title: sprintf(
                         'Non-nullable STI column: %s::$%s',
@@ -114,7 +114,7 @@ class SingleTableInheritanceNullableColumnAnalyzer implements AnalyzerInterface
                     ),
                     description: $description,
                     severity: Severity::critical(),
-                ))->toArray());
+                )->toArray());
             }
         }
     }

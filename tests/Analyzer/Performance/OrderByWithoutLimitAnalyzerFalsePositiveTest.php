@@ -42,7 +42,7 @@ final class OrderByWithoutLimitAnalyzerFalsePositiveTest extends TestCase
 
         $orderByIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'ORDER BY'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'ORDER BY'),
         );
 
         self::assertGreaterThanOrEqual(1, \count($orderByIssues), 'Known false positive: intentional data export/CSV generation needs all rows sorted without LIMIT, but the analyzer cannot distinguish export queries from pagination-missing queries');
@@ -62,7 +62,7 @@ final class OrderByWithoutLimitAnalyzerFalsePositiveTest extends TestCase
 
         $orderByIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'ORDER BY'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'ORDER BY'),
         );
 
         self::assertGreaterThanOrEqual(1, \count($orderByIssues), 'Known false positive: query is used with getOneOrNullResult but without backtrace, context detection returns "unknown" and the issue is reported');
@@ -74,7 +74,7 @@ final class OrderByWithoutLimitAnalyzerFalsePositiveTest extends TestCase
         $builder = QueryDataBuilder::create();
         $builder->addQueryWithBacktrace(
             'SELECT t0_.id FROM articles t0_ WHERE t0_.slug = ? ORDER BY t0_.created_at DESC',
-            [['function' => 'getOneOrNullResult', 'class' => 'Doctrine\\ORM\\AbstractQuery']],
+            [['function' => 'getOneOrNullResult', 'class' => \Doctrine\ORM\AbstractQuery::class]],
             2.0,
         );
 
@@ -83,7 +83,7 @@ final class OrderByWithoutLimitAnalyzerFalsePositiveTest extends TestCase
 
         $orderByIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'ORDER BY'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'ORDER BY'),
         );
 
         self::assertGreaterThanOrEqual(1, \count($orderByIssues), 'Known false positive: executionMS=2.0 is treated as 2 seconds (2000ms) due to fromSeconds() conversion, exceeding the 10ms single_result threshold');

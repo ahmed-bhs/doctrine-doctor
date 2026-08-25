@@ -37,7 +37,7 @@ final class MappedSuperclassOneToManyAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'OneToMany'));
+        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'OneToMany'));
 
         self::assertNotEmpty($relevant, 'Should detect OneToMany on Mapped Superclass');
     }
@@ -58,7 +58,7 @@ final class MappedSuperclassOneToManyAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'AbstractPerson'));
+        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'AbstractPerson'));
 
         self::assertNotEmpty($relevant);
         foreach ($relevant as $issue) {

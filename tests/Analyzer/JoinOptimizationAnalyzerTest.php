@@ -236,7 +236,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
     public function it_does_not_flag_unused_join_in_paginator_subquery(): void
     {
         $paginatorBacktrace = [
-            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 127, 'class' => 'Doctrine\ORM\Tools\Pagination\Paginator', 'function' => 'getIterator'],
+            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 127, 'class' => \Doctrine\ORM\Tools\Pagination\Paginator::class, 'function' => 'getIterator'],
         ];
 
         $queries = QueryDataBuilder::create()
@@ -261,7 +261,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
     public function it_does_not_flag_unused_join_in_paginator_count_query(): void
     {
         $paginatorBacktrace = [
-            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 96, 'class' => 'Doctrine\ORM\Tools\Pagination\Paginator', 'function' => 'count'],
+            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 96, 'class' => \Doctrine\ORM\Tools\Pagination\Paginator::class, 'function' => 'count'],
         ];
 
         $queries = QueryDataBuilder::create()
