@@ -104,6 +104,10 @@ enum IssueType: string
     case MAPPED_SUPERCLASS_AS_TARGET = 'mapped_superclass_as_target';
     case INHERITANCE_TYPE_ON_NON_ROOT = 'inheritance_type_on_non_root';
     case STI_NON_NULLABLE_SUBCLASS_COLUMN = 'sti_non_nullable_subclass_column';
+    case DISCRIMINATOR_COLUMN_TOO_SHORT = 'discriminator_column_too_short';
+    case DISCRIMINATOR_COLUMN_NOT_INDEXED = 'discriminator_column_not_indexed';
+    case NULLABLE_PRIMARY_KEY = 'nullable_primary_key';
+    case STRING_DEFAULT_EXPRESSION = 'string_default_expression';
     case MAPPED_SUPERCLASS_ONE_TO_MANY = 'mapped_superclass_one_to_many';
     case UNIQUE_ENTITY_WITHOUT_INDEX = 'unique_entity_without_index';
     case DENORMALIZED_AGGREGATE_WITHOUT_LOCKING = 'denormalized_aggregate_without_locking';

@@ -59,7 +59,7 @@
   },
   "require-dev": {
     "deptrac/deptrac": "^4.2",
-    "doctrine/orm": "^3.0|^4.0",
+    "doctrine/orm": "^3.0",
     "pdepend/pdepend": "3.x-dev",
     "php-parallel-lint/php-parallel-lint": "^1.4",
     "phpmd/phpmd": "3.x-dev",
