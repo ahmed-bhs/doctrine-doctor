@@ -28,8 +28,8 @@ final class PaginatorQueryDetectorTest extends TestCase
     public function it_detects_doctrine_paginator_in_backtrace(): void
     {
         $backtrace = [
-            ['file' => '/app/vendor/doctrine/orm/src/AbstractQuery.php', 'line' => 724, 'class' => 'Doctrine\ORM\AbstractQuery', 'function' => 'getScalarResult'],
-            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 96, 'class' => 'Doctrine\ORM\Tools\Pagination\Paginator', 'function' => 'count'],
+            ['file' => '/app/vendor/doctrine/orm/src/AbstractQuery.php', 'line' => 724, 'class' => \Doctrine\ORM\AbstractQuery::class, 'function' => 'getScalarResult'],
+            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/Paginator.php', 'line' => 96, 'class' => \Doctrine\ORM\Tools\Pagination\Paginator::class, 'function' => 'count'],
         ];
 
         self::assertTrue($this->detector->isPaginatorQuery($backtrace));

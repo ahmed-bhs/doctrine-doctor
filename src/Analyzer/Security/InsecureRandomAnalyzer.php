@@ -224,7 +224,7 @@ class InsecureRandomAnalyzer implements MetadataAnalyzerInterface
 
             return array_any(
                 $generationVerbs,
-                fn ($verb) => str_contains($lowerMethodName, $verb),
+                fn ($verb) => str_contains($lowerMethodName, (string) $verb),
             );
         }
 

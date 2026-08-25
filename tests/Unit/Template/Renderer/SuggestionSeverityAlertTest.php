@@ -25,7 +25,7 @@ use Psr\Log\NullLogger;
 #[CoversClass(SuggestionFactory::class)]
 final class SuggestionSeverityAlertTest extends TestCase
 {
-    private const SEVERITY_DRIVEN_TEMPLATES = [
+    private const array SEVERITY_DRIVEN_TEMPLATES = [
         'Performance/flush_in_loop',
         'Performance/join_left_on_not_null',
         'Performance/query_caching_frequent',

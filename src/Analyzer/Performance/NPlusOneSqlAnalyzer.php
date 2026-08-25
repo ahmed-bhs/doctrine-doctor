@@ -25,14 +25,14 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
-final class NPlusOneSqlAnalyzer implements AnalyzerInterface
+final readonly class NPlusOneSqlAnalyzer implements AnalyzerInterface
 {
     public function __construct(
-        private readonly IssueFactoryInterface $issueFactory,
-        private readonly SuggestionFactoryInterface $suggestionFactory,
-        private readonly int $threshold = 3,
-        private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
-        private readonly SqlQueryNormalizer $normalizer = new SqlQueryNormalizer(),
+        private IssueFactoryInterface $issueFactory,
+        private SuggestionFactoryInterface $suggestionFactory,
+        private int $threshold = 3,
+        private SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+        private SqlQueryNormalizer $normalizer = new SqlQueryNormalizer(),
     ) {
     }
 

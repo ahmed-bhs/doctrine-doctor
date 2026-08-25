@@ -169,16 +169,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements MetadataAnalyzerInter
      */
     private function isForeignKeyNotNull(string $targetEntity, array|object $parentMapping, array $allMetadata): bool
     {
-        // Find target entity metadata
-        $targetMetadata = null;
-
-        foreach ($allMetadata as $metadata) {
-            if ($metadata->getName() === $targetEntity) {
-                $targetMetadata = $metadata;
-                break;
-            }
-        }
-
+        $targetMetadata = array_find($allMetadata, fn ($metadata) => $metadata->getName() === $targetEntity);
         if (null === $targetMetadata) {
             return false;
         }

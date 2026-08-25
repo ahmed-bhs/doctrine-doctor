@@ -45,7 +45,7 @@ final class FlushInLoopAnalyzerFalsePositiveTest extends TestCase
 
         $flushIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'flush'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'flush'),
         );
 
         self::assertCount(0, $flushIssues, 'Fixed: LAST_INSERT_ID() queries are excluded from flush boundary detection');
@@ -66,7 +66,7 @@ final class FlushInLoopAnalyzerFalsePositiveTest extends TestCase
 
         $flushIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'flush'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'flush'),
         );
 
         self::assertCount(0, $flushIssues, 'Fixed: nextval() sequence queries are excluded from flush boundary detection');

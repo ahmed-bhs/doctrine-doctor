@@ -89,8 +89,8 @@ class QueryDataBuilder
         return $this->addQueryWithBacktrace(
             $sql,
             [
-                ['class' => 'Doctrine\\ORM\\EntityManager', 'function' => 'flush'],
-                ['class' => 'Doctrine\\ORM\\UnitOfWork', 'function' => 'commit'],
+                ['class' => \Doctrine\ORM\EntityManager::class, 'function' => 'flush'],
+                ['class' => \Doctrine\ORM\UnitOfWork::class, 'function' => 'commit'],
             ],
             $executionTime,
         );

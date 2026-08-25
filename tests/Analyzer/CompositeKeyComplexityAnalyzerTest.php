@@ -40,9 +40,7 @@ final class CompositeKeyComplexityAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $orderItemIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'OrderItemWithCompositeKey');
-        });
+        $orderItemIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'OrderItemWithCompositeKey'));
 
         self::assertCount(1, $orderItemIssues, 'Should detect 2-column composite key');
 
@@ -56,9 +54,7 @@ final class CompositeKeyComplexityAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $matrixIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'PriceMatrixWithHeavyCompositeKey');
-        });
+        $matrixIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'PriceMatrixWithHeavyCompositeKey'));
 
         self::assertCount(1, $matrixIssues, 'Should detect 3-column composite key');
 
@@ -72,10 +68,8 @@ final class CompositeKeyComplexityAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $surrogateIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'OrderWithSurrogateKey')
-                || str_contains($issue->getTitle(), 'ProductWithSurrogateKey');
-        });
+        $surrogateIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'OrderWithSurrogateKey')
+            || str_contains((string) $issue->getTitle(), 'ProductWithSurrogateKey'));
 
         self::assertCount(0, $surrogateIssues, 'Surrogate key entities should not be flagged');
     }
@@ -86,9 +80,7 @@ final class CompositeKeyComplexityAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $orderItemIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'OrderItemWithCompositeKey');
-        });
+        $orderItemIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'OrderItemWithCompositeKey'));
 
         $issue = reset($orderItemIssues);
         self::assertNotFalse($issue);
@@ -103,9 +95,7 @@ final class CompositeKeyComplexityAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $matrixIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'PriceMatrixWithHeavyCompositeKey');
-        });
+        $matrixIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'PriceMatrixWithHeavyCompositeKey'));
 
         $issue = reset($matrixIssues);
         self::assertNotFalse($issue);
@@ -118,9 +108,7 @@ final class CompositeKeyComplexityAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $orderItemIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'OrderItemWithCompositeKey');
-        });
+        $orderItemIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'OrderItemWithCompositeKey'));
 
         $issue = reset($orderItemIssues);
         self::assertNotFalse($issue);
@@ -148,9 +136,7 @@ final class CompositeKeyComplexityAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
 
         $issuesArray = $issues->toArray();
-        $matrixIssues = array_filter($issuesArray, static function ($issue) {
-            return str_contains($issue->getTitle(), 'PriceMatrixWithHeavyCompositeKey');
-        });
+        $matrixIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'PriceMatrixWithHeavyCompositeKey'));
 
         $issue = reset($matrixIssues);
         self::assertNotFalse($issue);

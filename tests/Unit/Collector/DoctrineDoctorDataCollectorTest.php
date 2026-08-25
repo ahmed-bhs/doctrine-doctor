@@ -259,7 +259,6 @@ final class DoctrineDoctorDataCollectorTest extends TestCase
         $collector = $this->createDataCollector();
         $reflection = new ReflectionClass($collector);
         $dataProperty = $reflection->getProperty('data');
-        $dataProperty->setAccessible(true);
         $dataProperty->setValue($collector, [
             'enabled' => true,
             'issues' => [],
@@ -284,7 +283,6 @@ final class DoctrineDoctorDataCollectorTest extends TestCase
         $collector = $this->createDataCollector();
         $reflection = new ReflectionClass($collector);
         $dataProperty = $reflection->getProperty('data');
-        $dataProperty->setAccessible(true);
         $dataProperty->setValue($collector, [
             'enabled' => true,
             'issues' => [

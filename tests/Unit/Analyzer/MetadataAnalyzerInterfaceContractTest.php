@@ -88,7 +88,7 @@ final class MetadataAnalyzerInterfaceContractTest extends TestCase
                     continue;
                 }
 
-                $shortName = (new \ReflectionClass($className))->getShortName();
+                $shortName = new \ReflectionClass($className)->getShortName();
                 yield $shortName => [$className];
             }
         }

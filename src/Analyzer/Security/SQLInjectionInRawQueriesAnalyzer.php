@@ -52,17 +52,14 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 
     private readonly PhpCodeParser $phpCodeParser;
 
-    private readonly DQLPatternMatcher $dqlPatternMatcher;
-
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly ?LoggerInterface $logger = null,
         ?PhpCodeParser $phpCodeParser = null,
-        ?DQLPatternMatcher $dqlPatternMatcher = null,
+        private readonly DQLPatternMatcher $dqlPatternMatcher = new DQLPatternMatcher(),
     ) {
         $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
-        $this->dqlPatternMatcher = $dqlPatternMatcher ?? new DQLPatternMatcher();
     }
 
     /**

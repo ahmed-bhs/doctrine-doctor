@@ -51,8 +51,8 @@ final class EagerLoadingAnalyzerFalsePositiveTest extends TestCase
 
         $eagerIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Eager Loading')
-                || str_contains($issue->getTitle(), 'JOIN'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Eager Loading')
+                || str_contains((string) $issue->getTitle(), 'JOIN'),
         );
 
         self::assertCount(0, $eagerIssues, 'Fixed: JOINs inside subqueries are no longer counted as top-level JOINs');
@@ -81,8 +81,8 @@ final class EagerLoadingAnalyzerFalsePositiveTest extends TestCase
 
         $eagerIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Eager Loading')
-                || str_contains($issue->getTitle(), 'JOIN'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Eager Loading')
+                || str_contains((string) $issue->getTitle(), 'JOIN'),
         );
 
         self::assertCount(1, $eagerIssues, 'Fixed: duplicate queries are deduplicated, producing only 1 issue');

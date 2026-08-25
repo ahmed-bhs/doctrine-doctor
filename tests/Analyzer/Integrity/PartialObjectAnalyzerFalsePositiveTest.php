@@ -39,8 +39,8 @@ final class PartialObjectAnalyzerFalsePositiveTest extends TestCase
 
         $partialIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Partial')
-                || str_contains($issue->getTitle(), 'Full Entity'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Partial')
+                || str_contains((string) $issue->getTitle(), 'Full Entity'),
         );
 
         self::assertGreaterThanOrEqual(1, \count($partialIssues), 'Known false positive: DQL SELECT u FROM User u is flagged as full entity load, but the entity may need to be fully loaded for subsequent persist/flush operations');

@@ -37,7 +37,7 @@ final class InheritanceTypeOnNonRootEntityAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'non-root'));
+        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'non-root'));
 
         self::assertNotEmpty($relevant, 'Should detect #[InheritanceType] on non-root entity');
     }
@@ -58,7 +58,7 @@ final class InheritanceTypeOnNonRootEntityAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'CtiBus'));
+        $relevant = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'CtiBus'));
 
         self::assertNotEmpty($relevant);
         foreach ($relevant as $issue) {
@@ -72,7 +72,7 @@ final class InheritanceTypeOnNonRootEntityAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $flaggedRoots = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'CtiTransport') && !str_contains($issue->getTitle(), 'CtiBus'));
+        $flaggedRoots = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'CtiTransport') && !str_contains((string) $issue->getTitle(), 'CtiBus'));
 
         self::assertEmpty($flaggedRoots, 'Should not flag root entities that declare #[InheritanceType]');
     }

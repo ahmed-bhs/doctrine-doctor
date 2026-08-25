@@ -65,7 +65,7 @@ class MappedSuperclassOneToManyAnalyzer implements AnalyzerInterface
                         ],
                     );
 
-                    yield new IntegrityIssue((new IssueData(
+                    yield new IntegrityIssue(new IssueData(
                         type: IssueType::MAPPED_SUPERCLASS_ONE_TO_MANY->value,
                         title: sprintf(
                             'OneToMany on Mapped Superclass: %s::$%s',
@@ -74,7 +74,7 @@ class MappedSuperclassOneToManyAnalyzer implements AnalyzerInterface
                         ),
                         description: $description,
                         severity: Severity::critical(),
-                    ))->toArray());
+                    )->toArray());
                 }
             }
         });

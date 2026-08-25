@@ -217,14 +217,7 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         if (in_array($bare, self::NUMERIC_COLUMN_EXACT, true)) {
             return true;
         }
-
-        foreach (self::NUMERIC_COLUMN_SUFFIXES as $suffix) {
-            if (str_ends_with($bare, $suffix)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::NUMERIC_COLUMN_SUFFIXES, fn ($suffix) => str_ends_with($bare, (string) $suffix));
     }
 
     private function isDateColumnName(string $column): bool
@@ -233,14 +226,7 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         if (in_array($bare, self::DATE_COLUMN_EXACT, true)) {
             return true;
         }
-
-        foreach (self::DATE_COLUMN_SUFFIXES as $suffix) {
-            if (str_ends_with($bare, $suffix)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::DATE_COLUMN_SUFFIXES, fn ($suffix) => str_ends_with($bare, (string) $suffix));
     }
 
     private function stripAlias(string $column): string

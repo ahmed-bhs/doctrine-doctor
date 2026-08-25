@@ -39,7 +39,7 @@ final class QueryBuilderBestPracticesAnalyzerFalsePositiveTest extends TestCase
 
         $injectionIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'SQL Injection'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'SQL Injection'),
         );
 
         self::assertCount(0, $injectionIssues, 'Should not flag hardcoded enum/constant string values as SQL injection');
@@ -55,7 +55,7 @@ final class QueryBuilderBestPracticesAnalyzerFalsePositiveTest extends TestCase
 
         $injectionIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'SQL Injection'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'SQL Injection'),
         );
 
         self::assertCount(0, $injectionIssues, 'Should not flag hardcoded boolean/config strings as SQL injection');

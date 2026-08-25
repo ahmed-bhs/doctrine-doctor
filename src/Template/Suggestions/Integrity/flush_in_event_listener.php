@@ -20,7 +20,7 @@ $eventAttribute = match ($event) {
     'postLoad' => 'PostLoad',
     'preFlush' => 'PreFlush',
     'onFlush' => 'OnFlush',
-    default => ucfirst($event),
+    default => ucfirst((string) $event),
 };
 
 ob_start();

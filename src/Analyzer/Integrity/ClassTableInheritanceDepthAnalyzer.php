@@ -92,7 +92,7 @@ class ClassTableInheritanceDepthAnalyzer implements MetadataAnalyzerInterface
                         'root_fqcn' => $rootClass,
                         'depth' => $depth,
                         'joins_required' => $joinsRequired,
-                        'chain' => array_map(fn (string $className): string => $this->shortClassName($className), $chain),
+                        'chain' => array_map($this->shortClassName(...), $chain),
                     ],
                     new SuggestionMetadata(
                         SuggestionType::integrity(),
@@ -101,13 +101,13 @@ class ClassTableInheritanceDepthAnalyzer implements MetadataAnalyzerInterface
                     ),
                 );
 
-                yield new IntegrityIssue((new IssueData(
+                yield new IntegrityIssue(new IssueData(
                     type: IssueType::CTI_DEEP_HIERARCHY->value,
                     title: sprintf('Deep CTI Hierarchy: %s (%d levels)', $this->shortClassName($className), $depth),
                     description: $description,
                     severity: $severity,
                     suggestion: $suggestion,
-                ))->toArray());
+                )->toArray());
             }
         });
     }

@@ -86,24 +86,12 @@ class GedmoExtensionPerformanceAnalyzer implements MetadataAnalyzerInterface
 
     private function isLoggable(ReflectionClass $reflectionClass): bool
     {
-        foreach ($reflectionClass->getTraitNames() as $traitName) {
-            if (str_contains($traitName, 'Loggable')) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($reflectionClass->getTraitNames(), fn ($traitName) => str_contains((string) $traitName, 'Loggable'));
     }
 
     private function isTranslatable(ReflectionClass $reflectionClass): bool
     {
-        foreach ($reflectionClass->getTraitNames() as $traitName) {
-            if (str_contains($traitName, 'Translatable')) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($reflectionClass->getTraitNames(), fn ($traitName) => str_contains((string) $traitName, 'Translatable'));
     }
 
     private function createLoggableIssue(string $entityClass): PerformanceIssue

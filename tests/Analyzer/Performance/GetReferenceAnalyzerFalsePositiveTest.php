@@ -117,8 +117,8 @@ final class GetReferenceAnalyzerFalsePositiveTest extends TestCase
         // proxy class, the field access runs ProxyFactory's initializer closure,
         // which calls EntityPersister::loadById().
         $nativeLazyGhostBacktrace = [
-            ['class' => 'Doctrine\\ORM\\Persisters\\Entity\\BasicEntityPersister', 'function' => 'loadById'],
-            ['class' => 'Doctrine\\ORM\\Proxy\\ProxyFactory', 'function' => 'createLazyInitializer'],
+            ['class' => \Doctrine\ORM\Persisters\Entity\BasicEntityPersister::class, 'function' => 'loadById'],
+            ['class' => \Doctrine\ORM\Proxy\ProxyFactory::class, 'function' => 'createLazyInitializer'],
         ];
 
         $builder->addQueryWithBacktrace(
@@ -150,8 +150,8 @@ final class GetReferenceAnalyzerFalsePositiveTest extends TestCase
         // the explicit-find check must win over the lazy-loading indicators since
         // 'EntityManager::find' is present higher up the same call stack.
         $explicitFindBacktrace = [
-            ['class' => 'Doctrine\\ORM\\Persisters\\Entity\\BasicEntityPersister', 'function' => 'loadById'],
-            ['class' => 'Doctrine\\ORM\\EntityManager', 'function' => 'find'],
+            ['class' => \Doctrine\ORM\Persisters\Entity\BasicEntityPersister::class, 'function' => 'loadById'],
+            ['class' => \Doctrine\ORM\EntityManager::class, 'function' => 'find'],
         ];
 
         $builder->addQueryWithBacktrace(

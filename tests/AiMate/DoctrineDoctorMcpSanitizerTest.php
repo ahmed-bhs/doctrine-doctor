@@ -97,10 +97,10 @@ final class DoctrineDoctorMcpSanitizerTest extends TestCase
 
     private function createSuggestion(string $code, string $description): SuggestionInterface
     {
-        return new class($code, $description) implements SuggestionInterface {
+        return new readonly class($code, $description) implements SuggestionInterface {
             public function __construct(
-                private readonly string $code,
-                private readonly string $description,
+                private string $code,
+                private string $description,
             ) {
             }
 

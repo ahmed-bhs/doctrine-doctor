@@ -81,7 +81,7 @@ class InheritanceTypeOnNonRootEntityAnalyzer implements AnalyzerInterface
                     ],
                 );
 
-                yield new IntegrityIssue((new IssueData(
+                yield new IntegrityIssue(new IssueData(
                     type: IssueType::INHERITANCE_TYPE_ON_NON_ROOT->value,
                     title: sprintf(
                         'InheritanceType on non-root entity: %s (root: %s)',
@@ -90,7 +90,7 @@ class InheritanceTypeOnNonRootEntityAnalyzer implements AnalyzerInterface
                     ),
                     description: $description,
                     severity: Severity::critical(),
-                ))->toArray());
+                )->toArray());
             }
         });
     }

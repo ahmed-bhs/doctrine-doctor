@@ -172,7 +172,7 @@ class ManyToManyWithExtraColumnsAnalyzer implements MetadataAnalyzerInterface
 
         // Get actual columns from the join table
         $columns = $schemaManager->listTableColumns($joinTableName);
-        $actualColumnNames = array_map('strtolower', array_keys($columns));
+        $actualColumnNames = array_map(strtolower(...), array_keys($columns));
 
         // Extra columns are those not in FK list
         $extraColumns = array_filter(

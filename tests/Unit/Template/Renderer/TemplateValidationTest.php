@@ -902,8 +902,8 @@ final class TemplateValidationTest extends TestCase
         ]);
 
         $code = $result['code'];
-        preg_match_all('/\$createdBy/', $code, $createdByMatches);
-        preg_match_all('/\$updatedBy/', $code, $updatedByMatches);
+        preg_match_all('/\$createdBy/', (string) $code, $createdByMatches);
+        preg_match_all('/\$updatedBy/', (string) $code, $updatedByMatches);
 
         self::assertLessThanOrEqual(2, \count($createdByMatches[0]), "Template should not produce duplicate \$createdBy property declarations when field_name is '{$fieldName}'");
         self::assertLessThanOrEqual(2, \count($updatedByMatches[0]), "Template should not produce duplicate \$updatedBy property declarations when field_name is '{$fieldName}'");

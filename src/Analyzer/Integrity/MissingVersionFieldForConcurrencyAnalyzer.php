@@ -52,7 +52,7 @@ class MissingVersionFieldForConcurrencyAnalyzer implements AnalyzerInterface
 
                     yield $this->createIssue($metadata->getName(), $tableName);
                 }
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 // Swallow exceptions to avoid breaking the profiler
             }
         });

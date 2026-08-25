@@ -570,7 +570,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
                 $allIssues[] = new \AhmedBhs\DoctrineDoctor\Issue\ConfigurationIssue([
                     'type' => 'analyzer_failure',
-                    'title' => 'Analyzer Failure: ' . (new \ReflectionClass($analyzer))->getShortName(),
+                    'title' => 'Analyzer Failure: ' . new \ReflectionClass($analyzer)->getShortName(),
                     'description' => sprintf(
                         'The analyzer %s failed during execution. This might be due to a bug or an incompatible environment state. Error: %s',
                         $analyzer::class,
@@ -637,7 +637,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
     private function resolveIssueReconstructor(): IssueReconstructor
     {
-        if ((new \ReflectionProperty(self::class, 'dataCollectorHelpers'))->isInitialized($this)) {
+        if (new \ReflectionProperty(self::class, 'dataCollectorHelpers')->isInitialized($this)) {
             return $this->dataCollectorHelpers->issueReconstructor;
         }
 

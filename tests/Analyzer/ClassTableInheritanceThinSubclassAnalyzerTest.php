@@ -41,7 +41,7 @@ final class ClassTableInheritanceThinSubclassAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $thinIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Thin CTI'));
+        $thinIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Thin CTI'));
 
         self::assertNotEmpty($thinIssues, 'Should detect thin CTI subclasses (CtiCar and CtiBike add only 1 field each)');
     }
@@ -53,10 +53,10 @@ final class ClassTableInheritanceThinSubclassAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
 
         $titles = array_map(static fn ($issue) => $issue->getTitle(), $issuesArray);
-        $thinTitles = array_filter($titles, static fn ($t) => str_contains($t, 'Thin CTI'));
+        $thinTitles = array_filter($titles, static fn ($t) => str_contains((string) $t, 'Thin CTI'));
 
-        $hasCar = array_filter($thinTitles, static fn ($t) => str_contains($t, 'CtiCar'));
-        $hasBike = array_filter($thinTitles, static fn ($t) => str_contains($t, 'CtiBike'));
+        $hasCar = array_filter($thinTitles, static fn ($t) => str_contains((string) $t, 'CtiCar'));
+        $hasBike = array_filter($thinTitles, static fn ($t) => str_contains((string) $t, 'CtiBike'));
 
         self::assertNotEmpty($hasCar, 'CtiCar adds only 1 field, should be flagged');
         self::assertNotEmpty($hasBike, 'CtiBike adds only 1 field, should be flagged');
@@ -68,7 +68,7 @@ final class ClassTableInheritanceThinSubclassAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $thinIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Thin CTI'));
+        $thinIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Thin CTI'));
 
         foreach ($thinIssues as $issue) {
             self::assertInstanceOf(IntegrityIssue::class, $issue);
@@ -82,7 +82,7 @@ final class ClassTableInheritanceThinSubclassAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $thinIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Thin CTI'));
+        $thinIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Thin CTI'));
 
         foreach ($thinIssues as $issue) {
             self::assertNotNull($issue->getSuggestion());
@@ -105,7 +105,7 @@ final class ClassTableInheritanceThinSubclassAnalyzerTest extends TestCase
         $issues = $analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $thinIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Thin CTI Subclass: CtiCar'));
+        $thinIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Thin CTI Subclass: CtiCar'));
 
         self::assertEmpty($thinIssues, 'Should not flag when threshold is 0');
     }

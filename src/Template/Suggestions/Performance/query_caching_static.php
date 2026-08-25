@@ -6,7 +6,7 @@ declare(strict_types=1);
 $sql = $context['sql'] ?? 'SELECT * FROM static_table';
 $table_name = $context['table_name'] ?? 'static_table';
 
-$sql = html_entity_decode($sql, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+$sql = html_entity_decode((string) $sql, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 

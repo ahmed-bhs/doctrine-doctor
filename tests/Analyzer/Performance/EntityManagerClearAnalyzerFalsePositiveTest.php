@@ -46,7 +46,7 @@ final class EntityManagerClearAnalyzerFalsePositiveTest extends TestCase
 
         $clearIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Memory Leak'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Memory Leak'),
         );
 
         self::assertCount(0, $clearIssues, 'Migration table INSERTs should not be flagged as missing EntityManager::clear()');
@@ -73,7 +73,7 @@ final class EntityManagerClearAnalyzerFalsePositiveTest extends TestCase
 
         $clearIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Memory Leak'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Memory Leak'),
         );
 
         self::assertCount(0, $clearIssues, 'INSERTs with 8 unrelated queries between them should not be considered sequential with maxGap=3');

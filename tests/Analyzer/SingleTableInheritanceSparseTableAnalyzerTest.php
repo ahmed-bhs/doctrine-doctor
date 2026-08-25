@@ -41,7 +41,7 @@ final class SingleTableInheritanceSparseTableAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $stiIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Sparse STI'));
+        $stiIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Sparse STI'));
 
         self::assertNotEmpty($stiIssues, 'Should detect sparse STI hierarchy');
     }
@@ -63,7 +63,7 @@ final class SingleTableInheritanceSparseTableAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $stiIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Sparse STI'));
+        $stiIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Sparse STI'));
 
         foreach ($stiIssues as $issue) {
             self::assertNotNull($issue->getSuggestion());
@@ -76,7 +76,7 @@ final class SingleTableInheritanceSparseTableAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $stiIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Sparse STI'));
+        $stiIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Sparse STI'));
 
         foreach ($stiIssues as $issue) {
             self::assertStringContainsString('StiAnimal', $issue->getDescription());
@@ -99,7 +99,7 @@ final class SingleTableInheritanceSparseTableAnalyzerTest extends TestCase
         $issues = $analyzer->analyze(QueryDataBuilder::create()->build());
         $issuesArray = $issues->toArray();
 
-        $stiIssues = array_filter($issuesArray, static fn ($issue) => str_contains($issue->getTitle(), 'Sparse STI'));
+        $stiIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Sparse STI'));
 
         self::assertEmpty($stiIssues, 'Should not flag with very high threshold');
     }

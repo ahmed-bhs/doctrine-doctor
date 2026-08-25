@@ -33,6 +33,7 @@ class GetReferenceIssue extends AbstractIssue
         ], $data));
     }
 
+    #[\Override]
     public static function supportedTypes(): array
     {
         return [

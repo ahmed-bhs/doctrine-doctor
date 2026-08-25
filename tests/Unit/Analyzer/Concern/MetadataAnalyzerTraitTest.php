@@ -28,11 +28,11 @@ final class MetadataAnalyzerTraitTest extends TestCase
     {
         $expectedCollection = IssueCollection::fromArray([]);
 
-        $analyzer = new class($expectedCollection) implements MetadataAnalyzerInterface {
+        $analyzer = new readonly class($expectedCollection) implements MetadataAnalyzerInterface {
             use MetadataAnalyzerTrait;
 
             public function __construct(
-                private readonly IssueCollection $collection,
+                private IssueCollection $collection,
             ) {
             }
 
@@ -52,11 +52,11 @@ final class MetadataAnalyzerTraitTest extends TestCase
     {
         $expectedCollection = IssueCollection::fromArray([]);
 
-        $analyzer = new class($expectedCollection) implements MetadataAnalyzerInterface {
+        $analyzer = new readonly class($expectedCollection) implements MetadataAnalyzerInterface {
             use MetadataAnalyzerTrait;
 
             public function __construct(
-                private readonly IssueCollection $collection,
+                private IssueCollection $collection,
             ) {
             }
 

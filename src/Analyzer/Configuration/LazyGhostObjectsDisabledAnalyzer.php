@@ -40,7 +40,7 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
 {
     use MetadataAnalyzerTrait;
 
-    private const NATIVE_LAZY_OBJECTS_KEY = 'enable_native_lazy_objects';
+    private const string NATIVE_LAZY_OBJECTS_KEY = 'enable_native_lazy_objects';
 
     /**
      * @param (\Closure(): ?string)|null $doctrineBundleVersionResolver

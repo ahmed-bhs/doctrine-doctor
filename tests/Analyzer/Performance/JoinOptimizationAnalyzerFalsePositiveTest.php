@@ -55,7 +55,7 @@ final class JoinOptimizationAnalyzerFalsePositiveTest extends TestCase
 
         $tooManyJoinsIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Too Many JOINs'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Too Many JOINs'),
         );
 
         self::assertCount(0, $tooManyJoinsIssues, 'Should not count JOINs inside subqueries as top-level JOINs');
@@ -80,7 +80,7 @@ final class JoinOptimizationAnalyzerFalsePositiveTest extends TestCase
 
         $tooManyJoinsIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'Too Many JOINs'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'Too Many JOINs'),
         );
 
         self::assertCount(0, $tooManyJoinsIssues, 'Should not count JOINs in EXISTS subquery as top-level (only 1 real top-level JOIN)');

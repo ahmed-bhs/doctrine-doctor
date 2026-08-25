@@ -41,7 +41,7 @@ final class InsecureRandomAnalyzerFalsePositiveTest extends TestCase
 
         $apiKeyIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getDescription(), 'resetApiKeyTimestamp'),
+            static fn ($issue): bool => str_contains((string) $issue->getDescription(), 'resetApiKeyTimestamp'),
         );
 
         self::assertCount(0, $apiKeyIssues, 'Should not flag rand() in resetApiKeyTimestamp() just because source code contains "apiKey" property reference');

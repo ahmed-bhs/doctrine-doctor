@@ -56,7 +56,7 @@ final class FindAllAnalyzerFalsePositiveTest extends TestCase
 
         $findAllIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getType(), 'find_all'),
+            static fn ($issue): bool => str_contains((string) $issue->getType(), 'find_all'),
         );
 
         self::assertCount(0, $findAllIssues, 'INNER JOIN queries are correctly handled by the analyzer');
@@ -73,7 +73,7 @@ final class FindAllAnalyzerFalsePositiveTest extends TestCase
 
         $findAllIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getType(), 'find_all'),
+            static fn ($issue): bool => str_contains((string) $issue->getType(), 'find_all'),
         );
 
         self::assertCount(0, $findAllIssues);
@@ -94,7 +94,7 @@ final class FindAllAnalyzerFalsePositiveTest extends TestCase
 
         $findAllIssues = array_filter(
             $issues->toArray(),
-            static fn ($issue): bool => str_contains($issue->getType(), 'find_all'),
+            static fn ($issue): bool => str_contains((string) $issue->getType(), 'find_all'),
         );
 
         self::assertCount(0, $findAllIssues);
@@ -112,7 +112,7 @@ final class FindAllAnalyzerFalsePositiveTest extends TestCase
 
             $findAllIssues = array_filter(
                 $issues->toArray(),
-                static fn ($issue): bool => str_contains($issue->getType(), 'find_all'),
+                static fn ($issue): bool => str_contains((string) $issue->getType(), 'find_all'),
             );
 
             self::assertCount(0, $findAllIssues, sprintf('SELECT DISTINCT %s(...) should not be flagged', $aggregate));

@@ -115,7 +115,7 @@ class CompositeKeyComplexityAnalyzer implements MetadataAnalyzerInterface
                 ' This entity is referenced by %d other entit%s (%s), which must all map the full composite key.',
                 count($referencedBy),
                 1 === count($referencedBy) ? 'y' : 'ies',
-                implode(', ', array_map(fn (string $fqcn): string => $this->shortClassName($fqcn), $referencedBy)),
+                implode(', ', array_map($this->shortClassName(...), $referencedBy)),
             );
             $severity = Severity::critical();
         }
@@ -177,7 +177,7 @@ class CompositeKeyComplexityAnalyzer implements MetadataAnalyzerInterface
                 'short_name' => $shortName,
                 'identifier_fields' => $identifierFields,
                 'column_count' => count($identifierFields),
-                'referenced_by' => array_map(fn (string $fqcn): string => $this->shortClassName($fqcn), $referencedBy),
+                'referenced_by' => array_map($this->shortClassName(...), $referencedBy),
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),

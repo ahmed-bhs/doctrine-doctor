@@ -15,18 +15,18 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
-final class OrmServicePruner
+final readonly class OrmServicePruner
 {
     private const array CORE_ORM_SERVICES = [
         'doctrine_doctor.entity_manager',
         'doctrine_doctor.entity_manager_with_filtered_metadata',
         'doctrine_doctor.entity_manager.inner',
-        'AhmedBhs\\DoctrineDoctor\\Metadata\\EntityMetadataProvider',
-        'AhmedBhs\\DoctrineDoctor\\Metadata\\EntityManagerMetadataDecorator',
+        \AhmedBhs\DoctrineDoctor\Metadata\EntityMetadataProvider::class,
+        \AhmedBhs\DoctrineDoctor\Metadata\EntityManagerMetadataDecorator::class,
     ];
 
     private const array ORM_ONLY_ANALYZERS = [
-        'AhmedBhs\\DoctrineDoctor\\Analyzer\\Integrity\\PartialObjectAnalyzer',
+        \AhmedBhs\DoctrineDoctor\Analyzer\Integrity\PartialObjectAnalyzer::class,
     ];
 
     private const string SERVICE_NAMESPACE = 'AhmedBhs\\DoctrineDoctor\\';
@@ -46,7 +46,7 @@ final class OrmServicePruner
     ];
 
     public function __construct(
-        private readonly ContainerBuilder $container,
+        private ContainerBuilder $container,
     ) {
     }
 
@@ -127,17 +127,10 @@ final class OrmServicePruner
             return false;
         }
 
-        if ('AhmedBhs\\DoctrineDoctor\\Collector\\DoctrineDoctorDataCollector' === $serviceId) {
+        if (\AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector::class === $serviceId) {
             return false;
         }
-
-        foreach (self::PRESERVED_SERVICE_PREFIXES as $prefix) {
-            if (str_starts_with($serviceId, $prefix)) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all(self::PRESERVED_SERVICE_PREFIXES, fn ($prefix) => !str_starts_with($serviceId, (string) $prefix));
     }
 
     private function shouldRemoveDefinition(Definition $definition): bool
@@ -179,14 +172,7 @@ final class OrmServicePruner
         if (!is_array($value)) {
             return false;
         }
-
-        foreach ($value as $item) {
-            if ($this->referenceTargetsRemovedService($item)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($value, fn ($item) => $this->referenceTargetsRemovedService($item));
     }
 
     private function dependsOnEntityManager(Definition $definition): bool
@@ -248,14 +234,7 @@ final class OrmServicePruner
         if (!is_array($value)) {
             return false;
         }
-
-        foreach ($value as $item) {
-            if ($this->referenceTargetsEntityManager($item)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($value, fn ($item) => $this->referenceTargetsEntityManager($item));
     }
 
     private function removeService(string $serviceId): void
@@ -283,7 +262,7 @@ final class OrmServicePruner
 
     private function isEntityManagerTypeName(string $typeName): bool
     {
-        return 'Doctrine\\ORM\\EntityManagerInterface' === $typeName
-            || 'Doctrine\\ORM\\EntityManager' === $typeName;
+        return \Doctrine\ORM\EntityManagerInterface::class === $typeName
+            || \Doctrine\ORM\EntityManager::class === $typeName;
     }
 }

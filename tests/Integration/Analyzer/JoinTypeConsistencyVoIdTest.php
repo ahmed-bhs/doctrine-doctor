@@ -39,7 +39,7 @@ final class JoinTypeConsistencyVoIdTest extends TestCase
 
         $aggregationIssues = array_filter(
             $issues,
-            static fn ($issue): bool => str_contains($issue->getTitle(), 'INNER JOIN'),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'INNER JOIN'),
         );
 
         self::assertCount(0, $aggregationIssues, 'A ManyToOne join whose target has a Value-Object identifier never duplicates rows and must not be flagged');
