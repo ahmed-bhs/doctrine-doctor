@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detection of an entity missing from its root's `DiscriminatorMap` was considered and deliberately left out: `ClassMetadataFactory` throws `mappedClassNotPartOfDiscriminatorMap` on that mapping, so `getAllMetadata()` never returns and no analyzer can observe it. Abstract classes escape the throw but legitimately carry no discriminator value. The same applies to invalid enum entries, which `invalidEntriesInDiscriminatorMap` already rejects.
 - The three analyzers are not gated by ORM version. `doctrine/doctrine-bundle` 3.x requires DBAL `^4.0`, which floors the ORM at 3.x, so an ORM 2.20 user cannot install this bundle and a version guard would be unreachable code.
 
+### Changed
+
+- `doctrine/orm` in `require-dev` is constrained to `^3.0` instead of `^3.0|^4.0`. No 4.x has been released — Packagist lists only the `4.0.x-dev` branch — so the upper bound allowed the development branch of an unreleased major to be resolved, whose BC breaks are by definition unknown and untested here. ORM 3.6 already deprecates mappings that 4.0 will reject, which is exactly the window in which an accidental resolution would fail in confusing ways. The constraint was widened in ec60e80 as part of a broad modernization commit rather than as a deliberate targeting of ORM 4, and nothing in the CI matrix, the documentation or the code refers to it. Runtime dependencies are unaffected: the bundle requires `doctrine/doctrine-bundle` rather than the ORM directly, so this changes only what the bundle's own test suite resolves against.
+
 ## [2.10.2] - 2026-08-24
 
 ### Fixed
