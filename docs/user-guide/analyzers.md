@@ -11,7 +11,7 @@ nav_order: 2
 
 ## 1. Overview
 
-Doctrine Doctor implements **90+ specialized analyzers** organized into four categories that detect Doctrine ORM anti-patterns and performance issues.
+Doctrine Doctor implements **98 specialized analyzers** organized into four categories that detect Doctrine ORM anti-patterns and performance issues.
 
 ### 1.1 Severity Classification
 
@@ -44,10 +44,8 @@ Doctrine Doctor implements **90+ specialized analyzers** organized into four cat
 
 Performance analyzers detect patterns that degrade application responsiveness, increase database load, or consume excessive system resources.
 
-**Total**: 19 analyzers
+**Total**: 30 analyzers
 **Average Impact**: 10-1000x performance improvement when resolved
-
-### 3.2 Analyzer Catalog
 
 ### 3.2 Key Performance Analyzers
 
@@ -92,7 +90,7 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 - **Impact**: Prevents row explosion, duplicate hydration, memory spikes, and severe slowdowns
 - **Example**: Joining multiple to-many associations in one query creates `N x M` result multiplication
 
-> Note: Some analyzer classes exist in `src/Analyzer/` but are not part of the default registered analyzer set.
+> Note: Two classes under `src/Analyzer/` are intentionally absent from this catalog. `MissingIndexAnalyzerConfig` is a configuration object, not an analyzer, and `FlushInLoopAnalyzerModern` is an unfinished variant excluded from the `doctrine_doctor.analyzer` tag in `config/services.yaml`, so it never runs.
 
 ---
 
@@ -118,6 +116,18 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 | FindAllAnalyzer | Unfiltered queries | Memory exhaustion | `threshold: 99` |
 | YearFunctionOptimizationAnalyzer | Function in WHERE | Index usage | — |
 | IneffectiveLikeAnalyzer | Leading wildcard | Full table scan | — |
+| NPlusOneSqlAnalyzer | SQL-level N+1 detection | Query reduction | — |
+| StructuralMissingIndexAnalyzer | WHERE columns vs declared indexes | Index coverage | — |
+| DeepOffsetPaginationAnalyzer | Large OFFSET values | Scan cost grows with offset | — |
+| PaginationWithoutOrderByAnalyzer | LIMIT without ORDER BY | Non-deterministic pages | — |
+| OrderByNullableLeadingColumnAnalyzer | Nullable leading sort key | Rows skipped per platform | — |
+| FunctionOnPredicateColumnAnalyzer | Function wrapping a WHERE column | Index not usable | — |
+| ImplicitTypeConversionAnalyzer | Type mismatch in predicates | Index not usable | — |
+| NotInSubqueryAnalyzer | `NOT IN` with a subquery | NULL semantics and cost | — |
+| MissingTransactionOnBatchAnalyzer | Unwrapped batch writes | Per-statement commits | — |
+| EagerLoadingMappingAnalyzer | `fetch: 'EAGER'` in mapping | Unrequested joins | — |
+| GedmoExtensionPerformanceAnalyzer | Gedmo Loggable / Translatable | Extra writes and joins | — |
+| GetReferenceAnalyzer | Full load where a reference suffices | Avoidable queries | — |
 
 **Internal Parser Utilities** (not directly user-facing):
 | SqlAggregationAnalyzer | Aggregation function analysis | Query optimization | Internal |
@@ -132,7 +142,7 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 
 Security analyzers detect vulnerabilities aligned with **OWASP Top 10** and Doctrine-specific attack vectors.
 
-**Total**: 4 analyzers
+**Total**: 6 analyzers
 **OWASP Coverage**: A02:2021 (Cryptographic Failures), A03:2021 (Injection), A05:2021 (Security Misconfiguration)
 
 ### 4.2 Key Security Analyzers
@@ -164,6 +174,18 @@ Security analyzers detect vulnerabilities aligned with **OWASP Top 10** and Doct
 - **Purpose**: Identifies insecure random number generation
 - **Detection**: Usage of `rand()` in security contexts
 
+#### 4.2.5 HardcodedDatabaseCredentialsAnalyzer
+
+- **Severity**: Critical
+- **Purpose**: Detects database credentials written directly into configuration instead of environment variables
+- **Detection**: Hardcoded database URL in the connection configuration
+
+#### 4.2.6 OverprivilegedDatabaseUserAnalyzer
+
+- **Severity**: Warning
+- **Purpose**: Flags a database user holding more privileges than the application needs
+- **Detection**: Connection user inspection, including the empty-user case
+
 ---
 
 ## 5. Integrity Analyzers
@@ -172,7 +194,7 @@ Security analyzers detect vulnerabilities aligned with **OWASP Top 10** and Doct
 
 Integrity analyzers detect code smells, anti-patterns, and violations of best practices that affect maintainability, readability, and adherence to Doctrine ORM conventions.
 
-**Total**: 35 analyzers
+**Total**: 53 analyzers
 **Focus**: Type safety, relationship consistency, lifecycle management, naming conventions
 
 ### 5.2 Key Analyzers
@@ -226,7 +248,7 @@ private Collection $items;
 
 ---
 
-#### 5.2.2 BidirectionalConsistencyAnalyzer
+#### 5.2.3 BidirectionalConsistencyAnalyzer
 
 **Description**: Ensures symmetric mapping in bidirectional relationships.
 
@@ -272,12 +294,35 @@ class Customer {
 | PropertyTypeMismatchAnalyzer | Type safety | PHP↔DB type mismatch | Runtime errors |
 | ColumnTypeAnalyzer | Column definitions | Wrong type usage | Data loss |
 | CollectionInitializationAnalyzer | Object lifecycle | Uninitialized collections | Null pointer exceptions |
-| GetReferenceAnalyzer | Performance | Unnecessary queries | Database overhead |
+| CascadeAnalyzer | Cascade safety | Unified cascade diagnosis | Data loss or orphans |
+| TimestampableTraitAnalyzer | Trait conventions | Mutable or nullable timestamps | Unreliable audit trail |
+| BlameableTraitAnalyzer | Trait conventions | Mutable or public author fields | Unreliable audit trail |
+| SoftDeleteableTraitAnalyzer | Trait conventions | Mutable deletion timestamp | Unreliable soft deletes |
 | PrimaryKeyStrategyAnalyzer | ID generation | Inefficient strategy | Performance issues |
 | QueryBuilderBestPracticesAnalyzer | Code quality | Bad QueryBuilder patterns | Maintainability |
 | EntityManagerInEntityAnalyzer | Architecture | Dependency injection | Architecture violation |
 | TypeHintMismatchAnalyzer | Type safety | Type inconsistency | Runtime errors |
 | NamingConventionAnalyzer | Code standards | Naming violations | Readability issues |
+| NullComparisonAnalyzer | SQL semantics | `= NULL` instead of `IS NULL` | Silently empty results |
+| DivisionByZeroAnalyzer | Expression safety | Unguarded division | Runtime error |
+| CompositeKeyComplexityAnalyzer | Identifier design | Composite primary key | Join and mapping complexity |
+| JoinColumnNonPrimaryKeyAnalyzer | Referential integrity | Join column targets a non-primary key | Fragile association |
+| JoinTypeConsistencyAnalyzer | Query semantics | Mixed JOIN types | Inconsistent result sets |
+| OneToOneInverseSideAnalyzer | Association mapping | Inverse side of a OneToOne | Extra query per load |
+| ManyToManyWithExtraColumnsAnalyzer | Relationship modelling | Join table carries extra columns | Should be an entity |
+| MappedSuperclassAsTargetEntityAnalyzer | Association mapping | Association targets a mapped superclass | Unsupported by Doctrine |
+| MappedSuperclassOneToManyAnalyzer | Association mapping | OneToMany on a mapped superclass | Unsupported by Doctrine |
+| DuplicatePrivateFieldInHierarchyAnalyzer | Inheritance | Same private field redeclared in a subclass | Shadowed state |
+| InheritanceTypeOnNonRootEntityAnalyzer | Inheritance | `InheritanceType` declared off the root | Ignored by Doctrine |
+| ClassTableInheritanceDepthAnalyzer | Class Table Inheritance | Deep hierarchy | One JOIN per level |
+| ClassTableInheritanceThinSubclassAnalyzer | Class Table Inheritance | Subclass adds almost no fields | JOIN cost for little data |
+| SingleTableInheritanceSparseTableAnalyzer | Single Table Inheritance | Mostly-empty columns | Wasted storage |
+| SingleTableInheritanceNullableColumnAnalyzer | Single Table Inheritance | Non-nullable subclass column | Inserts fail for siblings |
+| PartialObjectAnalyzer | Hydration | Full entity loaded for a few fields | Unnecessary data transfer |
+| FlushInEventListenerAnalyzer | Lifecycle | `flush()` inside a lifecycle callback | Nested unit of work |
+| MissingVersionFieldForConcurrencyAnalyzer | Concurrency | No `#[ORM\Version]` field | Lost updates |
+| DenormalizedAggregateWithoutLockingAnalyzer | Concurrency | Denormalized aggregate without locking | Drifting totals |
+| UniqueEntityWithoutDatabaseIndexAnalyzer | Constraints | `#[UniqueEntity]` with no UNIQUE index | Duplicates under concurrency |
 | DiscriminatorColumnAnalyzer (length) | Inheritance mapping | Column too short for map | Unloadable rows |
 | DiscriminatorColumnAnalyzer (index) | Single Table Inheritance | Unindexed discriminator | Full table scans |
 | NullablePrimaryKeyAnalyzer | Identifier mapping | Nullable primary key | Deprecated since ORM 3.6 |
@@ -287,34 +332,25 @@ class Customer {
 
 ## 6. Configuration Analyzers
 
-### 6.1 Key Configuration Analyzers
+### 6.1 Category Overview
 
-#### 6.1.1 TimeZoneAnalyzer
+Configuration analyzers inspect the Doctrine and database settings the application runs with, rather than the entities or the queries themselves.
+
+**Total**: 9 analyzers
+
+### 6.2 Key Configuration Analyzers
+
+#### 6.2.1 TimeZoneAnalyzer
 
 - **Purpose**: Detects timezone handling issues in datetime fields
 - **Recommendation**: Use DateTimeImmutable with UTC timezone
 
-#### 6.1.2 TimestampableTraitAnalyzer
-
-- **Purpose**: Validates timestampable trait configuration and automatic timestamp updates
-- **Recommendation**: Ensure `createdAt`/`updatedAt` fields are mapped and lifecycle updates are consistent
-
-#### 6.1.3 BlameableTraitAnalyzer
-
-- **Purpose**: Ensures proper user-tracking field configuration for blameable traits
-- **Recommendation**: Use compatible user/entity mappings and nullable strategy where lifecycle demands it
-
-#### 6.1.4 SoftDeleteableTraitAnalyzer
-
-- **Purpose**: Validates soft delete trait configuration and deleted-at semantics
-- **Recommendation**: Align filter usage, `deletedAt` mapping, and query expectations across the app
-
-#### 6.1.5 CharsetAnalyzer
+#### 6.2.2 CharsetAnalyzer
 
 - **Purpose**: Detects charset issues (recommends UTF8MB4)
 - **Recommendation**: Standardize on `utf8mb4` to avoid truncation and multi-byte character loss
 
-#### 6.1.6 CollationAnalyzer
+#### 6.2.3 CollationAnalyzer
 
 - **Purpose**: Validates collation settings for proper sorting and comparisons
 - **Detection Notes**:
@@ -322,17 +358,38 @@ class Customer {
   - PostgreSQL: detects `"C"` collation issues, libc vs ICU differences, FK collation mismatches
 - **Recommendation**: Use consistent, platform-appropriate collations across related tables/columns
 
-#### 6.1.7 StrictModeAnalyzer
+#### 6.2.4 StrictModeAnalyzer
 
 - **Purpose**: Ensures MySQL strict mode is enabled
 - **Recommendation**: Enable strict mode to fail fast on invalid/truncated data instead of silent coercion
 
-#### 6.1.8 InnoDBEngineAnalyzer
+#### 6.2.5 InnoDBEngineAnalyzer
 
 - **Purpose**: Validates InnoDB storage engine usage
 - **Recommendation**: Prefer InnoDB for transactions, row-level locking, and foreign key support
 
-### 6.2 Configuration Summary
+#### 6.2.6 DoctrineCacheAnalyzer
+
+- **Severity**: Critical / Warning
+- **Purpose**: Detects suboptimal cache configuration — `ArrayCache` for metadata, query or result caching reparses and recompiles on every request
+- **Note**: Reads the running configuration and only applies in the `prod` environment
+
+#### 6.2.7 AutoGenerateProxyClassesAnalyzer
+
+- **Severity**: Critical
+- **Purpose**: Detects `auto_generate_proxy_classes` left enabled for production, which makes Doctrine stat the filesystem on every entity load
+- **Detection**: Parses the production YAML (`config/packages/prod/doctrine.yaml`, `when@prod` blocks), so it warns from the dev profiler before deployment
+
+#### 6.2.8 LazyGhostObjectsDisabledAnalyzer
+
+- **Severity**: Info
+- **Purpose**: Detects `enable_lazy_ghost_objects` left disabled (Symfony 6.2+), a more efficient proxy mechanism than the legacy generated proxies
+
+#### 6.2.9 ConnectionPoolingAnalyzer
+
+- **Purpose**: Reviews connection pool settings and reports when `max_connections` is unsuited to the workload
+
+### 6.3 Configuration Summary
 
 | Focus Area | Analyzers | Key Recommendations |
 |------------|-----------|---------------------|
