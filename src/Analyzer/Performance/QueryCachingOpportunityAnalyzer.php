@@ -12,11 +12,11 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
-use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;

@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\DTO;
 
-use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Webmozart\Assert\Assert;

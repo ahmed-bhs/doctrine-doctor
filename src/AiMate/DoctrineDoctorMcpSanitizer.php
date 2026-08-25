@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\AiMate;
 
-use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use Throwable;

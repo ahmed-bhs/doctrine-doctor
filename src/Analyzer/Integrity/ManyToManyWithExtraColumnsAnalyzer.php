@@ -13,10 +13,10 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
-use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;

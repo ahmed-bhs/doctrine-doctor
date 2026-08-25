@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace AhmedBhs\DoctrineDoctor\Cache;
+namespace AhmedBhs\DoctrineDoctor\Infrastructure\Cache;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlQueryNormalizer;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;

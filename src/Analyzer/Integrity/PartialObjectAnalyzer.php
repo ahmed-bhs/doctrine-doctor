@@ -11,10 +11,10 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use AhmedBhs\DoctrineDoctor\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\Suggestion\StructuredSuggestion;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
