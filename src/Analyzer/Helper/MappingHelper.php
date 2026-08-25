@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace AhmedBhs\DoctrineDoctor\Helper;
+namespace AhmedBhs\DoctrineDoctor\Analyzer\Helper;
 
 use Webmozart\Assert\Assert;
 

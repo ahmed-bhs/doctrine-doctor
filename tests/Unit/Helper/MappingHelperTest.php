@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Helper;
 
-use AhmedBhs\DoctrineDoctor\Helper\MappingHelper;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use PHPUnit\Framework\TestCase;
 
 final class MappingHelperTest extends TestCase

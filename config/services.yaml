@@ -123,10 +123,6 @@ services:
     AhmedBhs\DoctrineDoctor\Suggestion\SuggestionRendererInterface:
         alias: AhmedBhs\DoctrineDoctor\Template\Renderer\TemplateRendererInterface
 
-    # Generators
-    AhmedBhs\DoctrineDoctor\Generator\MigrationGenerator: ~
-    AhmedBhs\DoctrineDoctor\Generator\RepositoryCodeGenerator: ~
-
     # Services for issue processing
     AhmedBhs\DoctrineDoctor\Service\SeverityCalculator: ~
 

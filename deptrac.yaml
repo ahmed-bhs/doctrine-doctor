@@ -74,17 +74,7 @@ deptrac:
           value: src/Analyzer/.*
       # Core business logic: detect issues in Doctrine code
 
-    - name: Detector
-      collectors:
-        - type: directory
-          value: src/Detector/.*
-      # Specialized detectors used by Analyzers
 
-    - name: Helper
-      collectors:
-        - type: directory
-          value: src/Helper/.*
-      # Pure domain helpers (no external dependencies)
 
     # --------------------------------------------------------
     # 🟡 INFRASTRUCTURE LAYER - Technical Implementation
@@ -117,11 +107,6 @@ deptrac:
           value: src/Template/.*
       # Template rendering system (Twig adapter)
 
-    - name: Generator
-      collectors:
-        - type: directory
-          value: src/Generator/.*
-      # Code generation (migrations, repositories, etc.)
 
     - name: Utils
       collectors:
@@ -210,23 +195,14 @@ deptrac:
       - Issue        # Analyzers CREATE Issues directly
       - Suggestion   # Analyzers CREATE Suggestions directly
       - Collection   # Analyzers return Collections of Issues
-      - Detector     # Analyzers can delegate to Detectors
       - Strategy     # Analyzers use Strategies (Infrastructure - platform-specific)
-      - Helper       # Analyzers can use Helpers (Application layer)
       - Factory      # Some Analyzers use PlatformAnalysisStrategyFactory
       - Utils        # InnoDBEngineAnalyzer uses DatabasePlatformDetector (platform detection)
       - Template     # Some Analyzers use TemplateRendererInterface for complex suggestions
       # Note: Template dependency allowed for Analyzers that create complex formatted suggestions
       # Note: Utils allowed for DatabasePlatformDetector (platform-specific infrastructure utility)
 
-    Detector:
-      - ValueObject  # Use domain ValueObjects
-      - DTO          # Detectors work with DTOs
-      - Collection   # Detectors may return Collections
 
-    Helper:
-      - ValueObject  # Helpers work with ValueObjects only
-      # Pure domain helpers - no external dependencies
 
     # --------------------------------------------------------
     # 🟡 INFRASTRUCTURE LAYER RULES
@@ -275,15 +251,6 @@ deptrac:
       # Templates implement Domain interfaces (Dependency Inversion)
       # Infrastructure → Domain (allowed)
 
-    Generator:
-      - ValueObject  # Use domain types
-      - DTO          # Work with DTOs
-      - Issue        # Generate code based on Issues
-      - Suggestion   # Generate code from Suggestions
-      - Collection   # Process collections of Issues
-      - Analyzer     # May run analysis before generation
-      - Strategy     # Use platform-specific Strategies
-      - Factory      # Use Factories
 
     Utils:
       - ValueObject  # Utils can use ValueObjects only
@@ -316,8 +283,7 @@ deptrac:
       - Strategy     # May use Strategies
       - Factory      # May use Factories
       - Collector    # Primary interaction point
-      - Generator    # Trigger code generation
-      # Commands are thin - they delegate to Collector/Generator
+      # Commands are thin - they delegate to the Collector
 
     # --------------------------------------------------------
     # ⚫ CONFIGURATION LAYER RULES
@@ -331,13 +297,10 @@ deptrac:
       - Suggestion
       - Collection
       - Analyzer
-      - Detector
       - Strategy
-      - Helper
       - Factory
       - Collector
       - Template
-      - Generator
       - Utils
       - Service
       - Command
@@ -359,7 +322,7 @@ deptrac:
   #
   # Layer Boundaries:
   # - Domain → Pure business logic (ValueObjects, DTOs, Entities)
-  # - Application → Business rules & orchestration (Analyzers, Detectors)
+  # - Application → Business rules & orchestration (Analyzers)
   # - Infrastructure → Technical implementation (Factories, Strategies, Templates)
   # - Presentation → User interface (Commands)
   #
@@ -375,7 +338,7 @@ deptrac:
   #
   # 1. ANALYZERS (Application Layer)
   #    DO: Create Issues and Suggestions directly (new IntegrityIssue(...))
-  #    DO: Use Helper classes for common mapping operations
+  #    DO: Use Analyzer\Helper classes for common mapping operations
   #    DO: Inject PlatformAnalysisStrategyFactory for platform-specific logic
   #    📢 DON'T: Inject IssueFactory or SuggestionFactory
   #    📢 DON'T: Use Utils classes (use Domain ValueObjects instead)
