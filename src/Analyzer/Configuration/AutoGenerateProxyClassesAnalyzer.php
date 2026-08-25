@@ -263,7 +263,7 @@ class AutoGenerateProxyClassesAnalyzer implements MetadataAnalyzerInterface
         $mode = $this->getAutoGenerateModeName($autoGenerate);
 
         return new DatabaseConfigIssue([
-            'title'       => 'Proxy Auto-Generation Enabled in Production',
+            'title'       => 'Proxy Auto-Generation Enabled in Production (config file)',
             'description' => sprintf(
                 'Your PRODUCTION Doctrine configuration has auto_generate_proxy_classes enabled (mode: %s). ' .
                 'This causes Doctrine to check filesystem on EVERY request to see if proxies need regeneration. ' .

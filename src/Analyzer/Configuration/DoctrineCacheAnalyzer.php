@@ -432,11 +432,14 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             ]);
 
             $configurationIssue->setSeverity('critical');
-            $configurationIssue->setTitle('Proxy Auto-Generation Enabled in Production');
+            $configurationIssue->setTitle('Proxy Auto-Generation Enabled in Production (runtime)');
             $configurationIssue->setMessage(
                 'auto_generate_proxy_classes is enabled in production. ' .
                 'Doctrine checks filesystem on every request to regenerate proxy classes. ' .
-                'This should be disabled in production (set to false).',
+                'This should be disabled in production (set to false). ' .
+                'This value is read from the EntityManager at runtime, so it reflects what ' .
+                'Doctrine actually uses, including overrides applied after the configuration ' .
+                'files are loaded.',
             );
 
             $suggestion = $this->suggestionFactory->createFromTemplate(
@@ -445,7 +448,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::configuration(),
                     severity: Severity::critical(),
-                    title: 'Proxy Auto-Generation Enabled in Production',
+                    title: 'Proxy Auto-Generation Enabled in Production (runtime)',
                     tags: ['configuration', 'proxy', 'performance'],
                 ),
             );
