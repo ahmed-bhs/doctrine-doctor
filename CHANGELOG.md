@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Three Integrity analyzers covering mappings that Doctrine itself does not reject, drawn from the ORM 3.6 and DBAL 4.4 deprecation cycle. `DiscriminatorColumnAnalyzer` reports a discriminator column whose length cannot hold the longest key of its own `DiscriminatorMap` — the value is truncated on write and the row can no longer be resolved back to its class — and, separately, a Single Table Inheritance hierarchy with no index on the discriminator column, where every subclass query appends a filter on it and scans the whole table. `NullablePrimaryKeyAnalyzer` reports primary key columns mapped as `nullable`, deprecated in ORM 3.6 (doctrine/orm#12126) and rejected in 4.0. `StringDefaultExpressionAnalyzer` reports raw SQL string defaults on temporal columns, deprecated in ORM 3.6 (doctrine/orm#12252) in favour of the `DefaultExpression` value objects added in DBAL 4.4 (doctrine/dbal#7195); it mirrors `SchemaTool` exactly, matching only temporal types whose default equals the current platform's own current-date/time SQL, so a string column holding the same literal is left alone.
+- Detection of an entity missing from its root's `DiscriminatorMap` was considered and deliberately left out: `ClassMetadataFactory` throws `mappedClassNotPartOfDiscriminatorMap` on that mapping, so `getAllMetadata()` never returns and no analyzer can observe it. Abstract classes escape the throw but legitimately carry no discriminator value. The same applies to invalid enum entries, which `invalidEntriesInDiscriminatorMap` already rejects.
+- The three analyzers are not gated by ORM version. `doctrine/doctrine-bundle` 3.x requires DBAL `^4.0`, which floors the ORM at 3.x, so an ORM 2.20 user cannot install this bundle and a version guard would be unreachable code.
+
 ## [2.10.2] - 2026-08-24
 
 ### Fixed
