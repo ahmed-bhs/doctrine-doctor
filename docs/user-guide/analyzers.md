@@ -278,6 +278,10 @@ class Customer {
 | EntityManagerInEntityAnalyzer | Architecture | Dependency injection | Architecture violation |
 | TypeHintMismatchAnalyzer | Type safety | Type inconsistency | Runtime errors |
 | NamingConventionAnalyzer | Code standards | Naming violations | Readability issues |
+| DiscriminatorColumnAnalyzer (length) | Inheritance mapping | Column too short for map | Unloadable rows |
+| DiscriminatorColumnAnalyzer (index) | Single Table Inheritance | Unindexed discriminator | Full table scans |
+| NullablePrimaryKeyAnalyzer | Identifier mapping | Nullable primary key | Deprecated since ORM 3.6 |
+| StringDefaultExpressionAnalyzer | Column defaults | Raw SQL string default | Deprecated since ORM 3.6 |
 
 ---
 
