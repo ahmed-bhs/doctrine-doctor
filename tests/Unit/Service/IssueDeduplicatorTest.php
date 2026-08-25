@@ -462,6 +462,90 @@ final class IssueDeduplicatorTest extends TestCase
         self::assertCount(2, $keptIssue->getDuplicatedIssues());
     }
 
+    #[Test]
+    public function it_keeps_two_index_issues_of_different_types_on_the_same_table(): void
+    {
+        $issues = IssueCollection::fromArray([
+            new PerformanceIssue([
+                'type' => IssueType::MISSING_INDEX->value,
+                'title' => 'Missing Index on users.email',
+                'description' => 'table users needs an index',
+                'severity' => 'critical',
+                'queries' => [],
+            ]),
+            new IntegrityIssue([
+                'type' => IssueType::UNIQUE_ENTITY_WITHOUT_INDEX->value,
+                'title' => 'Index missing for UniqueEntity',
+                'description' => 'table users needs attention',
+                'severity' => 'warning',
+                'queries' => [],
+            ]),
+        ]);
+
+        $deduplicated = $this->deduplicator->deduplicate($issues);
+
+        self::assertCount(2, $deduplicated, 'Two distinct issue types must not be merged because both titles mention an index');
+    }
+
+    #[Test]
+    public function it_keeps_the_config_file_and_runtime_proxy_issues_separate(): void
+    {
+        $issues = IssueCollection::fromArray([
+            $this->createConfigurationIssue(
+                'Proxy Auto-Generation Enabled in Production (config file)',
+                'The production configuration file enables auto_generate_proxy_classes.',
+            ),
+            $this->createConfigurationIssue(
+                'Proxy Auto-Generation Enabled in Production (runtime)',
+                'The EntityManager reports auto_generate_proxy_classes as enabled.',
+            ),
+        ]);
+
+        $deduplicated = $this->deduplicator->deduplicate($issues);
+
+        self::assertCount(
+            2,
+            $deduplicated,
+            'Each proxy analyzer covers a case the other cannot observe, so neither may hide the other',
+        );
+    }
+
+    #[Test]
+    public function it_merges_two_missing_index_issues_on_the_same_table(): void
+    {
+        $issues = IssueCollection::fromArray([
+            new PerformanceIssue([
+                'type' => IssueType::MISSING_INDEX->value,
+                'title' => 'Missing Index on users.email',
+                'description' => 'table users needs an index',
+                'severity' => 'critical',
+                'queries' => [],
+            ]),
+            new PerformanceIssue([
+                'type' => IssueType::MISSING_INDEX->value,
+                'title' => 'Missing Index on users.created_at',
+                'description' => 'table users needs an index',
+                'severity' => 'warning',
+                'queries' => [],
+            ]),
+        ]);
+
+        $deduplicated = $this->deduplicator->deduplicate($issues);
+
+        self::assertCount(1, $deduplicated, 'Same type on the same table stays grouped');
+    }
+
+    private function createConfigurationIssue(string $title, string $description): IntegrityIssue
+    {
+        return new IntegrityIssue([
+            'type' => IssueType::CONFIGURATION->value,
+            'title' => $title,
+            'description' => $description,
+            'severity' => 'critical',
+            'queries' => [],
+        ]);
+    }
+
     /**
      * Create a mock issue for testing.
      *

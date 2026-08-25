@@ -112,7 +112,7 @@ final class IssueDeduplicator
             return $signature;
         }
 
-        $signature = $this->getTableRelatedSignature($title, $entityOrTable);
+        $signature = $this->getTableRelatedSignature($type, $title, $entityOrTable);
         if (null !== $signature) {
             return $signature;
         }
@@ -225,7 +225,7 @@ final class IssueDeduplicator
     /**
      * Get signature for table-related issues (Index, ORDER BY, findAll).
      */
-    private function getTableRelatedSignature(string $title, ?string $entityOrTable): ?string
+    private function getTableRelatedSignature(string $type, string $title, ?string $entityOrTable): ?string
     {
         if (null === $entityOrTable) {
             return null;
@@ -233,6 +233,35 @@ final class IssueDeduplicator
 
         // Normalize entity/table name to lowercase and remove underscores for consistent grouping
         $normalizedEntity = str_replace('_', '', strtolower($entityOrTable));
+
+        // Issue types that describe the same table-level indexing problem and are
+        // therefore safe to collapse together. Matching on the type rather than on
+        // the title keeps unrelated analyzers out of the group: several of them
+        // legitimately mention "index" while diagnosing something else entirely.
+        $tablePerformanceTypes = [
+            IssueType::MISSING_INDEX->value,
+        ];
+
+        if (in_array($type, $tablePerformanceTypes, true)) {
+            return "table_performance:{$normalizedEntity}";
+        }
+
+        $tableQueryTypes = [
+            IssueType::FIND_ALL->value,
+        ];
+
+        if (in_array($type, $tableQueryTypes, true)) {
+            return "table_query:{$normalizedEntity}";
+        }
+
+        // Legacy fallback: issues created before the typed constants were applied
+        // still carry a generic type, so the title remains the only signal. Kept
+        // deliberately narrow — it only applies when the type is not itself a
+        // recognised IssueType, which is what stops unrelated typed issues from
+        // being pulled into the group.
+        if (null !== IssueType::tryFrom($type)) {
+            return null;
+        }
 
         if (str_contains($title, 'Index') || str_contains($title, 'index')) {
             return "table_performance:{$normalizedEntity}";
