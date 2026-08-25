@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\QueryFieldAccessorTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -36,6 +37,8 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
  */
 class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use QueryFieldAccessorTrait;
+
     private const array DEFAULT_STATIC_TABLES = [
         'countries',
         'currencies',
@@ -287,47 +290,15 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     /**
      * Extract SQL from query data.
      */
-    private function extractSQL(array|object $query): string
-    {
-        if (is_array($query)) {
-            return $query['sql'] ?? '';
-        }
-
-        return is_object($query) && property_exists($query, 'sql') ? $query->sql : '';
-    }
 
     /**
      * Extract execution time from query data.
      */
-    private function extractExecutionTime(array|object $query): float
-    {
-        if (is_array($query)) {
-            return (float) ($query['executionMS'] ?? 0);
-        }
-
-        if (is_object($query) && property_exists($query, 'executionTime')) {
-            return $query->executionTime?->inMilliseconds() ?? 0.0;
-        }
-
-        return 0.0;
-    }
 
     /**
      * Extract backtrace from query data.
      * @return array<int, array<string, mixed>>|null
      */
-    private function extractBacktrace(array|object $query): ?array
-    {
-        if (is_array($query)) {
-            return $query['backtrace'] ?? null;
-        }
-
-        if (is_object($query) && property_exists($query, 'backtrace')) {
-            return $query->backtrace ?? null;
-        }
-
-        return null;
-    }
 
     /**
      * Extract parameters from query data.

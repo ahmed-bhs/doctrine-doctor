@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\QueryFieldAccessorTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -36,6 +37,8 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
  */
 class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use QueryFieldAccessorTrait;
+
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
@@ -140,26 +143,10 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     /**
      * Extract SQL from query data.
      */
-    private function extractSQL(array|object $query): string
-    {
-        if (is_array($query)) {
-            return $query['sql'] ?? '';
-        }
-
-        return is_object($query) && property_exists($query, 'sql') ? ($query->sql ?? '') : '';
-    }
 
     /**
      * Extract execution time from query data.
      */
-    private function extractExecutionTime(array|object $query): float
-    {
-        if (is_array($query)) {
-            return (float) ($query['executionMS'] ?? 0);
-        }
-
-        return (is_object($query) && property_exists($query, 'executionTime')) ? ($query->executionTime?->inMilliseconds() ?? 0.0) : 0.0;
-    }
 
     /**
      * Create issue for ORDER BY without LIMIT.
@@ -197,14 +184,6 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      * Extract backtrace from query data.
      * @return array<int, array<string, mixed>>|null
      */
-    private function extractBacktrace(array|object $query): ?array
-    {
-        if (is_array($query)) {
-            return $query['backtrace'] ?? null;
-        }
-
-        return is_object($query) && property_exists($query, 'backtrace') ? ($query->backtrace ?? null) : null;
-    }
 
     /**
      * Detect if the query has a WHERE ... IN (...) clause, indicating a bounded result set.

@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\QueryFieldAccessorTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -23,6 +24,8 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
 class FunctionOnPredicateColumnAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use QueryFieldAccessorTrait;
+
     /**
      * Functions that, when applied to a column in WHERE, defeat index usage.
      * Date functions (YEAR/MONTH/DAY/DATE/HOUR/MINUTE/SECOND) are intentionally excluded
@@ -108,35 +111,9 @@ class FunctionOnPredicateColumnAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
         return 'Detects functions wrapping filtered columns in WHERE (LOWER, COALESCE, CAST, ISNULL, etc.) that defeat index usage';
     }
 
-    private function extractSQL(array|object $query): string
-    {
-        if (is_array($query)) {
-            return $query['sql'] ?? '';
-        }
-
-        return is_object($query) && property_exists($query, 'sql') ? ($query->sql ?? '') : '';
-    }
-
-    private function extractExecutionTime(array|object $query): float
-    {
-        if (is_array($query)) {
-            return (float) ($query['executionMS'] ?? 0);
-        }
-
-        return (is_object($query) && property_exists($query, 'executionTime')) ? ($query->executionTime?->inMilliseconds() ?? 0.0) : 0.0;
-    }
-
     /**
      * @return array<int, array<string, mixed>>|null
      */
-    private function extractBacktrace(array|object $query): ?array
-    {
-        if (is_array($query)) {
-            return $query['backtrace'] ?? null;
-        }
-
-        return is_object($query) && property_exists($query, 'backtrace') ? ($query->backtrace ?? null) : null;
-    }
 
     /**
      * Find non-sargable function-on-column patterns inside the WHERE clause.
