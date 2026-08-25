@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Rector's PHP 8.4 modernization is applied across the codebase, 106 files. `composer check` was red on `main` even on an untouched checkout, because Rector reported those files while none of the CI jobs ran it — so the combined gate had drifted out of reach locally without anything failing publicly. By volume the rules were `NullToStrictStringFuncCallArgRector` (43 files), `AddOverrideAttributeToOverriddenMethodsRector` (26), `NewMethodCallWithoutParenthesesRector` (12), `StringClassNameToClassConstantRector` (10), and fourteen others with five or fewer occurrences. Two needed correcting afterwards: `NewInInitializerRector` promoted four lazily-initialized dependencies into constructor defaults but kept the parameter nullable, turning four non-nullable properties into nullable ones — PHPStan caught it as six `cannot call method on X|null` errors, and the nullable markers were removed since the default is always an instance; ECS then reformatted the constructors Rector had collapsed onto single lines. The suggestion templates were validated separately, since that directory is excluded from ECS, PHPStan, Deptrac and PHPMD and is policed only by `bin/validate-suggestion-templates.php` — all 112 pass, which matters because `NullToStrictStringFuncCallArgRector` inserts casts of exactly the shape that validator rejects when they are not a known escaper. Deprecation notices in the test suite dropped from 10 to 8.
+
+### Added
+
+- A `Rector` job in CI. Rector was in `composer check` but in none of the workflow jobs, which is how 106 files accumulated without a single red build. The gate is now enforced where it is visible.
+
 ## [2.10.2] - 2026-08-24
 
 ### Fixed
