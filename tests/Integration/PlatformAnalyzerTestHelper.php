@@ -160,7 +160,7 @@ class PlatformAnalyzerTestHelper
 
     public static function createTestConfiguration(?array $entityPaths = null): \Doctrine\ORM\Configuration
     {
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
+        $configuration = ORMSetup::createAttributeMetadataConfig(
             paths: $entityPaths ?? [__DIR__ . '/../Fixtures/Entity'],
             isDevMode: true,
         );

@@ -16,9 +16,7 @@ return RectorConfig::configure()
         __DIR__ . '/tests/Fixtures',
     ])
     ->withSets([
-        DoctrineSetList::DOCTRINE_BUNDLE_210,
-        DoctrineSetList::DOCTRINE_ORM_300,
-        DoctrineSetList::DOCTRINE_DBAL_40,
+        DoctrineSetList::COMPOSER_BASED,
         LevelSetList::UP_TO_PHP_84,
-        SymfonySetList::SYMFONY_70,
+        SymfonySetList::COMPOSER_BASED,
     ]);

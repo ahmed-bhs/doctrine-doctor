@@ -83,7 +83,7 @@ abstract class DatabaseTestCase extends TestCase
      */
     protected function createEntityManager(): EntityManagerInterface
     {
-        $configuration = ORMSetup::createAttributeMetadataConfiguration(
+        $configuration = ORMSetup::createAttributeMetadataConfig(
             paths: [__DIR__ . '/../Fixtures/Entity'],
             isDevMode: true,
         );
