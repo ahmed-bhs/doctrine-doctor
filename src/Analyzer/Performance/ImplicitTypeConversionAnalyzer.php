@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\QueryFieldAccessorTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -37,6 +38,8 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
  */
 class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use QueryFieldAccessorTrait;
+
     /**
      * Column-name heuristics for numeric columns.
      * @var list<string>
@@ -143,26 +146,9 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         return 'Detects predicates comparing a column to a literal of an incompatible type, which disables index usage via implicit conversion';
     }
 
-    private function extractSQL(array|object $query): string
-    {
-        if (is_array($query)) {
-            return $query['sql'] ?? '';
-        }
-
-        return is_object($query) && property_exists($query, 'sql') ? ($query->sql ?? '') : '';
-    }
-
     /**
      * @return array<int, array<string, mixed>>|null
      */
-    private function extractBacktrace(array|object $query): ?array
-    {
-        if (is_array($query)) {
-            return $query['backtrace'] ?? null;
-        }
-
-        return is_object($query) && property_exists($query, 'backtrace') ? ($query->backtrace ?? null) : null;
-    }
 
     /**
      * @return list<array{column: string, literal: string, kind: string}>

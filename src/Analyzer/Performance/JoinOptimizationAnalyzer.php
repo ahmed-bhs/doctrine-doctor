@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\QueryFieldAccessorTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\PaginatorQueryDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
@@ -27,6 +28,8 @@ use Webmozart\Assert\Assert;
 
 class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use QueryFieldAccessorTrait;
+
     public function __construct(
         private readonly CollectionJoinDetector $collectionJoinDetector,
         private readonly SuggestionFactoryInterface $suggestionFactory,
@@ -557,12 +560,4 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     /**
      * @return array<int, array<string, mixed>>|null
      */
-    private function extractBacktrace(array|object $query): ?array
-    {
-        if (is_array($query)) {
-            return $query['backtrace'] ?? null;
-        }
-
-        return is_object($query) && property_exists($query, 'backtrace') ? ($query->backtrace ?? null) : null;
-    }
 }

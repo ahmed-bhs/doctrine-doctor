@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\QueryFieldAccessorTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -37,6 +38,8 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  */
 class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use QueryFieldAccessorTrait;
+
     /**
      * Pattern to detect Doctrine Paginator COUNT queries.
      * These queries wrap the original query in subqueries with DISTINCT to handle row duplication.
@@ -180,14 +183,6 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     /**
      * Extract SQL from query data.
      */
-    private function extractSQL(array|object $query): string
-    {
-        if (is_array($query)) {
-            return $query['sql'] ?? '';
-        }
-
-        return is_object($query) && property_exists($query, 'sql') ? ($query->sql ?? '') : '';
-    }
 
     /**
      * Check if a query is protected against row duplication.
@@ -298,14 +293,6 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      * Extract backtrace from query data.
      * @return array<int, array<string, mixed>>|null
      */
-    private function extractBacktrace(array|object $query): ?array
-    {
-        if (is_array($query)) {
-            return $query['backtrace'] ?? null;
-        }
-
-        return is_object($query) && property_exists($query, 'backtrace') ? ($query->backtrace ?? null) : null;
-    }
 
     /**
      * Create suggestion for LEFT JOIN with NOT NULL.

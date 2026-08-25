@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Concern\QueryFieldAccessorTrait;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -36,6 +37,8 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
  */
 class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    use QueryFieldAccessorTrait;
+
     /**
      * Pattern to detect incorrect NULL comparisons.
      * Matches: = NULL, != NULL, <> NULL
@@ -103,15 +106,6 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     /**
      * Extract SQL from query data.
      */
-    private function extractSQL(array|object $query): string
-    {
-        if (is_array($query)) {
-            return $query['sql'] ?? '';
-        }
-
-        return is_object($query) && property_exists($query, 'sql') ? ($query->sql ?? '') : '';
-    }
-
     private function removeSqlComments(string $sql): string
     {
         $sql = preg_replace('/--.*$/m', '', $sql) ?? $sql;
@@ -175,14 +169,6 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
      * Extract backtrace from query data.
      * @return array<int, array<string, mixed>>|null
      */
-    private function extractBacktrace(array|object $query): ?array
-    {
-        if (is_array($query)) {
-            return $query['backtrace'] ?? null;
-        }
-
-        return is_object($query) && property_exists($query, 'backtrace') ? ($query->backtrace ?? null) : null;
-    }
 
     /**
      * Create suggestion for fixing NULL comparison.
