@@ -1,0 +1,15 @@
+/.github export-ignore
+/.gitignore export-ignore
+/.markdownlint.json export-ignore
+
+/docs export-ignore
+/tests export-ignore
+
+/deptrac.yaml export-ignore
+/Makefile export-ignore
+/phpunit.xml.dist export-ignore
+/rector.php export-ignore
+/ecs.php export-ignore
+/phpstan.neon export-ignore
+/phpstan-bootstrap.php export-ignore
+/phpmd.xml export-ignore
