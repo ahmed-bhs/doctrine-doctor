@@ -118,12 +118,10 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
             // Extract foreign key pattern if present (WHERE table_id = ?)
             $foreignKey = $this->extractForeignKeyPattern($sql);
 
-            if (!isset($groupedByTable[$table])) {
-                $groupedByTable[$table] = [
-                    'items' => [],
-                    'first_index' => (int) $index,
-                ];
-            }
+            $groupedByTable[$table] ??= [
+                'items' => [],
+                'first_index' => (int) $index,
+            ];
 
             $groupedByTable[$table]['items'][] = [
                 'query' => $query,

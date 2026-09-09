@@ -67,9 +67,7 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
                     }
 
                     if (null !== $table) {
-                        if (!isset($insertUpdateQueries[$table])) {
-                            $insertUpdateQueries[$table] = [];
-                        }
+                        $insertUpdateQueries[$table] ??= [];
 
                         $insertUpdateQueries[$table][] = [
                             'query' => $queryData,

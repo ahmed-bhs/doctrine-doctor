@@ -69,9 +69,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                         $table = $this->extractTableName($queryData->sql);
 
                         if (null !== $table) {
-                            if (!isset($simpleSelectQueries[$table])) {
-                                $simpleSelectQueries[$table] = [];
-                            }
+                            $simpleSelectQueries[$table] ??= [];
 
                             $simpleSelectQueries[$table][] = $queryData;
                             $this->logger?->info('[GetReferenceAnalyzer] Found simple SELECT by ID', ['table' => $table]);
@@ -290,9 +288,7 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             // Normalize query to group identical patterns
             $normalized = $this->normalizeQueryForGrouping($query->sql);
 
-            if (!isset($groups[$normalized])) {
-                $groups[$normalized] = [];
-            }
+            $groups[$normalized] ??= [];
 
             $groups[$normalized][] = $query;
         }

@@ -58,9 +58,7 @@ final class IssueDeduplicator
         foreach ($issues as $issue) {
             $signature = $this->getIssueSignature($issue);
 
-            if (!isset($groups[$signature])) {
-                $groups[$signature] = [];
-            }
+            $groups[$signature] ??= [];
 
             $groups[$signature][] = $issue;
         }
@@ -340,9 +338,7 @@ final class IssueDeduplicator
     {
         // Remove parameters and literals
         $normalized = preg_replace('/\?|\d+|\'[^\']*\'/i', '?', $sql);
-        if (null === $normalized) {
-            $normalized = $sql;
-        }
+        $normalized ??= $sql;
 
         // Normalize whitespace
         $normalized = preg_replace('/\s+/', ' ', $normalized);

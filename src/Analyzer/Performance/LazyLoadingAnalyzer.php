@@ -111,9 +111,7 @@ class LazyLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
 
             if (null !== $table) {
                 // Group by table and check if they're sequential
-                if (!isset($sequentialQueries[$table])) {
-                    $sequentialQueries[$table] = [];
-                }
+                $sequentialQueries[$table] ??= [];
 
                 $sequentialQueries[$table][] = [
                     'query' => $queryData,
