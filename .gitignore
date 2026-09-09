@@ -8,6 +8,9 @@
 *.swo
 *~
 
+# Castor
+.castor..stub.php
+
 # PHPUnit
 .phpunit.cache/
 coverage/
