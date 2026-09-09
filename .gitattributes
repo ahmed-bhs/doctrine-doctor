@@ -5,7 +5,7 @@
 /docs export-ignore
 /tests export-ignore
 
-/deptrack.yaml export-ignore
+/deptrac.yaml export-ignore
 /Makefile export-ignore
 /phpunit.xml.dist export-ignore
 /rector.php export-ignore
