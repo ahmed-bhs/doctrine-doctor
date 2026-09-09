@@ -688,9 +688,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
         $titleGroups = [];
         foreach ($issues as $issue) {
             $key = $issue->getTitle();
-            if (!isset($titleGroups[$key])) {
-                $titleGroups[$key] = 0;
-            }
+            $titleGroups[$key] ??= 0;
             $titleGroups[$key]++;
         }
 

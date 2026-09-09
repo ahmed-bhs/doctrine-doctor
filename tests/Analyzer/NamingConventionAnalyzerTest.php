@@ -636,9 +636,7 @@ final class NamingConventionAnalyzerTest extends TestCase
         foreach ($issuesArray as $issue) {
             $data = $issue->getData();
             $entity = $data['entity'] ?? '';
-            if (!isset($entitiesWithIssues[$entity])) {
-                $entitiesWithIssues[$entity] = 0;
-            }
+            $entitiesWithIssues[$entity] ??= 0;
             $entitiesWithIssues[$entity]++;
         }
 

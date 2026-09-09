@@ -287,9 +287,7 @@ abstract class AbstractCollection implements IteratorAggregate, Countable
         foreach ($this as $item) {
             $key = $keySelector($item);
 
-            if (!isset($groups[$key])) {
-                $groups[$key] = [];
-            }
+            $groups[$key] ??= [];
 
             $groups[$key][] = $item;
         }

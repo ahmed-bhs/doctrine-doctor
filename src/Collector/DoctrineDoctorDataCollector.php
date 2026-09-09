@@ -318,17 +318,15 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             $executionTime = (float) ($query['executionMS'] ?? 0.0);
             $executionMs = $executionTime * QueryExecutionTime::MS_PER_SECOND;
 
-            if (!isset($grouped[$sql])) {
-                $grouped[$sql] = [
-                    'sql' => $sql,
-                    'count' => 0,
-                    'totalTimeMs' => 0.0,
-                    'avgTimeMs' => 0.0,
-                    'maxTimeMs' => 0.0,
-                    'minTimeMs' => PHP_FLOAT_MAX,
-                    'firstQuery' => $query, // Keep first occurrence for display
-                ];
-            }
+            $grouped[$sql] ??= [
+                'sql' => $sql,
+                'count' => 0,
+                'totalTimeMs' => 0.0,
+                'avgTimeMs' => 0.0,
+                'maxTimeMs' => 0.0,
+                'minTimeMs' => PHP_FLOAT_MAX,
+                'firstQuery' => $query, // Keep first occurrence for display
+            ];
 
             $grouped[$sql]['count']++;
             $grouped[$sql]['totalTimeMs'] += $executionMs;
