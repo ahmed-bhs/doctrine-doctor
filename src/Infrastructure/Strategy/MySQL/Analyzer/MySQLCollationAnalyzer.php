@@ -352,21 +352,17 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
             ),
             'severity' => Severity::critical(),
             'suggestion' => $this->suggestionFactory->createFromTemplate(
-                templateName: 'Configuration/configuration',
+                templateName: 'Configuration/view_collation',
                 context: [
-                    'setting' => 'View collations',
-                    'current_value' => 'Mismatched collations',
-                    'recommended_value' => $this->getConnectionCollation(),
-                    'description' => 'Views must be created with the same collation the application connects with. '
-                        . 'Pinning literals with an explicit COLLATE gives them a higher coercibility, '
-                        . 'making the view independent from the session that creates it.',
+                    'connection_collation' => $this->getConnectionCollation(),
+                    'columns' => '- ' . $descriptionStr,
                     'fix_command' => implode("\n", $fixCommands),
                 ],
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::configuration(),
                     severity: Severity::info(),
                     title: 'Configuration Issue',
-                    tags: ['configuration', 'settings'],
+                    tags: ['configuration', 'collation', 'views'],
                 ),
             ),
             'backtrace' => null,
