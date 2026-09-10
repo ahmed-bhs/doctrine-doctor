@@ -69,6 +69,13 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
         if ([] !== $fkCollationMismatches) {
             yield $this->createForeignKeyCollationIssue($fkCollationMismatches);
         }
+
+        // Issue 4: Check for view columns incompatible with the connection collation
+        $viewCollationMismatches = $this->getViewCollationMismatches($databaseName);
+
+        if ([] !== $viewCollationMismatches) {
+            yield $this->createViewCollationIssue($viewCollationMismatches);
+        }
     }
 
     private function getDatabaseCollation(string $databaseName): string
@@ -86,6 +93,38 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
     private function isSuboptimalCollation(string $collation): bool
     {
         return in_array($collation, self::SUBOPTIMAL_COLLATIONS, true);
+    }
+
+    /**
+     * Detects view columns whose collation differs from the connection collation
+     * within the same character set.
+     *
+     * A CREATE VIEW statement freezes the session collation into the literals of
+     * its definition. When the application later queries such a column with a
+     * different collation, MySQL cannot arbitrate between two operands of equal
+     * coercibility and raises error 1267 (Illegal mix of collations).
+     *
+     * Only same-charset differences are reported: across character sets MySQL
+     * converts implicitly, which never raises 1267.
+     *
+     * @return array<mixed>
+     */
+    private function getViewCollationMismatches(string $databaseName): array
+    {
+        $result = $this->connection->executeQuery(
+            'SELECT c.TABLE_NAME, c.COLUMN_NAME, c.COLLATION_NAME, c.CHARACTER_SET_NAME
+             FROM information_schema.COLUMNS c
+             INNER JOIN information_schema.VIEWS v
+                 ON v.TABLE_SCHEMA = c.TABLE_SCHEMA
+                 AND v.TABLE_NAME = c.TABLE_NAME
+             WHERE c.TABLE_SCHEMA = ?
+             AND c.COLLATION_NAME IS NOT NULL
+             AND c.CHARACTER_SET_NAME = SUBSTRING_INDEX(@@collation_connection, \'_\', 1)
+             AND c.COLLATION_NAME != @@collation_connection',
+            [$databaseName],
+        );
+
+        return $this->databasePlatformDetector->fetchAllAssociative($result);
     }
 
     /**
@@ -262,6 +301,86 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
             'backtrace' => null,
             'queries'   => [],
         ]);
+    }
+
+    /**
+     * @param array<mixed> $mismatches
+     */
+    private function createViewCollationIssue(array $mismatches): DatabaseConfigIssue
+    {
+        $mismatchList = array_slice($mismatches, 0, 5);
+        $descriptions = array_map(
+            fn (array $mismatch): string => sprintf(
+                '%s.%s (%s)',
+                $mismatch['TABLE_NAME'],
+                $mismatch['COLUMN_NAME'],
+                $mismatch['COLLATION_NAME'],
+            ),
+            $mismatchList,
+        );
+        $descriptionStr = implode("\n- ", $descriptions);
+
+        if (count($mismatches) > 5) {
+            $descriptionStr .= sprintf("\n- ... and %d more", count($mismatches) - 5);
+        }
+
+        $affectedViews = array_unique(array_column($mismatches, 'TABLE_NAME'));
+
+        $fixCommands = [
+            '-- The view definition froze the session collation into its literals.',
+            '-- Recreate each view from a connection using the application collation,',
+            '-- or pin the literals explicitly so the view no longer depends on it:',
+            '--   IF(access = \'pr\',',
+            '--      _utf8mb4\'Prive\'  COLLATE utf8mb4_unicode_ci,',
+            '--      _utf8mb4\'Public\' COLLATE utf8mb4_unicode_ci) AS access',
+        ];
+
+        foreach (array_slice($affectedViews, 0, 5) as $viewName) {
+            $fixCommands[] = sprintf('SHOW CREATE VIEW `%s`;', $viewName);
+        }
+
+        return new DatabaseConfigIssue([
+            'title'       => sprintf('%d view columns incompatible with connection collation', count($mismatches)),
+            'description' => sprintf(
+                'Found %d view columns whose collation differs from the connection collation (%s) ' .
+                'within the same character set. A CREATE VIEW statement freezes the session collation ' .
+                'into the literals of its definition, so comparing such a column against a literal ' .
+                'raises error 1267 (Illegal mix of collations) — both operands share the same ' .
+                'coercibility and MySQL cannot arbitrate:' . "\n- " . $descriptionStr,
+                count($mismatches),
+                $this->getConnectionCollation(),
+            ),
+            'severity' => Severity::critical(),
+            'suggestion' => $this->suggestionFactory->createFromTemplate(
+                templateName: 'Configuration/configuration',
+                context: [
+                    'setting' => 'View collations',
+                    'current_value' => 'Mismatched collations',
+                    'recommended_value' => $this->getConnectionCollation(),
+                    'description' => 'Views must be created with the same collation the application connects with. '
+                        . 'Pinning literals with an explicit COLLATE gives them a higher coercibility, '
+                        . 'making the view independent from the session that creates it.',
+                    'fix_command' => implode("\n", $fixCommands),
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::configuration(),
+                    severity: Severity::info(),
+                    title: 'Configuration Issue',
+                    tags: ['configuration', 'settings'],
+                ),
+            ),
+            'backtrace' => null,
+            'queries'   => [],
+        ]);
+    }
+
+    private function getConnectionCollation(): string
+    {
+        $result = $this->connection->executeQuery('SELECT @@collation_connection AS collation_connection');
+
+        $row = $this->databasePlatformDetector->fetchAssociative($result);
+
+        return $row['collation_connection'] ?? 'unknown';
     }
 
     /**
