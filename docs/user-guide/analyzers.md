@@ -355,8 +355,9 @@ Configuration analyzers inspect the Doctrine and database settings the applicati
 - **Purpose**: Validates collation settings for proper sorting and comparisons
 - **Detection Notes**:
   - MySQL/MariaDB: detects `utf8mb4_general_ci` vs `utf8mb4_unicode_ci` mismatches
+  - MySQL/MariaDB: detects view columns whose collation differs from the connection collation. `CREATE VIEW` freezes the session collation into the literals of its definition, so comparing such a column against a literal raises error 1267 (_Illegal mix of collations_) — both operands share the same coercibility and MySQL cannot arbitrate. Only same-character-set differences are reported, since MySQL converts implicitly across character sets
   - PostgreSQL: detects `"C"` collation issues, libc vs ICU differences, FK collation mismatches
-- **Recommendation**: Use consistent, platform-appropriate collations across related tables/columns
+- **Recommendation**: Use consistent, platform-appropriate collations across related tables/columns. For views, either recreate them from a connection using the application collation, or pin the literals with an explicit `COLLATE` so the definition no longer depends on the creating session
 
 #### 6.2.4 StrictModeAnalyzer
 
