@@ -464,7 +464,8 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     }
 
     /**
-     * Comma-separated names of the indexes on $table whose leading column appears in the plan filter.
+     * Candidates for simple comparisons on an index's bare leading column.
+     * Expressions and partial indexes need proof of applicability, so are not inferred here.
      */
     private function findIndexesServingFilter(string $table, string $details): ?string
     {
@@ -473,11 +474,20 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         }
 
         $servingIndexes = [];
+        // Remove values before matching identifiers or Boolean operators.
+        $filter = preg_replace("/'(?:''|[^'])*'/", "''", $matches[1]) ?? '';
+        if (1 === preg_match('/\bOR\b/i', $filter)) {
+            return null;
+        }
 
         foreach ($this->getTableIndexes($table) as $index) {
+            if ($index->hasOption('where')) {
+                continue;
+            }
+
             $leadingColumn = $this->leadingColumn($index);
 
-            if (null !== $leadingColumn && 1 === preg_match('/(?<![\w.])"?' . preg_quote($leadingColumn, '/') . '"?(?!\w)/i', $matches[1])) {
+            if (null !== $leadingColumn && 1 === preg_match('/(?:^|\bAND\b)\s*\(*\s*"?' . preg_quote($leadingColumn, '/') . '"?\s*(?:=|<=|>=|<(?!>)|>)\s*/i', $filter)) {
                 $servingIndexes[] = $this->indexName($index);
             }
         }
