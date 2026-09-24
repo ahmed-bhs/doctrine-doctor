@@ -24,6 +24,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\Index;
 use Psr\Log\LoggerInterface;
 use Webmozart\Assert\Assert;
 
@@ -39,6 +40,11 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 {
     /** @var array<string, int> */
     private array $sqliteRowCountCache = [];
+
+    /**
+     * @var array<string, list<Index>>
+     */
+    private array $tableIndexesCache = [];
 
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
@@ -363,18 +369,10 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     private function normalizeExplainOutput(array $rows, DatabasePlatformDetector $databasePlatformDetector): array
     {
         if ($databasePlatformDetector->isPostgreSQL()) {
-            return array_map(function (array $row): array {
-                $plan = $row['QUERY PLAN'] ?? '';
-
-                return [
-                    'table'         => $this->extractTableFromPostgreSQLPlan($plan),
-                    'type'          => $this->extractTypeFromPostgreSQLPlan($plan),
-                    'key'           => null, // PostgreSQL doesn't have direct equivalent
-                    'rows'          => $this->extractRowsFromPostgreSQLPlan($plan),
-                    'possible_keys' => null,
-                    'Extra'         => $plan,
-                ];
-            }, $rows);
+            return $this->normalizePostgreSQLPlan(array_values(array_map(
+                static fn (array $row): string => is_string($row['QUERY PLAN'] ?? null) ? $row['QUERY PLAN'] : '',
+                $rows,
+            )));
         }
 
         if ($databasePlatformDetector->isSQLite()) {
@@ -394,6 +392,139 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         }
 
         return $rows;
+    }
+
+    /**
+     * Turn PostgreSQL's text plan into MySQL-like rows. Each plan node becomes a
+     * row; its "Filter:" and "Index Cond:" lines are appended to Extra. The index
+     * used goes into key: a bitmap heap scan takes it from its bitmap index scan
+     * child. A sequential scan whose filter starts an existing index gets that
+     * index as possible_keys: PostgreSQL chose the scan over it (low selectivity).
+     * @param list<string> $lines
+     * @return list<array<string, mixed>>
+     */
+    private function normalizePostgreSQLPlan(array $lines): array
+    {
+        $nodes = [];
+
+        foreach ($lines as $line) {
+            if (1 === preg_match('/\(cost=/', $line)) {
+                $nodes[] = ['plan' => $line, 'details' => ''];
+            } elseif ([] !== $nodes) {
+                $nodes[array_key_last($nodes)]['details'] .= ' ' . trim($line);
+            }
+        }
+
+        $rows = [];
+
+        foreach ($nodes as $position => $node) {
+            $plan  = $node['plan'];
+            $type  = $this->extractTypeFromPostgreSQLPlan($plan);
+            $table = str_contains($plan, 'Bitmap Index Scan') ? null : $this->extractTableFromPostgreSQLPlan($plan);
+            $key   = $this->extractKeyFromPostgreSQLPlan($plan);
+
+            if (null === $key && str_contains($plan, 'Bitmap Heap Scan')) {
+                $key = $this->findBitmapIndexKey(array_slice($nodes, $position + 1));
+            }
+
+            $rows[] = [
+                'table'         => $table,
+                'type'          => $type,
+                'key'           => $key,
+                'rows'          => $this->extractRowsFromPostgreSQLPlan($plan),
+                'possible_keys' => 'ALL' === $type && null !== $table ? $this->findIndexesServingFilter($table, $node['details']) : null,
+                'Extra'         => trim($plan . $node['details']),
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function extractKeyFromPostgreSQLPlan(string $plan): ?string
+    {
+        if (1 === preg_match('/(?:Index(?: Only)? Scan(?: Backward)? using|Bitmap Index Scan on)\s+"?(\w+)/i', $plan, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param list<array<'details'|'plan', string>> $childNodes
+     */
+    private function findBitmapIndexKey(array $childNodes): ?string
+    {
+        foreach ($childNodes as $childNode) {
+            if (str_contains($childNode['plan'], 'Bitmap Index Scan')) {
+                return $this->extractKeyFromPostgreSQLPlan($childNode['plan']);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Comma-separated names of the indexes on $table whose leading column appears in the plan filter.
+     */
+    private function findIndexesServingFilter(string $table, string $details): ?string
+    {
+        if (1 !== preg_match('/Filter:(.*)/', $details, $matches)) {
+            return null;
+        }
+
+        $servingIndexes = [];
+
+        foreach ($this->getTableIndexes($table) as $index) {
+            $leadingColumn = $this->leadingColumn($index);
+
+            if (null !== $leadingColumn && 1 === preg_match('/(?<![\w.])"?' . preg_quote($leadingColumn, '/') . '"?(?!\w)/i', $matches[1])) {
+                $servingIndexes[] = $this->indexName($index);
+            }
+        }
+
+        return [] === $servingIndexes ? null : implode(',', $servingIndexes);
+    }
+
+    /**
+     * @return list<Index>
+     */
+    private function getTableIndexes(string $table): array
+    {
+        if (!isset($this->tableIndexesCache[$table])) {
+            try {
+                $this->tableIndexesCache[$table] = array_values($this->connection->createSchemaManager()->listTableIndexes($table));
+            } catch (\Throwable) {
+                $this->tableIndexesCache[$table] = [];
+            }
+        }
+
+        return $this->tableIndexesCache[$table];
+    }
+
+    /**
+     * DBAL 4 deprecates Index::getColumns() in favour of getIndexedColumns().
+     */
+    private function leadingColumn(Index $index): ?string
+    {
+        if (method_exists($index, 'getIndexedColumns')) {
+            $indexedColumns = $index->getIndexedColumns();
+
+            return [] === $indexedColumns ? null : $indexedColumns[0]->getColumnName()->getIdentifier()->getValue();
+        }
+
+        return $index->getColumns()[0];
+    }
+
+    /**
+     * DBAL 4 deprecates Index::getName() in favour of getObjectName().
+     */
+    private function indexName(Index $index): string
+    {
+        if (method_exists($index, 'getObjectName')) {
+            return $index->getObjectName()->getIdentifier()->getValue();
+        }
+
+        return $index->getName(); // @phpstan-ignore method.internalClass
     }
 
     private function extractTableFromPostgreSQLPlan(string $plan): ?string
