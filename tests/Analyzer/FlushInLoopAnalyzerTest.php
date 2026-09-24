@@ -60,6 +60,67 @@ final class FlushInLoopAnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_detects_flush_in_loop_wrapped_in_transactions(): void
+    {
+        // flush() wraps its writes in a transaction, and Symfony's Doctrine debug
+        // middleware logs the markers as queries: the write is followed by COMMIT,
+        // never directly by the SELECT.
+        $queries = QueryDataBuilder::create();
+
+        for ($i = 1; $i <= 6; ++$i) {
+            $queries->addQuery('"START TRANSACTION"', 0.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery('"COMMIT"', 0.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
+        }
+
+        self::assertCount(1, $this->analyzer->analyze($queries->build()));
+    }
+
+    #[Test]
+    public function it_detects_flush_in_loop_without_reads_between_flushes(): void
+    {
+        // The canonical case: persist() + flush() per iteration, one transaction each.
+        $queries = QueryDataBuilder::create();
+
+        for ($i = 1; $i <= 6; ++$i) {
+            $queries->addQuery('BEGIN TRANSACTION', 0.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery('COMMIT', 0.0);
+        }
+
+        self::assertCount(1, $this->analyzer->analyze($queries->build()));
+    }
+
+    #[Test]
+    public function it_does_not_flag_a_single_batch_flush_in_one_transaction(): void
+    {
+        $queries = QueryDataBuilder::create()->addQuery('"START TRANSACTION"', 0.0);
+
+        for ($i = 1; $i <= 10; ++$i) {
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+        }
+
+        $queries->addQuery('"COMMIT"', 0.0);
+
+        self::assertCount(0, $this->analyzer->analyze($queries->build()));
+    }
+
+    #[Test]
+    public function it_does_not_count_read_only_transactions_as_flushes(): void
+    {
+        $queries = QueryDataBuilder::create();
+
+        for ($i = 1; $i <= 6; ++$i) {
+            $queries->addQuery('"START TRANSACTION"', 0.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
+            $queries->addQuery('"COMMIT"', 0.0);
+        }
+
+        self::assertCount(0, $this->analyzer->analyze($queries->build()));
+    }
+
+    #[Test]
     public function it_does_not_detect_below_threshold(): void
     {
         // Arrange: Only 4 flush patterns (below threshold of 5)

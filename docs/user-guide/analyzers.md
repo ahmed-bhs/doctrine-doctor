@@ -90,7 +90,7 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 - **Impact**: Prevents row explosion, duplicate hydration, memory spikes, and severe slowdowns
 - **Example**: Joining multiple to-many associations in one query creates `N x M` result multiplication
 
-> Note: Two classes under `src/Analyzer/` are intentionally absent from this catalog. `MissingIndexAnalyzerConfig` is a configuration object, not an analyzer, and `FlushInLoopAnalyzerModern` is an unfinished variant excluded from the `doctrine_doctor.analyzer` tag in `config/services.yaml`, so it never runs.
+> Note: `MissingIndexAnalyzerConfig`, under `src/Analyzer/`, is intentionally absent from this catalog: it is a configuration object, not an analyzer.
 
 ---
 
