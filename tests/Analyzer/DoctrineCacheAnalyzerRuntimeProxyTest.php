@@ -50,6 +50,7 @@ final class DoctrineCacheAnalyzerRuntimeProxyTest extends TestCase
     }
 
     /**
+     * @param 0|1 $autoGenerate
      * @return list<string>
      */
     private function proxyTitles(int $autoGenerate, string $environment): array

@@ -79,11 +79,7 @@ class JoinColumnNonPrimaryKeyAnalyzer implements MetadataAnalyzerInterface
                 continue;
             }
 
-            $targetEntityClass = MappingHelper::getString($mapping, 'targetEntity');
-
-            if (null === $targetEntityClass) {
-                continue;
-            }
+            $targetEntityClass = $mapping->targetEntity;
 
             try {
                 $targetMetadata = $this->entityManager->getClassMetadata($targetEntityClass);

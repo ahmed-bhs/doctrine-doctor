@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 $entityClass = $context['entity_class'] ?? '';
+$entityClass = is_string($entityClass) ? $entityClass : '';
 $fieldName = $context['field_name'] ?? '';
 $currentTarget = $context['current_target'] ?? 'unknown';
 

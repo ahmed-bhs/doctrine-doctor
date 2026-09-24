@@ -96,7 +96,7 @@ Key `QueryDataCollection` methods: `onlySelects()`, `onlyInserts()`, `groupByPat
 
 - PHP files in `src/Template/Suggestions/{Category}/`
 - Rendered via `PhpTemplateRenderer` (implements `TemplateRendererInterface`)
-- Excluded from all checks (ECS, PHPStan, Deptrac, PHPMD)
+- Excluded from Deptrac and PHPMD; ECS and PHPStan still check them
 - Must handle missing context keys gracefully
 - Validated by `bin/validate-suggestion-templates.php` in CI:
   - Must use `ob_start()` / `ob_get_clean()`
@@ -173,7 +173,7 @@ self::assertStringContainsString('expected text', $issue->getDescription());
 
 | Path | Excluded from |
 |---|---|
-| `src/Template/Suggestions/` | ECS, PHPStan, Deptrac, PHPMD |
+| `src/Template/Suggestions/` | Deptrac, PHPMD |
 | `tests/Fixtures/` | Rector, PHPMD |
 | `*/DependencyInjection/Configuration.php` | PHPMD |
 | `*/DependencyInjection/*Extension.php` | PHPMD |

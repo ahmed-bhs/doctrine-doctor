@@ -45,7 +45,7 @@ final readonly class DoctrineDoctorCollectorFormatter implements CollectorFormat
             'database_info' => $collector->getDatabaseInfo(),
             'profiler_overhead' => $collector->getProfilerOverhead(),
             'issues' => $this->sanitizer->sanitizeIssues(
-                $collector->getIssues(),
+                array_values($collector->getIssues()),
                 limit: 100,
                 includeQueries: true,
             ),

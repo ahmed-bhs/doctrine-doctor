@@ -74,8 +74,6 @@ parameters:
         - identifier: missingType.generics
 
         # Template types: Doctrine's generic types are often impossible to resolve statically
-        - identifier: argument.templateType
-        - identifier: argument.type
 
         # Encapsed strings: PHP automatically casts array/objects in string interpolation
         # This is a standard PHP feature, not an error

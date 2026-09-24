@@ -29,7 +29,7 @@ final readonly class ExportDataFormatter
     /**
      * @param array<int, IssueInterface>                                                                                               $issues
      * @param array<string, mixed>                                                                                                     $stats
-     * @param array<int, array{sql: string, count: int, totalTimeMs: float, avgTimeMs: float, maxTimeMs: float, minTimeMs: float}>      $queries
+     * @param array<int, array{sql: string, count: int, totalTimeMs: float, avgTimeMs: float, maxTimeMs: float, minTimeMs: float, firstQuery?: array<mixed>}> $queries
      *
      * @return array{
      *  created: string,
@@ -69,7 +69,7 @@ final readonly class ExportDataFormatter
     }
 
     /**
-     * @param array<int, array{sql: string, count: int, totalTimeMs: float, avgTimeMs: float, maxTimeMs: float, minTimeMs: float}> $queries
+     * @param array<int, array{sql: string, count: int, totalTimeMs: float, avgTimeMs: float, maxTimeMs: float, minTimeMs: float, firstQuery?: array<mixed>}> $queries
      *
      * @return array<int, array{
      *     sql: string,
