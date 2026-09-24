@@ -6,6 +6,7 @@ declare(strict_types=1);
 $column = $context['column'] ?? '';
 $literal = $context['literal'] ?? '';
 $originalQuery = $context['original_query'] ?? '';
+$isParameter = 'string_column_vs_integer_parameter' === ($context['kind'] ?? '');
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -15,7 +16,12 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
+<?php if ($isParameter) { ?>
+        <code><?= $e((string) $column) ?></code> is a text column compared to <?= $e((string) $literal) ?>, bound as an integer:
+        DQL infers the binding type from the PHP value, so an <code>int</code> is sent as a number.
+<?php } else { ?>
         <code><?= $e((string) $column) ?></code> is a text column compared to the number <code><?= $e((string) $literal) ?></code>.
+<?php } ?>
         MySQL and MariaDB convert the column value of every row to a number before comparing,
         so the index on the column cannot be used. PostgreSQL rejects the comparison.
     </div>
