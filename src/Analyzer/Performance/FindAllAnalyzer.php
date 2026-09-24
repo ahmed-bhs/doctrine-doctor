@@ -136,7 +136,7 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
         }
 
         try {
-            $hasWhere = !empty($this->sqlExtractor->extractWhereColumns($sql));
+            $hasWhere = $this->sqlExtractor->hasWhereClause($sql);
             $hasLimit = $this->sqlExtractor->hasLimit($sql);
 
             return !$hasWhere && !$hasLimit;

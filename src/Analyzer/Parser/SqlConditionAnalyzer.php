@@ -26,6 +26,13 @@ use PhpMyAdmin\SqlParser\Statements\SelectStatement;
  */
 final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
 {
+    public function hasWhereClause(string $sql): bool
+    {
+        $statement = (new Parser($sql))->statements[0] ?? null;
+
+        return $statement instanceof SelectStatement && null !== $statement->where && [] !== $statement->where;
+    }
+
     public function extractWhereColumns(string $sql): array
     {
         $parser = new Parser($sql);
