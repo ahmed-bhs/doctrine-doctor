@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Helper;
 
+use Doctrine\ORM\Mapping\AssociationMapping;
 use Webmozart\Assert\Assert;
 
 /**
@@ -145,5 +146,20 @@ class MappingHelper
         }
 
         return self::getBool($firstJoinColumn, 'nullable') ?? true;
+    }
+
+    /**
+     * Association type as a ClassMetadata constant (ONE_TO_ONE, MANY_TO_ONE,
+     * ONE_TO_MANY, MANY_TO_MANY). ORM 3+ exposes it through
+     * AssociationMapping::type(), ORM 2 through the "type" key.
+     * @param array<string, mixed>|object $associationMapping
+     */
+    public static function getAssociationType(array|object $associationMapping): ?int
+    {
+        if ($associationMapping instanceof AssociationMapping) {
+            return $associationMapping->type();
+        }
+
+        return is_array($associationMapping) ? self::getInt($associationMapping, 'type') : null;
     }
 }

@@ -158,7 +158,7 @@ class CascadeConfigurationAnalyzer implements MetadataAnalyzerInterface
     private function isCompositionRelationship(array|object $mapping): bool
     {
         // Composition typically means OneToMany or OneToOne with certain naming patterns
-        $type = $this->getAssociationTypeConstant($mapping);
+        $type = MappingHelper::getAssociationType($mapping);
 
         if (ClassMetadata::ONE_TO_MANY !== $type && ClassMetadata::ONE_TO_ONE !== $type) {
             return false;
@@ -231,7 +231,7 @@ class CascadeConfigurationAnalyzer implements MetadataAnalyzerInterface
 
     private function checkDangerousCascadeRemove(string $entityClass, string $fieldName, array|object $mapping): ?IntegrityIssue
     {
-        $type = $this->getAssociationTypeConstant($mapping);
+        $type = MappingHelper::getAssociationType($mapping);
         $orphanRemoval = MappingHelper::getBool($mapping, 'orphanRemoval') ?? false;
 
         if (ClassMetadata::ONE_TO_MANY === $type && $orphanRemoval) {
@@ -245,7 +245,7 @@ class CascadeConfigurationAnalyzer implements MetadataAnalyzerInterface
                 /** @var class-string $targetEntity */
                 $targetMetadata = $this->entityManager->getMetadataFactory()->getMetadataFor($targetEntity);
                 foreach ($targetMetadata->getAssociationMappings() as $assoc) {
-                    if (ClassMetadata::MANY_TO_ONE !== $this->getAssociationTypeConstant($assoc)) {
+                    if (ClassMetadata::MANY_TO_ONE !== MappingHelper::getAssociationType($assoc)) {
                         continue;
                     }
                     $joinColumns = MappingHelper::getArray($assoc, 'joinColumns') ?? [];
@@ -503,41 +503,5 @@ class CascadeConfigurationAnalyzer implements MetadataAnalyzerInterface
         } catch (\Exception) {
             return null;
         }
-    }
-
-    /**
-     * Get association type constant in a version-agnostic way.
-     * Doctrine ORM 2.x uses 'type' field, 3.x/4.x uses specific mapping classes.
-     */
-    private function getAssociationTypeConstant(array|object $mapping): int
-    {
-        // Try to get type from array (Doctrine ORM 2.x)
-        $type = MappingHelper::getInt($mapping, 'type');
-        if (null !== $type) {
-            return $type;
-        }
-
-        // Doctrine ORM 3.x/4.x: determine from class name
-        if (is_object($mapping)) {
-            $className = $mapping::class;
-
-            if (str_contains($className, 'ManyToOne')) {
-                return (int) ClassMetadata::MANY_TO_ONE;
-            }
-
-            if (str_contains($className, 'OneToMany')) {
-                return (int) ClassMetadata::ONE_TO_MANY;
-            }
-
-            if (str_contains($className, 'ManyToMany')) {
-                return (int) ClassMetadata::MANY_TO_MANY;
-            }
-
-            if (str_contains($className, 'OneToOne')) {
-                return (int) ClassMetadata::ONE_TO_ONE;
-            }
-        }
-
-        return 0; // Unknown
     }
 }

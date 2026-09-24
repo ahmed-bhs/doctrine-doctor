@@ -178,18 +178,7 @@ class DenormalizedAggregateWithoutLockingAnalyzer implements MetadataAnalyzerInt
 
     private function isCollectionAssociation(array|object $mapping): bool
     {
-        if (\is_object($mapping)) {
-            $className = $mapping::class;
-
-            return str_contains($className, 'OneToManyAssociationMapping')
-                || str_contains($className, 'ManyToManyAssociationMapping')
-                || str_contains($className, 'ManyToManyOwningSideMapping')
-                || str_contains($className, 'ManyToManyInverseSideMapping');
-        }
-
-        $type = MappingHelper::getInt($mapping, 'type');
-
-        return ClassMetadata::ONE_TO_MANY === $type || ClassMetadata::MANY_TO_MANY === $type;
+        return in_array(MappingHelper::getAssociationType($mapping), [ClassMetadata::ONE_TO_MANY, ClassMetadata::MANY_TO_MANY], true);
     }
 
     /**
