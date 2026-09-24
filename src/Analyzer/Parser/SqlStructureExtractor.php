@@ -199,6 +199,11 @@ class SqlStructureExtractor
 
     // ==================== CONDITION ANALYZER DELEGATION ====================
 
+    public function hasWhereClause(string $sql): bool
+    {
+        return $this->conditionAnalyzer->hasWhereClause($sql);
+    }
+
     /**
      * @return array<string>
      */
