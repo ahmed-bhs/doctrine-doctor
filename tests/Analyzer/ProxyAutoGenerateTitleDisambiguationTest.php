@@ -151,6 +151,8 @@ final class ProxyAutoGenerateTitleDisambiguationTest extends TestCase
     {
         $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager();
         $entityManager->getConfiguration()->setAutoGenerateProxyClasses($autoGenerate);
+        // Generated proxies: the only mode in which auto_generate_proxy_classes applies.
+        $entityManager->getConfiguration()->enableNativeLazyObjects(false);
 
         $analyzer = new DoctrineCacheAnalyzer(
             $entityManager,

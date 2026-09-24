@@ -204,6 +204,28 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
     }
 
     #[Test]
+    public function it_ignores_proxy_auto_generation_when_native_lazy_objects_are_enabled(): void
+    {
+        // Native lazy objects (PHP 8.4, ORM 3.4+) replace generated proxy classes,
+        // so auto_generate_proxy_classes no longer has any effect.
+        $configuration = $this->entityManager->getConfiguration();
+        $configuration->setMetadataCache($this->createMockRedisCache());
+        $configuration->setQueryCache($this->createMockRedisCache());
+        $configuration->setResultCache($this->createMockRedisCache());
+        $configuration->setAutoGenerateProxyClasses(true);
+        $configuration->enableNativeLazyObjects(true);
+
+        $issues = $this->analyzer->analyze(QueryDataBuilder::create()->build());
+
+        $proxyIssues = array_filter(
+            $issues->toArray(),
+            static fn ($issue) => str_contains($issue->getTitle(), 'Proxy Auto-Generation'),
+        );
+
+        self::assertCount(0, $proxyIssues);
+    }
+
+    #[Test]
     public function it_detects_proxy_auto_generation_enabled(): void
     {
         // Arrange: Enable proxy auto-generation
@@ -212,6 +234,7 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $configuration->setQueryCache($this->createMockRedisCache());
         $configuration->setResultCache($this->createMockRedisCache());
         $configuration->setAutoGenerateProxyClasses(true);
+        $configuration->enableNativeLazyObjects(false); // generated proxies: the only mode the setting applies to
 
         $queries = QueryDataBuilder::create()->build();
 
@@ -244,6 +267,7 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $configuration->setQueryCache(new ArrayAdapter()); // ArrayCache (high)
         $configuration->setResultCache(new ArrayAdapter()); // ArrayCache (medium)
         $configuration->setAutoGenerateProxyClasses(true); // Enabled (critical)
+        $configuration->enableNativeLazyObjects(false); // generated proxies: the only mode the setting applies to
 
         $queries = QueryDataBuilder::create()->build();
 
@@ -322,6 +346,7 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $configuration = $this->entityManager->getConfiguration();
         $configuration->setMetadataCache(new ArrayAdapter());
         $configuration->setAutoGenerateProxyClasses(true);
+        $configuration->enableNativeLazyObjects(false); // generated proxies: the only mode the setting applies to
 
         $queries = QueryDataBuilder::create()->build();
 
@@ -488,6 +513,7 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $configuration->setQueryCache($this->createMockRedisCache());
         $configuration->setResultCache($this->createMockRedisCache());
         $configuration->setAutoGenerateProxyClasses(1);
+        $configuration->enableNativeLazyObjects(false); // generated proxies: the only mode the setting applies to
 
         $queries = QueryDataBuilder::create()->build();
 
@@ -513,6 +539,7 @@ final class DoctrineCacheAnalyzerTest extends DatabaseTestCase
         $configuration->setQueryCache($this->createMockRedisCache());
         $configuration->setResultCache($this->createMockRedisCache());
         $configuration->setAutoGenerateProxyClasses(2);
+        $configuration->enableNativeLazyObjects(false); // generated proxies: the only mode the setting applies to
 
         $queries = QueryDataBuilder::create()->build();
 

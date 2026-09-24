@@ -422,6 +422,12 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
      */
     private function checkProxyConfiguration(Configuration $configuration): ?ConfigurationIssue
     {
+        // Native lazy objects (ORM 3.4+ on PHP 8.4) replace generated proxy classes:
+        // the auto-generation setting is then ignored, and reading it is deprecated.
+        if (method_exists($configuration, 'isNativeLazyObjectsEnabled') && $configuration->isNativeLazyObjectsEnabled()) {
+            return null;
+        }
+
         $autoGenerate = $configuration->getAutoGenerateProxyClasses();
 
         if (in_array($autoGenerate, [1, 2], true)) {
