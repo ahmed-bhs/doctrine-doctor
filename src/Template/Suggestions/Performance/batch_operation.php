@@ -4,46 +4,62 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var string $table
- * @var mixed $operationCount
  * @var array<string, mixed> $context
  */
-$table          = (string) ($context['table'] ?? 'related_table');
-$operationCount = (int) ($context['operation_count'] ?? 0);
-$e                                                        = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$table          = is_string($context['table'] ?? null) ? $context['table'] : 'related_table';
+$operationCount = max(0, (int) ($context['operation_count'] ?? 0));
+$isDelete       = 'DELETE' === ($context['operation_type'] ?? 'UPDATE');
+$e              = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-<?php echo suggestionHeader('Batch Processing Needed'); ?>
+<?php echo suggestionHeader('Replace per-entity writes with one statement'); ?>
 <div class="suggestion-content">
-<div class="alert alert-danger">
-<?php echo $operationCount; ?> operations without clear() will cause memory usage to grow indefinitely.</div>
-<h4>Problem</h4>
-<div class="query-item"><pre><code class="language-php">// Doctrine keeps ALL entities in memory
-for ($i = 0; $i < <?php echo $operationCount; ?>; $i++) {
-    $entity = $em->find(Entity::class, $i);
-    $entity->process();
-    $em->flush();
-}
-// Memory usage: <?php echo $operationCount; ?> * entity size!</code></pre></div>
-<h4>Solution</h4>
-<div class="query-item"><pre><code class="language-php">// Batch with clear() to free memory
-$batchSize = 20;
-for ($i = 0; $i < <?php echo $operationCount; ?>; $i++) {
-    $entity = $em->find(Entity::class, $i);
-    $entity->process();
+<div class="alert alert-warning">
+<?php echo $operationCount; ?> individual <?php echo $isDelete ? 'DELETE' : 'UPDATE'; ?> statements on <code><?php echo $e($table); ?></code>,
+one per entity. A single set-based statement does the same work in one round trip.</div>
 
-    if (($i % $batchSize) === 0) {
-        $em->flush();
-        $em->clear();  // Frees memory!
+<h4>Solution: one statement for the whole set</h4>
+<div class="query-item"><pre><code class="language-php"><?php if ($isDelete) { ?>// DQL, on the entity model
+$em-&gt;createQuery('DELETE FROM App\Entity\Entity e WHERE e.id IN (:ids)')
+   -&gt;setParameter('ids', $ids)
+   -&gt;execute();
+
+// or DBAL, in SQL
+$em-&gt;getConnection()-&gt;executeStatement(
+    'DELETE FROM <?php echo $e($table); ?> WHERE id IN (?)',
+    [$ids],
+    [\Doctrine\DBAL\ArrayParameterType::INTEGER],
+);<?php } else { ?>// DQL, on the entity model
+$em-&gt;createQuery('UPDATE App\Entity\Entity e SET e.status = :status WHERE e.id IN (:ids)')
+   -&gt;setParameter('status', 'archived')
+   -&gt;setParameter('ids', $ids)
+   -&gt;execute();
+
+// or DBAL, in SQL
+$em-&gt;getConnection()-&gt;executeStatement(
+    'UPDATE <?php echo $e($table); ?> SET status = ? WHERE id IN (?)',
+    ['archived', $ids],
+    [\Doctrine\DBAL\ParameterType::STRING, \Doctrine\DBAL\ArrayParameterType::INTEGER],
+);<?php } ?></code></pre></div>
+<p>Both bypass the unit of work: no lifecycle callbacks or listeners, no cascades, and entities already loaded
+keep their old values until refreshed. Use them when the loop only changes columns.</p>
+
+<h4>Keeping the ORM: flush and clear in batches</h4>
+<div class="query-item"><pre><code class="language-php">$batchSize = 50;
+foreach ($entities as $i =&gt; $entity) {
+    $entity-&gt;process();
+
+    if (0 === ($i + 1) % $batchSize) {
+        $em-&gt;flush();
+        $em-&gt;clear(); // frees the managed entities
     }
 }
-$em->flush();
-// Memory usage: Only 20 * entity size at any time</code></pre></div>
-<p><strong>Impact:</strong> Reduces memory from ~<?php echo round($operationCount / 20); ?>MB to ~1MB</p>
+$em-&gt;flush();</code></pre></div>
+<p>This keeps callbacks and listeners but still sends one statement per entity.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/batch-processing.html', 'Doctrine ORM Batch Processing'); ?>
 </div>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Use batch processing with clear() for %d operations', $operationCount)];
+return ['code' => $code, 'description' => sprintf('Replace %d per-entity writes with one set-based statement, or batch them with flush() and clear()', $operationCount)];

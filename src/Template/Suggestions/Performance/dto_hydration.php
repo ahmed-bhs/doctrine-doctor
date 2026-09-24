@@ -46,7 +46,16 @@ foreach ($results as $userRevenue) {
 }</code></pre>
     </div>
 
-    <p>Performance: 10k rows with DTOs uses 70% less memory and runs 3x faster than arrays.</p>
+    <h4>Alternative: plain rows with DBAL</h4>
+    <div class="query-item">
+        <pre><code class="language-php">// No entity, no hydration: rows as arrays, written in SQL
+$rows = $em-&gt;getConnection()-&gt;fetchAllAssociative(
+    'SELECT u.name, u.email, SUM(o.total) AS revenue
+     FROM users u JOIN orders o ON o.user_id = u.id
+     GROUP BY u.id, u.name, u.email',
+);</code></pre>
+    </div>
+    <p>Suited to reports and exports that only read the values. The query is SQL on tables and columns, not DQL on entities.</p>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#new-operator-syntax', 'Doctrine NEW operator'); ?>
 </div>
