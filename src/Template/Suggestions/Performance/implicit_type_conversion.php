@@ -5,21 +5,19 @@ declare(strict_types=1);
 /** @var array<string, mixed> $context */
 $column = $context['column'] ?? '';
 $literal = $context['literal'] ?? '';
-$kind = $context['kind'] ?? '';
 $originalQuery = $context['original_query'] ?? '';
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
-
-$isNumericVsString = 'numeric_column_vs_string_literal' === $kind;
 
 ob_start();
 ?>
 
-<?php echo suggestionHeader('Implicit type conversion in WHERE'); ?>
+<?php echo suggestionHeader('Text column compared to a number'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-warning">
-        Comparing <code><?= $e((string) $column) ?></code> to <code><?= $e((string) $literal) ?></code> mixes incompatible types.
-        The database must convert one side before evaluating the predicate, which disables index usage on the column.
+        <code><?= $e((string) $column) ?></code> is a text column compared to the number <code><?= $e((string) $literal) ?></code>.
+        MySQL and MariaDB convert the column value of every row to a number before comparing,
+        so the index on the column cannot be used. PostgreSQL rejects the comparison.
     </div>
 
     <h4>Original query</h4>
@@ -27,39 +25,22 @@ ob_start();
         <pre><code class="language-sql"><?= $e((string) $originalQuery) ?></code></pre>
     </div>
 
-<?php if ($isNumericVsString) { ?>
-    <h4>Fix: bind with the correct PHP type</h4>
+    <h4>Fix: compare to a string</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Before: integer value passed as string disables the index
-$qb-&gt;andWhere('u.id = :id')
-   -&gt;setParameter('id', (string) $id); // wrong type
+        <pre><code class="language-php">// Before: the number forces a conversion of every row
+$qb-&gt;andWhere('p.code = 123');
 
-// After: pass the value as int -> Doctrine binds as PDO::PARAM_INT
-$qb-&gt;andWhere('u.id = :id')
-   -&gt;setParameter('id', (int) $id);
+// After: a string literal keeps the index usable
+$qb-&gt;andWhere("p.code = '123'");
 
-// Or be explicit about the binding type
-$qb-&gt;setParameter('id', $id, \PDO::PARAM_INT);</code></pre>
+// With a parameter, pass a string or declare the type
+$qb-&gt;andWhere('p.code = :code')
+   -&gt;setParameter('code', (string) $code, \Doctrine\DBAL\Types\Types::STRING);</code></pre>
     </div>
 
     <h4>Why it matters</h4>
-    <p>Most engines (MySQL, MariaDB) silently coerce one side and lose the ability to use the index on the column.
-    PostgreSQL is stricter and may refuse the comparison outright. Either way, the cost is a full table scan or worse.</p>
-<?php } else { ?>
-    <h4>Fix: pass a typed date, not an integer</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Before: timestamp as integer
-$qb-&gt;andWhere('o.createdAt &gt;= :since')
-   -&gt;setParameter('since', 1700000000);
-
-// After: pass a DateTimeImmutable, Doctrine binds as datetime
-$qb-&gt;andWhere('o.createdAt &gt;= :since')
-   -&gt;setParameter('since', new \DateTimeImmutable('@1700000000'));
-
-// Or pass an ISO 8601 string with an explicit Types::DATETIME_IMMUTABLE binding
-$qb-&gt;setParameter('since', $date, \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE);</code></pre>
-    </div>
-<?php } ?>
+    <p>A numeric column compared to a quoted number (<code>user_id = '42'</code>) is harmless: the literal is converted once
+    and the index is used. The reverse is not, because the conversion applies to the column.</p>
 
     <?php echo suggestionDocLink('https://use-the-index-luke.com/sql/where-clause/obfuscation/numeric-strings', 'Use The Index, Luke! Numeric strings'); ?>
 </div>
@@ -69,5 +50,5 @@ $code = ob_get_clean();
 
 return [
     'code' => $code,
-    'description' => 'Bind parameters with the correct PHP/SQL type so the database can use the column index',
+    'description' => 'Compare text columns to strings so the database can use their index',
 ];

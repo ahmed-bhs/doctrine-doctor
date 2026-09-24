@@ -34,7 +34,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class MySQLPlatformAnalyzersTest extends TestCase
 {
-    private const array TABLES = ['dd_platform_myisam', 'dd_platform_utf8mb3', 'dd_platform_bin', 'dd_platform_orders'];
+    private const array TABLES = ['dd_platform_myisam', 'dd_platform_utf8mb3', 'dd_platform_bin', 'dd_platform_orders', 'dd_platform_codes'];
 
     private Connection $connection;
 
@@ -133,6 +133,27 @@ final class MySQLPlatformAnalyzersTest extends TestCase
 
         self::assertSame([], $this->missingIndexTitles("SELECT * FROM dd_platform_orders WHERE created_at >= '2024-01-01' AND created_at < '2025-01-01'"));
         self::assertContains('Missing Index Detected', $this->missingIndexTitles("SELECT * FROM dd_platform_orders WHERE status = 'paid'"));
+    }
+
+    #[Test]
+    public function it_loses_the_index_only_when_a_text_column_is_compared_to_a_number(): void
+    {
+        $this->connection->executeStatement('CREATE TABLE dd_platform_codes (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, code VARCHAR(20) NOT NULL, INDEX idx_user_id (user_id), INDEX idx_code (code)) ENGINE=InnoDB');
+        $this->connection->executeStatement(
+            'INSERT INTO dd_platform_codes (user_id, code) WITH RECURSIVE seq (n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM seq WHERE n < 1000) SELECT n, CAST(n AS CHAR) FROM seq',
+        );
+        $this->connection->executeQuery('ANALYZE TABLE dd_platform_codes')->fetchAllAssociative();
+
+        self::assertNotNull($this->explainKey("SELECT * FROM dd_platform_codes WHERE user_id = '42'"));
+        self::assertNotNull($this->explainKey("SELECT * FROM dd_platform_codes WHERE code = '123'"));
+        self::assertNull($this->explainKey('SELECT * FROM dd_platform_codes WHERE code = 123'));
+    }
+
+    private function explainKey(string $sql): ?string
+    {
+        $key = $this->connection->fetchAssociative('EXPLAIN ' . $sql)['key'] ?? null;
+
+        return is_string($key) ? $key : null;
     }
 
     /**
