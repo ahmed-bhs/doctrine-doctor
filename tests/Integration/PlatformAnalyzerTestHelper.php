@@ -11,6 +11,14 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\CharsetAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\CollationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\ConnectionPoolingAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\InnoDBEngineAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\StrictModeAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\TimeZoneAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Analyzer\Security\OverprivilegedDatabaseUserAnalyzer;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\PlatformAnalysisStrategyFactory;
@@ -89,6 +97,43 @@ class PlatformAnalyzerTestHelper
         ];
 
         return DriverManager::getConnection($params); // @phpstan-ignore-line
+    }
+
+    /**
+     * Build a platform-aware configuration or security analyzer on a real connection.
+     * @param class-string<MetadataAnalyzerInterface> $analyzerClass
+     */
+    public static function createPlatformAnalyzer(Connection $connection, string $analyzerClass): MetadataAnalyzerInterface
+    {
+        $suggestionFactory = self::createSuggestionFactory();
+        $detector = new DatabasePlatformDetector($connection);
+
+        return match ($analyzerClass) {
+            CharsetAnalyzer::class, ConnectionPoolingAnalyzer::class, StrictModeAnalyzer::class => new $analyzerClass(
+                $connection,
+                $suggestionFactory,
+                $detector,
+                new PlatformAnalysisStrategyFactory($connection, $suggestionFactory, $detector),
+            ),
+            CollationAnalyzer::class, InnoDBEngineAnalyzer::class, TimeZoneAnalyzer::class => new $analyzerClass($connection, $suggestionFactory, $detector),
+            OverprivilegedDatabaseUserAnalyzer::class => new OverprivilegedDatabaseUserAnalyzer($connection, $suggestionFactory),
+            default => throw new \LogicException('Unsupported analyzer ' . $analyzerClass),
+        };
+    }
+
+    /**
+     * @param class-string<MetadataAnalyzerInterface> $analyzerClass
+     * @return list<string>
+     */
+    public static function platformAnalyzerTitles(Connection $connection, string $analyzerClass): array
+    {
+        $titles = [];
+
+        foreach (self::createPlatformAnalyzer($connection, $analyzerClass)->analyzeMetadata() as $issue) {
+            $titles[] = $issue->getTitle();
+        }
+
+        return $titles;
     }
 
     /**
