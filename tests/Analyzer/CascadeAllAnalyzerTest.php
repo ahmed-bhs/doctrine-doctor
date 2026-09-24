@@ -120,8 +120,7 @@ final class CascadeAllAnalyzerTest extends TestCase
         self::assertNotFalse($issue);
         $data = $issue->getData();
         self::assertEquals('products', $data['field']);
-        // Note: Association type detection varies by Doctrine version - just verify field is detected
-        self::assertArrayHasKey('association_type', $data);
+        self::assertSame('ManyToMany', $data['association_type']);
     }
 
     #[Test]
@@ -408,8 +407,7 @@ final class CascadeAllAnalyzerTest extends TestCase
 
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
         self::assertNotFalse($issue);
-        // Note: Severity depends on association type detection
-        self::assertContains($issue->getSeverity()->value, ['warning', 'critical']);
+        self::assertSame('critical', $issue->getSeverity()->value);
     }
 
     #[Test]
