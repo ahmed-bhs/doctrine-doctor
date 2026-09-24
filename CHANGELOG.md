@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Analyzers no longer rely on APIs removed in ORM 4 and DBAL 5.** `UniqueEntityWithoutDatabaseIndexAnalyzer`, `StringDefaultExpressionAnalyzer`, `SingleTableInheritanceNullableColumnAnalyzer` and `NullablePrimaryKeyAnalyzer` read field mappings with array access, deprecated since ORM 3.1 (doctrine/orm#11211); they now go through `MappingHelper`. `OrderByNullableLeadingColumnAnalyzer` (`Column::getName()`), `StructuralMissingIndexAnalyzer` (`Index::getColumns()`, `Index::isPrimary()`) and `MissingIndexAnalyzer` (`Connection::quoteIdentifier()`) use the DBAL 4 replacements when available and fall back otherwise. The `isPrimary()` branch was dropped rather than replaced: the leading column of the primary key is already matched as the leading column of an index. Regression tests assert that none of these deprecations fire.
 
+### Removed
+
+- **`AutoGenerateProxyClassesAnalyzer`.** It parsed the production YAML for `doctrine.orm.auto_generate_proxy_classes`, an option DoctrineBundle 3.0 removed. Since this bundle requires DoctrineBundle ^3.0, an application declaring the option no longer boots, so the analyzer could never report anything. `DoctrineCacheAnalyzer` keeps checking the running EntityManager when generated proxies are in use. The `doctrine_doctor.analyzers.auto_generate_proxy_classes` option is still accepted so existing configurations keep booting, but it is deprecated and has no effect.
+- **`PaginationSuggestion`**, which nothing used.
+
 ### Fixed
 
 - **Cascade findings were reported twice.** The "unified" `CascadeAnalyzer` re-implemented the rules of `CascadeAllAnalyzer`, `CascadeRemoveOnIndependentEntityAnalyzer` and `CascadePersistOnIndependentEntityAnalyzer` with the same titles, and the `Integrity/*` glob tagged it alongside them, so every `cascade="all"`, `cascade="remove"` or `cascade="persist"` finding ran twice. It covered no case the dedicated analyzers miss and had no tests, so it is removed.

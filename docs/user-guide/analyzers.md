@@ -11,7 +11,7 @@ nav_order: 2
 
 ## 1. Overview
 
-Doctrine Doctor implements **97 specialized analyzers** organized into four categories that detect Doctrine ORM anti-patterns and performance issues.
+Doctrine Doctor implements **96 specialized analyzers** organized into four categories that detect Doctrine ORM anti-patterns and performance issues.
 
 ### 1.1 Severity Classification
 
@@ -326,7 +326,7 @@ class Customer {
 
 Configuration analyzers inspect the Doctrine and database settings the application runs with, rather than the entities or the queries themselves.
 
-**Total**: 9 analyzers
+**Total**: 8 analyzers
 
 ### 6.2 Key Configuration Analyzers
 
@@ -365,18 +365,12 @@ Configuration analyzers inspect the Doctrine and database settings the applicati
 - **Purpose**: Detects suboptimal cache configuration — `ArrayCache` for metadata, query or result caching reparses and recompiles on every request
 - **Note**: Reads the running configuration and only applies in the `prod` environment
 
-#### 6.2.7 AutoGenerateProxyClassesAnalyzer
-
-- **Severity**: Critical
-- **Purpose**: Detects `auto_generate_proxy_classes` left enabled for production, which makes Doctrine stat the filesystem on every entity load
-- **Detection**: Parses the production YAML (`config/packages/prod/doctrine.yaml`, `when@prod` blocks), so it warns from the dev profiler before deployment
-
-#### 6.2.8 LazyGhostObjectsDisabledAnalyzer
+#### 6.2.7 LazyGhostObjectsDisabledAnalyzer
 
 - **Severity**: Info
-- **Purpose**: Detects `enable_lazy_ghost_objects` left disabled (Symfony 6.2+), a more efficient proxy mechanism than the legacy generated proxies
+- **Purpose**: Detects `enable_native_lazy_objects` explicitly disabled, which falls back to generated proxy classes; silent from DoctrineBundle 3.1, where native lazy objects are always on
 
-#### 6.2.9 ConnectionPoolingAnalyzer
+#### 6.2.8 ConnectionPoolingAnalyzer
 
 - **Purpose**: Reviews connection pool settings and reports when `max_connections` is unsuited to the workload
 
