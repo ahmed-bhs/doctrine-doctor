@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Only same-character-set differences are reported.** The check compares `CHARACTER_SET_NAME` against the charset of `@@collation_connection` and skips anything outside it. Across character sets MySQL converts implicitly and never raises 1267, so the `utf8mb3_general_ci` columns that `DATE_FORMAT()` returns inside an otherwise `utf8mb4` view are correctly left alone — without that filter they would be reported on every schema that formats a date in a view, which is the common case and never a defect. Verified against a real MariaDB 10.11 schema: the query returns nothing on a healthy database, and returns the offending column on a view deliberately recreated under `utf8mb4_general_ci`, where the same comparison does raise 1267.
 - **Detection is runtime, not structural.** The finding is expressed against the collation the application actually connects with rather than against the database default, because the two can legitimately differ and it is the connection that determines whether a given view raises 1267. This also covers the case no application-side configuration can prevent: `mysqldump` reissues each view wrapped in the `SET collation_connection` in force when it was first created, so restoring a dump reintroduces the mismatch regardless of how the target application is configured.
 
+### Fixed
+
+- **Cascade findings were reported twice.** The "unified" `CascadeAnalyzer` re-implemented the rules of `CascadeAllAnalyzer`, `CascadeRemoveOnIndependentEntityAnalyzer` and `CascadePersistOnIndependentEntityAnalyzer` with the same titles, and the `Integrity/*` glob tagged it alongside them, so every `cascade="all"`, `cascade="remove"` or `cascade="persist"` finding ran twice. It covered no case the dedicated analyzers miss and had no tests, so it is removed.
+- **The deduplicator hid findings on other fields of the same entity.** Metadata analyzers reuse one title for every field they flag, and the fallback signature was built from the title and the entity only, so two `cascade="all"` associations on the same entity collapsed into one issue and the second field disappeared from the profiler. The signature now includes the issue's `field` when it carries one.
+
 ## [2.10.3] - 2026-09-09
 
 ### Added

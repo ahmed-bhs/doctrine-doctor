@@ -11,7 +11,7 @@ nav_order: 2
 
 ## 1. Overview
 
-Doctrine Doctor implements **98 specialized analyzers** organized into four categories that detect Doctrine ORM anti-patterns and performance issues.
+Doctrine Doctor implements **97 specialized analyzers** organized into four categories that detect Doctrine ORM anti-patterns and performance issues.
 
 ### 1.1 Severity Classification
 
@@ -194,34 +194,25 @@ Security analyzers detect vulnerabilities aligned with **OWASP Top 10** and Doct
 
 Integrity analyzers detect code smells, anti-patterns, and violations of best practices that affect maintainability, readability, and adherence to Doctrine ORM conventions.
 
-**Total**: 53 analyzers
+**Total**: 52 analyzers
 **Focus**: Type safety, relationship consistency, lifecycle management, naming conventions
 
 ### 5.2 Key Analyzers
 
-#### 5.2.1 CascadeAnalyzer (Unified)
+#### 5.2.1 Cascade analyzers
 
-**Description**: Single unified analyzer for all cascade-related issues following Single Responsibility Principle.
+**Description**: Three dedicated analyzers, one per cascade rule, so each finding is reported once.
 
 **Detects**:
 
-1. `cascade="all"` usage (highest priority - most dangerous)
-2. `cascade="remove"` on independent entities (potential data loss)
-3. `cascade="persist"` on independent entities (wrong aggregate boundaries)
-
-**Benefits**:
-
-- O(n) performance instead of O(3n)
-- No duplicate issues
-- Clear priority ordering
+1. `CascadeAllAnalyzer`: `cascade: ['all']` usage (most dangerous)
+2. `CascadeRemoveOnIndependentEntityAnalyzer`: `cascade: ['remove']` on independent entities (potential data loss)
+3. `CascadePersistOnIndependentEntityAnalyzer`: `cascade: ['persist']` on independent entities (wrong aggregate boundaries)
 
 **Example Violation**:
 
 ```php
-/**
- * @ORM\ManyToOne(targetEntity="Tag")
- * @ORM\JoinColumn(cascade={"remove"})  // ❌ Tag is independent!
- */
+#[ORM\ManyToOne(targetEntity: Tag::class, cascade: ['remove'])] // ❌ Tag is independent!
 private Tag $tag;
 ```
 
@@ -294,7 +285,6 @@ class Customer {
 | PropertyTypeMismatchAnalyzer | Type safety | PHP↔DB type mismatch | Runtime errors |
 | ColumnTypeAnalyzer | Column definitions | Wrong type usage | Data loss |
 | CollectionInitializationAnalyzer | Object lifecycle | Uninitialized collections | Null pointer exceptions |
-| CascadeAnalyzer | Cascade safety | Unified cascade diagnosis | Data loss or orphans |
 | TimestampableTraitAnalyzer | Trait conventions | Mutable or nullable timestamps | Unreliable audit trail |
 | BlameableTraitAnalyzer | Trait conventions | Mutable or public author fields | Unreliable audit trail |
 | SoftDeleteableTraitAnalyzer | Trait conventions | Mutable deletion timestamp | Unreliable soft deletes |
