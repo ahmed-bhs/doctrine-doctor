@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzer;
+use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -79,7 +80,7 @@ final class FlushInLoopAnalyzerTest extends TestCase
 
         // The profiler shows the flushed writes, not the transaction markers around them
         foreach ($issues[0]->getQueries() as $query) {
-            $sql = is_object($query) ? $query->sql : $query['sql'];
+            $sql = $query instanceof QueryData ? $query->sql : $query['sql'];
             self::assertStringNotContainsString('TRANSACTION', $sql);
             self::assertStringNotContainsString('COMMIT', $sql);
         }
