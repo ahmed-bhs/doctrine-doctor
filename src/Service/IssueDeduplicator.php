@@ -299,22 +299,22 @@ final class IssueDeduplicator
     private function extractEntityOrTable(string $title, string $description, string $sql): ?string
     {
         // Try entity name first (e.g., "BillLine", "SubscriptionLine")
-        if (1 === preg_match('/(?:entity|class|Entity)\s+["\']?([A-Z]\w+)["\']?/i', $title, $matches)) {
+        if (1 === preg_match('/\b(?:entity|class|Entity)\s+["\']?([A-Z]\w+)["\']?/i', $title, $matches)) {
             return $matches[1];
         }
 
-        if (1 === preg_match('/(?:entity|class|Entity)\s+["\']?([A-Z]\w+)["\']?/i', $description, $matches)) {
+        if (1 === preg_match('/\b(?:entity|class|Entity)\s+["\']?([A-Z]\w+)["\']?/i', $description, $matches)) {
             return $matches[1];
         }
 
         // Try table name in title (e.g., "table 'categories'", "on categories")
-        if (1 === preg_match('/(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $title, $matches)
+        if (1 === preg_match('/\b(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $title, $matches)
             && !in_array(strtolower($matches[1]), ['table', 'from', 'join', 'on', 'static'], true)) {
             return $matches[1];
         }
 
         // Try table name in description
-        if (1 === preg_match('/(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $description, $matches)
+        if (1 === preg_match('/\b(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $description, $matches)
             && !in_array(strtolower($matches[1]), ['table', 'from', 'join', 'on', 'static'], true)) {
             return $matches[1];
         }
