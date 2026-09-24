@@ -199,7 +199,7 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
 
         foreach ($flushGroups as $flushGroup) {
             for ($i = $flushGroup['start_index']; $i <= $flushGroup['end_index']; ++$i) {
-                if (isset($queriesArray[$i])) {
+                if (isset($queriesArray[$i]) && !$this->isTransactionMarker($queriesArray[$i])) {
                     $affectedQueries[] = $queriesArray[$i];
                     $totalTime += $queriesArray[$i]->executionTime->inMilliseconds();
                 }
@@ -234,7 +234,17 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
      */
     private function isCommit(QueryData $queryData): bool
     {
-        return 'COMMIT' === strtoupper(trim($queryData->sql, " \t\n\r\0\x0B\";"));
+        return 'COMMIT' === $this->transactionStatement($queryData);
+    }
+
+    private function isTransactionMarker(QueryData $queryData): bool
+    {
+        return in_array($this->transactionStatement($queryData), ['START TRANSACTION', 'BEGIN', 'BEGIN TRANSACTION', 'COMMIT', 'ROLLBACK'], true);
+    }
+
+    private function transactionStatement(QueryData $queryData): string
+    {
+        return strtoupper(trim($queryData->sql, " \t\n\r\0\x0B\";"));
     }
 
     private function isIdRetrievalQuery(string $sql): bool

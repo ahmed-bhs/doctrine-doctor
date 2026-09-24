@@ -74,7 +74,15 @@ final class FlushInLoopAnalyzerTest extends TestCase
             $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
         }
 
-        self::assertCount(1, $this->analyzer->analyze($queries->build()));
+        $issues = $this->analyzer->analyze($queries->build())->toArray();
+        self::assertCount(1, $issues);
+
+        // The profiler shows the flushed writes, not the transaction markers around them
+        foreach ($issues[0]->getQueries() as $query) {
+            $sql = is_object($query) ? $query->sql : $query['sql'];
+            self::assertStringNotContainsString('TRANSACTION', $sql);
+            self::assertStringNotContainsString('COMMIT', $sql);
+        }
     }
 
     #[Test]
