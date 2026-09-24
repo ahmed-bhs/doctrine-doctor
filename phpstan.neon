@@ -1,6 +1,10 @@
 includes:
     - vendor/phpstan/phpstan/conf/bleedingEdge.neon
 
+rules:
+    # Doctrine ORM 4 drops ArrayAccess from mapping objects
+    - AhmedBhs\DoctrineDoctor\Tests\PHPStan\NoMappingArrayAccessRule
+
 parameters:
     level: 8
     phpVersion: 80400

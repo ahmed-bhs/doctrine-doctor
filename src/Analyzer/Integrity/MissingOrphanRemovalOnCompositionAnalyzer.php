@@ -106,12 +106,12 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements MetadataAnalyzerInter
 
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $associationMapping) {
             // Only check OneToMany
-            if (($associationMapping['type'] ?? 0) !== ClassMetadata::ONE_TO_MANY) {
+            if (ClassMetadata::ONE_TO_MANY !== $associationMapping->type()) {
                 continue;
             }
 
             // Check if orphanRemoval is already enabled
-            $orphanRemoval = (bool) ($associationMapping['orphanRemoval'] ?? false);
+            $orphanRemoval = $associationMapping->orphanRemoval;
 
             if ($orphanRemoval) {
                 continue;

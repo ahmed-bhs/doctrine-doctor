@@ -107,7 +107,7 @@ class OnDeleteCascadeMismatchAnalyzer implements MetadataAnalyzerInterface
 
         // Check OneToMany associations
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $associationMapping) {
-            if (($associationMapping['type'] ?? 0) !== ClassMetadata::ONE_TO_MANY) {
+            if (ClassMetadata::ONE_TO_MANY !== $associationMapping->type()) {
                 continue;
             }
 

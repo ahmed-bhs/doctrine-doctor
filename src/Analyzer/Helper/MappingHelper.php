@@ -129,4 +129,21 @@ class MappingHelper
 
         return $value;
     }
+
+    /**
+     * Whether the first join column of a to-one association accepts NULL, which
+     * is Doctrine's default. Join columns are arrays on ORM 2 and
+     * JoinColumnMapping objects on ORM 3+.
+     * @param array<string, mixed>|object $associationMapping
+     */
+    public static function isJoinColumnNullable(array|object $associationMapping): bool
+    {
+        $firstJoinColumn = (self::getArray($associationMapping, 'joinColumns') ?? [])[0] ?? null;
+
+        if (!is_array($firstJoinColumn) && !is_object($firstJoinColumn)) {
+            return true;
+        }
+
+        return self::getBool($firstJoinColumn, 'nullable') ?? true;
+    }
 }

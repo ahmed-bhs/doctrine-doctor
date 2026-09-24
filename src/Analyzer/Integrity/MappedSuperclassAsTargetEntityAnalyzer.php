@@ -59,8 +59,8 @@ class MappedSuperclassAsTargetEntityAnalyzer implements AnalyzerInterface
                 }
 
                 foreach ($metadata->getAssociationMappings() as $mapping) {
-                    $targetEntity = $mapping['targetEntity'] ?? null;
-                    if (null === $targetEntity || !isset($mappedSuperclasses[$targetEntity])) {
+                    $targetEntity = $mapping->targetEntity;
+                    if (!isset($mappedSuperclasses[$targetEntity])) {
                         continue;
                     }
 
@@ -70,7 +70,7 @@ class MappedSuperclassAsTargetEntityAnalyzer implements AnalyzerInterface
                         . 'This will cause a runtime MappingException.',
                         [
                             'entity' => $this->shortClassName($metadata->getName()),
-                            'field' => $mapping['fieldName'],
+                            'field' => $mapping->fieldName,
                             'target' => $this->shortClassName($targetEntity),
                         ],
                     );
@@ -80,7 +80,7 @@ class MappedSuperclassAsTargetEntityAnalyzer implements AnalyzerInterface
                         title: sprintf(
                             'Association targets Mapped Superclass: %s::$%s -> %s',
                             $this->shortClassName($metadata->getName()),
-                            $mapping['fieldName'],
+                            $mapping->fieldName,
                             $this->shortClassName($targetEntity),
                         ),
                         description: $description,

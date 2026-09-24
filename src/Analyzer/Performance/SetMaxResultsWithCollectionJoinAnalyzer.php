@@ -206,11 +206,7 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
     private function isConfirmedToOneJoin(ClassMetadata $fromMetadata, string $joinTable): bool
     {
         foreach ($fromMetadata->getAssociationMappings() as $associationMapping) {
-            $targetEntity = $associationMapping['targetEntity'] ?? null;
-
-            if (null === $targetEntity) {
-                continue;
-            }
+            $targetEntity = $associationMapping->targetEntity;
 
             try {
                 $targetMetadata = $this->entityManager->getClassMetadata($targetEntity);
@@ -223,8 +219,8 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
             }
 
             if (
-                ClassMetadata::MANY_TO_ONE === $associationMapping['type']
-                || ClassMetadata::ONE_TO_ONE === $associationMapping['type']
+                ClassMetadata::MANY_TO_ONE === $associationMapping->type()
+                || ClassMetadata::ONE_TO_ONE === $associationMapping->type()
             ) {
                 return true;
             }

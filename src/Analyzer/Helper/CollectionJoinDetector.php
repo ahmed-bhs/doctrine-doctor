@@ -124,19 +124,15 @@ class CollectionJoinDetector
     {
         foreach ($metadataMap as $sourceMetadata) {
             foreach ($sourceMetadata->getAssociationMappings() as $associationMapping) {
-                $targetEntity = $associationMapping['targetEntity'] ?? null;
-
-                if (null === $targetEntity) {
-                    continue;
-                }
+                $targetEntity = $associationMapping->targetEntity;
 
                 try {
                     $targetMetadata = $this->entityManager->getClassMetadata($targetEntity);
 
                     if ($targetMetadata->getTableName() === $tableName) {
                         if (
-                            ClassMetadata::ONE_TO_MANY === $associationMapping['type']
-                            || ClassMetadata::MANY_TO_MANY === $associationMapping['type']
+                            ClassMetadata::ONE_TO_MANY === $associationMapping->type()
+                            || ClassMetadata::MANY_TO_MANY === $associationMapping->type()
                         ) {
                             return true;
                         }

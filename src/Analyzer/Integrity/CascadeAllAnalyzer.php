@@ -122,7 +122,7 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
             // Check if cascade contains 'all'
             // Note: Doctrine ORM expands cascade=['all'] into individual operations:
             // ['persist', 'remove', 'refresh', 'merge', 'detach']
-            $cascade = $associationMapping['cascade'] ?? [];
+            $cascade = $associationMapping->cascade;
 
             // Check if explicitly uses 'all' or has all cascade operations
             $hasAll = in_array('all', $cascade, true) || $this->hasAllCascadeOperations($cascade);
@@ -133,7 +133,7 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
 
             // Determine severity based on association type and target entity
             $severity     = $this->determineSeverity($associationMapping);
-            $targetEntity = $associationMapping['targetEntity'] ?? 'Unknown';
+            $targetEntity = $associationMapping->targetEntity;
 
             /** @var IntegrityIssue $issue */
             $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,

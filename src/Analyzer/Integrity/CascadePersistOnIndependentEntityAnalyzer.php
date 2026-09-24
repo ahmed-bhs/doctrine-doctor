@@ -140,8 +140,8 @@ class CascadePersistOnIndependentEntityAnalyzer implements MetadataAnalyzerInter
         $entityClass = $classMetadata->getName();
 
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $associationMapping) {
-            $cascade      = $associationMapping['cascade'] ?? [];
-            $targetEntity = $associationMapping['targetEntity'] ?? null;
+            $cascade      = $associationMapping->cascade;
+            $targetEntity = $associationMapping->targetEntity;
 
             // Skip if no cascade persist
             if (!in_array('persist', $cascade, true) && !in_array('all', $cascade, true)) {

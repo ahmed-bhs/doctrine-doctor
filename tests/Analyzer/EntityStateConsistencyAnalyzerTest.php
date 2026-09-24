@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EntityStateConsistencyAnalyzer;
+use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -121,5 +122,37 @@ final class EntityStateConsistencyAnalyzerTest extends TestCase
 
         // Assert: IssueCollection uses generator pattern
         self::assertInstanceOf(\Generator::class, $issues->getIterator());
+    }
+
+    #[Test]
+    public function it_reports_a_required_association_without_cascade_persist(): void
+    {
+        $titles = $this->titlesForRequiredAssociationFixtures();
+
+        self::assertContains('Required Association Without Cascade: Invoice::$customer', $titles);
+    }
+
+    #[Test]
+    public function it_does_not_report_a_required_association_with_cascade_persist(): void
+    {
+        $titles = $this->titlesForRequiredAssociationFixtures();
+
+        self::assertNotContains('Required Association Without Cascade: Shipment::$customer', $titles);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function titlesForRequiredAssociationFixtures(): array
+    {
+        $analyzer = new EntityStateConsistencyAnalyzer(
+            PlatformAnalyzerTestHelper::createTestEntityManager([__DIR__ . '/../Fixtures/Entity/RequiredAssociationTest']),
+            PlatformAnalyzerTestHelper::createIssueFactory(),
+        );
+
+        return array_values(array_map(
+            static fn ($issue): string => $issue->getTitle(),
+            $analyzer->analyze(QueryDataCollection::empty())->toArray(),
+        ));
     }
 }

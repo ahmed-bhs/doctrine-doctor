@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -84,23 +85,15 @@ class EntityStateConsistencyAnalyzer implements MetadataAnalyzerInterface
                 continue;
             }
 
-            $joinColumns = $mapping['joinColumns'] ?? [];
-            $nullable = true;
-
-            if (\is_array($joinColumns) && isset($joinColumns[0]) && \is_array($joinColumns[0])) {
-                $nullable = (bool) ($joinColumns[0]['nullable'] ?? true);
-            }
-
-            if ($nullable) {
+            if (MappingHelper::isJoinColumnNullable($mapping)) {
                 continue;
             }
 
-            $cascade = \is_array($mapping['cascade'] ?? null) ? $mapping['cascade'] : [];
+            $cascade = $mapping->cascade;
 
             if (!\in_array('persist', $cascade, true)) {
                 $shortName = $this->shortClassName($classMetadata->getName());
-                $targetEntity = $mapping['targetEntity'] ?? '';
-                $targetShort = $this->shortClassName(\is_string($targetEntity) ? $targetEntity : '');
+                $targetShort = $this->shortClassName($mapping->targetEntity);
 
                 $description = sprintf(
                     "Required association %s::\$%s targets %s without cascade persist.\n",

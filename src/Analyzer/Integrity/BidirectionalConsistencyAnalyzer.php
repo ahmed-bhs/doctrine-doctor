@@ -111,17 +111,7 @@ class BidirectionalConsistencyAnalyzer implements MetadataAnalyzerInterface
 
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $associationMapping) {
             // Only check OneToMany and OneToOne (owning side of bidirectional)
-            // In Doctrine 4, associationMapping is an object, we access type directly from array fallback
-            $type = ($associationMapping['type'] ?? null) ?? (is_object($associationMapping) ? $associationMapping::class : 0);
-
-            // For Doctrine 4 objects, check by class name
-            if (is_string($type)) {
-                $isOneToMany = str_contains($type, 'OneToManyAssociationMapping');
-                $isOneToOne = str_contains($type, 'OneToOneAssociationMapping');
-                if (!$isOneToMany && !$isOneToOne) {
-                    continue;
-                }
-            } elseif (!in_array($type, [ClassMetadata::ONE_TO_MANY, ClassMetadata::ONE_TO_ONE], true)) {
+            if (!in_array($associationMapping->type(), [ClassMetadata::ONE_TO_MANY, ClassMetadata::ONE_TO_ONE], true)) {
                 continue;
             }
 
