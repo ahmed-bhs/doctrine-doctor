@@ -23,7 +23,7 @@ use PHPUnit\Framework\Attributes\Test;
  * This test demonstrates transaction management issues:
  * - Uncommitted transactions (CRITICAL)
  * - Multiple flushes in one transaction (WARNING)
- * - Nested transactions (CRITICAL)
+ * - Nested BEGIN on an open transaction (CRITICAL); DBAL 4 savepoints are not reported
  * - Long-running transactions (WARNING)
  */
 final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
@@ -153,15 +153,12 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         self::assertNotNull($nestedIssue, 'Should detect nested transaction');
         self::assertStringContainsString('Nested Transaction Detected', $nestedIssue->getTitle());
         self::assertSame('critical', $nestedIssue->getSeverity()->value);
-        self::assertStringContainsString('Inner transactions are usually ignored', $nestedIssue->getDescription());
+        self::assertStringContainsString('commit the open one implicitly', $nestedIssue->getDescription());
     }
 
     #[Test]
     public function it_detects_multiple_flushes_in_single_transaction(): void
     {
-        if ($this->usesSqliteSavepoints()) {
-            self::markTestSkipped('SQLite emits SAVEPOINT/RELEASE per flush, masking multi-flush detection inside the parent transaction.');
-        }
         $this->startQueryCollection();
 
         $this->entityManager->getConnection()->beginTransaction();
@@ -257,9 +254,6 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
     #[Test]
     public function it_does_not_flag_correct_transaction_usage(): void
     {
-        if ($this->usesSqliteSavepoints()) {
-            self::markTestSkipped('SQLite/Doctrine emits SAVEPOINT inside BEGIN, which TransactionBoundaryAnalyzer treats as a nested-transaction marker.');
-        }
         $this->startQueryCollection();
 
         // GOOD: Proper transaction management
@@ -597,8 +591,20 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         }
     }
 
-    private function usesSqliteSavepoints(): bool
+    #[Test]
+    public function it_accepts_a_flush_inside_wrap_in_transaction(): void
     {
-        return 'pdo_sqlite' === ($this->entityManager->getConnection()->getParams()['driver'] ?? null);
+        $this->startQueryCollection();
+
+        // DBAL 4 runs the inner flush in SAVEPOINT DOCTRINE_2 on every platform.
+        $this->entityManager->wrapInTransaction(function (): void {
+            $product = new Product();
+            $product->setName('Product 1');
+            $product->setPrice(9.99);
+            $product->setStock(100);
+            $this->entityManager->persist($product);
+        });
+
+        self::assertCount(0, $this->transactionBoundaryAnalyzer->analyze($this->stopQueryCollection()));
     }
 }
