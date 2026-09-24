@@ -52,7 +52,7 @@ doctrine_doctor:
         # EntityManager Clear Detection (Memory Leak Prevention)
         entity_manager_clear:
             enabled: true
-            batch_size_threshold: 20  # Minimum number of INSERT/UPDATE operations to trigger detection
+            batch_size_threshold: 50  # Minimum number of INSERT/UPDATE operations to trigger detection
 
         # GetReference Optimization Detection
         get_reference:
