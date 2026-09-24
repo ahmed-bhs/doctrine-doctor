@@ -122,7 +122,7 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 | PaginationWithoutOrderByAnalyzer | LIMIT without ORDER BY | Non-deterministic pages | — |
 | OrderByNullableLeadingColumnAnalyzer | Nullable leading sort key | Rows skipped per platform | — |
 | FunctionOnPredicateColumnAnalyzer | Function wrapping a WHERE column | Index not usable | — |
-| ImplicitTypeConversionAnalyzer | Type mismatch in predicates | Index not usable | — |
+| ImplicitTypeConversionAnalyzer | Text column compared to a number (column types from Doctrine metadata) | Index not usable: per-row cast on MySQL/MariaDB, error on PostgreSQL | — |
 | NotInSubqueryAnalyzer | `NOT IN` with a subquery | NULL semantics and cost | — |
 | MissingTransactionOnBatchAnalyzer | Unwrapped batch writes | Per-statement commits | — |
 | EagerLoadingMappingAnalyzer | `fetch: 'EAGER'` in mapping | Unrequested joins | — |

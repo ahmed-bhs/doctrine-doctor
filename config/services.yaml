@@ -302,6 +302,7 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\ImplicitTypeConversionAnalyzer:
         arguments:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $entityManager: '@doctrine_doctor.entity_manager'
         tags:
             - { name: doctrine_doctor.analyzer }
 
