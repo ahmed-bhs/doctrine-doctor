@@ -108,7 +108,7 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 | DTOHydrationAnalyzer | Hydration mode | Memory + performance | — |
 | BulkOperationAnalyzer | Entity count | 100-1000x | `threshold: 20` |
 | QueryCachingOpportunityAnalyzer | Cache statistics | 50-90% reduction | — |
-| EntityManagerClearAnalyzer | Memory usage | Memory leak prevention | `batch_size_threshold: 20` |
+| EntityManagerClearAnalyzer | Memory usage | Memory leak prevention | `batch_size_threshold: 50` |
 | JoinOptimizationAnalyzer | JOIN complexity | Query simplification | `max_joins_recommended: 5`, `max_joins_critical: 8` |
 | CartesianProductAnalyzer | Multi-collection JOIN analysis | Prevent row explosion | `n1_collection_threshold: 3` |
 | SetMaxResultsWithCollectionJoinAnalyzer | LIMIT + JOIN | Incorrect results | — |

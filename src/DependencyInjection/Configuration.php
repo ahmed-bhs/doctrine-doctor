@@ -244,7 +244,7 @@ class Configuration implements ConfigurationInterface
                                     ->info('Enable EntityManager::clear() detection for batch operations')
                                 ->end()
                                 ->integerNode('batch_size_threshold')
-                                    ->defaultValue(20)
+                                    ->defaultValue(50)
                                     ->min(1)
                                     ->info('Minimum number of INSERT/UPDATE operations to trigger detection')
                                 ->end()

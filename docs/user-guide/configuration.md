@@ -442,13 +442,13 @@ doctrine_doctor:
     analyzers:
         entity_manager_clear:
             enabled: true
-            batch_size_threshold: 20
+            batch_size_threshold: 50
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable analyzer |
-| `batch_size_threshold` | integer | `20` | Entity count to recommend `clear()` calls |
+| `batch_size_threshold` | integer | `50` | Entity count to recommend `clear()` calls |
 
 ---
 
@@ -937,7 +937,7 @@ doctrine_doctor:
 
         entity_manager_clear:
             enabled: true
-            batch_size_threshold: 20
+            batch_size_threshold: 50
 
         join_optimization:
             enabled: true

@@ -38,7 +38,7 @@ class EntityManagerClearAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\An
     public function __construct(
         private readonly IssueFactoryInterface $issueFactory,
         private readonly SuggestionFactoryInterface $suggestionFactory,
-        private readonly int $batchSizeThreshold = 20,
+        private readonly int $batchSizeThreshold = 50,
         private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
     ) {
     }
