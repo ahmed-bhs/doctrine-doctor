@@ -103,7 +103,7 @@ class OrderByNullableLeadingColumnAnalyzer implements AnalyzerInterface
 
         yield new OrderByNullableLeadingColumnIssue([
             'table' => $tableName,
-            'column' => $column->getName(), // @phpstan-ignore method.internalClass
+            'column' => $this->columnName($column),
             'query' => $sql,
             'backtrace' => $queryData->backtrace,
             'queries' => [$queryData->toArray()],
@@ -120,7 +120,7 @@ class OrderByNullableLeadingColumnAnalyzer implements AnalyzerInterface
     private function findColumn(string $tableName, string $columnName): ?Column
     {
         foreach ($this->getTableColumns($tableName) as $column) {
-            if (strtolower($column->getName()) === strtolower($columnName)) { // @phpstan-ignore method.internalClass
+            if (strtolower($this->columnName($column)) === strtolower($columnName)) {
                 return $column;
             }
         }
@@ -147,5 +147,17 @@ class OrderByNullableLeadingColumnAnalyzer implements AnalyzerInterface
         $this->tableColumnsCache[$tableName] = $columns;
 
         return $columns;
+    }
+
+    /**
+     * DBAL 4 deprecates Column::getName() in favour of getObjectName().
+     */
+    private function columnName(Column $column): string
+    {
+        if (method_exists($column, 'getObjectName')) {
+            return $column->getObjectName()->getIdentifier()->getValue();
+        }
+
+        return $column->getName(); // @phpstan-ignore method.internalClass
     }
 }

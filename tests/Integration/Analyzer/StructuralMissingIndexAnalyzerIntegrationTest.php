@@ -19,6 +19,7 @@ use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Product;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\DatabaseTestCase;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use Doctrine\Deprecations\PHPUnit\VerifyDeprecations;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -27,10 +28,15 @@ use PHPUnit\Framework\Attributes\Test;
  */
 final class StructuralMissingIndexAnalyzerIntegrationTest extends DatabaseTestCase
 {
+    use VerifyDeprecations;
+
     private StructuralMissingIndexAnalyzer $structuralMissingIndexAnalyzer;
 
     protected function setUp(): void
     {
+        // DBAL 4 deprecates these schema/connection APIs, removed in DBAL 5.
+        $this->expectNoDeprecationWithIdentifier('https://github.com/doctrine/dbal/pull/6886');
+        $this->expectNoDeprecationWithIdentifier('https://github.com/doctrine/dbal/pull/6867');
         if (!extension_loaded('pdo_sqlite')) {
             self::markTestSkipped('PDO SQLite extension is not available');
         }

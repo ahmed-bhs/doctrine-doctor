@@ -287,7 +287,7 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
 
         $fieldMapping = $metadata->getFieldMapping($fieldName);
 
-        return isset($fieldMapping['unique']) && true === $fieldMapping['unique'];
+        return true === MappingHelper::getBool($fieldMapping, 'unique');
     }
 
     /**
