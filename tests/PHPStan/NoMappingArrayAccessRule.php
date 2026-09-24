@@ -28,12 +28,12 @@ use PHPStan\Rules\RuleErrorBuilder;
 class NoMappingArrayAccessRule implements Rule
 {
     private const array MAPPING_CLASSES = [
-        'Doctrine\ORM\Mapping\AssociationMapping',
-        'Doctrine\ORM\Mapping\FieldMapping',
-        'Doctrine\ORM\Mapping\JoinColumnMapping',
-        'Doctrine\ORM\Mapping\JoinTableMapping',
-        'Doctrine\ORM\Mapping\DiscriminatorColumnMapping',
-        'Doctrine\ORM\Mapping\EmbeddedClassMapping',
+        \Doctrine\ORM\Mapping\AssociationMapping::class,
+        \Doctrine\ORM\Mapping\FieldMapping::class,
+        \Doctrine\ORM\Mapping\JoinColumnMapping::class,
+        \Doctrine\ORM\Mapping\JoinTableMapping::class,
+        \Doctrine\ORM\Mapping\DiscriminatorColumnMapping::class,
+        \Doctrine\ORM\Mapping\EmbeddedClassMapping::class,
     ];
 
     public function getNodeType(): string

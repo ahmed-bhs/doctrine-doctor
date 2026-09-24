@@ -43,7 +43,7 @@ $qb-&gt;select('u')
    -&gt;setMaxResults(20);</code></pre>
     </div>
 
-    <?php if ($cursorPaginatorAvailable): ?>
+    <?php if ($cursorPaginatorAvailable) { ?>
     <h4>With Doctrine's CursorPaginator (ORM 3.7+)</h4>
     <div class="query-item">
         <pre><code class="language-php">use Doctrine\ORM\Tools\Pagination\CursorPaginator;
@@ -66,7 +66,7 @@ $nextCursor = $page-&gt;hasNextPage() ? $page-&gt;getNextCursorAsString() : null
         Builds the keyset <code>WHERE</code> clause from the <code>ORDER BY</code> columns for you and
         returns opaque, URL-safe cursors for the next and previous pages.
     </p>
-    <?php endif; ?>
+    <?php } ?>
 
     <h4>When you must keep OFFSET</h4>
     <ul>

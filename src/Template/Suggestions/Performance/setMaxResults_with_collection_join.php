@@ -72,7 +72,7 @@ $batch = $qb2->leftJoin('r.tags', 't')->addSelect('t')
     <p>Preferred inside a batch loop: the identifier query stays cheap and the offset counts entities.</p>
 
     <h4>Fix 2: Doctrine Paginator</h4>
-    <?php if ($offsetPaginatorAvailable): ?>
+    <?php if ($offsetPaginatorAvailable) { ?>
     <pre><code class="language-php">use Doctrine\ORM\Tools\Pagination\OffsetPaginator;
 use Doctrine\ORM\Tools\Pagination\Window;
 
@@ -86,7 +86,7 @@ $orders = $page->getItems();</code></pre>
         extra COUNT per iteration is wasted work, so prefer Fix 1 there.
         <code>OffsetPaginator</code> replaces <code>Paginator</code>, deprecated since ORM 3.7.
     </p>
-    <?php else: ?>
+    <?php } else { ?>
     <pre><code class="language-php">use Doctrine\ORM\Tools\Pagination\Paginator;
 
 $paginator = new Paginator($query, $fetchJoinCollection = true);
@@ -96,7 +96,7 @@ $orders = iterator_to_array($paginator);</code></pre>
         <code>count($paginator)</code>. Best for page-by-page UI listings; in a large batch loop the
         extra COUNT per iteration is wasted work, so prefer Fix 1 there.
     </p>
-    <?php endif; ?>
+    <?php } ?>
 
     <div class="alert alert-info">
         <strong>Rule of thumb</strong> - LIMIT and <code>addSelect()</code> on a to-many association do
