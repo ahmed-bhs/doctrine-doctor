@@ -47,16 +47,20 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             $riskLevel = $injectionRisk['risk_level'] ?? 0;
             Assert::integer($riskLevel);
 
+            // One issue per query: a critical pattern (tautology, UNION...) says the most;
+            // otherwise the unparameterized-literal diagnosis is the precise one.
+            if ($riskLevel < 3 && $this->isDqlWithUnparameterizedLiteral($queryData)) {
+                $unparameterizedDqlQueries[] = $queryData;
+
+                continue;
+            }
+
             if ($riskLevel > 0) {
                 $suspiciousQueries[] = [
                     'query'      => $queryData,
                     'risk_level' => $riskLevel,
                     'indicators' => $injectionRisk['indicators'] ?? [],
                 ];
-            }
-
-            if ($this->isDqlWithUnparameterizedLiteral($queryData)) {
-                $unparameterizedDqlQueries[] = $queryData;
             }
         }
 

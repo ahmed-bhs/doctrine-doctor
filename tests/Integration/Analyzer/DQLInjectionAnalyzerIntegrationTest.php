@@ -265,4 +265,32 @@ final class DQLInjectionAnalyzerIntegrationTest extends DatabaseTestCase
             'Doctrine SQL with literal in WHERE without bound parameters is flagged',
         );
     }
+
+    #[Test]
+    public function it_reports_a_dql_literal_once(): void
+    {
+        $this->startQueryCollection();
+
+        $this->entityManager->createQuery('SELECT u FROM ' . User::class . " u WHERE u.email = 'user1@example.com'")->getResult();
+
+        $titles = array_map(
+            static fn ($issue): string => $issue->getTitle(),
+            $this->dqlInjectionAnalyzer->analyze($this->stopQueryCollection())->toArray(),
+        );
+
+        self::assertSame(['DQL Injection Risk: Doctrine query with concatenated literal value'], array_values($titles));
+    }
+
+    #[Test]
+    public function it_keeps_the_critical_pattern_issue_for_a_tautology(): void
+    {
+        $this->startQueryCollection();
+
+        $this->entityManager->createQuery('SELECT u FROM ' . User::class . " u WHERE u.email = 'x' OR '1'='1'")->getResult();
+
+        $issues = $this->dqlInjectionAnalyzer->analyze($this->stopQueryCollection())->toArray();
+
+        self::assertCount(1, $issues);
+        self::assertStringContainsString('Security Vulnerability', $issues[0]->getTitle());
+    }
 }
