@@ -236,13 +236,7 @@ class PropertyTypeMismatchAnalyzer implements MetadataAnalyzerInterface
             return null;
         }
 
-        $joinColumns = $mapping['joinColumns'] ?? [];
-        $nullable = true;
-        if (\is_array($joinColumns) && isset($joinColumns[0]) && \is_array($joinColumns[0])) {
-            $nullable = (bool) ($joinColumns[0]['nullable'] ?? true);
-        }
-
-        if (!$nullable && $propertyType->allowsNull()) {
+        if (!MappingHelper::isJoinColumnNullable($mapping) && $propertyType->allowsNull()) {
             return $this->createIssue(
                 $classMetadata->getName(),
                 $assocName,

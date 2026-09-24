@@ -191,9 +191,6 @@ doctrine_doctor:
             max_joins_critical: 8     # Number of JOINs to mark as critical
 
         # Additional Analyzers (all enabled by default)
-        auto_generate_proxy_classes:
-            enabled: true
-
         collection_empty_access:
             enabled: true
 

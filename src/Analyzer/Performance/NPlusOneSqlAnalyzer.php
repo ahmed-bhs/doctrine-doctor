@@ -25,7 +25,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
-final readonly class NPlusOneSqlAnalyzer implements AnalyzerInterface
+readonly class NPlusOneSqlAnalyzer implements AnalyzerInterface
 {
     public function __construct(
         private IssueFactoryInterface $issueFactory,

@@ -209,6 +209,24 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_recommends_the_non_deprecated_paginator(): void
+    {
+        $issues = $this->analyzer->analyze(
+            QueryDataBuilder::create()
+                ->addQuery('SELECT t0_.id, t1_.id FROM pets t0_ LEFT JOIN pictures t1_ LIMIT 1')
+                ->build(),
+        );
+
+        $description = $issues->toArray()[0]->getDescription();
+
+        if (class_exists(\Doctrine\ORM\Tools\Pagination\OffsetPaginator::class)) {
+            self::assertStringContainsString(\Doctrine\ORM\Tools\Pagination\OffsetPaginator::class, $description);
+        } else {
+            self::assertStringContainsString(\Doctrine\ORM\Tools\Pagination\Paginator::class, $description);
+        }
+    }
+
+    #[Test]
     public function it_has_correct_name_and_description(): void
     {
         self::assertEquals('setMaxResults with Collection Join Analyzer', $this->analyzer->getName());

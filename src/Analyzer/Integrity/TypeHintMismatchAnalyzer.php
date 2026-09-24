@@ -38,7 +38,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  * The UnitOfWork uses strict comparison (===) which considers "5.0" !== 5.0,
  * causing Doctrine to think the value changed when it hasn't.
  */
-final readonly class TypeHintMismatchAnalyzer implements MetadataAnalyzerInterface
+readonly class TypeHintMismatchAnalyzer implements MetadataAnalyzerInterface
 {
     use MetadataAnalyzerTrait;
 

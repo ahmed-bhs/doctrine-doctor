@@ -102,8 +102,7 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
 
     /**
      * Collect query frequencies and details.
-     * @return array{0: array<string, int>, 1: array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array}>}
-     * @phpstan-return array{0: array<string, int>, 1: array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array}>}
+     * @return array{0: array<string, int>, 1: array<string, array{originalSql: string, totalTime: float, backtrace: ?array, queries: array, uniqueParamSets: array<string, true>}>}
      */
     private function collectQueryFrequencies(QueryDataCollection $queryDataCollection): array
     {

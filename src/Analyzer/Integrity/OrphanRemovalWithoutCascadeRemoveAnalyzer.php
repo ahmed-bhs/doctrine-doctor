@@ -97,7 +97,7 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements MetadataAnalyzerInter
 
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $associationMapping) {
             // Only check OneToMany
-            if (ClassMetadata::ONE_TO_MANY !== $this->getAssociationTypeConstant($associationMapping)) {
+            if (ClassMetadata::ONE_TO_MANY !== MappingHelper::getAssociationType($associationMapping)) {
                 continue;
             }
 
@@ -183,41 +183,5 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements MetadataAnalyzerInter
                 tags: ['orphan-removal', 'cascade', 'configuration'],
             ),
         );
-    }
-
-    /**
-     * Get association type constant in a version-agnostic way.
-     * Doctrine ORM 2.x uses 'type' field, 3.x/4.x uses specific mapping classes.
-     */
-    private function getAssociationTypeConstant(array|object $mapping): int
-    {
-        // Try to get type from array (Doctrine ORM 2.x)
-        $type = MappingHelper::getInt($mapping, 'type');
-        if (null !== $type) {
-            return $type;
-        }
-
-        // Doctrine ORM 3.x/4.x: determine from class name
-        if (is_object($mapping)) {
-            $className = $mapping::class;
-
-            if (str_contains($className, 'ManyToOne')) {
-                return ClassMetadata::MANY_TO_ONE;
-            }
-
-            if (str_contains($className, 'OneToMany')) {
-                return ClassMetadata::ONE_TO_MANY;
-            }
-
-            if (str_contains($className, 'ManyToMany')) {
-                return ClassMetadata::MANY_TO_MANY;
-            }
-
-            if (str_contains($className, 'OneToOne')) {
-                return ClassMetadata::ONE_TO_ONE;
-            }
-        }
-
-        return 0; // Unknown
     }
 }

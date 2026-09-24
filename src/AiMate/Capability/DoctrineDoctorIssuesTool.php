@@ -56,7 +56,7 @@ final readonly class DoctrineDoctorIssuesTool
         return [
             'stats' => $collector->getStats(),
             'issues' => $this->sanitizer->sanitizeIssues(
-                $collector->getIssues(),
+                array_values($collector->getIssues()),
                 category: $category,
                 severity: $severity,
                 limit: $limit,

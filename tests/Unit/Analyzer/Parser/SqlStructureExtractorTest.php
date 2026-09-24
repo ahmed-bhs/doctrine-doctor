@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer\Parser;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\Parser\Interface\JoinExtractorInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use PHPUnit\Framework\TestCase;
 
@@ -21,6 +22,18 @@ class SqlStructureExtractorTest extends TestCase
     protected function setUp(): void
     {
         $this->extractor = new SqlStructureExtractor();
+    }
+
+    public function test_accepts_a_custom_join_extractor(): void
+    {
+        // The default pattern detector needs the concrete SqlJoinExtractor; a
+        // custom JoinExtractorInterface used to be forwarded to it as null.
+        $joinExtractor = self::createStub(JoinExtractorInterface::class);
+        $joinExtractor->method('hasJoin')->willReturn(true);
+
+        $extractor = new SqlStructureExtractor(joinExtractor: $joinExtractor);
+
+        self::assertTrue($extractor->hasJoin('SELECT * FROM users'));
     }
 
     public function test_extracts_simple_left_join(): void

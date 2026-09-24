@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -105,14 +106,14 @@ class StringDefaultExpressionAnalyzer implements MetadataAnalyzerInterface
     private function analyzeEntity(ClassMetadata $metadata, array $replacements): iterable
     {
         foreach ($metadata->fieldMappings as $fieldName => $mapping) {
-            $options = $mapping['options'] ?? $mapping->options ?? [];
+            $options = MappingHelper::getArray($mapping, 'options') ?? [];
             $default = $options['default'] ?? null;
 
             if (!is_string($default)) {
                 continue;
             }
 
-            $type = $mapping['type'] ?? $mapping->type ?? null;
+            $type = MappingHelper::getString($mapping, 'type');
 
             if (!is_string($type)) {
                 continue;

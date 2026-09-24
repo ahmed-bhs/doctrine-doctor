@@ -27,6 +27,7 @@ $result = $query->getResult(Query::HYDRATE_ARRAY);
 SELECT NEW App\DTO\MyDTO(e.id, e.name) FROM Entity e
 
 // PARTIAL objects (select only needed fields)
+// Reading any other field later costs one extra query per entity
 SELECT PARTIAL e.{id, name} FROM Entity e
 
 // Pagination (limit results)

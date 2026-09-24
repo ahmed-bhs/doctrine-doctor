@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -87,7 +88,7 @@ class SingleTableInheritanceNullableColumnAnalyzer implements AnalyzerInterface
 
             foreach ($subOnlyFields as $fieldName) {
                 $mapping = $subMetadata->fieldMappings[$fieldName];
-                $nullable = $mapping['nullable'] ?? $mapping->nullable ?? false;
+                $nullable = MappingHelper::getBool($mapping, 'nullable') ?? false;
 
                 if ($nullable) {
                     continue;

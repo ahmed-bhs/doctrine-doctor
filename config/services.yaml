@@ -35,17 +35,8 @@ services:
     # Tag all analyzers automatically
     AhmedBhs\DoctrineDoctor\Analyzer\:
         resource: '../src/Analyzer/{Performance,Security,Integrity,Configuration}/*'
-        exclude: '../src/Analyzer/{AnalyzerInterface.php,Helper,Config,Parser,Performance/FlushInLoopAnalyzerModern.php}'
+        exclude: '../src/Analyzer/{AnalyzerInterface.php,Helper,Config,Parser}'
         tags: ['doctrine_doctor.analyzer']
-
-    # FlushInLoopAnalyzerModern is a draft/comparison variant (see its docblock),
-    # never finished or wired with its own config node. Keeping it tagged alongside
-    # the legacy FlushInLoopAnalyzer caused every flush-in-loop finding to fire twice
-    # with diverging boundary heuristics (legacy: write->non-id-select; modern: also
-    # splits on backtrace-frame change, producing different flush_count values for
-    # the same request). Service kept registered (autowireable) but untagged so it
-    # stops double-firing; remove entirely once a decision is made to merge or drop it.
-    AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzerModern: ~
 
     # Data Collector Helpers (reduce coupling)
     # Configuration object for DataCollector helpers
@@ -513,14 +504,6 @@ services:
             $collectionJoinDetector: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector'
             $logger: '@?logger'
             $n1CollectionThreshold: '%doctrine_doctor.analyzers.cartesian_product.n1_collection_threshold%'
-        tags:
-            - { name: doctrine_doctor.analyzer }
-
-    AhmedBhs\DoctrineDoctor\Analyzer\Configuration\AutoGenerateProxyClassesAnalyzer:
-        arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
-            $projectDir: '%kernel.project_dir%'
-            $logger: '@?logger'
         tags:
             - { name: doctrine_doctor.analyzer }
 

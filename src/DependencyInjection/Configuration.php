@@ -657,6 +657,11 @@ class Configuration implements ConfigurationInterface
                             ->end()
                         ->end()
                         ->arrayNode('auto_generate_proxy_classes')
+                            ->setDeprecated(
+                                'ahmed-bhs/doctrine-doctor',
+                                '2.11',
+                                'The "%node%" option has no effect: DoctrineBundle 3 removed auto_generate_proxy_classes, so its analyzer was removed. Remove the option from your configuration.',
+                            )
                             ->addDefaultsIfNotSet()
                             ->children()
                                 ->booleanNode('enabled')->defaultTrue()->end()

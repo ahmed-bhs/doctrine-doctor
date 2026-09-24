@@ -344,4 +344,52 @@ final class PartialObjectAnalyzerTest extends TestCase
         // Assert
         self::assertCount(1, $issues);
     }
+
+    #[Test]
+    public function it_warns_that_partial_objects_lazy_load_the_fields_left_out(): void
+    {
+        // With native lazy objects (ORM 3.4+ on PHP 8.4), reading a field outside
+        // the PARTIAL list issues one extra query per entity: advising PARTIAL
+        // without that caveat trades one full load for an N+1.
+        $suggestion = $this->suggestionForRepeatedFullEntityLoad();
+
+        self::assertStringContainsString('one extra query per entity', $suggestion);
+    }
+
+    #[Test]
+    public function it_does_not_claim_partial_objects_are_read_only(): void
+    {
+        // Partial objects stay managed by the UnitOfWork: they are not read-only.
+        $suggestion = $this->suggestionForRepeatedFullEntityLoad();
+
+        self::assertStringNotContainsStringIgnoringCase('read-only but still objects', $suggestion);
+        self::assertStringNotContainsStringIgnoringCase('cannot be persisted', $suggestion);
+    }
+
+    #[Test]
+    public function it_recommends_dto_hydration_first(): void
+    {
+        $suggestion = $this->suggestionForRepeatedFullEntityLoad();
+
+        self::assertStringContainsString('SELECT NEW', $suggestion);
+        self::assertLessThan(
+            strpos($suggestion, 'SELECT PARTIAL'),
+            strpos($suggestion, 'SELECT NEW'),
+            'DTO hydration has no lazy-loading pitfall, so it comes before partial objects',
+        );
+    }
+
+    private function suggestionForRepeatedFullEntityLoad(): string
+    {
+        $builder = QueryDataBuilder::create();
+
+        for ($i = 0; $i < 6; ++$i) {
+            $builder->addQuery('SELECT u FROM User u', 0.01);
+        }
+
+        $suggestion = $this->analyzer->analyze($builder->build())->first()?->getSuggestion();
+        self::assertNotNull($suggestion);
+
+        return $suggestion->getCode();
+    }
 }

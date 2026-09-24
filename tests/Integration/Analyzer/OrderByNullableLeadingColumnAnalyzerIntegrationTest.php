@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\TaskWithNullableDueDate;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\DatabaseTestCase;
 use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use Doctrine\Deprecations\PHPUnit\VerifyDeprecations;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -27,10 +28,14 @@ use PHPUnit\Framework\Attributes\Test;
  */
 final class OrderByNullableLeadingColumnAnalyzerIntegrationTest extends DatabaseTestCase
 {
+    use VerifyDeprecations;
+
     private OrderByNullableLeadingColumnAnalyzer $orderByNullableLeadingColumnAnalyzer;
 
     protected function setUp(): void
     {
+        // DBAL 4 deprecates these schema/connection APIs, removed in DBAL 5.
+        $this->expectNoDeprecationWithIdentifier('https://github.com/doctrine/dbal/pull/7094');
         if (!extension_loaded('pdo_sqlite')) {
             self::markTestSkipped('PDO SQLite extension is not available');
         }

@@ -485,7 +485,7 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         }
 
         try {
-            $quoted = $this->connection->quoteIdentifier($table);
+            $quoted = $this->connection->getDatabasePlatform()->quoteSingleIdentifier($table);
             $count  = (int) $this->connection->fetchOne(sprintf('SELECT COUNT(*) FROM %s', $quoted));
         } catch (\Throwable) {
             $count = 0;

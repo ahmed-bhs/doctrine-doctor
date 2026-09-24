@@ -24,7 +24,9 @@ class PaginatorQueryDetector
 
         foreach ($backtrace as $frame) {
             $class = $frame['class'] ?? '';
-            if (str_contains($class, 'Pagination\Paginator') || str_contains($class, 'EntityPaginator')) {
+            // Any class of the ORM pagination namespace: Paginator, and the
+            // OffsetPaginator / CursorPaginator that replace it since ORM 3.7.
+            if (str_contains($class, 'Tools\Pagination\\') || str_contains($class, 'Pagination\Paginator') || str_contains($class, 'EntityPaginator')) {
                 return true;
             }
         }

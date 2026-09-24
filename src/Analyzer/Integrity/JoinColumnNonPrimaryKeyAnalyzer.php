@@ -79,11 +79,7 @@ class JoinColumnNonPrimaryKeyAnalyzer implements MetadataAnalyzerInterface
                 continue;
             }
 
-            $targetEntityClass = MappingHelper::getString($mapping, 'targetEntity');
-
-            if (null === $targetEntityClass) {
-                continue;
-            }
+            $targetEntityClass = $mapping->targetEntity;
 
             try {
                 $targetMetadata = $this->entityManager->getClassMetadata($targetEntityClass);
@@ -121,21 +117,7 @@ class JoinColumnNonPrimaryKeyAnalyzer implements MetadataAnalyzerInterface
      */
     private function isToOneAssociation(array|object $mapping): bool
     {
-        $type = MappingHelper::getProperty($mapping, 'type');
-
-        if (null === $type) {
-            if ($mapping instanceof \Doctrine\ORM\Mapping\ManyToOneAssociationMapping) {
-                return true;
-            }
-
-            if ($mapping instanceof \Doctrine\ORM\Mapping\OneToOneAssociationMapping) {
-                return true;
-            }
-
-            return false;
-        }
-
-        return ClassMetadata::MANY_TO_ONE === $type || ClassMetadata::ONE_TO_ONE === $type;
+        return in_array(MappingHelper::getAssociationType($mapping), [ClassMetadata::MANY_TO_ONE, ClassMetadata::ONE_TO_ONE], true);
     }
 
     /**

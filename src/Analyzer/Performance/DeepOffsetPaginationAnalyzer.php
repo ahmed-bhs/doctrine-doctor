@@ -102,10 +102,11 @@ class DeepOffsetPaginationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         $description = sprintf(
             'Query uses OFFSET %d, which forces the database to read and discard %d rows before returning results. ' .
             'Cost grows linearly with page depth. Execution time: %.2fms. ' .
-            'Replace with keyset (seek) pagination using WHERE on an indexed sortable column (e.g. WHERE id > :lastId ORDER BY id LIMIT N).',
+            'Replace with keyset (seek) pagination using WHERE on an indexed sortable column (e.g. WHERE id > :lastId ORDER BY id LIMIT N)%s.',
             $offset,
             $offset,
             $executionTime,
+            $this->isCursorPaginatorAvailable() ? ', or Doctrine\ORM\Tools\Pagination\CursorPaginator which builds it from the ORDER BY' : '',
         );
 
         $issueData = new IssueData(
@@ -128,6 +129,7 @@ class DeepOffsetPaginationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
             context: [
                 'offset' => $offset,
                 'original_query' => $sql,
+                'cursor_paginator_available' => $this->isCursorPaginatorAvailable(),
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::performance(),
@@ -136,5 +138,13 @@ class DeepOffsetPaginationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
                 tags: ['performance', 'pagination', 'offset', 'keyset'],
             ),
         );
+    }
+
+    /**
+     * CursorPaginator, shipped with ORM 3.7, implements keyset pagination.
+     */
+    private function isCursorPaginatorAvailable(): bool
+    {
+        return class_exists(\Doctrine\ORM\Tools\Pagination\CursorPaginator::class);
     }
 }

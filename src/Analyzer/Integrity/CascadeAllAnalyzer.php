@@ -122,7 +122,7 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
             // Check if cascade contains 'all'
             // Note: Doctrine ORM expands cascade=['all'] into individual operations:
             // ['persist', 'remove', 'refresh', 'merge', 'detach']
-            $cascade = $associationMapping['cascade'] ?? [];
+            $cascade = $associationMapping->cascade;
 
             // Check if explicitly uses 'all' or has all cascade operations
             $hasAll = in_array('all', $cascade, true) || $this->hasAllCascadeOperations($cascade);
@@ -133,7 +133,7 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
 
             // Determine severity based on association type and target entity
             $severity     = $this->determineSeverity($associationMapping);
-            $targetEntity = $associationMapping['targetEntity'] ?? 'Unknown';
+            $targetEntity = $associationMapping->targetEntity;
 
             /** @var IntegrityIssue $issue */
             $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
@@ -169,7 +169,7 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity') ?? '';
 
         // Determine association type (Doctrine ORM 2.x uses 'type' field, 3.x uses class name)
-        $associationType = $this->getAssociationTypeConstant($mapping);
+        $associationType = MappingHelper::getAssociationType($mapping);
 
         // CRITICAL: cascade="all" on ManyToOne/ManyToMany to independent entity
         if (in_array($associationType, [ClassMetadata::MANY_TO_ONE, ClassMetadata::MANY_TO_MANY], true)) {
@@ -183,41 +183,6 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
         return Severity::WARNING;
     }
 
-    /**
-     * Get association type constant in a version-agnostic way.
-     * Doctrine ORM 2.x uses 'type' field, 3.x/4.x uses specific mapping classes.
-     */
-    private function getAssociationTypeConstant(array|object $mapping): int
-    {
-        // Try to get type from array (Doctrine ORM 2.x)
-        if (is_array($mapping) && isset($mapping['type'])) {
-            return $mapping['type'];
-        }
-
-        // Doctrine ORM 3.x/4.x: determine from class name
-        if (is_object($mapping)) {
-            $className = $mapping::class;
-
-            if (str_contains($className, 'ManyToOneAssociation')) {
-                return ClassMetadata::MANY_TO_ONE;
-            }
-
-            if (str_contains($className, 'OneToManyAssociation')) {
-                return ClassMetadata::ONE_TO_MANY;
-            }
-
-            if (str_contains($className, 'ManyToManyAssociation')) {
-                return ClassMetadata::MANY_TO_MANY;
-            }
-
-            if (str_contains($className, 'OneToOneAssociation')) {
-                return ClassMetadata::ONE_TO_ONE;
-            }
-        }
-
-        return 0; // Unknown
-    }
-
     private function isIndependentEntity(string $entityClass): bool
     {
         return array_any(self::INDEPENDENT_PATTERNS, fn ($pattern) => str_contains($entityClass, (string) $pattern));
@@ -225,7 +190,7 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
 
     private function getAssociationType(array|object $mapping): string
     {
-        $type = $this->getAssociationTypeConstant($mapping);
+        $type = MappingHelper::getAssociationType($mapping);
 
         return match ($type) {
             ClassMetadata::ONE_TO_ONE   => 'OneToOne',

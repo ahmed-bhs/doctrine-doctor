@@ -69,8 +69,9 @@ final class DoctrineDoctorCollectorFormatterTest extends TestCase
     {
         $collector = self::createStub(DataCollectorInterface::class);
 
-        self::assertSame(['error' => 'Invalid doctrine_doctor collector'], $this->formatter->format($collector));
-        self::assertSame(['error' => 'Invalid doctrine_doctor collector'], $this->formatter->getSummary($collector));
+        // Deliberately outside the declared collector type: the profiler can hand any collector over.
+        self::assertSame(['error' => 'Invalid doctrine_doctor collector'], $this->formatter->format($collector)); // @phpstan-ignore argument.type
+        self::assertSame(['error' => 'Invalid doctrine_doctor collector'], $this->formatter->getSummary($collector)); // @phpstan-ignore argument.type
     }
 
     #[Test]

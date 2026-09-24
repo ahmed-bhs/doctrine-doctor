@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 // Extract context
 $entityClass = $context['entity_class'] ?? '';
+$entityClass = is_string($entityClass) ? $entityClass : '';
 $fieldName = $context['field_name'] ?? '';
 
 // Escaping function

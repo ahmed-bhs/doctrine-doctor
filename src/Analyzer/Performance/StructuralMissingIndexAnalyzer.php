@@ -165,19 +165,29 @@ class StructuralMissingIndexAnalyzer implements AnalyzerInterface
     private function isLeadingColumnOfAnyIndex(string $column, array $indexes): bool
     {
         foreach ($indexes as $index) {
-            $indexColumns = $index->getColumns();
-            $leadingColumn = $indexColumns[0];
+            // The primary key is an index too: its leading column is covered here.
+            $leadingColumn = $this->leadingColumn($index);
 
             if (null !== $leadingColumn && strtolower($leadingColumn) === $column) {
-                return true;
-            }
-
-            if ($index->isPrimary() && strtolower($leadingColumn ?? '') === $column) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * DBAL 4 deprecates Index::getColumns() in favour of getIndexedColumns().
+     */
+    private function leadingColumn(Index $index): ?string
+    {
+        if (method_exists($index, 'getIndexedColumns')) {
+            $indexedColumns = $index->getIndexedColumns();
+
+            return [] === $indexedColumns ? null : $indexedColumns[0]->getColumnName()->getIdentifier()->getValue();
+        }
+
+        return $index->getColumns()[0];
     }
 
     private function createIssue(string $tableName, string $column, QueryData $queryData): MissingIndexIssue

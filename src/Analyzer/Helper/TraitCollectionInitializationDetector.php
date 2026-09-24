@@ -43,7 +43,7 @@ final readonly class TraitCollectionInitializationDetector
      * This method implements a depth-first search through the trait hierarchy,
      * checking each trait's constructor and initialization methods.
      *
-     * @param ReflectionClass<object> $reflectionClass The class to analyze
+     * @param ReflectionClass<covariant object> $reflectionClass The class to analyze
      * @param string $fieldName The collection field name to check
      * @return bool True if the field is initialized in any trait
      */
@@ -83,7 +83,7 @@ final readonly class TraitCollectionInitializationDetector
      *
      * @param ReflectionClass<object> $trait The trait to check
      * @param string $fieldName The field name to look for
-     * @param ReflectionClass<object>|null $usingClass The class using the trait (for alias detection)
+     * @param ReflectionClass<covariant object>|null $usingClass The class using the trait (for alias detection)
      * @return bool True if the trait initializes this field
      */
     private function doesTraitInitializeCollection(ReflectionClass $trait, string $fieldName, ?ReflectionClass $usingClass = null): bool
@@ -121,7 +121,7 @@ final readonly class TraitCollectionInitializationDetector
      *   and called: `$this->initTranslations();`
      * - Direct call if not conflicting
      *
-     * @param ReflectionClass<object> $usingClass The class using the trait
+     * @param ReflectionClass<covariant object> $usingClass The class using the trait
      * @param ReflectionClass<object> $trait The trait being used
      * @return bool True if the trait constructor is called
      */
@@ -179,7 +179,7 @@ final readonly class TraitCollectionInitializationDetector
      * Get method aliases for a trait in a class.
      * This parses the class file to find `use Trait { method as alias }` patterns.
      *
-     * @param ReflectionClass<object> $usingClass
+     * @param ReflectionClass<covariant object> $usingClass
      * @param ReflectionClass<object> $trait
      * @return array<string> List of aliases for __construct
      */

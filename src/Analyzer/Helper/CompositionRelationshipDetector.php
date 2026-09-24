@@ -279,7 +279,7 @@ final class CompositionRelationshipDetector
                 return false;
             }
 
-            $inverseType = $this->getAssociationTypeConstant($inverseMapping);
+            $inverseType = MappingHelper::getAssociationType($inverseMapping);
 
             return ClassMetadata::ONE_TO_ONE === $inverseType;
         } catch (\Throwable) {
@@ -346,41 +346,5 @@ final class CompositionRelationshipDetector
 
         // If target is referenced by exactly ONE entity type (the parent), it's exclusively owned
         return 1 === count($referencingEntities) && isset($referencingEntities[$excludeParent]);
-    }
-
-    /**
-     * Get association type constant in a version-agnostic way.
-     *
-     * @param array<string, mixed>|object $mapping The association mapping
-     * @return int The association type constant
-     */
-    private function getAssociationTypeConstant(array|object $mapping): int
-    {
-        $type = MappingHelper::getInt($mapping, 'type');
-        if (null !== $type) {
-            return $type;
-        }
-
-        if (is_object($mapping)) {
-            $className = $mapping::class;
-
-            if (str_contains($className, 'ManyToOne')) {
-                return ClassMetadata::MANY_TO_ONE;
-            }
-
-            if (str_contains($className, 'OneToMany')) {
-                return ClassMetadata::ONE_TO_MANY;
-            }
-
-            if (str_contains($className, 'ManyToMany')) {
-                return ClassMetadata::MANY_TO_MANY;
-            }
-
-            if (str_contains($className, 'OneToOne')) {
-                return ClassMetadata::ONE_TO_ONE;
-            }
-        }
-
-        return 0;
     }
 }

@@ -179,8 +179,8 @@ class FinalEntityAnalyzer implements MetadataAnalyzerInterface
 
             // Check if fetch mode is LAZY (default)
             // LAZY = 2, EAGER = 3, EXTRA_LAZY = 4
-            if (($mapping['fetch'] ?? ClassMetadata::FETCH_LAZY) === ClassMetadata::FETCH_LAZY) {
-                $lazyAssociations[$assocName] = $mapping['targetEntity'];
+            if (($mapping->fetch ?? ClassMetadata::FETCH_LAZY) === ClassMetadata::FETCH_LAZY) {
+                $lazyAssociations[$assocName] = $mapping->targetEntity;
             }
         }
 

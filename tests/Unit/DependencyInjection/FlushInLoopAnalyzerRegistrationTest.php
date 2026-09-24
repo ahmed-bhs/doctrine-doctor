@@ -12,20 +12,16 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\DependencyInjection;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzer;
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzerModern;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\DoctrineDoctorExtension;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
- * FlushInLoopAnalyzerModern is a draft/comparison variant of FlushInLoopAnalyzer
- * (see its own docblock: "Compare this with the original... to see the benefits").
- * The Performance/* glob auto-registration previously tagged both as
- * doctrine_doctor.analyzer, so every flush-in-loop finding fired twice with two
- * different boundary heuristics (legacy: write->non-id-select only; modern: also
- * splits on backtrace-frame change), producing diverging flush_count values for
- * the same request. Only the legacy analyzer should be tagged.
+ * A draft FlushInLoopAnalyzerModern used to be tagged alongside
+ * FlushInLoopAnalyzer by the Performance/* glob, so every flush-in-loop
+ * finding fired twice with diverging flush counts. The draft is removed;
+ * exactly one flush-in-loop analyzer must stay tagged.
  */
 final class FlushInLoopAnalyzerRegistrationTest extends TestCase
 {
@@ -43,6 +39,6 @@ final class FlushInLoopAnalyzerRegistrationTest extends TestCase
         $taggedServiceIds = \array_keys($container->findTaggedServiceIds('doctrine_doctor.analyzer'));
 
         self::assertContains(FlushInLoopAnalyzer::class, $taggedServiceIds);
-        self::assertNotContains(FlushInLoopAnalyzerModern::class, $taggedServiceIds);
+        self::assertNotContains('AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzerModern', $taggedServiceIds);
     }
 }

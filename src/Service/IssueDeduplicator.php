@@ -120,8 +120,12 @@ final class IssueDeduplicator
             return $signature;
         }
 
-        // Default: use title + entity as signature
-        return 'generic:' . md5($title . ':' . ($entityOrTable ?? ''));
+        // Default: use title + entity as signature. Metadata analyzers reuse one
+        // title for every mapped field they flag, so the field is part of the
+        // signature too: otherwise each field after the first would be hidden.
+        $field = $issue->getData()['field'] ?? null;
+
+        return 'generic:' . md5($title . ':' . ($entityOrTable ?? '') . (is_string($field) ? '::' . $field : ''));
     }
 
     /**

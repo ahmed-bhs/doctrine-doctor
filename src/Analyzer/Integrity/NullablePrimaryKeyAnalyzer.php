@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -77,7 +78,7 @@ class NullablePrimaryKeyAnalyzer implements MetadataAnalyzerInterface
                 continue;
             }
 
-            $nullable = $mapping['nullable'] ?? $mapping->nullable ?? false;
+            $nullable = MappingHelper::getBool($mapping, 'nullable') ?? false;
 
             if (!$nullable) {
                 continue;

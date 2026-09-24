@@ -138,20 +138,7 @@ class CollectionInitializationAnalyzer implements MetadataAnalyzerInterface
 
     private function isCollectionAssociation(array|object $mapping): bool
     {
-        // For Doctrine ORM 3.x/4.x: check class name
-        if (is_object($mapping)) {
-            $className = $mapping::class;
-
-            return str_contains($className, 'OneToManyAssociationMapping')
-                || str_contains($className, 'ManyToManyAssociationMapping')
-                || str_contains($className, 'ManyToManyOwningSideMapping')
-                || str_contains($className, 'ManyToManyInverseSideMapping');
-        }
-
-        // For Doctrine ORM 2.x: check 'type' key
-        $type = MappingHelper::getInt($mapping, 'type');
-
-        return ClassMetadata::ONE_TO_MANY === $type || ClassMetadata::MANY_TO_MANY === $type;
+        return in_array(MappingHelper::getAssociationType($mapping), [ClassMetadata::ONE_TO_MANY, ClassMetadata::MANY_TO_MANY], true);
     }
 
     private function isCollectionInitializedInConstructor(\ReflectionMethod $reflectionMethod, string $fieldName): bool
@@ -276,21 +263,7 @@ class CollectionInitializationAnalyzer implements MetadataAnalyzerInterface
 
     private function getAssociationType(array|object $mapping): string
     {
-        if (is_object($mapping)) {
-            $className = $mapping::class;
-            if (str_contains($className, 'OneToMany')) {
-                return 'OneToMany';
-            }
-            if (str_contains($className, 'ManyToMany')) {
-                return 'ManyToMany';
-            }
-
-            return 'relation';
-        }
-
-        $type = MappingHelper::getInt($mapping, 'type');
-
-        return match ($type) {
+        return match (MappingHelper::getAssociationType($mapping)) {
             ClassMetadata::ONE_TO_MANY => 'OneToMany',
             ClassMetadata::MANY_TO_MANY => 'ManyToMany',
             default => 'relation',
