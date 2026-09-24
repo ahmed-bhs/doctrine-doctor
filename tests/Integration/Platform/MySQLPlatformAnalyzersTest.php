@@ -18,8 +18,10 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\InnoDBEngineAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\StrictModeAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\TimeZoneAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\Security\OverprivilegedDatabaseUserAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
+use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -32,7 +34,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class MySQLPlatformAnalyzersTest extends TestCase
 {
-    private const array TABLES = ['dd_platform_myisam', 'dd_platform_utf8mb3', 'dd_platform_bin'];
+    private const array TABLES = ['dd_platform_myisam', 'dd_platform_utf8mb3', 'dd_platform_bin', 'dd_platform_orders'];
 
     private Connection $connection;
 
@@ -112,6 +114,40 @@ final class MySQLPlatformAnalyzersTest extends TestCase
 
         $this->connection->executeStatement("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
         self::assertNotContains('Missing SQL Strict Mode Settings', PlatformAnalyzerTestHelper::platformAnalyzerTitles($this->connection, StrictModeAnalyzer::class));
+    }
+
+    #[Test]
+    public function it_reports_a_missing_index_only_when_no_index_can_serve_the_filter(): void
+    {
+        $this->connection->executeStatement('CREATE TABLE dd_platform_orders (id INT AUTO_INCREMENT PRIMARY KEY, created_at DATETIME NOT NULL, status VARCHAR(20) NOT NULL, INDEX idx_created_at (created_at)) ENGINE=InnoDB');
+        $this->connection->executeStatement(
+            'INSERT INTO dd_platform_orders (created_at, status) WITH RECURSIVE seq (n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM seq WHERE n < 1000) '
+            . "SELECT DATE_ADD('2024-01-01', INTERVAL n HOUR), IF(0 = n % 2, 'paid', 'new') FROM seq",
+        );
+        // Recursive CTEs stop at 1000 iterations by default: double the rows twice.
+        foreach ([1000, 2000] as $shift) {
+            $this->connection->executeStatement("INSERT INTO dd_platform_orders (created_at, status) SELECT DATE_ADD(created_at, INTERVAL {$shift} HOUR), status FROM dd_platform_orders");
+        }
+
+        $this->connection->executeQuery('ANALYZE TABLE dd_platform_orders')->fetchAllAssociative();
+
+        self::assertSame([], $this->missingIndexTitles("SELECT * FROM dd_platform_orders WHERE created_at >= '2024-01-01' AND created_at < '2025-01-01'"));
+        self::assertContains('Missing Index Detected', $this->missingIndexTitles("SELECT * FROM dd_platform_orders WHERE status = 'paid'"));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function missingIndexTitles(string $sql): array
+    {
+        $analyzer = new MissingIndexAnalyzer(PlatformAnalyzerTestHelper::createSuggestionFactory(), $this->connection);
+        $titles   = [];
+
+        foreach ($analyzer->analyze(QueryDataBuilder::create()->addQuery($sql, 0.1)->build()) as $issue) {
+            $titles[] = $issue->getTitle();
+        }
+
+        return $titles;
     }
 
     private function dropTables(): void
