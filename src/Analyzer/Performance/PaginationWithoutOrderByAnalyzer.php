@@ -58,7 +58,9 @@ class PaginationWithoutOrderByAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                         continue;
                     }
 
-                    if ($this->sqlExtractor->hasOrderBy($sql)) {
+                    // Doctrine's Paginator moves the DQL ORDER BY into a derived table
+                    // and limits the outer query: the order is defined there.
+                    if ($this->sqlExtractor->hasOrderBy($sql) || 1 === preg_match('/\bORDER\s+BY\b/i', $sql)) {
                         continue;
                     }
 
