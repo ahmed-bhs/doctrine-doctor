@@ -75,6 +75,11 @@ doctrine_doctor:
             enabled: true
             # No threshold - security issues are always flagged
 
+        # Bulk INSERT Detection (single-row INSERTs a multi-row DBAL INSERT would batch)
+        bulk_insert:
+            enabled: true
+            threshold: 100  # Minimum number of single-row INSERTs into one table
+
         # Bulk Operation Detection
         bulk_operation:
             enabled: true

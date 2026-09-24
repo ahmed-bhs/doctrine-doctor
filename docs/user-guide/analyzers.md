@@ -107,6 +107,7 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 | LazyLoadingAnalyzer | Proxy initialization | Query reduction | `threshold: 10` |
 | DTOHydrationAnalyzer | Hydration mode | Memory + performance | — |
 | BulkOperationAnalyzer | Entity count | 100-1000x | `threshold: 20` |
+| BulkInsertAnalyzer | Single-row INSERTs into one table | Multi-row INSERT through DBAL; names the callbacks, listeners and generated ids it bypasses | `threshold: 100` |
 | QueryCachingOpportunityAnalyzer | Cache statistics | 50-90% reduction | — |
 | EntityManagerClearAnalyzer | Memory usage | Memory leak prevention | `batch_size_threshold: 50` |
 | JoinOptimizationAnalyzer | JOIN complexity | Query simplification | `max_joins_recommended: 5`, `max_joins_critical: 8` |
