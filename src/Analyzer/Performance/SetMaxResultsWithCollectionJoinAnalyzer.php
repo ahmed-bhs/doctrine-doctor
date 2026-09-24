@@ -312,8 +312,9 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
         }
 
         $lines[] = 'Fix: paginate on root entity identifiers, then fetch-join that batch '
-            . '(WHERE id IN (:ids)), or wrap the query in Doctrine\ORM\Tools\Pagination\Paginator '
-            . 'with $fetchJoinCollection = true.';
+            . '(WHERE id IN (:ids)), or ' . ($this->isOffsetPaginatorAvailable()
+                ? 'paginate it with Doctrine\ORM\Tools\Pagination\OffsetPaginator and a Window.'
+                : 'wrap the query in Doctrine\ORM\Tools\Pagination\Paginator with $fetchJoinCollection = true.');
 
         return implode("\n", $lines);
     }
@@ -354,7 +355,8 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Performance/setMaxResults_with_collection_join',
             context: [
-                'entity_hint' => $entityHint,
+                'entity_hint'                => $entityHint,
+                'offset_paginator_available' => $this->isOffsetPaginatorAvailable(),
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::performance(),
@@ -363,6 +365,14 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
                 tags: ['critical', 'data-loss', 'pagination', 'collections', 'anti-pattern'],
             ),
         );
+    }
+
+    /**
+     * OffsetPaginator replaces Paginator, deprecated since ORM 3.7.
+     */
+    private function isOffsetPaginatorAvailable(): bool
+    {
+        return class_exists(\Doctrine\ORM\Tools\Pagination\OffsetPaginator::class);
     }
 
     /**

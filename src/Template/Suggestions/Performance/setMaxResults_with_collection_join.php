@@ -8,6 +8,8 @@ declare(strict_types=1);
  * @var array<string, mixed> $context
  */
 $entityHint = (string) ($context['entity_hint'] ?? 'Entity');
+// ORM 3.7 deprecates Paginator in favour of OffsetPaginator
+$offsetPaginatorAvailable = true === ($context['offset_paginator_available'] ?? false);
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
@@ -70,6 +72,21 @@ $batch = $qb2->leftJoin('r.tags', 't')->addSelect('t')
     <p>Preferred inside a batch loop: the identifier query stays cheap and the offset counts entities.</p>
 
     <h4>Fix 2: Doctrine Paginator</h4>
+    <?php if ($offsetPaginatorAvailable): ?>
+    <pre><code class="language-php">use Doctrine\ORM\Tools\Pagination\OffsetPaginator;
+use Doctrine\ORM\Tools\Pagination\Window;
+
+// Do not call setFirstResult()/setMaxResults(): the Window carries them
+$page = (new OffsetPaginator(fetchJoinCollection: true))
+    ->paginate($query, new Window($offset, $limit));
+$orders = $page->getItems();</code></pre>
+    <p>
+        Runs the same two-query strategy for you, plus a <code>COUNT</code> for
+        <code>$page->getTotalCount()</code>. Best for page-by-page UI listings; in a large batch loop the
+        extra COUNT per iteration is wasted work, so prefer Fix 1 there.
+        <code>OffsetPaginator</code> replaces <code>Paginator</code>, deprecated since ORM 3.7.
+    </p>
+    <?php else: ?>
     <pre><code class="language-php">use Doctrine\ORM\Tools\Pagination\Paginator;
 
 $paginator = new Paginator($query, $fetchJoinCollection = true);
@@ -79,6 +96,7 @@ $orders = iterator_to_array($paginator);</code></pre>
         <code>count($paginator)</code>. Best for page-by-page UI listings; in a large batch loop the
         extra COUNT per iteration is wasted work, so prefer Fix 1 there.
     </p>
+    <?php endif; ?>
 
     <div class="alert alert-info">
         <strong>Rule of thumb</strong> - LIMIT and <code>addSelect()</code> on a to-many association do

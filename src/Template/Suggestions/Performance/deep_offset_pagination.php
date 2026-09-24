@@ -5,6 +5,8 @@ declare(strict_types=1);
 /** @var array<string, mixed> $context */
 $offset = $context['offset'] ?? 0;
 $originalQuery = $context['original_query'] ?? '';
+// ORM 3.7 ships a CursorPaginator for keyset pagination
+$cursorPaginatorAvailable = true === ($context['cursor_paginator_available'] ?? false);
 $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -40,6 +42,31 @@ $qb-&gt;select('u')
    -&gt;orderBy('u.id', 'ASC')
    -&gt;setMaxResults(20);</code></pre>
     </div>
+
+    <?php if ($cursorPaginatorAvailable): ?>
+    <h4>With Doctrine's CursorPaginator (ORM 3.7+)</h4>
+    <div class="query-item">
+        <pre><code class="language-php">use Doctrine\ORM\Tools\Pagination\CursorPaginator;
+
+// ORDER BY must be deterministic: add the id as a tie-breaker
+$qb-&gt;select('u')
+   -&gt;from(User::class, 'u')
+   -&gt;orderBy('u.createdAt', \SortDirection::Descending)
+   -&gt;addOrderBy('u.id', \SortDirection::Descending);
+
+$page = (new CursorPaginator(20))-&gt;paginate($qb, $request-&gt;query-&gt;get('cursor'));
+
+foreach ($page as $user) {
+    // ...
+}
+
+$nextCursor = $page-&gt;hasNextPage() ? $page-&gt;getNextCursorAsString() : null;</code></pre>
+    </div>
+    <p>
+        Builds the keyset <code>WHERE</code> clause from the <code>ORDER BY</code> columns for you and
+        returns opaque, URL-safe cursors for the next and previous pages.
+    </p>
+    <?php endif; ?>
 
     <h4>When you must keep OFFSET</h4>
     <ul>
