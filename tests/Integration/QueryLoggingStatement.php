@@ -20,6 +20,17 @@ use Doctrine\DBAL\ParameterType;
  */
 class QueryLoggingStatement implements Statement
 {
+    /**
+     * Bound values and types, keyed like Symfony's profiler: positional parameters from 0.
+     * @var array<int|string, mixed>
+     */
+    private array $params = [];
+
+    /**
+     * @var array<int|string, ParameterType>
+     */
+    private array $types = [];
+
     public function __construct(
         private readonly Statement $wrappedStatement,
         private readonly string $sql,
@@ -30,12 +41,16 @@ class QueryLoggingStatement implements Statement
     public function bindValue(int|string $param, mixed $value, ParameterType $type = ParameterType::STRING): void
     {
         $this->wrappedStatement->bindValue($param, $value, $type);
+
+        $index                = \is_int($param) ? $param - 1 : $param;
+        $this->params[$index] = $value;
+        $this->types[$index]  = $type;
     }
 
     public function execute(): Result
     {
         // Log the SQL query when it's executed
-        $this->simpleQueryLogger->log($this->sql);
+        $this->simpleQueryLogger->log($this->sql, $this->params, $this->types);
         return $this->wrappedStatement->execute();
     }
 }

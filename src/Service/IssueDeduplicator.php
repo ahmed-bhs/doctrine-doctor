@@ -209,7 +209,8 @@ final class IssueDeduplicator
         // - "N+1 Query Detected: 35 queries"
         // - "Frequent Query Executed 35 Times"
         // - "Lazy Loading in Loop: 35 queries"
-        if (1 !== preg_match('/(\d+)\s+(?:queries?|executions?|times?|rows?)/i', $title, $matches)) {
+        // - "Doctrine 2LC Opportunity (35 fast entity loads)"
+        if (1 !== preg_match('/(\d+)\s+(?:[a-z]+\s+){0,2}(?:queries?|executions?|times?|rows?|loads?)\b/i', $title, $matches)) {
             return null;
         }
 
@@ -299,22 +300,16 @@ final class IssueDeduplicator
     private function extractEntityOrTable(string $title, string $description, string $sql): ?string
     {
         // Try entity name first (e.g., "BillLine", "SubscriptionLine")
-        if (1 === preg_match('/\b(?:entity|class|Entity)\s+["\']?([A-Z]\w+)["\']?/i', $title, $matches)) {
+        if (1 === preg_match('/\b(?i:entity|class)\s+["\']?([A-Z]\w+)["\']?/', $title, $matches)) {
             return $matches[1];
         }
 
-        if (1 === preg_match('/\b(?:entity|class|Entity)\s+["\']?([A-Z]\w+)["\']?/i', $description, $matches)) {
+        if (1 === preg_match('/\b(?i:entity|class)\s+["\']?([A-Z]\w+)["\']?/', $description, $matches)) {
             return $matches[1];
         }
 
         // Try table name in title (e.g., "table 'categories'", "on categories")
         if (1 === preg_match('/\b(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $title, $matches)
-            && !in_array(strtolower($matches[1]), ['table', 'from', 'join', 'on', 'static'], true)) {
-            return $matches[1];
-        }
-
-        // Try table name in description
-        if (1 === preg_match('/\b(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $description, $matches)
             && !in_array(strtolower($matches[1]), ['table', 'from', 'join', 'on', 'static'], true)) {
             return $matches[1];
         }
@@ -330,6 +325,13 @@ final class IssueDeduplicator
             if (1 === preg_match('/WHERE\s+T\d+\.ID\s*=.*?FROM\s+(\w+)/is', $sql, $matches)) {
                 return $matches[1];
             }
+        }
+
+        // Last resort: a table named in the description. Prose such as "benefit from
+        // Doctrine" matches too, which is why the SQL is read first.
+        if (1 === preg_match('/\b(?:table|FROM|JOIN|on)\s+["\']?(\w+)["\']?/i', $description, $matches)
+            && !in_array(strtolower($matches[1]), ['table', 'from', 'join', 'on', 'static'], true)) {
+            return $matches[1];
         }
 
         return null;
