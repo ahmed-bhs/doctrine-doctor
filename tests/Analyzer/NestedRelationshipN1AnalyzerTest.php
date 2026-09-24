@@ -310,6 +310,67 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_detects_nested_n1_when_lazy_proxy_loads_alternate(): void
+    {
+        // A foreach over comments calling $comment->getPost()->getAuthor() makes
+        // Doctrine load each level in turn: post, author, next post, next author.
+        // An author already in the identity map is skipped, so the alternation
+        // is not strictly regular.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM comments', 0.010)
+            ->addQuery('SELECT * FROM posts WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 10', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 11', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE id = 4', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 12', 0.005)
+            ->build();
+
+        $issues = $this->analyzer->analyze($collection)->toArray();
+
+        self::assertCount(1, $issues);
+        self::assertSame('nested_n_plus_one', $issues[0]->getType());
+        self::assertStringContainsString('posts', $issues[0]->getDescription());
+        self::assertStringContainsString('users', $issues[0]->getDescription());
+    }
+
+    #[Test]
+    public function it_does_not_detect_alternating_lookups_broken_by_an_unrelated_query(): void
+    {
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM comments', 0.010)
+            ->addQuery('SELECT * FROM posts WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 10', 0.005)
+            ->addQuery('SELECT * FROM settings WHERE name = ?', 0.001)
+            ->addQuery('SELECT * FROM posts WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 11', 0.005)
+            ->addQuery('SELECT * FROM posts WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 12', 0.005)
+            ->build();
+
+        self::assertCount(0, $this->analyzer->analyze($collection));
+    }
+
+    #[Test]
+    public function it_does_not_detect_alternating_collection_loads_from_a_list_root(): void
+    {
+        // Loading each user's orders by foreign key is a to-many traversal per
+        // row, not a chain of to-one proxies.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT * FROM teams', 0.010)
+            ->addQuery('SELECT * FROM users WHERE id = 1', 0.005)
+            ->addQuery('SELECT * FROM orders WHERE user_id = 1', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 2', 0.005)
+            ->addQuery('SELECT * FROM orders WHERE user_id = 2', 0.005)
+            ->addQuery('SELECT * FROM users WHERE id = 3', 0.005)
+            ->addQuery('SELECT * FROM orders WHERE user_id = 3', 0.005)
+            ->build();
+
+        self::assertCount(0, $this->analyzer->analyze($collection));
+    }
+
+    #[Test]
     public function it_does_not_detect_nested_n1_when_join_root_precedes_unrelated_groups(): void
     {
         // The root uses a JOIN. The subsequent user and tag lookups are
