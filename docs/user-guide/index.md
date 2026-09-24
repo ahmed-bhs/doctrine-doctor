@@ -18,3 +18,4 @@ This section covers:
 |------|-------------|
 | [Configuration](configuration) | Complete configuration reference |
 | [Analyzers Catalog](analyzers) | All 90+ analyzers documented |
+| [ORM or DBAL](orm-or-dbal) | When suggestions recommend DBAL, why, and what it bypasses |

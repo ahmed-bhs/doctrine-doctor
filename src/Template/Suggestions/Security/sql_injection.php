@@ -12,6 +12,8 @@ declare(strict_types=1);
 $className = (string) ($context['class_name'] ?? 'Repository');
 $methodName = (string) ($context['method_name'] ?? 'findByUnsafeInput');
 $vulnType = (string) ($context['vulnerability_type'] ?? 'SQL injection');
+// Show the fix in the layer where the concatenation was found: an ORM QueryBuilder or raw DBAL SQL.
+$isDbal = 'dbal' === ($context['layer'] ?? 'orm');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
@@ -25,23 +27,43 @@ ob_start();
 
     <p>String concatenation in SQL queries allows query manipulation.</p>
 
+<?php if ($isDbal) { ?>
     <h4>Current code</h4>
     <div class="query-item">
         <pre><code class="language-php">// Vulnerable
-$sql = "SELECT * FROM users WHERE id = " . $userId;
-$conn->executeQuery($sql);</code></pre>
+$sql = 'SELECT * FROM users WHERE id = ' . $userId;
+$conn-&gt;executeQuery($sql);</code></pre>
     </div>
 
-    <h4>Fix with prepared statements</h4>
+    <h4>Fix: bind the value</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Safe
-$sql = "SELECT * FROM users WHERE id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bindValue(1, $userId, \PDO::PARAM_INT);
-$result = $stmt->executeQuery();</code></pre>
+        <pre><code class="language-php">use Doctrine\DBAL\ParameterType;
+
+// Safe: the value travels separately from the SQL
+$result = $conn-&gt;executeQuery(
+    'SELECT * FROM users WHERE id = ?',
+    [$userId],
+    [ParameterType::INTEGER],
+);</code></pre>
+    </div>
+<?php } else { ?>
+    <h4>Current code</h4>
+    <div class="query-item">
+        <pre><code class="language-php">// Vulnerable
+$qb-&gt;select('u')
+   -&gt;from(User::class, 'u')
+   -&gt;where('u.email = \'' . $email . '\'');</code></pre>
     </div>
 
-    <p>Use prepared statements or prefer QueryBuilder/DQL over raw SQL.</p>
+    <h4>Fix: bind the value</h4>
+    <div class="query-item">
+        <pre><code class="language-php">// Safe: the value travels separately from the DQL
+$qb-&gt;select('u')
+   -&gt;from(User::class, 'u')
+   -&gt;where('u.email = :email')
+   -&gt;setParameter('email', $email);</code></pre>
+    </div>
+<?php } ?>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/security.html', 'Doctrine ORM Security'); ?>
 </div>

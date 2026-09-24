@@ -480,7 +480,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 ";
         $code .= "// \$sql = \"SELECT * FROM users WHERE username = '\" . \$username . \"'\";
 ";
-        $code .= "// \$sql = \"SELECT * FROM users WHERE id = \" . (int)\$id; // Still unsafe!
+        $code .= "// \$sql = \"SELECT * FROM users WHERE id = \" . (int)\$id; // Safe for ids only: parameters cover every type
 ";
         $code .= "// \$sql = \"SELECT * FROM users WHERE username = '\$username'\"; // Interpolation
 ";
