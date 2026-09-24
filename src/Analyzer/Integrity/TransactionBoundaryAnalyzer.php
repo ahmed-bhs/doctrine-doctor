@@ -26,7 +26,7 @@ use Webmozart\Assert\Assert;
  * Critical issues detected:
  * - Transactions never committed (hanging transactions)
  * - Multiple flush() calls within a single transaction (deadlock risk)
- * - Nested transactions (not supported by most databases)
+ * - Nested BEGIN on an open transaction (savepoints, which DBAL uses for nesting, are fine)
  * - flush() outside transactions for critical operations
  * - Transactions held open too long (> 1 second)
  * - Rollback missing in exception handlers
@@ -39,6 +39,8 @@ use Webmozart\Assert\Assert;
  */
 class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
+    private const string SAVEPOINT_PREFIX = 'savepoint:';
+
     public function __construct(
         private readonly IssueFactoryInterface $issueFactory,
         private readonly int $maxFlushPerTransaction = 1,
@@ -142,6 +144,17 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      */
     private function handleTransactionStart(QueryData $queryData, array &$state): \Generator
     {
+        // A savepoint is how DBAL nests transactions (e.g. flush() inside wrapInTransaction()).
+        // The database honours it, so it is not reported; it belongs to the enclosing
+        // transaction, whose flushes and duration it shares.
+        $isSavepoint = str_starts_with(strtoupper(trim($queryData->sql, " \t\n\r\0\x0B\"'`")), 'SAVEPOINT');
+
+        if ($isSavepoint && [] !== $state['transactionStack']) {
+            $state['transactionStack'][] = self::SAVEPOINT_PREFIX . $this->enclosingTransactionId($state);
+
+            return;
+        }
+
         if ([] !== $state['transactionStack']) {
             yield $this->createNestedTransactionIssue($queryData, count($state['transactionStack']));
         }
@@ -153,13 +166,24 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     }
 
     /**
+     * @param array<string, mixed> $state
+     */
+    private function enclosingTransactionId(array $state): string
+    {
+        $top = end($state['transactionStack']);
+        Assert::string($top);
+
+        return str_starts_with($top, self::SAVEPOINT_PREFIX) ? substr($top, strlen(self::SAVEPOINT_PREFIX)) : $top;
+    }
+
+    /**
      * Handle flush operation.
      * @param array<string, mixed> $state
      * @return \Generator<IssueInterface>
      */
     private function handleFlush(QueryData $queryData, array &$state): \Generator
     {
-        $currentTxId = end($state['transactionStack']);
+        $currentTxId = $this->enclosingTransactionId($state);
         ++$state['flushesInCurrentTransaction'][$currentTxId];
 
         if ($state['flushesInCurrentTransaction'][$currentTxId] > $this->maxFlushPerTransaction) {
@@ -178,6 +202,12 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function handleCommit(QueryData $queryData, array &$state): \Generator
     {
         $transactionId = array_pop($state['transactionStack']);
+        Assert::string($transactionId);
+
+        if (str_starts_with($transactionId, self::SAVEPOINT_PREFIX)) {
+            return; // RELEASE SAVEPOINT: the enclosing transaction is still open
+        }
+
         $duration      = $state['currentTime'] - $state['transactionStartTime'];
 
         if ($duration > $this->maxTransactionDuration) {
@@ -195,6 +225,12 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function handleRollback(array &$state): void
     {
         $transactionId = array_pop($state['transactionStack']);
+        Assert::string($transactionId);
+
+        if (str_starts_with($transactionId, self::SAVEPOINT_PREFIX)) {
+            return; // ROLLBACK TO SAVEPOINT: the enclosing transaction is still open
+        }
+
         unset($state['flushesInCurrentTransaction'][$transactionId]);
         $state['transactionStartTime'] = [] === $state['transactionStack'] ? null : $state['transactionStartTime'];
     }
@@ -209,6 +245,10 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         Assert::isIterable($state['transactionStack'], 'transactionStack must be iterable');
 
         foreach ($state['transactionStack'] as $txId) {
+            if (str_starts_with((string) $txId, self::SAVEPOINT_PREFIX)) {
+                continue;
+            }
+
             yield $this->createUnclosedTransactionIssue($state['flushesInCurrentTransaction'][$txId] ?? 0);
         }
     }
@@ -257,9 +297,9 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function createNestedTransactionIssue(QueryData $queryData, int $depth): IssueInterface
     {
         $description = sprintf("Nested transaction detected (depth: %d).\n", $depth);
-        $description .= "Impact: Inner transactions are usually ignored on MySQL/PostgreSQL.\n";
-        $description .= "Impact: Inner commit/rollback can affect the outer transaction unexpectedly.\n";
-        $description .= "Impact: This can lead to partial commits and inconsistent data.";
+        $description .= "Impact: A second START TRANSACTION on an open transaction makes MySQL and MariaDB commit the open one implicitly; PostgreSQL ignores it with a warning.\n";
+        $description .= "Impact: Work meant to be atomic is split, which can leave partial commits and inconsistent data.\n";
+        $description .= 'Fix: open transactions through the connection or EntityManager (beginTransaction(), wrapInTransaction()); DBAL nests them with savepoints.';
 
         $issueData = new IssueData(
             type: IssueType::TRANSACTION_NESTED->value,
