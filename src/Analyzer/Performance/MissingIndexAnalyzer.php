@@ -501,40 +501,15 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         $table        = $explainRow['table'] ?? null;
         $key          = $explainRow['key'] ?? null;
         $rows         = (int) ($explainRow['rows'] ?? 0);
-        $type         = strtoupper($explainRow['type'] ?? '');
         $possibleKeys = $explainRow['possible_keys'] ?? null;
 
         if (null === $table) {
             return false;
         }
 
-        if (in_array($type, ['CONST', 'EQ_REF'], true) && null !== $key) {
-            return false; // Optimal index usage, no suggestion needed
-        }
-
-        if (in_array($type, ['REF', 'RANGE'], true) && null !== $key) {
-            return $rows >= $this->missingIndexAnalyzerConfig->minRowsScanned;
-        }
-
-        $isFullTableScan = 'ALL' === $type;
-
-        $isFullIndexScan = 'INDEX' === $type;
-
-        $hasPossibleKeysButNotUsed = null === $key && null !== $possibleKeys;
-
-        if ($isFullTableScan) {
-            return $rows >= $this->missingIndexAnalyzerConfig->minRowsScanned;
-        }
-
-        if ($isFullIndexScan && null === $possibleKeys) {
-            return $rows >= $this->missingIndexAnalyzerConfig->minRowsScanned;
-        }
-
-        if ($hasPossibleKeysButNotUsed) {
-            return $rows >= $this->missingIndexAnalyzerConfig->minRowsScanned;
-        }
-
-        if (null !== $key) {
+        // An index is used, or exists and the optimizer judged a scan cheaper
+        // (low selectivity): creating the same index again changes nothing.
+        if (null !== $key || null !== $possibleKeys) {
             return false;
         }
 
