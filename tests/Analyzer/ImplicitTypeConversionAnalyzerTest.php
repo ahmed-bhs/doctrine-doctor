@@ -91,7 +91,7 @@ final class ImplicitTypeConversionAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_ignores_placeholder_parameters(): void
+    public function it_ignores_placeholders_without_a_binding_type(): void
     {
         self::assertCount(0, $this->analyze('SELECT * FROM users u WHERE u.email = ? AND u.name = :name'));
     }
