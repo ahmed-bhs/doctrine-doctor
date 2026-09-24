@@ -56,7 +56,7 @@ class SqlStructureExtractor
         private readonly PerformanceAnalyzerInterface $performanceAnalyzer = new SqlPerformanceAnalyzer(),
         private readonly AggregationAnalyzerInterface $aggregationAnalyzer = new SqlAggregationAnalyzer(),
     ) {
-        $this->patternDetector = $patternDetector ?? new SqlPatternDetector($this->joinExtractor instanceof SqlJoinExtractor ? $this->joinExtractor : null);
+        $this->patternDetector = $patternDetector ?? new SqlPatternDetector($this->joinExtractor instanceof SqlJoinExtractor ? $this->joinExtractor : new SqlJoinExtractor());
     }
 
     // ==================== JOIN EXTRACTOR DELEGATION ====================
