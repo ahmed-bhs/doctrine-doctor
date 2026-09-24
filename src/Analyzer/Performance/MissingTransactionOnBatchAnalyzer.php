@@ -22,7 +22,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
-final readonly class MissingTransactionOnBatchAnalyzer implements AnalyzerInterface
+readonly class MissingTransactionOnBatchAnalyzer implements AnalyzerInterface
 {
     public function __construct(
         private IssueFactoryInterface $issueFactory,

@@ -40,7 +40,7 @@ make qa                      # alias for check
 - Test names in snake_case, prefixed with `it_` (e.g. `it_detects_n_plus_one_queries`)
 - PHPStan level 8, bleeding edge, `checkUninitializedProperties: true`
 - Imports ordered: const, class, function (alphabetical)
-- No `final` on classes
+- No `final` on extension points (analyzers, issues); internal helpers, parsers, strategies, collections, value objects, DTOs and test classes are `final`
 - Constructor promotion with `readonly`
 - Concatenation with spaces (`$a . $b`, not `$a.$b`)
 

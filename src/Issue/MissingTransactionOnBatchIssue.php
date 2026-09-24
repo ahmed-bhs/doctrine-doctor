@@ -14,7 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Issue;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 
-final class MissingTransactionOnBatchIssue extends AbstractIssue
+class MissingTransactionOnBatchIssue extends AbstractIssue
 {
     public function __construct(array $data)
     {
