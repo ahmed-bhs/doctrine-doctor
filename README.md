@@ -77,7 +77,7 @@ The command exits with a failure when it finds a warning or critical issue. Use
 on every finding, or `--fail-on=never` to report without failing. Live database
 audits are opt-in with `--with-database`.
 
-See the [runtime and CI analysis guide](docs/user-guide/execution-modes.md) for
+See the [profiler and CI checks guide](docs/user-guide/execution-modes.md) for
 the full analyzer inventory and execution rules.
 
 ## Configuration (Optional)
