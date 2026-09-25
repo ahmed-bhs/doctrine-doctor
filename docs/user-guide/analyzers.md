@@ -11,7 +11,7 @@ nav_order: 2
 
 ## 1. Overview
 
-Doctrine Doctor implements **96 specialized analyzers** organized into four categories that detect Doctrine ORM anti-patterns and performance issues.
+Doctrine Doctor implements **100 specialized analyzers** organized into four categories that detect Doctrine ORM anti-patterns and performance issues.
 
 ### 1.1 Severity Classification
 
@@ -31,10 +31,11 @@ Doctrine Doctor implements **96 specialized analyzers** organized into four cate
 
 ### 2.2 Detection Methods
 
-- **Static Analysis**: Entity metadata, configuration analysis
-- **Runtime Analysis**: Query pattern recognition, signature matching
-- **Database Analysis**: EXPLAIN query execution plans
-- **Code Analysis**: Call stack inspection, trace analysis
+- **Runtime Analysis**: Query pattern recognition and request context in the Symfony Web Profiler
+- **Static Analysis**: Application source and Doctrine mapping checks in `doctrine:doctor:analyze`
+- **Database Audits**: Live database schema and configuration checks, opt-in with `--with-database`
+
+See [Profiler and CI Checks](execution-modes) to choose how to run these checks.
 
 ---
 
@@ -44,7 +45,7 @@ Doctrine Doctor implements **96 specialized analyzers** organized into four cate
 
 Performance analyzers detect patterns that degrade application responsiveness, increase database load, or consume excessive system resources.
 
-**Total**: 30 analyzers
+**Total**: 33 analyzers
 **Average Impact**: 10-1000x performance improvement when resolved
 
 ### 3.2 Key Performance Analyzers
@@ -143,7 +144,7 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 
 Security analyzers detect vulnerabilities aligned with **OWASP Top 10** and Doctrine-specific attack vectors.
 
-**Total**: 6 analyzers
+**Total**: 7 analyzers
 **OWASP Coverage**: A02:2021 (Cryptographic Failures), A03:2021 (Injection), A05:2021 (Security Misconfiguration)
 
 ### 4.2 Key Security Analyzers
@@ -186,6 +187,12 @@ Security analyzers detect vulnerabilities aligned with **OWASP Top 10** and Doct
 - **Severity**: Warning
 - **Purpose**: Flags a database user holding more privileges than the application needs
 - **Detection**: Connection user inspection, including the empty-user case
+
+#### 4.2.7 SQLInjectionInRawQueriesSourceAnalyzer
+
+- **Purpose**: Finds unsafe raw SQL construction in application source code
+- **Runs in**: `doctrine:doctor:analyze` (CI)
+- **Note**: `SQLInjectionInRawQueriesAnalyzer` separately checks SQL captured from real requests in the profiler
 
 ---
 
@@ -430,7 +437,7 @@ doctrine_doctor:
 
 ### 8.1 Custom Analyzers
 
-Create custom analyzers by implementing `AnalyzerInterface` (query-based) or `MetadataAnalyzerInterface` (metadata-based):
+Create custom analyzers by implementing `AnalyzerInterface` for request-dependent query analysis, `StaticAnalyzerInterface` for source or mapping checks, or `DatabaseAuditAnalyzerInterface` for live database audits. `MetadataAnalyzerInterface` remains available for mapping checks and extends `StaticAnalyzerInterface`:
 
 ```php
 // Query-based analyzer

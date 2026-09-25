@@ -88,15 +88,11 @@ Typically low overhead in `dev`; it should remain disabled in production.
 
 ### How many analyzers are there?
 
-**90+ specialized analyzers** across 4 categories:
-- Performance (19)
-- Security (4)
-- Code Quality / Integrity (35)
-- Configuration (8)
+There are **100 built-in checks**: 40 run in the profiler, 52 check code and mappings in CI, and 8 optional checks inspect a live database. [See the full list]({{ site.baseurl }}/advanced/analyzer-execution-inventory).
 
 ### Can I create custom analyzers?
 
-Yes! Implement `AnalyzerInterface` (query-based) or `MetadataAnalyzerInterface` (metadata-based) and tag with `doctrine_doctor.analyzer`. [See guide]({{ site.baseurl }}/contributing/creating-analyzers).
+Yes. Choose `AnalyzerInterface` for request-based checks, `StaticAnalyzerInterface` for code and mapping checks, or `DatabaseAuditAnalyzerInterface` for optional live database checks. [See the guide]({{ site.baseurl }}/contributing/creating-analyzers).
 
 ### Which analyzers are most important?
 
@@ -168,17 +164,7 @@ doctrine_doctor:
 
 ### Doctrine Doctor vs Static Analysis (PHPStan)?
 
-Different tools, complementary:
-
-| Feature | Doctrine Doctor | PHPStan |
-|---------|----------------|---------|
-| **Detects** | Runtime issues | Code issues |
-| **N+1 queries** | ✅ Yes | ❌ No |
-| **Missing indexes** | ✅ Yes (real DB) | ❌ No |
-| **Type errors** | ❌ No | ✅ Yes |
-| **When runs** | During requests | CI/pre-commit |
-
-**Use both!** PHPStan for code quality, Doctrine Doctor for runtime performance.
+They cover different ground. PHPStan focuses on PHP types and code correctness. Doctrine Doctor focuses on Doctrine: it checks real queries in the profiler and mappings and configuration in CI.
 
 ### vs Symfony Profiler's Doctrine Panel?
 
@@ -191,7 +177,7 @@ Doctrine Doctor extends it:
 | **N+1 detection** | ❌ No | ✅ Yes |
 | **Suggestions** | ❌ No | ✅ Yes + code |
 | **Security checks** | ❌ No | ✅ Yes |
-| **90+ analyzers** | ❌ No | ✅ Yes |
+| **100 analyzers** | ❌ No | ✅ Yes |
 
 ---
 

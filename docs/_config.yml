@@ -2,7 +2,7 @@
 # Just the Docs Jekyll Theme Configuration
 
 title: Doctrine Doctor
-description: Runtime Analysis Tool for Doctrine ORM. Detects N+1 queries, missing indexes, security issues, and 66+ performance problems. Integrated into Symfony Web Profiler.
+description: Doctrine ORM checks for Symfony: inspect real request queries in the Web Profiler and run source, mapping, and optional database audits in CI.
 baseurl: "/doctrine-doctor"
 url: "https://ahmed-bhs.github.io"
 

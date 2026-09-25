@@ -2,7 +2,7 @@
 
 <img src="docs/images/logo.png" alt="Doctrine Doctor Logo" width="80" align="right">
 
-**Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler**
+**Doctrine ORM checks for your Symfony app — in the profiler and CI**
 
 [![PHP 8.4+](https://img.shields.io/badge/PHP-8.4+-777BB4.svg?logo=php&logoColor=white)](https://php.net)
 [![Symfony 6.x | 7.x | 8.x](https://img.shields.io/badge/Symfony-6.x%20%7C%207.x%20%7C%208.x-000000.svg?logo=symfony&logoColor=white)](https://symfony.com)
@@ -13,18 +13,14 @@
 [![Code Style](https://img.shields.io/badge/Code%20Style-PSR--12-blue.svg)](https://www.php-fig.org/psr/psr-12/)
 [![Packagist Version](https://img.shields.io/packagist/v/ahmed-bhs/doctrine-doctor.svg)](https://packagist.org/packages/ahmed-bhs/doctrine-doctor)
 
-<b>Why Runtime Analysis?</b>
+<b>Catch Doctrine issues while you work and before you merge</b>
 
-<p>Unlike static analysis tools (PHPStan, Psalm) that analyze code without execution, Doctrine Doctor:</p>
+<p>Doctrine Doctor adds checks made for Doctrine:</p>
 
 <ul>
-<li><b>Detects runtime doctrine issues</b> by analyzing real execution context (actual parameters, data volume, query plans), including N+1 queries, real query performance bottlenecks, and missing indexes.</li>
-<li><b>Integrated into your workflow</b>: Results appear directly in Symfony Web Profiler during development
-  <ul>
-  <li>&#x1F4CD; Backtrace: Points to exact template line</li>
-  <li>&#x1F4A1; Suggestion: Use <code>->addSelect(..)</code> to eager load products</li>
-  </ul>
-</li>
+<li><b>Profiler:</b> Find N+1 queries and slow SQL in a real page, with a link back to your code.</li>
+<li><b>CI:</b> Check code, mappings, and configuration on each pull request.</li>
+<li><b>Optional:</b> Check a live database with <code>--with-database</code>.</li>
 </ul>
 
 <p align="center">
@@ -35,7 +31,7 @@
 
 ## Features
 
-### 90+ Specialized Analyzers
+### 100 Built-in Analyzers
 
 - **Performance** — Detects N+1 queries, missing database indexes, slow queries, excessive hydration,
   findAll() without limits, setMaxResults() with collection joins, too many JOINs, and query caching
@@ -68,9 +64,9 @@ Auto-configured via [Symfony Flex](https://github.com/symfony/recipes-contrib/pu
 2. Open the **Symfony Web Profiler** (bottom toolbar)
 3. Click the **"Doctrine Doctor"** panel 🩺
 
-## Run static checks in CI
+## Run checks in CI
 
-Source-code and mapping checks run separately from the request profiler:
+Check your code and mappings on every pull request:
 
 ```bash
 php bin/console doctrine:doctor:analyze
@@ -80,6 +76,9 @@ The command exits with a failure when it finds a warning or critical issue. Use
 `--fail-on=critical` to fail only on critical issues, `--fail-on=info` to fail
 on every finding, or `--fail-on=never` to report without failing. Live database
 audits are opt-in with `--with-database`.
+
+See the [runtime and CI analysis guide](docs/user-guide/execution-modes.md) for
+the full analyzer inventory and execution rules.
 
 ## Configuration (Optional)
 
@@ -173,7 +172,8 @@ execution time, points to the exact template line, and suggests eager loading wi
 
 | Document | Description |
 |----------|-------------|
-| [**Full Analyzers List**](docs/user-guide/analyzers.md) | Complete catalog of all **90+ analyzers** covering performance, security, integrity, and configuration - find the perfect analyzer for your specific needs |
+| [**Full Analyzers List**](docs/user-guide/analyzers.md) | Browse the built-in checks for performance, security, integrity, and configuration |
+| [**Profiler and CI Checks**](docs/user-guide/execution-modes.md) | A quick guide to choosing where to run each check |
 | [**Architecture Guide**](docs/advanced/architecture.md) | Deep dive into **system design**, architecture patterns, and technical internals - understand how Doctrine Doctor works under the hood |
 | [**Configuration Reference**](docs/user-guide/configuration.md) | Comprehensive guide to **all configuration options** - customize analyzers, thresholds, and outputs to match your workflow |
 | [**Template Security**](docs/advanced/template-security.md) | Essential **security best practices** for PHP templates - prevent XSS attacks and ensure safe template rendering |

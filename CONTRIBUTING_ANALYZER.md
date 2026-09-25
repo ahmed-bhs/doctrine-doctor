@@ -990,7 +990,7 @@ Before writing utility code, check if it already exists:
 
 ## Checklist Before Submitting
 
-- [ ] Analyzer implements `AnalyzerInterface` (query-based) or `MetadataAnalyzerInterface` (metadata-based)
+- [ ] Analyzer uses the right execution path: runtime (`AnalyzerInterface`), CI (`StaticAnalyzerInterface`), or optional database audit (`DatabaseAuditAnalyzerInterface`)
 - [ ] `IssueType` enum has a new case for your issue
 - [ ] Service registered in `config/services.yaml` with `doctrine_doctor.analyzer` tag
 - [ ] Suggestion template created in `src/Template/Suggestions/{Category}/`
