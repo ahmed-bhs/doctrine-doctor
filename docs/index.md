@@ -63,7 +63,7 @@ See [Profiler and CI Checks](user-guide/execution-modes) to choose where to run 
 
 ---
 
-## ⚡ Quick Start (30 seconds)
+## Quick Start (30 seconds)
 
 **Step 1: Install**
 
@@ -79,7 +79,7 @@ Auto-configured via [Symfony Flex](https://github.com/symfony/recipes-contrib/pu
 
 1. Refresh any page in your Symfony app (in `dev` environment)
 2. Open the **Symfony Web Profiler** (bottom toolbar)
-3. Click the **"Doctrine Doctor"** panel 🩺
+3. Click the **"Doctrine Doctor"** panel
 
 ---
 

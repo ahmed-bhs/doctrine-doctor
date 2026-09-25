@@ -40,7 +40,7 @@ No configuration required! It works out of the box. Optional configuration avail
 
 1. Load any page in `dev` environment
 2. Open Symfony Web Profiler (bottom toolbar)
-3. Click "Doctrine Doctor" panel 🩺
+3. Click "Doctrine Doctor" panel
 
 ### Can I see which line of code caused an issue?
 
@@ -118,7 +118,7 @@ Check:
 Possible reasons:
 - No queries executed on this page
 - Thresholds too high
-- All code is optimized! ✨
+- All code is optimized!
 
 ### EXPLAIN queries failing
 
@@ -172,12 +172,12 @@ Doctrine Doctor extends it:
 
 | Feature | Doctrine Panel | Doctrine Doctor |
 |---------|---------------|-----------------|
-| **Query list** | ✅ Yes | ✅ Yes |
-| **Execution time** | ✅ Yes | ✅ Yes |
-| **N+1 detection** | ❌ No | ✅ Yes |
-| **Suggestions** | ❌ No | ✅ Yes + code |
-| **Security checks** | ❌ No | ✅ Yes |
-| **100 analyzers** | ❌ No | ✅ Yes |
+| **Query list** | Yes | Yes |
+| **Execution time** | Yes | Yes |
+| **N+1 detection** | No | Yes |
+| **Suggestions** | No | Yes + code |
+| **Security checks** | No | Yes |
+| **100 analyzers** | No | Yes |
 
 ---
 

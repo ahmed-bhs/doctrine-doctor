@@ -220,7 +220,7 @@ Integrity analyzers detect code smells, anti-patterns, and violations of best pr
 **Example Violation**:
 
 ```php
-#[ORM\ManyToOne(targetEntity: Tag::class, cascade: ['remove'])] // ❌ Tag is independent!
+#[ORM\ManyToOne(targetEntity: Tag::class, cascade: ['remove'])] // Tag is independent!
 private Tag $tag;
 ```
 

@@ -186,7 +186,7 @@ sequenceDiagram
     DoctorDC->>DoctorDC: Calculate statistics
     deactivate DoctorDC
 
-    Symfony-->>Request: Response sent ✓
+    Symfony-->>Request: Response sent
     deactivate Symfony
 
     Profiler->>DoctorDC: getData()
