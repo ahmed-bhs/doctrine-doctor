@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Collector;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\CachedSqlStructureExtractor;
+use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Collector\Helper\DataCollectorLogger;
@@ -103,6 +104,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             'timeline_queries'  => [],
             'issues'            => [],
             'skipped_analyzers' => 0,
+            'analyzer_stats'    => [],
             'database_info'     => [],
             'profiler_overhead' => [
                 'analysis_time_ms' => 0,
@@ -115,8 +117,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             return;
         }
 
-        $this->data['database_info'] = $this->dataCollectorHelpers->databaseInfoCollector->collectDatabaseInfo($this->entityManager);
-
         $queries = $this->doctrineDataCollector->getQueries();
 
         foreach ($queries as $query) {
@@ -128,6 +128,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         }
 
         if (!$this->deferAnalysisToLateCollect) {
+            $this->collectDatabaseInfo();
             $this->runAnalysis();
         }
     }
@@ -135,6 +136,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     public function lateCollect(): void
     {
         if ($this->deferAnalysisToLateCollect) {
+            $this->collectDatabaseInfo();
             $this->runAnalysis();
         }
     }
@@ -452,14 +454,17 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
     private function runAnalysis(): void
     {
+        $analysisStartedAt = hrtime(true);
         $this->stopwatch?->start('doctrine_doctor.analysis', 'doctrine_doctor_profiling');
+
+        $runtimeAnalyzers = iterator_to_array($this->getRuntimeAnalyzers(), false);
 
         if ([] !== $this->data['timeline_queries']) {
             SqlNormalizationCache::warmUp($this->data['timeline_queries']);
         }
 
         $this->data['issues'] = $this->analyzeQueriesLazy(
-            $this->analyzers,
+            $runtimeAnalyzers,
             $this->dataCollectorHelpers->dataCollectorLogger,
             $this->dataCollectorHelpers->issueDeduplicator,
         );
@@ -468,16 +473,19 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
         $analysisEvent = $this->stopwatch?->stop('doctrine_doctor.analysis');
 
-        if (is_object($analysisEvent) && method_exists($analysisEvent, 'getDuration')) {
-            $duration = (float) $analysisEvent->getDuration();
-            $this->data['profiler_overhead']['analysis_time_ms'] = $duration;
-            $this->data['profiler_overhead']['total_time_ms']    = $duration;
-        }
+        $duration = is_object($analysisEvent) && method_exists($analysisEvent, 'getDuration')
+            ? (float) $analysisEvent->getDuration()
+            : (hrtime(true) - $analysisStartedAt) / 1_000_000;
+        $this->data['profiler_overhead']['analysis_time_ms'] = round($duration, 2);
+        $this->data['profiler_overhead']['total_time_ms'] = round($duration + $this->data['profiler_overhead']['db_info_time_ms'], 2);
 
         if ($this->showDebugInfo) {
             $analyzersList = [];
+            $analyzerStats = $this->data['analyzer_stats'];
 
-            foreach ($this->analyzers as $analyzer) {
+            uasort($analyzerStats, static fn (array $left, array $right): int => $right['execution_time_ms'] <=> $left['execution_time_ms']);
+
+            foreach ($runtimeAnalyzers as $analyzer) {
                 $analyzersList[] = $analyzer::class;
             }
 
@@ -486,9 +494,22 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                 'doctrine_collector_exists' => true,
                 'analyzers_count'           => count($analyzersList),
                 'analyzers_list'            => $analyzersList,
+                'analyzer_stats'            => $analyzerStats,
                 'query_time_stats'          => $this->dataCollectorHelpers->queryStatsCalculator->calculateStats($this->data['timeline_queries']),
                 'profiler_overhead_ms'      => $this->data['profiler_overhead']['total_time_ms'],
             ];
+        }
+    }
+
+    /**
+     * @return \Generator<int, AnalyzerInterface>
+     */
+    private function getRuntimeAnalyzers(): \Generator
+    {
+        foreach ($this->analyzers as $analyzer) {
+            if (!$analyzer instanceof StaticAnalyzerInterface) {
+                yield $analyzer;
+            }
         }
     }
 
@@ -550,11 +571,15 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                 continue;
             }
 
+            $analyzerStartedAt = $this->showDebugInfo ? hrtime(true) : null;
+            $analyzerIssueCount = 0;
+
             try {
                 $issueCollection = $analyzer->analyze($queryCollection);
 
                 foreach ($issueCollection as $issue) {
                     $allIssues[] = $issue;
+                    ++$analyzerIssueCount;
                     ++$issueCount;
 
                     if (0 === $issueCount % 50 && memory_get_usage(true) >= $memoryThreshold) {
@@ -578,6 +603,13 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
                     'queries' => [],
                     'backtrace' => [['file' => $e->getFile(), 'line' => $e->getLine()]],
                 ]);
+            } finally {
+                if (null !== $analyzerStartedAt) {
+                    $this->data['analyzer_stats'][$analyzer::class] = [
+                        'issues_found'      => $analyzerIssueCount,
+                        'execution_time_ms' => round((hrtime(true) - $analyzerStartedAt) / 1_000_000, 2),
+                    ];
+                }
             }
         }
 
@@ -603,6 +635,16 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $deduplicatedCollection = $deduplicatedCollection->sorting()->bySeverityDescending();
 
         return $deduplicatedCollection->toArrayOfArrays();
+    }
+
+    private function collectDatabaseInfo(): void
+    {
+        $startedAt = hrtime(true);
+        $this->data['database_info'] = $this->dataCollectorHelpers->databaseInfoCollector->collectDatabaseInfo($this->entityManager);
+        $duration = (hrtime(true) - $startedAt) / 1_000_000;
+
+        $this->data['profiler_overhead']['db_info_time_ms'] = round($duration, 2);
+        $this->data['profiler_overhead']['total_time_ms'] += $duration;
     }
 
     /**

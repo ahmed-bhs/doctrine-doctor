@@ -12,6 +12,8 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Security\SQLInjectionInRawQueriesAnalyzer;
+use AhmedBhs\DoctrineDoctor\Analyzer\Security\SQLInjectionInRawQueriesSourceAnalyzer;
+use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\EntityWithVulnerableMethods;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
@@ -29,6 +31,8 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
 {
     private SQLInjectionInRawQueriesAnalyzer $analyzer;
 
+    private SQLInjectionInRawQueriesSourceAnalyzer $sourceAnalyzer;
+
     protected function setUp(): void
     {
         $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager([
@@ -39,6 +43,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
             $entityManager,
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
         );
+        $this->sourceAnalyzer = new SQLInjectionInRawQueriesSourceAnalyzer($this->analyzer);
     }
 
     #[Test]
@@ -48,7 +53,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()->build();
 
         // Act
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         // Assert: Should detect concatenation in VulnerableRepository::findByNameUnsafe()
         $issuesArray = $issues->toArray();
@@ -68,7 +73,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()->build();
 
         // Act
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         // Assert: Should detect interpolation in multiple methods
         $issuesArray = $issues->toArray();
@@ -91,7 +96,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()->build();
 
         // Act
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         // Assert: Should detect missing parameters in searchUnsafe()
         $issuesArray = $issues->toArray();
@@ -110,7 +115,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()->build();
 
         // Act
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         // Assert: Should detect sprintf in findByEmailUnsafe()
         $issuesArray = $issues->toArray();
@@ -128,7 +133,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()->build();
 
         // Act
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         // Assert: Should detect issues in entity methods too (not just repositories)
         $issuesArray = $issues->toArray();
@@ -147,7 +152,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()->build();
 
         // Act
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         // Assert: Safe methods should NOT be flagged
         $issuesArray = $issues->toArray();
@@ -166,7 +171,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()->build();
 
         // Act
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         // Assert: Query builder methods should NOT be flagged
         $issuesArray = $issues->toArray();
@@ -185,7 +190,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()->build();
 
         // Act
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         // Assert: Issues should have suggestions with proper parameter binding examples
         $issuesArray = $issues->toArray();
@@ -205,7 +210,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()->build();
 
         // Act
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         // Assert: Issues should have backtrace with file and line
         $issuesArray = $issues->toArray();
@@ -228,7 +233,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()->build();
 
         // Act
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         // Assert: Should find issues in both VulnerableRepository and EntityWithVulnerableMethods
         $issuesArray = $issues->toArray();
@@ -254,7 +259,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()->build();
 
         // Act
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         // Assert: Should detect all 4 vulnerabilities in VulnerableRepository
         $issuesArray = $issues->toArray();
@@ -273,7 +278,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $queries = QueryDataBuilder::create()->build();
 
         // Act
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         // Assert: Descriptions should explain security impact
         $issuesArray = $issues->toArray();
@@ -297,7 +302,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     public function it_has_correct_analyzer_metadata(): void
     {
         $queries = QueryDataBuilder::create()->build();
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         self::assertIsObject($issues);
     }
@@ -307,7 +312,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     {
         $queries = QueryDataBuilder::create()->build();
 
-        $issues = $this->analyzer->analyze($queries);
+        $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         self::assertIsObject($issues);
         $issuesArray = $issues->toArray();
@@ -378,6 +383,14 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
+
+        self::assertCount(0, $issues->toArray());
+    }
+
+    #[Test]
+    public function it_does_not_scan_source_code_in_the_runtime_analyzer(): void
+    {
+        $issues = $this->analyzer->analyze(QueryDataCollection::empty());
 
         self::assertCount(0, $issues->toArray());
     }

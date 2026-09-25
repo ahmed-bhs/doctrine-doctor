@@ -68,6 +68,19 @@ Auto-configured via [Symfony Flex](https://github.com/symfony/recipes-contrib/pu
 2. Open the **Symfony Web Profiler** (bottom toolbar)
 3. Click the **"Doctrine Doctor"** panel 🩺
 
+## Run static checks in CI
+
+Source-code and mapping checks run separately from the request profiler:
+
+```bash
+php bin/console doctrine:doctor:analyze
+```
+
+The command exits with a failure when it finds a warning or critical issue. Use
+`--fail-on=critical` to fail only on critical issues, `--fail-on=info` to fail
+on every finding, or `--fail-on=never` to report without failing. Live database
+audits are opt-in with `--with-database`.
+
 ## Configuration (Optional)
 
 Configure thresholds in `config/packages/dev/doctrine_doctor.yaml`:

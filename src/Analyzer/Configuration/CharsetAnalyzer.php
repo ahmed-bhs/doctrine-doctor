@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Configuration;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
-use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Analyzer\DatabaseAuditAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Factory\PlatformAnalysisStrategyFactory;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
@@ -39,7 +39,7 @@ use Psr\Log\LoggerInterface;
  * - SQLite: ⏭️ Skipped (uses UTF-8/UTF-16, no configuration)
  * - Doctrine DBAL: 2.x and 3.x+ compatible
  */
-class CharsetAnalyzer implements MetadataAnalyzerInterface
+class CharsetAnalyzer implements DatabaseAuditAnalyzerInterface
 {
     use MetadataAnalyzerTrait;
 

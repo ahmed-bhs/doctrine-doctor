@@ -11,9 +11,10 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-
-interface MetadataAnalyzerInterface extends StaticAnalyzerInterface
+/**
+ * Marks static analyzers that inspect the configured database and require a
+ * live database connection to run.
+ */
+interface DatabaseAuditAnalyzerInterface extends MetadataAnalyzerInterface
 {
-    public function analyzeMetadata(): IssueCollection;
 }

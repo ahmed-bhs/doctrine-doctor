@@ -25,17 +25,22 @@ This guide walks you through every step needed to add a new analyzer to Doctrine
 
 ```text
 Analyzer
-  │  implements AnalyzerInterface or MetadataAnalyzerInterface
+  │  implements AnalyzerInterface, StaticAnalyzerInterface, or DatabaseAuditAnalyzerInterface
   │  returns IssueCollection (generator-based, memory efficient)
   │
   ├── AnalyzerInterface
   │     receives QueryDataCollection (captured SQL queries)
-  │     used by: Performance analyzers, hybrid analyzers
+  │     used by: request-dependent runtime analyzers
   │
-  ├── MetadataAnalyzerInterface (extends AnalyzerInterface)
+  ├── StaticAnalyzerInterface (extends AnalyzerInterface)
+  │     source-code and mapping checks, run by doctrine:doctor:analyze
+  │
+  ├── MetadataAnalyzerInterface (extends StaticAnalyzerInterface)
   │     analyzeMetadata() — no QueryDataCollection parameter
-  │     used by: Integrity, Configuration, Security analyzers
-  │     uses MetadataAnalyzerTrait for backward-compatible bridging
+  │     uses MetadataAnalyzerTrait to bridge analyze() to analyzeMetadata()
+  │
+  ├── DatabaseAuditAnalyzerInterface (extends MetadataAnalyzerInterface)
+  │     live database setting/schema checks, opt-in with --with-database
   │
   ├── Detection logic
   │     query-based  → filter/group QueryDataCollection
@@ -69,7 +74,7 @@ Create a new file in the appropriate namespace:
 src/Analyzer/{Category}/YourAnalyzer.php
 ```
 
-Implement `AnalyzerInterface` (for query-based analyzers) or `MetadataAnalyzerInterface` (for metadata-based analyzers):
+Implement `AnalyzerInterface` for request-dependent query analysis, `StaticAnalyzerInterface` for source/mapping checks, or `DatabaseAuditAnalyzerInterface` for live database audits. `MetadataAnalyzerInterface` is a static mapping-check contract that includes `analyzeMetadata()`:
 
 ```php
 <?php
@@ -112,7 +117,7 @@ class YourAnalyzer implements AnalyzerInterface
 ```
 
 **Why `IssueCollection::fromGenerator()`?**
-Issues are yielded lazily. The profiler only materializes what it needs, keeping memory usage constant even with hundreds of analyzers.
+Issues are yielded lazily, so both the profiler and CI command can consume findings without building intermediate result arrays.
 
 ---
 
@@ -175,7 +180,7 @@ This pipeline filters noise at each stage to surface real problems:
 
 ### Metadata-based detection (Integrity / Configuration analyzers)
 
-Analyzers that work on Doctrine metadata or database connections (not on captured SQL queries) should implement `MetadataAnalyzerInterface` instead of `AnalyzerInterface`. This interface extends `AnalyzerInterface` for backward compatibility and provides a dedicated `analyzeMetadata()` method that does not receive a `QueryDataCollection`:
+Mapping checks that work on Doctrine metadata (not on captured SQL queries) should implement `MetadataAnalyzerInterface`. It extends `StaticAnalyzerInterface` and provides a dedicated `analyzeMetadata()` method that does not receive a `QueryDataCollection`. Checks that inspect a live database should implement the more specific `DatabaseAuditAnalyzerInterface` so CI can keep them opt-in:
 
 ```php
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
@@ -408,7 +413,7 @@ AhmedBhs\DoctrineDoctor\Analyzer\Performance\YourAnalyzer:
         - { name: doctrine_doctor.analyzer }
 ```
 
-The tag `doctrine_doctor.analyzer` is required. The `DataCollector` discovers all analyzers via `!tagged_iterator`.
+The `doctrine_doctor.analyzer` tag remains the analyzer registration tag. The bundle assigns runtime or static tags from the implemented interfaces; only runtime analyzers reach the profiler. Static analyzers run with `php bin/console doctrine:doctor:analyze`, and database audits join that run with `--with-database`.
 
 If your analyzer only needs `IssueFactoryInterface` and `SuggestionFactoryInterface`, autowiring handles it — you only need the tag:
 

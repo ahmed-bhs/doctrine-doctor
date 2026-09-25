@@ -11,9 +11,11 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-
-interface MetadataAnalyzerInterface extends StaticAnalyzerInterface
+/**
+ * Marks analyzers that do not depend on SQL captured from the current request
+ * and therefore belong in the CI analysis command. Database-backed checks use
+ * the more specific DatabaseAuditAnalyzerInterface marker.
+ */
+interface StaticAnalyzerInterface extends AnalyzerInterface
 {
-    public function analyzeMetadata(): IssueCollection;
 }
