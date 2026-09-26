@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\PropertyTypeMismatchAnalyzer;
+use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\TypeMismatch\ProductWithEnumType;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\TypeMismatch\ProductWithTypeMismatch;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
@@ -360,6 +361,24 @@ final class PropertyTypeMismatchAnalyzerTest extends TestCase
         );
 
         self::assertCount(0, $statusIssues, 'Enum type properties with enumType mapping should not be flagged as type mismatch');
+    }
+
+    #[Test]
+    public function it_reports_a_nullable_property_on_a_required_association(): void
+    {
+        $analyzer = new PropertyTypeMismatchAnalyzer(
+            PlatformAnalyzerTestHelper::createTestEntityManager([__DIR__ . '/../Fixtures/Entity/RequiredAssociationTest']),
+            PlatformAnalyzerTestHelper::createIssueFactory(),
+        );
+
+        $descriptions = array_map(
+            static fn ($issue): string => $issue->getTitle() . ' ' . $issue->getDescription(),
+            $analyzer->analyze(QueryDataCollection::empty())->toArray(),
+        );
+
+        self::assertCount(1, $descriptions, implode("\n", $descriptions));
+        self::assertStringContainsString('customer', $descriptions[0]);
+        self::assertStringContainsString('non-nullable', $descriptions[0]);
     }
 
     /**

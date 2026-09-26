@@ -96,7 +96,7 @@ class FloatInMoneyEmbeddableAnalyzer implements MetadataAnalyzerInterface
                     // For entities, check their embedded classes
                     if (!empty($classMetadatum->embeddedClasses)) {
                         foreach ($classMetadatum->embeddedClasses as $embeddedClass) {
-                            $embeddableClassName = $embeddedClass->class ?? $embeddedClass['class'] ?? null;
+                            $embeddableClassName = $embeddedClass->class;
 
                             if (is_string($embeddableClassName) && !in_array($embeddableClassName, $processedEmbeddables, true)) {
                                 $processedEmbeddables[] = $embeddableClassName;

@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\QueryFieldAccessorTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\PaginatorQueryDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -29,6 +30,7 @@ class PaginationWithoutOrderByAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
+        private readonly PaginatorQueryDetector $paginatorQueryDetector = new PaginatorQueryDetector(),
     ) {
     }
 
@@ -58,7 +60,9 @@ class PaginationWithoutOrderByAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                         continue;
                     }
 
-                    if ($this->sqlExtractor->hasOrderBy($sql)) {
+                    // Doctrine's Paginator moves the DQL ORDER BY into a derived table
+                    // and limits the outer query: the order is defined there.
+                    if ($this->sqlExtractor->hasOrderBy($sql) || $this->paginatorQueryDetector->hasOrderedPaginatorSubquery($sql)) {
                         continue;
                     }
 
@@ -90,19 +94,11 @@ class PaginationWithoutOrderByAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     }
 
     /**
-     * @return array<int, array<string, mixed>>|null
-     */
-
-    /**
      * LIMIT 1 (or LIMIT 0, 1) is a single-row fetch -- ordering does not matter for correctness.
      */
     private function returnsSingleRow(string $sql): bool
     {
-        if (1 === preg_match('/\bLIMIT\s+1\b(?!\s*,)/i', $sql)) {
-            return true;
-        }
-
-        return 1 === preg_match('/\bLIMIT\s+\d+\s*,\s*1\b/i', $sql);
+        return 1 === $this->sqlExtractor->getLimitValue($sql);
     }
 
     private function createIssue(string $sql, bool $hasOffset, array|object $query): PerformanceIssue

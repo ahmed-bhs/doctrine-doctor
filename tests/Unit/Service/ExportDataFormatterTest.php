@@ -208,7 +208,7 @@ final class ExportDataFormatterTest extends TestCase
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{sql: string, count: int, totalTimeMs: float, avgTimeMs: float, maxTimeMs: float, minTimeMs: float}
      */
     private function createQuery(): array
     {

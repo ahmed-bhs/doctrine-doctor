@@ -40,7 +40,7 @@ doctrine_doctor:
         # EntityManager Clear Detection
         entity_manager_clear:
             enabled: true
-            batch_size_threshold: 10    # Detect from 10 operations (instead of 20)
+            batch_size_threshold: 10    # Detect from 10 operations (instead of 50)
 
         # GetReference Optimization Detection
         get_reference:

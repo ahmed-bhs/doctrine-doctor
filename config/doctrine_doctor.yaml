@@ -52,7 +52,7 @@ doctrine_doctor:
         # EntityManager Clear Detection (Memory Leak Prevention)
         entity_manager_clear:
             enabled: true
-            batch_size_threshold: 20  # Minimum number of INSERT/UPDATE operations to trigger detection
+            batch_size_threshold: 50  # Minimum number of INSERT/UPDATE operations to trigger detection
 
         # GetReference Optimization Detection
         get_reference:
@@ -74,6 +74,11 @@ doctrine_doctor:
         dql_injection:
             enabled: true
             # No threshold - security issues are always flagged
+
+        # Bulk INSERT Detection (single-row INSERTs a multi-row DBAL INSERT would batch)
+        bulk_insert:
+            enabled: true
+            threshold: 100  # Minimum number of single-row INSERTs into one table
 
         # Bulk Operation Detection
         bulk_operation:
@@ -191,9 +196,6 @@ doctrine_doctor:
             max_joins_critical: 8     # Number of JOINs to mark as critical
 
         # Additional Analyzers (all enabled by default)
-        auto_generate_proxy_classes:
-            enabled: true
-
         collection_empty_access:
             enabled: true
 

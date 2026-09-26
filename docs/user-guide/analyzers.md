@@ -11,7 +11,7 @@ nav_order: 2
 
 ## 1. Overview
 
-Doctrine Doctor implements **98 specialized analyzers** organized into four categories that detect Doctrine ORM anti-patterns and performance issues.
+Doctrine Doctor implements **100 specialized analyzers** organized into four categories that detect Doctrine ORM anti-patterns and performance issues.
 
 ### 1.1 Severity Classification
 
@@ -31,10 +31,11 @@ Doctrine Doctor implements **98 specialized analyzers** organized into four cate
 
 ### 2.2 Detection Methods
 
-- **Static Analysis**: Entity metadata, configuration analysis
-- **Runtime Analysis**: Query pattern recognition, signature matching
-- **Database Analysis**: EXPLAIN query execution plans
-- **Code Analysis**: Call stack inspection, trace analysis
+- **Runtime Analysis**: Query pattern recognition and request context in the Symfony Web Profiler
+- **Static Analysis**: Application source and Doctrine mapping checks in `doctrine:doctor:analyze`
+- **Database Audits**: Live database schema and configuration checks, opt-in with `--with-database`
+
+See [Profiler and CI Checks](execution-modes) to choose how to run these checks.
 
 ---
 
@@ -44,7 +45,7 @@ Doctrine Doctor implements **98 specialized analyzers** organized into four cate
 
 Performance analyzers detect patterns that degrade application responsiveness, increase database load, or consume excessive system resources.
 
-**Total**: 30 analyzers
+**Total**: 33 analyzers
 **Average Impact**: 10-1000x performance improvement when resolved
 
 ### 3.2 Key Performance Analyzers
@@ -90,7 +91,7 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 - **Impact**: Prevents row explosion, duplicate hydration, memory spikes, and severe slowdowns
 - **Example**: Joining multiple to-many associations in one query creates `N x M` result multiplication
 
-> Note: Two classes under `src/Analyzer/` are intentionally absent from this catalog. `MissingIndexAnalyzerConfig` is a configuration object, not an analyzer, and `FlushInLoopAnalyzerModern` is an unfinished variant excluded from the `doctrine_doctor.analyzer` tag in `config/services.yaml`, so it never runs.
+> Note: `MissingIndexAnalyzerConfig`, under `src/Analyzer/`, is intentionally absent from this catalog: it is a configuration object, not an analyzer.
 
 ---
 
@@ -107,8 +108,9 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 | LazyLoadingAnalyzer | Proxy initialization | Query reduction | `threshold: 10` |
 | DTOHydrationAnalyzer | Hydration mode | Memory + performance | — |
 | BulkOperationAnalyzer | Entity count | 100-1000x | `threshold: 20` |
+| BulkInsertAnalyzer | Single-row INSERTs into one table | Multi-row INSERT through DBAL; names the callbacks, listeners and generated ids it bypasses | `threshold: 100` |
 | QueryCachingOpportunityAnalyzer | Cache statistics | 50-90% reduction | — |
-| EntityManagerClearAnalyzer | Memory usage | Memory leak prevention | `batch_size_threshold: 20` |
+| EntityManagerClearAnalyzer | Memory usage | Memory leak prevention | `batch_size_threshold: 50` |
 | JoinOptimizationAnalyzer | JOIN complexity | Query simplification | `max_joins_recommended: 5`, `max_joins_critical: 8` |
 | CartesianProductAnalyzer | Multi-collection JOIN analysis | Prevent row explosion | `n1_collection_threshold: 3` |
 | SetMaxResultsWithCollectionJoinAnalyzer | LIMIT + JOIN | Incorrect results | — |
@@ -122,7 +124,7 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 | PaginationWithoutOrderByAnalyzer | LIMIT without ORDER BY | Non-deterministic pages | — |
 | OrderByNullableLeadingColumnAnalyzer | Nullable leading sort key | Rows skipped per platform | — |
 | FunctionOnPredicateColumnAnalyzer | Function wrapping a WHERE column | Index not usable | — |
-| ImplicitTypeConversionAnalyzer | Type mismatch in predicates | Index not usable | — |
+| ImplicitTypeConversionAnalyzer | Text column compared to a number or to an integer-bound DQL parameter (column types from Doctrine metadata) | Index not usable: per-row cast on MySQL/MariaDB, error on PostgreSQL | — |
 | NotInSubqueryAnalyzer | `NOT IN` with a subquery | NULL semantics and cost | — |
 | MissingTransactionOnBatchAnalyzer | Unwrapped batch writes | Per-statement commits | — |
 | EagerLoadingMappingAnalyzer | `fetch: 'EAGER'` in mapping | Unrequested joins | — |
@@ -142,7 +144,7 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 
 Security analyzers detect vulnerabilities aligned with **OWASP Top 10** and Doctrine-specific attack vectors.
 
-**Total**: 6 analyzers
+**Total**: 7 analyzers
 **OWASP Coverage**: A02:2021 (Cryptographic Failures), A03:2021 (Injection), A05:2021 (Security Misconfiguration)
 
 ### 4.2 Key Security Analyzers
@@ -186,6 +188,12 @@ Security analyzers detect vulnerabilities aligned with **OWASP Top 10** and Doct
 - **Purpose**: Flags a database user holding more privileges than the application needs
 - **Detection**: Connection user inspection, including the empty-user case
 
+#### 4.2.7 SQLInjectionInRawQueriesSourceAnalyzer
+
+- **Purpose**: Finds unsafe raw SQL construction in application source code
+- **Runs in**: `doctrine:doctor:analyze` (CI)
+- **Note**: `SQLInjectionInRawQueriesAnalyzer` separately checks SQL captured from real requests in the profiler
+
 ---
 
 ## 5. Integrity Analyzers
@@ -194,34 +202,25 @@ Security analyzers detect vulnerabilities aligned with **OWASP Top 10** and Doct
 
 Integrity analyzers detect code smells, anti-patterns, and violations of best practices that affect maintainability, readability, and adherence to Doctrine ORM conventions.
 
-**Total**: 53 analyzers
+**Total**: 52 analyzers
 **Focus**: Type safety, relationship consistency, lifecycle management, naming conventions
 
 ### 5.2 Key Analyzers
 
-#### 5.2.1 CascadeAnalyzer (Unified)
+#### 5.2.1 Cascade analyzers
 
-**Description**: Single unified analyzer for all cascade-related issues following Single Responsibility Principle.
+**Description**: Three dedicated analyzers, one per cascade rule, so each finding is reported once.
 
 **Detects**:
 
-1. `cascade="all"` usage (highest priority - most dangerous)
-2. `cascade="remove"` on independent entities (potential data loss)
-3. `cascade="persist"` on independent entities (wrong aggregate boundaries)
-
-**Benefits**:
-
-- O(n) performance instead of O(3n)
-- No duplicate issues
-- Clear priority ordering
+1. `CascadeAllAnalyzer`: `cascade: ['all']` usage (most dangerous)
+2. `CascadeRemoveOnIndependentEntityAnalyzer`: `cascade: ['remove']` on independent entities (potential data loss)
+3. `CascadePersistOnIndependentEntityAnalyzer`: `cascade: ['persist']` on independent entities (wrong aggregate boundaries)
 
 **Example Violation**:
 
 ```php
-/**
- * @ORM\ManyToOne(targetEntity="Tag")
- * @ORM\JoinColumn(cascade={"remove"})  // ❌ Tag is independent!
- */
+#[ORM\ManyToOne(targetEntity: Tag::class, cascade: ['remove'])] // Tag is independent!
 private Tag $tag;
 ```
 
@@ -294,7 +293,6 @@ class Customer {
 | PropertyTypeMismatchAnalyzer | Type safety | PHP↔DB type mismatch | Runtime errors |
 | ColumnTypeAnalyzer | Column definitions | Wrong type usage | Data loss |
 | CollectionInitializationAnalyzer | Object lifecycle | Uninitialized collections | Null pointer exceptions |
-| CascadeAnalyzer | Cascade safety | Unified cascade diagnosis | Data loss or orphans |
 | TimestampableTraitAnalyzer | Trait conventions | Mutable or nullable timestamps | Unreliable audit trail |
 | BlameableTraitAnalyzer | Trait conventions | Mutable or public author fields | Unreliable audit trail |
 | SoftDeleteableTraitAnalyzer | Trait conventions | Mutable deletion timestamp | Unreliable soft deletes |
@@ -336,7 +334,7 @@ class Customer {
 
 Configuration analyzers inspect the Doctrine and database settings the application runs with, rather than the entities or the queries themselves.
 
-**Total**: 9 analyzers
+**Total**: 8 analyzers
 
 ### 6.2 Key Configuration Analyzers
 
@@ -355,8 +353,9 @@ Configuration analyzers inspect the Doctrine and database settings the applicati
 - **Purpose**: Validates collation settings for proper sorting and comparisons
 - **Detection Notes**:
   - MySQL/MariaDB: detects `utf8mb4_general_ci` vs `utf8mb4_unicode_ci` mismatches
+  - MySQL/MariaDB: detects view columns whose collation differs from the connection collation. `CREATE VIEW` freezes the session collation into the literals of its definition, so comparing such a column against a literal raises error 1267 (_Illegal mix of collations_) — both operands share the same coercibility and MySQL cannot arbitrate. Only same-character-set differences are reported, since MySQL converts implicitly across character sets
   - PostgreSQL: detects `"C"` collation issues, libc vs ICU differences, FK collation mismatches
-- **Recommendation**: Use consistent, platform-appropriate collations across related tables/columns
+- **Recommendation**: Use consistent, platform-appropriate collations across related tables/columns. For views, either recreate them from a connection using the application collation, or pin the literals with an explicit `COLLATE` so the definition no longer depends on the creating session
 
 #### 6.2.4 StrictModeAnalyzer
 
@@ -374,18 +373,12 @@ Configuration analyzers inspect the Doctrine and database settings the applicati
 - **Purpose**: Detects suboptimal cache configuration — `ArrayCache` for metadata, query or result caching reparses and recompiles on every request
 - **Note**: Reads the running configuration and only applies in the `prod` environment
 
-#### 6.2.7 AutoGenerateProxyClassesAnalyzer
-
-- **Severity**: Critical
-- **Purpose**: Detects `auto_generate_proxy_classes` left enabled for production, which makes Doctrine stat the filesystem on every entity load
-- **Detection**: Parses the production YAML (`config/packages/prod/doctrine.yaml`, `when@prod` blocks), so it warns from the dev profiler before deployment
-
-#### 6.2.8 LazyGhostObjectsDisabledAnalyzer
+#### 6.2.7 LazyGhostObjectsDisabledAnalyzer
 
 - **Severity**: Info
-- **Purpose**: Detects `enable_lazy_ghost_objects` left disabled (Symfony 6.2+), a more efficient proxy mechanism than the legacy generated proxies
+- **Purpose**: Detects `enable_native_lazy_objects` explicitly disabled, which falls back to generated proxy classes; silent from DoctrineBundle 3.1, where native lazy objects are always on
 
-#### 6.2.9 ConnectionPoolingAnalyzer
+#### 6.2.8 ConnectionPoolingAnalyzer
 
 - **Purpose**: Reviews connection pool settings and reports when `max_connections` is unsuited to the workload
 
@@ -444,7 +437,7 @@ doctrine_doctor:
 
 ### 8.1 Custom Analyzers
 
-Create custom analyzers by implementing `AnalyzerInterface` (query-based) or `MetadataAnalyzerInterface` (metadata-based):
+Create custom analyzers by implementing `AnalyzerInterface` for request-dependent query analysis, `StaticAnalyzerInterface` for source or mapping checks, or `DatabaseAuditAnalyzerInterface` for live database audits. `MetadataAnalyzerInterface` remains available for mapping checks and extends `StaticAnalyzerInterface`:
 
 ```php
 // Query-based analyzer

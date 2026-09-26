@@ -25,7 +25,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 
-final readonly class NPlusOneSqlAnalyzer implements AnalyzerInterface
+readonly class NPlusOneSqlAnalyzer implements AnalyzerInterface
 {
     public function __construct(
         private IssueFactoryInterface $issueFactory,
@@ -38,8 +38,9 @@ final readonly class NPlusOneSqlAnalyzer implements AnalyzerInterface
 
     public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
     {
+        // ORM lazy loading is NPlusOneAnalyzer's case, fixed with a fetch join, not with hand-written SQL.
         $selects = $queryDataCollection->filter(
-            fn (QueryData $query): bool => $this->sqlExtractor->isSelectQuery($query->sql),
+            fn (QueryData $query): bool => $this->sqlExtractor->isSelectQuery($query->sql) && !$this->isGeneratedByOrm($query),
         );
 
         $groups = $selects->groupByPattern(
@@ -67,15 +68,13 @@ final readonly class NPlusOneSqlAnalyzer implements AnalyzerInterface
                 };
 
                 $suggestion = $this->suggestionFactory->createFromTemplate(
-                    templateName: 'Performance/query_optimization',
+                    templateName: 'Integrity/code_suggestion',
                     context: [
-                        'code' => $pattern,
-                        'optimization' => sprintf(
-                            'Detected %d similar SQL queries (DBAL). Batch with: SELECT ... WHERE id IN (?, ?, ...).',
+                        'description' => sprintf(
+                            'The same query ran %d times, once per value. Fetch all values in one query with an array parameter, then group the rows in PHP.',
                             $count,
                         ),
-                        'execution_time' => $totalMs,
-                        'threshold' => $this->threshold,
+                        'code' => $this->batchedQueryExample($first->sql),
                     ],
                     suggestionMetadata: new SuggestionMetadata(
                         type: SuggestionType::performance(),
@@ -102,5 +101,31 @@ final readonly class NPlusOneSqlAnalyzer implements AnalyzerInterface
                 yield $this->issueFactory->create($issueData);
             }
         });
+    }
+
+    /**
+     * Doctrine aliases every selected column as <column>_<n> (id_0, name_1),
+     * which hand-written SQL does not do; a Doctrine\ORM frame in the backtrace,
+     * when collected, confirms it.
+     */
+    private function isGeneratedByOrm(QueryData $query): bool
+    {
+        if (1 === preg_match('/^\s*SELECT\s.+?\sAS\s+\w+_\d+\s*(?:,|FROM\b)/is', $query->sql)) {
+            return true;
+        }
+        return array_any($query->backtrace ?? [], fn ($frame) => str_starts_with((string) ($frame['class'] ?? ''), 'Doctrine\\ORM\\'));
+    }
+
+    private function batchedQueryExample(string $sql): string
+    {
+        $batchedSql = preg_replace('/(\b[\w.]+)\s*=\s*\?/', '$1 IN (?)', $sql, 1) ?? $sql;
+
+        return "use Doctrine\\DBAL\\ArrayParameterType;\n\n"
+            . "// One query for all values instead of one per value\n"
+            . "\$rows = \$connection->fetchAllAssociative(\n"
+            . '    ' . var_export($batchedSql, true) . ",\n"
+            . "    [\$values],\n"
+            . "    [ArrayParameterType::INTEGER], // or ArrayParameterType::STRING\n"
+            . ");\n";
     }
 }

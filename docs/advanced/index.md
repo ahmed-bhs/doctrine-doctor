@@ -15,4 +15,5 @@ Deep-dive into Doctrine Doctor's architecture and advanced features.
 | Page | Description |
 |------|-------------|
 | [Architecture](architecture) | System design and internals |
+| [Analyzer Execution Inventory](analyzer-execution-inventory) | Exact runtime, static, and database audit analyzer lists |
 | [Template Security](template-security) | Template analysis details |

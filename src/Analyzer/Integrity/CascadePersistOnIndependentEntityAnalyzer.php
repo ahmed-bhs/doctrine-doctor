@@ -140,8 +140,8 @@ class CascadePersistOnIndependentEntityAnalyzer implements MetadataAnalyzerInter
         $entityClass = $classMetadata->getName();
 
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $associationMapping) {
-            $cascade      = $associationMapping['cascade'] ?? [];
-            $targetEntity = $associationMapping['targetEntity'] ?? null;
+            $cascade      = $associationMapping->cascade;
+            $targetEntity = $associationMapping->targetEntity;
 
             // Skip if no cascade persist
             if (!in_array('persist', $cascade, true) && !in_array('all', $cascade, true)) {
@@ -149,7 +149,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements MetadataAnalyzerInter
             }
 
             // Only check ManyToOne and ManyToMany (associations to independent entities)
-            $type = $this->getAssociationTypeConstant($associationMapping);
+            $type = MappingHelper::getAssociationType($associationMapping);
 
             if (!in_array($type, [ClassMetadata::MANY_TO_ONE, ClassMetadata::MANY_TO_MANY], true)) {
                 continue;
@@ -263,49 +263,13 @@ class CascadePersistOnIndependentEntityAnalyzer implements MetadataAnalyzerInter
 
     private function getAssociationType(array|object $mapping): string
     {
-        $type = $this->getAssociationTypeConstant($mapping);
+        $type = MappingHelper::getAssociationType($mapping);
 
         return match ($type) {
             ClassMetadata::MANY_TO_ONE  => 'ManyToOne',
             ClassMetadata::MANY_TO_MANY => 'ManyToMany',
             default                     => 'Unknown',
         };
-    }
-
-    /**
-     * Get association type constant in a version-agnostic way.
-     * Doctrine ORM 2.x uses 'type' field, 3.x/4.x uses specific mapping classes.
-     */
-    private function getAssociationTypeConstant(array|object $mapping): int
-    {
-        // Try to get type from array (Doctrine ORM 2.x)
-        $type = MappingHelper::getInt($mapping, 'type');
-        if (null !== $type) {
-            return $type;
-        }
-
-        // Doctrine ORM 3.x/4.x: determine from class name
-        if (is_object($mapping)) {
-            $className = $mapping::class;
-
-            if (str_contains($className, 'ManyToOne')) {
-                return (int) ClassMetadata::MANY_TO_ONE;
-            }
-
-            if (str_contains($className, 'OneToMany')) {
-                return (int) ClassMetadata::ONE_TO_MANY;
-            }
-
-            if (str_contains($className, 'ManyToMany')) {
-                return (int) ClassMetadata::MANY_TO_MANY;
-            }
-
-            if (str_contains($className, 'OneToOne')) {
-                return (int) ClassMetadata::ONE_TO_ONE;
-            }
-        }
-
-        return 0; // Unknown
     }
 
     private function createCascadePersistSuggestion(

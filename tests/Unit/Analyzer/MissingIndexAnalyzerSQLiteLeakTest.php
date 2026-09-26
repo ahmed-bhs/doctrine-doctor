@@ -19,11 +19,20 @@ use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\PhpTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\Deprecations\PHPUnit\VerifyDeprecations;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 final class MissingIndexAnalyzerSQLiteLeakTest extends TestCase
 {
+    use VerifyDeprecations;
+
+    protected function setUp(): void
+    {
+        // DBAL 4 deprecates these schema/connection APIs, removed in DBAL 5.
+        $this->expectNoDeprecationWithIdentifier('https://github.com/doctrine/dbal/pull/6590');
+    }
+
     #[Test]
     public function it_must_suggest_index_when_sqlite_full_scan_above_production_threshold(): void
     {

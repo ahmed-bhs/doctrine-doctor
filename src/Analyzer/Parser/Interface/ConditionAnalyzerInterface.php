@@ -19,6 +19,11 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Parser\Interface;
 interface ConditionAnalyzerInterface
 {
     /**
+     * Whether the top-level SELECT has a WHERE clause, whatever its predicates look like.
+     */
+    public function hasWhereClause(string $sql): bool;
+
+    /**
      * Extracts columns from WHERE clause that could benefit from indexing.
      *
      * @return array<string> Column names found in WHERE conditions

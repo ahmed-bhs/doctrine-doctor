@@ -86,6 +86,10 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
                             continue;
                         }
 
+                        if ($this->isSameQueryRepeated($groupArray)) {
+                            continue;
+                        }
+
                         $totalTime  = $group->totalExecutionTime();
                         $backtrace  = $group->first()?->backtrace;
 
@@ -115,6 +119,39 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
                 }
             },
         );
+    }
+
+    /**
+     * An N+1 runs one query per loaded row, so something varies between runs.
+     * The exact same statement with the same parameters is a redundant query
+     * (memoize or cache it), reported by the repeated query analyzers. With
+     * placeholders, parameters must be known to tell: without them the group
+     * is still reported.
+     *
+     * @param array<QueryData> $queries
+     */
+    private function isSameQueryRepeated(array $queries): bool
+    {
+        $first = reset($queries);
+        if (false === $first) {
+            return false;
+        }
+
+        foreach ($queries as $query) {
+            if ($query->sql !== $first->sql) {
+                return false;
+            }
+        }
+
+        if (1 !== preg_match('/\?|:\w+/', $first->sql)) {
+            return true;
+        }
+
+        if ([] === $first->params) {
+            return false;
+        }
+
+        return array_all($queries, static fn (QueryData $query): bool => $query->params === $first->params);
     }
 
     /**

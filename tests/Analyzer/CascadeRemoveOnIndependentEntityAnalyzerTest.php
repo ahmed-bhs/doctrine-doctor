@@ -152,15 +152,15 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_marks_many_to_many_cascade_remove_to_independent_as_high(): void
+    public function it_marks_many_to_many_cascade_remove_to_independent_as_critical(): void
     {
-        // Arrange: ManyToMany with cascade="remove" to independent entity is HIGH
+        // Arrange: ManyToMany with cascade="remove" to independent entity is CRITICAL
         $queries = QueryDataBuilder::create()->build();
 
         // Act
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert: Should be HIGH severity for ManyToMany to Product
+        // Assert: Should be CRITICAL for ManyToMany to Product
         $issuesArray = $issues->toArray();
         $productIssue = array_filter($issuesArray, static function ($issue) {
             $data = $issue->getData();
@@ -174,8 +174,7 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
 
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
         self::assertNotFalse($issue);
-        // Note: Severity may be 'critical', 'warning', or 'warning' depending on association type detection
-        self::assertContains($issue->getSeverity()->value, ['critical', 'warning', 'warning'], 'ManyToMany to independent entity');
+        self::assertSame('critical', $issue->getSeverity()->value, 'ManyToMany to independent entity');
     }
 
     #[Test]

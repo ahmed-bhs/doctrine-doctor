@@ -16,6 +16,8 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
+use AhmedBhs\DoctrineDoctor\DTO\QueryData;
+use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -67,11 +69,7 @@ final class MetadataAnalyzerTraitTest extends TestCase
         };
 
         $queryData = QueryDataCollection::fromArray([
-            [
-                'sql' => 'SELECT * FROM users',
-                'executionTime' => 0.01,
-                'params' => [],
-            ],
+            new QueryData(sql: 'SELECT * FROM users', executionTime: QueryExecutionTime::fromSeconds(0.01)),
         ]);
 
         $result = $analyzer->analyze($queryData);

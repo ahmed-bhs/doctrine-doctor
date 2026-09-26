@@ -15,6 +15,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Performance\PaginationWithoutOrderByAnalyze
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Template\Renderer\InMemoryTemplateRenderer;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -52,6 +53,28 @@ final class PaginationWithoutOrderByAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($queries);
 
         self::assertCount(0, $issues);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function order_by_text_without_ordering(): iterable
+    {
+        yield 'string literal' => ["SELECT * FROM users WHERE name = 'ORDER BY' LIMIT 20 OFFSET 20"];
+        yield 'SQL comment' => ['SELECT * FROM users /* ORDER BY id */ LIMIT 20 OFFSET 20'];
+        yield 'ordered scalar subquery' => ['SELECT id, (SELECT name FROM roles ORDER BY id LIMIT 1) AS role FROM users LIMIT 20 OFFSET 20'];
+        yield 'unordered paginator wrapper with literal' => ["SELECT DISTINCT id FROM (SELECT id FROM users WHERE name = 'ORDER BY') dctrn_result LIMIT 20 OFFSET 20"];
+        yield 'unrelated derived table' => ['SELECT * FROM (SELECT * FROM users ORDER BY id) custom_results LIMIT 20 OFFSET 20'];
+    }
+
+    #[Test]
+    #[DataProvider('order_by_text_without_ordering')]
+    public function it_reports_unordered_pagination_despite_order_by_text(string $sql): void
+    {
+        $queries = QueryDataBuilder::create()->addQuery($sql)->build();
+
+        $issues = $this->analyzer->analyze($queries)->toArray();
+
+        self::assertCount(1, $issues, 'Literal and comment text cannot order paginated rows.');
+        self::assertSame('pagination_without_order_by', $issues[0]->getData()['type']);
     }
 
     #[Test]

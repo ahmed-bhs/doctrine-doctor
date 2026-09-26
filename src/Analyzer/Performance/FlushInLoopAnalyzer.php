@@ -135,7 +135,11 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                 ++$operationsSinceLastFlush;
             }
 
-            if ($this->isPotentialFlushBoundary($queriesArray, $index)) {
+            // flush() wraps its writes in a transaction: a COMMIT closing at least
+            // one write ends a flush, whether or not a read follows it.
+            $endsFlushTransaction = $this->isCommit($queryData) && $operationsSinceLastFlush > 0;
+
+            if ($endsFlushTransaction || $this->isPotentialFlushBoundary($queriesArray, $index)) {
                 if ($lastFlushIndex >= 0) {
                     $insertUpdateGroups[] = [
                         'start_index'              => $lastFlushIndex,
@@ -195,7 +199,7 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
 
         foreach ($flushGroups as $flushGroup) {
             for ($i = $flushGroup['start_index']; $i <= $flushGroup['end_index']; ++$i) {
-                if (isset($queriesArray[$i])) {
+                if (isset($queriesArray[$i]) && !$this->isTransactionMarker($queriesArray[$i])) {
                     $affectedQueries[] = $queriesArray[$i];
                     $totalTime += $queriesArray[$i]->executionTime->inMilliseconds();
                 }
@@ -223,6 +227,24 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
         }
 
         return false;
+    }
+
+    /**
+     * Symfony's Doctrine debug middleware logs "COMMIT" (quoted) as a query.
+     */
+    private function isCommit(QueryData $queryData): bool
+    {
+        return 'COMMIT' === $this->transactionStatement($queryData);
+    }
+
+    private function isTransactionMarker(QueryData $queryData): bool
+    {
+        return in_array($this->transactionStatement($queryData), ['START TRANSACTION', 'BEGIN', 'BEGIN TRANSACTION', 'COMMIT', 'ROLLBACK'], true);
+    }
+
+    private function transactionStatement(QueryData $queryData): string
+    {
+        return strtoupper(trim($queryData->sql, " \t\n\r\0\x0B\";"));
     }
 
     private function isIdRetrievalQuery(string $sql): bool

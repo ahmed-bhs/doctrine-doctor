@@ -13,7 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 
-interface MetadataAnalyzerInterface extends AnalyzerInterface
+interface MetadataAnalyzerInterface extends StaticAnalyzerInterface
 {
     public function analyzeMetadata(): IssueCollection;
 }

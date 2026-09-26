@@ -314,7 +314,7 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         foreach ($sortedTables as $table) {
             $items = $repeatedTables[$table]['items'];
 
-            if (!$this->isContiguousBlock($items)) {
+            if (!$this->isContiguousBlock($items) && !$this->isAlternatingProxyLoad($table, $repeatedTables, $allGroups)) {
                 continue;
             }
 
@@ -398,6 +398,52 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         }
 
         return true;
+    }
+
+    /**
+     * Lazy to-one proxies traversed in a loop ($comment->getPost()->getAuthor())
+     * load each level in turn: post, author, next post... Such a group is not
+     * contiguous, but it is a nested N+1 when it loads rows by primary key and
+     * only alternates with other primary-key groups, with no unrelated SELECT
+     * in between. Loads by foreign key are to-many traversals and stay excluded.
+     *
+     * @param array<string, array{items: list<array{query: QueryData, table: string, foreignKey: ?string, sql: string, index: int}>, first_index: int}> $repeatedTables
+     * @param array<string, array{items: list<array{query: QueryData, table: string, foreignKey: ?string, sql: string, index: int}>, first_index: int}> $allGroups
+     */
+    private function isAlternatingProxyLoad(string $table, array $repeatedTables, array $allGroups): bool
+    {
+        $items = $repeatedTables[$table]['items'];
+
+        if ('id' !== $this->dominantForeignKey($items)) {
+            return false;
+        }
+
+        $first = $items[0]['index'];
+        $last = $items[\count($items) - 1]['index'];
+        $partners = 0;
+
+        foreach ($allGroups as $groupTable => $group) {
+            if ($groupTable === $table) {
+                continue;
+            }
+
+            foreach ($group['items'] as $item) {
+                if ($item['index'] <= $first || $item['index'] >= $last) {
+                    continue;
+                }
+
+                $isProxyPartner = isset($repeatedTables[$groupTable])
+                    && 'id' === $this->dominantForeignKey($repeatedTables[$groupTable]['items']);
+
+                if (!$isProxyPartner) {
+                    return false;
+                }
+
+                ++$partners;
+            }
+        }
+
+        return $partners > 0;
     }
 
     /**

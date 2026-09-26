@@ -1,7 +1,7 @@
 # Doctrine Doctor
 
-Runtime analysis bundle for Doctrine ORM, integrated into Symfony Web Profiler.
-90+ analyzers across 4 categories: Performance, Security, Integrity, Configuration.
+Doctrine ORM profiler and CI analysis bundle. Request-SQL analyzers run in Symfony Web Profiler; source/mapping checks run with `doctrine:doctor:analyze`.
+100 analyzer services across Performance, Security, Integrity, and Configuration.
 
 - Namespace: `AhmedBhs\DoctrineDoctor`
 - PHP 8.4+ / Symfony 6-8 / Doctrine ORM 3-4
@@ -23,6 +23,8 @@ composer phpmd               # mess detection
 composer deptrac             # architectural constraints
 composer lint                # syntax check (parallel-lint)
 composer markdown-lint       # docs markdown lint
+php bin/console doctrine:doctor:analyze # source and mapping checks for CI
+php bin/console doctrine:doctor:analyze --with-database # include live database audits
 
 # Combined
 composer check               # lint + test + ecs + phpstan + phpmd + rector + deptrac
@@ -40,7 +42,7 @@ make qa                      # alias for check
 - Test names in snake_case, prefixed with `it_` (e.g. `it_detects_n_plus_one_queries`)
 - PHPStan level 8, bleeding edge, `checkUninitializedProperties: true`
 - Imports ordered: const, class, function (alphabetical)
-- No `final` on classes
+- No `final` on extension points (analyzers, issues); internal helpers, parsers, strategies, collections, value objects, DTOs and test classes may be `final`
 - Constructor promotion with `readonly`
 - Concatenation with spaces (`$a . $b`, not `$a.$b`)
 
@@ -58,10 +60,12 @@ Dependencies only point inward: Domain imports nothing from Application/Infrastr
 
 ### Analyzer pattern (Strategy)
 
-Two contracts:
+Execution has separate runtime and CI paths:
 
-- **`AnalyzerInterface`**: for query-based analyzers that need `QueryDataCollection`
-- **`MetadataAnalyzerInterface`** (extends `AnalyzerInterface`): for metadata-based analyzers (Integrity, Configuration, Security) that work on Doctrine metadata or database connections. Uses `MetadataAnalyzerTrait` to bridge `analyze()` -> `analyzeMetadata()`.
+- **`AnalyzerInterface`**: query-dependent analyzers that consume this request's `QueryDataCollection`; these run in the profiler.
+- **`StaticAnalyzerInterface`**: source-code or mapping checks that do not depend on request SQL; these run in CI.
+- **`MetadataAnalyzerInterface`** (extends `StaticAnalyzerInterface`): metadata checks using `MetadataAnalyzerTrait` to bridge `analyze()` -> `analyzeMetadata()`.
+- **`DatabaseAuditAnalyzerInterface`** (extends `MetadataAnalyzerInterface`): CI checks that inspect live database settings or schema; the command includes them only with `--with-database`.
 
 ```php
 // Query analyzers
@@ -71,7 +75,8 @@ public function analyze(QueryDataCollection $queryDataCollection): IssueCollecti
 public function analyzeMetadata(): IssueCollection; // via MetadataAnalyzerInterface + trait
 ```
 
-- Auto-discovered via DI tag `doctrine_doctor.analyzer`
+- Auto-discovered via the compatibility tag `doctrine_doctor.analyzer`; the compiler assigns runtime and static tags from the analyzer interfaces.
+- The data collector receives only `doctrine_doctor.runtime_analyzer`; the CI command receives `doctrine_doctor.static_analyzer`.
 - Located in `src/Analyzer/{Performance,Security,Integrity,Configuration}/`
 - Receive a decorated `EntityManager` (vendor entity filtering is transparent)
 - Create Issues directly (`new IntegrityIssue(...)`, `new PerformanceIssue(...)`)
@@ -96,7 +101,7 @@ Key `QueryDataCollection` methods: `onlySelects()`, `onlyInserts()`, `groupByPat
 
 - PHP files in `src/Template/Suggestions/{Category}/`
 - Rendered via `PhpTemplateRenderer` (implements `TemplateRendererInterface`)
-- Excluded from all checks (ECS, PHPStan, Deptrac, PHPMD)
+- Excluded from Deptrac and PHPMD; ECS and PHPStan still check them
 - Must handle missing context keys gracefully
 - Validated by `bin/validate-suggestion-templates.php` in CI:
   - Must use `ob_start()` / `ob_get_clean()`
@@ -107,7 +112,7 @@ Key `QueryDataCollection` methods: `onlySelects()`, `onlyInserts()`, `groupByPat
 ## Adding an analyzer
 
 1. Create class in `src/Analyzer/{Category}/`
-2. Implement `AnalyzerInterface` (query-based) or `MetadataAnalyzerInterface` (metadata-based)
+2. Implement `AnalyzerInterface` for request-SQL checks, `StaticAnalyzerInterface` for source/mapping checks, or `DatabaseAuditAnalyzerInterface` for live database audits
 3. Create suggestion template in `src/Template/Suggestions/{Category}/`
 4. Register in `config/services.yaml` with tag `doctrine_doctor.analyzer`
 5. Add tests in `tests/Unit/Analyzer/` or `tests/Analyzer/`
@@ -173,7 +178,7 @@ self::assertStringContainsString('expected text', $issue->getDescription());
 
 | Path | Excluded from |
 |---|---|
-| `src/Template/Suggestions/` | ECS, PHPStan, Deptrac, PHPMD |
+| `src/Template/Suggestions/` | Deptrac, PHPMD |
 | `tests/Fixtures/` | Rector, PHPMD |
 | `*/DependencyInjection/Configuration.php` | PHPMD |
 | `*/DependencyInjection/*Extension.php` | PHPMD |
@@ -198,7 +203,7 @@ EXPLAIN output parsing differs per platform — always go through the abstractio
 
 | Purpose | Path |
 |---|---|
-| Analyzer interfaces | `src/Analyzer/AnalyzerInterface.php`, `src/Analyzer/MetadataAnalyzerInterface.php` |
+| Analyzer interfaces | `src/Analyzer/AnalyzerInterface.php`, `src/Analyzer/StaticAnalyzerInterface.php`, `src/Analyzer/MetadataAnalyzerInterface.php`, `src/Analyzer/DatabaseAuditAnalyzerInterface.php` |
 | Data collector (orchestrator) | `src/Collector/DoctrineDoctorDataCollector.php` |
 | Service wiring | `config/services.yaml` |
 | Bundle config options | `src/DependencyInjection/Configuration.php` |

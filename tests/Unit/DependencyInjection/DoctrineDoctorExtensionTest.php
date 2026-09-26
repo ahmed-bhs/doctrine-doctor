@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Unit\DependencyInjection;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
+use AhmedBhs\DoctrineDoctor\Command\AnalyzeCommand;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Configuration;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\DoctrineDoctorExtension;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
@@ -22,6 +23,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Config\Definition\ArrayNode;
+use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\Finder\Finder;
@@ -78,6 +80,10 @@ final class DoctrineDoctorExtensionTest extends TestCase
             // Acronyms (SQL, DTO, DQL) should stay together
             'sql_acronym' => [
                 'SQLInjectionInRawQueriesAnalyzer',
+                'sql_injection_in_raw_queries',
+            ],
+            'sql_source_analyzer_uses_parent_configuration' => [
+                'SQLInjectionInRawQueriesSourceAnalyzer',
                 'sql_injection_in_raw_queries',
             ],
             'dql_acronym' => [
@@ -189,6 +195,14 @@ final class DoctrineDoctorExtensionTest extends TestCase
         self::assertTrue($container->hasParameter('doctrine_doctor.enabled'));
         self::assertTrue($container->getParameter('doctrine_doctor.enabled'));
         self::assertTrue($container->hasDefinition(DoctrineDoctorDataCollector::class));
+        self::assertTrue($container->hasDefinition(AnalyzeCommand::class));
+        self::assertTrue($container->getDefinition(AnalyzeCommand::class)->hasTag('console.command'));
+        $runtimeAnalyzerIterator = $container->getDefinition(DoctrineDoctorDataCollector::class)->getArgument('$analyzers');
+        $staticAnalyzerIterator = $container->getDefinition(AnalyzeCommand::class)->getArgument('$analyzers');
+        self::assertInstanceOf(TaggedIteratorArgument::class, $runtimeAnalyzerIterator);
+        self::assertInstanceOf(TaggedIteratorArgument::class, $staticAnalyzerIterator);
+        self::assertSame('doctrine_doctor.runtime_analyzer', $runtimeAnalyzerIterator->getTag());
+        self::assertSame('doctrine_doctor.static_analyzer', $staticAnalyzerIterator->getTag());
     }
 
     #[Test]
@@ -282,6 +296,7 @@ final class DoctrineDoctorExtensionTest extends TestCase
         ]], $container);
 
         self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Security\SQLInjectionInRawQueriesAnalyzer::class));
+        self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Security\SQLInjectionInRawQueriesSourceAnalyzer::class));
         self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadePersistOnIndependentEntityAnalyzer::class));
         self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MissingOrphanRemovalOnCompositionAnalyzer::class));
         self::assertFalse($container->hasDefinition(\AhmedBhs\DoctrineDoctor\Analyzer\Integrity\CascadeRemoveOnIndependentEntityAnalyzer::class));

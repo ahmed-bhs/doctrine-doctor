@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -23,7 +23,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
-class MappedSuperclassAsTargetEntityAnalyzer implements AnalyzerInterface
+class MappedSuperclassAsTargetEntityAnalyzer implements StaticAnalyzerInterface
 {
     use ShortClassNameTrait;
 
@@ -59,8 +59,8 @@ class MappedSuperclassAsTargetEntityAnalyzer implements AnalyzerInterface
                 }
 
                 foreach ($metadata->getAssociationMappings() as $mapping) {
-                    $targetEntity = $mapping['targetEntity'] ?? null;
-                    if (null === $targetEntity || !isset($mappedSuperclasses[$targetEntity])) {
+                    $targetEntity = $mapping->targetEntity;
+                    if (!isset($mappedSuperclasses[$targetEntity])) {
                         continue;
                     }
 
@@ -70,7 +70,7 @@ class MappedSuperclassAsTargetEntityAnalyzer implements AnalyzerInterface
                         . 'This will cause a runtime MappingException.',
                         [
                             'entity' => $this->shortClassName($metadata->getName()),
-                            'field' => $mapping['fieldName'],
+                            'field' => $mapping->fieldName,
                             'target' => $this->shortClassName($targetEntity),
                         ],
                     );
@@ -80,7 +80,7 @@ class MappedSuperclassAsTargetEntityAnalyzer implements AnalyzerInterface
                         title: sprintf(
                             'Association targets Mapped Superclass: %s::$%s -> %s',
                             $this->shortClassName($metadata->getName()),
-                            $mapping['fieldName'],
+                            $mapping->fieldName,
                             $this->shortClassName($targetEntity),
                         ),
                         description: $description,

@@ -19,6 +19,9 @@ use PHPUnit\Framework\TestCase;
 
 final class MetadataAnalyzerInterfaceContractTest extends TestCase
 {
+    /**
+     * @param class-string $className
+     */
     #[Test]
     #[DataProvider('metadataAnalyzerClassesProvider')]
     public function it_extends_analyzer_interface(string $className): void
@@ -33,6 +36,9 @@ final class MetadataAnalyzerInterfaceContractTest extends TestCase
         );
     }
 
+    /**
+     * @param class-string $className
+     */
     #[Test]
     #[DataProvider('metadataAnalyzerClassesProvider')]
     public function it_has_analyze_metadata_method(string $className): void
@@ -45,6 +51,9 @@ final class MetadataAnalyzerInterfaceContractTest extends TestCase
         );
     }
 
+    /**
+     * @param class-string $className
+     */
     #[Test]
     #[DataProvider('metadataAnalyzerClassesProvider')]
     public function it_has_analyze_method_from_trait(string $className): void
@@ -58,7 +67,7 @@ final class MetadataAnalyzerInterfaceContractTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string}>
+     * @return iterable<string, array{class-string}>
      */
     public static function metadataAnalyzerClassesProvider(): iterable
     {

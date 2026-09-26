@@ -20,7 +20,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
  */
 class SimpleQueryLogger
 {
-    /** @var array<array{sql: string, params: mixed|null, time: float, backtrace?: array<int, array<string, mixed>>}> */
+    /** @var array<array{sql: string, params: mixed|null, types?: array<int|string, mixed>, time: float, backtrace?: array<int, array<string, mixed>>}> */
     private array $queries = [];
 
     private bool $enabled = false;
@@ -52,7 +52,11 @@ class SimpleQueryLogger
     /**
      * Log a query (short alias for middleware).
      */
-    public function log(string $sql): void
+    /**
+     * @param array<int|string, mixed> $params
+     * @param array<int|string, mixed> $types
+     */
+    public function log(string $sql, array $params = [], array $types = []): void
     {
         if (!$this->enabled) {
             return;
@@ -63,7 +67,8 @@ class SimpleQueryLogger
 
         $this->queries[] = [
             'sql' => $sql,
-            'params' => null,
+            'params' => $params,
+            'types' => $types,
             'time' => 1.0, // 1ms default
             'backtrace' => $backtrace,
         ];
@@ -100,6 +105,10 @@ class SimpleQueryLogger
                 executionTime: QueryExecutionTime::fromMilliseconds($query['time']),
                 params: $query['params'] ?? [],
                 backtrace: $query['backtrace'] ?? null, // @phpstan-ignore-line isset.offset
+                types: array_map(
+                    static fn (mixed $type): mixed => $type instanceof \UnitEnum ? $type->name : $type,
+                    $query['types'] ?? [],
+                ),
             ),
             $this->queries,
         );
@@ -110,7 +119,7 @@ class SimpleQueryLogger
     /**
      * Get raw query data.
      *
-     * @return array<array{sql: string, params: mixed|null, time: float, backtrace?: array<int, array<string, mixed>>}>
+     * @return array<array{sql: string, params: mixed|null, types?: array<int|string, mixed>, time: float, backtrace?: array<int, array<string, mixed>>}>
      */
     public function getRawQueries(): array
     {

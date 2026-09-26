@@ -36,6 +36,31 @@ final class PaginatorQueryDetectorTest extends TestCase
     }
 
     #[Test]
+    public function it_detects_orm_offset_paginator_in_backtrace(): void
+    {
+        // ORM 3.7 deprecates Paginator in favour of OffsetPaginator.
+        $backtrace = [
+            ['file' => '/app/vendor/doctrine/orm/src/AbstractQuery.php', 'line' => 724, 'class' => \Doctrine\ORM\AbstractQuery::class, 'function' => 'getScalarResult'],
+            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/OffsetPaginator.php', 'line' => 89, 'class' => sprintf('Doctrine\\ORM\\Tools\\Pagination\\%s', 'OffsetPaginator'), 'function' => 'paginate'],
+        ];
+
+        self::assertTrue($this->detector->isPaginatorQuery($backtrace));
+    }
+
+    #[Test]
+    public function it_detects_orm_cursor_paginator_in_backtrace(): void
+    {
+        // CursorPage counts lazily, from a closure declared in CursorPaginator.
+        $backtrace = [
+            ['file' => '/app/vendor/doctrine/orm/src/AbstractQuery.php', 'line' => 724, 'class' => \Doctrine\ORM\AbstractQuery::class, 'function' => 'getScalarResult'],
+            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/CursorPaginator.php', 'line' => 154, 'class' => sprintf('Doctrine\\ORM\\Tools\\Pagination\\%s', 'CursorPaginator'), 'function' => '{closure}'],
+            ['file' => '/app/vendor/doctrine/orm/src/Tools/Pagination/CursorPage.php', 'line' => 79, 'class' => sprintf('Doctrine\\ORM\\Tools\\Pagination\\%s', 'CursorPage'), 'function' => 'getTotalCount'],
+        ];
+
+        self::assertTrue($this->detector->isPaginatorQuery($backtrace));
+    }
+
+    #[Test]
     public function it_detects_easyadmin_entity_paginator_in_backtrace(): void
     {
         $backtrace = [

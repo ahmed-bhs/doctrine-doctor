@@ -35,17 +35,8 @@ services:
     # Tag all analyzers automatically
     AhmedBhs\DoctrineDoctor\Analyzer\:
         resource: '../src/Analyzer/{Performance,Security,Integrity,Configuration}/*'
-        exclude: '../src/Analyzer/{AnalyzerInterface.php,Helper,Config,Parser,Performance/FlushInLoopAnalyzerModern.php}'
+        exclude: '../src/Analyzer/{AnalyzerInterface.php,Helper,Config,Parser}'
         tags: ['doctrine_doctor.analyzer']
-
-    # FlushInLoopAnalyzerModern is a draft/comparison variant (see its docblock),
-    # never finished or wired with its own config node. Keeping it tagged alongside
-    # the legacy FlushInLoopAnalyzer caused every flush-in-loop finding to fire twice
-    # with diverging boundary heuristics (legacy: write->non-id-select; modern: also
-    # splits on backtrace-frame change, producing different flush_count values for
-    # the same request). Service kept registered (autowireable) but untagged so it
-    # stops double-firing; remove entirely once a decision is made to merge or drop it.
-    AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzerModern: ~
 
     # Data Collector Helpers (reduce coupling)
     # Configuration object for DataCollector helpers
@@ -83,7 +74,7 @@ services:
     # The kernel.reset tag ensures reset() is called between requests in persistent runtimes
     AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector:
         arguments:
-            $analyzers: !tagged_iterator doctrine_doctor.analyzer
+            $analyzers: !tagged_iterator doctrine_doctor.runtime_analyzer
             $doctrineDataCollector: '@?data_collector.doctrine'
             $entityManager: '@?doctrine.orm.entity_manager'
             $stopwatch: '@?debug.stopwatch'
@@ -93,6 +84,14 @@ services:
         tags:
             - { name: data_collector, id: doctrine_doctor, template: '@doctrine_doctor/profiler/doctrine_doctor.html.twig', priority: 249 }
             - { name: kernel.reset, method: reset }
+
+    # CI command for analyzers that inspect source code or mappings rather
+    # than the SQL executed by the current web request.
+    AhmedBhs\DoctrineDoctor\Command\AnalyzeCommand:
+        arguments:
+            $analyzers: !tagged_iterator doctrine_doctor.static_analyzer
+        tags:
+            - { name: console.command }
 
     # Parsers
     # Use CachedSqlStructureExtractor for 1000x+ performance improvement on SQL parsing
@@ -308,9 +307,18 @@ services:
         tags:
             - { name: doctrine_doctor.analyzer }
 
+    AhmedBhs\DoctrineDoctor\Analyzer\Performance\BulkInsertAnalyzer:
+        arguments:
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $threshold: '%doctrine_doctor.analyzers.bulk_insert.threshold%'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\ImplicitTypeConversionAnalyzer:
         arguments:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $entityManager: '@doctrine_doctor.entity_manager'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -513,14 +521,6 @@ services:
             $collectionJoinDetector: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector'
             $logger: '@?logger'
             $n1CollectionThreshold: '%doctrine_doctor.analyzers.cartesian_product.n1_collection_threshold%'
-        tags:
-            - { name: doctrine_doctor.analyzer }
-
-    AhmedBhs\DoctrineDoctor\Analyzer\Configuration\AutoGenerateProxyClassesAnalyzer:
-        arguments:
-            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
-            $projectDir: '%kernel.project_dir%'
-            $logger: '@?logger'
         tags:
             - { name: doctrine_doctor.analyzer }
 

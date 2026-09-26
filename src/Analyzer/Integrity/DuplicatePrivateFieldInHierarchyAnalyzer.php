@@ -166,6 +166,7 @@ class DuplicatePrivateFieldInHierarchyAnalyzer implements MetadataAnalyzerInterf
     }
 
     /**
+     * @param class-string $className
      * @return array<string>
      */
     private function getMappedFieldNamesForClass(string $className): array

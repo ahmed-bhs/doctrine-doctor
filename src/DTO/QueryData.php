@@ -50,6 +50,13 @@ class QueryData
          * @readonly
          */
         public ?int $rowCount = null,
+        /**
+         * Binding type of each parameter, keyed like $params: the name of the
+         * Doctrine\DBAL\ParameterType case ('INTEGER'), or its int value on DBAL 3.
+         * @var array<mixed>
+         * @readonly
+         */
+        public array $types = [],
     ) {
     }
 
@@ -78,6 +85,8 @@ class QueryData
             $params = [];
         }
 
+        $types = $data['types'] ?? [];
+
         $sql = $data['sql'] ?? '';
         $backtrace = $data['backtrace'] ?? null;
 
@@ -90,12 +99,17 @@ class QueryData
             params: $params,
             backtrace: $validBacktrace,
             rowCount: null !== $rowCount && is_numeric($rowCount) ? (int) $rowCount : null,
+            types: is_array($types) ? array_map(
+                // ParameterType is a pure enum, which json_encode() rejects.
+                static fn (mixed $type): mixed => $type instanceof \UnitEnum ? $type->name : $type,
+                $types,
+            ) : [],
         );
     }
 
     /**
      * Convert to array (for serialization).
-     * @return array{sql: string, executionMS: float, params: array<string, mixed>, backtrace: array<int, array<string, mixed>>|null, rowCount: int|null}
+     * @return array{sql: string, executionMS: float, params: array<string, mixed>, backtrace: array<int, array<string, mixed>>|null, rowCount: int|null, types: array<mixed>}
      */
     public function toArray(): array
     {
@@ -105,6 +119,7 @@ class QueryData
             'params'      => $this->redactSensitiveParams($this->params),
             'backtrace'   => $this->backtrace,
             'rowCount'    => $this->rowCount,
+            'types'       => $this->types,
         ];
     }
 

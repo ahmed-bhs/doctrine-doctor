@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
@@ -23,7 +23,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
-class MappedSuperclassOneToManyAnalyzer implements AnalyzerInterface
+class MappedSuperclassOneToManyAnalyzer implements StaticAnalyzerInterface
 {
     use ShortClassNameTrait;
 
@@ -48,7 +48,7 @@ class MappedSuperclassOneToManyAnalyzer implements AnalyzerInterface
                 }
 
                 foreach ($metadata->getAssociationMappings() as $mapping) {
-                    $type = $mapping['type'] ?? $mapping->type ?? null;
+                    $type = $mapping->type();
 
                     if (ClassMetadata::ONE_TO_MANY !== $type) {
                         continue;
@@ -61,7 +61,7 @@ class MappedSuperclassOneToManyAnalyzer implements AnalyzerInterface
                         . 'This will cause a MappingException at runtime.',
                         [
                             'entity' => $this->shortClassName($metadata->getName()),
-                            'field' => $mapping['fieldName'],
+                            'field' => $mapping->fieldName,
                         ],
                     );
 
@@ -70,7 +70,7 @@ class MappedSuperclassOneToManyAnalyzer implements AnalyzerInterface
                         title: sprintf(
                             'OneToMany on Mapped Superclass: %s::$%s',
                             $this->shortClassName($metadata->getName()),
-                            $mapping['fieldName'],
+                            $mapping->fieldName,
                         ),
                         description: $description,
                         severity: Severity::critical(),

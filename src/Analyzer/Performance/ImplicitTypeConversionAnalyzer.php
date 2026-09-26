@@ -16,88 +16,54 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
+use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
+use Doctrine\DBAL\ParameterType;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Detects predicates likely to trigger implicit type conversion in the database
- * engine, which typically disables index usage on the affected column.
+ * Detects a text column compared to a numeric literal, such as
+ * `WHERE code = 123` on a VARCHAR column. MySQL and MariaDB then cast every
+ * row to a number, so the index on the column cannot be used (EXPLAIN shows a
+ * full scan); PostgreSQL rejects the comparison outright.
  *
- * Heuristic, runtime-only:
- *  - column suffix `_id`, `id`, `_count`, `_qty`, `_amount`, `_price`, `_age`
- *    or column literally named `id`, `quantity`, `count`, `age`, `total`
- *    compared to a quoted string literal -> numeric column vs string.
- *  - column suffix `_at`, `_date`, `_time` or named `date`, `time`, `created_at`,
- *    `updated_at` compared to a bare integer literal -> date column vs integer.
- *
- * Compared against a placeholder (?, :param) the analyzer says nothing: the
- * actual bound type is invisible from the SQL text alone.
+ * The reverse, a numeric column compared to a quoted number (`user_id = '42'`),
+ * converts the literal once and keeps the index on all three platforms, so it
+ * is not reported. Column types come from the Doctrine metadata: without an
+ * entity manager, or for columns it does not map, the analyzer says nothing.
+ * A positional parameter counts when the query was bound with an integer type,
+ * which DQL infers from a PHP int: `setParameter('code', 123)` on a text column.
+ * `findBy()` binds the mapped type and is not reported.
  */
 class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     use QueryFieldAccessorTrait;
 
     /**
-     * Column-name heuristics for numeric columns.
      * @var list<string>
      */
-    private const array NUMERIC_COLUMN_SUFFIXES = [
-        '_id',
-        '_count',
-        '_qty',
-        '_quantity',
-        '_amount',
-        '_price',
-        '_age',
-        '_total',
-        '_size',
-        '_length',
-        '_width',
-        '_height',
-        '_weight',
+    private const array STRING_TYPES = [
+        Types::STRING,
+        Types::TEXT,
+        Types::ASCII_STRING,
+        Types::GUID,
+        'enum', // Types::ENUM, added in DBAL 4.2
     ];
 
     /**
-     * @var list<string>
+     * Lower-cased table name => lower-cased column name => Doctrine type.
+     * @var array<string, array<string, string>>|null
      */
-    private const array NUMERIC_COLUMN_EXACT = [
-        'id',
-        'quantity',
-        'count',
-        'age',
-        'total',
-        'amount',
-        'price',
-        'size',
-    ];
-
-    /**
-     * @var list<string>
-     */
-    private const array DATE_COLUMN_SUFFIXES = [
-        '_at',
-        '_date',
-        '_time',
-        '_timestamp',
-    ];
-
-    /**
-     * @var list<string>
-     */
-    private const array DATE_COLUMN_EXACT = [
-        'date',
-        'time',
-        'timestamp',
-        'created_at',
-        'updated_at',
-        'deleted_at',
-    ];
+    private ?array $columnTypes = null;
 
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
+        private readonly ?EntityManagerInterface $entityManager = null,
         private readonly SqlStructureExtractor $sqlExtractor = new SqlStructureExtractor(),
     ) {
     }
@@ -109,20 +75,20 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryDataCollection) {
+                if (null === $this->entityManager) {
+                    return;
+                }
+
                 $seenIssues = [];
 
                 foreach ($queryDataCollection as $query) {
                     $sql = $this->extractSQL($query);
-                    if ('' === $sql || '0' === $sql) {
+                    if ('' === $sql || !$this->sqlExtractor->isSelectQuery($sql)) {
                         continue;
                     }
 
-                    if (!$this->sqlExtractor->isSelectQuery($sql)) {
-                        continue;
-                    }
-
-                    foreach ($this->detectMismatches($sql) as $mismatch) {
-                        $key = md5($mismatch['column'] . '|' . $mismatch['kind']);
+                    foreach ($this->detectMismatches($sql, $this->extractTypes($query)) as $mismatch) {
+                        $key = $mismatch['table'] . '.' . $mismatch['bare_column'];
                         if (isset($seenIssues[$key])) {
                             continue;
                         }
@@ -143,76 +109,160 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
 
     public function getDescription(): string
     {
-        return 'Detects predicates comparing a column to a literal of an incompatible type, which disables index usage via implicit conversion';
+        return 'Detects text columns compared to numeric literals or integer parameters, which forces a per-row conversion and disables the index';
     }
 
     /**
-     * @return array<int, array<string, mixed>>|null
+     * @param array<mixed> $types binding type of each positional parameter
+     * @return list<array{column: string, bare_column: string, table: string, literal: string, kind: string}>
      */
-
-    /**
-     * @return list<array{column: string, literal: string, kind: string}>
-     */
-    private function detectMismatches(string $sql): array
+    private function detectMismatches(string $sql, array $types): array
     {
-        if (1 !== preg_match('/\bWHERE\b(.*?)(?:\bGROUP\s+BY\b|\bORDER\s+BY\b|\bLIMIT\b|\bHAVING\b|$)/is', $sql, $whereMatches)) {
+        if (1 !== preg_match('/\bWHERE\b(.*?)(?:\bGROUP\s+BY\b|\bORDER\s+BY\b|\bLIMIT\b|\bHAVING\b|$)/is', $sql, $whereMatches, PREG_OFFSET_CAPTURE)) {
             return [];
         }
 
-        $whereClause = $whereMatches[1];
-        $mismatches = [];
+        [$whereClause, $whereOffset] = $whereMatches[1];
 
-        // Numeric column compared to quoted string literal: e.g. user_id = '42'
-        $numericVsStringPattern = '/([a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?)\s*(?:=|<>|!=|<|>|<=|>=)\s*\'([^\']*)\'/i';
-        if (preg_match_all($numericVsStringPattern, $whereClause, $allMatches, PREG_SET_ORDER) > 0) {
-            foreach ($allMatches as $match) {
-                $column = $match[1];
-                $literal = $match[2];
-                if ($this->isNumericColumnName($column) && $this->looksLikeNumericLiteral($literal)) {
-                    $mismatches[] = [
-                        'column' => $column,
-                        'literal' => "'" . $literal . "'",
-                        'kind' => 'numeric_column_vs_string_literal',
-                    ];
-                }
-            }
+        $pattern = '/(?<![\w.\'"])([a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)?)\s*(?:=|<>|!=|<=|>=|<|>)\s*(?:(-?\d+(?:\.\d+)?)(?![\w.\'"])|(\?))/';
+        if (0 === preg_match_all($pattern, $whereClause, $allMatches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+            return [];
         }
 
-        // Date column compared to bare integer literal: e.g. created_at = 1700000000
-        $dateVsIntPattern = '/([a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?)\s*(?:=|<>|!=|<|>|<=|>=)\s*(\d+)(?!\s*[\'"])/i';
-        if (preg_match_all($dateVsIntPattern, $whereClause, $allMatches, PREG_SET_ORDER) > 0) {
-            foreach ($allMatches as $match) {
-                $column = $match[1];
-                $literal = $match[2];
-                if ($this->isDateColumnName($column)) {
-                    $mismatches[] = [
-                        'column' => $column,
-                        'literal' => $literal,
-                        'kind' => 'date_column_vs_integer_literal',
-                    ];
+        $tablesByAlias = $this->tablesByAlias($sql);
+        $mismatches    = [];
+
+        foreach ($allMatches as $match) {
+            $column = $match[1][0];
+
+            if (isset($match[2]) && -1 !== $match[2][1]) {
+                $kind    = 'string_column_vs_numeric_literal';
+                $literal = $match[2][0];
+            } elseif (isset($match[3])) {
+                // DQL infers the binding type from the PHP value: an int is bound as an integer.
+                $parameterIndex = substr_count(substr($sql, 0, $whereOffset + $match[3][1]), '?');
+                if (!$this->isIntegerBinding($types[$parameterIndex] ?? null)) {
+                    continue;
                 }
+
+                $kind    = 'string_column_vs_integer_parameter';
+                $literal = 'parameter #' . ($parameterIndex + 1);
+            } else {
+                continue;
             }
+
+            $table = $this->findStringColumnTable($column, $tablesByAlias);
+            if (null === $table) {
+                continue;
+            }
+
+            $mismatches[] = [
+                'column'      => $column,
+                'bare_column' => strtolower($this->stripAlias($column)),
+                'table'       => $table,
+                'literal'     => $literal,
+                'kind'        => $kind,
+            ];
         }
 
         return $mismatches;
     }
 
-    private function isNumericColumnName(string $column): bool
+    private function isIntegerBinding(mixed $type): bool
     {
-        $bare = strtolower($this->stripAlias($column));
-        if (in_array($bare, self::NUMERIC_COLUMN_EXACT, true)) {
-            return true;
-        }
-        return array_any(self::NUMERIC_COLUMN_SUFFIXES, fn ($suffix) => str_ends_with($bare, (string) $suffix));
+        // QueryData keeps the ParameterType case name on DBAL 4 and the int constant (PDO::PARAM_INT) on DBAL 3.
+        return 'INTEGER' === $type || ParameterType::INTEGER === $type || \PDO::PARAM_INT === $type;
     }
 
-    private function isDateColumnName(string $column): bool
+    /**
+     * @param array<mixed>|object $query
+     * @return array<mixed>
+     */
+    private function extractTypes(array|object $query): array
     {
-        $bare = strtolower($this->stripAlias($column));
-        if (in_array($bare, self::DATE_COLUMN_EXACT, true)) {
-            return true;
+        if ($query instanceof QueryData) {
+            return $query->types;
         }
-        return array_any(self::DATE_COLUMN_SUFFIXES, fn ($suffix) => str_ends_with($bare, (string) $suffix));
+
+        $types = is_array($query) ? ($query['types'] ?? []) : [];
+
+        return is_array($types) ? $types : [];
+    }
+
+    /**
+     * @param array<string, string> $tablesByAlias
+     */
+    private function findStringColumnTable(string $column, array $tablesByAlias): ?string
+    {
+        $dotPosition = strrpos($column, '.');
+        $candidates  = false === $dotPosition
+            ? array_unique(array_values($tablesByAlias))
+            : array_filter([$tablesByAlias[strtolower(substr($column, 0, $dotPosition))] ?? null]);
+        $bareColumn  = strtolower($this->stripAlias($column));
+        $columnTypes = $this->columnTypes();
+
+        foreach ($candidates as $table) {
+            $type = $columnTypes[$table][$bareColumn] ?? null;
+            if (null !== $type && in_array($type, self::STRING_TYPES, true)) {
+                return $table;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<string, string> lower-cased alias (or table name) => lower-cased table name
+     */
+    private function tablesByAlias(string $sql): array
+    {
+        $tablesByAlias = [];
+
+        foreach ($this->sqlExtractor->extractAllTables($sql) as $table) {
+            $name                 = strtolower(trim($table['table'], '`"'));
+            $tablesByAlias[$name] = $name;
+
+            if (null !== $table['alias'] && '' !== $table['alias']) {
+                $tablesByAlias[strtolower($table['alias'])] = $name;
+            }
+        }
+
+        return $tablesByAlias;
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    private function columnTypes(): array
+    {
+        if (null !== $this->columnTypes) {
+            return $this->columnTypes;
+        }
+
+        $this->columnTypes = [];
+
+        if (null === $this->entityManager) {
+            return $this->columnTypes;
+        }
+
+        try {
+            $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
+        } catch (\Throwable) {
+            return $this->columnTypes;
+        }
+
+        foreach ($allMetadata as $classMetadata) {
+            $table = strtolower($classMetadata->getTableName());
+
+            foreach ($classMetadata->getFieldNames() as $fieldName) {
+                $type = $classMetadata->getTypeOfField($fieldName);
+                if (null !== $type) {
+                    $this->columnTypes[$table][strtolower($classMetadata->getColumnName($fieldName))] = $type;
+                }
+            }
+        }
+
+        return $this->columnTypes;
     }
 
     private function stripAlias(string $column): string
@@ -225,41 +275,26 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         return substr($column, $dotPosition + 1);
     }
 
-    private function looksLikeNumericLiteral(string $literal): bool
-    {
-        return 1 === preg_match('/^-?\d+(?:\.\d+)?$/', $literal);
-    }
-
     /**
-     * @param array{column: string, literal: string, kind: string} $mismatch
+     * @param array{column: string, bare_column: string, table: string, literal: string, kind: string} $mismatch
      */
     private function createIssue(array $mismatch, string $sql, array|object $query): PerformanceIssue
     {
-        $description = match ($mismatch['kind']) {
-            'numeric_column_vs_string_literal' => sprintf(
-                'Column %s appears numeric but is compared to string literal %s. The database must convert one side ' .
-                'before comparing, which usually disables index usage on %s. Bind the value with the correct PHP type, ' .
-                'or remove the surrounding quotes if the literal is numeric.',
-                $mismatch['column'],
-                $mismatch['literal'],
-                $mismatch['column'],
-            ),
-            'date_column_vs_integer_literal' => sprintf(
-                'Column %s appears to be a date/time column but is compared to integer literal %s. The database will ' .
-                'apply implicit conversion, defeating any index on %s. Pass a properly typed DateTimeInterface or a ' .
-                'formatted date string (ISO 8601) instead.',
-                $mismatch['column'],
-                $mismatch['literal'],
-                $mismatch['column'],
-            ),
-            default => 'Implicit type conversion detected in WHERE predicate.',
-        };
+        $isParameter = 'string_column_vs_integer_parameter' === $mismatch['kind'];
 
-        $title = match ($mismatch['kind']) {
-            'numeric_column_vs_string_literal' => sprintf('Numeric Column %s Compared to String Literal', $mismatch['column']),
-            'date_column_vs_integer_literal' => sprintf('Date Column %s Compared to Integer Literal', $mismatch['column']),
-            default => 'Implicit Type Conversion',
-        };
+        $description = sprintf(
+            '%s MySQL and MariaDB convert the column value of every row to a number before comparing, so the index ' .
+            'on %s cannot be used to look the value up and every row is read (full scan); PostgreSQL rejects the comparison. %s',
+            $isParameter
+                ? sprintf('Text column %s is compared to %s, bound as an integer because DQL infers the type from the PHP int value.', $mismatch['column'], $mismatch['literal'])
+                : sprintf('Text column %s is compared to the number %s.', $mismatch['column'], $mismatch['literal']),
+            $mismatch['column'],
+            $isParameter ? 'Pass the value as a string, or declare the parameter type.' : 'Compare it to a string instead.',
+        );
+
+        $title = $isParameter
+            ? sprintf('String Column %s Compared to Integer Parameter', $mismatch['column'])
+            : sprintf('String Column %s Compared to Numeric Literal', $mismatch['column']);
 
         $issueData = new IssueData(
             type: 'implicit_type_conversion',
@@ -275,7 +310,7 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
     }
 
     /**
-     * @param array{column: string, literal: string, kind: string} $mismatch
+     * @param array{column: string, bare_column: string, table: string, literal: string, kind: string} $mismatch
      */
     private function createSuggestion(array $mismatch, string $sql): mixed
     {
@@ -290,7 +325,7 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::performance(),
                 severity: Severity::warning(),
-                title: 'Bind parameters with correct PHP types',
+                title: 'Compare text columns to strings',
                 tags: ['performance', 'index', 'type-conversion', 'optimization'],
             ),
         );

@@ -57,11 +57,12 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                             context: [
                                 'table' => $bulkOperation['table'],
                                 'operation_count' => $bulkOperation['count'],
+                                'operation_type' => $bulkOperation['type'],
                             ],
                             suggestionMetadata: new SuggestionMetadata(
                                 type: SuggestionType::performance(),
                                 severity: Severity::warning(),
-                                title: sprintf('Memory Leak Risk: %d operations without clear()', $bulkOperation['count']),
+                                title: sprintf('Replace %d individual %s statements with one', $bulkOperation['count'], $bulkOperation['type']),
                                 tags: ['performance', 'memory', 'batch'],
                             ),
                         );

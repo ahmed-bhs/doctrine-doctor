@@ -269,7 +269,7 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     private function buildSuggestion(string $entityName): StructuredSuggestion
     {
         $blocks = [
-            SuggestionContentBlock::text('Consider using partial objects or array hydration for read-only operations:'),
+            SuggestionContentBlock::text('When you only read a few fields, prefer DTO, array or scalar hydration, then partial objects:'),
 
             // Bad example
             SuggestionContentBlock::heading('Current approach (loads all fields)', 4),
@@ -289,20 +289,18 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                 'Bad',
             ),
 
-            // Option 1: Partial Objects
-            SuggestionContentBlock::heading('Option 1: Partial Objects (best for object-oriented code)', 4),
+            // Option 1: DTO hydration
+            SuggestionContentBlock::heading('Option 1: DTO Hydration (best for read models)', 4),
             SuggestionContentBlock::code(
-                "// Load only specific fields (e.g., id, name)
+                "// Loads only the selected columns into a plain object
 " .
                 "\$query = \$em->createQuery(
 " .
-                "    'SELECT PARTIAL e.{id, name, email} FROM {$entityName} e'
+                "    'SELECT NEW App\\\\DTO\\\\{$entityName}View(e.id, e.name, e.email) FROM {$entityName} e'
 " .
                 ");
 " .
-                "\$entities = \$query->getResult();
-" .
-                '// Entities are read-only but still objects',
+                "\$views = \$query->getResult();",
                 'php',
                 'Good',
             ),
@@ -337,6 +335,24 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                 'Good',
             ),
 
+            // Option 4: Partial Objects
+            SuggestionContentBlock::heading('Option 4: Partial Objects (only when you need entity methods)', 4),
+            SuggestionContentBlock::code(
+                "// Load only specific fields (e.g., id, name)
+" .
+                "\$query = \$em->createQuery(
+" .
+                "    'SELECT PARTIAL e.{id, name} FROM {$entityName} e'
+" .
+                ");
+" .
+                "\$entities = \$query->getResult();
+" .
+                "// Only read id and name: any other field costs one extra query per entity",
+                'php',
+                'Good',
+            ),
+
             // Performance benefits
             SuggestionContentBlock::heading('Performance benefits:', 4),
             SuggestionContentBlock::unorderedList([
@@ -349,17 +365,18 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
             // When to use each
             SuggestionContentBlock::heading('When to use each:', 4),
             SuggestionContentBlock::unorderedList([
-                '**Partial objects**: When you need object methods but not all fields',
-                '**Array hydration**: For read-only lists, reports, exports',
-                '**Scalar hydration**: For single column results or aggregations',
+                'DTO hydration: for read models, API responses and views',
+                'Array hydration: for lists, reports, exports',
+                'Scalar hydration: for single column results or aggregations',
+                'Partial objects: when you need entity methods on a few fields only',
             ]),
 
             // Important notes
             SuggestionContentBlock::heading('Important:', 4),
             SuggestionContentBlock::unorderedList([
-                'Partial objects are **READ-ONLY** (cannot be persisted)',
-                'Use full entities only when you need to modify them',
-                'For APIs/JSON responses, always use partial/array hydration',
+                'With native lazy objects (ORM 3.4+ on PHP 8.4), reading a field left out of the PARTIAL list loads it on access: one extra query per entity, i.e. an N+1',
+                'Without native lazy objects, fields left out stay uninitialized',
+                'Load the full entity when you need to modify it',
             ]),
         ];
 
@@ -372,7 +389,7 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                 title: 'Use Partial Objects or Array Hydration',
                 tags: ['performance', 'memory', 'hydration'],
             ),
-            summary: 'Loading full entities when you only need a few fields wastes memory (40-80%), network bandwidth (50-90%), and database resources. Use partial objects, array hydration, or scalar hydration instead.',
+            summary: 'Loading full entities when you only need a few fields wastes memory (40-80%), network bandwidth (50-90%), and database resources. Use DTO, array or scalar hydration instead, or partial objects when entity methods are needed.',
         );
     }
 }

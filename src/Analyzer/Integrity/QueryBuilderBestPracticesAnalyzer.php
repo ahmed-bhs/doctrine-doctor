@@ -139,6 +139,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                     'class_name' => 'Repository',
                     'method_name' => 'query',
                     'vulnerability_type' => 'String concatenation in WHERE clause',
+                    'layer' => 'orm',
                 ],
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::security(),

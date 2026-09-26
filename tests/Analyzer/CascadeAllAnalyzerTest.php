@@ -120,8 +120,7 @@ final class CascadeAllAnalyzerTest extends TestCase
         self::assertNotFalse($issue);
         $data = $issue->getData();
         self::assertEquals('products', $data['field']);
-        // Note: Association type detection varies by Doctrine version - just verify field is detected
-        self::assertArrayHasKey('association_type', $data);
+        self::assertSame('ManyToMany', $data['association_type']);
     }
 
     #[Test]
@@ -158,7 +157,8 @@ final class CascadeAllAnalyzerTest extends TestCase
         // Act
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert: Should be WARNING or CRITICAL severity (depends on association type detection)
+        // Assert: ORM 3 exposes ManyToMany through ManyToManyOwningSideMapping, which must
+        // still be recognised as ManyToMany for the independent-entity rule to apply
         $issuesArray = $issues->toArray();
         $productIssue = array_filter($issuesArray, static function ($issue) {
             $data = $issue->getData();
@@ -172,8 +172,8 @@ final class CascadeAllAnalyzerTest extends TestCase
 
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
         self::assertNotFalse($issue);
-        // Note: Severity depends on association type detection which varies by Doctrine version
-        self::assertContains($issue->getSeverity()->value, ['warning', 'critical']);
+        self::assertSame('critical', $issue->getSeverity()->value);
+        self::assertSame('ManyToMany', $issue->getData()['association_type']);
     }
 
     #[Test]
@@ -407,8 +407,7 @@ final class CascadeAllAnalyzerTest extends TestCase
 
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
         self::assertNotFalse($issue);
-        // Note: Severity depends on association type detection
-        self::assertContains($issue->getSeverity()->value, ['warning', 'critical']);
+        self::assertSame('critical', $issue->getSeverity()->value);
     }
 
     #[Test]

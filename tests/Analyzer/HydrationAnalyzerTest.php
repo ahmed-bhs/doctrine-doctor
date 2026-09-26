@@ -219,6 +219,18 @@ final class HydrationAnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_warns_that_partial_objects_lazy_load_the_fields_left_out(): void
+    {
+        $issues = $this->analyzer->analyze(
+            QueryDataBuilder::create()->addQuery('SELECT * FROM users LIMIT 500')->build(),
+        );
+
+        $suggestion = $issues->toArray()[0]->getSuggestion();
+        self::assertNotNull($suggestion);
+        self::assertStringContainsString('one extra query per entity', $suggestion->getCode());
+    }
+
+    #[Test]
     public function it_includes_threshold_in_description(): void
     {
         // Arrange

@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzer;
+use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -57,6 +58,75 @@ final class FlushInLoopAnalyzerTest extends TestCase
         $issue = $issuesArray[0];
         self::assertStringContainsString('flush()', $issue->getTitle());
         self::assertStringContainsString('5', $issue->getTitle());  // Counts flush groups (N-1)
+    }
+
+    #[Test]
+    public function it_detects_flush_in_loop_wrapped_in_transactions(): void
+    {
+        // flush() wraps its writes in a transaction, and Symfony's Doctrine debug
+        // middleware logs the markers as queries: the write is followed by COMMIT,
+        // never directly by the SELECT.
+        $queries = QueryDataBuilder::create();
+
+        for ($i = 1; $i <= 6; ++$i) {
+            $queries->addQuery('"START TRANSACTION"', 0.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery('"COMMIT"', 0.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
+        }
+
+        $issues = $this->analyzer->analyze($queries->build())->toArray();
+        self::assertCount(1, $issues);
+
+        // The profiler shows the flushed writes, not the transaction markers around them
+        foreach ($issues[0]->getQueries() as $query) {
+            $sql = $query instanceof QueryData ? $query->sql : $query['sql'];
+            self::assertStringNotContainsString('TRANSACTION', $sql);
+            self::assertStringNotContainsString('COMMIT', $sql);
+        }
+    }
+
+    #[Test]
+    public function it_detects_flush_in_loop_without_reads_between_flushes(): void
+    {
+        // The canonical case: persist() + flush() per iteration, one transaction each.
+        $queries = QueryDataBuilder::create();
+
+        for ($i = 1; $i <= 6; ++$i) {
+            $queries->addQuery('BEGIN TRANSACTION', 0.0);
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+            $queries->addQuery('COMMIT', 0.0);
+        }
+
+        self::assertCount(1, $this->analyzer->analyze($queries->build()));
+    }
+
+    #[Test]
+    public function it_does_not_flag_a_single_batch_flush_in_one_transaction(): void
+    {
+        $queries = QueryDataBuilder::create()->addQuery('"START TRANSACTION"', 0.0);
+
+        for ($i = 1; $i <= 10; ++$i) {
+            $queries->addQuery("INSERT INTO users (name) VALUES ('User {$i}')", 0.002);
+        }
+
+        $queries->addQuery('"COMMIT"', 0.0);
+
+        self::assertCount(0, $this->analyzer->analyze($queries->build()));
+    }
+
+    #[Test]
+    public function it_does_not_count_read_only_transactions_as_flushes(): void
+    {
+        $queries = QueryDataBuilder::create();
+
+        for ($i = 1; $i <= 6; ++$i) {
+            $queries->addQuery('"START TRANSACTION"', 0.0);
+            $queries->addQuery("SELECT * FROM users WHERE id = {$i}", 0.001);
+            $queries->addQuery('"COMMIT"', 0.0);
+        }
+
+        self::assertCount(0, $this->analyzer->analyze($queries->build()));
     }
 
     #[Test]

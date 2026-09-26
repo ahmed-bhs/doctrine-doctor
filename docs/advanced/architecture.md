@@ -70,7 +70,7 @@ Doctrine Doctor follows a **layered architecture** pattern with clear separation
 
 ### 2.1 Strategy Pattern (Analyzers)
 
-Each analyzer implements `AnalyzerInterface` (query-based) or `MetadataAnalyzerInterface` (metadata-based), enabling runtime composition. This pattern provides:
+Each analyzer declares whether it needs request SQL (`AnalyzerInterface`) or runs independently in CI (`StaticAnalyzerInterface`). Mapping checks use `MetadataAnalyzerInterface`; live schema and configuration audits use `DatabaseAuditAnalyzerInterface`. Symfony DI routes each service to the profiler or the `doctrine:doctor:analyze` command by its interface:
 
 - **Open/Closed Principle compliance** - Add new analyzers without modifying existing code
 - **Easy addition of new analyzers** - Simply implement the interface and tag the service
@@ -79,11 +79,12 @@ Each analyzer implements `AnalyzerInterface` (query-based) or `MetadataAnalyzerI
 
 ### 2.2 Data Collector Pipeline
 
-Doctrine Doctor uses Symfony's `DataCollector` + `LateDataCollectorInterface`, but analysis is currently executed in `collect()` for worker-mode safety.
+Doctrine Doctor uses Symfony's `DataCollector` + `LateDataCollectorInterface`. The profiler runs request-dependent analyzers in `collect()` for worker-mode safety; in PHP-FPM it defers the work to `lateCollect()` after the response.
 
-1. **collect()** - Capture query data and run analysis
-2. **lateCollect()** - Present for interface compatibility (no heavy work here)
-3. **serialize()/unserialize()** - Profiler storage lifecycle
+1. **collect()** - Capture query data; persistent runtimes run runtime analysis here.
+2. **lateCollect()** - PHP-FPM runs runtime analysis and collects database display info here, after the response.
+3. **CI command** - `doctrine:doctor:analyze` runs source/mapping checks; live database audits are added with `--with-database`.
+4. **serialize()/unserialize()** - Profiler storage lifecycle
 
 Rationale: avoid stale Doctrine objects in persistent runtimes (FrankenPHP/RoadRunner/Swoole).
 
@@ -185,7 +186,7 @@ sequenceDiagram
     DoctorDC->>DoctorDC: Calculate statistics
     deactivate DoctorDC
 
-    Symfony-->>Request: Response sent ✓
+    Symfony-->>Request: Response sent
     deactivate Symfony
 
     Profiler->>DoctorDC: getData()
@@ -213,9 +214,17 @@ interface AnalyzerInterface
  * Extends AnalyzerInterface for backward compatibility.
  * Uses MetadataAnalyzerTrait to bridge analyze() -> analyzeMetadata().
  */
-interface MetadataAnalyzerInterface extends AnalyzerInterface
+interface StaticAnalyzerInterface extends AnalyzerInterface
+{
+}
+
+interface MetadataAnalyzerInterface extends StaticAnalyzerInterface
 {
     public function analyzeMetadata(): IssueCollection;
+}
+
+interface DatabaseAuditAnalyzerInterface extends MetadataAnalyzerInterface
+{
 }
 
 /**

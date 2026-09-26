@@ -243,4 +243,39 @@ final class NPlusOneAnalyzerIntegrationTest extends DatabaseTestCase
         // Good approach should be close to 1 query
         self::assertLessThanOrEqual(2, $goodQueryCount, 'JOIN FETCH should use minimal queries');
     }
+
+    #[Test]
+    public function it_leaves_an_identical_repeated_query_to_the_repeated_query_analyzers(): void
+    {
+        $this->startQueryCollection();
+
+        // The same query, with nothing that varies per iteration: memoize it, no fetch join can help.
+        for ($i = 0; $i < 5; ++$i) {
+            $this->entityManager->createQuery('SELECT COUNT(p) FROM ' . BlogPost::class . ' p')->getSingleScalarResult();
+        }
+
+        self::assertCount(0, $this->nPlusOneAnalyzer->analyze($this->stopQueryCollection()));
+    }
+
+    #[Test]
+    public function it_leaves_a_query_repeated_with_the_same_parameters_to_the_repeated_query_analyzers(): void
+    {
+        $queries = \AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder::create();
+        for ($i = 0; $i < 5; ++$i) {
+            $queries->addQueryWithParams('SELECT t0.id AS id_1 FROM users t0 WHERE t0.id = ?', [1]);
+        }
+
+        self::assertCount(0, $this->nPlusOneAnalyzer->analyze($queries->build()));
+    }
+
+    #[Test]
+    public function it_still_reports_a_query_repeated_with_different_parameters(): void
+    {
+        $queries = \AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder::create();
+        for ($i = 1; $i <= 5; ++$i) {
+            $queries->addQueryWithParams('SELECT t0.id AS id_1 FROM users t0 WHERE t0.id = ?', [$i]);
+        }
+
+        self::assertCount(1, $this->nPlusOneAnalyzer->analyze($queries->build()));
+    }
 }

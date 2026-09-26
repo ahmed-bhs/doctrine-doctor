@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Integration\Analyzer;
 
-use AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzerModern;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\FlushInLoopAnalyzer;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactory;
 use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\Product;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\DatabaseTestCase;
@@ -19,7 +19,7 @@ use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
- * Integration test for FlushInLoopAnalyzerModern using real database operations.
+ * Integration test for FlushInLoopAnalyzer using real database operations.
  *
  * Demonstrates:
  * - Real flush operations in loops
@@ -28,7 +28,7 @@ use PHPUnit\Framework\Attributes\Test;
  */
 final class FlushInLoopIntegrationTest extends DatabaseTestCase
 {
-    private FlushInLoopAnalyzerModern $flushInLoopAnalyzerModern;
+    private FlushInLoopAnalyzer $flushInLoopAnalyzer;
 
     protected function setUp(): void
     {
@@ -38,7 +38,7 @@ final class FlushInLoopIntegrationTest extends DatabaseTestCase
 
         parent::setUp();
 
-        $this->flushInLoopAnalyzerModern = new FlushInLoopAnalyzerModern(
+        $this->flushInLoopAnalyzer = new FlushInLoopAnalyzer(
             new IssueFactory(),
             PlatformAnalyzerTestHelper::createSuggestionFactory(),
         );
@@ -71,7 +71,7 @@ final class FlushInLoopIntegrationTest extends DatabaseTestCase
         self::assertGreaterThanOrEqual(10, $this->queryLogger->count(), 'Should have 10+ queries (flush per iteration)');
 
         // The analyzer should detect this pattern
-        $issueCollection = $this->flushInLoopAnalyzerModern->analyze($queryDataCollection);
+        $issueCollection = $this->flushInLoopAnalyzer->analyze($queryDataCollection);
         self::assertGreaterThan(0, count($issueCollection), 'Should detect flush in loop pattern');
     }
 
@@ -98,7 +98,7 @@ final class FlushInLoopIntegrationTest extends DatabaseTestCase
         // The key difference is NO pattern of INSERT -> SELECT -> INSERT -> SELECT
         self::assertGreaterThanOrEqual(10, $this->queryLogger->count(), 'Should have 10 INSERTs from batch flush');
 
-        $issueCollection = $this->flushInLoopAnalyzerModern->analyze($queryDataCollection);
+        $issueCollection = $this->flushInLoopAnalyzer->analyze($queryDataCollection);
         self::assertCount(0, $issueCollection, 'Should NOT detect issue with batch processing');
     }
 
@@ -230,7 +230,7 @@ final class FlushInLoopIntegrationTest extends DatabaseTestCase
             ->getSingleScalarResult(),
         );
 
-        $issueCollection = $this->flushInLoopAnalyzerModern->analyze($queryDataCollection);
+        $issueCollection = $this->flushInLoopAnalyzer->analyze($queryDataCollection);
         // This is acceptable batch processing with periodic flush, not flush-in-loop anti-pattern
         // The analyzer threshold is 5, and with only 2 flush() calls in the loop, it won't trigger
         self::assertCount(0, $issueCollection, 'Batch processing should not be flagged');

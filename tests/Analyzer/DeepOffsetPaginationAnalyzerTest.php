@@ -70,6 +70,22 @@ final class DeepOffsetPaginationAnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_points_to_the_orm_cursor_paginator_when_available(): void
+    {
+        $issues = $this->analyzer->analyze(
+            QueryDataBuilder::create()->addQuery('SELECT * FROM users ORDER BY id LIMIT 20 OFFSET 5000')->build(),
+        );
+
+        $description = $issues->toArray()[0]->getDescription();
+
+        if (class_exists(\Doctrine\ORM\Tools\Pagination\CursorPaginator::class)) {
+            self::assertStringContainsString(\Doctrine\ORM\Tools\Pagination\CursorPaginator::class, $description);
+        } else {
+            self::assertStringNotContainsString('CursorPaginator', $description);
+        }
+    }
+
+    #[Test]
     public function it_detects_deep_offset_mysql_limit_comma_form(): void
     {
         $queries = QueryDataBuilder::create()

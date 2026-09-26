@@ -535,6 +535,53 @@ final class IssueDeduplicatorTest extends TestCase
         self::assertCount(1, $deduplicated, 'Same type on the same table stays grouped');
     }
 
+    #[Test]
+    public function it_keeps_same_titled_issues_on_different_fields_of_the_same_entity(): void
+    {
+        $issues = IssueCollection::fromArray([
+            new IntegrityIssue([
+                'type' => IssueType::INTEGRITY_GENERIC->value,
+                'title' => 'Dangerous cascade="all" Detected',
+                'description' => 'Field customer in entity Order uses cascade="all".',
+                'severity' => 'critical',
+                'queries' => [],
+                'entity' => 'App\Entity\Order',
+                'field' => 'customer',
+            ]),
+            new IntegrityIssue([
+                'type' => IssueType::INTEGRITY_GENERIC->value,
+                'title' => 'Dangerous cascade="all" Detected',
+                'description' => 'Field products in entity Order uses cascade="all".',
+                'severity' => 'critical',
+                'queries' => [],
+                'entity' => 'App\Entity\Order',
+                'field' => 'products',
+            ]),
+        ]);
+
+        $deduplicated = $this->deduplicator->deduplicate($issues);
+
+        self::assertCount(2, $deduplicated, 'Each mapped field carries its own fix, so neither may hide the other');
+    }
+
+    #[Test]
+    public function it_merges_same_titled_issues_on_the_same_field(): void
+    {
+        $issue = static fn (): IntegrityIssue => new IntegrityIssue([
+            'type' => IssueType::INTEGRITY_GENERIC->value,
+            'title' => 'Dangerous cascade="all" Detected',
+            'description' => 'Field customer in entity Order uses cascade="all".',
+            'severity' => 'critical',
+            'queries' => [],
+            'entity' => 'App\Entity\Order',
+            'field' => 'customer',
+        ]);
+
+        $deduplicated = $this->deduplicator->deduplicate(IssueCollection::fromArray([$issue(), $issue()]));
+
+        self::assertCount(1, $deduplicated);
+    }
+
     private function createConfigurationIssue(string $title, string $description): IntegrityIssue
     {
         return new IntegrityIssue([

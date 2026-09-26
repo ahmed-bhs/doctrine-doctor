@@ -118,4 +118,16 @@ final class FindAllAnalyzerFalsePositiveTest extends TestCase
             self::assertCount(0, $findAllIssues, sprintf('SELECT DISTINCT %s(...) should not be flagged', $aggregate));
         }
     }
+
+    #[Test]
+    public function it_does_not_flag_a_query_filtered_on_a_function_of_a_column(): void
+    {
+        // A case-insensitive lookup has a WHERE clause even though no bare column appears in it.
+        $collection = QueryDataBuilder::create()
+            ->addQuery('SELECT t0_.id, t0_.email FROM users t0_ WHERE LOWER(t0_.email) = ?', 0.5)
+            ->addQuery("SELECT * FROM blog_posts WHERE strftime('%Y', createdAt) = '2024'", 0.5)
+            ->build();
+
+        self::assertCount(0, $this->analyzer->analyze($collection));
+    }
 }

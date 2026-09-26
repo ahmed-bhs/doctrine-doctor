@@ -107,6 +107,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $containerBuilder->setParameter('doctrine_doctor.analyzers.eager_loading.join_threshold', $analyzers['eager_loading']['join_threshold']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.eager_loading.critical_join_threshold', $analyzers['eager_loading']['critical_join_threshold']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.lazy_loading.threshold', $analyzers['lazy_loading']['threshold']);
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.bulk_insert.threshold', $analyzers['bulk_insert']['threshold']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.bulk_operation.threshold', $analyzers['bulk_operation']['threshold']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.partial_object.threshold', $analyzers['partial_object']['threshold']);
 
@@ -194,7 +195,9 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
             ? substr($className, $lastBackslashPos + 1)
             : $className;
 
-        $withoutSuffix = (string) preg_replace('/Analyzer$/', '', $shortName);
+        // Execution-mode split services (for example SQLInjectionInRawQueriesSourceAnalyzer)
+        // share the configuration switch of their base analyzer.
+        $withoutSuffix = (string) preg_replace('/(?:Source)?Analyzer$/', '', $shortName);
         Assert::stringNotEmpty($withoutSuffix, 'Class name must not be empty after removing Analyzer suffix');
 
         $step1 = (string) preg_replace('/([A-Z]+)([A-Z][a-z])/', '$1_$2', $withoutSuffix);

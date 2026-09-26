@@ -174,6 +174,21 @@ final class BulkOperationAnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_suggests_a_set_based_statement_of_the_detected_kind(): void
+    {
+        $builder = QueryDataBuilder::create();
+        for ($i = 1; $i <= 25; $i++) {
+            $builder->addQuery("DELETE FROM sessions WHERE id = {$i}", 0.005);
+        }
+
+        $suggestion = $this->analyzer->analyze($builder->build())->toArray()[0]->getSuggestion();
+
+        self::assertNotNull($suggestion);
+        self::assertStringContainsString('DELETE FROM sessions WHERE id IN', $suggestion->getCode());
+        self::assertStringNotContainsString('Memory Leak', $suggestion->getMetadata()->title);
+    }
+
+    #[Test]
     public function it_handles_empty_query_collection(): void
     {
         // Arrange

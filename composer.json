@@ -1,6 +1,6 @@
 {
   "name": "ahmed-bhs/doctrine-doctor",
-  "description": "Runtime analysis tool for Doctrine ORM integrated into Symfony Web Profiler. Unlike static linters, it analyzes actual query execution at runtime to detect performance bottlenecks, security vulnerabilities, and best practice violations during development with real execution context and data.",
+  "description": "Doctrine ORM checks for Symfony: inspect real request queries in the Web Profiler and run source, mapping, and optional database audits in CI.",
   "type": "symfony-bundle",
   "license": "MIT",
   "keywords": [

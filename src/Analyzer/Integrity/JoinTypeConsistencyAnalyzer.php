@@ -469,19 +469,15 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     {
         foreach ($metadataMap as $metadata) {
             foreach ($metadata->getAssociationMappings() as $mapping) {
-                $targetEntity = $mapping['targetEntity'] ?? null;
-
-                if (null === $targetEntity) {
-                    continue;
-                }
+                $targetEntity = $mapping->targetEntity;
 
                 try {
                     $targetMetadata = $this->entityManager->getClassMetadata($targetEntity);
 
                     if ($targetMetadata->getTableName() === $tableName) {
                         if (
-                            ClassMetadata::ONE_TO_MANY === $mapping['type']
-                            || ClassMetadata::MANY_TO_MANY === $mapping['type']
+                            ClassMetadata::ONE_TO_MANY === $mapping->type()
+                            || ClassMetadata::MANY_TO_MANY === $mapping->type()
                         ) {
                             return true;
                         }

@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Helper;
 
+use Doctrine\ORM\Mapping\AssociationMapping;
 use Webmozart\Assert\Assert;
 
 /**
@@ -128,5 +129,37 @@ class MappingHelper
         Assert::integer($value, sprintf('Expected int for property "%s", got %%s', $property));
 
         return $value;
+    }
+
+    /**
+     * Whether the first join column of a to-one association accepts NULL, which
+     * is Doctrine's default. Join columns are arrays on ORM 2 and
+     * JoinColumnMapping objects on ORM 3+.
+     * @param array<string, mixed>|object $associationMapping
+     */
+    public static function isJoinColumnNullable(array|object $associationMapping): bool
+    {
+        $firstJoinColumn = (self::getArray($associationMapping, 'joinColumns') ?? [])[0] ?? null;
+
+        if (!is_array($firstJoinColumn) && !is_object($firstJoinColumn)) {
+            return true;
+        }
+
+        return self::getBool($firstJoinColumn, 'nullable') ?? true;
+    }
+
+    /**
+     * Association type as a ClassMetadata constant (ONE_TO_ONE, MANY_TO_ONE,
+     * ONE_TO_MANY, MANY_TO_MANY). ORM 3+ exposes it through
+     * AssociationMapping::type(), ORM 2 through the "type" key.
+     * @param array<string, mixed>|object $associationMapping
+     */
+    public static function getAssociationType(array|object $associationMapping): ?int
+    {
+        if ($associationMapping instanceof AssociationMapping) {
+            return $associationMapping->type();
+        }
+
+        return is_array($associationMapping) ? self::getInt($associationMapping, 'type') : null;
     }
 }
