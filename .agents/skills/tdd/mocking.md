@@ -1,5 +1,9 @@
 # When to Mock
 
+Doctrine Doctor follows a **no-mocks-by-default** policy. Test behavior with
+real objects, fixtures, in-memory implementations, or small fakes whenever the
+dependency belongs to this project.
+
 Mock at **system boundaries** only:
 
 - External APIs (payment, email, etc.)
@@ -12,6 +16,12 @@ Don't mock:
 - Your own classes/modules
 - Internal collaborators
 - Anything you control
+
+Never verify internal call counts or call order. If an interaction is the
+behavior, define it as an explicit port and test that port contract. A mock is
+acceptable only when a true external boundary is expensive, nondeterministic,
+destructive, or impossible to run locally (for example time, a network service,
+or a third-party API).
 
 ## Designing for Mockability
 

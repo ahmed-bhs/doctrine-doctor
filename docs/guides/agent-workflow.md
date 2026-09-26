@@ -35,10 +35,11 @@ the module.
 
 ## 3. Make the change testable
 
-Add a focused test for the changed behavior, then a regression test for the
-failure mode. Prefer fixtures and test doubles at the seam. Avoid tests that
-depend on a database or framework boot when a smaller test can prove the same
-contract.
+Add a focused behavior test for the changed outcome, then a regression test for
+the failure mode. Follow the [testing rules](../rules/testing) and prefer real
+objects, fixtures, or small fakes. Do not mock internal collaborators. Avoid
+tests that depend on a database or framework boot when a smaller test can prove
+the same contract.
 
 ## 4. Run checks
 

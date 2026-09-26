@@ -16,7 +16,8 @@ and delegate to the same canonical files.
    when the change affects layers or lifecycle.
 3. Read the relevant [rules](docs/rules/), especially the
    [PHP object design rules](docs/rules/php-oop.md) for class and interface
-   changes, then read the ADR and skill before changing a
+   changes and the [testing rules](docs/rules/testing.md) for test changes,
+   then read the ADR and skill before changing a
    boundary or analyzer.
 4. Use a focused [subagent](.claude/agents/) only when a second pass adds value.
 
@@ -41,6 +42,8 @@ and delegate to the same canonical files.
 - Keep commands, collectors, and presenters thin; put policy behind a small
   interface at an explicit seam.
 - Add focused behavior and regression coverage for changes.
+- Follow the test pyramid and prefer real objects or fakes; do not mock internal
+  classes or verify implementation call counts.
 - Treat PHPStan and Deptrac findings as design feedback.
 - Keep documentation concise and in English. Record only hard-to-reverse,
   surprising trade-offs as ADRs.

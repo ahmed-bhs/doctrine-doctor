@@ -1,8 +1,17 @@
 # Good and Bad Tests
 
+For Doctrine Doctor, prefer PHPUnit tests that describe an observable outcome
+through a public seam. Keep the suite pyramid-shaped: many fast unit tests,
+fewer integration tests, and a small number of platform tests.
+
 ## Good Tests
 
-**Integration-style**: Test through real interfaces, not mocks of internal parts.
+**Behavior-style**: Test through real interfaces, not mocks of internal parts.
+
+In PHP, an analyzer test should exercise its public `analyze()` contract with a
+real query collection and assert the returned issues. Add a Symfony or database
+integration test only when that wiring or persistence behavior is what must be
+proved.
 
 ```typescript
 // GOOD: Tests observable behavior

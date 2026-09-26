@@ -8,12 +8,30 @@ description: Test-driven development. Use when the user wants to build features 
 TDD is the red → green loop. This skill is the reference that makes that loop produce tests worth keeping: what a good test is, where tests go, the anti-patterns, and the rules of the loop. Every section applies on every cycle: consult them before and during the loop, not after.
 
 When exploring the codebase, read `CONTEXT.md` (if it exists) so test names and interface vocabulary match the project's domain language, and respect ADRs in the area you're touching.
+Also read the project's [testing rules](../../../docs/rules/testing.md): they
+define the test pyramid, behavior seams, and the default no-mocks policy.
+
+## Project TDD defaults
+
+- Work in vertical slices: write one behavior-level failing test, implement the
+  smallest change, make it pass, then refactor with the suite green.
+- Start with a unit test for pure analyzer, parser, value-object, or factory
+  behavior. Add integration coverage only when Symfony wiring, Doctrine
+  metadata, template rendering, or a database is part of the behavior.
+- For analyzers, use the matrix: finding, no finding, threshold or malformed
+  input, and the regression that motivated the change.
+- Use real project objects, fixtures, in-memory implementations, or small fakes.
+  Mocks are an exception for true external boundaries, never the default for
+  project classes or internal collaborators.
+- Keep the test suite pyramid-shaped: many fast unit tests, fewer integration
+  tests, and a small number of platform or end-to-end tests.
 
 ## What a good test is
 
 Tests verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't. A good test reads like a specification: "user can checkout with valid cart" tells you exactly what capability exists, and it survives refactors because it doesn't care about internal structure.
 
-See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking guidelines.
+See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for the
+narrow exception when a true external boundary must be isolated.
 
 ## Seams: where tests go
 
