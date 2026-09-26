@@ -41,7 +41,7 @@ Doctrine Doctor complements PHPStan and Psalm with checks focused on persistence
 | You want to inspect the configured database | Opt in with `--with-database` when a live database is available. |
 
 <p align="center">
-  <img src="images/pgi-feedback.png" alt="PGI Doctrine Doctor feedback: a real CLI analysis with 50 analyzers and 129 findings beside the Symfony Web Profiler showing query context and suggested fixes" width="100%">
+  <img src="images/pgi-feedback.png" alt="Symfony Web Profiler in focus with a real PGI Doctrine Doctor CLI result inset showing 50 analyzers and 129 findings" width="100%">
 </p>
 
 ---
