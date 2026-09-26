@@ -1,7 +1,6 @@
 ---
 name: to-spec
 description: "Turn the current conversation into a concise project spec; publish it only when the user explicitly asks."
-disable-model-invocation: true
 ---
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.

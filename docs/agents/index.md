@@ -20,7 +20,8 @@ risks, and the smallest useful next step.
 |----------|------|-------------|
 | `AGENTS.md` | Codex routing and project invariants | Every Codex task |
 | `CLAUDE.md` | Claude project memory entry point | Every Claude session |
-| `.claude/skills/` | Reusable task workflows | On demand |
+| `.agents/skills/` | Portable reusable task workflows | On demand |
+| `.claude/skills/` | Claude entry points to those workflows | On demand |
 | `.claude/agents/` | Isolated specialist reviews | When delegated |
 | `docs/guides/` | Human and agent procedures | When relevant |
 | `docs/rules/` | Stable project constraints | When relevant |

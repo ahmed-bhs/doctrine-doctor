@@ -2,8 +2,9 @@
 
 `AGENTS.md` is the project router. Keep durable facts in [MEMORY.md](MEMORY.md),
 domain vocabulary in [CONTEXT.md](CONTEXT.md), decisions in [docs/adr](docs/adr/),
-procedures in [docs/guides](docs/guides/), and reusable Claude workflows in
-[.claude/skills](.claude/skills/).
+procedures in [docs/guides](docs/guides/), and reusable workflows in
+[.agents/skills](.agents/skills/). Claude entry points live in `.claude/skills/`
+and delegate to the same canonical files.
 
 ## Before changing code
 
@@ -22,9 +23,9 @@ procedures in [docs/guides](docs/guides/), and reusable Claude workflows in
 | Need | Start here |
 |------|------------|
 | Clarify a requested change | `.agents/skills/to-spec` |
-| Shape a module or seam | `.claude/skills/architecture-design` |
-| Create an analyzer | `.claude/skills/create-analyzer` |
-| Change Symfony integration | `.claude/skills/symfony-quality` |
+| Shape a module or seam | `.agents/skills/architecture-design` |
+| Create an analyzer | `.agents/skills/create-analyzer` |
+| Change Symfony integration | `.agents/skills/symfony-quality` |
 | Implement test-first | `.agents/skills/tdd` |
 | Review a branch | `.agents/skills/code-review` |
 | Review Doctrine design | `.claude/agents/doctrine-architect.md` |

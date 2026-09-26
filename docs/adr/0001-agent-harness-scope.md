@@ -18,7 +18,8 @@ Use a small, layered harness:
 - `CONTEXT.md` is the domain glossary and contains no implementation recipe.
 - `docs/adr/` records decisions that are difficult to reverse or surprising without context.
 - `docs/guides/` contains repeatable workflows.
-- `.claude/skills/` contains short, task-triggered procedures that point to the guides.
+- `.agents/skills/` contains portable, short, task-triggered procedures that point to the guides.
+- `.claude/skills/` contains thin Claude entry points to the canonical skills.
 - `.claude/agents/` contains read-only or narrowly scoped Claude subagents.
 - `.githooks/` contains optional, fast local checks; CI remains authoritative.
 - `CLAUDE.md` remains a compatibility document and should point to `AGENTS.md` rather than duplicate it.
