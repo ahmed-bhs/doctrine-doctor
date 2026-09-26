@@ -7,12 +7,15 @@
   <circle cx="30" cy="29" r="8" fill="#fb7185"/>
   <circle cx="56" cy="29" r="8" fill="#facc15"/>
   <circle cx="82" cy="29" r="8" fill="#4ade80"/>
-  <text x="120" y="36" fill="#94a3b8" font-family="Arial, Helvetica, sans-serif" font-size="18">pgi/www — doctrine doctor</text>
+  <text x="120" y="36" fill="#94a3b8" font-family="Arial, Helvetica, sans-serif" font-size="18">Doctrine Doctor CLI</text>
   <g font-family="SFMono-Regular, Consolas, Liberation Mono, monospace" font-size="20">
     <text x="44" y="100" fill="#93c5fd">$</text>
-    <text x="70" y="100" fill="#e2e8f0">php bin/console doctrine:doctor:analyze --no-ansi --fail-on=never</text>
+    <text x="70" y="100" fill="#e2e8f0">php bin/console doctrine:doctor:analyze</text>
+    <text x="70" y="124" fill="#94a3b8">--no-ansi --fail-on=never</text>
     <text x="44" y="142" fill="#c4b5fd">Doctrine Doctor static analysis</text>
     <text x="44" y="174" fill="#64748b">===============================</text>
+    <rect x="28" y="190" width="1080" height="92" rx="8" fill="#111827" stroke="#334155" stroke-width="2"/>
+    <path d="M250 198V274 M500 198V274 M760 198V274" stroke="#334155" stroke-width="2"/>
     <text x="44" y="220" fill="#94a3b8">Analyzers</text>
     <text x="220" y="220" fill="#f8fafc">50</text>
     <text x="270" y="220" fill="#94a3b8">Findings</text>
