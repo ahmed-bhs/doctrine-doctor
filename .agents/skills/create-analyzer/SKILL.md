@@ -9,8 +9,9 @@ description: Create a new Doctrine Doctor analyzer with the correct execution co
    [ARCHITECTURE.md](../../../ARCHITECTURE.md), the [analyzer rules](../../../docs/rules/analyzers.md),
    and [the analyzer guide](../../../docs/contributing/creating-analyzers.md).
 2. Read [parsing-strategy](../parsing-strategy/SKILL.md) before choosing string
-   matching, regex, tokenization, or a parser. Read [object-design](../object-design/SKILL.md)
-   when introducing a new class or abstraction.
+   matching, regex, tokenization, or a parser. Use
+   [architecture-design](../architecture-design/SKILL.md) when introducing a
+   new class or abstraction.
 3. Find the nearest existing analyzer and confirm the evidence it needs:
    request SQL, source/mapping metadata, or live database state.
 4. Choose the narrowest contract and record the execution path: profiler,
