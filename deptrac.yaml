@@ -283,6 +283,7 @@ deptrac:
       - Strategy     # May use Strategies
       - Factory      # May use Factories
       - Collector    # Primary interaction point
+      - Service      # Deduplicate findings before displaying them
       # Commands are thin - they delegate to the Collector
 
     # --------------------------------------------------------

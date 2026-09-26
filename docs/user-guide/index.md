@@ -17,5 +17,6 @@ This section covers:
 | Page | Description |
 |------|-------------|
 | [Configuration](configuration) | Complete configuration reference |
-| [Analyzers Catalog](analyzers) | All 90+ analyzers documented |
+| [Analyzers Catalog](analyzers) | All 100 analyzers documented |
+| [Profiler and CI Checks](execution-modes) | Which checks run in the profiler, in CI, or against a live database |
 | [ORM or DBAL](orm-or-dbal) | When suggestions recommend DBAL, why, and what it bypasses |

@@ -50,16 +50,13 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         'createNativeQuery',
     ];
 
-    private readonly PhpCodeParser $phpCodeParser;
-
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly ?LoggerInterface $logger = null,
-        ?PhpCodeParser $phpCodeParser = null,
+        private ?PhpCodeParser $phpCodeParser = null,
         private readonly DQLPatternMatcher $dqlPatternMatcher = new DQLPatternMatcher(),
     ) {
-        $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
     }
 
     /**
@@ -73,43 +70,57 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
              */
             function () use ($queryDataCollection) {
                 try {
-                    // Analyze runtime queries from the collection
                     foreach ($queryDataCollection as $queryData) {
                         $issue = $this->analyzeQuery($queryData);
                         if (null !== $issue) {
                             yield $issue;
                         }
                     }
+                } catch (\Throwable $throwable) {
+                    $this->logger?->error('SQLInjectionInRawQueriesAnalyzer failed', [
+                        'exception' => $throwable::class,
+                        'message' => $throwable->getMessage(),
+                        'file' => $throwable->getFile(),
+                        'line' => $throwable->getLine(),
+                    ]);
+                }
+            },
+        );
+    }
 
-                    // Only perform static code analysis if no specific queries were provided
-                    // This allows tests to check specific queries without triggering full codebase scan
-                    if ($queryDataCollection->isEmpty()) {
-                        $metadataFactory = $this->entityManager->getMetadataFactory();
-                        $allMetadata     = $metadataFactory->getAllMetadata();
+    /**
+     * Analyze mapped entities and their custom repositories for unsafe SQL
+     * construction. This source scan is run by the static CI analyzer only.
+     *
+     * @return IssueCollection<SecurityIssue>
+     */
+    public function analyzeSourceCode(): IssueCollection
+    {
+        return IssueCollection::fromGenerator(
+            /**
+             * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
+             */
+            function () {
+                try {
+                    $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
 
-                        foreach ($allMetadata as $metadata) {
-                            $entityIssues = $this->analyzeEntity($metadata);
-
-                            foreach ($entityIssues as $entityIssue) {
-                                yield $entityIssue;
-                            }
+                    foreach ($allMetadata as $metadata) {
+                        foreach ($this->analyzeEntity($metadata) as $issue) {
+                            yield $issue;
                         }
+                    }
 
-                        // Also analyze repositories
-                        foreach ($allMetadata as $metadata) {
-                            $repositoryClass = $metadata->customRepositoryClassName;
+                    foreach ($allMetadata as $metadata) {
+                        $repositoryClass = $metadata->customRepositoryClassName;
 
-                            if (null !== $repositoryClass && class_exists($repositoryClass)) {
-                                $repositoryIssues = $this->analyzeClass($repositoryClass);
-
-                                foreach ($repositoryIssues as $repositoryIssue) {
-                                    yield $repositoryIssue;
-                                }
+                        if (null !== $repositoryClass && class_exists($repositoryClass)) {
+                            foreach ($this->analyzeClass($repositoryClass) as $issue) {
+                                yield $issue;
                             }
                         }
                     }
                 } catch (\Throwable $throwable) {
-                    $this->logger?->error('SQLInjectionInRawQueriesAnalyzer failed', [
+                    $this->logger?->error('SQLInjectionInRawQueriesAnalyzer source scan failed', [
                         'exception' => $throwable::class,
                         'message' => $throwable->getMessage(),
                         'file' => $throwable->getFile(),
@@ -319,7 +330,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         // - sprintf with user input: sprintf("SELECT...", $_GET['id'])
         // - Ignores comments automatically (no false positives)
         // - Type-safe detection with proper scope analysis
-        $patterns = $this->phpCodeParser->detectSqlInjectionPatterns($reflectionMethod);
+        $patterns = $this->getPhpCodeParser()->detectSqlInjectionPatterns($reflectionMethod);
 
         if ($patterns['concatenation']) {
             $issues[] = $this->createConcatenationIssue($className, $reflectionMethod->getName(), $reflectionMethod);
@@ -639,5 +650,10 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         }
 
         return sprintf('%s:%d', $filename, $line);
+    }
+
+    private function getPhpCodeParser(): PhpCodeParser
+    {
+        return $this->phpCodeParser ??= new PhpCodeParser($this->logger);
     }
 }

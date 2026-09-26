@@ -195,7 +195,9 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
             ? substr($className, $lastBackslashPos + 1)
             : $className;
 
-        $withoutSuffix = (string) preg_replace('/Analyzer$/', '', $shortName);
+        // Execution-mode split services (for example SQLInjectionInRawQueriesSourceAnalyzer)
+        // share the configuration switch of their base analyzer.
+        $withoutSuffix = (string) preg_replace('/(?:Source)?Analyzer$/', '', $shortName);
         Assert::stringNotEmpty($withoutSuffix, 'Class name must not be empty after removing Analyzer suffix');
 
         $step1 = (string) preg_replace('/([A-Z]+)([A-Z][a-z])/', '$1_$2', $withoutSuffix);

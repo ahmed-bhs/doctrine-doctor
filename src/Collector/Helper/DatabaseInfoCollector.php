@@ -239,6 +239,13 @@ final class DatabaseInfoCollector
      */
     private function extractDatabaseVersion(Connection $connection, array &$info): void
     {
+        // DBAL's getNativeConnection() opens the connection when it is still
+        // lazy. The profiler must not add a database handshake to a request
+        // that did not otherwise need one.
+        if (!$connection->isConnected()) {
+            return;
+        }
+
         try {
             $nativeConnection = $connection->getNativeConnection();
 
