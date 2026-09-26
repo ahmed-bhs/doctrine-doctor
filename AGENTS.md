@@ -10,7 +10,8 @@ procedures in [docs/guides](docs/guides/), and reusable Claude workflows in
 1. Run `./bin/doctrine-doctor-context --format=markdown` to establish the real
    PHP, Symfony, Doctrine, test, and execution-path context.
 2. Read [MEMORY.md](MEMORY.md), [CONTEXT.md](CONTEXT.md), and the
-   [architecture guide](docs/advanced/architecture.md).
+   [architecture map](ARCHITECTURE.md). Open the [architecture guide](docs/advanced/architecture.md)
+   when the change affects layers or lifecycle.
 3. Read the relevant [rules](docs/rules/), ADR, and skill before changing a
    boundary or analyzer.
 4. Use a focused [subagent](.claude/agents/) only when a second pass adds value.
@@ -21,7 +22,7 @@ procedures in [docs/guides](docs/guides/), and reusable Claude workflows in
 |------|------------|
 | Clarify a requested change | `.agents/skills/to-spec` |
 | Shape a module or seam | `.claude/skills/architecture-design` |
-| Change an analyzer | `.claude/skills/doctrine-analyzer` |
+| Create an analyzer | `.claude/skills/create-analyzer` |
 | Change Symfony integration | `.claude/skills/symfony-quality` |
 | Implement test-first | `.agents/skills/tdd` |
 | Review a branch | `.agents/skills/code-review` |

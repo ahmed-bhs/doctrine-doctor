@@ -35,8 +35,9 @@ rule into multiple files.
 
 ## Alternatives considered
 
-- A root `ARCHITECTURE.md`: rejected because `docs/advanced/architecture.md`
-  already provides the architecture reference.
+- A full root `ARCHITECTURE.md`: rejected because `docs/advanced/architecture.md`
+  already provides the detailed reference. A short root map is kept only for
+  discoverability and points to that canonical guide.
 - A large `rules/` tree: rejected because PHPStan, ECS, Deptrac, PHPUnit, and
   CI already enforce executable rules.
 - Mandatory heavy hooks: rejected because slow checks belong in CI and should
