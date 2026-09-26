@@ -20,6 +20,7 @@ pull request.
 | Would automated refactoring change it? | `composer rector` |
 | Does the behavior work? | `composer test` |
 | Are the Markdown pages valid? | `composer markdown-lint` |
+| Is the agent harness internally consistent? | `composer agent:harness` |
 | Do static Doctrine checks pass? | `php bin/console doctrine:doctor:analyze --fail-on=warning` |
 
 The full pre-PR set is:
@@ -33,6 +34,7 @@ composer rector
 composer deptrac
 composer test
 composer markdown-lint
+composer agent:harness
 ```
 
 Run `doctrine:doctor:analyze --with-database` only in an environment whose
