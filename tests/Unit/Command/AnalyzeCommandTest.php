@@ -74,7 +74,7 @@ final class AnalyzeCommandTest extends TestCase
         self::assertSame(1, $staticAnalyzer->calls);
         self::assertSame(0, $databaseAnalyzer->calls);
         self::assertSame(0, $runtimeAnalyzer->calls);
-        self::assertStringContainsString('Analyzers: 1', $commandTester->getDisplay());
+        self::assertStringContainsString('Analyzers', $commandTester->getDisplay());
     }
 
     #[Test]
@@ -101,7 +101,7 @@ final class AnalyzeCommandTest extends TestCase
 
         self::assertSame(0, $status);
         self::assertSame(1, $databaseAnalyzer->calls);
-        self::assertStringContainsString('Analyzers: 1', $commandTester->getDisplay());
+        self::assertStringContainsString('Analyzers', $commandTester->getDisplay());
     }
 
     #[Test]

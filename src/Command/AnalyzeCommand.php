@@ -74,17 +74,8 @@ class AnalyzeCommand extends Command
             ->bySeverityDescending()
             ->toArray();
 
-        $rows = array_map(
-            static fn (IssueInterface $issue): array => [
-                strtoupper($issue->getSeverity()->getValue()),
-                $issue->getCategory()->value,
-                $issue->getTitle(),
-            ],
-            $deduplicatedIssues,
-        );
-
         $io->title('Doctrine Doctor static analysis');
-        $io->text(sprintf('Analyzers: %d | Findings: %d | Time: %.2f ms', $analyzerCount, count($deduplicatedIssues), $durationMs));
+        $this->renderSummary($io, $analyzerCount, $deduplicatedIssues, $durationMs);
 
         if ([] !== $analyzerTimings && $output->isVerbose()) {
             uasort($analyzerTimings, static fn (array $left, array $right): int => $right['execution_time_ms'] <=> $left['execution_time_ms']);
@@ -106,11 +97,7 @@ class AnalyzeCommand extends Command
             );
         }
 
-        if ([] !== $rows) {
-            $io->table(['Severity', 'Category', 'Finding'], $rows);
-        } else {
-            $io->success('No findings detected.');
-        }
+        $this->renderFindings($io, $deduplicatedIssues);
 
         if ([] !== $analyzerErrors) {
             $io->error(array_merge(['One or more analyzers failed:'], $analyzerErrors));
@@ -132,6 +119,64 @@ class AnalyzeCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @param array<int, IssueInterface> $issues
+     */
+    private function renderSummary(SymfonyStyle $io, int $analyzerCount, array $issues, float $durationMs): void
+    {
+        $counts = ['critical' => 0, 'warning' => 0, 'info' => 0];
+        foreach ($issues as $issue) {
+            ++$counts[$issue->getSeverity()->getValue()];
+        }
+
+        $io->definitionList(
+            ['Analyzers' => $analyzerCount],
+            ['Findings' => count($issues)],
+            ['Duration' => sprintf('%.2f ms', $durationMs)],
+        );
+        $io->text(sprintf(
+            '<fg=red;options=bold>%d critical</>  <fg=yellow;options=bold>%d warnings</>  <fg=blue;options=bold>%d info</>',
+            $counts['critical'],
+            $counts['warning'],
+            $counts['info'],
+        ));
+    }
+
+    /**
+     * @param array<int, IssueInterface> $issues
+     */
+    private function renderFindings(SymfonyStyle $io, array $issues): void
+    {
+        if ([] === $issues) {
+            $io->success('No findings detected.');
+
+            return;
+        }
+
+        $labels = [
+            'critical' => 'Critical findings',
+            'warning' => 'Warnings',
+            'info' => 'Informational findings',
+        ];
+
+        foreach ($labels as $severity => $label) {
+            $rows = array_map(
+                static fn (IssueInterface $issue): array => [
+                    $issue->getCategory()->value,
+                    $issue->getTitle(),
+                ],
+                array_values(array_filter($issues, static fn (IssueInterface $issue): bool => $severity === $issue->getSeverity()->getValue())),
+            );
+
+            if ([] === $rows) {
+                continue;
+            }
+
+            $io->section(sprintf('%s (%d)', $label, count($rows)));
+            $io->table(['Category', 'Finding'], $rows);
+        }
     }
 
     /**
