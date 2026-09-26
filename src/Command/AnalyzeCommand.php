@@ -49,7 +49,7 @@ class AnalyzeCommand extends Command
     }
 
     /**
-     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings("PHPMD.NPathComplexity")
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -92,11 +92,14 @@ class AnalyzeCommand extends Command
             $io->table(
                 ['Analyzer', 'Findings', 'Time'],
                 array_map(
-                    static fn (string $class, array $stats): array => [
-                        new \ReflectionClass($class)->getShortName(),
-                        $stats['issues_found'],
-                        sprintf('%.2f ms', $stats['execution_time_ms']),
-                    ],
+                    static function (string $class, array $stats): array {
+                        /** @var class-string $class */
+                        return [
+                            new \ReflectionClass($class)->getShortName(),
+                            $stats['issues_found'],
+                            sprintf('%.2f ms', $stats['execution_time_ms']),
+                        ];
+                    },
                     array_keys($analyzerTimings),
                     array_values($analyzerTimings),
                 ),

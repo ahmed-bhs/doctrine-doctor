@@ -519,6 +519,9 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      * @param IssueDeduplicator     $issueDeduplicator   Service to deduplicate redundant issues
      * @return array Array of issue data (not objects yet)
      */
+    /**
+     * @SuppressWarnings("PHPMD.NPathComplexity")
+     */
     private function analyzeQueriesLazy(
         iterable $analyzers,
         DataCollectorLogger $dataCollectorLogger,
