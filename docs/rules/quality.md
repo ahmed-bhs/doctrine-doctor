@@ -4,3 +4,5 @@
 - Treat PHPStan, Deptrac, ECS, and tests as design feedback, not gates to work around.
 - Do not weaken a check to hide a finding; fix the design or record a reviewed exception.
 - Keep database-dependent checks explicit and opt-in.
+- Treat third-party skills as dependencies: review their instructions and scripts,
+  keep their source and content hash in `skills-lock.json`, and update them deliberately.

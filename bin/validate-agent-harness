@@ -12,6 +12,7 @@ $requiredFiles = [
     'MEMORY.md',
     'CONTEXT.md',
     'ARCHITECTURE.md',
+    'skills-lock.json',
     '.claude/settings.json',
     '.claude/hooks/load-context.sh',
 ];
@@ -28,6 +29,24 @@ if (is_file($settingsPath)) {
         json_decode((string) file_get_contents($settingsPath), true, 512, JSON_THROW_ON_ERROR);
     } catch (JsonException $exception) {
         $errors[] = '.claude/settings.json is not valid JSON: ' . $exception->getMessage();
+    }
+}
+
+$skillsLockPath = $root . '/skills-lock.json';
+if (is_file($skillsLockPath)) {
+    try {
+        $skillsLock = json_decode((string) file_get_contents($skillsLockPath), true, 512, JSON_THROW_ON_ERROR);
+        foreach (($skillsLock['skills'] ?? []) as $skillId => $skill) {
+            if (!is_string($skill['source'] ?? null) || !is_string($skill['computedHash'] ?? null)) {
+                $errors[] = "Skill lock entry is incomplete: {$skillId}";
+                continue;
+            }
+            if (!preg_match('/\\A[a-f0-9]{64}\\z/', $skill['computedHash'])) {
+                $errors[] = "Skill lock hash is invalid: {$skillId}";
+            }
+        }
+    } catch (JsonException $exception) {
+        $errors[] = 'skills-lock.json is not valid JSON: ' . $exception->getMessage();
     }
 }
 
