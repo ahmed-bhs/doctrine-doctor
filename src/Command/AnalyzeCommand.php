@@ -215,10 +215,10 @@ class AnalyzeCommand extends Command
 
     private function formatSuggestionCode(string $code): string
     {
-        $code = preg_replace('/<\\/(p|div|h[1-6]|li)>/i', "\\n", $code) ?? $code;
+        $code = preg_replace('/<\\/(p|div|h[1-6]|li)>/i', "\n", $code) ?? $code;
         $code = html_entity_decode(strip_tags($code), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-        return trim(preg_replace('/\\n{3,}/', "\\n\\n", $code) ?? $code);
+        return trim(preg_replace('/\n{3,}/', "\n\n", $code) ?? $code);
     }
 
     private function issueId(IssueInterface $issue): string
@@ -234,7 +234,7 @@ class AnalyzeCommand extends Command
     {
         $description = strip_tags($issue->getDescription());
         $description = preg_replace('/[ \\t]+/', ' ', $description) ?? $description;
-        $description = preg_replace('/\\R{3,}/', "\\n\\n", $description) ?? $description;
+        $description = preg_replace('/\R{3,}/', "\n\n", $description) ?? $description;
         $description = trim($description);
 
         $data = $issue->getData();
