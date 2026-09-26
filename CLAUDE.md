@@ -3,6 +3,9 @@
 Doctrine ORM profiler and CI analysis bundle. Request-SQL analyzers run in Symfony Web Profiler; source/mapping checks run with `doctrine:doctor:analyze`.
 100 analyzer services across Performance, Security, Integrity, and Configuration.
 
+Agent entry point: read [AGENTS.md](AGENTS.md) first. It routes to the project
+context, architecture guide, ADRs, guides, and skills without duplicating them.
+
 - Namespace: `AhmedBhs\DoctrineDoctor`
 - PHP 8.4+ / Symfony 6-8 / Doctrine ORM 3-4
 

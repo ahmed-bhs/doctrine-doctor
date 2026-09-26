@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mapfile -t php_files < <(git diff --cached --name-only --diff-filter=ACM -- '*.php')
+if ((${#php_files[@]} > 0)); then
+    vendor/bin/parallel-lint "${php_files[@]}"
+fi
+
+mapfile -t markdown_files < <(git diff --cached --name-only --diff-filter=ACM -- '*.md')
+if ((${#markdown_files[@]} > 0)); then
+    npx --no-install markdownlint-cli2 "${markdown_files[@]}"
+fi
