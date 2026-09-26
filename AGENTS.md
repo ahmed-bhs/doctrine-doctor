@@ -7,8 +7,9 @@ procedures in [docs/guides](docs/guides/), and reusable Claude workflows in
 
 ## Before changing code
 
-1. Run `./bin/doctrine-doctor-context --format=markdown` to establish the real
-   PHP, Symfony, Doctrine, test, and execution-path context.
+1. For code, dependency, execution-path, or environment changes, run
+   `./bin/doctrine-doctor-context --format=markdown` to establish the real
+   project context.
 2. Read [MEMORY.md](MEMORY.md), [CONTEXT.md](CONTEXT.md), and the
    [architecture map](ARCHITECTURE.md). Open the [architecture guide](docs/advanced/architecture.md)
    when the change affects layers or lifecycle.

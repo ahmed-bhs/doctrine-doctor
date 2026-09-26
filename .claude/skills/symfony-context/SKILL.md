@@ -5,9 +5,10 @@ description: Establish Doctrine Doctor's runtime versions, execution paths, and 
 
 # Symfony Context Skill
 
-Run `./bin/doctrine-doctor-context --format=markdown` before the first project
-command in a new task. Use `--format=json` for tooling and `--format=env` for
-scripts.
+Run `./bin/doctrine-doctor-context --format=markdown` when a task changes code,
+dependencies, execution paths, or environment assumptions. For a documentation
+typo or a one-file wording change, skip it. Use `--format=json` for tooling and
+`--format=env` for scripts.
 
 Then read [MEMORY.md](../../../MEMORY.md), [CONTEXT.md](../../../CONTEXT.md), and the
 relevant rule or skill. Treat the detected context as evidence; confirm details
