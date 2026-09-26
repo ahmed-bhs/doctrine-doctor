@@ -13,7 +13,13 @@
 [![Code Style](https://img.shields.io/badge/Code%20Style-PSR--12-blue.svg)](https://www.php-fig.org/psr/psr-12/)
 [![Packagist Version](https://img.shields.io/packagist/v/ahmed-bhs/doctrine-doctor.svg)](https://packagist.org/packages/ahmed-bhs/doctrine-doctor)
 
-Doctrine Doctor adds Doctrine-focused checks to the two places where feedback is most useful:
+<p align="center">
+  <a href="#quick-start">Get started</a> ·
+  <a href="#add-it-to-ci">Add it to CI</a> ·
+  <a href="docs/user-guide/analyzers.md">Browse analyzers</a>
+</p>
+
+Doctrine Doctor adds Doctrine-focused feedback to the two places where it is most useful:
 
 | When you need an answer | Doctrine Doctor helps you |
 | --- | --- |
@@ -26,52 +32,78 @@ Doctrine Doctor adds Doctrine-focused checks to the two places where feedback is
 </p>
 
 <p align="center">
+  <img src="docs/images/ai-cli-analysis.png" alt="AI-assisted CLI analysis running Doctrine Doctor against a Symfony project" width="100%">
+</p>
+<p align="center"><em>Real CLI feedback while Doctrine Doctor analyzes a project.</em></p>
+
+<p align="center">
   <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo-styled.png" alt="Doctrine Doctor Demo" width="100%">
 </p>
 
 ---
 
-## What it checks
+## Choose your feedback loop
 
-### 100 Built-in Analyzers
+<table>
+<tr>
+<td width="50%" valign="top">
 
-- **Performance** — Detects N+1 queries, missing database indexes, slow queries, excessive hydration,
-  findAll() without limits, setMaxResults() with collection joins, too many JOINs, and query caching
-  opportunities
-- **Security** — Identifies DQL/SQL injection vulnerabilities, QueryBuilder SQL injection risks,
-  sensitive data exposure in serialization, unprotected sensitive fields, and insecure random generators
-- **Integrity** — Detects cascade configuration issues, bidirectional inconsistencies,
-  missing orphan removal, type mismatches, float usage for money, uninitialized collections,
-  EntityManager in entities, and architectural violations
-- **Configuration** — Validates database charset/collation settings, timezone handling,
-  Gedmo trait configurations, MySQL strict mode, and other database-level configurations
+### While you develop
+
+Use the Web Profiler when a real page behaves badly. See the query, timing, pattern, and backtrace together while you still have the page open.
+
+**Best for:** N+1 queries, slow SQL, repeated queries, and expensive hydration.
+
+</td>
+<td width="50%" valign="top">
+
+### Before you merge
+
+Run the static checks in CI so every pull request gets the same persistence review, even when no page has been exercised yet.
+
+**Best for:** source code, mappings, configuration, and database-independent design issues.
+
+</td>
+</tr>
+</table>
+
+## What it catches
+
+Doctrine Doctor ships with more than 100 analyzers grouped by the kind of decision they support:
+
+| Area | Examples |
+| --- | --- |
+| **Performance** | N+1 queries, missing indexes, slow queries, excessive hydration, unbounded reads, and inefficient joins |
+| **Security** | DQL/SQL injection, unsafe QueryBuilder input, sensitive data exposure, and insecure randomness |
+| **Integrity** | Cascade and orphan-removal issues, mapping mismatches, type errors, and invalid entity boundaries |
+| **Configuration** | Charset, collation, timezone, strict mode, cache, and platform configuration |
+
+See the [full analyzer catalog](docs/user-guide/analyzers.md) for the complete list.
 
 ---
 
 ## Quick start
 
-**Step 1: Install**
+**1. Install the bundle**
 
 ```bash
 composer require --dev ahmed-bhs/doctrine-doctor
 ```
 
-**Step 2: Open the profiler**
+**2. Open a real page**
 
-Auto-configured via [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No YAML, no configuration files needed.
+The bundle is auto-configured through [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No YAML is needed for the first run.
 
-**Step 3: Inspect the findings**
+**3. Read the feedback**
 
-1. Refresh any page in your Symfony app (in `dev` environment)
-2. Open the **Symfony Web Profiler** (bottom toolbar)
-3. Click the **"Doctrine Doctor"** panel
+Refresh the page in the `dev` environment, open the **Symfony Web Profiler**, and select the **Doctrine Doctor** panel.
 
 ## Add it to CI
 
 Check your code and mappings on every pull request:
 
 ```bash
-php bin/console doctrine:doctor:analyze
+php bin/console doctrine:doctor:analyze --fail-on=warning
 ```
 
 The command exits with a failure when it finds a warning or critical issue. Use
@@ -82,7 +114,32 @@ audits are opt-in with `--with-database`.
 See the [profiler and CI checks guide](docs/user-guide/execution-modes.md) for
 the full analyzer inventory and execution rules.
 
-## Configuration (Optional)
+<details>
+<summary><strong>How the feedback flows</strong></summary>
+
+```mermaid
+flowchart LR
+    A[Pull request] --> B[Doctrine Doctor]
+    B --> C{Finding?}
+    C -->|No| D[Merge with confidence]
+    C -->|Yes| E[Analyzer + location + next step]
+    E --> F[Fix and push]
+    F --> B
+
+    classDef start fill:#dbeafe,stroke:#2563eb,color:#0f172a
+    classDef check fill:#ede9fe,stroke:#7c3aed,color:#0f172a
+    classDef finding fill:#fee2e2,stroke:#dc2626,color:#0f172a
+    classDef done fill:#dcfce7,stroke:#16a34a,color:#0f172a
+    class A start
+    class B check
+    class C,E finding
+    class D done
+```
+
+</details>
+
+<details>
+<summary><strong>Configuration (optional)</strong></summary>
 
 Configure thresholds in `config/packages/dev/doctrine_doctor.yaml`:
 
@@ -106,9 +163,12 @@ doctrine:
 
 [Full configuration reference →](docs/user-guide/configuration.md)
 
+</details>
+
 ---
 
-## AI Mate / MCP integration (optional)
+<details>
+<summary><strong>AI Mate / MCP integration (optional)</strong></summary>
 
 Doctrine Doctor can expose its profiler findings to AI assistants (Claude Code,
 Cursor, GitHub Copilot, …) over [MCP](https://modelcontextprotocol.io) through
@@ -121,6 +181,8 @@ by default. **Without AI Mate installed, this does not apply and Doctrine Doctor
 runs exactly as before.**
 
 [Setup guide & tool reference →](docs/user-guide/ai-mate.md)
+
+</details>
 
 ---
 
