@@ -11,6 +11,13 @@ checks source code and mappings in CI.
 3. Read the relevant [rules](docs/rules/) and [ADR](docs/adr/) before changing an established boundary.
 4. For analyzer work, follow [the analyzer guide](docs/contributing/creating-analyzers.md) and the relevant [skill](skills/).
 5. Use the focused [subagent brief](agents/) when delegating review or investigation.
+6. For issue-backed work, follow the [issue tracker conventions](docs/agents/issue-tracker.md).
+
+Project workflow skills from Matt Pocock's collection are pinned in
+`skills-lock.json` under `.agents/skills/`: `to-spec`, `tdd`, `code-review`, and
+`grilling`. Use them for specification, test-first implementation, two-axis
+review, and decision stress-testing. Update them deliberately with
+`npx skills update`, then review the diff.
 
 ## Execution contracts
 

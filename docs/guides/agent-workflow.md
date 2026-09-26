@@ -9,6 +9,10 @@ nav_order: 4
 
 This is the short path for an agent changing Doctrine Doctor.
 
+Use `to-spec` for an issue-ready specification, `tdd` for a test-first change,
+`code-review` for a standards/spec review, and `grilling` when a design choice
+needs stress-testing. These project skills are pinned in `skills-lock.json`.
+
 ## 1. Establish context
 
 Read [CONTEXT.md](../../CONTEXT.md), then inspect the relevant code and tests.
