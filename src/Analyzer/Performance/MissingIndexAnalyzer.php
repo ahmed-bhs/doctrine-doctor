@@ -531,7 +531,9 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     private function indexName(Index $index): string
     {
         if (method_exists($index, 'getObjectName')) {
-            return $index->getObjectName()->getIdentifier()->getValue();
+            $objectName = $index->{'getObjectName'}();
+
+            return $objectName->getIdentifier()->getValue();
         }
 
         return $index->getName(); // @phpstan-ignore method.internalClass
