@@ -2,3 +2,4 @@
 set -euo pipefail
 
 composer test:unit
+composer agent:harness

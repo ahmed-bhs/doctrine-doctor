@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if ! command -v composer >/dev/null 2>&1; then
+    echo "pre-commit: composer is required; install dependencies or disable the optional hook." >&2
+    exit 1
+fi
+
 mapfile -t php_files < <(git diff --cached --name-only --diff-filter=ACM -- '*.php')
 if ((${#php_files[@]} > 0)); then
     vendor/bin/parallel-lint "${php_files[@]}"
@@ -8,5 +13,11 @@ fi
 
 mapfile -t markdown_files < <(git diff --cached --name-only --diff-filter=ACM -- '*.md')
 if ((${#markdown_files[@]} > 0)); then
+    if ! command -v npx >/dev/null 2>&1; then
+        echo "pre-commit: npx is required to lint staged Markdown files." >&2
+        exit 1
+    fi
     npx --no-install markdownlint-cli2 "${markdown_files[@]}"
 fi
+
+composer agent:harness

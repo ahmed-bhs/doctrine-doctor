@@ -41,7 +41,8 @@ Run `doctrine:doctor:analyze --with-database` only in an environment whose
 database is intentionally part of the check. Report skipped checks and their
 reason in the PR.
 
-The hooks are optional local feedback. Enable them with:
+The hooks are optional local feedback. See the [local hooks guide](hooks) for
+their scope and prerequisites. Enable them with:
 
 ```bash
 git config core.hooksPath .githooks

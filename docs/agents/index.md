@@ -29,5 +29,6 @@ risks, and the smallest useful next step.
 | `.claude/hooks/` | Deterministic Claude lifecycle scripts | Session/tool lifecycle |
 | `.githooks/` | Optional local Git checks | Commit and push |
 
-The project Claude hook only loads the runtime context at session start. Heavy
+The project Claude hook only loads the runtime context at session start. The
+[local hooks guide](../guides/hooks) explains the optional Git checks. Heavy
 quality checks remain explicit or run in CI.
