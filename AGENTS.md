@@ -1,78 +1,49 @@
 # Working in Doctrine Doctor
 
-Doctrine Doctor is a Symfony bundle that checks Doctrine usage in two places:
-the Web Profiler observes SQL from a real request, and `doctrine:doctor:analyze`
-checks source code and mappings in CI.
+`AGENTS.md` is the project router. Keep durable facts in [MEMORY.md](MEMORY.md),
+domain vocabulary in [CONTEXT.md](CONTEXT.md), decisions in [docs/adr](docs/adr/),
+procedures in [docs/guides](docs/guides/), and reusable workflows in [skills](skills/).
 
 ## Before changing code
 
-1. Read [MEMORY.md](MEMORY.md) for durable project facts and [CONTEXT.md](CONTEXT.md) for vocabulary.
-2. Read [the architecture guide](docs/advanced/architecture.md) before changing module seams, layers, or Deptrac rules.
-3. Read the relevant [rules](docs/rules/) and [ADR](docs/adr/) before changing an established boundary.
-4. For analyzer work, follow [the analyzer guide](docs/contributing/creating-analyzers.md) and the relevant [skill](skills/).
-5. Use the focused [subagent brief](agents/) when delegating review or investigation.
-6. For issue-backed work, follow the [issue tracker conventions](docs/agents/issue-tracker.md).
+1. Run `./bin/doctrine-doctor-context --format=markdown` to establish the real
+   PHP, Symfony, Doctrine, test, and execution-path context.
+2. Read [MEMORY.md](MEMORY.md), [CONTEXT.md](CONTEXT.md), and the
+   [architecture guide](docs/advanced/architecture.md).
+3. Read the relevant [rules](docs/rules/), ADR, and skill before changing a
+   boundary or analyzer.
+4. Use a focused [subagent brief](agents/) only when a second pass adds value.
 
-Run `./bin/doctrine-doctor-context --format=markdown` at the start of a new
-task. It reports the installed PHP, Symfony, Doctrine, test, and execution-path
-context so skills use real project commands.
+## Choose the smallest workflow
+
+| Need | Start here |
+|------|------------|
+| Clarify a requested change | `.agents/skills/to-spec` |
+| Shape a module or seam | `skills/architecture-design` |
+| Change an analyzer | `skills/doctrine-analyzer` |
+| Change Symfony integration | `skills/symfony-quality` |
+| Implement test-first | `.agents/skills/tdd` |
+| Review a branch | `.agents/skills/code-review` |
+| Review Doctrine design | `agents/doctrine-architect.md` |
+| Review Doctrine performance | `agents/doctrine-performance-reviewer.md` |
+
+## Non-negotiable project rules
+
+- Keep domain policy independent from Symfony and Doctrine adapters.
+- Choose the narrowest execution contract: profiler runtime, CI static, or
+  opt-in database audit.
+- Keep commands, collectors, and presenters thin; put policy behind a small
+  interface at an explicit seam.
+- Add focused behavior and regression coverage for changes.
+- Treat PHPStan and Deptrac findings as design feedback.
+- Keep documentation concise and in English. Record only hard-to-reverse,
+  surprising trade-offs as ADRs.
+
+Before opening a PR, follow [Quality Checks](docs/guides/quality-checks.md).
+Leave unrelated local drafts untouched.
+
+## Compatibility
 
 Project workflow skills from Matt Pocock's collection are pinned in
-`skills-lock.json` under `.agents/skills/`: `to-spec`, `tdd`, `code-review`, and
-`grilling`. Use them for specification, test-first implementation, two-axis
-review, and decision stress-testing. Update them deliberately with
+`skills-lock.json` under `.agents/skills/`. Update them deliberately with
 `npx skills update`, then review the diff.
-
-## Execution contracts
-
-- `AnalyzerInterface`: request-dependent checks run in the profiler.
-- `StaticAnalyzerInterface`: source and mapping checks run in CI.
-- `DatabaseAuditAnalyzerInterface`: live database checks run in CI only with `--with-database`.
-- `MetadataAnalyzerInterface`: metadata-oriented static checks; it extends `StaticAnalyzerInterface`.
-
-Choose the narrowest contract that fits the data the analyzer needs. Keep the
-interface small and put orchestration behind an application module rather than
-making commands or collectors know analyzer internals.
-
-## Design vocabulary
-
-Use **module**, **interface**, **seam**, and **adapter** precisely. Prefer a
-deep module with a small interface, explicit dependencies, and high locality.
-Use composition over inheritance and introduce a seam when a real variation or
-test double justifies it.
-
-## Required checks
-
-Run the smallest relevant checks while iterating. Before opening a PR, run:
-
-```bash
-composer lint
-composer ecs
-composer phpstan
-composer phpmd
-composer rector
-composer deptrac
-composer test
-composer markdown-lint
-```
-
-For a static analyzer change, also run:
-
-```bash
-php bin/console doctrine:doctor:analyze --fail-on=warning
-```
-
-Describe any check that cannot run and why. Do not weaken a quality gate to
-hide a finding; fix the design or document an explicit, reviewed exception.
-
-## Change boundaries
-
-- Keep domain types independent from Symfony and Doctrine infrastructure.
-- Depend on interfaces at seams and inject adapters.
-- Prefer composition, immutable value objects, and explicit dependencies.
-- Add a meaningful test for every behavior change.
-- Document decisions and trade-offs in an ADR; do not use ADRs for routine implementation notes.
-- Keep documentation English, concise, and user-oriented.
-
-The repository may contain local drafts unrelated to the current change. Leave
-them untouched unless the task explicitly includes them.

@@ -7,7 +7,6 @@ second pass; do not split small edits just to create parallel work.
 |-------|---------|
 | [Runtime Reviewer](runtime-reviewer) | Profiler and request-SQL changes |
 | [Static Reviewer](static-reviewer) | CI, source, mapping, and database audits |
-| [Architecture Reviewer](architecture-reviewer) | Seams, dependency direction, and ADRs |
 | [Doctrine Architect](doctrine-architect) | Mapping and repository design |
 | [Doctrine Performance Reviewer](doctrine-performance-reviewer) | Read-only Doctrine performance review |
 
