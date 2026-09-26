@@ -44,6 +44,10 @@ procedures in [docs/guides](docs/guides/), and reusable Claude workflows in
 Before opening a PR, follow [Quality Checks](docs/guides/quality-checks.md).
 Leave unrelated local drafts untouched.
 
+Claude's project `SessionStart` hook loads the same context automatically. Keep
+hooks deterministic and lightweight; use skills for reasoning and CI for heavy
+quality checks.
+
 ## Compatibility
 
 Project workflow skills from Matt Pocock's collection are pinned in

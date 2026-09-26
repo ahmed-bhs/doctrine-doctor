@@ -13,3 +13,20 @@ work.
 
 Each reviewer reads the project memory and rules first, then reports evidence,
 risks, and the smallest useful next step.
+
+## Where things belong
+
+| Location | Role | Loaded when |
+|----------|------|-------------|
+| `AGENTS.md` | Codex routing and project invariants | Every Codex task |
+| `CLAUDE.md` | Claude project memory entry point | Every Claude session |
+| `.claude/skills/` | Reusable task workflows | On demand |
+| `.claude/agents/` | Isolated specialist reviews | When delegated |
+| `docs/guides/` | Human and agent procedures | When relevant |
+| `docs/rules/` | Stable project constraints | When relevant |
+| `docs/adr/` | Hard-to-reverse decisions | When a decision is involved |
+| `.claude/hooks/` | Deterministic Claude lifecycle scripts | Session/tool lifecycle |
+| `.githooks/` | Optional local Git checks | Commit and push |
+
+The project Claude hook only loads the runtime context at session start. Heavy
+quality checks remain explicit or run in CI.
