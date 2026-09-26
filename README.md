@@ -30,7 +30,7 @@ Doctrine Doctor adds Doctrine-focused feedback to the two places where it is mos
 <p align="center">
   <img src="docs/images/pgi-feedback.png" alt="Symfony Web Profiler in focus with a real PGI Doctrine Doctor CLI result inset showing 50 analyzers and 129 findings" width="100%">
 </p>
-<p align="center"><em>Profiler first for context; the CI result stays visible as a compact proof.</em></p>
+<p align="center"><em>Runtime context with the real CI result kept in view.</em></p>
 
 <p align="center">
   <a href="#add-it-to-ci">Catch issues in CI</a> ·
