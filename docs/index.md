@@ -62,7 +62,7 @@ See [Profiler and CI Checks](user-guide/execution-modes) to choose where each ch
 </p>
 
 <p align="center">
-  <img src="images/ai-cli-analysis.png" alt="AI-assisted CLI analysis running Doctrine Doctor against a Symfony project" width="100%">
+  <img src="images/pgi-doctrine-doctor-cli.png" alt="Real Doctrine Doctor CLI analysis of the PGI project showing 50 analyzers, 129 findings, and actionable critical, warning, and info results" width="100%">
 </p>
 
 ---

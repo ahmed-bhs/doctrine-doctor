@@ -32,9 +32,9 @@ Doctrine Doctor adds Doctrine-focused feedback to the two places where it is mos
 </p>
 
 <p align="center">
-  <img src="docs/images/ai-cli-analysis.png" alt="AI-assisted CLI analysis running Doctrine Doctor against a Symfony project" width="100%">
+  <img src="docs/images/pgi-doctrine-doctor-cli.png" alt="Real Doctrine Doctor CLI analysis of the PGI project showing 50 analyzers, 129 findings, and actionable critical, warning, and info results" width="100%">
 </p>
-<p align="center"><em>Real CLI feedback while Doctrine Doctor analyzes a project.</em></p>
+<p align="center"><em>Real output from Doctrine Doctor running against PGI.</em></p>
 
 <p align="center">
   <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo-styled.png" alt="Doctrine Doctor Demo" width="100%">
