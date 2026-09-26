@@ -2,7 +2,7 @@
 
 <img src="docs/images/logo.png" alt="Doctrine Doctor Logo" width="80" align="right">
 
-**Doctrine ORM checks for your Symfony app — in the profiler and CI**
+**Find Doctrine ORM problems in the profiler. Catch them in CI.**
 
 [![PHP 8.4+](https://img.shields.io/badge/PHP-8.4+-777BB4.svg?logo=php&logoColor=white)](https://php.net)
 [![Symfony 6.x | 7.x | 8.x](https://img.shields.io/badge/Symfony-6.x%20%7C%207.x%20%7C%208.x-000000.svg?logo=symfony&logoColor=white)](https://symfony.com)
@@ -13,15 +13,17 @@
 [![Code Style](https://img.shields.io/badge/Code%20Style-PSR--12-blue.svg)](https://www.php-fig.org/psr/psr-12/)
 [![Packagist Version](https://img.shields.io/packagist/v/ahmed-bhs/doctrine-doctor.svg)](https://packagist.org/packages/ahmed-bhs/doctrine-doctor)
 
-<b>Catch Doctrine issues while you work and before you merge</b>
+Doctrine Doctor adds Doctrine-focused checks to the two places where feedback is most useful:
 
-<p>Doctrine Doctor adds checks made for Doctrine:</p>
+| When you need an answer | Doctrine Doctor helps you |
+| --- | --- |
+| A page is slow | Inspect real queries, timings, and backtraces in the Web Profiler. |
+| A change is ready for review | Check source code, mappings, and configuration in CI. |
+| A database needs a closer look | Run an opt-in audit with `--with-database`. |
 
-<ul>
-<li><b>Profiler:</b> Find N+1 queries and slow SQL in a real page, with a link back to your code.</li>
-<li><b>CI:</b> Check code, mappings, and configuration on each pull request.</li>
-<li><b>Optional:</b> Check a live database with <code>--with-database</code>.</li>
-</ul>
+<p align="center">
+  <img src="docs/images/ci-feedback.svg" alt="Doctrine Doctor CI feedback flow: open a pull request, analyze it, see an actionable finding, then fix and merge" width="100%">
+</p>
 
 <p align="center">
   <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo-styled.png" alt="Doctrine Doctor Demo" width="100%">
@@ -29,7 +31,7 @@
 
 ---
 
-## Features
+## What it checks
 
 ### 100 Built-in Analyzers
 
@@ -46,7 +48,7 @@
 
 ---
 
-## Quick Start (30 seconds)
+## Quick start
 
 **Step 1: Install**
 
@@ -54,17 +56,17 @@
 composer require --dev ahmed-bhs/doctrine-doctor
 ```
 
-**Step 2: That's it!**
+**Step 2: Open the profiler**
 
 Auto-configured via [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No YAML, no configuration files needed.
 
-**Step 3: See it in action**
+**Step 3: Inspect the findings**
 
 1. Refresh any page in your Symfony app (in `dev` environment)
 2. Open the **Symfony Web Profiler** (bottom toolbar)
 3. Click the **"Doctrine Doctor"** panel
 
-## Run checks in CI
+## Add it to CI
 
 Check your code and mappings on every pull request:
 

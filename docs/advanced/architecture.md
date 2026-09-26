@@ -13,6 +13,12 @@ nav_order: 1
 
 Doctrine Doctor follows a **layered architecture** pattern with clear separation of concerns:
 
+The durable choices behind the execution split and parser boundary are recorded
+in [ADR 0002](../adr/0002-separate-analysis-execution-modes) and
+[ADR 0003](../adr/0003-use-the-smallest-correct-parser). Persistent worker
+state and suggestion rendering are covered by [ADR 0004](../adr/0004-reset-state-between-persistent-requests)
+and [ADR 0005](../adr/0005-use-native-php-suggestion-templates).
+
 ```text
 ┌──────────────────────────────────────────────┐
 │           Presentation Layer                 │

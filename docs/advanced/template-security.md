@@ -7,6 +7,9 @@ nav_order: 2
 
 # PHP Template Security Guide
 
+The default escaping boundary is recorded in
+[ADR 0006](../adr/0006-escape-template-context-by-default).
+
 This document describes the security features implemented in the PHP template rendering system to prevent XSS (Cross-Site Scripting) and other injection attacks.
 
 ---

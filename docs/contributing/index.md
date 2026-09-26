@@ -17,3 +17,8 @@ We welcome contributions! This section explains how to contribute to Doctrine Do
 | [Overview](overview) | How to contribute |
 | [Development](development) | Setting up the dev environment |
 | [Creating Analyzers](creating-analyzers) | Build custom analyzers |
+| [Agent Workflow](../guides/agent-workflow) | A concise workflow for AI-assisted changes |
+| [Quality Checks](../guides/quality-checks) | Which automated checks to run and when |
+
+Agent context is kept in [`MEMORY.md`](../../MEMORY.md), [`CONTEXT.md`](../../CONTEXT.md),
+the [rules](../rules/), [ADRs](../adr/), project skills in `.claude/skills/`, and [subagent briefs](../agents/).

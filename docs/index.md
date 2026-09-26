@@ -2,15 +2,19 @@
 layout: home
 title: Home
 nav_order: 1
-description: "Doctrine ORM checks for Symfony: inspect real request queries in the Web Profiler and run source, mapping, and optional database audits in CI."
+description: "Doctrine Doctor finds Doctrine ORM performance, security, integrity, and configuration issues in the Symfony Web Profiler and CI."
 permalink: /
 ---
 
 # Doctrine Doctor
 {: .fs-9 }
 
-Doctrine ORM checks for your Symfony app — in the profiler and CI
+Find Doctrine ORM problems while they are still easy to fix.
 {: .fs-6 .fw-300 }
+
+Doctrine Doctor watches real queries in the Symfony Web Profiler and checks
+source code, mappings, and optional database configuration in CI. Each finding
+includes context and a practical next step.
 
 [Get started now](getting-started/quick-start){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
 [View on GitHub](https://github.com/ahmed-bhs/doctrine-doctor){: .btn .fs-5 .mb-4 .mb-md-0 }
@@ -26,14 +30,15 @@ Doctrine ORM checks for your Symfony app — in the profiler and CI
 
 ---
 
-## Find issues while you work and before you merge
+## One tool, two useful moments
 
-Doctrine Doctor complements tools such as PHPStan and Psalm with checks focused on Doctrine:
+Doctrine Doctor complements PHPStan and Psalm with checks focused on persistence:
 
-- **In the profiler**, see query problems from a real request, including N+1 queries and slow SQL.
-- **In CI**, check source code, Doctrine mappings, and configuration on pull requests.
-- **When useful**, include audits of a live database with `doctrine:doctor:analyze --with-database`.
-- **In the profiler**, follow a finding back to the code that triggered it and review a suggested fix.
+| When you need an answer | Where Doctrine Doctor helps |
+|-------------------------|-----------------------------|
+| A page is slow or triggers unexpected SQL | The Web Profiler shows request queries, patterns, timings, and backtraces. |
+| A change may introduce a persistence problem | CI checks source code, mappings, and configuration before merge. |
+| You want to inspect the configured database | Opt in with `--with-database` when a live database is available. |
 
 <p align="center">
   <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo.png" alt="Doctrine Doctor Demo" width="100%">
@@ -41,29 +46,24 @@ Doctrine Doctor complements tools such as PHPStan and Psalm with checks focused 
 
 ---
 
-## Features
+## What it checks
 
-### 100 Built-in Analyzers
+| Area | Examples |
+|------|----------|
+| Performance | N+1 queries, slow queries, missing indexes, excessive hydration, unbounded reads, and inefficient joins |
+| Security | DQL/SQL injection risks, sensitive data exposure, and insecure randomness |
+| Integrity | Cascade and orphan-removal issues, mapping inconsistencies, type mismatches, and invalid entity boundaries |
+| Configuration | Charset, collation, timezone, strict mode, cache, and platform configuration |
 
-- **Performance** — Detects N+1 queries, missing database indexes, slow queries, excessive hydration,
-  findAll() without limits, setMaxResults() with collection joins, too many JOINs, and query caching
-  opportunities
+See [Profiler and CI Checks](user-guide/execution-modes) to choose where each check runs. The [analyzer catalog](user-guide/analyzers) contains the complete list.
 
-- **Security** — Identifies DQL/SQL injection vulnerabilities, QueryBuilder SQL injection risks,
-  sensitive data exposure in serialization, unprotected sensitive fields, and insecure random generators
-
-- **Code Quality** — Detects cascade configuration issues, bidirectional inconsistencies,
-  missing orphan removal, type mismatches, float usage for money, uninitialized collections,
-  EntityManager in entities, and architectural violations
-
-- **Configuration** — Validates database charset/collation settings, timezone handling,
-  Gedmo trait configurations, MySQL strict mode, and other database-level configurations
-
-See [Profiler and CI Checks](user-guide/execution-modes) to choose where to run each check.
+<p align="center">
+  <img src="images/ci-feedback.svg" alt="Doctrine Doctor CI feedback flow: open a pull request, analyze it, see an actionable finding, then fix and merge" width="100%">
+</p>
 
 ---
 
-## Quick Start (30 seconds)
+## Quick start
 
 **Step 1: Install**
 
@@ -71,15 +71,21 @@ See [Profiler and CI Checks](user-guide/execution-modes) to choose where to run 
 composer require --dev ahmed-bhs/doctrine-doctor
 ```
 
-**Step 2: That's it!**
+**Step 2: Load a page in your Symfony app.**
 
-Auto-configured via [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No YAML, no configuration files needed.
+The bundle is auto-configured through [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No YAML is required for the first run.
 
-**Step 3: See it in action**
+**Step 3: Open the profiler panel.**
 
-1. Refresh any page in your Symfony app (in `dev` environment)
-2. Open the **Symfony Web Profiler** (bottom toolbar)
-3. Click the **"Doctrine Doctor"** panel
+Open the Web Profiler in the `dev` environment and select the **Doctrine Doctor** panel.
+
+To add deterministic checks to CI:
+
+```bash
+php bin/console doctrine:doctor:analyze --fail-on=warning
+```
+
+Add `--with-database` only in a job that intentionally provides a live database.
 
 ---
 

@@ -1,5 +1,8 @@
 # AI Mate / MCP integration
 
+The opt-in and sanitization decision is recorded in
+[ADR 0007](../adr/0007-keep-ai-mate-integration-opt-in).
+
 Doctrine Doctor can expose its profiler findings to AI assistants (Claude Code,
 Cursor, GitHub Copilot, …) over [MCP](https://modelcontextprotocol.io) through
 [Symfony AI Mate](https://symfony.com/doc/current/ai/mate.html). It registers an MCP
