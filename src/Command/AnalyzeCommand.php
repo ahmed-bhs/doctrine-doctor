@@ -48,6 +48,9 @@ class AnalyzeCommand extends Command
             ->addOption('fail-on', null, InputOption::VALUE_REQUIRED, 'Minimum issue severity that fails the command: critical, warning, info, or never.', 'warning');
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
@@ -59,42 +62,12 @@ class AnalyzeCommand extends Command
             return self::INVALID;
         }
 
-        $includeDatabaseAudits = (bool) $input->getOption('with-database');
-        $issues = [];
-        $analyzerErrors = [];
-        $analyzerTimings = [];
-        $analyzerCount = 0;
-        $startedAt = hrtime(true);
-
-        foreach ($this->analyzers as $analyzer) {
-            if (!$analyzer instanceof StaticAnalyzerInterface) {
-                continue;
-            }
-
-            if ($analyzer instanceof DatabaseAuditAnalyzerInterface && !$includeDatabaseAudits) {
-                continue;
-            }
-
-            ++$analyzerCount;
-            $analyzerStartedAt = hrtime(true);
-            $analyzerIssueCount = 0;
-
-            try {
-                foreach ($analyzer->analyze(QueryDataCollection::empty()) as $issue) {
-                    $issues[] = $issue;
-                    ++$analyzerIssueCount;
-                }
-            } catch (\Throwable $throwable) {
-                $analyzerErrors[] = sprintf('%s: %s', $analyzer::class, $throwable->getMessage());
-            } finally {
-                $analyzerTimings[$analyzer::class] = [
-                    'issues_found' => $analyzerIssueCount,
-                    'execution_time_ms' => round((hrtime(true) - $analyzerStartedAt) / 1_000_000, 2),
-                ];
-            }
-        }
-
-        $durationMs = (hrtime(true) - $startedAt) / 1_000_000;
+        $analysis = $this->runStaticAnalyzers((bool) $input->getOption('with-database'));
+        $issues = $analysis['issues'];
+        $analyzerErrors = $analysis['errors'];
+        $analyzerTimings = $analysis['timings'];
+        $analyzerCount = $analysis['count'];
+        $durationMs = $analysis['duration_ms'];
         $deduplicatedIssues = $this->issueDeduplicator
             ->deduplicate(IssueCollection::fromArray($issues))
             ->sorting()
@@ -120,7 +93,7 @@ class AnalyzeCommand extends Command
                 ['Analyzer', 'Findings', 'Time'],
                 array_map(
                     static fn (string $class, array $stats): array => [
-                        (new \ReflectionClass($class))->getShortName(),
+                        new \ReflectionClass($class)->getShortName(),
                         $stats['issues_found'],
                         sprintf('%.2f ms', $stats['execution_time_ms']),
                     ],
@@ -156,5 +129,49 @@ class AnalyzeCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @return array{issues: list<IssueInterface>, errors: list<string>, timings: array<string, array{issues_found: int, execution_time_ms: float}>, count: int, duration_ms: float}
+     */
+    private function runStaticAnalyzers(bool $includeDatabaseAudits): array
+    {
+        $issues = [];
+        $errors = [];
+        $timings = [];
+        $count = 0;
+        $startedAt = hrtime(true);
+
+        foreach ($this->analyzers as $analyzer) {
+            if (!$analyzer instanceof StaticAnalyzerInterface || ($analyzer instanceof DatabaseAuditAnalyzerInterface && !$includeDatabaseAudits)) {
+                continue;
+            }
+
+            ++$count;
+            $analyzerStartedAt = hrtime(true);
+            $issueCount = 0;
+
+            try {
+                foreach ($analyzer->analyze(QueryDataCollection::empty()) as $issue) {
+                    $issues[] = $issue;
+                    ++$issueCount;
+                }
+            } catch (\Throwable $throwable) {
+                $errors[] = sprintf('%s: %s', $analyzer::class, $throwable->getMessage());
+            } finally {
+                $timings[$analyzer::class] = [
+                    'issues_found' => $issueCount,
+                    'execution_time_ms' => round((hrtime(true) - $analyzerStartedAt) / 1_000_000, 2),
+                ];
+            }
+        }
+
+        return [
+            'issues' => $issues,
+            'errors' => $errors,
+            'timings' => $timings,
+            'count' => $count,
+            'duration_ms' => (hrtime(true) - $startedAt) / 1_000_000,
+        ];
     }
 }

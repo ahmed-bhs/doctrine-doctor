@@ -363,23 +363,6 @@ final class PropertyTypeMismatchAnalyzerTest extends TestCase
         self::assertCount(0, $statusIssues, 'Enum type properties with enumType mapping should not be flagged as type mismatch');
     }
 
-    /**
-     * Helper to create EntityManager with schema for specific entity only.
-     */
-    private function createEntityManagerWithSchema(): \Doctrine\ORM\EntityManagerInterface
-    {
-        $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager([
-            __DIR__ . '/../Fixtures/Entity/TypeMismatch',
-        ]);
-
-        // Create schema ONLY for ProductWithTypeMismatch to avoid conflicts with other test entities
-        $schemaTool = new SchemaTool($entityManager);
-        $metadata = $entityManager->getClassMetadata(ProductWithTypeMismatch::class);
-        $schemaTool->createSchema([$metadata]);
-
-        return $entityManager;
-    }
-
     #[Test]
     public function it_reports_a_nullable_property_on_a_required_association(): void
     {
@@ -396,5 +379,22 @@ final class PropertyTypeMismatchAnalyzerTest extends TestCase
         self::assertCount(1, $descriptions, implode("\n", $descriptions));
         self::assertStringContainsString('customer', $descriptions[0]);
         self::assertStringContainsString('non-nullable', $descriptions[0]);
+    }
+
+    /**
+     * Helper to create EntityManager with schema for specific entity only.
+     */
+    private function createEntityManagerWithSchema(): \Doctrine\ORM\EntityManagerInterface
+    {
+        $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager([
+            __DIR__ . '/../Fixtures/Entity/TypeMismatch',
+        ]);
+
+        // Create schema ONLY for ProductWithTypeMismatch to avoid conflicts with other test entities
+        $schemaTool = new SchemaTool($entityManager);
+        $metadata = $entityManager->getClassMetadata(ProductWithTypeMismatch::class);
+        $schemaTool->createSchema([$metadata]);
+
+        return $entityManager;
     }
 }

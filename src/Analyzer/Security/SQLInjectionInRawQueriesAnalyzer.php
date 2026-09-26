@@ -50,16 +50,13 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         'createNativeQuery',
     ];
 
-    private ?PhpCodeParser $phpCodeParser;
-
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SuggestionFactoryInterface $suggestionFactory,
         private readonly ?LoggerInterface $logger = null,
-        ?PhpCodeParser $phpCodeParser = null,
+        private ?PhpCodeParser $phpCodeParser = null,
         private readonly DQLPatternMatcher $dqlPatternMatcher = new DQLPatternMatcher(),
     ) {
-        $this->phpCodeParser = $phpCodeParser;
     }
 
     /**

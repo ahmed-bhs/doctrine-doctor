@@ -49,11 +49,11 @@ final class AnalyzerExecutionModePassTest extends TestCase
         $container = new ContainerBuilder();
         $container->setDefinition(
             'runtime_analyzer',
-            (new Definition(\stdClass::class))->addTag('doctrine_doctor.analyzer'),
+            new Definition(\stdClass::class)->addTag('doctrine_doctor.analyzer'),
         );
         $container->setDefinition(
             'static_analyzer',
-            (new Definition(\stdClass::class))
+            new Definition(\stdClass::class)
                 ->addTag('doctrine_doctor.analyzer')
                 ->addTag('doctrine_doctor.static_analyzer')
                 ->addTag('doctrine_doctor.runtime_analyzer'),
@@ -80,7 +80,7 @@ final class AnalyzerExecutionModePassTest extends TestCase
             ->setPublic(true)
             ->addTag('doctrine_doctor.analyzer');
 
-        $container->compile();
+        $container->compile(true);
 
         self::assertTrue($container->getDefinition('runtime_analyzer')->hasTag('doctrine_doctor.runtime_analyzer'));
         self::assertFalse($container->getDefinition('static_analyzer')->hasTag('doctrine_doctor.runtime_analyzer'));
