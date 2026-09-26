@@ -191,7 +191,7 @@ class AnalyzeCommand extends Command
         $matches = array_values(array_filter($issues, fn (IssueInterface $issue): bool => $requestedId === $this->issueId($issue)));
 
         if ([] === $matches) {
-            $availableIds = array_map(fn (IssueInterface $issue): string => $this->issueId($issue), $issues);
+            $availableIds = array_map($this->issueId(...), $issues);
             $io->error(sprintf('Unknown issue ID "%s". Available IDs: %s', $requestedId, implode(', ', $availableIds)));
 
             return;
