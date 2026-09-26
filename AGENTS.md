@@ -14,7 +14,9 @@ and delegate to the same canonical files.
 2. Read [MEMORY.md](MEMORY.md), [CONTEXT.md](CONTEXT.md), and the
    [architecture map](ARCHITECTURE.md). Open the [architecture guide](docs/advanced/architecture.md)
    when the change affects layers or lifecycle.
-3. Read the relevant [rules](docs/rules/), ADR, and skill before changing a
+3. Read the relevant [rules](docs/rules/), especially the
+   [PHP object design rules](docs/rules/php-oop.md) for class and interface
+   changes, then read the ADR and skill before changing a
    boundary or analyzer.
 4. Use a focused [subagent](.claude/agents/) only when a second pass adds value.
 
