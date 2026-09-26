@@ -13,6 +13,10 @@ nav_order: 1
 
 Doctrine Doctor follows a **layered architecture** pattern with clear separation of concerns:
 
+The durable choices behind the execution split and parser boundary are recorded
+in [ADR 0002](../adr/0002-separate-analysis-execution-modes) and
+[ADR 0003](../adr/0003-use-the-smallest-correct-parser).
+
 ```text
 ┌──────────────────────────────────────────────┐
 │           Presentation Layer                 │
