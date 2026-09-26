@@ -57,6 +57,10 @@ Doctrine Doctor complements PHPStan and Psalm with checks focused on persistence
 
 See [Profiler and CI Checks](user-guide/execution-modes) to choose where each check runs. The [analyzer catalog](user-guide/analyzers) contains the complete list.
 
+<p align="center">
+  <img src="images/ci-feedback.svg" alt="Doctrine Doctor CI feedback flow: open a pull request, analyze it, see an actionable finding, then fix and merge" width="100%">
+</p>
+
 ---
 
 ## Quick start
