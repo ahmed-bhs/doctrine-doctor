@@ -155,9 +155,8 @@ class OrderByNullableLeadingColumnAnalyzer implements AnalyzerInterface
     private function columnName(Column $column): string
     {
         if (method_exists($column, 'getObjectName')) {
-            $objectName = $column->{'getObjectName'}();
-
-            return $objectName->getIdentifier()->getValue();
+            /** @phpstan-ignore method.internalClass */
+            return $column->getObjectName()->getIdentifier()->getValue();
         }
 
         return $column->getName(); // @phpstan-ignore method.internalClass
