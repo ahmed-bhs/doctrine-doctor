@@ -22,20 +22,18 @@ function formatSqlWithHighlight(string $sql): string
 {
     static $formatter = null;
 
-    if (null === $formatter) {
-        $formatter = new SqlFormatter(new HtmlHighlighter([
-            HtmlHighlighter::HIGHLIGHT_PRE            => 'class="highlight highlight-sql"',
-            HtmlHighlighter::HIGHLIGHT_QUOTE          => 'class="string"',
-            HtmlHighlighter::HIGHLIGHT_BACKTICK_QUOTE => 'class="string"',
-            HtmlHighlighter::HIGHLIGHT_RESERVED       => 'class="keyword"',
-            HtmlHighlighter::HIGHLIGHT_BOUNDARY       => 'class="symbol"',
-            HtmlHighlighter::HIGHLIGHT_NUMBER         => 'class="number"',
-            HtmlHighlighter::HIGHLIGHT_WORD           => 'class="word"',
-            HtmlHighlighter::HIGHLIGHT_ERROR          => 'class="error"',
-            HtmlHighlighter::HIGHLIGHT_COMMENT        => 'class="comment"',
-            HtmlHighlighter::HIGHLIGHT_VARIABLE       => 'class="variable"',
-        ], false));
-    }
+    $formatter ??= new SqlFormatter(new HtmlHighlighter([
+        HtmlHighlighter::HIGHLIGHT_PRE            => 'class="highlight highlight-sql"',
+        HtmlHighlighter::HIGHLIGHT_QUOTE          => 'class="string"',
+        HtmlHighlighter::HIGHLIGHT_BACKTICK_QUOTE => 'class="string"',
+        HtmlHighlighter::HIGHLIGHT_RESERVED       => 'class="keyword"',
+        HtmlHighlighter::HIGHLIGHT_BOUNDARY       => 'class="symbol"',
+        HtmlHighlighter::HIGHLIGHT_NUMBER         => 'class="number"',
+        HtmlHighlighter::HIGHLIGHT_WORD           => 'class="word"',
+        HtmlHighlighter::HIGHLIGHT_ERROR          => 'class="error"',
+        HtmlHighlighter::HIGHLIGHT_COMMENT        => 'class="comment"',
+        HtmlHighlighter::HIGHLIGHT_VARIABLE       => 'class="variable"',
+    ], false));
 
     return $formatter->format($sql);
 }

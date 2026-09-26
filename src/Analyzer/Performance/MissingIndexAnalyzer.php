@@ -102,12 +102,10 @@ class MissingIndexAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
         foreach ($queriesArray as $queryArray) {
             $pattern = $this->normalizeQuery($queryArray->sql);
 
-            if (!isset($queryPatterns[$pattern])) {
-                $queryPatterns[$pattern] = [
-                    'count'        => 0,
-                    'sample_query' => $queryArray,
-                ];
-            }
+            $queryPatterns[$pattern] ??= [
+                'count'        => 0,
+                'sample_query' => $queryArray,
+            ];
 
             ++$queryPatterns[$pattern]['count'];
         }

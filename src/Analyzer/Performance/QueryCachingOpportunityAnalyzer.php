@@ -203,16 +203,14 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
             $executionTime = $this->extractExecutionTime($query);
             $params = $this->extractParams($query);
 
-            if (!isset($groups[$normalized])) {
-                $groups[$normalized] = [
-                    'originalSql' => $sql,
-                    'count' => 0,
-                    'totalTime' => 0.0,
-                    'backtrace' => $this->extractBacktrace($query),
-                    'queries' => [],
-                    'uniqueParamSets' => [],
-                ];
-            }
+            $groups[$normalized] ??= [
+                'originalSql' => $sql,
+                'count' => 0,
+                'totalTime' => 0.0,
+                'backtrace' => $this->extractBacktrace($query),
+                'queries' => [],
+                'uniqueParamSets' => [],
+            ];
 
             $groups[$normalized]['count']++;
             $groups[$normalized]['totalTime'] += $executionTime;

@@ -322,9 +322,7 @@ final class SqlNormalizationCache
      */
     private static function getNormalizer(): SqlQueryNormalizer
     {
-        if (null === self::$normalizer) {
-            self::$normalizer = new SqlQueryNormalizer();
-        }
+        self::$normalizer ??= new SqlQueryNormalizer();
 
         return self::$normalizer;
     }
@@ -334,9 +332,7 @@ final class SqlNormalizationCache
      */
     private static function getExtractor(): SqlStructureExtractor
     {
-        if (null === self::$extractor) {
-            self::$extractor = new SqlStructureExtractor();
-        }
+        self::$extractor ??= new SqlStructureExtractor();
 
         return self::$extractor;
     }

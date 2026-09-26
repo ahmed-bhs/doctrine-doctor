@@ -499,9 +499,7 @@ class CascadeAnalyzer implements MetadataAnalyzerInterface
                 $targetEntity = MappingHelper::getString($associationMapping, 'targetEntity');
 
                 if (null !== $targetEntity) {
-                    if (!isset($map[$targetEntity])) {
-                        $map[$targetEntity] = 0;
-                    }
+                    $map[$targetEntity] ??= 0;
                     $map[$targetEntity]++;
                 }
             }

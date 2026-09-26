@@ -127,9 +127,7 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
             // Normalize query to create pattern
             $pattern = $this->normalizeQuery($sql);
 
-            if (!isset($patterns[$pattern])) {
-                $patterns[$pattern] = [];
-            }
+            $patterns[$pattern] ??= [];
 
             $patterns[$pattern][] = $query;
         }

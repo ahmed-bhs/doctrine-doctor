@@ -195,9 +195,7 @@ final class CompositionRelationshipDetector
                     $assocTarget = MappingHelper::getString($association, 'targetEntity');
 
                     if (null !== $assocTarget) {
-                        if (!isset($this->exclusiveOwnershipCache[$assocTarget])) {
-                            $this->exclusiveOwnershipCache[$assocTarget] = [];
-                        }
+                        $this->exclusiveOwnershipCache[$assocTarget] ??= [];
                         $this->exclusiveOwnershipCache[$assocTarget][$entityClass] = true;
                     }
                 }

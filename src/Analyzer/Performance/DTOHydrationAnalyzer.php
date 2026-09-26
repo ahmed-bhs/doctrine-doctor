@@ -238,9 +238,7 @@ class DTOHydrationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             $sql     = is_array($query) ? ($query['sql'] ?? '') : $query->sql;
             $pattern = $this->normalizeQuery($sql);
 
-            if (!isset($patterns[$pattern])) {
-                $patterns[$pattern] = [];
-            }
+            $patterns[$pattern] ??= [];
 
             $patterns[$pattern][] = $query;
         }

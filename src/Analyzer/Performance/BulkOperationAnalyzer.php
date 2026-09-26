@@ -129,14 +129,12 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
 
                     $key = $type . '_' . $table;
 
-                    if (!isset($updateDeleteQueries[$key])) {
-                        $updateDeleteQueries[$key] = [
-                            'type'    => $type,
-                            'table'   => $table,
-                            'queries' => [],
-                            'indices' => [],
-                        ];
-                    }
+                    $updateDeleteQueries[$key] ??= [
+                        'type'    => $type,
+                        'table'   => $table,
+                        'queries' => [],
+                        'indices' => [],
+                    ];
 
                     $updateDeleteQueries[$key]['queries'][] = $queryData;
                     $updateDeleteQueries[$key]['indices'][] = $index;
@@ -154,14 +152,12 @@ class BulkOperationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
 
                 $key = $type . '_' . $table;
 
-                if (!isset($updateDeleteQueries[$key])) {
-                    $updateDeleteQueries[$key] = [
-                        'type'    => $type,
-                        'table'   => $table,
-                        'queries' => [],
-                        'indices' => [],
-                    ];
-                }
+                $updateDeleteQueries[$key] ??= [
+                    'type'    => $type,
+                    'table'   => $table,
+                    'queries' => [],
+                    'indices' => [],
+                ];
 
                 $updateDeleteQueries[$key]['queries'][] = $queryData;
                 $updateDeleteQueries[$key]['indices'][] = $index;
