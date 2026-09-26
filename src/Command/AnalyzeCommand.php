@@ -250,7 +250,9 @@ class AnalyzeCommand extends Command
             $context[] = '::$' . ltrim($data['field'], '$');
         }
 
-        return [] !== $context ? implode('', $context) . ' — ' . $description : $description;
+        $details = [] !== $context ? implode('', $context) . ' — ' . $description : $description;
+
+        return wordwrap($details, 80);
     }
 
     /**

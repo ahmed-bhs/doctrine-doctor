@@ -156,7 +156,8 @@ final class AnalyzeCommandTest extends TestCase
 
         self::assertStringContainsString('Order::$total', $commandTester->getDisplay());
         self::assertStringContainsString('Enable the metadata cache in production configuration.', $commandTester->getDisplay());
-        self::assertStringContainsString('This prevents Doctrine from reparsing entity metadata on every request.', $commandTester->getDisplay());
+        self::assertStringContainsString('This', $commandTester->getDisplay());
+        self::assertStringContainsString('prevents Doctrine from reparsing entity metadata on every request.', $commandTester->getDisplay());
 
         preg_match('/\\s([a-f0-9]{10})\\s+configuration/', $commandTester->getDisplay(), $matches);
         self::assertNotSame([], $matches);
