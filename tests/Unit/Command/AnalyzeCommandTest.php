@@ -129,4 +129,32 @@ final class AnalyzeCommandTest extends TestCase
         self::assertSame(0, $commandTester->execute(['--fail-on' => 'never']));
         self::assertSame(2, $commandTester->execute(['--fail-on' => 'unknown']));
     }
+
+    #[Test]
+    public function it_prints_actionable_issue_details(): void
+    {
+        $analyzer = new class() implements StaticAnalyzerInterface {
+            public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+            {
+                return IssueCollection::fromArray([
+                    new ConfigurationIssue([
+                        'type' => 'ci_warning',
+                        'title' => 'Configuration warning',
+                        'description' => 'Enable the metadata cache in production configuration.',
+                        'severity' => 'warning',
+                        'entity' => 'App\\Entity\\Order',
+                        'field' => 'total',
+                        'queries' => [],
+                    ]),
+                ]);
+            }
+        };
+
+        $commandTester = new CommandTester(new AnalyzeCommand([$analyzer], new IssueDeduplicator()));
+
+        $commandTester->execute(['--fail-on' => 'never']);
+
+        self::assertStringContainsString('Order::$total', $commandTester->getDisplay());
+        self::assertStringContainsString('Enable the metadata cache in production configuration.', $commandTester->getDisplay());
+    }
 }

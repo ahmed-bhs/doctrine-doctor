@@ -163,9 +163,10 @@ class AnalyzeCommand extends Command
 
         foreach ($labels as $severity => $label) {
             $rows = array_map(
-                static fn (IssueInterface $issue): array => [
+                fn (IssueInterface $issue): array => [
                     $issue->getCategory()->value,
                     $issue->getTitle(),
+                    $this->formatIssueDetails($issue),
                 ],
                 array_values(array_filter($issues, static fn (IssueInterface $issue): bool => $severity === $issue->getSeverity()->getValue())),
             );
@@ -175,8 +176,33 @@ class AnalyzeCommand extends Command
             }
 
             $io->section(sprintf('%s (%d)', $label, count($rows)));
-            $io->table(['Category', 'Finding'], $rows);
+            $io->table(['Category', 'Finding', 'Details'], $rows);
         }
+    }
+
+    private function formatIssueDetails(IssueInterface $issue): string
+    {
+        $description = preg_replace('/\\s+/', ' ', strip_tags($issue->getDescription())) ?? $issue->getDescription();
+        $description = trim($description);
+
+        if (\strlen($description) > 100) {
+            $description = substr($description, 0, 97) . '...';
+        }
+
+        $data = $issue->getData();
+        $context = [];
+        foreach (['entity', 'entity_class', 'class'] as $key) {
+            if (isset($data[$key]) && \is_string($data[$key])) {
+                $context[] = basename(str_replace('\\', '/', $data[$key]));
+
+                break;
+            }
+        }
+        if (isset($data['field']) && \is_string($data['field'])) {
+            $context[] = '::$' . ltrim($data['field'], '$');
+        }
+
+        return [] !== $context ? implode('', $context) . ' — ' . $description : $description;
     }
 
     /**
