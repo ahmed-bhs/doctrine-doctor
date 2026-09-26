@@ -23,6 +23,13 @@ Choose the narrowest contract that fits the data the analyzer needs. Keep the
 interface small and put orchestration behind an application module rather than
 making commands or collectors know analyzer internals.
 
+## Design vocabulary
+
+Use **module**, **interface**, **seam**, and **adapter** precisely. Prefer a
+deep module with a small interface, explicit dependencies, and high locality.
+Use composition over inheritance and introduce a seam when a real variation or
+test double justifies it.
+
 ## Required checks
 
 Run the smallest relevant checks while iterating. Before opening a PR, run:
