@@ -140,7 +140,7 @@ final class AnalyzeCommandTest extends TestCase
                     new ConfigurationIssue([
                         'type' => 'ci_warning',
                         'title' => 'Configuration warning',
-                        'description' => 'Enable the metadata cache in production configuration.',
+                        'description' => "Enable the metadata cache in production configuration.\\n\\nThis prevents Doctrine from reparsing entity metadata on every request.",
                         'severity' => 'warning',
                         'entity' => 'App\\Entity\\Order',
                         'field' => 'total',
@@ -156,5 +156,6 @@ final class AnalyzeCommandTest extends TestCase
 
         self::assertStringContainsString('Order::$total', $commandTester->getDisplay());
         self::assertStringContainsString('Enable the metadata cache in production configuration.', $commandTester->getDisplay());
+        self::assertStringContainsString('This prevents Doctrine from reparsing entity metadata on every request.', $commandTester->getDisplay());
     }
 }

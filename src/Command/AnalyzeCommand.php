@@ -182,12 +182,10 @@ class AnalyzeCommand extends Command
 
     private function formatIssueDetails(IssueInterface $issue): string
     {
-        $description = preg_replace('/\\s+/', ' ', strip_tags($issue->getDescription())) ?? $issue->getDescription();
+        $description = strip_tags($issue->getDescription());
+        $description = preg_replace('/[ \\t]+/', ' ', $description) ?? $description;
+        $description = preg_replace('/\\R{3,}/', "\\n\\n", $description) ?? $description;
         $description = trim($description);
-
-        if (\strlen($description) > 100) {
-            $description = substr($description, 0, 97) . '...';
-        }
 
         $data = $issue->getData();
         $context = [];
