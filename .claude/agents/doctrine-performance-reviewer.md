@@ -1,3 +1,10 @@
+---
+name: doctrine-performance-reviewer
+description: Perform a read-only review of Doctrine changes for N+1 queries, lazy loading, fetching, and unnecessary database work.
+tools: Read, Grep, Glob
+model: inherit
+---
+
 # Doctrine Performance Reviewer
 
 ## Mode

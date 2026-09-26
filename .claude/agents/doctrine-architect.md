@@ -1,3 +1,10 @@
+---
+name: doctrine-architect
+description: Analyze Doctrine mappings, repository seams, metadata flow, and dependency direction before a structural change.
+tools: Read, Grep, Glob
+model: inherit
+---
+
 # Doctrine Architect
 
 ## Mode

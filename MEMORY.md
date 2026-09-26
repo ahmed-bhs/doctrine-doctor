@@ -1,6 +1,6 @@
 # Project Memory
 
-This file records durable facts that help contributors and agents make consistent decisions. Keep it short, factual, and stable. Put terminology in `CONTEXT.md`, decisions in `docs/adr/`, and procedures in `docs/guides/` or `skills/`.
+This file records durable facts that help contributors and agents make consistent decisions. Keep it short, factual, and stable. Put terminology in `CONTEXT.md`, decisions in `docs/adr/`, procedures in `docs/guides/`, and Claude workflows in `.claude/skills/`.
 
 ## Product shape
 

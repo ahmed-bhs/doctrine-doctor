@@ -2,7 +2,8 @@
 
 `AGENTS.md` is the project router. Keep durable facts in [MEMORY.md](MEMORY.md),
 domain vocabulary in [CONTEXT.md](CONTEXT.md), decisions in [docs/adr](docs/adr/),
-procedures in [docs/guides](docs/guides/), and reusable workflows in [skills](skills/).
+procedures in [docs/guides](docs/guides/), and reusable Claude workflows in
+[.claude/skills](.claude/skills/).
 
 ## Before changing code
 
@@ -12,20 +13,20 @@ procedures in [docs/guides](docs/guides/), and reusable workflows in [skills](sk
    [architecture guide](docs/advanced/architecture.md).
 3. Read the relevant [rules](docs/rules/), ADR, and skill before changing a
    boundary or analyzer.
-4. Use a focused [subagent brief](agents/) only when a second pass adds value.
+4. Use a focused [subagent](.claude/agents/) only when a second pass adds value.
 
 ## Choose the smallest workflow
 
 | Need | Start here |
 |------|------------|
 | Clarify a requested change | `.agents/skills/to-spec` |
-| Shape a module or seam | `skills/architecture-design` |
-| Change an analyzer | `skills/doctrine-analyzer` |
-| Change Symfony integration | `skills/symfony-quality` |
+| Shape a module or seam | `.claude/skills/architecture-design` |
+| Change an analyzer | `.claude/skills/doctrine-analyzer` |
+| Change Symfony integration | `.claude/skills/symfony-quality` |
 | Implement test-first | `.agents/skills/tdd` |
 | Review a branch | `.agents/skills/code-review` |
-| Review Doctrine design | `agents/doctrine-architect.md` |
-| Review Doctrine performance | `agents/doctrine-performance-reviewer.md` |
+| Review Doctrine design | `.claude/agents/doctrine-architect.md` |
+| Review Doctrine performance | `.claude/agents/doctrine-performance-reviewer.md` |
 
 ## Non-negotiable project rules
 

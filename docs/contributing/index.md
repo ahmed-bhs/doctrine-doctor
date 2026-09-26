@@ -21,4 +21,4 @@ We welcome contributions! This section explains how to contribute to Doctrine Do
 | [Quality Checks](../guides/quality-checks) | Which automated checks to run and when |
 
 Agent context is kept in [`MEMORY.md`](../../MEMORY.md), [`CONTEXT.md`](../../CONTEXT.md),
-the [rules](../rules/), [ADRs](../adr/), [skills](../../skills/), and [subagent briefs](../../agents/).
+the [rules](../rules/), [ADRs](../adr/), project skills in `.claude/skills/`, and [subagent briefs](../agents/).

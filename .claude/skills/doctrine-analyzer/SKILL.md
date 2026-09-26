@@ -5,8 +5,8 @@ description: Add or change a Doctrine Doctor analyzer, including its execution m
 
 # Doctrine Analyzer Skill
 
-1. Read [MEMORY.md](../../MEMORY.md), [CONTEXT.md](../../CONTEXT.md), and the [analyzer rules](../../docs/rules/analyzers.md).
-2. Read [the analyzer guide](../../docs/contributing/creating-analyzers.md).
+1. Read [MEMORY.md](../../../MEMORY.md), [CONTEXT.md](../../../CONTEXT.md), and the [analyzer rules](../../../docs/rules/analyzers.md).
+2. Read [the analyzer guide](../../../docs/contributing/creating-analyzers.md).
 3. Choose the narrowest analyzer contract from the evidence required.
 4. Keep detection behind the analyzer interface and inject factories, parsers,
    and adapters.

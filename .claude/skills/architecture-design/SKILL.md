@@ -5,9 +5,9 @@ description: Shape Symfony and Doctrine changes around explicit seams, deep modu
 
 # Architecture Design Skill
 
-1. Read [MEMORY.md](../../MEMORY.md), [CONTEXT.md](../../CONTEXT.md), the
-   [architecture guide](../../docs/advanced/architecture.md), and the
-   [architecture rules](../../docs/rules/architecture.md).
+1. Read [MEMORY.md](../../../MEMORY.md), [CONTEXT.md](../../../CONTEXT.md), the
+   [architecture guide](../../../docs/advanced/architecture.md), and the
+   [architecture rules](../../../docs/rules/architecture.md).
 2. Identify the module being changed, its interface, its seam, and its adapters.
 3. Apply the deletion test: removing the module should reveal concentrated
    complexity, not just remove a pass-through wrapper.

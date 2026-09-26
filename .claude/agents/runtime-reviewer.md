@@ -1,3 +1,10 @@
+---
+name: runtime-reviewer
+description: Review Symfony Web Profiler and request-SQL changes against the runtime analyzer contract.
+tools: Read, Grep, Glob
+model: inherit
+---
+
 # Runtime Reviewer
 
 ## Mission

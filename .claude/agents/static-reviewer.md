@@ -1,3 +1,10 @@
+---
+name: static-reviewer
+description: Review source, mapping, metadata, and CI analyzer changes against the static execution contracts.
+tools: Read, Grep, Glob
+model: inherit
+---
+
 # Static Reviewer
 
 ## Mission

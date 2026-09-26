@@ -5,8 +5,8 @@ description: Review or validate a Doctrine Doctor change against PHPUnit, PHPSta
 
 # Symfony Quality Skill
 
-1. Read [Quality Checks](../../docs/guides/quality-checks.md) and the
-   [architecture rules](../../docs/rules/architecture.md).
+1. Read [Quality Checks](../../../docs/guides/quality-checks.md) and the
+   [architecture rules](../../../docs/rules/architecture.md).
 2. Map the change to a module, interface, seam, and adapter before adding a
    Symfony service, listener, or compiler pass.
 3. Keep framework integration at the adapter or configuration edge.
