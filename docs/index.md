@@ -61,6 +61,10 @@ See [Profiler and CI Checks](user-guide/execution-modes) to choose where each ch
   <img src="images/ci-feedback.svg" alt="Doctrine Doctor CI feedback flow: open a pull request, analyze it, see an actionable finding, then fix and merge" width="100%">
 </p>
 
+<p align="center">
+  <img src="images/ai-cli-analysis.png" alt="AI-assisted CLI analysis running Doctrine Doctor against a Symfony project" width="100%">
+</p>
+
 ---
 
 ## Quick start
