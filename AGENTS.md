@@ -6,10 +6,11 @@ checks source code and mappings in CI.
 
 ## Before changing code
 
-1. Read [CONTEXT.md](CONTEXT.md) for the project's vocabulary.
+1. Read [MEMORY.md](MEMORY.md) for durable project facts and [CONTEXT.md](CONTEXT.md) for vocabulary.
 2. Read [the architecture guide](docs/advanced/architecture.md) before changing module seams, layers, or Deptrac rules.
-3. Read the relevant ADR in [docs/adr](docs/adr/) when changing an established design decision.
-4. For analyzer work, follow [the analyzer guide](docs/contributing/creating-analyzers.md).
+3. Read the relevant [rules](docs/rules/) and [ADR](docs/adr/) before changing an established boundary.
+4. For analyzer work, follow [the analyzer guide](docs/contributing/creating-analyzers.md) and the relevant [skill](skills/).
+5. Use the focused [subagent brief](agents/) when delegating review or investigation.
 
 ## Execution contracts
 
