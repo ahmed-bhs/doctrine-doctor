@@ -129,4 +129,40 @@ final class AnalyzeCommandTest extends TestCase
         self::assertSame(0, $commandTester->execute(['--fail-on' => 'never']));
         self::assertSame(2, $commandTester->execute(['--fail-on' => 'unknown']));
     }
+
+    #[Test]
+    public function it_prints_actionable_issue_details(): void
+    {
+        $analyzer = new class() implements StaticAnalyzerInterface {
+            public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+            {
+                return IssueCollection::fromArray([
+                    new ConfigurationIssue([
+                        'type' => 'ci_warning',
+                        'title' => 'Configuration warning',
+                        'description' => "Enable the metadata cache in production configuration.\\n\\nThis prevents Doctrine from reparsing entity metadata on every request.",
+                        'severity' => 'warning',
+                        'entity' => 'App\\Entity\\Order',
+                        'field' => 'total',
+                        'queries' => [],
+                    ]),
+                ]);
+            }
+        };
+
+        $commandTester = new CommandTester(new AnalyzeCommand([$analyzer], new IssueDeduplicator()));
+
+        $commandTester->execute(['--fail-on' => 'never']);
+
+        self::assertStringContainsString('Order::$total', $commandTester->getDisplay());
+        self::assertStringContainsString('Enable the metadata cache in production configuration.', $commandTester->getDisplay());
+        self::assertStringContainsString('This', $commandTester->getDisplay());
+        self::assertStringContainsString('prevents Doctrine from reparsing entity metadata on every request.', $commandTester->getDisplay());
+
+        preg_match('/\\s([a-f0-9]{10})\\s+configuration/', $commandTester->getDisplay(), $matches);
+        self::assertNotSame([], $matches);
+        $commandTester->execute(['--fail-on' => 'never', '--show-suggestion' => $matches[1]]);
+
+        self::assertStringContainsString('does not provide a suggestion', $commandTester->getDisplay());
+    }
 }

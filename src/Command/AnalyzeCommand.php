@@ -45,7 +45,8 @@ class AnalyzeCommand extends Command
     {
         $this
             ->addOption('with-database', null, InputOption::VALUE_NONE, 'Include audits that query the configured database.')
-            ->addOption('fail-on', null, InputOption::VALUE_REQUIRED, 'Minimum issue severity that fails the command: critical, warning, info, or never.', 'warning');
+            ->addOption('fail-on', null, InputOption::VALUE_REQUIRED, 'Minimum issue severity that fails the command: critical, warning, info, or never.', 'warning')
+            ->addOption('show-suggestion', null, InputOption::VALUE_REQUIRED, 'Show the full suggestion for a finding ID from the report.');
     }
 
     /**
@@ -98,6 +99,10 @@ class AnalyzeCommand extends Command
         }
 
         $this->renderFindings($io, $deduplicatedIssues);
+
+        if (null !== $input->getOption('show-suggestion')) {
+            $this->renderSuggestion($io, $deduplicatedIssues, (string) $input->getOption('show-suggestion'));
+        }
 
         if ([] !== $analyzerErrors) {
             $io->error(array_merge(['One or more analyzers failed:'], $analyzerErrors));
@@ -163,9 +168,11 @@ class AnalyzeCommand extends Command
 
         foreach ($labels as $severity => $label) {
             $rows = array_map(
-                static fn (IssueInterface $issue): array => [
+                fn (IssueInterface $issue): array => [
+                    $this->issueId($issue),
                     $issue->getCategory()->value,
                     $issue->getTitle(),
+                    $this->formatIssueDetails($issue),
                 ],
                 array_values(array_filter($issues, static fn (IssueInterface $issue): bool => $severity === $issue->getSeverity()->getValue())),
             );
@@ -175,8 +182,77 @@ class AnalyzeCommand extends Command
             }
 
             $io->section(sprintf('%s (%d)', $label, count($rows)));
-            $io->table(['Category', 'Finding'], $rows);
+            $io->table(['ID', 'Category', 'Finding', 'Details'], $rows);
         }
+    }
+
+    private function renderSuggestion(SymfonyStyle $io, array $issues, string $requestedId): void
+    {
+        $matches = array_values(array_filter($issues, fn (IssueInterface $issue): bool => $requestedId === $this->issueId($issue)));
+
+        if ([] === $matches) {
+            $availableIds = array_map($this->issueId(...), $issues);
+            $io->error(sprintf('Unknown issue ID "%s". Available IDs: %s', $requestedId, implode(', ', $availableIds)));
+
+            return;
+        }
+
+        foreach ($matches as $issue) {
+            $suggestion = $issue->getSuggestion();
+            $io->section(sprintf('Suggestion for %s: %s', $requestedId, $issue->getTitle()));
+
+            if (null === $suggestion) {
+                $io->warning('This finding does not provide a suggestion.');
+
+                continue;
+            }
+
+            $io->text($suggestion->getDescription());
+            $io->text('<fg=cyan;options=bold>Suggested fix</>');
+            $io->text($this->formatSuggestionCode($suggestion->getCode()));
+        }
+    }
+
+    private function formatSuggestionCode(string $code): string
+    {
+        $code = preg_replace('/<\\/(p|div|h[1-6]|li)>/i', "\n", $code) ?? $code;
+        $code = html_entity_decode(strip_tags($code), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return trim(preg_replace('/\n{3,}/', "\n\n", $code) ?? $code);
+    }
+
+    private function issueId(IssueInterface $issue): string
+    {
+        return substr(hash('sha256', implode("\\0", [
+            $issue->getType(),
+            $issue->getTitle(),
+            $issue->getDescription(),
+        ])), 0, 10);
+    }
+
+    private function formatIssueDetails(IssueInterface $issue): string
+    {
+        $description = strip_tags($issue->getDescription());
+        $description = preg_replace('/[ \\t]+/', ' ', $description) ?? $description;
+        $description = preg_replace('/\R{3,}/', "\n\n", $description) ?? $description;
+        $description = trim($description);
+
+        $data = $issue->getData();
+        $context = [];
+        foreach (['entity', 'entity_class', 'class'] as $key) {
+            if (isset($data[$key]) && \is_string($data[$key])) {
+                $context[] = basename(str_replace('\\', '/', $data[$key]));
+
+                break;
+            }
+        }
+        if (isset($data['field']) && \is_string($data['field'])) {
+            $context[] = '::$' . ltrim($data['field'], '$');
+        }
+
+        $details = [] !== $context ? implode('', $context) . ' — ' . $description : $description;
+
+        return wordwrap($details, 80);
     }
 
     /**
