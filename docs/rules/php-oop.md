@@ -36,6 +36,10 @@ abstraction to every class.
   over public setters that allow invalid intermediate states.
 - Use small immutable value objects for identifiers, categories, severities,
   locations, and other values with rules of their own.
+- Avoid primitive obsession: when a string, integer, array, or boolean carries a
+  domain meaning, validation rule, or repeated group of fields, give it a named
+  value object or a typed structure. Keep simple primitives for genuinely
+  simple values.
 - Initialize collections in entity constructors and expose the narrowest useful
   operation; do not leak mutable persistence collections.
 - Use `readonly` for immutable values. Use PHP 8.4 asymmetric visibility or
