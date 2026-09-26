@@ -41,7 +41,7 @@ Doctrine Doctor complements PHPStan and Psalm with checks focused on persistence
 | You want to inspect the configured database | Opt in with `--with-database` when a live database is available. |
 
 <p align="center">
-  <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo.png" alt="Doctrine Doctor Demo" width="100%">
+  <img src="images/pgi-feedback.png" alt="PGI Doctrine Doctor feedback: a real CLI analysis with 50 analyzers and 129 findings beside the Symfony Web Profiler showing query context and suggested fixes" width="100%">
 </p>
 
 ---
@@ -56,14 +56,6 @@ Doctrine Doctor complements PHPStan and Psalm with checks focused on persistence
 | Configuration | Charset, collation, timezone, strict mode, cache, and platform configuration |
 
 See [Profiler and CI Checks](user-guide/execution-modes) to choose where each check runs. The [analyzer catalog](user-guide/analyzers) contains the complete list.
-
-<p align="center">
-  <img src="images/ci-feedback.svg" alt="Doctrine Doctor CI feedback flow: open a pull request, analyze it, see an actionable finding, then fix and merge" width="100%">
-</p>
-
-<p align="center">
-  <img src="images/pgi-doctrine-doctor-cli.png" alt="Real Doctrine Doctor CLI analysis of the PGI project showing 50 analyzers, 129 findings, and actionable critical, warning, and info results" width="100%">
-</p>
 
 ---
 

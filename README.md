@@ -28,16 +28,13 @@ Doctrine Doctor adds Doctrine-focused feedback to the two places where it is mos
 | A database needs a closer look | Run an opt-in audit with `--with-database`. |
 
 <p align="center">
-  <img src="docs/images/ci-feedback.svg" alt="Doctrine Doctor CI feedback flow: open a pull request, analyze it, see an actionable finding, then fix and merge" width="100%">
+  <img src="docs/images/pgi-feedback.png" alt="PGI Doctrine Doctor feedback: a real CLI analysis with 50 analyzers and 129 findings beside the Symfony Web Profiler showing query context and suggested fixes" width="100%">
 </p>
+<p align="center"><em>One issue, two useful views: catch it in CI and understand it in the profiler.</em></p>
 
 <p align="center">
-  <img src="docs/images/pgi-doctrine-doctor-cli.png" alt="Real Doctrine Doctor CLI analysis of the PGI project showing 50 analyzers, 129 findings, and actionable critical, warning, and info results" width="100%">
-</p>
-<p align="center"><em>Real output from Doctrine Doctor running against PGI.</em></p>
-
-<p align="center">
-  <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo-styled.png" alt="Doctrine Doctor Demo" width="100%">
+  <a href="#add-it-to-ci">Catch issues in CI</a> ·
+  <a href="#choose-your-feedback-loop">Investigate them in the profiler</a>
 </p>
 
 ---
