@@ -13,6 +13,10 @@ checks source code and mappings in CI.
 5. Use the focused [subagent brief](agents/) when delegating review or investigation.
 6. For issue-backed work, follow the [issue tracker conventions](docs/agents/issue-tracker.md).
 
+Run `./bin/doctrine-doctor-context --format=markdown` at the start of a new
+task. It reports the installed PHP, Symfony, Doctrine, test, and execution-path
+context so skills use real project commands.
+
 Project workflow skills from Matt Pocock's collection are pinned in
 `skills-lock.json` under `.agents/skills/`: `to-spec`, `tdd`, `code-review`, and
 `grilling`. Use them for specification, test-first implementation, two-axis
