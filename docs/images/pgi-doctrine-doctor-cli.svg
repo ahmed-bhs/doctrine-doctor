@@ -14,31 +14,30 @@
     <text x="70" y="124" fill="#94a3b8">--no-ansi --fail-on=never</text>
     <text x="44" y="142" fill="#c4b5fd">Doctrine Doctor static analysis</text>
     <text x="44" y="174" fill="#64748b">===============================</text>
-    <rect x="28" y="190" width="1080" height="92" rx="8" fill="#111827" stroke="#334155" stroke-width="2"/>
-    <path d="M250 198V274 M500 198V274 M760 198V274" stroke="#334155" stroke-width="2"/>
-    <text x="44" y="220" fill="#94a3b8">Analyzers</text>
-    <text x="220" y="220" fill="#f8fafc">50</text>
-    <text x="270" y="220" fill="#94a3b8">Findings</text>
-    <text x="430" y="220" fill="#fbbf24">129</text>
-    <text x="480" y="220" fill="#94a3b8">Duration</text>
-    <text x="640" y="220" fill="#4ade80">277.84 ms</text>
-    <text x="44" y="260" fill="#fb7185">19 critical</text>
-    <text x="245" y="260" fill="#facc15">56 warnings</text>
-    <text x="460" y="260" fill="#60a5fa">54 info</text>
-    <text x="44" y="306" fill="#fb7185">Critical findings (19)</text>
-    <text x="44" y="342" fill="#94a3b8">[configuration]</text>
-    <text x="280" y="342" fill="#f8fafc">Missing Metadata Cache in Production Config</text>
-    <text x="44" y="378" fill="#94a3b8">[integrity]</text>
-    <text x="280" y="378" fill="#f8fafc">Float Used for Money: PgiOrder::$preTaxAmount</text>
-    <text x="44" y="414" fill="#94a3b8">[integrity]</text>
-    <text x="280" y="414" fill="#f8fafc">Type Mismatch: TimeEntry::$incorrectStatusReasons</text>
-    <text x="44" y="460" fill="#facc15">Warnings (56)</text>
-    <text x="44" y="496" fill="#94a3b8">[integrity]</text>
-    <text x="280" y="496" fill="#f8fafc">Missing cascade on composition relationship</text>
-    <text x="44" y="532" fill="#94a3b8">[security]</text>
-    <text x="280" y="532" fill="#f8fafc">Overprivileged Database User: root</text>
-    <text x="44" y="578" fill="#4ade80">✓ Analysis complete</text>
-    <text x="310" y="578" fill="#94a3b8">source and mapping checks; database audit not requested</text>
-    <text x="44" y="650" fill="#64748b">PGI project • Symfony 7.4 • PHP 8.5 • Doctrine Doctor dev-main</text>
+    <text x="44" y="220" fill="#c4b5fd">Metric              Value</text>
+    <text x="44" y="244" fill="#64748b">------------------  -----------</text>
+    <text x="44" y="276" fill="#94a3b8">Analyzers           </text>
+    <text x="280" y="276" fill="#f8fafc">50</text>
+    <text x="44" y="308" fill="#94a3b8">Findings            </text>
+    <text x="280" y="308" fill="#fbbf24">129</text>
+    <text x="44" y="340" fill="#94a3b8">Duration            </text>
+    <text x="280" y="340" fill="#4ade80">277.84 ms</text>
+    <text x="500" y="276" fill="#fb7185">Critical 19</text>
+    <text x="500" y="308" fill="#facc15">Warnings 56</text>
+    <text x="500" y="340" fill="#60a5fa">Info 54</text>
+    <text x="44" y="380" fill="#fb7185">Critical findings (19)</text>
+    <text x="44" y="416" fill="#94a3b8">[configuration]</text>
+    <text x="280" y="416" fill="#f8fafc">Missing Metadata Cache in Production Config</text>
+    <text x="44" y="452" fill="#94a3b8">[integrity]</text>
+    <text x="280" y="452" fill="#f8fafc">Float Used for Money: PgiOrder::$preTaxAmount</text>
+    <text x="44" y="488" fill="#94a3b8">[integrity]</text>
+    <text x="280" y="488" fill="#f8fafc">Type Mismatch: TimeEntry::$incorrectStatusReasons</text>
+    <text x="44" y="534" fill="#facc15">Warnings (56)</text>
+    <text x="44" y="570" fill="#94a3b8">[integrity]</text>
+    <text x="280" y="570" fill="#f8fafc">Missing cascade on composition relationship</text>
+    <text x="44" y="606" fill="#94a3b8">[security]</text>
+    <text x="280" y="606" fill="#f8fafc">Overprivileged Database User: root</text>
+    <text x="44" y="652" fill="#4ade80">✓ Analysis complete</text>
+    <text x="310" y="652" fill="#94a3b8">source and mapping checks; database audit not requested</text>
   </g>
 </svg>
