@@ -43,6 +43,10 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  *     #[ORM\JoinColumn(onDelete: 'SET NULL')]
  * }
  * Result: $em->remove($order) deletes items, but SQL DELETE sets NULL!
+ *
+ * onDelete=CASCADE without ORM cascade is not a mismatch by itself: an ORM
+ * remove() of the parent issues a DELETE the database cascades. It is reported
+ * only when the children have remove callbacks or listeners, which it skips.
  */
 class OnDeleteCascadeMismatchAnalyzer implements MetadataAnalyzerInterface
 {
@@ -146,6 +150,8 @@ class OnDeleteCascadeMismatchAnalyzer implements MetadataAnalyzerInterface
             return null;
         }
 
+        $cascadeConfig['childRemoveHooks'] = $this->removeHooks($metadataMap[$targetEntity]);
+
         $mismatchType = $this->identifyMismatchType($cascadeConfig);
 
         if (null === $mismatchType) {
@@ -153,6 +159,28 @@ class OnDeleteCascadeMismatchAnalyzer implements MetadataAnalyzerInterface
         }
 
         return $this->buildMismatchResult($mismatchType, $cascadeConfig, $targetEntity, $mappedBy);
+    }
+
+    /**
+     * preRemove/postRemove lifecycle callbacks and entity listeners of an entity:
+     * what a database cascade deletes around.
+     * @return list<string>
+     */
+    private function removeHooks(ClassMetadata $classMetadata): array
+    {
+        $hooks = [];
+
+        foreach (['preRemove', 'postRemove'] as $event) {
+            foreach ($classMetadata->lifecycleCallbacks[$event] ?? [] as $method) {
+                $hooks[] = $this->shortClassName($classMetadata->getName()) . '::' . $method . '()';
+            }
+
+            foreach ($classMetadata->entityListeners[$event] ?? [] as $listener) {
+                $hooks[] = $this->shortClassName((string) $listener['class']) . '::' . $listener['method'] . '()';
+            }
+        }
+
+        return $hooks;
     }
 
     /**
@@ -220,8 +248,10 @@ class OnDeleteCascadeMismatchAnalyzer implements MetadataAnalyzerInterface
             return 'orm_orphan_db_setnull';
         }
 
-        // Mismatch 3: DB onDelete=CASCADE but no ORM cascade
-        if ('CASCADE' === $onDelete && !$ormHasCascadeRemove) {
+        // Mismatch 3: DB onDelete=CASCADE but no ORM cascade. An ORM remove() of the parent
+        // still deletes the children, through the database; only their remove callbacks and
+        // listeners are skipped, so it matters when they have some.
+        if ('CASCADE' === $onDelete && !$ormHasCascadeRemove && [] !== $config['childRemoveHooks']) {
             return 'db_cascade_no_orm';
         }
 
@@ -246,6 +276,7 @@ class OnDeleteCascadeMismatchAnalyzer implements MetadataAnalyzerInterface
             'db_on_delete'       => $config['onDelete'] ?: 'NONE',
             'inverse_field'      => $mappedBy,
             'target_entity'      => $targetEntity,
+            'child_remove_hooks' => $config['childRemoveHooks'] ?? [],
         ];
     }
 
@@ -309,13 +340,15 @@ class OnDeleteCascadeMismatchAnalyzer implements MetadataAnalyzerInterface
             ),
 
             'db_cascade_no_orm' => DescriptionHighlighter::highlight(
-                "Field {field} in {class} has {dbOnDelete} in database but no {ormCascade} in ORM. Direct SQL DELETEs cascade, but {remove} does not.",
+                "Field {field} in {class} relies on {dbOnDelete}: deleting a {class}, even with {remove}, lets the database delete its {target} rows without the ORM, so their remove callbacks never run: {hooks}. Add {ormCascade} if they must run.",
                 [
                     'field' => $fieldName,
                     'class' => $entityClass,
                     'dbOnDelete' => 'onDelete="CASCADE"',
-                    'ormCascade' => 'cascade="remove"',
                     'remove' => '$em->remove()',
+                    'target' => $this->shortClassName((string) ($mismatch['target_entity'] ?? '')),
+                    'hooks' => implode(', ', (array) ($mismatch['child_remove_hooks'] ?? [])),
+                    'ormCascade' => 'cascade="remove"',
                 ],
             ),
 

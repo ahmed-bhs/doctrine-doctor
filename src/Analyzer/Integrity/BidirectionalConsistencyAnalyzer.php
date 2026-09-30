@@ -189,14 +189,7 @@ class BidirectionalConsistencyAnalyzer implements MetadataAnalyzerInterface
             ];
         }
 
-        // Check 4: onDelete="CASCADE" in DB but no cascade in ORM
-        if ($this->hasOnDeleteCascadeButNoCascadeORM($owningMapping, $inverseMapping)) {
-            $inconsistencies[] = [
-                'type' => IssueType::ONDELETE_CASCADE_NO_ORM->value,
-                'severity'      => 'warning',
-                'inverse_field' => $mappedBy,
-            ];
-        }
+        // onDelete="CASCADE" without ORM cascade is OnDeleteCascadeMismatchAnalyzer's case.
 
         return $inconsistencies;
     }
@@ -269,32 +262,6 @@ class BidirectionalConsistencyAnalyzer implements MetadataAnalyzerInterface
         $hasCascadePersist = in_array('persist', $cascade, true) || in_array('all', $cascade, true);
 
         return !$hasCascadePersist;
-    }
-
-    private function hasOnDeleteCascadeButNoCascadeORM(array|object $owningMapping, array|object $inverseMapping): bool
-    {
-        // Check if DB has onDelete CASCADE
-        $joinColumns = MappingHelper::getArray($inverseMapping, 'joinColumns') ?? [];
-
-        if ([] === $joinColumns) {
-            return false;
-        }
-
-        $firstJoinColumn = reset($joinColumns);
-        // Handle both array and object joinColumn (Doctrine 3 vs 4)
-        $onDelete = is_array($firstJoinColumn)
-            ? strtoupper($firstJoinColumn['onDelete'] ?? '')
-            : strtoupper($firstJoinColumn->onDelete ?? '');
-
-        if ('CASCADE' !== $onDelete) {
-            return false;
-        }
-
-        // Check if ORM has cascade remove
-        $cascade          = MappingHelper::getArray($owningMapping, 'cascade') ?? [];
-        $hasCascadeRemove = in_array('remove', $cascade, true) || in_array('all', $cascade, true);
-
-        return !$hasCascadeRemove;
     }
 
     /**
@@ -384,16 +351,6 @@ class BidirectionalConsistencyAnalyzer implements MetadataAnalyzerInterface
                 ],
             ),
 
-            'ondelete_cascade_no_orm' => DescriptionHighlighter::highlight(
-                "Field {field} in {target} has {onDelete} in database, but no {cascade} in ORM. Behavior differs between ORM and database deletes.",
-                [
-                    'field' => $inverseField,
-                    'target' => $targetEntity,
-                    'onDelete' => 'onDelete="CASCADE"',
-                    'cascade' => 'cascade="remove"',
-                ],
-            ),
-
             default => DescriptionHighlighter::highlight(
                 "Bidirectional inconsistency detected between {field} and {inverseField}.",
                 [
@@ -432,10 +389,6 @@ class BidirectionalConsistencyAnalyzer implements MetadataAnalyzerInterface
                 $inverseField,
             ),
             'orphan_removal_no_persist' => $this->createOrphanRemovalNoPersistSuggestion(
-                $shortClassName,
-                $fieldName,
-            ),
-            'ondelete_cascade_no_orm' => $this->createOnDeleteCascadeNoORMSuggestion(
                 $shortClassName,
                 $fieldName,
             ),
@@ -515,25 +468,6 @@ class BidirectionalConsistencyAnalyzer implements MetadataAnalyzerInterface
                 severity: Severity::warning(),
                 title: 'orphanRemoval without cascade="persist"',
                 tags: ['bidirectional', 'orphan-removal', 'cascade'],
-            ),
-        );
-    }
-
-    private function createOnDeleteCascadeNoORMSuggestion(
-        string $parentClass,
-        string $parentField,
-    ): SuggestionInterface {
-        return $this->suggestionFactory->createFromTemplate(
-            templateName: 'Integrity/bidirectional_ondelete_no_orm',
-            context: [
-                'parent_class' => $parentClass,
-                'parent_field' => $parentField,
-            ],
-            suggestionMetadata: new SuggestionMetadata(
-                type: SuggestionType::integrity(),
-                severity: Severity::warning(),
-                title: 'onDelete="CASCADE" without cascade="remove"',
-                tags: ['bidirectional', 'cascade', 'ondelete'],
             ),
         );
     }

@@ -465,12 +465,6 @@ final class TemplateValidationTest extends TestCase
                 'target_entity' => 'App\\Entity\\Customer',
                 'mapped_by'     => 'orders',
             ],
-            'Integrity/bidirectional_ondelete_no_orm' => [
-                'entity_class'  => 'App\\Entity\\Order',
-                'field_name'    => 'customer',
-                'target_entity' => 'App\\Entity\\Customer',
-                'on_delete'     => 'CASCADE',
-            ],
             'Integrity/bidirectional_orphan_no_persist' => [
                 'entity_class'  => 'App\\Entity\\Order',
                 'field_name'    => 'items',
