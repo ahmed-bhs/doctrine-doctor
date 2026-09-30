@@ -11,6 +11,10 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Collector;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
+use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Collector\DataCollectorHelpers;
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use Doctrine\Bundle\DoctrineBundle\DataCollector\DoctrineDataCollector;
@@ -64,6 +68,67 @@ final class DoctrineDoctorDataCollectorDeferralTest extends TestCase
     }
 
     #[Test]
+    public function it_records_per_analyzer_timings_when_debug_is_enabled(): void
+    {
+        $analyzer = new class() implements AnalyzerInterface {
+            public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+            {
+                return IssueCollection::fromArray([]);
+            }
+        };
+        $collector = $this->createDataCollector(deferAnalysisToLateCollect: true, analyzers: [$analyzer], showDebugInfo: true);
+
+        $collector->collect(new Request(), new Response());
+        $collector->lateCollect();
+
+        $analyzerStats = $collector->getDebug()['analyzer_stats'][$analyzer::class];
+
+        self::assertSame(0, $analyzerStats['issues_found']);
+        self::assertGreaterThanOrEqual(0, $analyzerStats['execution_time_ms']);
+        self::assertGreaterThanOrEqual(
+            $collector->getProfilerOverhead()['db_info_time_ms'],
+            $collector->getProfilerOverhead()['total_time_ms'],
+        );
+    }
+
+    #[Test]
+    public function it_does_not_run_static_analyzers_in_the_runtime_profiler(): void
+    {
+        $runtimeAnalyzer = new class() implements AnalyzerInterface {
+            public int $calls = 0;
+
+            public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+            {
+                ++$this->calls;
+
+                return IssueCollection::fromArray([]);
+            }
+        };
+        $staticAnalyzer = new class() implements StaticAnalyzerInterface {
+            public int $calls = 0;
+
+            public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+            {
+                ++$this->calls;
+
+                return IssueCollection::fromArray([]);
+            }
+        };
+        $collector = $this->createDataCollector(
+            deferAnalysisToLateCollect: true,
+            analyzers: [$runtimeAnalyzer, $staticAnalyzer],
+            showDebugInfo: true,
+        );
+
+        $collector->collect(new Request(), new Response());
+        $collector->lateCollect();
+
+        self::assertSame(1, $runtimeAnalyzer->calls);
+        self::assertSame(0, $staticAnalyzer->calls);
+        self::assertSame(1, $collector->getDebug()['analyzers_count']);
+    }
+
+    #[Test]
     public function it_does_not_run_analysis_twice_when_deferral_is_disabled(): void
     {
         $collector = $this->createDataCollector(deferAnalysisToLateCollect: false);
@@ -90,8 +155,11 @@ final class DoctrineDoctorDataCollectorDeferralTest extends TestCase
         return $data;
     }
 
-    private function createDataCollector(bool $deferAnalysisToLateCollect): DoctrineDoctorDataCollector
-    {
+    private function createDataCollector(
+        bool $deferAnalysisToLateCollect,
+        iterable $analyzers = [],
+        bool $showDebugInfo = false,
+    ): DoctrineDoctorDataCollector {
         $logger = new NullLogger();
         $helpers = new DataCollectorHelpers(
             databaseInfoCollector: new \AhmedBhs\DoctrineDoctor\Collector\Helper\DatabaseInfoCollector(
@@ -112,11 +180,11 @@ final class DoctrineDoctorDataCollectorDeferralTest extends TestCase
         $doctrineDataCollector->method('getQueries')->willReturn([]);
 
         return new DoctrineDoctorDataCollector(
-            analyzers: [],
+            analyzers: $analyzers,
             doctrineDataCollector: $doctrineDataCollector,
             entityManager: null,
             stopwatch: null,
-            showDebugInfo: false,
+            showDebugInfo: $showDebugInfo,
             dataCollectorHelpers: $helpers,
             excludePaths: ['vendor/'],
             deferAnalysisToLateCollect: $deferAnalysisToLateCollect,

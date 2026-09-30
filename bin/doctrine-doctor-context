@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+format="${1:---format=json}"
+
+context_json="$(PROJECT_ROOT="$project_root" php -r '
+$root = getenv("PROJECT_ROOT");
+$composer = json_decode(file_get_contents($root . "/composer.json"), true, 512, JSON_THROW_ON_ERROR);
+$require = $composer["require"] ?? [];
+$dev = $composer["require-dev"] ?? [];
+$value = static fn (array $packages, string $package): ?string => $packages[$package] ?? null;
+echo json_encode([
+    "project" => "doctrine-doctor",
+    "php" => PHP_VERSION,
+    "symfony" => $value($require, "symfony/framework-bundle"),
+    "doctrine_bundle" => $value($require, "doctrine/doctrine-bundle"),
+    "doctrine_orm" => $value($dev, "doctrine/orm"),
+    "test_runner" => is_file($root . "/vendor/bin/phpunit") ? "phpunit" : null,
+    "execution_paths" => ["profiler_runtime", "ci_static", "ci_database_opt_in"],
+    "commands" => ["test" => "composer test", "static_analysis" => "php bin/console doctrine:doctor:analyze --fail-on=warning", "quality" => "composer check"],
+], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+')"
+
+case "$format" in
+    --format=json)
+        printf '%s\n' "$context_json"
+        ;;
+    --format=markdown)
+        CONTEXT_JSON="$context_json" php -r '$c=json_decode(getenv("CONTEXT_JSON"), true, 512, JSON_THROW_ON_ERROR); printf("## Doctrine Doctor context\n\n- PHP: `%s`\n- Symfony: `%s`\n- Doctrine ORM: `%s`\n- Execution paths: `%s`\n- Tests: `%s`\n- Static analysis: `%s`\n- Quality: `%s`\n", $c["php"], $c["symfony"], $c["doctrine_orm"] ?? "not declared", implode(", ", $c["execution_paths"]), $c["commands"]["test"], $c["commands"]["static_analysis"], $c["commands"]["quality"]);'
+        ;;
+    --format=env)
+        CONTEXT_JSON="$context_json" php -r '$c=json_decode(getenv("CONTEXT_JSON"), true, 512, JSON_THROW_ON_ERROR); printf("DOCTRINE_DOCTOR_PROJECT=%s\nDOCTRINE_DOCTOR_PHP=%s\nDOCTRINE_DOCTOR_SYMFONY=%s\nDOCTRINE_DOCTOR_ORM=%s\n", $c["project"], $c["php"], $c["symfony"], $c["doctrine_orm"] ?? "");'
+        ;;
+    *)
+        printf 'Usage: %s [--format=json|markdown|env]\n' "$0" >&2
+        exit 2
+        ;;
+esac

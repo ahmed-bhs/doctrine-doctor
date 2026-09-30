@@ -74,7 +74,7 @@ services:
     # The kernel.reset tag ensures reset() is called between requests in persistent runtimes
     AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector:
         arguments:
-            $analyzers: !tagged_iterator doctrine_doctor.analyzer
+            $analyzers: !tagged_iterator doctrine_doctor.runtime_analyzer
             $doctrineDataCollector: '@?data_collector.doctrine'
             $entityManager: '@?doctrine.orm.entity_manager'
             $stopwatch: '@?debug.stopwatch'
@@ -84,6 +84,14 @@ services:
         tags:
             - { name: data_collector, id: doctrine_doctor, template: '@doctrine_doctor/profiler/doctrine_doctor.html.twig', priority: 249 }
             - { name: kernel.reset, method: reset }
+
+    # CI command for analyzers that inspect source code or mappings rather
+    # than the SQL executed by the current web request.
+    AhmedBhs\DoctrineDoctor\Command\AnalyzeCommand:
+        arguments:
+            $analyzers: !tagged_iterator doctrine_doctor.static_analyzer
+        tags:
+            - { name: console.command }
 
     # Parsers
     # Use CachedSqlStructureExtractor for 1000x+ performance improvement on SQL parsing

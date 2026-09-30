@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor;
 
+use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\AnalyzerExecutionModePass;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\ConditionalLoggerPass;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\RemoveOrmServicesPass;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
@@ -52,6 +55,11 @@ class DoctrineDoctorBundle extends Bundle
         // When debug.internal_logging is false (default), all loggers become NullLogger
         // This saves ~133ms overhead from Monolog calls
         $container->addCompilerPass(new ConditionalLoggerPass());
+        $container->registerForAutoconfiguration(AnalyzerInterface::class)
+            ->addTag('doctrine_doctor.runtime_analyzer');
+        $container->registerForAutoconfiguration(StaticAnalyzerInterface::class)
+            ->addTag('doctrine_doctor.static_analyzer');
+        $container->addCompilerPass(new AnalyzerExecutionModePass(), PassConfig::TYPE_BEFORE_OPTIMIZATION);
         $container->addCompilerPass(new RemoveOrmServicesPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -100);
     }
 }

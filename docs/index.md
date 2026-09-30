@@ -2,15 +2,19 @@
 layout: home
 title: Home
 nav_order: 1
-description: "Doctrine Doctor - Runtime Analysis Tool for Doctrine ORM. Detects N+1 queries, missing indexes, security issues, and 90+ performance problems."
+description: "Doctrine Doctor finds Doctrine ORM performance, security, integrity, and configuration issues in the Symfony Web Profiler and CI."
 permalink: /
 ---
 
 # Doctrine Doctor
 {: .fs-9 }
 
-Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler
+Find Doctrine ORM problems while they are still easy to fix.
 {: .fs-6 .fw-300 }
+
+Doctrine Doctor watches real queries in the Symfony Web Profiler and checks
+source code, mappings, and optional database configuration in CI. Each finding
+includes context and a practical next step.
 
 [Get started now](getting-started/quick-start){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
 [View on GitHub](https://github.com/ahmed-bhs/doctrine-doctor){: .btn .fs-5 .mb-4 .mb-md-0 }
@@ -26,43 +30,36 @@ Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler
 
 ---
 
-## Why Runtime Analysis?
+## One tool, two useful moments
 
-Unlike static analysis tools (PHPStan, Psalm) that analyze code without execution, Doctrine Doctor:
+Doctrine Doctor complements PHPStan and Psalm with checks focused on persistence:
 
-- **Detects runtime-only issues**: N+1 queries, actual query performance, missing indexes on real database
-- **Analyzes real execution context**: Actual parameter values, data volumes, execution plans
-- **Integrated into your workflow**: Results appear directly in Symfony Web Profiler during development
-  - 📍 **Backtrace**: Points to exact template line
-  - 💡 **Suggestion**: Use `->addSelect(..)` to eager load authors
+| When you need an answer | Where Doctrine Doctor helps |
+|-------------------------|-----------------------------|
+| A page is slow or triggers unexpected SQL | The Web Profiler shows request queries, patterns, timings, and backtraces. |
+| A change may introduce a persistence problem | CI checks source code, mappings, and configuration before merge. |
+| You want to inspect the configured database | Opt in with `--with-database` when a live database is available. |
 
 <p align="center">
-  <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo.png" alt="Doctrine Doctor Demo" width="100%">
+  <img src="images/pgi-profiler-ci-overlay.png" alt="Symfony Web Profiler in focus with a real PGI Doctrine Doctor CLI result inset showing 50 analyzers and 129 findings" width="100%">
 </p>
 
 ---
 
-## Features
+## What it checks
 
-### 90+ Specialized Analyzers
+| Area | Examples |
+|------|----------|
+| Performance | N+1 queries, slow queries, missing indexes, excessive hydration, unbounded reads, and inefficient joins |
+| Security | DQL/SQL injection risks, sensitive data exposure, and insecure randomness |
+| Integrity | Cascade and orphan-removal issues, mapping inconsistencies, type mismatches, and invalid entity boundaries |
+| Configuration | Charset, collation, timezone, strict mode, cache, and platform configuration |
 
-- **Performance** — Detects N+1 queries, missing database indexes, slow queries, excessive hydration,
-  findAll() without limits, setMaxResults() with collection joins, too many JOINs, and query caching
-  opportunities
-
-- **Security** — Identifies DQL/SQL injection vulnerabilities, QueryBuilder SQL injection risks,
-  sensitive data exposure in serialization, unprotected sensitive fields, and insecure random generators
-
-- **Code Quality** — Detects cascade configuration issues, bidirectional inconsistencies,
-  missing orphan removal, type mismatches, float usage for money, uninitialized collections,
-  EntityManager in entities, and architectural violations
-
-- **Configuration** — Validates database charset/collation settings, timezone handling,
-  Gedmo trait configurations, MySQL strict mode, and other database-level configurations
+See [Profiler and CI Checks](user-guide/execution-modes) to choose where each check runs. The [analyzer catalog](user-guide/analyzers) contains the complete list.
 
 ---
 
-## ⚡ Quick Start (30 seconds)
+## Quick start
 
 **Step 1: Install**
 
@@ -70,15 +67,21 @@ Unlike static analysis tools (PHPStan, Psalm) that analyze code without executio
 composer require --dev ahmed-bhs/doctrine-doctor
 ```
 
-**Step 2: That's it!**
+**Step 2: Load a page in your Symfony app.**
 
-Auto-configured via [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No YAML, no configuration files needed.
+The bundle is auto-configured through [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No YAML is required for the first run.
 
-**Step 3: See it in action**
+**Step 3: Open the profiler panel.**
 
-1. Refresh any page in your Symfony app (in `dev` environment)
-2. Open the **Symfony Web Profiler** (bottom toolbar)
-3. Click the **"Doctrine Doctor"** panel 🩺
+Open the Web Profiler in the `dev` environment and select the **Doctrine Doctor** panel.
+
+To add deterministic checks to CI:
+
+```bash
+php bin/console doctrine:doctor:analyze --fail-on=warning
+```
+
+Add `--with-database` only in a job that intentionally provides a live database.
 
 ---
 
@@ -152,7 +155,8 @@ $users = $repository
 | Document | Description |
 |----------|-------------|
 | [**Configuration Reference**](user-guide/configuration) | Comprehensive guide to all configuration options - customize analyzers, thresholds, and outputs to match your workflow |
-| [**Full Analyzers List**](user-guide/analyzers) | Complete catalog of all 90+ analyzers covering performance, security, code quality, and configuration |
+| [**Profiler and CI Checks**](user-guide/execution-modes) | Choose where to run Doctrine checks |
+| [**Full Analyzers List**](user-guide/analyzers) | Browse the built-in checks for performance, security, code quality, and configuration |
 | [**Architecture Guide**](advanced/architecture) | Deep dive into system design, architecture patterns, and technical internals |
 | [**Template Security**](advanced/template-security) | Essential security best practices for PHP templates - prevent XSS attacks and ensure safe template rendering |
 

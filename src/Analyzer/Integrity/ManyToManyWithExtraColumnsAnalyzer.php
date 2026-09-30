@@ -13,8 +13,8 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\DatabaseAuditAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
-use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
@@ -39,7 +39,7 @@ use Psr\Log\LoggerInterface;
  * - Before: Student ManyToMany Course (join table has only FK columns)
  * - After: Student OneToMany Enrollment, Course OneToMany Enrollment (with enrollmentDate)
  */
-class ManyToManyWithExtraColumnsAnalyzer implements MetadataAnalyzerInterface
+class ManyToManyWithExtraColumnsAnalyzer implements DatabaseAuditAnalyzerInterface
 {
     use MetadataAnalyzerTrait;
     use ShortClassNameTrait;

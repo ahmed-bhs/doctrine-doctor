@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Configuration;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
-use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Analyzer\DatabaseAuditAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Factory\PlatformAnalysisStrategyFactory;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
@@ -40,7 +40,7 @@ use Psr\Log\LoggerInterface;
  * - SQLite: ⏭️ Skipped (limited collation support)
  * - Doctrine DBAL: 2.x and 3.x+ compatible
  */
-class CollationAnalyzer implements MetadataAnalyzerInterface
+class CollationAnalyzer implements DatabaseAuditAnalyzerInterface
 {
     use MetadataAnalyzerTrait;
 

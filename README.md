@@ -2,7 +2,7 @@
 
 <img src="docs/images/logo.png" alt="Doctrine Doctor Logo" width="80" align="right">
 
-**Runtime Analysis Tool for Doctrine ORM — Integrated into Symfony Web Profiler**
+**Find Doctrine ORM problems in the profiler. Catch them in CI.**
 
 [![PHP 8.4+](https://img.shields.io/badge/PHP-8.4+-777BB4.svg?logo=php&logoColor=white)](https://php.net)
 [![Symfony 6.x | 7.x | 8.x](https://img.shields.io/badge/Symfony-6.x%20%7C%207.x%20%7C%208.x-000000.svg?logo=symfony&logoColor=white)](https://symfony.com)
@@ -13,62 +13,130 @@
 [![Code Style](https://img.shields.io/badge/Code%20Style-PSR--12-blue.svg)](https://www.php-fig.org/psr/psr-12/)
 [![Packagist Version](https://img.shields.io/packagist/v/ahmed-bhs/doctrine-doctor.svg)](https://packagist.org/packages/ahmed-bhs/doctrine-doctor)
 
-<b>Why Runtime Analysis?</b>
+<p align="center">
+  <a href="#quick-start">Get started</a> ·
+  <a href="#add-it-to-ci">Add it to CI</a> ·
+  <a href="docs/user-guide/analyzers.md">Browse analyzers</a>
+</p>
 
-<p>Unlike static analysis tools (PHPStan, Psalm) that analyze code without execution, Doctrine Doctor:</p>
+Doctrine Doctor adds Doctrine-focused feedback to the two places where it is most useful:
 
-<ul>
-<li><b>Detects runtime doctrine issues</b> by analyzing real execution context (actual parameters, data volume, query plans), including N+1 queries, real query performance bottlenecks, and missing indexes.</li>
-<li><b>Integrated into your workflow</b>: Results appear directly in Symfony Web Profiler during development
-  <ul>
-  <li>&#x1F4CD; Backtrace: Points to exact template line</li>
-  <li>&#x1F4A1; Suggestion: Use <code>->addSelect(..)</code> to eager load products</li>
-  </ul>
-</li>
-</ul>
+| When you need an answer | Doctrine Doctor helps you |
+| --- | --- |
+| A page is slow | Inspect real queries, timings, and backtraces in the Web Profiler. |
+| A change is ready for review | Check source code, mappings, and configuration in CI. |
+| A database needs a closer look | Run an opt-in audit with `--with-database`. |
 
 <p align="center">
-  <img src="https://github.com/ahmed-bhs/doctrine-doctor-assets/raw/main/demo-styled.png" alt="Doctrine Doctor Demo" width="100%">
+  <img src="docs/images/pgi-profiler-ci-overlay.png" alt="Symfony Web Profiler in focus with a real PGI Doctrine Doctor CLI result inset showing 50 analyzers and 129 findings" width="100%">
+</p>
+<p align="center"><em>Runtime context with the real CI result kept in view.</em></p>
+
+<p align="center">
+  <a href="#add-it-to-ci">Catch issues in CI</a> ·
+  <a href="#choose-your-feedback-loop">Investigate them in the profiler</a>
 </p>
 
 ---
 
-## Features
+## Choose your feedback loop
 
-### 90+ Specialized Analyzers
+<table>
+<tr>
+<td width="50%" valign="top">
 
-- **Performance** — Detects N+1 queries, missing database indexes, slow queries, excessive hydration,
-  findAll() without limits, setMaxResults() with collection joins, too many JOINs, and query caching
-  opportunities
-- **Security** — Identifies DQL/SQL injection vulnerabilities, QueryBuilder SQL injection risks,
-  sensitive data exposure in serialization, unprotected sensitive fields, and insecure random generators
-- **Integrity** — Detects cascade configuration issues, bidirectional inconsistencies,
-  missing orphan removal, type mismatches, float usage for money, uninitialized collections,
-  EntityManager in entities, and architectural violations
-- **Configuration** — Validates database charset/collation settings, timezone handling,
-  Gedmo trait configurations, MySQL strict mode, and other database-level configurations
+### While you develop
+
+Use the Web Profiler when a real page behaves badly. See the query, timing, pattern, and backtrace together while you still have the page open.
+
+**Best for:** N+1 queries, slow SQL, repeated queries, and expensive hydration.
+
+</td>
+<td width="50%" valign="top">
+
+### Before you merge
+
+Run the static checks in CI so every pull request gets the same persistence review, even when no page has been exercised yet.
+
+**Best for:** source code, mappings, configuration, and database-independent design issues.
+
+</td>
+</tr>
+</table>
+
+## What it catches
+
+Doctrine Doctor ships with more than 100 analyzers grouped by the kind of decision they support:
+
+| Area | Examples |
+| --- | --- |
+| **Performance** | N+1 queries, missing indexes, slow queries, excessive hydration, unbounded reads, and inefficient joins |
+| **Security** | DQL/SQL injection, unsafe QueryBuilder input, sensitive data exposure, and insecure randomness |
+| **Integrity** | Cascade and orphan-removal issues, mapping mismatches, type errors, and invalid entity boundaries |
+| **Configuration** | Charset, collation, timezone, strict mode, cache, and platform configuration |
+
+See the [full analyzer catalog](docs/user-guide/analyzers.md) for the complete list.
 
 ---
 
-## ⚡ Quick Start (30 seconds)
+## Quick start
 
-**Step 1: Install**
+**1. Install the bundle**
 
 ```bash
 composer require --dev ahmed-bhs/doctrine-doctor
 ```
 
-**Step 2: That's it!**
+**2. Open a real page**
 
-Auto-configured via [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No YAML, no configuration files needed.
+The bundle is auto-configured through [Symfony Flex](https://github.com/symfony/recipes-contrib/pull/1882). No YAML is needed for the first run.
 
-**Step 3: See it in action**
+**3. Read the feedback**
 
-1. Refresh any page in your Symfony app (in `dev` environment)
-2. Open the **Symfony Web Profiler** (bottom toolbar)
-3. Click the **"Doctrine Doctor"** panel 🩺
+Refresh the page in the `dev` environment, open the **Symfony Web Profiler**, and select the **Doctrine Doctor** panel.
 
-## Configuration (Optional)
+## Add it to CI
+
+Check your code and mappings on every pull request:
+
+```bash
+php bin/console doctrine:doctor:analyze --fail-on=warning
+```
+
+The command exits with a failure when it finds a warning or critical issue. Use
+`--fail-on=critical` to fail only on critical issues, `--fail-on=info` to fail
+on every finding, or `--fail-on=never` to report without failing. Live database
+audits are opt-in with `--with-database`.
+
+See the [profiler and CI checks guide](docs/user-guide/execution-modes.md) for
+the full analyzer inventory and execution rules.
+
+<details>
+<summary><strong>How the feedback flows</strong></summary>
+
+```mermaid
+flowchart LR
+    A[Pull request] --> B[Doctrine Doctor]
+    B --> C{Finding?}
+    C -->|No| D[Merge with confidence]
+    C -->|Yes| E[Analyzer + location + next step]
+    E --> F[Fix and push]
+    F --> B
+
+    classDef start fill:#dbeafe,stroke:#2563eb,color:#0f172a
+    classDef check fill:#ede9fe,stroke:#7c3aed,color:#0f172a
+    classDef finding fill:#fee2e2,stroke:#dc2626,color:#0f172a
+    classDef done fill:#dcfce7,stroke:#16a34a,color:#0f172a
+    class A start
+    class B check
+    class C,E finding
+    class D done
+```
+
+</details>
+
+<details>
+<summary><strong>Configuration (optional)</strong></summary>
 
 Configure thresholds in `config/packages/dev/doctrine_doctor.yaml`:
 
@@ -92,9 +160,12 @@ doctrine:
 
 [Full configuration reference →](docs/user-guide/configuration.md)
 
+</details>
+
 ---
 
-## AI Mate / MCP integration (optional)
+<details>
+<summary><strong>AI Mate / MCP integration (optional)</strong></summary>
 
 Doctrine Doctor can expose its profiler findings to AI assistants (Claude Code,
 Cursor, GitHub Copilot, …) over [MCP](https://modelcontextprotocol.io) through
@@ -107,6 +178,8 @@ by default. **Without AI Mate installed, this does not apply and Doctrine Doctor
 runs exactly as before.**
 
 [Setup guide & tool reference →](docs/user-guide/ai-mate.md)
+
+</details>
 
 ---
 
@@ -160,7 +233,8 @@ execution time, points to the exact template line, and suggests eager loading wi
 
 | Document | Description |
 |----------|-------------|
-| [**Full Analyzers List**](docs/user-guide/analyzers.md) | Complete catalog of all **90+ analyzers** covering performance, security, integrity, and configuration - find the perfect analyzer for your specific needs |
+| [**Full Analyzers List**](docs/user-guide/analyzers.md) | Browse the built-in checks for performance, security, integrity, and configuration |
+| [**Profiler and CI Checks**](docs/user-guide/execution-modes.md) | A quick guide to choosing where to run each check |
 | [**Architecture Guide**](docs/advanced/architecture.md) | Deep dive into **system design**, architecture patterns, and technical internals - understand how Doctrine Doctor works under the hood |
 | [**Configuration Reference**](docs/user-guide/configuration.md) | Comprehensive guide to **all configuration options** - customize analyzers, thresholds, and outputs to match your workflow |
 | [**Template Security**](docs/advanced/template-security.md) | Essential **security best practices** for PHP templates - prevent XSS attacks and ensure safe template rendering |

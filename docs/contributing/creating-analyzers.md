@@ -15,16 +15,34 @@ Guide pratique pour ajouter un analyzer compatible avec l'API actuelle de Doctri
 
 Un analyzer doit:
 
-- implémenter `AnalyzerInterface` (query-based) ou `MetadataAnalyzerInterface` (metadata-based)
+- choisir son chemin d'exécution selon ses données d'entrée
 - exposer `analyze(QueryDataCollection)` ou `analyzeMetadata()` selon le contrat
 - rester stateless (pas d'état mutable partagé)
 - être enregistré avec le tag `doctrine_doctor.analyzer`
 
-Les analyzers metadata (Integrity, Configuration, Security) utilisent `MetadataAnalyzerInterface` + `MetadataAnalyzerTrait` pour ne pas recevoir un `QueryDataCollection` inutile.
+| Contrat | Exécution | À utiliser pour |
+|---------|-----------|-----------------|
+| `AnalyzerInterface` | Profiler runtime | Les constats qui dépendent des requêtes SQL ou du contexte de la requête courante |
+| `StaticAnalyzerInterface` | Commande CI | L'analyse du code source ou des mappings sans dépendre du SQL observé pendant une requête |
+| `DatabaseAuditAnalyzerInterface` | Commande CI avec `--with-database` | Les contrôles qui interrogent la base configurée |
+| `MetadataAnalyzerInterface` | Commande CI | Contrat historique des contrôles de mapping; il étend `StaticAnalyzerInterface` |
+
+`DatabaseAuditAnalyzerInterface` étend `MetadataAnalyzerInterface`; les audits de base de données sont donc désactivés par défaut dans la commande. `MetadataAnalyzerInterface` utilise `MetadataAnalyzerTrait` pour adapter `analyzeMetadata()` au contrat commun.
+
+Pour exécuter les contrôles indépendants des requêtes du profiler dans CI:
+
+```bash
+php bin/console doctrine:doctor:analyze
+php bin/console doctrine:doctor:analyze --with-database --fail-on=warning
+```
+
+La [liste des analyzers et leurs chemins d'exécution](../user-guide/execution-modes) détaille le classement actuel.
 
 Références:
 
 - `src/Analyzer/AnalyzerInterface.php`
+- `src/Analyzer/StaticAnalyzerInterface.php`
+- `src/Analyzer/DatabaseAuditAnalyzerInterface.php`
 - `src/Analyzer/MetadataAnalyzerInterface.php`
 - `src/Analyzer/Concern/MetadataAnalyzerTrait.php`
 - `src/Collection/QueryDataCollection.php`
@@ -160,7 +178,7 @@ Ajouter au minimum:
 1. Analyzer implémenté
 2. Service taggé `doctrine_doctor.analyzer`
 3. Tests ajoutés
-4. Documentation mise à jour (`docs/user-guide/analyzers.md` + exemples si utile)
+4. Documentation mise à jour (`docs/user-guide/analyzers.md`, `docs/user-guide/execution-modes.md` + exemples si utile)
 5. Changelog mis à jour si nécessaire
 
 ---

@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+              "command": "project_root=\"${CLAUDE_PROJECT_DIR:-}\"; if [ -z \"$project_root\" ] || [ \"$project_root\" = \".\" ]; then project_root=\"$(git rev-parse --show-toplevel)\"; fi; bash \"$project_root/.claude/hooks/load-context.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

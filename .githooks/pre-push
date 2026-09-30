@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+composer test:unit
+composer agent:harness

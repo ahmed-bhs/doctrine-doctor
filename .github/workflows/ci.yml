@@ -10,6 +10,23 @@ permissions:
   contents: read
 
 jobs:
+  agent-harness:
+    name: Agent Harness Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Validate agent harness
+        run: php bin/validate-agent-harness
+
   ecs:
     name: ECS Code Style
     runs-on: ubuntu-latest

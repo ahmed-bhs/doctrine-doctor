@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Configuration;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
-use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Analyzer\DatabaseAuditAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
@@ -32,7 +32,7 @@ use Psr\Log\LoggerInterface;
  * - PostgreSQL: ⏭️ Skipped (doesn't have storage engines)
  * - Doctrine DBAL: 2.x and 3.x+ compatible
  */
-class InnoDBEngineAnalyzer implements MetadataAnalyzerInterface
+class InnoDBEngineAnalyzer implements DatabaseAuditAnalyzerInterface
 {
     use MetadataAnalyzerTrait;
 

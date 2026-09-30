@@ -1,0 +1,109 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__);
+$errors = [];
+
+$requiredFiles = [
+    'AGENTS.md',
+    'CLAUDE.md',
+    'MEMORY.md',
+    'CONTEXT.md',
+    'ARCHITECTURE.md',
+    'skills-lock.json',
+    '.claude/settings.json',
+    '.claude/hooks/load-context.sh',
+];
+
+foreach ($requiredFiles as $file) {
+    if (!is_file($root . '/' . $file)) {
+        $errors[] = "Missing required harness file: {$file}";
+    }
+}
+
+$settingsPath = $root . '/.claude/settings.json';
+if (is_file($settingsPath)) {
+    try {
+        json_decode((string) file_get_contents($settingsPath), true, 512, JSON_THROW_ON_ERROR);
+    } catch (JsonException $exception) {
+        $errors[] = '.claude/settings.json is not valid JSON: ' . $exception->getMessage();
+    }
+}
+
+$skillsLockPath = $root . '/skills-lock.json';
+if (is_file($skillsLockPath)) {
+    try {
+        $skillsLock = json_decode((string) file_get_contents($skillsLockPath), true, 512, JSON_THROW_ON_ERROR);
+        foreach (($skillsLock['skills'] ?? []) as $skillId => $skill) {
+            if (!is_string($skill['source'] ?? null) || !is_string($skill['computedHash'] ?? null)) {
+                $errors[] = "Skill lock entry is incomplete: {$skillId}";
+                continue;
+            }
+            if (!preg_match('/\\A[a-f0-9]{64}\\z/', $skill['computedHash'])) {
+                $errors[] = "Skill lock hash is invalid: {$skillId}";
+            }
+        }
+    } catch (JsonException $exception) {
+        $errors[] = 'skills-lock.json is not valid JSON: ' . $exception->getMessage();
+    }
+}
+
+$shellFiles = [
+    '.claude/hooks/load-context.sh',
+    '.githooks/pre-commit',
+    '.githooks/pre-push',
+];
+foreach ($shellFiles as $file) {
+    $path = $root . '/' . $file;
+    if (is_file($path) && !is_executable($path) && str_starts_with($file, '.claude/')) {
+        $errors[] = "Harness script is not executable: {$file}";
+    }
+    if (is_file($path)) {
+        exec('bash -n ' . escapeshellarg($path), $output, $exitCode);
+        if ($exitCode !== 0) {
+            $errors[] = "Shell syntax check failed: {$file}";
+        }
+    }
+}
+
+$canonicalSkills = glob($root . '/.agents/skills/*/SKILL.md') ?: [];
+$canonicalNames = [];
+foreach ($canonicalSkills as $path) {
+    $relative = substr($path, strlen($root) + 1);
+    $content = (string) file_get_contents($path);
+    if (!preg_match('/\\A---\\s*\n(.*?)\n---/s', $content, $frontMatter)) {
+        $errors[] = "Skill is missing YAML frontmatter: {$relative}";
+        continue;
+    }
+    if (!preg_match('/^name:\s*([^\n]+)$/m', $frontMatter[1], $nameMatch)) {
+        $errors[] = "Skill frontmatter is missing name: {$relative}";
+        continue;
+    }
+    if (!preg_match('/^description:\s*([^\n]+)$/m', $frontMatter[1])) {
+        $errors[] = "Skill frontmatter is missing description: {$relative}";
+    }
+    $canonicalNames[basename(dirname($path))] = trim($nameMatch[1], " \t\"'");
+}
+
+$wrapperSkills = glob($root . '/.claude/skills/*/SKILL.md') ?: [];
+foreach ($wrapperSkills as $path) {
+    $skillId = basename(dirname($path));
+    $relative = substr($path, strlen($root) + 1);
+    if (!isset($canonicalNames[$skillId])) {
+        $errors[] = "Claude wrapper has no canonical skill: {$relative}";
+        continue;
+    }
+    $content = (string) file_get_contents($path);
+    if (!str_contains($content, ".agents/skills/{$skillId}/SKILL.md")) {
+        $errors[] = "Claude wrapper does not delegate to its canonical skill: {$relative}";
+    }
+}
+
+if ($errors !== []) {
+    fwrite(STDERR, implode("\n", array_map(static fn (string $error): string => "[agent-harness] {$error}", $errors)) . "\n");
+    exit(1);
+}
+
+fwrite(STDOUT, sprintf("[agent-harness] OK (%d canonical skills, %d Claude wrappers)\n", count($canonicalNames), count($wrapperSkills)));

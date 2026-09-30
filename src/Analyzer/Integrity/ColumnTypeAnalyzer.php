@@ -13,7 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
-use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Analyzer\DatabaseAuditAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
@@ -37,7 +37,7 @@ use ReflectionClass;
  * - Improper use of 'enum' type
  * - Use of mutable datetime types (should use immutable variants)
  */
-class ColumnTypeAnalyzer implements MetadataAnalyzerInterface
+class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
 {
     use MetadataAnalyzerTrait;
     use ShortClassNameTrait;

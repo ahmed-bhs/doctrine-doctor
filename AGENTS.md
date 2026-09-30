@@ -1,0 +1,62 @@
+# Working in Doctrine Doctor
+
+`AGENTS.md` is the project router. Keep durable facts in [MEMORY.md](MEMORY.md),
+domain vocabulary in [CONTEXT.md](CONTEXT.md), decisions in [docs/adr](docs/adr/),
+procedures in [docs/guides](docs/guides/), and reusable workflows in
+[.agents/skills](.agents/skills/). Claude entry points live in `.claude/skills/`
+and delegate to the same canonical files.
+
+## Before changing code
+
+1. For code, dependency, execution-path, or environment changes, run
+   `./bin/doctrine-doctor-context --format=markdown` to establish the real
+   project context.
+2. Read [MEMORY.md](MEMORY.md), [CONTEXT.md](CONTEXT.md), and the
+   [architecture map](ARCHITECTURE.md). Open the [architecture guide](docs/advanced/architecture.md)
+   when the change affects layers or lifecycle.
+3. Read the relevant [rules](docs/rules/), especially the
+   [PHP object design rules](docs/rules/php-oop.md) for class and interface
+   changes and the [testing rules](docs/rules/testing.md) for test changes,
+   then read the ADR and skill before changing a
+   boundary or analyzer.
+4. Use a focused [subagent](.claude/agents/) only when a second pass adds value.
+
+## Choose the smallest workflow
+
+| Need | Start here |
+|------|------------|
+| Clarify a requested change | `.agents/skills/to-spec` |
+| Shape a module or seam | `.agents/skills/architecture-design` |
+| Create an analyzer | `.agents/skills/create-analyzer` |
+| Change Symfony integration | `.agents/skills/symfony-quality` |
+| Implement test-first | `.agents/skills/tdd` |
+| Review a branch | `.agents/skills/code-review` |
+| Review Doctrine design | `.claude/agents/doctrine-architect.md` |
+| Review Doctrine performance | `.claude/agents/doctrine-performance-reviewer.md` |
+
+## Non-negotiable project rules
+
+- Keep domain policy independent from Symfony and Doctrine adapters.
+- Choose the narrowest execution contract: profiler runtime, CI static, or
+  opt-in database audit.
+- Keep commands, collectors, and presenters thin; put policy behind a small
+  interface at an explicit seam.
+- Add focused behavior and regression coverage for changes.
+- Follow the test pyramid and prefer real objects or fakes; do not mock internal
+  classes or verify implementation call counts.
+- Treat PHPStan and Deptrac findings as design feedback.
+- Keep documentation concise and in English. Record only hard-to-reverse,
+  surprising trade-offs as ADRs.
+
+Before opening a PR, follow [Quality Checks](docs/guides/quality-checks.md).
+Leave unrelated local drafts untouched.
+
+Claude's project `SessionStart` hook loads the same context automatically. Keep
+hooks deterministic and lightweight; use skills for reasoning and CI for heavy
+quality checks.
+
+## Compatibility
+
+Project workflow skills from Matt Pocock's collection are pinned in
+`skills-lock.json` under `.agents/skills/`. Update them deliberately with
+`npx skills update`, then review the diff.

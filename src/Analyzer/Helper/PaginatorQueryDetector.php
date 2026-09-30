@@ -11,8 +11,35 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Helper;
 
+use PhpMyAdmin\SqlParser\Parser;
+use PhpMyAdmin\SqlParser\Statements\SelectStatement;
+
 class PaginatorQueryDetector
 {
+    public function hasOrderedPaginatorSubquery(string $sql): bool
+    {
+        $statement = new Parser($sql)->statements[0] ?? null;
+        if (!$statement instanceof SelectStatement || 1 !== count($statement->from) || !empty($statement->join)) {
+            return false;
+        }
+
+        $source = $statement->from[0];
+        // LimitSubqueryOutputWalker uses this wrapper for its identifier query.
+        // An ORDER BY in a literal, comment or unrelated subquery is not sufficient.
+        if ('dctrn_result' !== $source->alias || null === $source->expr) {
+            return false;
+        }
+
+        $subquery = trim($source->expr);
+        if (!str_starts_with($subquery, '(') || !str_ends_with($subquery, ')')) {
+            return false;
+        }
+
+        $inner = new Parser(substr($subquery, 1, -1))->statements[0] ?? null;
+
+        return $inner instanceof SelectStatement && null !== $inner->order && [] !== $inner->order;
+    }
+
     /**
      * @param array<int, array<string, mixed>>|null $backtrace
      */
