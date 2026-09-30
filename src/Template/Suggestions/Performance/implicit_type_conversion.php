@@ -23,7 +23,7 @@ ob_start();
         <code><?= $e((string) $column) ?></code> is a text column compared to the number <code><?= $e((string) $literal) ?></code>.
 <?php } ?>
         MySQL and MariaDB convert the column value of every row to a number before comparing,
-        so the index on the column cannot be used. PostgreSQL rejects the comparison.
+        so the index on the column cannot be used.<?php if (!$isParameter) { ?> PostgreSQL rejects the comparison.<?php } ?>
     </div>
 
     <h4>Original query</h4>

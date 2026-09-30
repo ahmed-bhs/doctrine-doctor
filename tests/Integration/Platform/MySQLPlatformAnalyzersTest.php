@@ -18,11 +18,16 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\InnoDBEngineAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\StrictModeAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\Configuration\TimeZoneAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Analyzer\Performance\ImplicitTypeConversionAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\Performance\MissingIndexAnalyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\Security\OverprivilegedDatabaseUserAnalyzer;
+use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
+use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
+use AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -176,5 +181,25 @@ final class MySQLPlatformAnalyzersTest extends TestCase
         foreach (self::TABLES as $table) {
             $this->connection->executeStatement('DROP TABLE IF EXISTS ' . $table);
         }
+    }
+
+    #[Test]
+    public function it_reports_an_integer_parameter_on_a_text_column(): void
+    {
+        // MySQL and MariaDB compare the column as a number: every row is read.
+        self::assertCount(1, $this->implicitConversionIssues());
+    }
+
+    private function implicitConversionIssues(): \AhmedBhs\DoctrineDoctor\Collection\IssueCollection
+    {
+        $entityManager = new EntityManager($this->connection, PlatformAnalyzerTestHelper::createTestConfiguration());
+        $analyzer      = new ImplicitTypeConversionAnalyzer(PlatformAnalyzerTestHelper::createSuggestionFactory(), $entityManager);
+
+        return $analyzer->analyze(QueryDataCollection::fromArray([new QueryData(
+            sql: 'SELECT u0_.id AS id_0 FROM users u0_ WHERE u0_.email = ?',
+            executionTime: QueryExecutionTime::fromMilliseconds(1.0),
+            params: [42],
+            types: ['INTEGER'],
+        )]));
     }
 }
