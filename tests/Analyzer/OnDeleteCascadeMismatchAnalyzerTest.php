@@ -238,6 +238,32 @@ final class OnDeleteCascadeMismatchAnalyzerTest extends TestCase
     }
 
     #[Test]
+    public function it_accepts_a_database_cascade_when_children_have_no_remove_callback(): void
+    {
+        // An ORM remove() of the shelf issues DELETE FROM shelves..., and the database deletes
+        // the books: the outcome is the same as with cascade="remove", without loading them.
+        $shelfIssues = array_filter(
+            $this->analyzer->analyze(QueryDataBuilder::create()->build())->toArray(),
+            static fn ($issue): bool => str_contains($issue->getData()['entity'] ?? '', 'ShelfWithDbCascade'),
+        );
+
+        self::assertCount(0, $shelfIssues);
+    }
+
+    #[Test]
+    public function it_names_the_remove_callbacks_the_database_cascade_skips(): void
+    {
+        $invoiceIssues = array_values(array_filter(
+            $this->analyzer->analyze(QueryDataBuilder::create()->build())->toArray(),
+            static fn ($issue): bool => str_contains($issue->getData()['entity'] ?? '', 'InvoiceWithDbCascadeNoOrm'),
+        ));
+
+        self::assertCount(1, $invoiceIssues);
+        self::assertStringContainsString('archiveBeforeRemoval', $invoiceIssues[0]->getDescription());
+        self::assertStringNotContainsString('does not', $invoiceIssues[0]->getDescription());
+    }
+
+    #[Test]
     public function it_detects_all_mismatch_types(): void
     {
         // Arrange

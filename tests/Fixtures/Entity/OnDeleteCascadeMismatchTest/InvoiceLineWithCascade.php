@@ -15,9 +15,11 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Child entity with onDelete=CASCADE (but parent has no ORM cascade).
+ * Child entity with onDelete=CASCADE (but parent has no ORM cascade), and a
+ * preRemove callback the database cascade never runs.
  */
 #[ORM\Entity]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'invoice_lines_with_cascade')]
 class InvoiceLineWithCascade
 {
@@ -32,6 +34,14 @@ class InvoiceLineWithCascade
     #[ORM\ManyToOne(targetEntity: InvoiceWithDbCascadeNoOrm::class, inversedBy: 'lines')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?InvoiceWithDbCascadeNoOrm $invoice = null;
+
+    public bool $archived = false;
+
+    #[ORM\PreRemove]
+    public function archiveBeforeRemoval(): void
+    {
+        $this->archived = true;
+    }
 
     public function getId(): ?int
     {

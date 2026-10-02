@@ -23,6 +23,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\DBAL\ParameterType;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -60,6 +61,8 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
      * @var array<string, array<string, string>>|null
      */
     private ?array $columnTypes = null;
+
+    private ?bool $isPostgreSQL = null;
 
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
@@ -138,8 +141,10 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
             if (isset($match[2]) && -1 !== $match[2][1]) {
                 $kind    = 'string_column_vs_numeric_literal';
                 $literal = $match[2][0];
-            } elseif (isset($match[3])) {
+            } elseif (isset($match[3]) && !$this->isPostgreSQL()) {
                 // DQL infers the binding type from the PHP value: an int is bound as an integer.
+                // PostgreSQL is left out: pdo_pgsql prepares natively, the server types the
+                // parameter from the column and uses the index.
                 $parameterIndex = substr_count(substr($sql, 0, $whereOffset + $match[3][1]), '?');
                 if (!$this->isIntegerBinding($types[$parameterIndex] ?? null)) {
                     continue;
@@ -166,6 +171,19 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         }
 
         return $mismatches;
+    }
+
+    private function isPostgreSQL(): bool
+    {
+        if (null === $this->isPostgreSQL) {
+            try {
+                $this->isPostgreSQL = $this->entityManager?->getConnection()->getDatabasePlatform() instanceof PostgreSQLPlatform;
+            } catch (\Throwable) {
+                $this->isPostgreSQL = false;
+            }
+        }
+
+        return $this->isPostgreSQL;
     }
 
     private function isIntegerBinding(mixed $type): bool
@@ -284,11 +302,12 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
 
         $description = sprintf(
             '%s MySQL and MariaDB convert the column value of every row to a number before comparing, so the index ' .
-            'on %s cannot be used to look the value up and every row is read (full scan); PostgreSQL rejects the comparison. %s',
+            'on %s cannot be used to look the value up and every row is read (full scan)%s. %s',
             $isParameter
                 ? sprintf('Text column %s is compared to %s, bound as an integer because DQL infers the type from the PHP int value.', $mismatch['column'], $mismatch['literal'])
                 : sprintf('Text column %s is compared to the number %s.', $mismatch['column'], $mismatch['literal']),
             $mismatch['column'],
+            $isParameter ? '' : '; PostgreSQL rejects the comparison',
             $isParameter ? 'Pass the value as a string, or declare the parameter type.' : 'Compare it to a string instead.',
         );
 

@@ -25,7 +25,10 @@ use PHPUnit\Framework\TestCase;
  * 1. orphan_removal_nullable_fk: orphanRemoval=true but nullable FK
  * 2. cascade_remove_set_null: cascade="remove" but onDelete="SET NULL"
  * 3. orphan_removal_no_persist: orphanRemoval=true but no cascade="persist"
- * 4. ondelete_cascade_no_orm: onDelete="CASCADE" but no ORM cascade="remove"
+ *
+ * onDelete="CASCADE" without ORM cascade="remove" is left to
+ * OnDeleteCascadeMismatchAnalyzer, which reports it only when the children have
+ * remove callbacks the database cascade skips.
  */
 final class BidirectionalConsistencyAnalyzerTest extends TestCase
 {
@@ -127,30 +130,16 @@ final class BidirectionalConsistencyAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_detects_ondelete_cascade_no_orm_inconsistency(): void
+    public function it_leaves_a_database_cascade_to_the_on_delete_analyzer(): void
     {
-        // Arrange: Invoice child has onDelete="CASCADE" but parent has no cascade="remove"
-        $queries = QueryDataBuilder::create()->build();
+        // An ORM remove() of the invoice issues a DELETE the database cascades: the
+        // lines are deleted either way, so this is not a bidirectional inconsistency.
+        $invoiceIssues = array_filter(
+            $this->analyzer->analyze(QueryDataBuilder::create()->build())->toArray(),
+            static fn ($issue): bool => str_contains($issue->getData()['entity'] ?? '', 'InvoiceWithDbCascadeNoOrm'),
+        );
 
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert
-        $issuesArray = $issues->toArray();
-        $invoiceIssues = array_filter($issuesArray, static function ($issue) {
-            $data = $issue->getData();
-            return str_contains($data['entity'] ?? '', 'InvoiceWithDbCascadeNoOrm');
-        });
-
-        self::assertCount(1, $invoiceIssues, 'Should detect ondelete_cascade_no_orm inconsistency');
-
-        $issue = reset($invoiceIssues);
-
-        assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
-        self::assertNotFalse($issue);
-        $data = $issue->getData();
-        self::assertEquals('ondelete_cascade_no_orm', $data['inconsistency_type']);
-        self::assertEquals('invoice', $data['inverse_field']); // mappedBy value
+        self::assertCount(0, $invoiceIssues);
     }
 
     #[Test]
@@ -240,20 +229,20 @@ final class BidirectionalConsistencyAnalyzerTest extends TestCase
         // Act
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert: Should detect at least 4 distinct inconsistency types
+        // Assert: Should detect the 3 distinct inconsistency types
         $issuesArray = $issues->toArray();
 
-        self::assertGreaterThanOrEqual(4, count($issuesArray), 'Should detect at least 4 inconsistencies');
+        self::assertGreaterThanOrEqual(3, count($issuesArray), 'Should detect at least 3 inconsistencies');
 
         // Collect all inconsistency types
         $inconsistencyTypes = array_map(fn ($issue) => $issue->getData()['inconsistency_type'] ?? '', $issuesArray);
         $uniqueTypes = array_unique($inconsistencyTypes);
 
-        self::assertGreaterThanOrEqual(4, count($uniqueTypes), 'Should have at least 4 distinct inconsistency types');
+        self::assertGreaterThanOrEqual(3, count($uniqueTypes), 'Should have at least 3 distinct inconsistency types');
         self::assertContains('orphan_removal_nullable_fk', $inconsistencyTypes);
         self::assertContains('cascade_remove_set_null', $inconsistencyTypes);
         self::assertContains('orphan_removal_no_persist', $inconsistencyTypes);
-        self::assertContains('ondelete_cascade_no_orm', $inconsistencyTypes);
+        self::assertNotContains('ondelete_cascade_no_orm', $inconsistencyTypes);
     }
 
     #[Test]
@@ -400,7 +389,7 @@ final class BidirectionalConsistencyAnalyzerTest extends TestCase
         // Assert: All detected issues should have suggestions
         $issuesArray = $issues->toArray();
 
-        self::assertGreaterThanOrEqual(4, count($issuesArray), 'Should detect at least 4 inconsistencies');
+        self::assertGreaterThanOrEqual(3, count($issuesArray), 'Should detect at least 3 inconsistencies');
 
         foreach ($issuesArray as $issue) {
             $suggestion = $issue->getSuggestion();

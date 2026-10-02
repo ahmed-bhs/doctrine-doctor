@@ -59,10 +59,11 @@ ob_start();
 
 <?php } elseif ('db_cascade_no_orm' === $mismatchType) { ?>
     <div class="alert alert-warning">
-        DB has <code>onDelete="CASCADE"</code> but ORM has no <code>cascade: ['remove']</code>. SQL DELETEs cascade, but <code>$em->remove()</code> does not.
+        The database deletes the <?php echo $e($targetClass); ?> rows (<code>onDelete="CASCADE"</code>), also when the parent is removed with <code>$em->remove()</code>,
+        but without the ORM: their preRemove/postRemove callbacks and listeners do not run.
     </div>
-    <h4>Solution: Add ORM cascade to match DB</h4>
-    <p>DB already has <code>onDelete="CASCADE"</code>. Add the matching ORM cascade so <code>$em->remove()</code> behaves consistently:</p>
+    <h4>If those callbacks must run: add the ORM cascade</h4>
+    <p>The ORM then loads and removes each child, running its callbacks, before deleting the parent. It costs one query per child; keep the database cascade alone when the callbacks can be skipped.</p>
     <div class="query-item">
         <pre><code class="language-php">#[ORM\OneToMany(targetEntity: <?php echo $e($targetClass); ?>::class, mappedBy: '...', cascade: ['remove'])]
 private Collection $<?php echo $e($fieldName); ?>;</code></pre>
@@ -93,7 +94,7 @@ $code = ob_get_clean();
 $description = match ($mismatchType) {
     'orm_cascade_db_setnull' => sprintf("Change DB onDelete to 'CASCADE' to match ORM cascade in %s::\$%s", $entityClass, $fieldName),
     'orm_orphan_db_setnull' => sprintf("Change DB onDelete to 'CASCADE' to match orphanRemoval in %s::\$%s", $entityClass, $fieldName),
-    'db_cascade_no_orm' => sprintf("Add ORM cascade: ['remove'] to match DB onDelete='CASCADE' in %s::\$%s", $entityClass, $fieldName),
+    'db_cascade_no_orm' => sprintf("Add ORM cascade: ['remove'] in %s::\$%s if the children's remove callbacks must run", $entityClass, $fieldName),
     'orm_cascade_no_db' => sprintf("Add DB onDelete='CASCADE' to match ORM cascade in %s::\$%s", $entityClass, $fieldName),
     default => sprintf("Align ORM cascade '%s' with DB onDelete '%s' in %s::\$%s", $ormCascade, $dbOnDelete, $entityClass, $fieldName),
 };
