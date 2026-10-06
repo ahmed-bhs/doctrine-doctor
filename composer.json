@@ -106,7 +106,6 @@
     "deptrac": "deptrac analyse --config-file=deptrac.yaml",
     "deptrac:baseline": "deptrac analyse --config-file=deptrac.yaml --formatter=baseline --output=deptrac.baseline.yaml",
     "deptrac:graph": "deptrac analyse --config-file=deptrac.yaml --formatter=graphviz-image --output=deptrac-layers.png",
-    "agent:harness": "php bin/validate-agent-harness",
     "markdown-lint": "npx markdownlint-cli2 \"docs/**/*.md\" \"*.md\" \"src/**/*.md\" \"tests/**/*.md\"",
     "cs": [
       "@lint",
@@ -126,8 +125,7 @@
       "@phpstan",
       "@phpmd",
       "@rector",
-      "@deptrac",
-      "@agent:harness"
+      "@deptrac"
     ],
     "fix": [
       "@ecs:fix",
@@ -153,7 +151,6 @@
     "deptrac": "Analyze architecture dependencies with Deptrac",
     "deptrac:baseline": "Generate Deptrac baseline for existing violations",
     "deptrac:graph": "Generate architecture diagram (requires graphviz)",
-    "agent:harness": "Validate the agent harness structure, hooks and skill adapters",
     "cs": "Check syntax, code style and static analysis (Lint + ECS + PHPStan + PHPMD)",
     "cs:fix": "Fix code style and refactor (ECS + Rector)",
     "check": "Run all quality checks (Lint + Tests + ECS + PHPStan + PHPMD + Rector + Deptrac)",
