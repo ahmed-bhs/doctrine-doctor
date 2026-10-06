@@ -6,5 +6,3 @@
 - Keep database-dependent checks explicit and opt-in.
 - Apply the [testing rules](testing.md): behavior at public seams, a balanced
   test pyramid, and no mocks for code owned by this project.
-- Treat third-party skills as dependencies: review their instructions and scripts,
-  keep their source and content hash in `skills-lock.json`, and update them deliberately.
