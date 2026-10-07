@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Parser;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\Interface\JoinExtractorInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlParserCache;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 
@@ -25,7 +26,7 @@ final class SqlJoinExtractor implements JoinExtractorInterface
 {
     public function extractJoins(string $sql): array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -66,7 +67,7 @@ final class SqlJoinExtractor implements JoinExtractorInterface
 
     public function extractMainTable(string $sql): ?array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -156,7 +157,7 @@ final class SqlJoinExtractor implements JoinExtractorInterface
 
     public function extractJoinOnClause(string $sql, string $joinExpression): ?string
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -198,7 +199,7 @@ final class SqlJoinExtractor implements JoinExtractorInterface
      */
     public function extractTableNameWithAlias(string $sql, string $targetAlias): ?array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -268,7 +269,7 @@ final class SqlJoinExtractor implements JoinExtractorInterface
      */
     public function extractJoinOnConditions(string $sql, string $tableName): array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {

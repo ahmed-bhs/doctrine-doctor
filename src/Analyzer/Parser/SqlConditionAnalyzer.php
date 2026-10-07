@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Parser;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\Interface\ConditionAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlParserCache;
 use PhpMyAdmin\SqlParser\Components\Condition;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
@@ -28,14 +29,14 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
 {
     public function hasWhereClause(string $sql): bool
     {
-        $statement = (new Parser($sql))->statements[0] ?? null;
+        $statement = (SqlParserCache::parse($sql))->statements[0] ?? null;
 
         return $statement instanceof SelectStatement && null !== $statement->where && [] !== $statement->where;
     }
 
     public function extractWhereColumns(string $sql): array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -68,7 +69,7 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
 
     public function extractWhereConditions(string $sql): array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -104,7 +105,7 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
 
     public function extractJoinColumns(string $sql): array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -142,7 +143,7 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
 
     public function extractFunctionsInWhere(string $sql): array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -174,7 +175,7 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
 
     public function findIsNotNullFieldOnAlias(string $sql, string $alias): ?string
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -200,7 +201,7 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
 
     public function hasComplexWhereConditions(string $sql): bool
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -235,7 +236,7 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
         // Example: INNER JOIN translation t1_ ON ... AND (t1_.LOCALE = ?)
         if (str_contains($sqlUpper, 'JOIN') && str_contains($sqlUpper, 'AND')) {
             // Use parser to check JOIN conditions
-            $parser = new Parser($sql);
+            $parser = SqlParserCache::parse($sql);
             $statement = $parser->statements[0] ?? null;
 
             if (!$statement instanceof SelectStatement) {
@@ -269,7 +270,7 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
 
     public function hasUniqueJoinConstraint(string $sql): bool
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -312,7 +313,7 @@ final class SqlConditionAnalyzer implements ConditionAnalyzerInterface
      */
     public function isAliasUsedInQuery(string $sql, string $alias, ?string $joinExpression = null): bool
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {

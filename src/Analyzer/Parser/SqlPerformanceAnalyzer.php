@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Parser;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\Interface\PerformanceAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlParserCache;
 use PhpMyAdmin\SqlParser\Components\Expression;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
@@ -26,7 +27,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
 {
     public function hasOrderBy(string $sql): bool
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -38,7 +39,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
 
     public function hasLimit(string $sql): bool
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -50,7 +51,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
 
     public function hasOffset(string $sql): bool
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -78,7 +79,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
      */
     public function hasSubquery(string $sql): bool
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -127,7 +128,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
 
     public function hasGroupBy(string $sql): bool
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -146,7 +147,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
 
     public function hasDistinct(string $sql): bool
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -186,7 +187,7 @@ final class SqlPerformanceAnalyzer implements PerformanceAnalyzerInterface
 
     public function getLimitValue(string $sql): ?int
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
