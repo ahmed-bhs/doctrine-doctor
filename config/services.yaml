@@ -100,6 +100,8 @@ services:
             $resultStore: '@AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore'
 
     AhmedBhs\DoctrineDoctor\EventSubscriber\PendingAnalysisSubscriber:
+        arguments:
+            $pendingProfileAnalyzer: !service_closure '@AhmedBhs\DoctrineDoctor\Collector\PendingProfileAnalyzer'
         tags:
             - { name: kernel.event_subscriber }
 

@@ -147,11 +147,30 @@ final class PendingProfileAnalyzerTest extends TestCase
         $request->attributes->set('_route', $route);
         $request->attributes->set('token', $token);
 
-        new PendingAnalysisSubscriber($this->createAnalyzer())->onKernelRequest(
+        new PendingAnalysisSubscriber(fn (): PendingProfileAnalyzer => $this->createAnalyzer())->onKernelRequest(
             new RequestEvent(self::createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST),
         );
 
         self::assertSame(!$analyzed, $this->readCollector('tok123')->isAnalysisPending());
+    }
+
+    #[Test]
+    public function the_subscriber_builds_nothing_outside_the_profiler_routes(): void
+    {
+        // kernel.request listeners are instantiated before the firewall runs: building the
+        // analyzer (profiler, every collector, Twig and its globals) there would construct
+        // services that read the user before authentication
+        $subscriber = new PendingAnalysisSubscriber(static function (): PendingProfileAnalyzer {
+            throw new \LogicException('The analyzer must not be built for this request');
+        });
+
+        $request = new Request();
+        $request->attributes->set('_route', 'app_home');
+        $request->attributes->set('token', 'tok123');
+
+        $subscriber->onKernelRequest(new RequestEvent(self::createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST));
+
+        $this->addToAssertionCount(1);
     }
 
     #[Test]

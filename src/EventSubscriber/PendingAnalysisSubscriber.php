@@ -27,8 +27,14 @@ final readonly class PendingAnalysisSubscriber implements EventSubscriberInterfa
 {
     private const array PROFILER_ROUTES = ['_wdt', '_profiler'];
 
+    /**
+     * @param \Closure(): PendingProfileAnalyzer $pendingProfileAnalyzer
+     */
     public function __construct(
-        private PendingProfileAnalyzer $pendingProfileAnalyzer,
+        // Lazy: kernel.request listeners are instantiated before the firewall runs.
+        // Building the analyzer there (profiler, every collector, Twig and its globals)
+        // would construct application services that read the user before authentication.
+        private \Closure $pendingProfileAnalyzer,
     ) {
     }
 
@@ -56,6 +62,6 @@ final readonly class PendingAnalysisSubscriber implements EventSubscriberInterfa
             return;
         }
 
-        $this->pendingProfileAnalyzer->analyze($token);
+        ($this->pendingProfileAnalyzer)()->analyze($token);
     }
 }

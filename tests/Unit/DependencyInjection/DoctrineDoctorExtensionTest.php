@@ -16,6 +16,7 @@ use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use AhmedBhs\DoctrineDoctor\Command\AnalyzeCommand;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Configuration;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\DoctrineDoctorExtension;
+use AhmedBhs\DoctrineDoctor\EventSubscriber\PendingAnalysisSubscriber;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -23,6 +24,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Config\Definition\ArrayNode;
+use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Compiler\MergeExtensionConfigurationPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -255,6 +257,18 @@ final class DoctrineDoctorExtensionTest extends TestCase
         $this->extension->load([['enabled' => true]], $container);
 
         self::assertTrue($container->getDefinition(DoctrineDoctorDataCollector::class)->getArgument('$enabled'));
+    }
+
+    #[Test]
+    public function the_pending_analysis_subscriber_gets_its_analyzer_lazily(): void
+    {
+        $container = new ContainerBuilder();
+        $this->extension->load([['enabled' => true]], $container);
+
+        self::assertInstanceOf(
+            ServiceClosureArgument::class,
+            $container->getDefinition(PendingAnalysisSubscriber::class)->getArgument('$pendingProfileAnalyzer'),
+        );
     }
 
     #[Test]
