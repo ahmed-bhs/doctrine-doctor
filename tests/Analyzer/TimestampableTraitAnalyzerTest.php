@@ -371,7 +371,8 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         // Mutable DateTime should be WARNING
         $mutableIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'mutable'),
+            // Match the issue type prefix: entity or field names may contain "mutable" too
+            fn ($issue) => str_starts_with((string) $issue->getTitle(), 'Mutable DateTime in Timestamp'),
         );
         if (!empty($mutableIssues)) {
             $issue = reset($mutableIssues);
@@ -382,7 +383,7 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         // Nullable createdAt should be WARNING
         $nullableIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'nullable'),
+            fn ($issue) => str_starts_with((string) $issue->getTitle(), 'Nullable Creation Timestamp'),
         );
         if (!empty($nullableIssues)) {
             $issue = reset($nullableIssues);
@@ -393,7 +394,7 @@ final class TimestampableTraitAnalyzerTest extends DatabaseTestCase
         // Public setter should be INFO
         $setterIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains(strtolower((string) $issue->getTitle()), 'setter'),
+            fn ($issue) => str_starts_with((string) $issue->getTitle(), 'Public Setter on Timestamp'),
         );
         if (!empty($setterIssues)) {
             $issue = reset($setterIssues);

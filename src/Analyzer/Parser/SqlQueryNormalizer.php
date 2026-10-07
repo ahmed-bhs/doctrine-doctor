@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Parser;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\Interface\QueryNormalizerInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlParserCache;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\DeleteStatement;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
@@ -27,7 +28,7 @@ final class SqlQueryNormalizer implements QueryNormalizerInterface
 {
     public function normalizeQuery(string $sql): string
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (null === $statement) {
@@ -39,7 +40,7 @@ final class SqlQueryNormalizer implements QueryNormalizerInterface
         // Build normalized query by processing each part
 
         if ($statement instanceof SelectStatement) {
-            return $this->normalizeSelectForNPlusOne($statement, $sql);
+            return $this->normalizeSelectForNPlusOne($statement);
         }
 
         if ($statement instanceof UpdateStatement) {
@@ -60,7 +61,7 @@ final class SqlQueryNormalizer implements QueryNormalizerInterface
      * @SuppressWarnings("PHPMD.CyclomaticComplexity")
      * @SuppressWarnings("PHPMD.NPathComplexity")
      */
-    private function normalizeSelectForNPlusOne(SelectStatement $statement, string $originalSql): string
+    private function normalizeSelectForNPlusOne(SelectStatement $statement): string
     {
         $parts = [];
 

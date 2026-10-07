@@ -12,6 +12,8 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\AiMate\Capability;
 
 use AhmedBhs\DoctrineDoctor\AiMate\DoctrineDoctorMcpSanitizer;
+use AhmedBhs\DoctrineDoctor\AiMate\PendingAnalysisRunnerInterface;
+use AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore;
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use Mcp\Capability\Attribute\McpTool;
 use Symfony\AI\Mate\Bridge\Symfony\Profiler\Service\ProfilerDataProvider;
@@ -24,6 +26,8 @@ final readonly class DoctrineDoctorIssuesTool
     public function __construct(
         private ProfilerDataProvider $dataProvider,
         private DoctrineDoctorMcpSanitizer $sanitizer,
+        private ?PendingAnalysisRunnerInterface $pendingAnalysisRunner = null,
+        private ?AnalysisResultStore $resultStore = null,
     ) {
     }
 
@@ -53,6 +57,25 @@ final readonly class DoctrineDoctorIssuesTool
             return $collector;
         }
 
+        $collector->resolvePendingAnalysis($this->resultStore);
+
+        if ($collector->isAnalysisPending()) {
+            $collector = $this->runPendingAnalysis($token ?? $this->getLatestToken(), $collector);
+
+            if ($collector->isAnalysisPending()) {
+                return [
+                    'analysis_pending' => true,
+                    'hint' => sprintf(
+                        'The queries of this request have not been analyzed yet. Open the request in the Symfony profiler, '
+                        . 'or run "bin/console doctrine:doctor:analyze-profile %s", then call this tool again.',
+                        $token ?? $this->getLatestToken(),
+                    ),
+                    'stats' => $collector->getStats(),
+                    'issues' => [],
+                ];
+            }
+        }
+
         return [
             'stats' => $collector->getStats(),
             'issues' => $this->sanitizer->sanitizeIssues(
@@ -63,6 +86,25 @@ final readonly class DoctrineDoctorIssuesTool
                 includeQueries: $includeQueries,
             ),
         ];
+    }
+
+    /**
+     * Analyze the profile in the application, then read the stored result.
+     */
+    private function runPendingAnalysis(?string $token, DoctrineDoctorDataCollector $collector): DoctrineDoctorDataCollector
+    {
+        if (null === $token || null === $this->pendingAnalysisRunner || !$this->pendingAnalysisRunner->run($token)) {
+            return $collector;
+        }
+
+        $collector->resolvePendingAnalysis($this->resultStore);
+
+        return $collector;
+    }
+
+    private function getLatestToken(): ?string
+    {
+        return $this->dataProvider->getLatestProfile()?->getToken();
     }
 
     /**

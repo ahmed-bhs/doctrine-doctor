@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Helper;
 
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlParserCache;
 use PhpMyAdmin\SqlParser\Components\Condition;
-use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 
 /**
@@ -313,7 +313,7 @@ class InjectionPatternDetector
         ];
 
         try {
-            $parser = new Parser($sql);
+            $parser = SqlParserCache::parse($sql);
 
             if (empty($parser->statements)) {
                 return $result;

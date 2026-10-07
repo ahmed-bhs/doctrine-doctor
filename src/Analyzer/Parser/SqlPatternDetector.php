@@ -12,8 +12,8 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Parser;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\Interface\PatternDetectorInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlParserCache;
 use PhpMyAdmin\SqlParser\Components\Condition;
-use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\DeleteStatement;
 use PhpMyAdmin\SqlParser\Statements\InsertStatement;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
@@ -34,7 +34,7 @@ final readonly class SqlPatternDetector implements PatternDetectorInterface
 
     public function detectNPlusOnePattern(string $sql): ?array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -116,7 +116,7 @@ final readonly class SqlPatternDetector implements PatternDetectorInterface
 
     public function detectLazyLoadingPattern(string $sql): ?string
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -155,7 +155,7 @@ final readonly class SqlPatternDetector implements PatternDetectorInterface
 
     public function detectUpdateQuery(string $sql): ?string
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof UpdateStatement) {
@@ -174,7 +174,7 @@ final readonly class SqlPatternDetector implements PatternDetectorInterface
 
     public function detectDeleteQuery(string $sql): ?string
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof DeleteStatement) {
@@ -193,7 +193,7 @@ final readonly class SqlPatternDetector implements PatternDetectorInterface
 
     public function detectInsertQuery(string $sql): ?string
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof InsertStatement) {
@@ -210,7 +210,7 @@ final readonly class SqlPatternDetector implements PatternDetectorInterface
 
     public function detectRepeatedLookupPattern(string $sql): ?array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -258,7 +258,7 @@ final readonly class SqlPatternDetector implements PatternDetectorInterface
 
     public function isSelectQuery(string $sql): bool
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         return $statement instanceof SelectStatement;
@@ -266,7 +266,7 @@ final readonly class SqlPatternDetector implements PatternDetectorInterface
 
     public function detectPartialCollectionLoad(string $sql): bool
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {

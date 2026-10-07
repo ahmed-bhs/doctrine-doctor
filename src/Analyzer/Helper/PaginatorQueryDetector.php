@@ -11,14 +11,14 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Helper;
 
-use PhpMyAdmin\SqlParser\Parser;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlParserCache;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 
 class PaginatorQueryDetector
 {
     public function hasOrderedPaginatorSubquery(string $sql): bool
     {
-        $statement = new Parser($sql)->statements[0] ?? null;
+        $statement = SqlParserCache::parse($sql)->statements[0] ?? null;
         if (!$statement instanceof SelectStatement || 1 !== count($statement->from) || !empty($statement->join)) {
             return false;
         }
@@ -35,7 +35,7 @@ class PaginatorQueryDetector
             return false;
         }
 
-        $inner = new Parser(substr($subquery, 1, -1))->statements[0] ?? null;
+        $inner = SqlParserCache::parse(substr($subquery, 1, -1))->statements[0] ?? null;
 
         return $inner instanceof SelectStatement && null !== $inner->order && [] !== $inner->order;
     }

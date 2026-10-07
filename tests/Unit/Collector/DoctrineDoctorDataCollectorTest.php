@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Collector;
 
+use AhmedBhs\DoctrineDoctor\Collector\AnalysisTiming;
 use AhmedBhs\DoctrineDoctor\Collector\DataCollectorHelpers;
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
@@ -365,7 +366,11 @@ final class DoctrineDoctorDataCollectorTest extends TestCase
             showDebugInfo: false,
             dataCollectorHelpers: $helpers,
             excludePaths: ['vendor/'],
-            deferAnalysisToLateCollect: $deferAnalysisToLateCollect,
+            analysisTiming: match ($deferAnalysisToLateCollect) {
+                true => AnalysisTiming::AfterResponse,
+                false => AnalysisTiming::Request,
+                null => null,
+            },
         );
     }
 }

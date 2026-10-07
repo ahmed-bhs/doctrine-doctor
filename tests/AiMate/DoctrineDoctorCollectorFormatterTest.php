@@ -14,11 +14,15 @@ namespace AhmedBhs\DoctrineDoctor\Tests\AiMate;
 use AhmedBhs\DoctrineDoctor\AiMate\DoctrineDoctorMcpSanitizer;
 use AhmedBhs\DoctrineDoctor\AiMate\Formatter\DoctrineDoctorCollectorFormatter;
 use AhmedBhs\DoctrineDoctor\AiMate\TraceSanitizer;
+use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
+use AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore;
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
+use AhmedBhs\DoctrineDoctor\Tests\Fixtures\AiMate\FixturePendingDoctrineDoctorCollector;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
 
 final class DoctrineDoctorCollectorFormatterTest extends TestCase
@@ -72,6 +76,57 @@ final class DoctrineDoctorCollectorFormatterTest extends TestCase
         // Deliberately outside the declared collector type: the profiler can hand any collector over.
         self::assertSame(['error' => 'Invalid doctrine_doctor collector'], $this->formatter->format($collector)); // @phpstan-ignore argument.type
         self::assertSame(['error' => 'Invalid doctrine_doctor collector'], $this->formatter->getSummary($collector)); // @phpstan-ignore argument.type
+    }
+
+    #[Test]
+    public function it_flags_a_profile_whose_analysis_is_still_pending(): void
+    {
+        $result = $this->formatter->format(new FixturePendingDoctrineDoctorCollector());
+
+        self::assertTrue($result['analysis_pending']);
+        self::assertStringContainsString('doctrine-doctor-issues', $result['hint']);
+        self::assertSame([], $result['issues']);
+    }
+
+    #[Test]
+    public function it_formats_a_deferred_analysis_once_its_result_is_stored(): void
+    {
+        $directory = sys_get_temp_dir() . '/dd-mate-formatter-' . uniqid('', true);
+        $store = new AnalysisResultStore($directory);
+        $store->save('0123456789abcdef', [
+            'issues' => IssueCollection::fromArray([new PerformanceIssue([
+                'type' => 'slow_query',
+                'title' => 'Slow query',
+                'description' => 'A slow query was detected.',
+                'severity' => 'critical',
+                'queries' => [],
+            ])])->toArrayOfArrays(),
+        ]);
+
+        $collector = new \ReflectionClass(DoctrineDoctorDataCollector::class)->newInstanceWithoutConstructor();
+        new \ReflectionProperty(DoctrineDoctorDataCollector::class, 'data')->setValue($collector, [
+            'enabled' => true,
+            'analysis_pending' => true,
+            'analysis_key' => '0123456789abcdef',
+        ]);
+
+        try {
+            $result = new DoctrineDoctorCollectorFormatter(new DoctrineDoctorMcpSanitizer(new TraceSanitizer('/app')), $store)
+                ->format($collector);
+        } finally {
+            new Filesystem()->remove($directory);
+        }
+
+        self::assertArrayNotHasKey('analysis_pending', $result);
+        self::assertSame('slow_query', $result['issues'][0]['type']);
+    }
+
+    #[Test]
+    public function it_flags_a_pending_analysis_in_the_summary(): void
+    {
+        $summary = $this->formatter->getSummary(new FixturePendingDoctrineDoctorCollector());
+
+        self::assertTrue($summary['analysis_pending']);
     }
 
     #[Test]

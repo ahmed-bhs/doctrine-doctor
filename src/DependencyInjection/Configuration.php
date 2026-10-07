@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\DependencyInjection;
 
+use AhmedBhs\DoctrineDoctor\Collector\AnalysisTiming;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -1114,6 +1115,11 @@ class Configuration implements ConfigurationInterface
                         ->booleanNode('show_debug_info')
                             ->defaultFalse()
                             ->info('Show debug information (for bundle maintainers and debugging purposes)')
+                        ->end()
+                        ->enumNode('analysis_timing')
+                            ->values(array_map(static fn (AnalysisTiming $timing): string => $timing->value, AnalysisTiming::cases()))
+                            ->defaultValue(AnalysisTiming::Auto->value)
+                            ->info('When runtime analysis runs: "auto" (after the response on php-fpm, when the profile is viewed elsewhere), "request" (blocks the request), "after_response" (lateCollect) or "on_view" (when opened in the toolbar/profiler)')
                         ->end()
                     ->end()
                 ->end()

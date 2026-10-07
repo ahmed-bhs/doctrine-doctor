@@ -12,8 +12,8 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Parser;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\Interface\AggregationAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlParserCache;
 use PhpMyAdmin\SqlParser\Components\Expression;
-use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 
 /**
@@ -26,7 +26,7 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
 {
     public function extractAggregationFunctions(string $sql): array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -50,7 +50,7 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
 
     public function extractGroupByColumns(string $sql): array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -76,7 +76,7 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
 
     public function extractOrderBy(string $sql): ?string
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -108,7 +108,7 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
 
     public function extractOrderByColumnNames(string $sql): array
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {
@@ -134,7 +134,7 @@ final class SqlAggregationAnalyzer implements AggregationAnalyzerInterface
 
     public function extractSelectClause(string $sql): ?string
     {
-        $parser = new Parser($sql);
+        $parser = SqlParserCache::parse($sql);
         $statement = $parser->statements[0] ?? null;
 
         if (!$statement instanceof SelectStatement) {

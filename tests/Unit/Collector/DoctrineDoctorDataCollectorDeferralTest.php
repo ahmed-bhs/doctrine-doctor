@@ -15,6 +15,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
+use AhmedBhs\DoctrineDoctor\Collector\AnalysisTiming;
 use AhmedBhs\DoctrineDoctor\Collector\DataCollectorHelpers;
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use Doctrine\Bundle\DoctrineBundle\DataCollector\DoctrineDataCollector;
@@ -187,7 +188,7 @@ final class DoctrineDoctorDataCollectorDeferralTest extends TestCase
             showDebugInfo: $showDebugInfo,
             dataCollectorHelpers: $helpers,
             excludePaths: ['vendor/'],
-            deferAnalysisToLateCollect: $deferAnalysisToLateCollect,
+            analysisTiming: $deferAnalysisToLateCollect ? AnalysisTiming::AfterResponse : AnalysisTiming::Request,
         );
     }
 }

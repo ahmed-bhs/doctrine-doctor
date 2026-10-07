@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Parser;
 
+use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlNormalizationCache;
+
 /**
  * Caching decorator for SqlStructureExtractor.
  *
@@ -140,6 +142,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$isSelectCache);
         self::$isSelectCache[$key] = parent::isSelectQuery($sql);
 
         return self::$isSelectCache[$key];
@@ -162,6 +165,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$nplusOnePatternCache);
         self::$nplusOnePatternCache[$key] = parent::detectNPlusOnePattern($sql);
 
         return self::$nplusOnePatternCache[$key];
@@ -182,6 +186,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$lazyLoadingCache);
         self::$lazyLoadingCache[$key] = parent::detectLazyLoadingPattern($sql);
 
         return self::$lazyLoadingCache[$key];
@@ -202,6 +207,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$partialCollectionCache);
         self::$partialCollectionCache[$key] = parent::detectPartialCollectionLoad($sql);
 
         return self::$partialCollectionCache[$key];
@@ -224,6 +230,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$nplusOneJoinCache);
         self::$nplusOneJoinCache[$key] = parent::detectNPlusOneFromJoin($sql);
 
         return self::$nplusOneJoinCache[$key];
@@ -244,6 +251,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$normalizeCache);
         self::$normalizeCache[$key] = parent::normalizeQuery($sql);
 
         return self::$normalizeCache[$key];
@@ -264,6 +272,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$hasSubqueryCache);
         self::$hasSubqueryCache[$key] = parent::hasSubquery($sql);
 
         return self::$hasSubqueryCache[$key];
@@ -284,6 +293,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$hasOrderByCache);
         self::$hasOrderByCache[$key] = parent::hasOrderBy($sql);
 
         return self::$hasOrderByCache[$key];
@@ -306,6 +316,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$orderByColumnsCache);
         self::$orderByColumnsCache[$key] = parent::extractOrderByColumnNames($sql);
 
         return self::$orderByColumnsCache[$key];
@@ -326,6 +337,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$hasGroupByCache);
         self::$hasGroupByCache[$key] = parent::hasGroupBy($sql);
 
         return self::$hasGroupByCache[$key];
@@ -348,6 +360,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$groupByColumnsCache);
         self::$groupByColumnsCache[$key] = parent::extractGroupByColumns($sql);
 
         return self::$groupByColumnsCache[$key];
@@ -368,6 +381,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$hasLeadingWildcardLikeCache);
         self::$hasLeadingWildcardLikeCache[$key] = parent::hasLeadingWildcardLike($sql);
 
         return self::$hasLeadingWildcardLikeCache[$key];
@@ -388,6 +402,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$hasDistinctCache);
         self::$hasDistinctCache[$key] = parent::hasDistinct($sql);
 
         return self::$hasDistinctCache[$key];
@@ -408,6 +423,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$hasJoinsCache);
         self::$hasJoinsCache[$key] = parent::hasJoins($sql);
 
         return self::$hasJoinsCache[$key];
@@ -428,6 +444,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$hasComplexWhereConditionsCache);
         self::$hasComplexWhereConditionsCache[$key] = parent::hasComplexWhereConditions($sql);
 
         return self::$hasComplexWhereConditionsCache[$key];
@@ -519,6 +536,7 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         }
 
         ++self::$misses;
+        self::evictOldest(self::$repeatedLookupCache);
         self::$repeatedLookupCache[$key] = parent::detectRepeatedLookupPattern($sql);
 
         return self::$repeatedLookupCache[$key];
@@ -547,5 +565,18 @@ class CachedSqlStructureExtractor extends SqlStructureExtractor
         self::$repeatedLookupCache = [];
         self::$hits = 0;
         self::$misses = 0;
+    }
+
+    /**
+     * FIFO eviction keeping the cache under MAX_ENTRIES_PER_CACHE: the cache is
+     * static, so it lives as long as the process (worker runtimes).
+     *
+     * @param array<string, mixed> $cache
+     */
+    private static function evictOldest(array &$cache): void
+    {
+        if (\count($cache) >= SqlNormalizationCache::MAX_ENTRIES_PER_CACHE) {
+            unset($cache[array_key_first($cache)]);
+        }
     }
 }

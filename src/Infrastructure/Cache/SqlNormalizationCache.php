@@ -41,6 +41,11 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 final class SqlNormalizationCache
 {
     /**
+     * Maximum entries per static cache (shared by CachedSqlStructureExtractor).
+     */
+    public const int MAX_ENTRIES_PER_CACHE = 2000;
+
+    /**
      * @var array<string, string> Cache of normalized queries [md5 => normalized]
      */
     private static array $cache = [];
@@ -109,6 +114,7 @@ final class SqlNormalizationCache
         }
 
         ++self::$misses;
+        self::evictOldest(self::$cache);
         self::$cache[$key] = self::getNormalizer()->normalizeQuery($sql);
 
         return self::$cache[$key];
@@ -128,6 +134,8 @@ final class SqlNormalizationCache
         }
 
         $upperSql = strtoupper($sql);
+
+        self::evictOldest(self::$analysisCache);
 
         self::$analysisCache[$key] = [
             'joins' => str_contains($upperSql, 'JOIN'),
@@ -155,6 +163,7 @@ final class SqlNormalizationCache
         }
 
         ++self::$misses;
+        self::evictOldest(self::$isSelectCache);
         self::$isSelectCache[$key] = self::getExtractor()->isSelectQuery($sql);
 
         return self::$isSelectCache[$key];
@@ -177,6 +186,7 @@ final class SqlNormalizationCache
         }
 
         ++self::$misses;
+        self::evictOldest(self::$nplusOnePatternCache);
         self::$nplusOnePatternCache[$key] = self::getExtractor()->detectNPlusOnePattern($sql);
 
         return self::$nplusOnePatternCache[$key];
@@ -197,6 +207,7 @@ final class SqlNormalizationCache
         }
 
         ++self::$misses;
+        self::evictOldest(self::$lazyLoadingCache);
         self::$lazyLoadingCache[$key] = self::getExtractor()->detectLazyLoadingPattern($sql);
 
         return self::$lazyLoadingCache[$key];
@@ -217,6 +228,7 @@ final class SqlNormalizationCache
         }
 
         ++self::$misses;
+        self::evictOldest(self::$partialCollectionCache);
         self::$partialCollectionCache[$key] = self::getExtractor()->detectPartialCollectionLoad($sql);
 
         return self::$partialCollectionCache[$key];
@@ -238,6 +250,7 @@ final class SqlNormalizationCache
         }
 
         ++self::$misses;
+        self::evictOldest(self::$nplusOneJoinCache);
         self::$nplusOneJoinCache[$key] = self::getExtractor()->detectNPlusOneFromJoin($sql);
 
         return self::$nplusOneJoinCache[$key];
@@ -360,5 +373,18 @@ final class SqlNormalizationCache
         $memory += count(self::$nplusOneJoinCache) * 128; // md5 + array
 
         return $memory;
+    }
+
+    /**
+     * FIFO eviction keeping the cache under MAX_ENTRIES_PER_CACHE: the cache is
+     * static, so it lives as long as the process (worker runtimes).
+     *
+     * @param array<string, mixed> $cache
+     */
+    private static function evictOldest(array &$cache): void
+    {
+        if (\count($cache) >= self::MAX_ENTRIES_PER_CACHE) {
+            unset($cache[array_key_first($cache)]);
+        }
     }
 }

@@ -300,6 +300,12 @@
         <button type="button" class="btn btn-sm" id="dd-export-button">Export JSON</button>
     </h2>
 
+    {% if collector.analysisPending %}
+        <div class="empty">
+            <p>The queries of this request have not been analyzed yet. Run <code>bin/console doctrine:doctor:analyze-profile {{ token }}</code> and reload this page.</p>
+        </div>
+    {% endif %}
+
     <script type="application/json" id="dd-export-payload">{{ collector.getExportJson|raw }}</script>
     <script>
         (function () {

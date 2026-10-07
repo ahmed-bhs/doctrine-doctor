@@ -24,6 +24,7 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Config\Definition\ArrayNode;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
+use Symfony\Component\DependencyInjection\Compiler\MergeExtensionConfigurationPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\Finder\Finder;
@@ -226,6 +227,34 @@ final class DoctrineDoctorExtensionTest extends TestCase
 
         self::assertFalse($container->hasParameter('doctrine_doctor.enabled'));
         self::assertFalse($container->hasDefinition(DoctrineDoctorDataCollector::class));
+    }
+
+    #[Test]
+    public function it_loads_services_and_defers_the_decision_to_runtime_when_enabled_is_an_env_var(): void
+    {
+        $container = new ContainerBuilder();
+        $container->registerExtension($this->extension);
+        $container->loadFromExtension('doctrine_doctor', ['enabled' => '%env(bool:DOCTRINE_DOCTOR_ENABLED)%']);
+
+        new MergeExtensionConfigurationPass()->process($container);
+
+        self::assertTrue($container->hasDefinition(DoctrineDoctorDataCollector::class));
+        self::assertSame(
+            '%env(bool:DOCTRINE_DOCTOR_ENABLED)%',
+            $container->resolveEnvPlaceholders(
+                $container->getDefinition(DoctrineDoctorDataCollector::class)->getArgument('$enabled'),
+                '%%env(%s)%%',
+            ),
+        );
+    }
+
+    #[Test]
+    public function the_collector_is_always_enabled_at_runtime_when_enabled_is_a_static_value(): void
+    {
+        $container = new ContainerBuilder();
+        $this->extension->load([['enabled' => true]], $container);
+
+        self::assertTrue($container->getDefinition(DoctrineDoctorDataCollector::class)->getArgument('$enabled'));
     }
 
     #[Test]
