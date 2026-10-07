@@ -20,13 +20,29 @@ namespace AhmedBhs\DoctrineDoctor\Collector;
  * never rewritten. Files are plain serialized arrays readable by any process,
  * including AI Mate, which reads the profiler directory without the application.
  */
-final readonly class AnalysisResultStore
+final class AnalysisResultStore
 {
     private const string KEY_PATTERN = '/^[a-f0-9]{16,64}$/';
 
+    /**
+     * Store used by collectors loaded from the profiler storage (they have no
+     * services). Set when the bundle boots.
+     */
+    private static ?self $default = null;
+
     public function __construct(
-        private string $directory,
+        private readonly string $directory,
     ) {
+    }
+
+    public static function useAsDefault(?self $store): void
+    {
+        self::$default = $store;
+    }
+
+    public static function default(): ?self
+    {
+        return self::$default;
     }
 
     /**
@@ -40,15 +56,19 @@ final readonly class AnalysisResultStore
             return;
         }
 
-        if (!is_dir($this->directory) && !@mkdir($this->directory, 0o777, true) && !is_dir($this->directory)) {
-            return;
-        }
+        // A result that cannot be written only leaves the profile pending
+        try {
+            if (!is_dir($this->directory)) {
+                mkdir($this->directory, 0o777, true);
+            }
 
-        // Write then rename, so a concurrent reader never sees a partial file
-        $tmp = $file . '.' . bin2hex(random_bytes(4)) . '.tmp';
+            // Write then rename, so a concurrent reader never sees a partial file
+            $tmp = $file . '.' . bin2hex(random_bytes(4)) . '.tmp';
 
-        if (false !== @file_put_contents($tmp, serialize($result))) {
-            @rename($tmp, $file);
+            if (false !== file_put_contents($tmp, serialize($result))) {
+                rename($tmp, $file);
+            }
+        } catch (\Throwable) {
         }
     }
 
@@ -63,8 +83,12 @@ final readonly class AnalysisResultStore
             return null;
         }
 
-        $contents = @file_get_contents($file);
-        $result = false !== $contents ? @unserialize($contents) : false;
+        try {
+            $contents = file_get_contents($file);
+            $result = false !== $contents ? unserialize($contents) : false;
+        } catch (\Throwable) {
+            return null;
+        }
 
         return \is_array($result) ? $result : null;
     }

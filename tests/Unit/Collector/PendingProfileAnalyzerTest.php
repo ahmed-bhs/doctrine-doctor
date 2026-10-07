@@ -50,12 +50,12 @@ final class PendingProfileAnalyzerTest extends TestCase
     {
         $this->storage = new FileProfilerStorage('file:' . sys_get_temp_dir() . '/dd-pending-' . uniqid('', true));
         $this->resultDirectory = sys_get_temp_dir() . '/dd-results-' . uniqid('', true);
-        DoctrineDoctorDataCollector::useResultStore(new AnalysisResultStore($this->resultDirectory));
+        AnalysisResultStore::useAsDefault(new AnalysisResultStore($this->resultDirectory));
     }
 
     protected function tearDown(): void
     {
-        DoctrineDoctorDataCollector::useResultStore(null);
+        AnalysisResultStore::useAsDefault(null);
         $this->storage->purge();
         new Filesystem()->remove($this->resultDirectory);
     }
@@ -97,7 +97,7 @@ final class PendingProfileAnalyzerTest extends TestCase
     public function the_profile_stays_pending_without_a_result_store(): void
     {
         $this->storePendingProfile('tok123');
-        DoctrineDoctorDataCollector::useResultStore(null);
+        AnalysisResultStore::useAsDefault(null);
 
         self::assertTrue($this->readCollector('tok123')->isAnalysisPending());
     }

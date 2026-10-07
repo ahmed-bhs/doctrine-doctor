@@ -139,16 +139,6 @@ final class OnViewAnalysisTest extends TestCase
     }
 
     #[Test]
-    public function an_explicit_timing_takes_precedence_over_the_legacy_deferral_flag(): void
-    {
-        $collector = $this->createDataCollector(AnalysisTiming::OnView, deferAnalysisToLateCollect: false);
-
-        $collector->collect(new Request(), new Response());
-
-        self::assertTrue($collector->isAnalysisPending());
-    }
-
-    #[Test]
     public function auto_timing_analyzes_during_the_request_on_the_cli(): void
     {
         self::assertSame(AnalysisTiming::Request, AnalysisTiming::fromEnvironment('cli', false));
@@ -206,7 +196,6 @@ final class OnViewAnalysisTest extends TestCase
     private function createDataCollector(
         AnalysisTiming $timing,
         iterable $analyzers = [],
-        ?bool $deferAnalysisToLateCollect = null,
         bool $enabled = true,
     ): DoctrineDoctorDataCollector {
         $logger = new NullLogger();
@@ -231,7 +220,6 @@ final class OnViewAnalysisTest extends TestCase
             showDebugInfo: false,
             dataCollectorHelpers: $helpers,
             excludePaths: ['vendor/'],
-            deferAnalysisToLateCollect: $deferAnalysisToLateCollect,
             analysisTiming: $timing,
             enabled: $enabled,
         );

@@ -65,12 +65,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
     private readonly AnalysisTiming $analysisTiming;
 
-    /**
-     * Where deferred analysis results are read from, for collectors loaded from
-     * the profiler storage (they have no services). Set when the bundle boots.
-     */
-    private static ?AnalysisResultStore $resultStore = null;
-
     public function __construct(
         /**
          * @var AnalyzerInterface[]
@@ -86,20 +80,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
          */
         private readonly array $excludePaths = ['vendor/'],
         /**
-         * Whether to defer analysis to lateCollect() (after the response is sent
-         * to the client) instead of running it in collect(). Defaults to whether
-         * fastcgi_finish_request() exists: present on classic php-fpm (deferring
-         * keeps analysis off the request's critical path), absent on persistent
-         * runtimes (FrankenPHP worker mode, RoadRunner, Swoole) where the
-         * EntityManager some analyzers depend on becomes invalid once the request
-         * ends, so analysis must still run in collect().
-         *
-         * @deprecated use $analysisTiming instead; kept for backward compatibility
-         */
-        ?bool $deferAnalysisToLateCollect = null,
-        /**
-         * When the runtime analysis runs. Takes precedence over $deferAnalysisToLateCollect.
-         * Defaults to AnalysisTiming::Auto (after the response on php-fpm, when the
+         * When the runtime analysis runs. Defaults to AnalysisTiming::Auto (after the response on php-fpm, when the
          * profile is viewed everywhere else).
          */
         ?AnalysisTiming $analysisTiming = null,
@@ -110,12 +91,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
          */
         private readonly bool $enabled = true,
     ) {
-        $this->analysisTiming = match (true) {
-            null !== $analysisTiming              => $analysisTiming->resolve(),
-            true === $deferAnalysisToLateCollect  => AnalysisTiming::AfterResponse,
-            false === $deferAnalysisToLateCollect => AnalysisTiming::Request,
-            default                               => AnalysisTiming::Auto->resolve(),
-        };
+        $this->analysisTiming = ($analysisTiming ?? AnalysisTiming::Auto)->resolve();
     }
 
     /**
@@ -178,11 +154,6 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         }
     }
 
-    public static function useResultStore(?AnalysisResultStore $resultStore): void
-    {
-        self::$resultStore = $resultStore;
-    }
-
     /**
      * Whether the queries of this (stored) profile still have to be analyzed.
      */
@@ -215,7 +186,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         }
 
         $key = $this->getAnalysisKey();
-        $result = null !== $key ? ($resultStore ?? self::$resultStore)?->load($key) : null;
+        $result = null !== $key ? ($resultStore ?? AnalysisResultStore::default())?->load($key) : null;
 
         if (null === $result) {
             return false;

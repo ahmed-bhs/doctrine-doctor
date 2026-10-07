@@ -14,7 +14,6 @@ namespace AhmedBhs\DoctrineDoctor;
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore;
-use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\AnalyzerExecutionModePass;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\ConditionalLoggerPass;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\RemoveOrmServicesPass;
@@ -57,14 +56,14 @@ class DoctrineDoctorBundle extends Bundle
         if ($this->container?->has(AnalysisResultStore::class)) {
             $resultStore = $this->container->get(AnalysisResultStore::class);
             \assert($resultStore instanceof AnalysisResultStore);
-            DoctrineDoctorDataCollector::useResultStore($resultStore);
+            AnalysisResultStore::useAsDefault($resultStore);
         }
     }
 
     #[\Override]
     public function shutdown(): void
     {
-        DoctrineDoctorDataCollector::useResultStore(null);
+        AnalysisResultStore::useAsDefault(null);
     }
 
     public function build(ContainerBuilder $container): void
