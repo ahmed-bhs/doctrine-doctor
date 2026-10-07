@@ -37,16 +37,16 @@ use Symfony\Contracts\Service\ResetInterface;
 /**
  * DataCollector for Doctrine Doctor.
  *
- * Runtime-dependent analysis timing:
- * On persistent PHP runtimes (FrankenPHP worker mode, RoadRunner, Swoole),
- * analysis runs in collect() because analyzers use EntityManager, which
- * becomes invalid after the request ends in these runtimes, and lateCollect()
- * would otherwise race the next request. Detected by the absence of
- * fastcgi_finish_request(), which those runtimes do not implement.
- *
+ * Runtime-dependent analysis timing (see AnalysisTiming):
  * On classic php-fpm, fastcgi_finish_request() flushes the response to the
  * client before kernel.terminate, so analysis is deferred to lateCollect()
  * to keep the (often EXPLAIN-heavy) analyzers off the request's critical path.
+ *
+ * Everywhere else (Apache mod_php, FrankenPHP worker mode, RoadRunner, Swoole)
+ * lateCollect() would still block the response, or race the next request once
+ * the EntityManager is invalid. There, collect() only stores the queries and
+ * the analysis runs when the profile is opened in the web debug toolbar or the
+ * profiler (PendingAnalysisSubscriber), or by doctrine-doctor:profile:analyze.
  */
 /**
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
@@ -63,7 +63,13 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
     private ?array $memoizedDebugData = null;
 
-    private readonly bool $deferAnalysisToLateCollect;
+    private readonly AnalysisTiming $analysisTiming;
+
+    /**
+     * Where deferred analysis results are read from, for collectors loaded from
+     * the profiler storage (they have no services). Set when the bundle boots.
+     */
+    private static ?AnalysisResultStore $resultStore = null;
 
     public function __construct(
         /**
@@ -87,10 +93,29 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
          * runtimes (FrankenPHP worker mode, RoadRunner, Swoole) where the
          * EntityManager some analyzers depend on becomes invalid once the request
          * ends, so analysis must still run in collect().
+         *
+         * @deprecated use $analysisTiming instead; kept for backward compatibility
          */
         ?bool $deferAnalysisToLateCollect = null,
+        /**
+         * When the runtime analysis runs. Takes precedence over $deferAnalysisToLateCollect.
+         * Defaults to AnalysisTiming::Auto (after the response on php-fpm, when the
+         * profile is viewed everywhere else).
+         */
+        ?AnalysisTiming $analysisTiming = null,
+        /**
+         * Runtime switch, resolved per request: `doctrine_doctor.enabled` may be an
+         * env var (e.g. %env(bool:DOCTRINE_DOCTOR_ENABLED)%), which can change
+         * without rebuilding the container.
+         */
+        private readonly bool $enabled = true,
     ) {
-        $this->deferAnalysisToLateCollect = $deferAnalysisToLateCollect ?? \function_exists('fastcgi_finish_request');
+        $this->analysisTiming = match (true) {
+            null !== $analysisTiming              => $analysisTiming->resolve(),
+            true === $deferAnalysisToLateCollect  => AnalysisTiming::AfterResponse,
+            false === $deferAnalysisToLateCollect => AnalysisTiming::Request,
+            default                               => AnalysisTiming::Auto->resolve(),
+        };
     }
 
     /**
@@ -113,6 +138,12 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             ],
         ];
 
+        if (!$this->enabled) {
+            $this->data['enabled'] = false;
+
+            return;
+        }
+
         if (!$this->doctrineDataCollector instanceof DoctrineDataCollector) {
             return;
         }
@@ -127,18 +158,119 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             }
         }
 
-        if (!$this->deferAnalysisToLateCollect) {
-            $this->collectDatabaseInfo();
-            $this->runAnalysis();
-        }
+        match ($this->analysisTiming) {
+            AnalysisTiming::Request => $this->analyze(),
+            AnalysisTiming::OnView  => $this->markAnalysisPending(),
+            default                 => null,
+        };
     }
 
     public function lateCollect(): void
     {
-        if ($this->deferAnalysisToLateCollect) {
-            $this->collectDatabaseInfo();
-            $this->runAnalysis();
+        // Instances unserialized from profiler storage have no services and no
+        // timing: they must never analyze (see completePendingAnalysis()).
+        if (!isset($this->analysisTiming) || AnalysisTiming::AfterResponse !== $this->analysisTiming) {
+            return;
         }
+
+        if ($this->data['enabled'] ?? false) {
+            $this->analyze();
+        }
+    }
+
+    public static function useResultStore(?AnalysisResultStore $resultStore): void
+    {
+        self::$resultStore = $resultStore;
+    }
+
+    /**
+     * Whether the queries of this (stored) profile still have to be analyzed.
+     */
+    public function isAnalysisPending(): bool
+    {
+        $this->resolvePendingAnalysis();
+
+        return true === ($this->data['analysis_pending'] ?? false);
+    }
+
+    /**
+     * Key of the deferred analysis result in the AnalysisResultStore.
+     */
+    public function getAnalysisKey(): ?string
+    {
+        $key = $this->data['analysis_key'] ?? null;
+
+        return \is_string($key) ? $key : null;
+    }
+
+    /**
+     * Load the result of a deferred analysis, if it has been stored.
+     *
+     * @return bool whether this collector now holds an analysis result
+     */
+    public function resolvePendingAnalysis(?AnalysisResultStore $resultStore = null): bool
+    {
+        if (true !== ($this->data['analysis_pending'] ?? false)) {
+            return false;
+        }
+
+        $key = $this->getAnalysisKey();
+        $result = null !== $key ? ($resultStore ?? self::$resultStore)?->load($key) : null;
+
+        if (null === $result) {
+            return false;
+        }
+
+        $this->data = array_merge(\is_array($this->data) ? $this->data : [], $result);
+        unset($this->data['analysis_pending']);
+        $this->clearState(keepData: true);
+
+        return true;
+    }
+
+    /**
+     * The part of the collected data produced by the analysis (what the
+     * AnalysisResultStore keeps for a deferred analysis).
+     *
+     * @return array<string, mixed>
+     */
+    public function getAnalysisResult(): array
+    {
+        if (!\is_array($this->data)) {
+            return [];
+        }
+
+        return array_diff_key($this->data, array_flip(['timeline_queries', 'analysis_pending', 'analysis_key', 'enabled', 'show_debug_info']));
+    }
+
+    /**
+     * Run the deferred analysis of a profile loaded from the profiler storage.
+     *
+     * Called on the live collector service (which holds the analyzers and the
+     * EntityManager) with the collector unserialized from the stored profile.
+     * The result is written into $profiled, which the caller then persists.
+     *
+     * @return bool whether an analysis was run
+     */
+    public function completePendingAnalysis(self $profiled): bool
+    {
+        if (!$profiled->isAnalysisPending()) {
+            return false;
+        }
+
+        $this->clearState();
+        $this->data = $profiled->data;
+        unset($this->data['analysis_pending']);
+
+        try {
+            $this->analyze();
+            $profiled->data = $this->data;
+            $profiled->clearState(keepData: true);
+        } finally {
+            $this->clearState();
+        }
+
+        return true;
     }
 
     public function getName(): string
@@ -166,11 +298,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
     {
         ServiceHolder::clearAll();
 
-        $this->data                 = [];
-        $this->memoizedIssues       = null;
-        $this->memoizedDatabaseInfo = null;
-        $this->memoizedStats        = null;
-        $this->memoizedDebugData    = null;
+        $this->clearState();
     }
 
     /**
@@ -181,6 +309,8 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function getIssues(): array
     {
+        $this->resolvePendingAnalysis();
+
         if (null !== $this->memoizedIssues) {
             return $this->memoizedIssues;
         }
@@ -243,6 +373,8 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function getStats(): array
     {
+        $this->resolvePendingAnalysis();
+
         if (null !== $this->memoizedStats) {
             return $this->memoizedStats;
         }
@@ -379,6 +511,8 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function getDebug(): array
     {
+        $this->resolvePendingAnalysis();
+
         if (!($this->data['show_debug_info'] ?? false)) {
             return [];
         }
@@ -403,6 +537,8 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function getDatabaseInfo(): array
     {
+        $this->resolvePendingAnalysis();
+
         if (null !== $this->memoizedDatabaseInfo) {
             return $this->memoizedDatabaseInfo;
         }
@@ -426,6 +562,8 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
      */
     public function getProfilerOverhead(): array
     {
+        $this->resolvePendingAnalysis();
+
         return $this->data['profiler_overhead'] ?? [
             'analysis_time_ms' => 0,
             'db_info_time_ms'  => 0,
@@ -638,6 +776,30 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
         $deduplicatedCollection = $deduplicatedCollection->sorting()->bySeverityDescending();
 
         return $deduplicatedCollection->toArrayOfArrays();
+    }
+
+    private function markAnalysisPending(): void
+    {
+        $this->data['analysis_pending'] = true;
+        $this->data['analysis_key'] = bin2hex(random_bytes(16));
+    }
+
+    private function analyze(): void
+    {
+        $this->collectDatabaseInfo();
+        $this->runAnalysis();
+    }
+
+    private function clearState(bool $keepData = false): void
+    {
+        if (!$keepData) {
+            $this->data = [];
+        }
+
+        $this->memoizedIssues       = null;
+        $this->memoizedDatabaseInfo = null;
+        $this->memoizedStats        = null;
+        $this->memoizedDebugData    = null;
     }
 
     private function collectDatabaseInfo(): void

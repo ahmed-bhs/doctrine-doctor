@@ -10,9 +10,11 @@
 declare(strict_types=1);
 
 use AhmedBhs\DoctrineDoctor\AiMate\Capability\DoctrineDoctorIssuesTool;
+use AhmedBhs\DoctrineDoctor\AiMate\ConsolePendingAnalysisRunner;
 use AhmedBhs\DoctrineDoctor\AiMate\DoctrineDoctorMcpSanitizer;
 use AhmedBhs\DoctrineDoctor\AiMate\Formatter\DoctrineDoctorCollectorFormatter;
 use AhmedBhs\DoctrineDoctor\AiMate\TraceSanitizer;
+use AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore;
 use Symfony\AI\Mate\Bridge\Symfony\Profiler\Service\ProfilerDataProvider;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
@@ -27,13 +29,22 @@ return static function (ContainerConfigurator $configurator): void {
     $services->set(DoctrineDoctorMcpSanitizer::class)
         ->args([service(TraceSanitizer::class)]);
 
+    // Deferred analysis results, stored by the application next to its profiler directory
+    $services->set(AnalysisResultStore::class)
+        ->args(['%ai_mate_symfony.profiler_dir%/../doctrine_doctor/analysis']);
+
     $services->set(DoctrineDoctorCollectorFormatter::class)
-        ->args([service(DoctrineDoctorMcpSanitizer::class)])
+        ->args([service(DoctrineDoctorMcpSanitizer::class), service(AnalysisResultStore::class)])
         ->tag('ai_mate.profiler_collector_formatter');
+
+    $services->set(ConsolePendingAnalysisRunner::class)
+        ->args([param('mate.root_dir')]);
 
     $services->set(DoctrineDoctorIssuesTool::class)
         ->args([
             service(ProfilerDataProvider::class),
             service(DoctrineDoctorMcpSanitizer::class),
+            service(ConsolePendingAnalysisRunner::class),
+            service(AnalysisResultStore::class),
         ]);
 };

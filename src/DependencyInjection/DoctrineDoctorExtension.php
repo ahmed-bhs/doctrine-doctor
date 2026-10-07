@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\DependencyInjection;
 
+use AhmedBhs\DoctrineDoctor\Collector\AnalysisTiming;
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -26,6 +27,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $configs = $this->resolveEnabledInConfigs(
             $container->getExtensionConfig($this->getAlias()),
             $container,
+            envPlaceholderAsEnabled: true,
         );
         $config  = $this->processConfiguration(new Configuration(), $configs);
 
@@ -66,6 +68,11 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         }
 
         $this->disableAnalyzers($container, $config);
+
+        $container->getDefinition(DoctrineDoctorDataCollector::class)
+            ->setArgument('$analysisTiming', AnalysisTiming::from($config['profiler']['analysis_timing']))
+            // A bool, or an env placeholder resolved per request (services stay registered)
+            ->setArgument('$enabled', $config['enabled']);
 
         if (isset($config['profiler']['show_in_toolbar']) && !$config['profiler']['show_in_toolbar']) {
             $container->getDefinition(DoctrineDoctorDataCollector::class)
@@ -214,10 +221,18 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
      *
      * @return array<array<string, mixed>>
      */
-    private function resolveEnabledInConfigs(array $configs, ContainerBuilder $container): array
+    private function resolveEnabledInConfigs(array $configs, ContainerBuilder $container, bool $envPlaceholderAsEnabled = false): array
     {
         foreach ($configs as $index => $config) {
             if (!\is_array($config) || !\array_key_exists('enabled', $config)) {
+                continue;
+            }
+
+            // prepend() runs before env placeholders are accepted by the config tree:
+            // a runtime switch may be on, so the bundle has to be prepared for it
+            if ($envPlaceholderAsEnabled && $this->isEnvPlaceholder($config['enabled'], $container)) {
+                $configs[$index]['enabled'] = true;
+
                 continue;
             }
 
@@ -234,5 +249,17 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         }
 
         return $configs;
+    }
+
+    private function isEnvPlaceholder(mixed $value, ContainerBuilder $container): bool
+    {
+        if (!\is_string($value)) {
+            return false;
+        }
+
+        // Format placeholders back to "%env(...)%" without reading the env var
+        $formatted = $container->resolveEnvPlaceholders($container->getParameterBag()->resolveValue($value), '%%env(%s)%%');
+
+        return \is_string($formatted) && str_contains($formatted, '%env(');
     }
 }

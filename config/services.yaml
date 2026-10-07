@@ -85,6 +85,28 @@ services:
             - { name: data_collector, id: doctrine_doctor, template: '@doctrine_doctor/profiler/doctrine_doctor.html.twig', priority: 249 }
             - { name: kernel.reset, method: reset }
 
+    # Deferred analysis (AnalysisTiming::OnView): run when a profile is opened,
+    # or on demand from the CLI (used by the AI Mate tools)
+    # Next to the profiler directory (%kernel.cache_dir%/profiler), where AI Mate looks too
+    AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore:
+        public: true
+        arguments:
+            $directory: '%kernel.cache_dir%/doctrine_doctor/analysis'
+
+    AhmedBhs\DoctrineDoctor\Collector\PendingProfileAnalyzer:
+        arguments:
+            $collector: '@AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector'
+            $profiler: '@?profiler'
+            $resultStore: '@AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore'
+
+    AhmedBhs\DoctrineDoctor\EventSubscriber\PendingAnalysisSubscriber:
+        tags:
+            - { name: kernel.event_subscriber }
+
+    AhmedBhs\DoctrineDoctor\Command\AnalyzeProfileCommand:
+        tags:
+            - { name: console.command }
+
     # CI command for analyzers that inspect source code or mappings rather
     # than the SQL executed by the current web request.
     AhmedBhs\DoctrineDoctor\Command\AnalyzeCommand:

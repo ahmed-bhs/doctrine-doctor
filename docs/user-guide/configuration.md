@@ -133,6 +133,14 @@ doctrine_doctor:
     enabled: false  # Disable in production
 ```
 
+**Runtime switch**: `enabled` also accepts an env var. The services stay registered and the value is read on every request, so it can be flipped without `cache:clear`:
+
+```yaml
+when@dev:
+    doctrine_doctor:
+        enabled: '%env(bool:DOCTRINE_DOCTOR_ENABLED)%'
+```
+
 ---
 
 ## 4. Analysis Configuration
@@ -187,7 +195,28 @@ doctrine_doctor:
 **Default**: `true`
 **Description**: Controls whether the "Doctrine Doctor" panel appears in the Symfony Profiler toolbar.
 
-### 5.2 Debug Information
+### 5.2 Analysis Timing
+
+```yaml
+doctrine_doctor:
+    profiler:
+        analysis_timing: auto
+```
+
+**Type**: `enum` (`auto`, `request`, `after_response`, `on_view`)
+**Default**: `auto`
+**Description**: When the runtime analysis of a profiled request runs.
+
+| Value | Behaviour |
+|-------|-----------|
+| `request` | In `collect()`, before the response is sent. Blocks the request. |
+| `after_response` | In `lateCollect()`. Only non-blocking on php-fpm, where `fastcgi_finish_request()` has already sent the response. |
+| `on_view` | The request only stores its queries. The analysis runs when the profile is opened in the web debug toolbar (loaded asynchronously after the page) or the profiler, or with `bin/console doctrine:doctor:analyze-profile <token>`. Never blocks the request. |
+| `auto` | `request` on the CLI (functional tests read the profile right away), `after_response` on php-fpm, `on_view` everywhere else (Apache mod_php, FrankenPHP worker mode, RoadRunner, Swoole). |
+
+Deferred results are stored in `%kernel.cache_dir%/doctrine_doctor/analysis`, next to the profiler directory; stored profiles are never rewritten. The AI Mate tools read them there and run `doctrine:doctor:analyze-profile` for profiles that were never opened.
+
+### 5.3 Debug Information
 
 ```yaml
 doctrine_doctor:
@@ -199,7 +228,7 @@ doctrine_doctor:
 **Default**: `false`
 **Description**: Displays internal debugging information (analyzer execution times, memory usage, service instances). **For development of Doctrine Doctor itself only.**
 
-### 5.3 Internal Debug Mode
+### 5.4 Internal Debug Mode
 
 ```yaml
 doctrine_doctor:
@@ -215,7 +244,7 @@ doctrine_doctor:
 - `debug.enabled`: Enables contributor-oriented debug behavior.
 - `debug.internal_logging`: Enables internal analyzer logs (can add noticeable overhead).
 
-### 5.4 Enabling Query Backtraces
+### 5.5 Enabling Query Backtraces
 
 To see code location backtraces in Doctrine Doctor issues, enable Doctrine DBAL's backtrace collection:
 

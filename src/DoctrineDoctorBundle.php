@@ -13,6 +13,8 @@ namespace AhmedBhs\DoctrineDoctor;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore;
+use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\AnalyzerExecutionModePass;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\ConditionalLoggerPass;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\RemoveOrmServicesPass;
@@ -30,8 +32,8 @@ use function dirname;
  * - Performance bottlenecks (N+1 queries, missing indexes, slow queries)
  * - Security vulnerabilities (DQL/SQL injection, sensitive data exposure)
  * - Best practice violations (cascade configs, type mismatches, naming conventions)
- * The bundle operates in the Web Profiler's late data collection phase, running
- * analysis after the HTTP response has been sent to avoid impacting request time.
+ * Analysis runs after the HTTP response has been sent (php-fpm), or when the
+ * profile is opened in the toolbar/profiler, to avoid impacting request time.
  * Key Features:
  * - 68 specialized analyzers across 5 categories
  * - Zero runtime overhead (analysis runs post-response)
@@ -45,6 +47,24 @@ class DoctrineDoctorBundle extends Bundle
     public function getPath(): string
     {
         return dirname(__DIR__);
+    }
+
+    #[\Override]
+    public function boot(): void
+    {
+        // Collectors loaded from the profiler storage have no services: give them
+        // access to the results of deferred analyses (AnalysisTiming::OnView)
+        if ($this->container?->has(AnalysisResultStore::class)) {
+            $resultStore = $this->container->get(AnalysisResultStore::class);
+            \assert($resultStore instanceof AnalysisResultStore);
+            DoctrineDoctorDataCollector::useResultStore($resultStore);
+        }
+    }
+
+    #[\Override]
+    public function shutdown(): void
+    {
+        DoctrineDoctorDataCollector::useResultStore(null);
     }
 
     public function build(ContainerBuilder $container): void

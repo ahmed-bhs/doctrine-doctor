@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\AiMate\Formatter;
 
 use AhmedBhs\DoctrineDoctor\AiMate\DoctrineDoctorMcpSanitizer;
+use AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore;
 use AhmedBhs\DoctrineDoctor\Collector\DoctrineDoctorDataCollector;
 use Symfony\AI\Mate\Bridge\Symfony\Profiler\Service\CollectorFormatterInterface;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
@@ -23,6 +24,7 @@ final readonly class DoctrineDoctorCollectorFormatter implements CollectorFormat
 {
     public function __construct(
         private DoctrineDoctorMcpSanitizer $sanitizer,
+        private ?AnalysisResultStore $resultStore = null,
     ) {
     }
 
@@ -38,6 +40,18 @@ final readonly class DoctrineDoctorCollectorFormatter implements CollectorFormat
     {
         if (!$collector instanceof DoctrineDoctorDataCollector) {
             return ['error' => 'Invalid doctrine_doctor collector'];
+        }
+
+        $collector->resolvePendingAnalysis($this->resultStore);
+
+        if ($collector->isAnalysisPending()) {
+            return [
+                'analysis_pending' => true,
+                'hint' => 'The queries of this request have not been analyzed yet. Call the doctrine-doctor-issues tool '
+                    . 'with this profile token: it runs the analysis in the application first.',
+                'stats' => $collector->getStats(),
+                'issues' => [],
+            ];
         }
 
         return [
@@ -59,6 +73,12 @@ final readonly class DoctrineDoctorCollectorFormatter implements CollectorFormat
     {
         if (!$collector instanceof DoctrineDoctorDataCollector) {
             return ['error' => 'Invalid doctrine_doctor collector'];
+        }
+
+        $collector->resolvePendingAnalysis($this->resultStore);
+
+        if ($collector->isAnalysisPending()) {
+            return ['analysis_pending' => true] + $collector->getStats();
         }
 
         return $collector->getStats();
