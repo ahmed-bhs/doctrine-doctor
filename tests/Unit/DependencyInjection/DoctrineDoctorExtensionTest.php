@@ -27,7 +27,7 @@ use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\HttpKernel\DependencyInjection\MergeExtensionConfigurationPass;
+use Symfony\Component\DependencyInjection\Compiler\MergeExtensionConfigurationPass;
 use Webmozart\Assert\Assert;
 
 /**

@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Recipe;
 
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Configuration;
+use AhmedBhs\DoctrineDoctor\DoctrineDoctorBundle;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Processor;
@@ -70,7 +71,7 @@ final class FlexRecipeTest extends TestCase
         /** @var array{bundles: array<string, list<string>>} $manifest */
         $manifest = json_decode((string) file_get_contents(self::ROOT . '/manifest.json'), true, flags: \JSON_THROW_ON_ERROR);
 
-        return $manifest['bundles']['AhmedBhs\DoctrineDoctor\DoctrineDoctorBundle'];
+        return $manifest['bundles'][DoctrineDoctorBundle::class];
     }
 
     /**
