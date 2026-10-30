@@ -676,14 +676,6 @@ final class ColumnTypeAnalyzerTest extends TestCase
     {
         $issues = iterator_to_array($this->analyzer->analyze(QueryDataCollection::empty()));
 
-        $fieldReferences = array_map(function ($issue) {
-            // Extract entity::field pattern from title
-            if (1 === preg_match('/(\w+)::\$(\w+)/', $issue->getTitle(), $matches)) {
-                return $matches[0]; // entity::$field
-            }
-            return $issue->getTitle();
-        }, $issues);
-
         // Each field should only appear once per issue type
         $titleGroups = [];
         foreach ($issues as $issue) {

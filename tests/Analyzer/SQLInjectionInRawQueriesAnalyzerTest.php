@@ -49,9 +49,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_detects_string_concatenation_vulnerability(): void
     {
-        // Arrange
-        $queries = QueryDataBuilder::create()->build();
-
         // Act
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -69,9 +66,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_detects_variable_interpolation_vulnerability(): void
     {
-        // Arrange
-        $queries = QueryDataBuilder::create()->build();
-
         // Act
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -92,9 +86,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_detects_missing_parameters_vulnerability(): void
     {
-        // Arrange
-        $queries = QueryDataBuilder::create()->build();
-
         // Act
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -111,9 +102,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_detects_sprintf_vulnerability(): void
     {
-        // Arrange
-        $queries = QueryDataBuilder::create()->build();
-
         // Act
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -130,8 +118,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     public function it_detects_vulnerabilities_in_entity_methods(): void
     {
         // Arrange: EntityWithVulnerableMethods has SQL injection in entity methods
-        $queries = QueryDataBuilder::create()->build();
-
         // Act
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -148,9 +134,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_does_not_flag_parameterized_queries(): void
     {
-        // Arrange
-        $queries = QueryDataBuilder::create()->build();
-
         // Act
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -167,9 +150,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_does_not_flag_query_builder(): void
     {
-        // Arrange
-        $queries = QueryDataBuilder::create()->build();
-
         // Act
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -186,9 +166,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_provides_parameterized_query_suggestion(): void
     {
-        // Arrange
-        $queries = QueryDataBuilder::create()->build();
-
         // Act
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -206,9 +183,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_includes_backtrace_information(): void
     {
-        // Arrange
-        $queries = QueryDataBuilder::create()->build();
-
         // Act
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -229,9 +203,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_checks_both_entities_and_repositories(): void
     {
-        // Arrange
-        $queries = QueryDataBuilder::create()->build();
-
         // Act
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -256,8 +227,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     public function it_detects_multiple_vulnerabilities_in_same_class(): void
     {
         // Arrange: VulnerableRepository has 4 vulnerable methods
-        $queries = QueryDataBuilder::create()->build();
-
         // Act
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -274,9 +243,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_explains_security_impact(): void
     {
-        // Arrange
-        $queries = QueryDataBuilder::create()->build();
-
         // Act
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
@@ -301,7 +267,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_has_correct_analyzer_metadata(): void
     {
-        $queries = QueryDataBuilder::create()->build();
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 
         self::assertIsObject($issues);
@@ -310,7 +275,6 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
     #[Test]
     public function it_handles_exceptions_gracefully(): void
     {
-        $queries = QueryDataBuilder::create()->build();
 
         $issues = $this->sourceAnalyzer->analyze(QueryDataCollection::empty());
 

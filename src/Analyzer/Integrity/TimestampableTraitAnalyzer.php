@@ -345,15 +345,9 @@ class TimestampableTraitAnalyzer implements MetadataAnalyzerInterface
     {
         // Check for KnpLabs trait usage
         $traits = $reflectionClass->getTraitNames();
-        foreach ($traits as $trait) {
-            if (str_contains($trait, 'TimestampableEntity') ||
-                str_contains($trait, 'Timestampable') ||
-                str_contains($trait, 'BlameableEntity')) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($traits, fn ($trait) => str_contains($trait, 'TimestampableEntity') ||
+            str_contains($trait, 'Timestampable') ||
+            str_contains($trait, 'BlameableEntity'));
     }
 
     /**

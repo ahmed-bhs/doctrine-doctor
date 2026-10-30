@@ -350,15 +350,6 @@ class ForeignKeyMappingAnalyzer implements MetadataAnalyzerInterface
      */
     private function createSuggestionInterface(string $entityClass, string $fieldName, ?string $targetEntity): SuggestionInterface
     {
-        $baseName = $fieldName;
-
-        foreach (self::FK_SUFFIXES as $suffix) {
-            if (str_ends_with($baseName, $suffix)) {
-                $baseName = substr($baseName, 0, -strlen($suffix));
-                break;
-            }
-        }
-
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Integrity/foreign_key_primitive',
             context: [

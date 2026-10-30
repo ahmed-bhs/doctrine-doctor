@@ -150,7 +150,7 @@ final class SetMaxResultsWithCollectionJoinAnalyzerIntegrationTest extends Datab
             ->getQuery();
 
         // Paginator executes 2 queries to properly handle collection joins
-        $paginator = new Paginator($query, $fetchJoinCollection = true);
+        $paginator = new Paginator($query, fetchJoinCollection: true);
 
         $posts = iterator_to_array($paginator);
 

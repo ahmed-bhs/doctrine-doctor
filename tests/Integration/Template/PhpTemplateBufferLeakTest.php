@@ -160,8 +160,6 @@ PHP;
 
         } catch (\Throwable $e) {
             // Check buffer was cleaned
-            $bufferLevelAfter = ob_get_level();
-
             $leaked = '';
             while (ob_get_level() > $bufferLevelBefore) {
                 $leaked .= ob_get_clean();

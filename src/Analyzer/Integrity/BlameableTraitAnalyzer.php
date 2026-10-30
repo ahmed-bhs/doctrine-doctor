@@ -404,15 +404,9 @@ class BlameableTraitAnalyzer implements MetadataAnalyzerInterface
 
         // Check for KnpLabs trait usage
         $traits = $reflectionClass->getTraitNames();
-        foreach ($traits as $trait) {
-            if (str_contains($trait, 'BlameableEntity') ||
-                str_contains($trait, 'Blameable') ||
-                str_contains($trait, 'Timestampable')) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($traits, fn ($trait) => str_contains($trait, 'BlameableEntity') ||
+            str_contains($trait, 'Blameable') ||
+            str_contains($trait, 'Timestampable'));
     }
 
     /**
