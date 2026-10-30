@@ -105,7 +105,7 @@ class DuplicatePrivateFieldInHierarchyAnalyzer implements MetadataAnalyzerInterf
 
         $issues = [];
 
-        $this->collectDuplicatesFromHierarchy($reflectionClass, $parentClass, $childPrivateFields, $entityClass, $issues);
+        $this->collectDuplicatesFromHierarchy($reflectionClass, $parentClass, $childPrivateFields, $issues);
 
         return $issues;
     }
@@ -118,7 +118,6 @@ class DuplicatePrivateFieldInHierarchyAnalyzer implements MetadataAnalyzerInterf
         \ReflectionClass $childClass,
         \ReflectionClass $parentClass,
         array $childPrivateFields,
-        string $entityClass,
         array &$issues,
     ): void {
         $current = $parentClass;
@@ -141,7 +140,6 @@ class DuplicatePrivateFieldInHierarchyAnalyzer implements MetadataAnalyzerInterf
                 $parentProperty = $parentPrivateFields[$fieldName];
 
                 $issues[] = $this->createIssue(
-                    $entityClass,
                     $fieldName,
                     $childClass->getName(),
                     $current->getName(),
@@ -215,14 +213,12 @@ class DuplicatePrivateFieldInHierarchyAnalyzer implements MetadataAnalyzerInterf
     }
 
     private function createIssue(
-        string $entityClass,
         string $fieldName,
         string $childClass,
         string $parentClass,
         \ReflectionProperty $childProperty,
         \ReflectionProperty $parentProperty,
     ): IssueInterface {
-        $shortEntity = $this->shortClassName($entityClass);
         $shortChild = $this->shortClassName($childClass);
         $shortParent = $this->shortClassName($parentClass);
 

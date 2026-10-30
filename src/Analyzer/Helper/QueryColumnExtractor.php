@@ -38,11 +38,11 @@ final readonly class QueryColumnExtractor
         $columns = [];
 
         // Extract columns from different parts of the query
-        $columns = array_merge($columns, $this->extractWhereColumns($sql, $targetTable));
-        $columns = array_merge($columns, $this->extractJoinColumns($sql, $targetTable));
+        $columns = array_merge($columns, $this->extractWhereColumns($sql));
+        $columns = array_merge($columns, $this->extractJoinColumns($sql));
 
         // ORDER BY columns are added at the beginning (better index candidates)
-        $orderByColumns = $this->extractOrderByColumns($sql, $targetTable);
+        $orderByColumns = $this->extractOrderByColumns($sql);
         $columns        = array_merge($orderByColumns, $columns);
 
         // Remove duplicates and limit to 3 columns
@@ -54,7 +54,7 @@ final readonly class QueryColumnExtractor
      * Uses SQL Parser instead of regex for robust extraction.
      * @return array<string>
      */
-    private function extractWhereColumns(string $sql, string $targetTable): array
+    private function extractWhereColumns(string $sql): array
     {
         $columns = $this->sqlExtractor->extractWhereColumns($sql);
 
@@ -69,7 +69,7 @@ final readonly class QueryColumnExtractor
      * Uses SQL Parser instead of regex for robust extraction.
      * @return array<string>
      */
-    private function extractJoinColumns(string $sql, string $targetTable): array
+    private function extractJoinColumns(string $sql): array
     {
         $columns = $this->sqlExtractor->extractJoinColumns($sql);
 
@@ -81,7 +81,7 @@ final readonly class QueryColumnExtractor
      * Uses SQL Parser instead of regex for robust extraction.
      * @return array<string>
      */
-    private function extractOrderByColumns(string $sql, string $targetTable): array
+    private function extractOrderByColumns(string $sql): array
     {
         $columns = $this->sqlExtractor->extractOrderByColumnNames($sql);
 

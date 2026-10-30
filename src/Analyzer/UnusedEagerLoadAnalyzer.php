@@ -112,7 +112,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
         // Pattern 1: Detect JOINs with unused aliases
         $unusedJoins = $this->detectUnusedJoinAliases($sql, $backtrace);
         if (\count($unusedJoins) > 0) {
-            $issues[] = $this->createUnusedJoinIssue($sql, $unusedJoins, $backtrace);
+            $issues[] = $this->createUnusedJoinIssue($unusedJoins, $backtrace);
         }
 
         // Pattern 2: Detect over-eager loading (too many JOINs)
@@ -251,7 +251,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
      * @param array<int, array{type: string, table: string, alias: ?string, expr: mixed}> $unusedJoins
      * @param array<int, array<string, mixed>>|null                          $backtrace
      */
-    private function createUnusedJoinIssue(string $sql, array $unusedJoins, ?array $backtrace): IssueData
+    private function createUnusedJoinIssue(array $unusedJoins, ?array $backtrace): IssueData
     {
         $joinCount = \count($unusedJoins);
         $tables = array_map(fn ($join) => $join['table'], $unusedJoins);

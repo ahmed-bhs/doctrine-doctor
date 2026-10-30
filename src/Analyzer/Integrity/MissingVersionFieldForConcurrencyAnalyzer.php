@@ -50,7 +50,7 @@ class MissingVersionFieldForConcurrencyAnalyzer implements AnalyzerInterface
                         continue;
                     }
 
-                    yield $this->createIssue($metadata->getName(), $tableName);
+                    yield $this->createIssue($metadata->getName());
                 }
             } catch (\Throwable) {
                 // Swallow exceptions to avoid breaking the profiler
@@ -161,7 +161,7 @@ class MissingVersionFieldForConcurrencyAnalyzer implements AnalyzerInterface
         return null;
     }
 
-    private function createIssue(string $entityClass, string $tableName): IntegrityIssue
+    private function createIssue(string $entityClass): IntegrityIssue
     {
         $shortClassName = $this->shortClassName($entityClass);
 
