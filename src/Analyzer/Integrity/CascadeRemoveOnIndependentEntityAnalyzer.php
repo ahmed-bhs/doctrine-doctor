@@ -251,7 +251,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
                 }
 
                 // Check if this ManyToOne is a composition relationship
-                if ($this->isCompositionRelationship($metadata, $association)) {
+                if ($this->isCompositionRelationship($association)) {
                     return true; // This entity is dependent on its parent
                 }
             }
@@ -271,7 +271,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
      * 2. Unique constraint with FK (e.g., user_id + provider = one token per provider per user)
      * 3. Inverse side has orphanRemoval=true
      */
-    private function isCompositionRelationship(ClassMetadata $metadata, array|object $association): bool
+    private function isCompositionRelationship(array|object $association): bool
     {
         // Indicator 1: Check if FK is NOT NULL
         $joinColumns = MappingHelper::getArray($association, 'joinColumns') ?? [];

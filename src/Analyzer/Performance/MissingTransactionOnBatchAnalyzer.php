@@ -35,7 +35,6 @@ readonly class MissingTransactionOnBatchAnalyzer implements AnalyzerInterface
     {
         return IssueCollection::fromGenerator(function () use ($queryDataCollection) {
             $inTransaction = false;
-            $batchedWrites = [];
             $unwrappedWrites = [];
 
             foreach ($queryDataCollection as $queryData) {
@@ -43,13 +42,11 @@ readonly class MissingTransactionOnBatchAnalyzer implements AnalyzerInterface
 
                 if ($this->isBegin($sql)) {
                     $inTransaction = true;
-                    $batchedWrites = [];
                     continue;
                 }
 
                 if ($this->isCommitOrRollback($sql)) {
                     $inTransaction = false;
-                    $batchedWrites = [];
                     continue;
                 }
 

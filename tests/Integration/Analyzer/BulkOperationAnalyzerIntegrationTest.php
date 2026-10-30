@@ -53,14 +53,12 @@ final class BulkOperationAnalyzerIntegrationTest extends DatabaseTestCase
     public function it_detects_many_individual_updates(): void
     {
         // Create products
-        $products = [];
         for ($i = 0; $i < 25; $i++) {
             $product = new Product();
             $product->setName('Product ' . $i);
             $product->setPrice(10.0);
             $product->setStock(100);
             $this->entityManager->persist($product);
-            $products[] = $product;
         }
 
         $this->entityManager->flush();

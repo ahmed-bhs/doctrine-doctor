@@ -143,7 +143,7 @@ class StrictModeAnalyzer implements DatabaseAuditAnalyzerInterface
             // Check for strict mode (SQLite 3.37+)
             // Note: This will fail on older SQLite versions, which is fine
             try {
-                $result = $this->connection->executeQuery('PRAGMA strict=ON');
+                $this->connection->executeQuery('PRAGMA strict=ON');
             } catch (\Throwable) {
                 // SQLite < 3.37 doesn't support STRICT tables, ignore
             }

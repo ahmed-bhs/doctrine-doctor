@@ -70,7 +70,7 @@ final class PartialObjectAnalyzerIntegrationTest extends DatabaseTestCase
                 ->getResult();
 
             if (!empty($products)) {
-                $name = $products[0]->getName(); // Only using name!
+                $products[0]->getName(); // Only using name!
             }
         }
 
@@ -109,7 +109,7 @@ final class PartialObjectAnalyzerIntegrationTest extends DatabaseTestCase
 
             // Only using one field
             foreach ($products as $product) {
-                $name = $product->getName();
+                $product->getName();
             }
         }
 
@@ -123,7 +123,7 @@ final class PartialObjectAnalyzerIntegrationTest extends DatabaseTestCase
 
         for ($i = 0; $i < 6; $i++) {
             // GOOD: Load only needed fields
-            $names = $this->entityManager->createQueryBuilder()
+            $this->entityManager->createQueryBuilder()
                 ->select('PARTIAL p.{id, name}')
                 ->from(Product::class, 'p')
                 ->getQuery()

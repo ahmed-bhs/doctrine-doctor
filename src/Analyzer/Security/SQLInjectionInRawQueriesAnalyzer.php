@@ -308,7 +308,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             return [];
         }
 
-        return $this->detectAllInjectionPatterns($source, $className, $reflectionMethod);
+        return $this->detectAllInjectionPatterns($className, $reflectionMethod);
     }
 
     /**
@@ -316,7 +316,6 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
      * @return array<SecurityIssue>
      */
     private function detectAllInjectionPatterns(
-        string $source,
         string $className,
         \ReflectionMethod $reflectionMethod,
     ): array {

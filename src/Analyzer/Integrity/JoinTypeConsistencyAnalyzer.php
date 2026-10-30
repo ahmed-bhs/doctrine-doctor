@@ -110,7 +110,6 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                                 $tableName,
                                 $alias,
                                 $fieldName, // Field name extracted from IS NOT NULL condition
-                                $sql,
                                 $query,
                             );
                         }
@@ -213,7 +212,6 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         string $tableName,
         string $alias,
         string $field,
-        string $sql,
         array|object $query,
     ): IntegrityIssue {
         $backtrace = $this->extractBacktrace($query);
@@ -230,7 +228,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                 $field,
             ),
             severity: Severity::info(),
-            suggestion: $this->createLeftJoinWithNotNullSuggestion($tableName, $alias, $field, $sql),
+            suggestion: $this->createLeftJoinWithNotNullSuggestion($tableName, $field),
             queries: [],
             backtrace: $backtrace,
         );
@@ -299,9 +297,7 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      */
     private function createLeftJoinWithNotNullSuggestion(
         string $tableName,
-        string $alias,
         string $field,
-        string $sql,
     ): mixed {
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Performance/left_join_with_not_null',

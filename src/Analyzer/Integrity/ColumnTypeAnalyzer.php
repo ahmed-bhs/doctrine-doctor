@@ -254,7 +254,7 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
                         ? sprintf('Vendor entity - consider creating local override or opening vendor issue')
                         : sprintf('Replace "%s" type with "%s"', $type, $typeInfo['replacement']),
                     'code' => $isVendor
-                        ? $this->generateVendorOverrideCode($entityClass, $fieldName, $type, $typeInfo['replacement'])
+                        ? $this->generateVendorOverrideCode($entityClass, $fieldName, $typeInfo['replacement'])
                         : $this->generateTypeReplacementCode($entityClass, $fieldName, $type),
                     'file_path' => $entityClass,
                 ],
@@ -713,7 +713,6 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
     private function generateVendorOverrideCode(
         string $vendorEntityClass,
         string $fieldName,
-        string $oldType,
         string $newType,
     ): string {
         $vendorShortName = $this->shortClassName($vendorEntityClass);
