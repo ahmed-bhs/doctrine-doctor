@@ -120,6 +120,24 @@ final class AnalyzeCommandReportTest extends TestCase
         self::assertMatchesRegularExpression('/💡 Details: --show-suggestion=[a-f0-9]{10}/', $display);
     }
 
+    #[Test]
+    public function it_shows_the_requested_suggestion_alone_even_when_the_finding_is_in_the_baseline(): void
+    {
+        $tester = $this->tester('A description.');
+        $tester->execute(['--fail-on' => 'never']);
+        self::assertSame(1, preg_match('/--show-suggestion=([a-f0-9]{10})/', $tester->getDisplay(), $matches));
+        $id = $matches[1];
+
+        $baseline = (string) tempnam(sys_get_temp_dir(), 'dd-baseline');
+        $tester->execute(['--generate-baseline' => $baseline]);
+        $tester->execute(['--baseline' => $baseline, '--show-suggestion' => $id]);
+        unlink($baseline);
+
+        self::assertStringContainsString('Suggestion for ' . $id, $tester->getDisplay());
+        self::assertStringNotContainsString('Findings', $tester->getDisplay());
+        self::assertSame(0, $tester->getStatusCode());
+    }
+
     private function tester(string $description): CommandTester
     {
         $analyzer = new readonly class($description) implements StaticAnalyzerInterface {

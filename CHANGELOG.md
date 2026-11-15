@@ -80,6 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `--show-suggestion=ID` printed the whole report before the requested suggestion, and could not find an ID kept in
+  the baseline when `--baseline` was given. It now prints the suggestion alone, whatever the baseline.
 - `ForeignKeyMapping` missed an id stored as an integer when the field names a role before the entity
   (`defaultProductId`, `mainCustomerId`): it now also matches the entity that ends the field name.
 - A foreign key column without the `_id` suffix (`tree_root`, `country_code`) was reported as critical. It is a naming

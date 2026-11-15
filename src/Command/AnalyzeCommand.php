@@ -98,6 +98,11 @@ class AnalyzeCommand extends Command
             return self::SUCCESS;
         }
 
+        // The suggestion alone, like PHPStan: no report to scroll past, and an ID kept in the baseline still works.
+        if (null !== $input->getOption('show-suggestion')) {
+            return $this->renderSuggestion($io, $findings, (string) $input->getOption('show-suggestion')) ? self::SUCCESS : self::INVALID;
+        }
+
         $ignored = 0;
         $unmatched = 0;
         $baselineFile = $input->getOption('baseline');
@@ -119,10 +124,6 @@ class AnalyzeCommand extends Command
             'github' => $this->renderGithub($output, $findings),
             default => $this->renderTable($io, $output, $analysis, $findings, $ignored, $unmatched),
         };
-
-        if (null !== $input->getOption('show-suggestion')) {
-            $this->renderSuggestion($io, $findings, (string) $input->getOption('show-suggestion'));
-        }
 
         if ([] !== $analyzerErrors) {
             $io->error(array_merge(['One or more analyzers failed:'], $analyzerErrors));
@@ -303,14 +304,14 @@ class AnalyzeCommand extends Command
     /**
      * @param list<array<string, mixed>> $findings
      */
-    private function renderSuggestion(SymfonyStyle $io, array $findings, string $requestedId): void
+    private function renderSuggestion(SymfonyStyle $io, array $findings, string $requestedId): bool
     {
         $matches = array_values(array_filter($findings, static fn (array $finding): bool => $requestedId === $finding['id']));
 
         if ([] === $matches) {
-            $io->error(sprintf('Unknown issue ID "%s". Available IDs: %s', $requestedId, implode(', ', array_column($findings, 'id'))));
+            $io->error(sprintf('Unknown finding ID "%s". Run the command without --show-suggestion to list the findings and their IDs.', $requestedId));
 
-            return;
+            return false;
         }
 
         foreach (array_column($matches, 'issue') as $issue) {
@@ -327,6 +328,8 @@ class AnalyzeCommand extends Command
             $io->text('<fg=cyan;options=bold>Suggested fix</>');
             $io->text($this->formatSuggestionCode($suggestion->getCode()));
         }
+
+        return true;
     }
 
     private function formatSuggestionCode(string $code): string
