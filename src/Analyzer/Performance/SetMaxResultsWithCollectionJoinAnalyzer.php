@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -113,94 +114,126 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
     }
 
     /**
-     * Detect if query has LIMIT with a fetch-joined collection.
-     * Heuristics:
-     * 1. Query must have LIMIT clause
-     * 2. Query must have JOIN (LEFT JOIN or INNER JOIN)
-     * 3. Query must SELECT columns from joined table (fetch join)
-     * 4. JOIN must not have constraints that guarantee single row per entity
-     *    (e.g., locale filters, unique constraints)
+     * LIMIT with a fetch join that can return several rows per root entity.
+     *
+     * Each fetch-joined table (one whose columns are selected) is checked on its own: the warning is silenced
+     * only when every one of them yields at most one row per root entity. A grouped query returns one row per
+     * group, so its LIMIT counts groups and is left alone.
      */
     private function hasLimitWithFetchJoin(string $sql): bool
     {
-        // Must have LIMIT - use SQL parser
-        if (!$this->sqlExtractor->hasLimit($sql)) {
+        if (!$this->sqlExtractor->hasLimit($sql) || !$this->sqlExtractor->hasJoin($sql) || $this->sqlExtractor->hasGroupBy($sql)) {
             return false;
         }
 
-        // Must have JOIN
-        if (!$this->sqlExtractor->hasJoin($sql)) {
-            return false;
-        }
-
-        // Check if it's a fetch join (selecting from joined table)
-        // Pattern: SELECT t0.col1, t1.col2 ... FROM table1 t0 JOIN table2 t1
-        // If we select from both t0 and t1, it's a fetch join
-
-        // Extract table aliases from SELECT using SQL parser
-        $uniqueAliases = $this->sqlExtractor->extractTableAliasesFromSelect($sql);
-
-        if ([] === $uniqueAliases) {
-            return false;
-        }
-
-        // If selecting from multiple table aliases, it's likely a fetch join
-        // (selecting both parent entity and joined collection)
-        if (count($uniqueAliases) < 2) {
-            return false;
-        }
-
-        // Check for safe patterns that indicate single-row joins
-        // These patterns prevent false positives for translation tables, etc.
-        if ($this->hasSingleRowJoinConstraint($sql)) {
-            return false;
-        }
-
-        // Metadata-aware confirmation. Only a true to-many fetch-join
-        // (OneToMany / ManyToMany) multiplies rows and makes LIMIT unsafe.
-        // A to-one fetch-join (ManyToOne / OneToOne) yields one row per root
-        // entity, so LIMIT is correct. The regex above cannot tell them apart.
-        // We suppress ONLY when every fetch-joined table is positively confirmed
-        // to-one by the mapping metadata (ground truth, order-independent). Any
-        // join we cannot resolve (unmapped table, parse failure, to-many) keeps
-        // the heuristic result, so we never silence a real data-loss warning.
-        if ($this->allFetchJoinsAreConfirmedToOne($sql)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private function allFetchJoinsAreConfirmedToOne(string $sql): bool
-    {
-        $metadataMap = $this->collectionJoinDetector->buildMetadataMap();
-        $fromTable   = $this->collectionJoinDetector->extractFromTable($sql, $metadataMap);
-
-        if (null === $fromTable) {
-            return false;
-        }
-
-        $fromMetadata = $metadataMap[$fromTable] ?? null;
-
-        if (null === $fromMetadata) {
+        // The SELECT extractor strips the trailing underscore of Doctrine aliases ("t1" for "t1_").
+        $normalize = static fn (string $alias): string => rtrim(strtolower($alias), '_');
+        $selectedAliases = array_values(array_unique(array_map($normalize, $this->sqlExtractor->extractTableAliasesFromSelect($sql))));
+        if (count($selectedAliases) < 2) {
             return false;
         }
 
         $joins = $this->sqlExtractor->extractJoins($sql);
+        $fetchJoins = array_filter($joins, static fn (array $join): bool => \is_string($join['alias']) && \in_array($normalize($join['alias']), $selectedAliases, true));
 
-        if ([] === $joins) {
-            return false;
+        // Besides the root, a selected alias that no readable join explains: keep the warning, it is about data loss.
+        $explained = array_map(static fn (array $join): string => $normalize((string) $join['alias']), $fetchJoins);
+        if (count(array_diff($selectedAliases, $explained)) > 1) {
+            return true;
+        }
+        return array_any($fetchJoins, fn ($join) => !$this->isSingleRowJoin($sql, $join));
+    }
+
+    /**
+     * @param array{type: string, table: mixed, alias: mixed, expr: mixed} $join
+     */
+    private function isSingleRowJoin(string $sql, array $join): bool
+    {
+        $table = \is_string($join['table']) ? $join['table'] : '';
+        $alias = \is_string($join['alias']) ? $join['alias'] : '';
+        $condition = $this->joinCondition($join['expr']);
+
+        // Translation tables: one row per locale.
+        if (1 === preg_match('/\blocale\b\s*(?:=|IN\b)/i', $condition)) {
+            return true;
         }
 
-        foreach ($joins as $join) {
-            $joinTable = $join['table'];
+        if ($this->isConfirmedToOneFromRoot($sql, $table)) {
+            return true;
+        }
 
-            if (!is_string($joinTable) || !$this->isConfirmedToOneJoin($fromMetadata, $joinTable)) {
-                return false;
+        $metadata = $this->collectionJoinDetector->buildMetadataMap()[$table] ?? null;
+        if ($metadata instanceof ClassMetadata) {
+            return $this->conditionCoversUniqueKey($metadata, $alias, $condition);
+        }
+
+        // Unmapped table: an extra equality or range on the joined row usually selects one row.
+        return 1 === preg_match('/\bAND\b\s+\(?\s*' . preg_quote($alias, '/') . '\.\w+\s*(?:=|<=?|>=?)\s*\?/i', $condition);
+    }
+
+    private function isConfirmedToOneFromRoot(string $sql, string $joinTable): bool
+    {
+        $metadataMap = $this->collectionJoinDetector->buildMetadataMap();
+        $fromTable = $this->collectionJoinDetector->extractFromTable($sql, $metadataMap);
+        $fromMetadata = null !== $fromTable ? ($metadataMap[$fromTable] ?? null) : null;
+
+        return $fromMetadata instanceof ClassMetadata && $this->isConfirmedToOneJoin($fromMetadata, $joinTable);
+    }
+
+    /**
+     * The columns of the joined table compared in the ON clause cover its primary key or a unique constraint.
+     *
+     * @param ClassMetadata<object> $metadata
+     */
+    private function conditionCoversUniqueKey(ClassMetadata $metadata, string $alias, string $condition): bool
+    {
+        preg_match_all('/\b' . preg_quote($alias, '/') . '\.(\w+)\s*=/i', $condition, $left);
+        preg_match_all('/=\s*' . preg_quote($alias, '/') . '\.(\w+)\b/i', $condition, $right);
+        $columns = array_map(strtolower(...), array_merge($left[1], $right[1]));
+
+        $keys = [array_map($metadata->getColumnName(...), $metadata->getIdentifierFieldNames())];
+        foreach ($metadata->table['uniqueConstraints'] ?? [] as $constraint) {
+            $keys[] = $this->constraintColumns($constraint);
+        }
+        foreach ($metadata->fieldMappings as $mapping) {
+            if (true === MappingHelper::getBool($mapping, 'unique')) {
+                $keys[] = [(string) MappingHelper::getString($mapping, 'columnName')];
             }
         }
 
-        return true;
+        foreach ($keys as $key) {
+            $key = array_map(static fn (mixed $column): string => strtolower((string) $column), $key);
+            if ([] !== $key && [] === array_diff($key, $columns)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Unique constraint columns: an array up to ORM 3.7, an IndexMapping object from ORM 3.8.
+     *
+     * @return list<string>
+     */
+    private function constraintColumns(mixed $constraint): array
+    {
+        $columns = match (true) {
+            \is_array($constraint) => $constraint['columns'] ?? [],
+            \is_object($constraint) && property_exists($constraint, 'columns') => $constraint->columns ?? [],
+            default => [],
+        };
+
+        return \is_array($columns) ? array_values(array_map(static fn (mixed $column): string => \is_scalar($column) ? (string) $column : '', $columns)) : [];
+    }
+
+    private function joinCondition(mixed $expr): string
+    {
+        if (!\is_object($expr) || !property_exists($expr, 'on') || !\is_array($expr->on)) {
+            return '';
+        }
+
+        return implode(' AND ', array_map(static fn (mixed $condition): string => \is_scalar($condition) || $condition instanceof \Stringable ? (string) $condition : '', $expr->on));
     }
 
     private function isConfirmedToOneJoin(ClassMetadata $fromMetadata, string $joinTable): bool
@@ -227,37 +260,6 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
         }
 
         return false;
-    }
-
-    /**
-     * Detect if JOIN has constraints that guarantee at most one row per parent entity.
-     * Common patterns:
-     * - Translation tables with locale filter: AND (t1_.locale = ?)
-     * - Unique constraints on joined table
-     * - Primary key equality in JOIN condition
-     *
-     * These patterns are safe with LIMIT because they don't create row multiplication.
-     */
-    private function hasSingleRowJoinConstraint(string $sql): bool
-    {
-        if ($this->sqlExtractor->hasLocaleConstraintInJoin($sql)) {
-            return true;
-        }
-
-        if ($this->sqlExtractor->hasUniqueJoinConstraint($sql)) {
-            return true;
-        }
-
-        if ($this->hasEqualityConstraintInJoinCondition($sql)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private function hasEqualityConstraintInJoinCondition(string $sql): bool
-    {
-        return 1 === preg_match('/\bJOIN\b[^)]*\bON\b[^)]*\bAND\b\s+\w+\.\w+\s*(?:=|<=?|>=?)\s*\?/i', $sql);
     }
 
     private function createIssue(QueryData $queryData): IssueInterface

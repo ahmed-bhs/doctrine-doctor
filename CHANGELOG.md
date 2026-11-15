@@ -60,6 +60,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `SetMaxResultsWithCollectionJoin` stayed silent on the most common case: a translation joined on `locale` (or any
+  join with an extra `AND x.y = ?`) silenced the warning for every other join of the query. Each fetch-joined table
+  is now checked on its own; a filtered join counts as one row only when its columns cover the primary key or a
+  unique constraint of a mapped table. A grouped query (`GROUP BY`) is no longer reported: its LIMIT counts groups.
+- A LIMIT on a fetch-joined collection is no longer merged into a performance finding on the same query: it returns
+  wrong results and is always reported on its own.
 - `EntityManagerInService` said a class "only uses" the EntityManager to reach repositories even when it also built
   queries with it. The message now lists the methods actually called on the EntityManager.
 - A finding that gives an explicit file and line (such as `CollectionFilteredInPhp`) could be located at the start of
