@@ -107,6 +107,8 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 | EagerLoadingAnalyzer | JOIN count | Query optimization | `join_threshold: 4` |
 | LazyLoadingAnalyzer | Proxy initialization | Query reduction | `threshold: 10` |
 | DTOHydrationAnalyzer | Hydration mode | Memory + performance | — |
+| CollectionCountedInPhpAnalyzer | Source scan of `analysis.source_dirs` | Collection loaded to be counted | `EXTRA_LAZY` or `COUNT()` |
+| AggregateInPhpAnalyzer | Source scan of `analysis.source_dirs` | Sum computed in PHP over loaded entities | `SUM()` in DQL |
 | CollectionFilteredInPhpAnalyzer | Source scan of `analysis.source_dirs` | Whole collection loaded to keep some elements; `matching()` filters in SQL | `methods: [filter]` |
 | BulkOperationAnalyzer | Entity count | 100-1000x | `threshold: 20` |
 | BulkInsertAnalyzer | Single-row INSERTs into one table | Multi-row INSERT through DBAL; names the callbacks, listeners and generated ids it bypasses | `threshold: 100` |

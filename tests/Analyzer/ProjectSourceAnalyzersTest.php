@@ -109,6 +109,25 @@ final class ProjectSourceAnalyzersTest extends TestCase
         self::assertSame(24, $location->line);
     }
 
+    #[Test]
+    public function it_flags_a_collection_counted_by_loading_it(): void
+    {
+        $issues = $this->issues(new \AhmedBhs\DoctrineDoctor\Analyzer\Performance\CollectionCountedInPhpAnalyzer($this->entityManager(), new ProjectSourceScanner(self::PROJECT, ['App']), PlatformAnalyzerTestHelper::createSuggestionFactory(), PlatformAnalyzerTestHelper::createIssueFactory()));
+
+        self::assertSame(['Collection Counted in PHP: CustomerReport::addressesPerCustomer()', 'Collection Counted in PHP: ShippingService::addressCount()'], $this->titles($issues));
+        self::assertStringContainsString('Customer::$addresses', strip_tags($issues[0]->getDescription()));
+    }
+
+    #[Test]
+    public function it_flags_a_sum_computed_in_php_over_loaded_entities(): void
+    {
+        $issues = $this->issues(new \AhmedBhs\DoctrineDoctor\Analyzer\Performance\AggregateInPhpAnalyzer(new ProjectSourceScanner(self::PROJECT, ['App']), PlatformAnalyzerTestHelper::createSuggestionFactory(), PlatformAnalyzerTestHelper::createIssueFactory()));
+
+        self::assertSame(['Aggregate Computed in PHP: CustomerReport::totalSpent()'], $this->titles($issues));
+        self::assertStringContainsString('getSpent()', strip_tags($issues[0]->getDescription()));
+        self::assertSame(42, $issues[0]->getData()['line']);
+    }
+
     private function entityManager(): \Doctrine\ORM\EntityManagerInterface
     {
         return PlatformAnalyzerTestHelper::createTestEntityManager([self::PROJECT . '/App/Entity']);

@@ -12,7 +12,7 @@ This reference lists each built-in analyzer and the place where it runs. It is m
 | Execution path | Count | Contract |
 |---------------|------:|----------|
 | Runtime profiler | 41 | `AnalyzerInterface` without a static marker |
-| Code and mapping checks | 56 | `StaticAnalyzerInterface` (including `MetadataAnalyzerInterface`) |
+| Code and mapping checks | 58 | `StaticAnalyzerInterface` (including `MetadataAnalyzerInterface`) |
 | Optional database audits | 9 | `DatabaseAuditAnalyzerInterface` |
 
 The bundle keeps `doctrine_doctor.analyzer` as the service registration tag. During container compilation, services marked static are sent to the CI command; other analyzer services are sent to the profiler. Database audits also implement the static contract, and the command skips them unless `--with-database` is set.
@@ -65,10 +65,11 @@ These checks need SQL or other context captured while a request runs.
 - `UnusedEagerLoadAnalyzer`
 - `YearFunctionOptimizationAnalyzer`
 
-## Code and mapping checks (56)
+## Code and mapping checks (58)
 
 These checks can run without SQL from the current web request.
 
+- `AggregateInPhpAnalyzer`
 - `BidirectionalConsistencyAnalyzer`
 - `BlameableTraitAnalyzer`
 - `CascadeAllAnalyzer`
@@ -77,6 +78,7 @@ These checks can run without SQL from the current web request.
 - `CascadeRemoveOnIndependentEntityAnalyzer`
 - `ClassTableInheritanceDepthAnalyzer`
 - `ClassTableInheritanceThinSubclassAnalyzer`
+- `CollectionCountedInPhpAnalyzer`
 - `CollectionFilteredInPhpAnalyzer`
 - `CollectionInitializationAnalyzer`
 - `CompositeKeyComplexityAnalyzer`
