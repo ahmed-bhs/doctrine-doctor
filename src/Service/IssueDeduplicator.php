@@ -111,7 +111,7 @@ final readonly class IssueDeduplicator
             return $type . ':' . md5($sql);
         }
 
-        $signature = $this->getEntityTypeSignature($type, $title, $description, $entityOrTable);
+        $signature = $this->getEntityTypeSignature($type, $title, $description, $entityOrTable, $this->findingLocator->subjectOf($issue));
         if (null !== $signature) {
             return $signature;
         }
@@ -159,6 +159,7 @@ final readonly class IssueDeduplicator
         string $title,
         string $description,
         ?string $entityOrTable,
+        string $subject = '',
     ): ?string {
         $entityScopedTypes = [
             'collection_uninitialized',
@@ -173,16 +174,19 @@ final readonly class IssueDeduplicator
             return null;
         }
 
-        // Prefer pre-extracted entity/table when available.
-        $entity = $entityOrTable;
+        // The class named in the issue data first, then the one in the title ("X::$field"), and only then a word
+        // read from the prose, which can be anything ("on every flush" gave "every").
+        $entity = $this->subjectClass($subject);
 
-        if (null === $entity && 1 === preg_match('/\b([A-Z][A-Za-z0-9_]*)::\$/', $title, $matches)) {
+        if (null === $entity && 1 === preg_match('/\b([A-Z][A-Za-z0-9_]*)::\\?\$/', $title, $matches)) {
             $entity = $matches[1];
         }
 
         if (null === $entity && 1 === preg_match('/\b([A-Z][A-Za-z0-9_]*)::\$/', $description, $matches)) {
             $entity = $matches[1];
         }
+
+        $entity ??= $entityOrTable;
 
         if (null === $entity) {
             return null;
@@ -191,6 +195,21 @@ final readonly class IssueDeduplicator
         $normalizedEntity = str_replace('_', '', strtolower($entity));
 
         return "entity_type:{$type}:{$normalizedEntity}";
+    }
+
+    /**
+     * Short class name of a "Fully\\Qualified\\Class::$field" subject, or null.
+     */
+    private function subjectClass(string $subject): ?string
+    {
+        $class = explode('::', $subject)[0];
+        if ('' === $class) {
+            return null;
+        }
+
+        $position = strrpos($class, '\\');
+
+        return false === $position ? $class : substr($class, $position + 1);
     }
 
     /**

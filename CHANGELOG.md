@@ -66,6 +66,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Per-entity grouping of findings (type mismatches, float for money, uninitialized collections…) took the entity
+  from a word of the description when the issue did not name it: "on every flush" grouped every
+  `PropertyTypeMismatch` finding under "every", so only one was reported and which one depended on the metadata load
+  order. The class named in the issue data, then in the title, is used first. `PropertyTypeMismatch` now names the
+  entity and the field, and its titles no longer contain a literal `\$`. Projects will see the findings that were
+  hidden: regenerate the baseline.
 - `NullComparison` also reports `col = ?` when the bound parameter is NULL, as Doctrine produces for
   `->andWhere('s.shippedAt = :value')->setParameter('value', null)`. Only `= NULL` written in the SQL was seen.
 - Aggregates next to a join are judged one by one. `SUM(o.total)` with orders joined to their customer is no longer

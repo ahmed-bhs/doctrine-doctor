@@ -341,14 +341,17 @@ class PropertyTypeMismatchAnalyzer implements MetadataAnalyzerInterface
 
         $issueData = new IssueData(
             type: IssueType::PROPERTY_TYPE_MISMATCH->value,
-            title: sprintf('Type Mismatch: %s::\$%s', $shortClassName, $fieldName),
+            title: sprintf('Type Mismatch: %s::$%s', $shortClassName, $fieldName),
             description: $description,
             severity: $severity,
             suggestion: $suggestion,
             queries: [],
         );
 
-        return $this->issueFactory->create($issueData);
+        return $this->issueFactory->createFromArray($issueData->toArray() + [
+            'entity' => $entityClass,
+            'field' => $fieldName,
+        ]);
     }
 
     private function buildSuggestion(

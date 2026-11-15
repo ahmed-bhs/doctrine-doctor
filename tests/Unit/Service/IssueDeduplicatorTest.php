@@ -727,4 +727,23 @@ final class IssueDeduplicatorTest extends TestCase
         self::assertContains('setMaxResults() with Collection Join Detected', $titles);
         self::assertCount(2, $titles);
     }
+
+    #[Test]
+    public function it_groups_type_mismatches_by_their_own_entity_not_by_a_word_of_the_description(): void
+    {
+        $issues = [];
+        foreach (['ProductImage' => 'position', 'ProductTranslation' => 'locale', 'TaxonTranslation' => 'locale'] as $class => $field) {
+            $issues[] = new IntegrityIssue([
+                'type' => 'property_type_mismatch',
+                'title' => sprintf('Type Mismatch: %s::$%s', $class, $field),
+                'description' => sprintf('Property %s::$%s is typed ?string but the mapping expects string. Doctrine can see a change on every flush.', $class, $field),
+                'severity' => 'warning',
+                'entity' => 'App\\Entity\\' . $class,
+                'field' => $field,
+                'queries' => [],
+            ]);
+        }
+
+        self::assertCount(3, $this->deduplicator->deduplicate(IssueCollection::fromArray($issues)));
+    }
 }
