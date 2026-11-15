@@ -66,6 +66,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `SQLInjectionInRawQueries` (static half) also reads the application code (`analysis.source_dirs`), knows the DBAL
+  `fetch*()` and `iterate*()` methods, and sees SQL concatenated straight in the call
+  (`$connection->fetchAllAssociative("… '" . $action . "'")`). Its findings name the class and method, so the report
+  shows their file and line.
+- A LIKE with a leading wildcard is no longer merged into a "function wraps the predicate column" finding on the same
+  query: both causes are reported.
+- `DivisionByZero` reads `COUNT(...)` and `SUM(...)` divisors whole, and reports them only when the dividend is not an
+  aggregate (`SUM(x) / COUNT(*)` is NULL, not an error, when no row matches).
+- `CascadeRemoveOnIndependentEntity` named every relation "ManyToMany"; it now names OneToMany and OneToOne relations
+  as such.
 - Per-entity grouping of findings (type mismatches, float for money, uninitialized collections…) took the entity
   from a word of the description when the issue did not name it: "on every flush" grouped every
   `PropertyTypeMismatch` finding under "every", so only one was reported and which one depended on the metadata load

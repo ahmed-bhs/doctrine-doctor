@@ -746,4 +746,19 @@ final class IssueDeduplicatorTest extends TestCase
 
         self::assertCount(3, $this->deduplicator->deduplicate(IssueCollection::fromArray($issues)));
     }
+
+    #[Test]
+    public function it_keeps_a_leading_wildcard_next_to_a_function_on_the_same_column(): void
+    {
+        $query = new QueryData(
+            sql: "SELECT subject FROM audit_log WHERE LOWER(subject) LIKE '%1234%'",
+            executionTime: QueryExecutionTime::fromMilliseconds(43.0),
+        );
+        $issues = IssueCollection::fromArray([
+            new PerformanceIssue(['type' => 'function_on_predicate_column', 'title' => 'LOWER() Wraps Predicate Column subject', 'description' => 'No index.', 'severity' => 'warning', 'queries' => [$query]]),
+            new PerformanceIssue(['type' => 'ineffective_like_pattern', 'title' => 'LIKE With Leading Wildcard', 'description' => 'No index.', 'severity' => 'warning', 'queries' => [$query]]),
+        ]);
+
+        self::assertCount(2, $this->deduplicator->deduplicate($issues));
+    }
 }
