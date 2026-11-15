@@ -10,6 +10,7 @@ $code = (string) ($context['code'] ?? '');
 $optimization = (string) ($context['optimization'] ?? '');
 $executionTime = (float) ($context['execution_time'] ?? 0.0);
 $threshold = (float) ($context['threshold'] ?? 0.0);
+$e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 // PHP code is shown as PHP, anything else as SQL
 $isPHP = str_contains($code, '$') || str_contains($code, '->') || str_contains($code, '::');
@@ -21,9 +22,9 @@ ob_start();
     The query took <?php echo number_format($executionTime, 2); ?>ms, above the <?php echo $threshold; ?>ms threshold.
     Run EXPLAIN on it to find the missing index or the scan.
 </div>
-<div class="query-item"><pre><code class="language-<?php echo $isPHP ? 'php' : 'sql'; ?>"><?php echo htmlspecialchars($code, ENT_QUOTES, 'UTF-8'); ?></code></pre></div>
+<div class="query-item"><pre><code class="language-<?php echo $isPHP ? 'php' : 'sql'; ?>"><?php echo $e($code); ?></code></pre></div>
 <?php if ('' !== $optimization) { ?>
-<p><?php echo nl2br(htmlspecialchars($optimization, ENT_QUOTES, 'UTF-8')); ?></p>
+<p><?php echo nl2br($e($optimization)); ?></p>
 <?php } ?>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/improving-performance.html', 'Doctrine ORM Improving Performance'); ?>
