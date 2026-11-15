@@ -505,7 +505,8 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
             'suggested_name' => $suggestedName,
         ]);
 
-        $codeQualityIssue->setSeverity('critical');
+        // A naming convention: nothing breaks, the schema is only harder to read.
+        $codeQualityIssue->setSeverity('info');
         $codeQualityIssue->setTitle($this->getFKViolationTitle($violationType));
         $codeQualityIssue->setMessage($this->getFKViolationMessage($violationType, $columnName, $assocName, $entityClass));
         $codeQualityIssue->setSuggestion($this->buildFKNamingSuggestion($columnName, $suggestedName, $assocName, $entityClass));
@@ -625,7 +626,7 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
     {
         return match ($type) {
             'not_snake_case' => sprintf("Foreign key '%s' (association '%s') in entity '%s' is not in snake_case format.", $columnName, $assocName, $entityClass),
-            'missing_id_suffix' => sprintf("Foreign key '%s' should end with '_id' suffix according to Doctrine conventions.", $columnName),
+            'missing_id_suffix' => sprintf("Foreign key column '%s' does not end with '_id', the name Doctrine gives by default: the schema is harder to read, nothing breaks.", $columnName),
             default => sprintf("Foreign key '%s' violates naming conventions.", $columnName),
         };
     }

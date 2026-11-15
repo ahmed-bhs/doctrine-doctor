@@ -80,6 +80,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `ForeignKeyMapping` missed an id stored as an integer when the field names a role before the entity
+  (`defaultProductId`, `mainCustomerId`): it now also matches the entity that ends the field name.
+- A foreign key column without the `_id` suffix (`tree_root`, `country_code`) was reported as critical. It is a naming
+  convention, nothing breaks: it is now an info.
 - `doctrine:doctor:analyze`: a finding without a suggestion printed an empty `💡 --show-suggestion=…` line. It now
   reads `💡 Details: --show-suggestion=…`, and the STI finding has its own suggestion (a CHECK constraint on the
   discriminator).
