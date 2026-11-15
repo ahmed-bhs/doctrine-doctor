@@ -95,6 +95,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
         $containerBuilder->setParameter('doctrine_doctor.profiler.show_debug_info', $config['profiler']['show_debug_info']);
         $containerBuilder->setParameter('doctrine_doctor.analysis.exclude_third_party_entities', $config['analysis']['exclude_third_party_entities']);
         $containerBuilder->setParameter('doctrine_doctor.analysis.exclude_paths', $config['analysis']['exclude_paths']);
+        $containerBuilder->setParameter('doctrine_doctor.analysis.source_dirs', $config['analysis']['source_dirs']);
 
         $containerBuilder->setParameter('doctrine_doctor.debug.enabled', $config['debug']['enabled'] ?? false);
         $containerBuilder->setParameter('doctrine_doctor.debug.internal_logging', $config['debug']['internal_logging'] ?? false);
@@ -106,6 +107,8 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
     private function registerAnalyzerParameters(ContainerBuilder $containerBuilder, array $config): void
     {
         $analyzers = $config['analyzers'];
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.entity_manager_in_service.excluded_namespaces', $analyzers['entity_manager_in_service']['excluded_namespaces']);
+        $containerBuilder->setParameter('doctrine_doctor.analyzers.collection_filtered_in_php.methods', $analyzers['collection_filtered_in_php']['methods']);
 
         $containerBuilder->setParameter('doctrine_doctor.analyzers.n_plus_one.threshold', $analyzers['n_plus_one']['threshold']);
         $containerBuilder->setParameter('doctrine_doctor.analyzers.slow_query.threshold', $analyzers['slow_query']['threshold']);

@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Three analyzers that read the application code** (`analysis.source_dirs`, `src` by default) next to the mapping:
+  - `EntityManagerInService` (info): an application class receives the EntityManager in its constructor, so its
+    logic depends on Doctrine. Repositories, Doctrine listeners and classes whose namespace contains one of
+    `excluded_namespaces` (`Repository`, `Infrastructure`, `Persistence`, `Doctrine`, `DataFixtures`, `Migrations`…)
+    are left out. The finding names the repositories the class reaches through `getRepository()`.
+  - `UnusedInverseSide` (info): the inverse side of a to-many association is never read outside its entity (no
+    getter, adder or remover call, no DQL path, no criteria key). The suggestion keeps only the owning side and shows
+    the arbitrary DQL join that works without it.
+  - `CollectionFilteredInPhp` (warning): `$entity->getItems()->filter(...)` loads the whole collection to keep some
+    elements, where `matching()` with a Criteria filters in SQL. The methods are configurable (`methods: [filter]`).
 - `FlushInEventListener` also checks entity listeners (`#[AsEntityListener]`, `#[ORM\EntityListeners]`) and listeners or
   subscribers of the event manager (`#[AsDoctrineListener]`), not only lifecycle callbacks of the entity. A `flush()` in
   `postFlush` gets its own message: Doctrine dispatches `postFlush` before it clears the unit of work, so the nested

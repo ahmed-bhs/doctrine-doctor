@@ -114,6 +114,9 @@ enum IssueType: string
     case MANY_TO_MANY_EXTRA_COLUMNS = 'many_to_many_extra_columns';
     case MISSING_VERSION_FIELD_FOR_CONCURRENCY = 'missing_version_field_for_concurrency';
     case FLUSH_IN_LIFECYCLE_CALLBACK = 'flush_in_lifecycle_callback';
+    case ENTITY_MANAGER_IN_SERVICE = 'entity_manager_in_service';
+    case UNUSED_INVERSE_SIDE = 'unused_inverse_side';
+    case COLLECTION_FILTERED_IN_PHP = 'collection_filtered_in_php';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';

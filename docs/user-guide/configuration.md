@@ -47,6 +47,8 @@ doctrine_doctor:
     analysis:
         exclude_third_party_entities: true|false
         exclude_paths: ['vendor/', 'var/cache/']
+        # Application code read by the analyzers that check how the code uses Doctrine
+        source_dirs: ['src']
 
     # Profiler integration settings
     profiler:
