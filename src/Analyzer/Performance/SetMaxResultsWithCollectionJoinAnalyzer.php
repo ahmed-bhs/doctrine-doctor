@@ -193,9 +193,7 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
 
         $keys = [array_map($metadata->getColumnName(...), $metadata->getIdentifierFieldNames())];
         foreach ($metadata->table['uniqueConstraints'] ?? [] as $constraint) {
-            if (isset($constraint['columns']) && \is_array($constraint['columns'])) {
-                $keys[] = $constraint['columns'];
-            }
+            $keys[] = $this->constraintColumns($constraint);
         }
         foreach ($metadata->fieldMappings as $mapping) {
             if (true === MappingHelper::getBool($mapping, 'unique')) {
@@ -211,6 +209,22 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
         }
 
         return false;
+    }
+
+    /**
+     * Unique constraint columns: an array up to ORM 3.7, an IndexMapping object from ORM 3.8.
+     *
+     * @return list<string>
+     */
+    private function constraintColumns(mixed $constraint): array
+    {
+        $columns = match (true) {
+            \is_array($constraint) => $constraint['columns'] ?? [],
+            \is_object($constraint) && property_exists($constraint, 'columns') => $constraint->columns ?? [],
+            default => [],
+        };
+
+        return \is_array($columns) ? array_values(array_map(static fn (mixed $column): string => \is_scalar($column) ? (string) $column : '', $columns)) : [];
     }
 
     private function joinCondition(mixed $expr): string
