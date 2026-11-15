@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\QueryFieldAccessorTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\PaginatorQueryDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -294,7 +295,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                 return null;
             }
 
-            $isNullable = $this->isJoinNullable($join, $sql, $metadata);
+            $isNullable = $this->isJoinNullable($join, $sql, $metadata, $metadataMap);
 
             if (false === $isNullable) {
                 return $this->createLeftJoinOnNotNullIssue($join, $metadata, $sql, $executionTime, $query);
@@ -304,31 +305,67 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         return null;
     }
 
-    private function isJoinNullable(array $join, string $sql, ClassMetadata $classMetadata): ?bool
+    /**
+     * Whether a row of the other side can lack a joined row. Only a NOT NULL foreign key held by another table of the
+     * query and pointing to the joined entity guarantees a match. A NOT NULL key held by the joined table itself (the
+     * inverse side of a OneToOne, such as an avatar that belongs to a user) says nothing about the other side: a user
+     * may have no avatar, and the LEFT JOIN is needed.
+     *
+     * @param array<string, ClassMetadata<object>> $metadataMap
+     */
+    private function isJoinNullable(array $join, string $sql, ClassMetadata $joinedMetadata, array $metadataMap): ?bool
     {
         $columnsInOnClause = $this->extractColumnsInOnClause($join, $sql);
-        if ([] === $columnsInOnClause) {
+        if ([] === $columnsInOnClause || $this->startsFromLeftJoinedTable($join, $sql)) {
             return null;
         }
 
         $bestMatch = null;
         $bestMatchCount = 0;
 
-        foreach ($classMetadata->getAssociationMappings() as $associationMapping) {
-            $joinColumns = $this->normalizeJoinColumns($associationMapping);
-            if ([] === $joinColumns) {
+        foreach ($metadataMap as $ownerMetadata) {
+            if ($ownerMetadata === $joinedMetadata) {
                 continue;
             }
 
-            [$matchedColumns, $allNullable] = $this->matchJoinColumns($joinColumns, $columnsInOnClause);
+            foreach ($ownerMetadata->getAssociationMappings() as $associationMapping) {
+                if (!is_a($joinedMetadata->getName(), (string) MappingHelper::getString($associationMapping, 'targetEntity'), true)) {
+                    continue;
+                }
 
-            if ($matchedColumns === count($joinColumns) && $matchedColumns > $bestMatchCount) {
-                $bestMatchCount = $matchedColumns;
-                $bestMatch = $allNullable;
+                $joinColumns = $this->normalizeJoinColumns($associationMapping);
+                if ([] === $joinColumns) {
+                    continue;
+                }
+
+                [$matchedColumns, $allNullable] = $this->matchJoinColumns($joinColumns, $columnsInOnClause);
+
+                if ($matchedColumns === count($joinColumns) && $matchedColumns > $bestMatchCount) {
+                    $bestMatchCount = $matchedColumns;
+                    $bestMatch = $allNullable;
+                }
             }
         }
 
         return $bestMatch;
+    }
+
+    /**
+     * "LEFT JOIN a ... LEFT JOIN b ON a.b_id = b.id": a may be missing, so b must stay a LEFT JOIN even when a.b_id is
+     * NOT NULL. An INNER JOIN there would drop the rows without a, and cancel the first LEFT JOIN.
+     */
+    private function startsFromLeftJoinedTable(array $join, string $sql): bool
+    {
+        $onClause = (string) $this->sqlExtractor->extractJoinOnClause($sql, (string) $join['full_match']);
+        preg_match_all('/\\b(\\w+)\\.\\w+/', $onClause, $aliases);
+
+        foreach (array_unique($aliases[1]) as $alias) {
+            if ($alias !== ($join['alias'] ?? null) && 1 === preg_match('/\\bLEFT\\s+(?:OUTER\\s+)?JOIN\\s+\\S+\\s+(?:AS\\s+)?' . preg_quote($alias, '/') . '\\b/i', $sql)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function createLeftJoinOnNotNullIssue(

@@ -80,6 +80,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `JoinOptimization` looked for the NOT NULL foreign key in the joined table: a LEFT JOIN to the inverse side of an
+  optional OneToOne (a user and their avatar) was reported as critical, and following the advice drops the rows
+  without a match. It now checks the key held by the other table, and leaves alone a join that starts from a table
+  itself reached by a LEFT JOIN, where an INNER JOIN would cancel the first one.
+- `OrderByWithoutLimit` reported the ORDER BY of fetch-joined collections (`#[OrderBy]` on variants, images…) as a
+  sort of the results, and advised removing it or adding a LIMIT, which breaks the collections. A sort that only uses
+  joined tables is now left out.
+- `NamingConvention` skipped a reserved table name matching its entity (`Order` in `order`) and said that Doctrine
+  quotes identifiers. Doctrine quotes them in the schema it creates, but not in the SQL of DQL queries, which fail
+  with a syntax error. Reserved names are now warnings, read from the database platform's keyword list (`USER` is
+  reserved on PostgreSQL, not on MySQL), and names quoted in the mapping are left out.
 - `MissingEmbeddableOpportunity` suggested an `Address` value object to the `Address` entity itself, and reported a
   single field (`$email`) as properties that "together form" a value. It now needs at least two fields of the
   pattern, and skips the entity named after the value.

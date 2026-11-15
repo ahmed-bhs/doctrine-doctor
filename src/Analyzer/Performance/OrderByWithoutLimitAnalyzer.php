@@ -89,6 +89,12 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                             continue;
                         }
 
+                        // Sorting only joined tables orders the elements of fetch-joined collections (#[OrderBy]),
+                        // not the results: removing it or adding a LIMIT would break the collections.
+                        if ($this->sortsOnlyJoinedTables($sql, $orderByClause)) {
+                            continue;
+                        }
+
                         // Skip queries with WHERE ... IN (...) — bounded result set
                         if ($this->hasBoundedWhereInClause($sql)) {
                             continue;
@@ -128,6 +134,17 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                 }
             },
         );
+    }
+
+    private function sortsOnlyJoinedTables(string $sql, string $orderByClause): bool
+    {
+        if (1 !== preg_match('/\\bFROM\\s+[`"]?\\w+[`"]?\\s+(?:AS\\s+)?([a-z]\\w*)/i', $sql, $from) || 1 !== preg_match('/\\bJOIN\\b/i', $sql)) {
+            return false;
+        }
+
+        preg_match_all('/\\b([a-z]\\w*)\\.\\w+/i', $orderByClause, $aliases);
+
+        return [] !== $aliases[1] && !\in_array(strtolower($from[1]), array_map(strtolower(...), $aliases[1]), true);
     }
 
     public function getName(): string
