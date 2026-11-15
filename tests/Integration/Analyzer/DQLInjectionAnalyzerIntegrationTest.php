@@ -271,7 +271,8 @@ final class DQLInjectionAnalyzerIntegrationTest extends DatabaseTestCase
     {
         $this->startQueryCollection();
 
-        $this->entityManager->createQuery('SELECT u FROM ' . User::class . " u WHERE u.email = 'user1@example.com'")->getResult();
+        $email = 'user' . random_int(1, 1) . '@example.com';
+        $this->entityManager->createQuery('SELECT u FROM ' . User::class . " u WHERE u.email = '" . $email . "'")->getResult();
 
         $titles = array_map(
             static fn ($issue): string => $issue->getTitle(),

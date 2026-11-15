@@ -427,4 +427,51 @@ final class DQLInjectionAnalyzerTest extends TestCase
 
         self::assertCount(1, $issues->toArray());
     }
+
+    #[Test]
+    public function it_flags_a_concatenated_like_even_when_another_value_is_bound(): void
+    {
+        $issues = $this->analyzeSearch(
+            "WHERE (s1_.name LIKE '%lin%' OR s1_.description LIKE '%lin%') AND s0_.enabled = 1",
+            '->andWhere("translation.name LIKE \'%" . $terms . "%\'")',
+        );
+
+        self::assertSame(['DQL Injection Risk: Doctrine query with concatenated literal value'], $issues);
+    }
+
+    #[Test]
+    public function it_ignores_a_like_pattern_written_in_the_code(): void
+    {
+        $issues = $this->analyzeSearch(
+            "WHERE s0_.code LIKE 'SUMMER%' AND s0_.enabled = 1",
+            '->andWhere("p.code LIKE \'SUMMER%\'")',
+        );
+
+        self::assertSame([], $issues);
+    }
+
+    /**
+     * @return list<string> titles of the issues for a Doctrine query run from a file holding $source
+     */
+    private function analyzeSearch(string $where, string $source): array
+    {
+        $file = (string) tempnam(sys_get_temp_dir(), 'dd-repository');
+        file_put_contents($file, "<?php\n" . $source . "\n");
+
+        try {
+            $query = new \AhmedBhs\DoctrineDoctor\DTO\QueryData(
+                sql: 'SELECT s0_.id AS id_0 FROM sylius_product s0_ INNER JOIN sylius_product_translation s1_ ON s0_.id = s1_.translatable_id AND (s1_.locale = ?) ' . $where,
+                executionTime: \AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime::fromMilliseconds(5.0),
+                params: ['fr_FR'],
+                backtrace: [['file' => $file, 'line' => 2]],
+            );
+
+            return array_values(array_map(
+                static fn ($issue): string => $issue->getTitle(),
+                $this->analyzer->analyze(\AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection::fromArray([$query]))->toArray(),
+            ));
+        } finally {
+            unlink($file);
+        }
+    }
 }
