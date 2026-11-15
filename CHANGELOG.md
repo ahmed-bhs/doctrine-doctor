@@ -80,6 +80,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `MissingEmbeddableOpportunity` suggested an `Address` value object to the `Address` entity itself, and reported a
+  single field (`$email`) as properties that "together form" a value. It now needs at least two fields of the
+  pattern, and skips the entity named after the value.
 - `SingleTableInheritanceNullableColumn` reported, as critical, that inserting a sibling fails when a subclass field
   is not nullable. Doctrine's schema tool creates every column of a single-table subclass as nullable, so no insert
   fails. The finding is now an info that says what really happens: the database does not enforce the field, only the
