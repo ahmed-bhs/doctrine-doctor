@@ -26,6 +26,8 @@ use PHPUnit\Framework\TestCase;
  */
 final class DQLInjectionAnalyzerTest extends TestCase
 {
+    private string $lastDescription = '';
+
     private DQLInjectionAnalyzer $analyzer;
 
     protected function setUp(): void
@@ -437,6 +439,8 @@ final class DQLInjectionAnalyzerTest extends TestCase
         );
 
         self::assertSame(['DQL Injection Risk: Doctrine query with concatenated literal value'], $issues);
+        self::assertStringContainsString("s1_.name LIKE '%lin%'", $this->lastDescription);
+        self::assertStringNotContainsString('no bound parameter', $this->lastDescription);
     }
 
     #[Test]
@@ -466,10 +470,10 @@ final class DQLInjectionAnalyzerTest extends TestCase
                 backtrace: [['file' => $file, 'line' => 2]],
             );
 
-            return array_values(array_map(
-                static fn ($issue): string => $issue->getTitle(),
-                $this->analyzer->analyze(\AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection::fromArray([$query]))->toArray(),
-            ));
+            $found = $this->analyzer->analyze(\AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection::fromArray([$query]))->toArray();
+            $this->lastDescription = (string) ($found[0] ?? null)?->getDescription();
+
+            return array_values(array_map(static fn ($issue): string => $issue->getTitle(), $found));
         } finally {
             unlink($file);
         }
