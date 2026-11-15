@@ -22,10 +22,8 @@ class LazyLoadingIssue extends AbstractIssue
             'type'        => IssueType::LAZY_LOADING,
             'title'       => 'Lazy Loading Detected in Loop',
             'description' => sprintf(
-                'Detected %d lazy loading queries for "%s.%s" relationship. ' .
-                'Accessing lazy-loaded relationships inside loops causes N queries to be executed. ' .
-                'This is a classic performance anti-pattern that can severely impact application performance. ' .
-                'Use eager loading (JOIN with addSelect) to load the relationship data in a single query.',
+                '%d lazy loading queries ran for the "%s.%s" relationship. ' .
+                'Each access to the relation in the loop costs one more query.',
                 $data['query_count'] ?? 0,
                 $data['entity'] ?? 'Entity',
                 $data['relation'] ?? 'relation',

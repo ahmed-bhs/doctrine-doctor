@@ -161,10 +161,10 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
 
         $issueData = new IssueData(
             type: 'division_by_zero',
-            title: 'Potential Division By Zero Error',
+            title: 'Possible Division by Zero',
             description: sprintf(
-                "Division operation '%s' found in query. If '%s' is zero, this will cause a database error. " .
-                "Use NULLIF(%s, 0) to safely handle zero values.",
+                "The query divides '%s' with no NULLIF or CASE guard on '%s'. " .
+                "When '%s' is zero, the database raises an error or returns NULL, depending on the platform and SQL mode.",
                 $fullMatch,
                 $divisor,
                 $divisor,

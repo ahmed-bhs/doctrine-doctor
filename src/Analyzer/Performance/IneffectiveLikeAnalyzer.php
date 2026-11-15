@@ -264,24 +264,20 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
         if ($severity->isCritical()) {
             $title = sprintf('LIKE Pattern Causing Slow Query (%s)', $executionTimeStr);
             $description = sprintf(
-                "Query uses LIKE with leading wildcard (%s), forcing full table scan. " .
-                "**This query is already slow (%s)** and will get worse as data grows. " .
-                "Immediate action required: Consider using full-text search (MATCH AGAINST) or redesigning the search functionality. " .
-                "Pattern: LIKE '%s'",
+                "The query uses LIKE '%s' (%s with a leading wildcard) and already takes %s. " .
+                "A leading wildcard prevents index usage, so every row is scanned and the time grows with the table.",
+                $pattern,
                 $likeType,
                 $executionTimeStr,
-                $pattern,
             );
         } else {
             $title = sprintf('LIKE Pattern Prevents Index Usage (%s)', $executionTimeStr);
             $description = sprintf(
-                "Query uses LIKE with leading wildcard (%s), which **prevents index usage and forces full table scan**. " .
-                "Current performance is %s, but this pattern will degrade significantly as your dataset grows (common in production). " .
-                "**Action recommended**: Use full-text search (MATCH AGAINST) for better scalability, or redesign to avoid leading wildcards. " .
-                "Pattern: LIKE '%s'",
+                "The query uses LIKE '%s' (%s with a leading wildcard) and takes %s today. " .
+                "A leading wildcard prevents index usage, so every row is scanned and the time grows with the table.",
+                $pattern,
                 $likeType,
                 $executionTimeStr,
-                $pattern,
             );
         }
 

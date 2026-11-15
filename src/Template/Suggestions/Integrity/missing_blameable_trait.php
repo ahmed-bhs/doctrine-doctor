@@ -27,84 +27,12 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<div class="suggestion-header">
-    <h4>Add Blameable Trait to <?php echo $e($entityClass); ?></h4>
-</div>
+<?php echo suggestionHeader('Record who creates and updates rows'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-info">
-        Entity <strong><?php echo $e($entityClass); ?></strong> has timestamp field(s)
-        (<code><?php echo implode('</code>, <code>', array_map(static fn (mixed $field): string => $e((string) $field), $timestampFields)); ?></code>)
-        but no blameable fields (createdBy/updatedBy).
-    </div>
+    <p><code><?php echo $e($entityClass); ?></code> records when it changes (<code><?php echo implode('</code>, <code>', array_map(static fn (mixed $field): string => $e((string) $field), $timestampFields)); ?></code>) but not who changed it. Add <code>createdBy</code> and <code>updatedBy</code> to complete the audit trail.</p>
 
-    <p>Adding blameable fields provides a complete audit trail by tracking <strong>who</strong> created or modified each record, not just <strong>when</strong>.</p>
-
-    <h4>Step 1: Create BlameableTrait (if not exists)</h4>
     <div class="query-item">
-        <pre><code class="language-php">// src/Entity/Trait/BlameableTrait.php
-namespace App\Entity\Trait;
-
-use App\Entity\User;
-use Doctrine\ORM\Mapping as ORM;
-
-trait BlameableTrait
-{
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $createdBy = null;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?User $updatedBy = null;
-
-    public function getCreatedBy(): ?User
-    {
-        return $this->createdBy;
-    }
-
-    public function setCreatedBy(User $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?User
-    {
-        return $this->updatedBy;
-    }
-
-    public function setUpdatedBy(?User $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-        return $this;
-    }
-}</code></pre>
-    </div>
-
-    <h4>Step 2: Use the trait in <?php echo $e($entityClass); ?></h4>
-    <div class="query-item">
-        <pre><code class="language-php">use App\Entity\Trait\BlameableTrait;
-
-class <?php echo $e($entityClass); ?>
-
-{
-    use BlameableTrait;
-
-    // ... existing fields
-}</code></pre>
-    </div>
-
-    <h4>Step 3: Automatic population with Doctrine Extensions (Optional)</h4>
-    <div class="query-item">
-        <pre><code class="language-bash">composer require stof/doctrine-extensions-bundle</code></pre>
-        <pre><code class="language-yaml"># config/packages/stof_doctrine_extensions.yaml
-stof_doctrine_extensions:
-    default_locale: en_US
-    orm:
-        default:
-            blameable: true</code></pre>
         <pre><code class="language-php">use Gedmo\Mapping\Annotation as Gedmo;
 
 class <?php echo $e($entityClass); ?>
@@ -120,21 +48,14 @@ class <?php echo $e($entityClass); ?>
 }</code></pre>
     </div>
 
-    <h4>Benefits</h4>
-    <ul>
-        <li><strong>Complete Audit Trail:</strong> Know who created/modified each record</li>
-        <li><strong>Security:</strong> Track user actions for compliance and debugging</li>
-        <li><strong>Standardization:</strong> Consistent audit pattern across entities</li>
-        <li><strong>Performance:</strong> Query by creator/modifier without expensive joins</li>
-    </ul>
+    <p>The attributes need <code>stof/doctrine-extensions-bundle</code> with <code>blameable: true</code>; without it, set both fields yourself.</p>
 
     <?php echo suggestionDocLink('https://symfony.com/bundles/StofDoctrineExtensionsBundle/current/index.html#blameable', 'Doctrine Extensions: Blameable'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Add Blameable fields to %s for a complete audit trail', $entityClass),
+    'description' => sprintf('Add createdBy and updatedBy fields to %s', $entityClass),
 ];

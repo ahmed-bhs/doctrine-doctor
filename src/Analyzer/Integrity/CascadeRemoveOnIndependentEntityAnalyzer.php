@@ -335,7 +335,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
         $codeQualityIssue->setTitle('cascade="remove" on ManyToOne (Data Loss Risk)');
 
         $message = DescriptionHighlighter::highlight(
-            "Field {field} in entity {class} has {cascade} on {type} relation to {target}. Deleting a {shortClass} will also delete the {target}, which may be referenced by other entities. {target} is referenced by {refCount} entities.",
+            "Field {field} in entity {class} has cascade {cascade} on a {type} relation to {target}, which {refCount} entities reference. Deleting a {shortClass} also deletes its {target}, even while other records still point to it.",
             [
                 'field' => $fieldName,
                 'class' => $entityClass,
@@ -375,7 +375,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
         $codeQualityIssue->setTitle('cascade="remove" on ManyToMany to Independent Entity');
 
         $message = DescriptionHighlighter::highlight(
-            "Field {field} in entity {class} has {cascade} on {type} relation to independent entity {target}. Deleting a {shortClass} will delete all related {target}s, even if other entities reference them. {target} is referenced by {refCount} entities.",
+            "Field {field} in entity {class} has cascade {cascade} on a {type} relation to independent entity {target}, which {refCount} entities reference. Deleting a {shortClass} also deletes all its related {target} rows, even those other records still use.",
             [
                 'field' => $fieldName,
                 'class' => $entityClass,

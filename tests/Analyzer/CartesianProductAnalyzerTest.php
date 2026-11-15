@@ -85,8 +85,8 @@ final class CartesianProductAnalyzerTest extends TestCase
 
         $issue = $issuesArray[0];
         self::assertStringContainsString('Cartesian Product', $issue->getTitle());
-        self::assertStringContainsString('O(n^2)', $issue->getTitle());
-        self::assertStringContainsString('cartesian product', $issue->getDescription());
+        self::assertStringContainsString('2 collection JOINs', $issue->getTitle());
+        self::assertStringContainsString('2 collections', $issue->getDescription());
     }
 
     #[Test]
@@ -236,7 +236,7 @@ final class CartesianProductAnalyzerTest extends TestCase
         $issue = array_values($riskIssues)[0];
         self::assertStringContainsString('3 Collections', $issue->getTitle());
         self::assertStringContainsString('resource', $issue->getTitle());
-        self::assertStringContainsString('Multi-Step Hydration', $issue->getTitle());
+        self::assertStringContainsString('3 collections', $issue->getDescription());
         self::assertEquals('warning', $issue->getSeverity()->value);
         self::assertNotNull($issue->getSuggestion());
     }

@@ -25,69 +25,36 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Fix ORM Cascade / Database onDelete Mismatch'); ?>
+<?php
+$why = match ($mismatchType) {
+    'orm_cascade_db_setnull' => "ORM <code>cascade: ['remove']</code> deletes the children, but the database foreign key uses <code>onDelete: 'SET NULL'</code>, so a plain SQL DELETE keeps them with a NULL parent.",
+    'orm_orphan_db_setnull' => "<code>orphanRemoval</code> deletes orphans in the ORM, but the database foreign key uses <code>onDelete: 'SET NULL'</code>, so a plain SQL DELETE keeps them with a NULL parent.",
+    'db_cascade_no_orm' => "The database deletes the children (<code>onDelete: 'CASCADE'</code>) without the ORM, so their preRemove/postRemove callbacks and listeners never run. Add the ORM cascade only if those callbacks must run: it costs one query per child.",
+    'orm_cascade_no_db' => "ORM <code>cascade: ['remove']</code> works through <code>\$em-&gt;remove()</code>, but the foreign key has no <code>onDelete</code>, so a plain SQL DELETE of the parent fails with a constraint violation.",
+    default => 'The ORM cascade and the database <code>onDelete</code> rule disagree, so deleting through the ORM and through SQL give different results.',
+};
+?>
+<?php echo suggestionHeader('Align the ORM cascade with onDelete'); ?>
 
 <div class="suggestion-content">
-<?php if ('orm_cascade_db_setnull' === $mismatchType) { ?>
-    <div class="alert alert-danger">
-        ORM <code>cascade: ['remove']</code> conflicts with DB <code>onDelete="SET NULL"</code>. <code>$em->remove()</code> deletes children, but a SQL DELETE sets FK to NULL.
-    </div>
-    <h4>Solution: Align DB onDelete with ORM cascade</h4>
-    <p>You declared <code>cascade: ['remove']</code> in ORM, so deletions should cascade. Update the DB constraint to match:</p>
+    <p><?php echo $why; ?></p>
+
     <div class="query-item">
-        <pre><code class="language-php">// On the inverse side (<?php echo $e($targetClass); ?>):
-#[ORM\ManyToOne(targetEntity: <?php echo $e($entityClass); ?>::class)]
-#[ORM\JoinColumn(onDelete: 'CASCADE')]
+<?php if ('db_cascade_no_orm' === $mismatchType) { ?>
+        <pre><code class="language-php">// <?php echo $e($entityClass); ?>
 
-// Then run migration to update database constraint</code></pre>
-    </div>
-
-<?php } elseif ('orm_orphan_db_setnull' === $mismatchType) { ?>
-    <div class="alert alert-danger">
-        ORM <code>orphanRemoval=true</code> conflicts with DB <code>onDelete="SET NULL"</code>. ORM deletes orphans, but a SQL DELETE sets FK to NULL.
-    </div>
-    <h4>Solution: Align DB onDelete with orphanRemoval</h4>
-    <p>You declared <code>orphanRemoval=true</code> in ORM, so orphans should be deleted. Update the DB constraint to match:</p>
-    <div class="query-item">
-        <pre><code class="language-php">// On the inverse side (<?php echo $e($targetClass); ?>):
-#[ORM\ManyToOne(targetEntity: <?php echo $e($entityClass); ?>::class)]
-#[ORM\JoinColumn(onDelete: 'CASCADE')]
-
-// Then run migration to update database constraint</code></pre>
-    </div>
-
-<?php } elseif ('db_cascade_no_orm' === $mismatchType) { ?>
-    <div class="alert alert-warning">
-        The database deletes the <?php echo $e($targetClass); ?> rows (<code>onDelete="CASCADE"</code>), also when the parent is removed with <code>$em->remove()</code>,
-        but without the ORM: their preRemove/postRemove callbacks and listeners do not run.
-    </div>
-    <h4>If those callbacks must run: add the ORM cascade</h4>
-    <p>The ORM then loads and removes each child, running its callbacks, before deleting the parent. It costs one query per child; keep the database cascade alone when the callbacks can be skipped.</p>
-    <div class="query-item">
-        <pre><code class="language-php">#[ORM\OneToMany(targetEntity: <?php echo $e($targetClass); ?>::class, mappedBy: '...', cascade: ['remove'])]
+#[ORM\OneToMany(targetEntity: <?php echo $e($targetClass); ?>::class, mappedBy: '...', cascade: ['remove'])]
 private Collection $<?php echo $e($fieldName); ?>;</code></pre>
-    </div>
-
-<?php } elseif ('orm_cascade_no_db' === $mismatchType) { ?>
-    <div class="alert alert-warning">
-        ORM has <code>cascade: ['remove']</code> but no DB <code>onDelete</code> constraint. <code>$em->remove()</code> works, but direct SQL DELETEs may cause FK violations.
-    </div>
-    <h4>Solution: Add DB onDelete to match ORM cascade</h4>
-    <p>ORM has <code>cascade: ['remove']</code> but direct SQL DELETEs may cause FK violations. Add the DB constraint:</p>
-    <div class="query-item">
-        <pre><code class="language-php">// On the inverse side (<?php echo $e($targetClass); ?>):
+<?php } else { ?>
+        <pre><code class="language-php">// <?php echo $e($targetClass); ?> (owning side), then generate a migration
 #[ORM\ManyToOne(targetEntity: <?php echo $e($entityClass); ?>::class)]
-#[ORM\JoinColumn(onDelete: 'CASCADE')]
-
-// Then run migration to update database constraint</code></pre>
-    </div>
-
+#[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+private <?php echo $e($entityClass); ?> $parent;</code></pre>
 <?php } ?>
+    </div>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn', 'Doctrine JoinColumn'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 

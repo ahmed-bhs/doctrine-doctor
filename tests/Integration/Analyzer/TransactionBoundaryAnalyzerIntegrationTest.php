@@ -205,7 +205,7 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
         assert($firstIssue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
         self::assertSame('warning', $firstIssue->getSeverity()->value);
         self::assertStringContainsString('Multiple flush() calls detected', $firstIssue->getDescription());
-        self::assertStringContainsString('Deadlock risk', $firstIssue->getDescription());
+        self::assertStringContainsString('deadlock risk', $firstIssue->getDescription());
     }
 
     #[Test]
@@ -581,7 +581,7 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
 
             // Verify description contains helpful information
             $description = $issue->getDescription();
-            self::assertStringContainsString('Impact:', $description);
+            self::assertMatchesRegularExpression('/[Tt]ransaction/', $description);
         }
 
         // Cleanup

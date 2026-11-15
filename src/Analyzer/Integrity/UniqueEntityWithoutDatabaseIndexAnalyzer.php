@@ -115,11 +115,8 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
             }
 
             $description = DescriptionHighlighter::highlight(
-                '{class} has a {constraint} on fields ({fields}) but no corresponding UNIQUE index '
-                . 'exists in the database schema. The validator only checks uniqueness at the PHP level '
-                . 'via a SELECT query before persisting. Under concurrent requests, two processes can both '
-                . 'pass validation and insert duplicate rows. '
-                . 'Add a UNIQUE constraint at the database level to guarantee data integrity.',
+                '{class} has a {constraint} on fields ({fields}) but no matching UNIQUE index in the database. '
+                . 'The validator checks with a SELECT before insert, so two concurrent requests can both pass and insert duplicate rows.',
                 [
                     'class' => $shortName,
                     'constraint' => 'UniqueEntity',

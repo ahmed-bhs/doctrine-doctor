@@ -11,30 +11,23 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Consider UUID v7 instead of auto-increment'); ?>
+<?php echo suggestionHeader('Consider UUID v7 for public identifiers'); ?>
 <div class="suggestion-content">
-<div class="alert <?php echo severityAlertClass($severity); ?>"><strong>Entity:</strong> <code><?php echo $e($short_name); ?></code></div>
+<div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($short_name); ?></code> uses an auto-increment integer ID. Sequential IDs reveal row counts and are easy to enumerate when they appear in URLs or APIs.</div>
 
-<p>Auto-increment INT is simple but exposes business metrics, enables enumeration attacks, and doesn't work for distributed systems.</p>
-
-<h4>Current</h4>
-<div class="query-item"><pre><code class="language-php">#[ORM\Id]
-#[ORM\GeneratedValue]
-#[ORM\Column(type: 'integer')]
-private int $id;</code></pre></div>
-
-<h4>Alternative: UUID v7</h4>
-<div class="query-item"><pre><code class="language-php">use Symfony\Component\Uid\UuidV7;
+<div class="query-item"><pre><code class="language-php">use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Id]
-#[ORM\Column(type: 'uuid')]
-private UuidV7 $id;
+#[ORM\Column(type: UuidType::NAME, unique: true)]
+private Uuid $id;
 
-public function __construct() {
-    $this->id = new UuidV7();
+public function __construct()
+{
+    $this-&gt;id = Uuid::v7();
 }</code></pre></div>
 
-<p>Use UUID v7 for: API resources, distributed systems, security-sensitive entities.</p>
+<p>Keep the integer ID for internal entities that are never exposed; it is smaller and faster to join.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#identifier-generation-strategies', 'Doctrine ORM Identifier Generation Strategies'); ?>
 </div>
@@ -43,5 +36,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Consider UUID v7 for better security and scalability',
+    'description' => 'Consider UUID v7 for identifiers exposed outside the application',
 ];

@@ -129,7 +129,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
         return $this->issueFactory->createFromArray([
             'type' => IssueType::QUERY_BUILDER_SQL_INJECTION->value,
             'title'       => 'Potential SQL Injection in QueryBuilder',
-            'description' => 'The query appears to use string concatenation instead of parameter binding. Always use setParameter() to prevent SQL injection vulnerabilities.',
+            'description' => 'The query appears to be built by string concatenation instead of parameter binding. Any user input in it can change the query (SQL injection).',
             'severity'    => 'critical',
             'category'    => 'security',
             'queries'     => [$queryData],
@@ -173,7 +173,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
         return $this->issueFactory->createFromArray([
             'type' => IssueType::INCORRECT_NULL_COMPARISON->value,
             'title'       => 'Incorrect NULL Comparison',
-            'description' => 'Using = NULL or != NULL does not work in SQL. Use IS NULL or IS NOT NULL instead, or use $expr->isNull() / $expr->isNotNull() in QueryBuilder.',
+            'description' => 'The query compares to NULL with = or != instead of IS NULL / IS NOT NULL, which SQL never evaluates to true. The condition matches no rows, whatever the data.',
             'severity'    => 'warning',
             'category'    => 'integrity',
             'queries'     => [$queryData],
@@ -261,7 +261,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
         return $this->issueFactory->createFromArray([
             'type' => IssueType::EMPTY_IN_CLAUSE->value,
             'title'       => 'Empty IN() Clause',
-            'description' => 'The query contains an empty IN() clause which will cause a SQL syntax error. Always check if the array is empty before using IN().',
+            'description' => 'The query contains an empty IN() clause. The database rejects it with a SQL syntax error.',
             'severity'    => 'critical',
             'category'    => 'integrity',
             'queries'     => [$queryData],
@@ -278,7 +278,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
         return $this->issueFactory->createFromArray([
             'type' => IssueType::UNESCAPED_LIKE->value,
             'title'       => 'Potentially Unescaped LIKE Pattern',
-            'description' => 'The query uses LIKE with what appears to be concatenated wildcards. User input in LIKE patterns should have % and _ characters escaped to prevent unexpected matching.',
+            'description' => 'The query uses LIKE with wildcards concatenated around the value. A % or _ in user input then acts as a wildcard and matches unexpected rows.',
             'severity'    => 'warning',
             'category'    => 'security',
             'queries'     => [$queryData],
@@ -321,7 +321,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
         return $this->issueFactory->createFromArray([
             'type' => IssueType::MISSING_PARAMETERS->value,
             'title'       => 'Missing Query Parameters',
-            'description' => 'The query contains parameter placeholders (:param), but some parameters are not set with setParameter(). This causes a runtime error.',
+            'description' => 'The query has parameter placeholders (:param) that are never set with setParameter(). Doctrine throws a QueryException when it runs.',
             'severity'    => 'critical',
             'category'    => 'integrity',
             'queries'     => [$queryData],

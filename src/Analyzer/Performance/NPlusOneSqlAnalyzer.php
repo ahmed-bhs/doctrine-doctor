@@ -88,7 +88,7 @@ readonly class NPlusOneSqlAnalyzer implements AnalyzerInterface
                     type: IssueType::N_PLUS_ONE->value,
                     title: sprintf('N+1 SQL pattern (DBAL): %d similar queries (%.2fms total)', $count, $totalMs),
                     description: sprintf(
-                        'The same SQL pattern was executed %d times within one request. Likely an N+1 loop in DBAL code. Pattern: %s',
+                        'The same SQL ran %d times in one request, once per value: %s. A loop in DBAL code issues one query per iteration.',
                         $count,
                         $pattern,
                     ),

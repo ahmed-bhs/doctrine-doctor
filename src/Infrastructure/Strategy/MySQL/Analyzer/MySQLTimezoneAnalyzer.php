@@ -141,12 +141,10 @@ final readonly class MySQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
     private function createSystemTimezoneIssue(string $systemTimezone, string $phpTimezone): DatabaseConfigIssue
     {
         return new DatabaseConfigIssue([
-            'title'       => 'MySQL using SYSTEM timezone (ambiguous configuration)',
+            'title'       => 'MySQL using SYSTEM timezone',
             'description' => sprintf(
-                'MySQL is configured to use the SYSTEM timezone, which resolves to "%s". ' .
-                'This is ambiguous and can change if the server timezone changes. ' .
-                'PHP is using "%s". ' .
-                'Explicitly set MySQL timezone to ensure consistent datetime handling.',
+                'MySQL uses the SYSTEM timezone, which resolves to "%s", while PHP uses "%s". ' .
+                'Stored dates shift if the server timezone changes.',
                 $systemTimezone,
                 $phpTimezone,
             ),
@@ -178,11 +176,7 @@ final readonly class MySQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
             'title'       => 'Timezone mismatch between MySQL and PHP',
             'description' => sprintf(
                 'MySQL timezone is "%s" but PHP timezone is "%s". ' .
-                'This mismatch causes subtle bugs:' . "\n" .
-                '- DateTime values saved from PHP are stored with wrong timezone' . "\n" .
-                '- Queries with NOW(), CURDATE() return different times than PHP' . "\n" .
-                '- Date comparisons between PHP and MySQL fail' . "\n" .
-                '- Reports and analytics show incorrect timestamps',
+                'NOW() and CURDATE() in SQL return a different time than PHP, so date filters and comparisons are off by the offset.',
                 $mysqlTz,
                 $phpTz,
             ),
@@ -213,8 +207,7 @@ final readonly class MySQLTimezoneAnalyzer implements TimezoneAnalyzerInterface
         return new DatabaseConfigIssue([
             'title'       => 'MySQL timezone tables not loaded',
             'description' => 'MySQL timezone tables (mysql.time_zone_name) are empty. ' .
-                'This prevents timezone conversions with CONVERT_TZ() and named timezones. ' .
-                'You can only use offset-based timezones like "+00:00" which is inflexible.',
+                'CONVERT_TZ() and named timezones such as "Europe/Paris" return NULL or fail; only offsets like "+00:00" work.',
             'severity'   => Severity::warning(),
             'suggestion' => $this->suggestionFactory->createFromTemplate(
                 templateName: 'Configuration/configuration',

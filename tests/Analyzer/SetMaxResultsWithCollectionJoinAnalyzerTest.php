@@ -81,7 +81,7 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         self::assertEquals('setMaxResults_with_collection_join', $data['type']);
         self::assertEquals('setMaxResults() with Collection Join Detected', $issue->getTitle());
         self::assertStringContainsString('LIMIT', $issue->getDescription());
-        self::assertStringContainsString('fetch-joined collection', $issue->getDescription());
+        self::assertStringContainsString('fetch-joined', $issue->getDescription());
         self::assertEquals('critical', $data['severity']);
     }
 
@@ -204,8 +204,8 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         self::assertGreaterThan(0, count($issues));
         $issue = $issues->toArray()[0];
 
-        self::assertStringContainsString('fetch-joined collection', $issue->getDescription());
-        self::assertStringContainsString('Impact:', $issue->getDescription());
+        self::assertStringContainsString('LIMIT 1', $issue->getDescription());
+        self::assertStringContainsString('fetch-joined', $issue->getDescription());
     }
 
     #[Test]
@@ -217,13 +217,12 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
                 ->build(),
         );
 
-        $description = $issues->toArray()[0]->getDescription();
-
-        if (class_exists(\Doctrine\ORM\Tools\Pagination\OffsetPaginator::class)) {
-            self::assertStringContainsString(\Doctrine\ORM\Tools\Pagination\OffsetPaginator::class, $description);
-        } else {
-            self::assertStringContainsString(\Doctrine\ORM\Tools\Pagination\Paginator::class, $description);
-        }
+        $suggestion = $issues->toArray()[0]->getSuggestion();
+        self::assertInstanceOf(\AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion::class, $suggestion);
+        self::assertSame(
+            class_exists(\Doctrine\ORM\Tools\Pagination\OffsetPaginator::class),
+            $suggestion->getContext()['offset_paginator_available'],
+        );
     }
 
     #[Test]
@@ -286,7 +285,7 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         self::assertGreaterThan(0, count($issues));
         $issue = $issues->toArray()[0];
 
-        self::assertStringContainsString('LIMIT is applied to SQL rows', $issue->getDescription());
+        self::assertStringContainsString('SQL rows, not root entities', $issue->getDescription());
         self::assertStringContainsString('partially hydrated', $issue->getDescription());
     }
 
@@ -375,7 +374,7 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($queries);
         $description = $issues->toArray()[0]->getDescription();
 
-        self::assertStringContainsString('Observed: LIMIT 25 applied across 1 fetch-joined table(s).', $description);
+        self::assertStringContainsString('LIMIT 25 is applied across 1 fetch-joined table(s)', $description);
     }
 
     #[Test]
@@ -391,7 +390,7 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($queries);
         $description = $issues->toArray()[0]->getDescription();
 
-        self::assertStringContainsString('the database returned 200 row(s) for this LIMIT 200', $description);
+        self::assertStringContainsString('the database returned 200 row(s)', $description);
         self::assertStringContainsString('truncated in the middle of a root entity', $description);
     }
 
@@ -406,7 +405,7 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         $description = $issues->toArray()[0]->getDescription();
 
         self::assertStringNotContainsString('the database returned', $description);
-        self::assertStringContainsString('Observed: LIMIT 200', $description);
+        self::assertStringContainsString('LIMIT 200', $description);
     }
 
     #[Test]
@@ -437,7 +436,7 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         $description = $issues->toArray()[0]->getDescription();
 
         self::assertStringContainsString('non-zero OFFSET', $description);
-        self::assertStringContainsString('never read the remaining root entities', $description);
+        self::assertStringContainsString('skip whole root entities', $description);
     }
 
     #[Test]
@@ -476,7 +475,7 @@ final class SetMaxResultsWithCollectionJoinAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($queries);
         $description = $issues->toArray()[0]->getDescription();
 
-        self::assertStringContainsString('WHERE id IN (:ids)', $description);
-        self::assertStringContainsString('Paginator', $description);
+        self::assertStringContainsString('LIMIT 10', $description);
+        self::assertStringNotContainsString('Paginator', $description, 'The fix belongs to the suggestion');
     }
 }

@@ -284,8 +284,7 @@ final class ColumnTypeAnalyzerIntegrationTest extends TestCase
 
         $issuesWithReplacements = array_filter(
             $issues,
-            fn ($issue) => str_contains((string) $issue->getDescription(), 'Use ') ||
-                         str_contains((string) $issue->getDescription(), 'Consider '),
+            fn ($issue) => str_contains((string) $issue->getDescription(), 'instead of'),
         );
 
         if (count($issues) > 0) {

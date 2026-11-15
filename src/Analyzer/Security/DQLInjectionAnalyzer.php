@@ -116,8 +116,8 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                 type: IssueType::DQL_INJECTION->value,
                 title: sprintf('Security Vulnerability: %d queries with SQL injection risks', count($criticalQueries)),
                 description: DescriptionHighlighter::highlight(
-                    'Detected {count} queries with critical injection risk. Indicators: {indicators}. '
-                    . 'Always use parameterized queries and never concatenate user input.',
+                    '{count} queries carry a critical injection risk ({indicators}). '
+                    . 'Input concatenated into the query can change its meaning and read or modify any data.',
                     [
                         'count' => (string) count($criticalQueries),
                         'indicators' => implode(', ', $indicators),
@@ -161,8 +161,8 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                 type: IssueType::DQL_INJECTION->value,
                 title: sprintf('Security Warning: %d queries with potential injection risks', count($highRiskQueries)),
                 description: sprintf(
-                    'Detected %d queries with high injection risk. Indicators: %s. '
-                    . 'Review these queries and ensure proper parameter binding.',
+                    '%d queries carry a high injection risk (%s). '
+                    . 'If any of these values comes from user input, it can change the meaning of the query.',
                     count($highRiskQueries),
                     implode(', ', $indicators),
                 ),
@@ -209,9 +209,8 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             type: IssueType::DQL_INJECTION->value,
             title: 'DQL Injection Risk: Doctrine query with concatenated literal value',
             description: DescriptionHighlighter::highlight(
-                'Doctrine-generated SQL contains a literal value in the WHERE clause with no bound parameters: {query}. '
-                . 'This indicates the DQL was built using string concatenation instead of setParameter(). '
-                . 'Use parameterized DQL: $qb->setParameter() or $query->setParameter().',
+                'Doctrine-generated SQL has a literal value in its WHERE clause and no bound parameter: {query}. '
+                . 'The DQL was built by string concatenation, so any user input in it can change the query.',
                 ['query' => substr($queryData->sql, 0, 120)],
             ),
             severity: $suggestion->getMetadata()->severity,

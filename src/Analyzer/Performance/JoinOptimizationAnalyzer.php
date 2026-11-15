@@ -254,8 +254,8 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $performanceIssue->setSeverity($severity);
         $performanceIssue->setTitle(sprintf('Too Many JOINs in Single Query (%d tables)', $joinCount));
         $performanceIssue->setMessage(
-            sprintf('Query contains %d JOINs (recommended: ', $joinCount) . $this->maxJoinsRecommended . ' max). ' .
-            'This can severely impact performance. Consider splitting into multiple queries or using subqueries.',
+            sprintf('The query joins %d tables (recommended: %d max). ', $joinCount, $this->maxJoinsRecommended) .
+            'The database has more join orders to plan and returns wider rows for Doctrine to hydrate.',
         );
         $performanceIssue->setSuggestion($this->createTooManyJoinsSuggestion($joinCount, $sql));
 
@@ -354,8 +354,8 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $performanceIssue->setSeverity('critical');
         $performanceIssue->setTitle('Suboptimal LEFT JOIN on NOT NULL Relation');
         $performanceIssue->setMessage(
-            sprintf("Query uses LEFT JOIN on table '%s' which appears to have a NOT NULL foreign key. ", $tableName) .
-            'Using INNER JOIN instead would be 20-30% faster.',
+            sprintf("The query uses LEFT JOIN on table '%s' although the foreign key is NOT NULL. ", $tableName) .
+            'LEFT JOIN limits the join orders the database can choose, with no row it could add.',
         );
         $performanceIssue->setSuggestion($this->createLeftJoinSuggestion($join, $entityClass, $tableName));
 
@@ -389,8 +389,8 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
             $performanceIssue->setSeverity('warning');
             $performanceIssue->setTitle('Unused JOIN Detected');
             $performanceIssue->setMessage(
-                sprintf("Query performs %s JOIN on table '%s' (alias '%s') but never uses it. ", $join['type'], $join['table'], $alias) .
-                'Remove this JOIN to improve performance.',
+                sprintf("The query performs %s JOIN on table '%s' (alias '%s') but never reads from it. ", $join['type'], $join['table'], $alias) .
+                'The database still executes the join for every row.',
             );
             $performanceIssue->setSuggestion($this->createUnusedJoinSuggestion($join));
 

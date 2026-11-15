@@ -287,9 +287,9 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
         $data = $issue->getData();
 
         self::assertEquals('aggregation_with_inner_join', $data['type']);
-        self::assertEquals('COUNT with INNER JOIN - Performance Impact', $issue->getTitle());
+        self::assertEquals('COUNT with INNER JOIN Over Duplicated Rows', $issue->getTitle());
         self::assertEquals('info', $data['severity']);
-        self::assertStringContainsString('results are **correct**', $issue->getDescription());
+        self::assertStringContainsString('results are correct', $issue->getDescription());
     }
 
     #[Test]
@@ -416,7 +416,7 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
         $data = $issue->getData();
 
         self::assertEquals('aggregation_with_inner_join', $data['type']);
-        self::assertEquals('SUM with INNER JOIN - Performance Impact', $issue->getTitle());
+        self::assertEquals('SUM with INNER JOIN Over Duplicated Rows', $issue->getTitle());
         self::assertEquals('info', $data['severity']);
     }
 

@@ -278,21 +278,8 @@ class EntityManagerInEntityAnalyzer implements MetadataAnalyzerInterface
         $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => 'EntityManager injected in entity constructor: ' . $shortClassName,
             'description' => sprintf(
-                'Entity "%s" has EntityManager injected in constructor.' . "
-
-" .
-                'Issues:' . "
-" .
-                '- Couples domain to infrastructure' . "
-" .
-                '- Breaks dependency inversion' . "
-" .
-                '- Difficult to test without database' . "
-" .
-                '- Entity handles both state and persistence' . "
-
-" .
-                'Move persistence logic to Services or Repositories.',
+                'Entity "%s" receives the EntityManager in its constructor. '
+                . 'The domain object now depends on the persistence layer and cannot be built or tested without it.',
                 $shortClassName,
             ),
             'severity'   => 'critical',
@@ -315,19 +302,8 @@ class EntityManagerInEntityAnalyzer implements MetadataAnalyzerInterface
         $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => sprintf('EntityManager property in entity: %s::$%s', $shortClassName, $propertyName),
             'description' => sprintf(
-                'Entity "%s" has EntityManager as property "$%s".' . "
-
-" .
-                'Issues:' . "
-" .
-                '- Entity cannot be serialized' . "
-" .
-                '- Cannot be tested in isolation' . "
-" .
-                '- Tight coupling to ORM' . "
-
-" .
-                'Move persistence operations to Service Layer.',
+                'Entity "%s" holds the EntityManager in property "$%s". '
+                . 'The entity can no longer be serialized or tested in isolation, and it is tied to the persistence layer.',
                 $shortClassName,
                 $propertyName,
             ),
@@ -351,24 +327,8 @@ class EntityManagerInEntityAnalyzer implements MetadataAnalyzerInterface
         $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'title'       => sprintf('EntityManager usage in entity method: %s::%s()', $shortClassName, $methodName),
             'description' => sprintf(
-                'Entity "%s" uses EntityManager in method "%s()".' . "
-
-" .
-                'Detected: flush(), persist(), or remove() calls' . "
-
-" .
-                'Issues:' . "
-" .
-                '- Entity controls its own persistence' . "
-" .
-                '- Requires database to use' . "
-" .
-                '- Hidden side effects' . "
-" .
-                '- Difficult to test' . "
-
-" .
-                'Move persistence to Services or Command Handlers.',
+                'Entity "%s" calls flush(), persist() or remove() on the EntityManager in method "%s()". '
+                . 'The entity triggers its own persistence, a hidden side effect that needs a database to run.',
                 $shortClassName,
                 $methodName,
             ),

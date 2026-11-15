@@ -224,9 +224,7 @@ class DuplicatePrivateFieldInHierarchyAnalyzer implements MetadataAnalyzerInterf
 
         $description = sprintf(
             'Entity "%s" and its parent "%s" both declare a private field named "$%s". '
-            . 'Since both fields are private, they are technically separate and can hold different values. '
-            . 'However, Doctrine ClassMetadata refers to fields by name only, without considering the declaring class. '
-            . 'This leads to a MappingException or unpredictable behavior with the Collection filtering API.',
+            . 'Doctrine metadata identifies fields by name only, which leads to a MappingException or wrong results with Criteria filtering.',
             $shortChild,
             $shortParent,
             $fieldName,

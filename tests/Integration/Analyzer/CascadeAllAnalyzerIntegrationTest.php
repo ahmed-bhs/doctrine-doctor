@@ -164,7 +164,7 @@ final class CascadeAllAnalyzerIntegrationTest extends TestCase
         }
 
         self::assertInstanceOf(IntegrityIssue::class, $userIssue, 'Should detect cascade="all" on user field');
-        self::assertSame('Dangerous cascade="all" Detected', $userIssue->getTitle());
+        self::assertSame('cascade="all" on Association', $userIssue->getTitle());
         self::assertEquals('critical', $userIssue->getSeverity()->value, 'ManyToOne with cascade="all" to User should be critical');
     }
 

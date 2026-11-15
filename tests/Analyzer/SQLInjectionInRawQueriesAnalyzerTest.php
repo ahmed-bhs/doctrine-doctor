@@ -60,7 +60,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         self::assertNotNull($concatenationIssue, 'Should detect string concatenation SQL injection');
         self::assertEquals('critical', $concatenationIssue->getSeverity()->value);
         self::assertStringContainsString('SQL injection', $concatenationIssue->getDescription());
-        self::assertStringContainsString('NEVER concatenate', $concatenationIssue->getDescription());
+        self::assertStringContainsString('findByNameUnsafe', $concatenationIssue->getDescription());
     }
 
     #[Test]
@@ -111,7 +111,7 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
 
         self::assertNotNull($sprintfIssue, 'Should detect sprintf SQL injection');
         self::assertEquals('critical', $sprintfIssue->getSeverity()->value);
-        self::assertStringContainsString('sprintf() does NOT escape', $sprintfIssue->getDescription());
+        self::assertStringContainsString('sprintf() does not escape', $sprintfIssue->getDescription());
     }
 
     #[Test]

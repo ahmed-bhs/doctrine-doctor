@@ -111,7 +111,7 @@ class SingleTableInheritanceSparseTableAnalyzer implements MetadataAnalyzerInter
                 'Single Table Inheritance hierarchy rooted at {root} has a sparse table: '
                 . 'subclass {subclass} uses only ' . (count($ownFields)) . ' of ' . $totalColumns . ' columns '
                 . '(' . $percentage . '% unused). '
-                . 'This wastes storage and reduces query efficiency.',
+                . 'Every row stores NULL in the columns of the other subtypes, which grows the table and its indexes.',
                 [
                     'root' => $this->shortClassName($rootClass),
                     'subclass' => $this->shortClassName($subClass),

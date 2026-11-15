@@ -300,7 +300,7 @@ class ForeignKeyMappingAnalyzer implements MetadataAnalyzerInterface
         $codeQualityIssue->setTitle('Foreign Key Mapped as Primitive Type');
 
         $message = DescriptionHighlighter::highlight(
-            "Field {field} in entity {class} appears to be a foreign key but is mapped as a primitive type {type}. This is an anti-pattern in Doctrine ORM.",
+            "Field {field} in entity {class} looks like a foreign key but is mapped as the primitive type {type}. Doctrine cannot load the related entity or keep the reference consistent.",
             [
                 'field' => $fieldName,
                 'class' => $entityClass,

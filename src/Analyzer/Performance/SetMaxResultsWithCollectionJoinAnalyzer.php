@@ -279,71 +279,34 @@ class SetMaxResultsWithCollectionJoinAnalyzer implements \AhmedBhs\DoctrineDocto
     }
 
     /**
-     * Build the issue description, enriched with the measured facts of this
-     * query whenever they are available.
-     * The base text is always present so the message stays complete when the
-     * profiler gives us no row count (rowCount is nullable) and when the query
-     * carries no OFFSET.
+     * Build the issue description: the measured LIMIT, join count and row count
+     * when available, then the consequence. Works without a row count (rowCount
+     * is nullable) and without OFFSET.
      */
     private function buildDescription(QueryData $queryData): string
     {
         $sql = $queryData->sql;
-
-        $lines = [
-            'LIMIT is used with a fetch-joined collection.',
-            'Impact: LIMIT is applied to SQL rows, not root entities.',
-            'Impact: Collections may be partially hydrated (silent data loss).',
-            'Impact: Result counts and application behavior may become incorrect.',
-        ];
-
-        foreach ($this->buildMeasuredFacts($queryData, $sql) as $fact) {
-            $lines[] = $fact;
-        }
-
-        if ($this->sqlExtractor->hasOffset($sql)) {
-            $lines[] = 'Impact: this query also carries a non-zero OFFSET, so it is part of a paginated '
-                . 'walk. OFFSET counts rows, not root entities: a batch loop whose bound comes from a '
-                . 'root-entity count can exit early and never read the remaining root entities at all. '
-                . 'That loses whole entities, not just collection items.';
-        }
-
-        $lines[] = 'Fix: paginate on root entity identifiers, then fetch-join that batch '
-            . '(WHERE id IN (:ids)), or ' . ($this->isOffsetPaginatorAvailable()
-                ? 'paginate it with Doctrine\ORM\Tools\Pagination\OffsetPaginator and a Window.'
-                : 'wrap the query in Doctrine\ORM\Tools\Pagination\Paginator with $fetchJoinCollection = true.');
-
-        return implode("\n", $lines);
-    }
-
-    /**
-     * @return string[]
-     */
-    private function buildMeasuredFacts(QueryData $queryData, string $sql): array
-    {
-        $facts = [];
         $limit = $this->sqlExtractor->getLimitValue($sql);
         $joinCount = $this->sqlExtractor->countJoins($sql);
         $rowCount = $queryData->rowCount;
 
-        if (null !== $limit) {
-            $facts[] = sprintf('Observed: LIMIT %d applied across %d fetch-joined table(s).', $limit, $joinCount);
+        if (null === $limit) {
+            $fact = 'LIMIT is used with a fetch-joined collection, so it counts SQL rows, not root entities.';
+        } elseif (null === $rowCount) {
+            $fact = sprintf('LIMIT %d is applied across %d fetch-joined table(s), so it counts SQL rows, not root entities.', $limit, $joinCount);
+        } else {
+            $fact = sprintf('LIMIT %d is applied across %d fetch-joined table(s) and the database returned %d row(s), not %d root entities.', $limit, $joinCount, $rowCount, $limit);
         }
 
-        if (null === $limit || null === $rowCount) {
-            return $facts;
+        if ($this->sqlExtractor->hasOffset($sql)) {
+            $consequence = 'With a non-zero OFFSET, a paginated loop can skip whole root entities, not only collection items.';
+        } elseif (null !== $limit && null !== $rowCount && $rowCount >= $limit) {
+            $consequence = 'The result was truncated in the middle of a root entity, so its collection is partially hydrated (silent data loss).';
+        } else {
+            $consequence = 'Collections can be partially hydrated (silent data loss) and fewer root entities returned than expected.';
         }
 
-        $facts[] = sprintf('Observed: the database returned %d row(s) for this LIMIT %d.', $rowCount, $limit);
-
-        if ($rowCount >= $limit) {
-            $facts[] = sprintf(
-                'Observed: the row count reached the LIMIT, so the result set was very likely '
-                . 'truncated in the middle of a root entity. Fewer than %d root entities were hydrated.',
-                $limit,
-            );
-        }
-
-        return $facts;
+        return $fact . ' ' . $consequence;
     }
 
     private function createSuggestion(string $entityHint): SuggestionInterface

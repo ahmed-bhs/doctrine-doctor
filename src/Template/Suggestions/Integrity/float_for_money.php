@@ -14,42 +14,29 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Float used for money'); ?>
-
+<?php echo suggestionHeader('Store money as an integer amount'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-danger">
-        <code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> uses float for monetary values, which causes precision errors.
-    </div>
+<p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> stores money as a float, which cannot represent most decimal amounts exactly (<code>0.1 + 0.2 !== 0.3</code>). Rounding errors then show up in totals and comparisons.</p>
 
-    <p>Floating point arithmetic isn't exact (0.1 + 0.2 ≠ 0.3).</p>
+<div class="query-item"><pre><code class="language-php">use Money\{Currency, Money};
 
-    <h4>Current</h4>
-    <pre><code class="language-php">#[ORM\Column(type: 'float')]
-public float $<?php echo $e($fieldName); ?>;</code></pre>
-
-    <h4>Solution: Money library</h4>
-    <pre><code class="language-php">use Money\Money;
-use Money\Currency;
-
-#[ORM\Column(type: 'integer')] // Store cents
+// Before: #[ORM\Column(type: 'float')] private float $<?php echo $e($fieldName); ?>;
+#[ORM\Column(type: 'integer')]
 private int $<?php echo $e($fieldName); ?>Cents;
 
-public function get<?php echo $e(ucfirst((string) $fieldName)); ?>(): Money
+public function get<?php echo $e(ucfirst($fieldName)); ?>(): Money
 {
     return new Money($this-><?php echo $e($fieldName); ?>Cents, new Currency('EUR'));
-}
+}</code></pre></div>
 
-// Usage:
-$product->set<?php echo $e(ucfirst((string) $fieldName)); ?>(Money::EUR(1999)); // 19.99 EUR</code></pre>
+<p>A <code>decimal</code> column mapped to a PHP <code>string</code> also keeps exact values.</p>
 
-    <?php echo suggestionDocLink('https://github.com/moneyphp/money', 'Money PHP library'); ?>
+<?php echo suggestionDocLink('https://github.com/moneyphp/money', 'Money PHP library'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Replace float with decimal or a Money library for monetary values',
+    'description' => 'Replace float with an integer amount or a decimal column',
 ];

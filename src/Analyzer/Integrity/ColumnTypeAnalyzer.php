@@ -213,13 +213,12 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
         // Adjust severity and message for vendor entities
         $severity = $typeInfo['severity'];
         $description = sprintf(
-            'Field "%s::$%s" uses deprecated type "%s". %s. ' .
-            'Use "%s" type instead for better security, performance, and maintainability.',
+            'Field "%s::$%s" uses deprecated type "%s" instead of "%s". %s.',
             $shortClassName,
             $fieldName,
             $type,
-            $typeInfo['reason'],
             $typeInfo['replacement'],
+            $typeInfo['reason'],
         );
 
         if ($isVendor) {
@@ -228,11 +227,7 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
             $severity = $severityEnum->isCritical() ? 'warning' : 'info';
 
             $description .= sprintf(
-                "\n\nWARNING: This entity is from a vendor dependency. " .
-                "You cannot modify it directly. Consider:\n" .
-                "1. Creating a local entity that extends this class and overrides the field mapping\n" .
-                "2. Opening an issue/PR with the vendor to migrate to JSON\n" .
-                "3. Accepting this as a known vendor limitation",
+                ' The entity comes from a vendor dependency, so its mapping cannot be changed in place.',
             );
         }
 
@@ -294,9 +289,8 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
             $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
                 'title'       => sprintf('simple_array type with limited length in %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
-                    'Field "%s::$%s" uses "simple_array" type with length=%d. ' .
-                    'This type has limitations: cannot contain commas, limited length, no type preservation. ' .
-                    'Consider using "json" type for better flexibility and data integrity.',
+                    'Field "%s::$%s" uses "simple_array" type with length=%d instead of "json". ' .
+                    'Items cannot contain commas, are always read back as strings, and the list is cut at the column length.',
                     $shortClassName,
                     $fieldName,
                     $length,
@@ -366,11 +360,10 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
 
         /** @var IntegrityIssue $issue */
         $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
-            'title'       => sprintf('Consider using native enum for %s::$%s', $shortClassName, $fieldName),
+            'title'       => sprintf('String field with enum-like values: %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Field "%s::$%s" has only %d distinct values across %d rows (%.1f%% uniqueness). ' .
-                'This suggests a fixed set of values that would benefit from a PHP 8.1+ native enum. ' .
-                'This provides type safety, IDE autocomplete, and prevents invalid values.',
+                'It looks like a fixed set stored as free strings instead of a native enum, so nothing stops an invalid value.',
                 $shortClassName,
                 $fieldName,
                 $analysis['distinct'],
@@ -757,10 +750,8 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
                 $fieldName,
             ),
             'description' => sprintf(
-                'Field "%s::$%s" uses mutable type "%s". '
-                . 'Mutating a DateTime returned by a getter silently changes entity state '
-                . 'without Doctrine\'s change tracking detecting it. '
-                . 'Use "%s" with \DateTimeImmutable instead.',
+                'Field "%s::$%s" uses mutable type "%s" instead of "%s". '
+                . 'Modifying the DateTime returned by a getter changes the entity without Doctrine detecting it, so the change is not saved.',
                 $shortClassName,
                 $fieldName,
                 $type,

@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var string $type
- * @var mixed $table
- * @var string $alias
  * @var array<string, mixed> $context
  */
 $type = (string) ($context['type'] ?? 'LEFT');
@@ -16,54 +13,28 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Unused JOIN Detected'); ?>
-
+<?php echo suggestionHeader('Remove the unused JOIN'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <strong>Unnecessary Query Operation</strong><br>
-        <?php echo $e($type); ?> JOIN on table '<?php echo $e($table); ?>' (alias '<?php echo $e($alias); ?>') but it's never used.
-    </div>
-
-    <h4>Problem</h4>
-    <ul>
-        <li>Database performs the JOIN operation</li>
-        <li>But alias '<?php echo $e($alias); ?>' is never referenced</li>
-        <li>Wasted database resources</li>
-    </ul>
-
-    <h4>Solution 1: Remove the JOIN</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Remove this line:
-->leftJoin('o.relation', '<?php echo $e($alias); ?>')  // ← Not used anywhere</code></pre>
-    </div>
-
-    <h4>Solution 2: Use the JOIN (Fetch the Data)</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// If you want to preload the relation:
-->leftJoin('o.relation', '<?php echo $e($alias); ?>')
-->addSelect('<?php echo $e($alias); ?>')  // ← Add this</code></pre>
-    </div>
-
-    <h4>Solution 3: Use for Filtering</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// If you want to filter by the relation:
-->innerJoin('o.relation', '<?php echo $e($alias); ?>')
-->where('<?php echo $e($alias); ?>.status = :status')</code></pre>
-    </div>
-
-    <div class="alert alert-info">
-        <strong>Performance Impact:</strong><br>
-        Removing unused JOIN: 10-20% faster
-    </div>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins', 'Doctrine ORM Joins'); ?>
+<div class="alert alert-warning">
+    The <?php echo $e($type); ?> JOIN on <code><?php echo $e($table); ?></code> (alias <code><?php echo $e($alias); ?></code>) is neither selected nor used in a condition.
+    The database still performs it for every row.
 </div>
 
+<div class="query-item"><pre><code class="language-php">// Remove this line if the relation is not read
+-&gt;leftJoin('o.relation', '<?php echo $e($alias); ?>')
+
+// Or select it to preload the relation
+-&gt;leftJoin('o.relation', '<?php echo $e($alias); ?>')
+-&gt;addSelect('<?php echo $e($alias); ?>')</code></pre></div>
+
+<p>An INNER JOIN also filters out rows without a match: keep it if that filter is intended.</p>
+
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins', 'Doctrine ORM Joins'); ?>
+</div>
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Remove unused JOIN or add it to SELECT clause',
+    'description' => 'Remove the unused JOIN or add its alias to the SELECT',
 ];

@@ -202,10 +202,10 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
         ]);
 
         $performanceIssue->setSeverity($count > 10 ? 'critical' : 'warning');
-        $performanceIssue->setTitle('Full Entity Loading - Consider Partial Objects');
+        $performanceIssue->setTitle(sprintf('Full Entity Loading: %d queries on %s', $count, $entityName));
         $performanceIssue->setMessage(
-            sprintf('Detected %d queries loading full entities where partial objects could be more efficient. ', $count) .
-            'If you only need a few fields, consider using partial objects or array hydration to save memory and improve performance.',
+            sprintf('%d queries loading full entities of %s ran in this request. ', $count, $entityName) .
+            'Every column is fetched and hydrated, even when the page reads only a few fields.',
         );
         $performanceIssue->setSuggestion($this->buildSuggestion($entityName));
 
@@ -353,15 +353,6 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                 'Good',
             ),
 
-            // Performance benefits
-            SuggestionContentBlock::heading('Performance benefits:', 4),
-            SuggestionContentBlock::unorderedList([
-                '40-80% less memory usage',
-                '20-50% faster query execution',
-                '50-90% less network data transfer',
-                'Better scalability for large datasets',
-            ]),
-
             // When to use each
             SuggestionContentBlock::heading('When to use each:', 4),
             SuggestionContentBlock::unorderedList([
@@ -389,7 +380,7 @@ class PartialObjectAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
                 title: 'Use Partial Objects or Array Hydration',
                 tags: ['performance', 'memory', 'hydration'],
             ),
-            summary: 'Loading full entities when you only need a few fields wastes memory (40-80%), network bandwidth (50-90%), and database resources. Use DTO, array or scalar hydration instead, or partial objects when entity methods are needed.',
+            summary: 'Loading full entities when you only need a few fields fetches and hydrates columns nobody reads. Use DTO, array or scalar hydration instead, or partial objects when entity methods are needed.',
         );
     }
 }

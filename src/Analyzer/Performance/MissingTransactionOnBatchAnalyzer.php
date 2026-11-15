@@ -100,8 +100,9 @@ readonly class MissingTransactionOnBatchAnalyzer implements AnalyzerInterface
                 type: IssueType::MISSING_TRANSACTION_ON_BATCH->value,
                 title: sprintf('Batch writes without transaction: %d statements (%.2fms total)', $count, $totalMs),
                 description: sprintf(
-                    '%d write statements were executed outside any transaction. Each triggers an implicit commit and fsync, multiplying I/O cost. Wrap the batch in beginTransaction()/commit() to get a single fsync.',
+                    '%d write statements ran outside any transaction (%.2fms total). Each one is committed and flushed to disk on its own, so I/O cost grows with the number of statements.',
                     $count,
+                    $totalMs,
                 ),
                 severity: $severity,
                 suggestion: $suggestion,

@@ -12,25 +12,22 @@ $e = static fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Doctrine 2LC Opportunity'); ?>
+<?php echo suggestionHeader('Cache the entity in the second-level cache'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    Detected <?php echo $count; ?> fast repeated entity-load queries (avg <?php echo number_format($avgTime, 2); ?>ms).
-    Consider Doctrine second-level cache to reduce database round-trips.
+    The same entity load ran <?php echo $count; ?> times, <?php echo number_format($avgTime, 2); ?>ms on average.
+    The second-level cache serves the entity after the first load without a query.
 </div>
 
-<h4>Representative query</h4>
-<div class="query-item"><pre><code class="language-sql"><?php echo $e($sql); ?></code></pre></div>
-
-<h4>Suggested approach</h4>
-<div class="query-item"><pre><code class="language-php">#[ORM\Cache(usage: 'READ_ONLY', region: 'entity_region')]
+<div class="query-item"><pre><code class="language-php">#[ORM\Entity]
+#[ORM\Cache(usage: 'READ_ONLY', region: 'product')]
 class Product
 {
 }
 
-// Enable second-level cache in Doctrine config and tune region TTL.</code></pre></div>
+// config/packages/doctrine.yaml: doctrine.orm.second_level_cache.enabled: true</code></pre></div>
 
-<p><strong>Safety notes:</strong> 2LC is best for stable/read-mostly entities. Validate invalidation behavior and consistency needs.</p>
+<p>Use <code>READ_ONLY</code> only for entities that never change; use <code>NONSTRICT_READ_WRITE</code> or <code>READ_WRITE</code> for the others.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/second-level-cache.html', 'Doctrine ORM Second Level Cache'); ?>
 </div>
@@ -39,5 +36,5 @@ $code = ob_get_clean();
 
 return [
     'code' => $code,
-    'description' => sprintf('Enable Doctrine 2LC for repeated fast entity loads (%d occurrences)', $count),
+    'description' => sprintf('Enable the second-level cache for this entity (%d repeated loads)', $count),
 ];

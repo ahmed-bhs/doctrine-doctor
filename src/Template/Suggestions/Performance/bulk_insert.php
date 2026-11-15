@@ -12,23 +12,14 @@ $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
-
 <?php echo suggestionHeader('Insert rows in batches with DBAL'); ?>
-
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <?= $e((string) $count) ?> single-row INSERT statements were sent to <code><?= $e($table) ?></code>, one round trip each.
-        The ORM writes one statement per persisted entity; a multi-row INSERT writes hundreds of rows in one.
-    </div>
+<div class="alert alert-warning">
+    <?= $e((string) $count) ?> single-row INSERT statements were sent to <code><?= $e($table) ?></code>, one round trip each.
+    A multi-row INSERT through DBAL writes hundreds of rows per statement.
+</div>
 
-    <h4>Repeated statement</h4>
-    <div class="query-item">
-        <pre><code class="language-sql"><?= $e($sql) ?></code></pre>
-    </div>
-
-    <h4>Fix: multi-row INSERT through DBAL, in chunks</h4>
-    <div class="query-item">
-        <pre><code class="language-php">$connection = $entityManager-&gt;getConnection();
+<div class="query-item"><pre><code class="language-php">$connection = $entityManager-&gt;getConnection();
 
 $connection-&gt;transactional(function () use ($connection, $rows): void {
     foreach (array_chunk($rows, 500) as $chunk) {
@@ -39,30 +30,19 @@ $connection-&gt;transactional(function () use ($connection, $rows): void {
             array_merge(...array_map(fn (array $row): array =&gt; [$row['name'], $row['email']], $chunk)),
         );
     }
-});</code></pre>
-    </div>
+});</code></pre></div>
 
 <?php if (null !== $entity) { ?>
-    <h4>What DBAL bypasses for <?= $e($entity) ?></h4>
 <?php if ([] === $bypassed) { ?>
-    <p>No lifecycle callback, entity listener or generated identifier is mapped on this entity.
-    Doctrine event subscribers registered on the connection or entity manager are skipped too: check them before switching.</p>
+<p>DBAL bypasses the ORM: <?= $e($entity) ?> maps no lifecycle callback, entity listener or generated identifier, but check the Doctrine event subscribers before switching.</p>
 <?php } else { ?>
-    <ul>
-<?php foreach ($bypassed as $item) { ?>
-        <li><?= $e(is_string($item) ? $item : '') ?></li>
-<?php } ?>
-    </ul>
-    <p>Move that logic into the import, or keep the ORM and flush and clear in batches instead.</p>
+<p>DBAL bypasses what <?= $e($entity) ?> relies on: <?= $e(implode(', ', array_map(static fn (mixed $item): string => is_string($item) ? $item : '', $bypassed))) ?>. Move that logic into the import first.</p>
 <?php } ?>
 <?php } ?>
+<p>Below a few hundred rows, or when the import needs the persisted objects, keep the ORM and flush and clear in batches.</p>
 
-    <p>Keep the ORM when the import needs the persisted objects afterwards, or when the rows are few:
-    below a few hundred rows, flushing and clearing in batches is usually enough.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/batch-processing.html', 'Doctrine ORM: Batch processing'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/batch-processing.html', 'Doctrine ORM: Batch processing'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 

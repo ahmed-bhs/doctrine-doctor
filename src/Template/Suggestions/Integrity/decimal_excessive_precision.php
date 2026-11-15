@@ -27,25 +27,19 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Consider Reducing Precision'); ?>
-
+<?php echo suggestionHeader('Reduce the decimal precision'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        Precision (<?php echo $currentPrecision; ?>,<?php echo $currentScale; ?>) may be excessive. Most cases need 10-20.
-    </div>
+<p><?php echo $e((string) $description); ?> Typical ranges: <?php echo $e(implode('; ', array_map(strval(...), $precisionNeeds))); ?>.</p>
 
-    <h4>Impact: More storage, slower operations, larger indexes</h4>
+<div class="query-item"><pre><code class="language-php">// Money, for example: up to 99 999 999.99
+#[ORM\Column(type: 'decimal', precision: 10, scale: 2)]</code></pre></div>
 
-    <p>Typical needs: Money (10,2), Scientific (15,6), Crypto (20,8). Consider reducing if excessive.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal', 'Doctrine Decimal Type'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal', 'Doctrine Decimal Type'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Consider reducing precision to improve storage efficiency and performance',
+    'description' => 'Reduce decimal precision to the range the values need',
 ];

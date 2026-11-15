@@ -120,7 +120,7 @@ class FinalEntityAnalyzer implements MetadataAnalyzerInterface
         }
 
         // Build detailed description
-        $description = $this->buildDescription($entityClass, $reflectionClass, $classMetadata);
+        $description = $this->buildDescription($entityClass, $classMetadata);
 
         $issueData = new IssueData(
             type: IssueType::FINAL_ENTITY->value,
@@ -137,32 +137,27 @@ class FinalEntityAnalyzer implements MetadataAnalyzerInterface
     /**
      * Build detailed description of the issue.
      */
-    private function buildDescription(string $entityClass, \ReflectionClass $reflectionClass, ClassMetadata $classMetadata): string
+    private function buildDescription(string $entityClass, ClassMetadata $classMetadata): string
     {
         $shortName = $this->shortClassName($entityClass);
-        $description = sprintf("Entity class %s is marked as final.\n", $shortName);
-        $description .= "Impact: Doctrine cannot generate proxy subclasses for lazy loading.\n";
+        $description = sprintf('Entity class %s is final, so Doctrine cannot generate the proxy subclass it uses for lazy loading.', $shortName);
 
-        // Check for lazy associations
         $lazyAssociations = $this->findLazyAssociations($classMetadata);
 
-        if ([] !== $lazyAssociations) {
-            $description .= sprintf(
-                "Impact: %d lazy-loaded association(s) may fail at runtime: ",
-                count($lazyAssociations),
-            );
-
-            $pairs = [];
-            foreach ($lazyAssociations as $assocName => $targetEntity) {
-                $pairs[] = sprintf('%s -> %s', $assocName, $this->shortClassName($targetEntity));
-            }
-            $description .= implode(', ', $pairs) . ".\n";
-        } else {
-            $description .= "Impact: Lazy loading is blocked and association loading strategy becomes constrained.\n";
+        if ([] === $lazyAssociations) {
+            return $description . ' Any lazy reference to this entity fails at runtime.';
         }
 
-        $file = $reflectionClass->getFileName() ?: 'unknown';
-        return $description . sprintf("Impact: Check class declaration in %s.", $file);
+        $pairs = [];
+        foreach ($lazyAssociations as $assocName => $targetEntity) {
+            $pairs[] = sprintf('%s -> %s', $assocName, $this->shortClassName($targetEntity));
+        }
+
+        return $description . sprintf(
+            ' %d lazy-loaded association(s) may fail at runtime: %s.',
+            count($lazyAssociations),
+            implode(', ', $pairs),
+        );
     }
 
     /**

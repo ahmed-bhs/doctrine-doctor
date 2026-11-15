@@ -242,12 +242,10 @@ class EmbeddableMutabilityAnalyzer implements MetadataAnalyzerInterface
         }
 
         $description = sprintf(
-            'Embeddable %s is not immutable. ' .
-            'Embeddables should be implemented as immutable Value Objects to prevent side effects, ' .
-            'enable safe sharing between entities, and align with Domain-Driven Design principles. ' .
-            "\n\nIssues detected:\n- %s",
+            'Embeddable %s is mutable (%s). ' .
+            'Changing it in place affects every entity that shares the instance, and Doctrine may not detect the change.',
             $shortClassName,
-            implode("\n- ", $issueDetails),
+            implode('; ', $issueDetails),
         );
 
         return $this->issueFactory->createFromArray([

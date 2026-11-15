@@ -252,9 +252,8 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
             return new SecurityIssue([
                 'title'       => 'Sensitive data exposure in __toString() method',
                 'description' => sprintf(
-                    'Entity "%s" has a __toString() method that serializes the entire object. ' .
-                    'This entity contains sensitive fields (%s) that will be exposed in logs, ' .
-                    'error messages, and debug output. This is a critical security vulnerability.',
+                    'Entity "%s" has a __toString() method that serializes the entire object, including sensitive fields (%s). ' .
+                    'Those values appear in logs, error messages and debug output.',
                     $this->shortClassName($entityClass),
                     implode(', ', array_map(fn (string $field): string => '$' . $field, $sensitiveFields)),
                 ),
@@ -290,8 +289,7 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
                 'title'       => 'Sensitive data in jsonSerialize() method',
                 'description' => sprintf(
                     'Entity "%s" exposes sensitive fields in jsonSerialize(): %s. ' .
-                    'These fields will be included in JSON API responses, potentially exposing ' .
-                    'passwords, tokens, or other sensitive data to clients.',
+                    'Every JSON response that includes the entity sends these values to the client.',
                     $this->shortClassName($entityClass),
                     implode(', ', array_map(fn (string $field): string => '$' . $field, $exposedFields)),
                 ),
@@ -327,8 +325,7 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
                 'title'       => 'Sensitive data in toArray() method',
                 'description' => sprintf(
                     'Entity "%s" exposes sensitive fields in toArray(): %s. ' .
-                    'This method is often used for serialization, logging, or API responses, ' .
-                    'which can leak sensitive data.',
+                    'Any serialization, log or API response built from toArray() leaks these values.',
                     $this->shortClassName($entityClass),
                     implode(', ', array_map(fn (string $field): string => '$' . $field, $exposedFields)),
                 ),
@@ -381,11 +378,8 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
                 return new SecurityIssue([
                     'title'       => sprintf('Unprotected sensitive field: %s::$%s', $this->shortClassName($entityClass), $fieldName),
                     'description' => sprintf(
-                        'The sensitive field "$%s" in entity "%s" lacks serialization protection. ' .
-                        'Without @JsonIgnore or #[Ignore] annotations, this field will be included in ' .
-                        'JSON serialization, API responses, and logs. Additionally, consider using ' .
-                        '#[SensitiveParameter] on setter methods to prevent values from appearing in stack traces. ' .
-                        'Add appropriate annotations to prevent data leakage.',
+                        'The sensitive field "$%s" in entity "%s" lacks serialization protection (no #[Ignore]). ' .
+                        'The serializer includes it in JSON, API responses and logs.',
                         $fieldName,
                         $this->shortClassName($entityClass),
                     ),
@@ -452,9 +446,7 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
                 'title' => sprintf('Public getter exposes sensitive field: %s::%s()', $this->shortClassName($entityClass), $getterName),
                 'description' => sprintf(
                     'Entity "%s" has a public getter "%s()" that returns the sensitive field "$%s". '
-                    . 'Public getters on sensitive fields allow any caller to access raw sensitive data. '
-                    . 'Consider restricting visibility, adding #[Ignore] for serialization, '
-                    . 'or returning a masked/hashed value instead.',
+                    . 'Any caller, including the serializer and templates, gets the raw value.',
                     $this->shortClassName($entityClass),
                     $getterName,
                     $fieldName,

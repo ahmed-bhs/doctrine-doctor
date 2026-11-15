@@ -51,7 +51,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         self::assertNotNull($issue);
         self::assertSame('Frequent Query Executed 5 Times', $issue->getTitle());
         self::assertStringContainsString('5 times', (string) $issue->getDescription());
-        self::assertStringContainsString('useResultCache', (string) $issue->getDescription());
+        self::assertStringContainsString('5 times', (string) $issue->getDescription());
     }
 
     public function test_detects_very_frequent_query_as_critical(): void

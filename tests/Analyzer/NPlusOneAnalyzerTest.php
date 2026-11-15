@@ -392,13 +392,12 @@ final class NPlusOneAnalyzerTest extends TestCase
         // Act
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert: Description should include normalized pattern
+        // Assert: Description should name the queried table and the query count
         $issuesArray = $issues->toArray();
         $description = $issuesArray[0]->getDescription();
 
-        self::assertStringContainsString('Pattern:', $description);
-        self::assertStringContainsString('SELECT', $description);
         self::assertStringContainsString('users', strtolower($description));
+        self::assertStringContainsString('3', $description);
     }
 
     #[Test]
@@ -571,7 +570,7 @@ final class NPlusOneAnalyzerTest extends TestCase
 
         $issue = $issuesArray[0];
         self::assertStringContainsString('proxy', strtolower($issue->getTitle()));
-        self::assertStringContainsString('Proxy initialization', $issue->getDescription());
+        self::assertStringContainsString('ManyToOne/OneToOne proxy', $issue->getDescription());
 
         $suggestion = $issue->getSuggestion();
         self::assertNotNull($suggestion);
@@ -630,7 +629,7 @@ final class NPlusOneAnalyzerTest extends TestCase
 
         $issue = $issuesArray[0];
         self::assertStringContainsString('partial access', strtolower($issue->getDescription()));
-        self::assertStringContainsString('EXTRA_LAZY', $issue->getDescription());
+        self::assertStringContainsString('LIMIT', $issue->getDescription());
 
         // Should suggest Extra Lazy for partial collection access
         $suggestion = $issue->getSuggestion();

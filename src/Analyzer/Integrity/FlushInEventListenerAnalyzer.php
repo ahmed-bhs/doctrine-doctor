@@ -104,9 +104,7 @@ class FlushInEventListenerAnalyzer implements MetadataAnalyzerInterface
 
         $description = DescriptionHighlighter::highlight(
             '{class}::{method}() calls flush() inside a {event} lifecycle callback. '
-            . 'This triggers the UnitOfWork computation again, which can re-trigger the same event, '
-            . 'causing an infinite loop or unexpected side effects. '
-            . 'Move this logic to an event listener service or call flush() outside the lifecycle event.',
+            . 'The nested flush recomputes the change set and can fire the same event again, causing an infinite loop or lost changes.',
             [
                 'class' => $shortName,
                 'method' => $method->getName(),

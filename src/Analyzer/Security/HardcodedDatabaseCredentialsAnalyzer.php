@@ -263,9 +263,8 @@ class HardcodedDatabaseCredentialsAnalyzer implements MetadataAnalyzerInterface
         return new SecurityIssue([
             'title' => 'Hardcoded Database URL',
             'description' => sprintf(
-                'The database URL is hardcoded in configuration instead of using an environment variable: "%s". '
-                . 'Hardcoded credentials can be leaked through version control, error pages, or config dumps. '
-                . 'Use %%env(DATABASE_URL)%% to reference environment variables.',
+                'The database URL is hardcoded in configuration instead of read from an environment variable: "%s". '
+                . 'The credentials end up in version control, error pages and config dumps.',
                 $maskedUrl,
             ),
             'severity' => 'critical',
@@ -279,9 +278,8 @@ class HardcodedDatabaseCredentialsAnalyzer implements MetadataAnalyzerInterface
         return new SecurityIssue([
             'title' => sprintf('Hardcoded Database Credentials: %s', implode(', ', $fields)),
             'description' => sprintf(
-                'The following database connection parameters are hardcoded instead of using environment variables: %s. '
-                . 'Hardcoded credentials can be leaked through version control, error pages, or config dumps. '
-                . 'Use %%env()%% syntax in Symfony configuration to reference environment variables.',
+                'Database connection parameters are hardcoded instead of read from environment variables: %s. '
+                . 'The credentials end up in version control, error pages and config dumps.',
                 implode(', ', $fields),
             ),
             'severity' => 'critical',

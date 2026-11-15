@@ -171,12 +171,10 @@ class EmbeddableWithoutValueObjectAnalyzer implements MetadataAnalyzerInterface
         $shortClassName   = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
-            'Embeddable %s does not implement typical Value Object methods. ' .
-            'Value Objects should have methods like equals() for comparison, __toString() for representation, ' .
-            'and constructor validation to ensure integrity. ' .
-            "\n\nMissing methods:\n- %s",
+            'Embeddable %s lacks Value Object methods: %s. ' .
+            'Without them, two equal values cannot be compared and invalid values can be constructed.',
             $shortClassName,
-            implode("\n- ", $missingMethods),
+            implode(', ', $missingMethods),
         );
 
         return $this->issueFactory->createFromArray([

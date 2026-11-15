@@ -330,7 +330,7 @@ class OnDeleteCascadeMismatchAnalyzer implements MetadataAnalyzerInterface
             ),
 
             'orm_orphan_db_setnull' => DescriptionHighlighter::highlight(
-                "Field {field} in {class} has {orphan} in ORM but {dbOnDelete} in database. Inconsistent: ORM wants to delete orphans, database wants to set NULL.",
+                "Field {field} in {class} has {orphan} in ORM but {dbOnDelete} in database. The ORM deletes orphans while a direct SQL delete keeps them with a NULL foreign key.",
                 [
                     'field' => $fieldName,
                     'class' => $entityClass,
@@ -353,7 +353,7 @@ class OnDeleteCascadeMismatchAnalyzer implements MetadataAnalyzerInterface
             ),
 
             'orm_cascade_no_db' => DescriptionHighlighter::highlight(
-                "Field {field} in {class} has {ormCascade} in ORM but no onDelete constraint in database. ORM deletes work, but direct SQL DELETEs may cause FK constraint violations.",
+                "Field {field} in {class} has {ormCascade} in ORM but no onDelete constraint in database. Deletes through the ORM work, but a direct SQL DELETE fails on the foreign key constraint.",
                 [
                     'field' => $fieldName,
                     'class' => $entityClass,

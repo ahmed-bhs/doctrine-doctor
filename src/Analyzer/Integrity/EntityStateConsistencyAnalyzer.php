@@ -96,14 +96,13 @@ class EntityStateConsistencyAnalyzer implements MetadataAnalyzerInterface
                 $targetShort = $this->shortClassName($mapping->targetEntity);
 
                 $description = sprintf(
-                    "Required association %s::\$%s targets %s without cascade persist.\n",
+                    'Required (NOT NULL) association %s::$%s targets %s without cascade persist. '
+                    . 'A new %s that is not persisted by hand makes flush() fail with a foreign key or new-entity error.',
                     $shortName,
                     $assocName,
                     $targetShort,
+                    $targetShort,
                 );
-                $description .= "Impact: The relation is NOT NULL and requires a managed related entity.\n";
-                $description .= "Impact: Missing manual persist can trigger foreign key constraint violations.\n";
-                $description .= "Impact: Flush may fail unexpectedly in create/update flows.";
 
                 $issueData = new IssueData(
                     type: IssueType::ENTITY_NEW_IN_ASSOCIATION->value,

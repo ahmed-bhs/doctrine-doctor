@@ -21,48 +21,20 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<div class="suggestion-header">
-    <h4>Thin CTI Subclass: <?php echo $e($subclass); ?></h4>
-</div>
-
+<?php echo suggestionHeader('Store the subclass in the parent table'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-info">
-        Subclass <strong><?php echo $e($subclass); ?></strong> adds only <strong><?php echo $ownFieldCount; ?></strong> field(s) to <strong><?php echo $e($rootClass); ?></strong> (which has <?php echo $parentFieldCount; ?> fields).
-        Every polymorphic query pays a JOIN cost for very little additional data.
-    </div>
+<p><code><?php echo $e($subclass); ?></code> adds <?php echo $ownFieldCount; ?> field(s)<?php if ([] !== $ownFields) { ?> (<code><?php echo $e(implode(', ', array_map(strval(...), $ownFields))); ?></code>)<?php } ?> to <code><?php echo $e($rootClass); ?></code>, which has <?php echo $parentFieldCount; ?>. Each polymorphic query still pays a JOIN for its table; single table inheritance stores these as nullable columns instead.</p>
 
-    <?php if ([] !== $ownFields) { ?>
-    <h4>Fields added by <?php echo $e($subclass); ?></h4>
-    <ul>
-        <?php foreach ($ownFields as $field) { ?>
-        <li><code><?php echo $e((string) $field); ?></code></li>
-        <?php } ?>
-    </ul>
-    <?php } ?>
-
-    <h4>Consider: Switch to Single Table Inheritance (SINGLE_TABLE)</h4>
-    <p>When subclasses add minimal fields, STI avoids JOIN overhead at the cost of a few nullable columns:</p>
-    <div class="query-item">
-        <pre><code class="language-php">use Doctrine\ORM\Mapping as ORM;
-
-#[ORM\Entity]
+<div class="query-item"><pre><code class="language-php">#[ORM\Entity]
+// Before: #[ORM\InheritanceType('JOINED')]
 #[ORM\InheritanceType('SINGLE_TABLE')]
 #[ORM\DiscriminatorColumn(name: 'type', type: 'string')]
 class <?php echo $e($rootClass); ?>
 
 {
-    // All fields in one table — no JOINs needed
-}
+}</code></pre></div>
 
-class <?php echo $e($subclass); ?> extends <?php echo $e($rootClass); ?>
-
-{
-    // <?php echo $ownFieldCount; ?> extra nullable column(s) instead of a separate table
-}</code></pre>
-    </div>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html#single-table-inheritance', 'Doctrine: Single Table Inheritance'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html#single-table-inheritance', 'Doctrine: Single Table Inheritance'); ?>
 </div>
 
 <?php
@@ -71,7 +43,7 @@ $code = ob_get_clean();
 return [
     'code'        => $code,
     'description' => sprintf(
-        'CTI subclass %s adds only %d field(s) — a JOIN for %d column(s) is disproportionate, consider switching to SINGLE_TABLE',
+        'Move CTI subclass %s (%d field(s)) to SINGLE_TABLE to drop a JOIN for %d column(s)',
         $subclass,
         $ownFieldCount,
         $ownFieldCount,

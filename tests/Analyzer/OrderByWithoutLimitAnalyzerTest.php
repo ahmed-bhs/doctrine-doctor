@@ -441,7 +441,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
         // Should be INFO severity for single_result context
         self::assertEquals('info', $data['severity']);
         self::assertStringContainsString('Single-Result Query', $issue->getTitle());
-        self::assertStringContainsString('setMaxResults(1)', $issue->getDescription());
+        self::assertStringContainsString('getOneOrNullResult/getSingleResult', $issue->getDescription());
     }
 
     #[Test]
@@ -472,7 +472,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
         self::assertEquals('warning', $data['severity']);
         self::assertStringContainsString('Array Query', $issue->getTitle());
         self::assertStringContainsString('array of results', $issue->getDescription());
-        self::assertStringContainsString('Add LIMIT', $issue->getDescription());
+        self::assertStringContainsString('created_at DESC', $issue->getDescription());
     }
 
     #[Test]

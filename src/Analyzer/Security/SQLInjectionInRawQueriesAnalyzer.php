@@ -154,8 +154,8 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             return new SecurityIssue([
                 'title' => 'SQL Injection: Active attack pattern detected',
                 'description' => sprintf(
-                    'Detected active SQL injection attack in query: %s. '
-                    . 'The query contains malicious patterns (e.g. OR 1=1, UNION SELECT) and no bound parameters.',
+                    'The query contains an injection pattern (such as OR 1=1 or UNION SELECT) and no bound parameter: %s. '
+                    . 'Input reached the SQL text unescaped, so it can read or modify any data.',
                     substr($sql, 0, 100) . (strlen($sql) > 100 ? '...' : ''),
                 ),
                 'severity' => 'critical',
@@ -169,9 +169,8 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             return new SecurityIssue([
                 'title' => 'SQL Injection Risk: Unparameterized literal in raw query',
                 'description' => sprintf(
-                    'Raw SQL query contains literal values in WHERE clause without parameter binding: %s. '
-                    . 'This indicates string concatenation was used to build the query, '
-                    . 'which is vulnerable to SQL injection. Use prepared statements with bound parameters.',
+                    'The raw SQL query has literal values in its WHERE clause and no bound parameter: %s. '
+                    . 'It was built by string concatenation, so any user input in it can change the query (SQL injection).',
                     substr($sql, 0, 100) . (strlen($sql) > 100 ? '...' : ''),
                 ),
                 'severity' => 'critical',
@@ -368,10 +367,8 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $shortClassName = $this->shortClassName($className);
 
         $description = sprintf(
-            'Method "%s::%s()" uses string concatenation to build SQL queries. ' .
-            'This is a CRITICAL SQL injection vulnerability! Attackers can inject malicious SQL code ' .
-            'to read, modify, or delete data. NEVER concatenate user input into SQL queries. ' .
-            'Always use parameterized queries with bound parameters.',
+            'Method "%s::%s()" builds SQL by string concatenation. ' .
+            'Any user input in the concatenated values can change the query and read or modify data (SQL injection).',
             $shortClassName,
             $methodName,
         );
@@ -397,9 +394,8 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $shortClassName = $this->shortClassName($className);
 
         $description = sprintf(
-            'Method "%s::%s()" uses variable interpolation in SQL query strings. ' .
-            'This creates a SQL injection vulnerability. Even with type casting like (int), ' .
-            'this is NOT safe for all data types. Use parameterized queries instead.',
+            'Method "%s::%s()" builds SQL with variable interpolation. ' .
+            'Any user input in the interpolated variables can change the query (SQL injection).',
             $shortClassName,
             $methodName,
         );
@@ -426,12 +422,10 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $shortClassName = $this->shortClassName($className);
 
         $description = sprintf(
-            'Method "%s::%s()" calls %s() with a dynamically built SQL query but no parameter binding. ' .
-            'If this SQL query includes user input, it is vulnerable to SQL injection. ' .
-            'Pass parameters as the second argument to %s().',
+            'Method "%s::%s()" calls %s() with a dynamically built SQL query and no parameter binding. ' .
+            'If the query includes user input, it is open to SQL injection.',
             $shortClassName,
             $methodName,
-            $sqlMethod,
             $sqlMethod,
         );
 
@@ -456,9 +450,8 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $shortClassName = $this->shortClassName($className);
 
         $description = sprintf(
-            'Method "%s::%s()" uses sprintf() to format SQL queries with user input. ' .
-            'This is vulnerable to SQL injection! sprintf() does NOT escape SQL special characters. ' .
-            'Use parameterized queries with bound parameters instead.',
+            'Method "%s::%s()" formats SQL with sprintf(). ' .
+            'sprintf() does not escape SQL special characters, so any user input in the arguments is open to SQL injection.',
             $shortClassName,
             $methodName,
         );
@@ -494,7 +487,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
 ";
         $code .= "// \$sql = \"SELECT * FROM users WHERE username = '\$username'\"; // Interpolation
 ";
-        $code .= "// \$connection->executeQuery(\$sql); // 💀 SQL INJECTION!
+        $code .= "// \$connection->executeQuery(\$sql); // SQL injection
 
 ";
 

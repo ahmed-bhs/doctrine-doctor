@@ -23,18 +23,15 @@ $lastBackslash                                                                  
 $shortClass                                                                                                                          = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClass;
 ob_start();
 ?>
-<?php echo suggestionHeader('Sensitive data exposure'); ?>
+<?php echo suggestionHeader('Exclude sensitive fields from serialization'); ?>
 <div class="suggestion-content">
-<div class="alert alert-danger"><strong>Security issue in <?php echo $e($shortClass); ?>::<?php echo $e($methodName); ?>()</strong><br>
-Exposure type: <?php echo $e($exposureType); ?><br>
-Exposed fields: <code><?php echo implode(', ', array_map(static fn (mixed $field): string => $e((string) $field), $exposedFields)); ?></code></div>
+<div class="alert alert-danger"><?php echo $e($shortClass); ?>::<?php echo $e($methodName); ?>() exposes <code><?php echo implode(', ', array_map(static fn (mixed $field): string => $e((string) $field), $exposedFields)); ?></code> (<?php echo $e($exposureType); ?>). These values can then reach API responses, logs or error pages.</div>
 
-<p>Sensitive fields like passwords and API tokens are being serialized. This can expose them in API responses, logs, or error messages.</p>
+<div class="query-item"><pre><code class="language-php">use Symfony\Component\Serializer\Attribute\Ignore;
 
-<h4>Use #[Ignore]</h4>
-<div class="query-item"><pre><code class="language-php">use Symfony\Component\Serializer\Annotation\Ignore;
+class <?php echo $e($shortClass); ?>
 
-class <?php echo $e($shortClass); ?> {
+{
     #[Ignore]
     private string $password;
 
@@ -42,11 +39,11 @@ class <?php echo $e($shortClass); ?> {
     private ?string $apiToken = null;
 }</code></pre></div>
 
-<p>Use <code>#[Ignore]</code> or <code>#[Groups]</code> to exclude sensitive fields from serialization. Never expose passwords, tokens, or personally identifiable information.</p>
+<p>Serialization groups (<code>#[Groups]</code>) work too: list only the public fields in the group you serialize.</p>
 
 <?php echo suggestionDocLink('https://symfony.com/doc/current/serializer.html#selecting-specific-properties', 'Symfony Serializer Groups'); ?>
 </div>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Sensitive data exposed in %s::%s()', $shortClass, $methodName)];
+return ['code' => $code, 'description' => sprintf('Exclude sensitive fields from serialization in %s::%s()', $shortClass, $methodName)];

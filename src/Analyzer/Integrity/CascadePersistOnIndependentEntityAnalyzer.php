@@ -223,7 +223,7 @@ class CascadePersistOnIndependentEntityAnalyzer implements MetadataAnalyzerInter
         $codeQualityIssue->setTitle('cascade="persist" on Independent Entity (Risk of Duplicates)');
 
         $message = DescriptionHighlighter::highlight(
-            "Field {field} in entity {class} has {cascade} on independent entity {target}. This can lead to duplicate records. Independent entities should be loaded from the database, not created.",
+            "Field {field} in entity {class} has cascade {cascade} on independent entity {target}. Persisting a new or detached {target} through this relation inserts a duplicate row instead of reusing the existing one.",
             [
                 'field' => $fieldName,
                 'class' => $entityClass,

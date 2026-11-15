@@ -56,7 +56,6 @@ final class PartialObjectAnalyzerTest extends TestCase
         $issue = $issues->first();
         self::assertInstanceOf(PerformanceIssue::class, $issue);
         self::assertStringContainsString('6 queries loading full entities', $issue->getDescription());
-        self::assertStringContainsString('partial objects', $issue->getDescription());
     }
 
     #[Test]

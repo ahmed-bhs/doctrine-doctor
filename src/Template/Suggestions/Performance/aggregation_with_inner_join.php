@@ -10,28 +10,20 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4><?php echo $e($aggregation); ?>() with INNER JOIN - wrong results</h4></div>
+<?php echo suggestionHeader('Aggregate without duplicated join rows'); ?>
 <div class="suggestion-content">
-<div class="alert alert-danger"><strong>Critical:</strong> Using <code><?php echo $e($aggregation); ?>()</code> with <code>INNER JOIN</code> on one-to-many relationships causes <strong>row duplication</strong> and incorrect aggregates.</div>
+<div class="alert alert-danger">
+    <code><?php echo $e($aggregation); ?>()</code> runs after an INNER JOIN on a one-to-many relation, so a parent with 3 children is counted 3 times.
+    The result describes joined rows, not parents.
+</div>
 
-<h4>Problem</h4>
-<div class="query-item"><pre><code class="language-sql">-- WRONG: Returns ITEMS count, not ORDERS count!
-SELECT COUNT(o.id)
-FROM orders o
-INNER JOIN order_items oi ON oi.order_id = o.id;
--- If Order #1 has 3 items, it gets counted 3 times!</code></pre></div>
+<div class="query-item"><pre><code class="language-php">// Before: counts order items, not orders
+$qb-&gt;select('COUNT(o.id)')-&gt;from(Order::class, 'o')-&gt;innerJoin('o.items', 'oi');
 
-<h4>Solution: Use COUNT(DISTINCT)</h4>
-<div class="query-item"><pre><code class="language-sql">SELECT COUNT(DISTINCT o.id)
-FROM orders o
-INNER JOIN order_items oi ON oi.order_id = o.id;</code></pre></div>
+// After
+$qb-&gt;select('COUNT(DISTINCT o.id)')-&gt;from(Order::class, 'o')-&gt;innerJoin('o.items', 'oi');</code></pre></div>
 
-<h4>Doctrine QueryBuilder</h4>
-<div class="query-item"><pre><code class="language-php">$qb->select('COUNT(DISTINCT o.id)')
-   ->from(Order::class, 'o')
-   ->innerJoin('o.items', 'oi');</code></pre></div>
-
-<p>Use <code>COUNT(DISTINCT)</code>, remove unnecessary JOINs, or use subqueries.</p>
+<p>DISTINCT does not fix SUM or AVG: aggregate in a subquery, or replace a JOIN that only filters with <code>EXISTS</code>.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#aggregate-functions', 'Doctrine ORM Aggregate Functions'); ?>
 </div>
@@ -40,5 +32,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Use COUNT(DISTINCT) with %s() and INNER JOIN to avoid row duplication', $aggregation),
+    'description' => sprintf('Compute %s() without the rows duplicated by the INNER JOIN', $aggregation),
 ];

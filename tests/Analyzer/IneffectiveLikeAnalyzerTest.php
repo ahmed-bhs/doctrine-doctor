@@ -467,7 +467,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
         self::assertEquals('warning', $data['severity']);
         self::assertStringContainsString('LIKE Pattern Prevents Index Usage', $issue->getTitle());
         self::assertStringContainsString('prevents index usage', $issue->getDescription());
-        self::assertStringContainsString('will degrade significantly', $issue->getDescription());
+        self::assertStringContainsString('grows with the table', $issue->getDescription());
         self::assertStringContainsString('75.00ms', $issue->getDescription());
     }
 
@@ -489,8 +489,7 @@ final class IneffectiveLikeAnalyzerTest extends TestCase
 
         self::assertEquals('critical', $data['severity']);
         self::assertStringContainsString('LIKE Pattern Causing Slow Query', $issue->getTitle());
-        self::assertStringContainsString('already slow', $issue->getDescription());
-        self::assertStringContainsString('Immediate action required', $issue->getDescription());
+        self::assertStringContainsString('already takes', $issue->getDescription());
         self::assertStringContainsString('250.00ms', $issue->getDescription());
     }
 
