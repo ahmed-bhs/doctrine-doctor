@@ -122,7 +122,8 @@ class MissingEmbeddableOpportunityAnalyzer implements MetadataAnalyzerInterface
                     foreach (self::EMBEDDABLE_PATTERNS as $embeddableName => $pattern) {
                         $matchedFields = $this->findMatchingFields($fieldLowerMap, $pattern);
 
-                        if ([] !== $matchedFields) {
+                        // A value object groups several fields; an entity named after the concept already is it.
+                        if (\count($matchedFields) >= 2 && !$this->namedAfter($classMetadatum, $embeddableName)) {
                             $matchesByPattern[$embeddableName][] = [
                                 'metadata' => $classMetadatum,
                                 'fields' => $matchedFields,
@@ -146,6 +147,14 @@ class MissingEmbeddableOpportunityAnalyzer implements MetadataAnalyzerInterface
                 }
             },
         );
+    }
+
+    /**
+     * @param ClassMetadata<object> $classMetadata
+     */
+    private function namedAfter(ClassMetadata $classMetadata, string $embeddableName): bool
+    {
+        return 0 === strcasecmp($classMetadata->getReflectionClass()->getShortName(), $embeddableName);
     }
 
     /**
