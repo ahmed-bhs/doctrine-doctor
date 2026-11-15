@@ -169,11 +169,11 @@ final class NamingConventionAnalyzerTest extends TestCase
         self::assertNotFalse($issue);
         $data = $issue->getData();
         self::assertEquals('app_order', $data['suggested_name']);
-        self::assertEquals('info', $issue->getSeverity()->value, 'Reserved keywords should be INFO level (Doctrine handles them)');
+        self::assertEquals('warning', $issue->getSeverity()->value, 'DQL queries do not quote a reserved table name: they fail');
     }
 
     #[Test]
-    public function it_skips_reserved_keyword_when_table_matches_entity_name(): void
+    public function it_reports_reserved_keyword_even_when_table_matches_entity_name(): void
     {
         $queries = QueryDataBuilder::create()->build();
 
@@ -187,7 +187,8 @@ final class NamingConventionAnalyzerTest extends TestCase
                 && ($data['violation_type'] ?? '') === 'reserved_keyword';
         });
 
-        self::assertCount(0, $orderEntityIssues, 'Should not flag reserved keyword when table name matches entity snake_case name');
+        // An Order entity in an "order" table is the most common case: the SQL of its DQL queries is not quoted.
+        self::assertCount(1, $orderEntityIssues);
     }
 
     #[Test]
@@ -208,19 +209,14 @@ final class NamingConventionAnalyzerTest extends TestCase
                 && ($data['violation_type'] ?? '') === 'reserved_keyword';
         });
 
-        self::assertGreaterThanOrEqual(2, count($reservedColumnIssues), 'Should detect at least 2 columns with reserved keywords');
+        // The keywords come from the database platform: KEY is reserved on SQLite, USER is not.
+        $columns = array_map(static fn ($issue): string => (string) $issue->getData()['column_name'], array_values($reservedColumnIssues));
+        self::assertContains('key', $columns);
+        self::assertNotContains('user', $columns);
 
-        // Check "user" column
-        $userColumnIssues = array_filter($reservedColumnIssues, static function ($issue) {
-            $data = $issue->getData();
-            return 'user' === $data['column_name'];
-        });
-        self::assertCount(1, $userColumnIssues);
-
-        $issue = reset($userColumnIssues);
-
-        assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
-        self::assertEquals('info', $issue->getSeverity()->value);
+        foreach ($reservedColumnIssues as $issue) {
+            self::assertEquals('warning', $issue->getSeverity()->value);
+        }
     }
 
     #[Test]
@@ -496,7 +492,7 @@ final class NamingConventionAnalyzerTest extends TestCase
                     break;
 
                 case 'reserved_keyword':
-                    self::assertEquals('info', $severity, 'Reserved keywords should be INFO severity');
+                    self::assertEquals('warning', $severity, 'Reserved keywords break the SQL of DQL queries');
                     break;
 
                 case 'missing_id_suffix':
