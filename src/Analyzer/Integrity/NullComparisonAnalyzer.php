@@ -88,6 +88,17 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                             yield $this->createNullComparisonIssue($field, $operator, $fullMatch, $query);
                         }
                     }
+
+                    foreach ($this->comparisonsBoundToNull($cleaned, $this->extractParams($query)) as [$field, $operator, $fullMatch]) {
+                        $key = $field . $operator . 'NULL';
+                        if (isset($seenComparisons[$key])) {
+                            continue;
+                        }
+
+                        $seenComparisons[$key] = true;
+
+                        yield $this->createNullComparisonIssue($field, $operator, $fullMatch . ' (bound to NULL)', $query);
+                    }
                 }
             },
         );
@@ -118,6 +129,45 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     private function stripStringLiterals(string $sql): string
     {
         return preg_replace("/('[^']*'|\"[^\"]*\")/", "'__STR__'", $sql) ?? $sql;
+    }
+
+    /**
+     * "col = ?" comparisons whose positional parameter is NULL, as Doctrine produces for
+     * ->andWhere('s.shippedAt = :value')->setParameter('value', null).
+     *
+     * @param array<mixed> $params
+     * @return list<array{0: string, 1: string, 2: string}>
+     */
+    private function comparisonsBoundToNull(string $sql, array $params): array
+    {
+        if ([] === $params || !\in_array(null, $params, true)) {
+            return [];
+        }
+
+        $params = array_values($params);
+        preg_match_all('/\?/', $sql, $placeholders, PREG_OFFSET_CAPTURE);
+        $positions = array_column($placeholders[0], 1);
+
+        preg_match_all('/(\w+(?:\.\w+)?)\s*(=|!=|<>)\s*(\?)/', $sql, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+        $found = [];
+        foreach ($matches as $match) {
+            $index = array_search($match[3][1], $positions, true);
+            if (false !== $index && \array_key_exists($index, $params) && null === $params[$index]) {
+                $found[] = [$match[1][0], $match[2][0], $match[0][0]];
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    private function extractParams(array|object $query): array
+    {
+        $params = \is_array($query) ? ($query['params'] ?? []) : ($query->params ?? []);
+
+        return \is_array($params) ? $params : [];
     }
 
     /**
