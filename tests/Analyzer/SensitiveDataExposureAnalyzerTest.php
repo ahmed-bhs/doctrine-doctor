@@ -148,7 +148,7 @@ final class SensitiveDataExposureAnalyzerTest extends TestCase
 
         $issue = array_values($protectionIssues)[0];
         self::assertEquals('warning', $issue->getSeverity()->value);
-        self::assertStringContainsString('lacks serialization protection', $issue->getDescription());
+        self::assertStringContainsString('from serialization (no #[Ignore]', $issue->getDescription());
     }
 
     #[Test]

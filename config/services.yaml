@@ -419,6 +419,7 @@ services:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $logger: '@?logger'
             $sensitivePatterns: '%doctrine_doctor.analyzers.sensitive_data_exposure.sensitive_patterns%'
+            $serializerMetadata: '@?serializer.mapping.class_metadata_factory'
         tags:
             - { name: doctrine_doctor.analyzer }
 

@@ -73,6 +73,7 @@
     "phpunit/phpunit": "^10.0",
     "rector/rector": "^2.3",
     "symfony/ai-symfony-mate-extension": "^0.13.0",
+    "symfony/serializer": "^6.4|^7.0|^8.0",
     "symfony/stopwatch": "^6.0|^7.0|^8.0",
     "symfony/validator": "^8.0",
     "symfony/var-dumper": "^6.0|^7.0|^8.0",
