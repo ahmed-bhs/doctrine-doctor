@@ -80,6 +80,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `SensitiveDataExposure` said that the serializer includes any sensitive field without `#[Ignore]`. When Symfony's
+  serializer is installed, it now reads its mapping (attributes, XML or YAML, parent classes included): a field
+  ignored there, or left out of every group while the other fields have groups, is not reported, and a field in
+  groups is reported with the groups that serialize it. The message says what is missing instead of asserting a leak.
 - `DQLInjection` missed a value concatenated into a Doctrine query when the query also had a bound parameter, or
   when the value was compared with `LIKE`: `locale = :locale AND name LIKE '%" . $terms . "%'` was only reported
   once someone typed an attack. It is now reported on any search. A literal written in a library that built the query

@@ -25,6 +25,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Webmozart\Assert\Assert;
 
 /**
@@ -106,6 +107,7 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
         private readonly ?LoggerInterface $logger = null,
         ?PhpCodeParser $phpCodeParser = null,
         private readonly array $sensitivePatterns = self::DEFAULT_SENSITIVE_PATTERNS,
+        private readonly ?ClassMetadataFactoryInterface $serializerMetadata = null,
     ) {
         $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
     }
@@ -342,6 +344,33 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
         return null;
     }
 
+    /**
+     * What the Symfony serializer mapping (attributes, XML or YAML, parent classes included) says of the field:
+     * excluded when it is ignored, or left out of every group while other fields have groups; otherwise the groups
+     * that serialize it.
+     *
+     * @return array{excluded: bool, groups: list<string>}
+     */
+    private function serializerMapping(string $entityClass, string $fieldName): array
+    {
+        if (null === $this->serializerMetadata) {
+            return ['excluded' => false, 'groups' => []];
+        }
+
+        try {
+            $attributes = $this->serializerMetadata->getMetadataFor($entityClass)->getAttributesMetadata();
+        } catch (\Throwable) {
+            return ['excluded' => false, 'groups' => []];
+        }
+
+        $field = $attributes[$fieldName] ?? null;
+        if (null !== $field && ($field->isIgnored() || [] !== $field->getGroups())) {
+            return ['excluded' => $field->isIgnored(), 'groups' => array_values($field->getGroups())];
+        }
+
+        return ['excluded' => array_any($attributes, static fn ($attribute): bool => [] !== $attribute->getGroups()), 'groups' => []];
+    }
+
     private function checkSerializationProtection(
         string $entityClass,
         string $fieldName,
@@ -374,15 +403,23 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
                 }
             }
 
-            if (!$hasProtection) {
+            $mapping = $hasProtection ? ['excluded' => true, 'groups' => []] : $this->serializerMapping($entityClass, $fieldName);
+            if (!$mapping['excluded']) {
                 return new SecurityIssue([
                     'title'       => sprintf('Unprotected sensitive field: %s::$%s', $this->shortClassName($entityClass), $fieldName),
-                    'description' => sprintf(
-                        'The sensitive field "$%s" in entity "%s" lacks serialization protection (no #[Ignore]). ' .
-                        'The serializer includes it in JSON, API responses and logs.',
-                        $fieldName,
-                        $this->shortClassName($entityClass),
-                    ),
+                    'description' => [] !== $mapping['groups']
+                        ? sprintf(
+                            'The sensitive field "$%s" of entity "%s" is in the serialization groups %s: every normalization with these groups includes it.',
+                            $fieldName,
+                            $this->shortClassName($entityClass),
+                            implode(', ', $mapping['groups']),
+                        )
+                        : sprintf(
+                            'Nothing excludes the sensitive field "$%s" of entity "%s" from serialization (no #[Ignore], '
+                            . 'no serialization group). Normalizing the entity, for an API response or a log context, includes it.',
+                            $fieldName,
+                            $this->shortClassName($entityClass),
+                        ),
                     'severity'   => 'warning',
                     'suggestion' => $this->createProtectionSuggestion($entityClass, $fieldName),
                     'backtrace'  => [
