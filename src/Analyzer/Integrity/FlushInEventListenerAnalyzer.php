@@ -26,12 +26,28 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
 class FlushInEventListenerAnalyzer implements MetadataAnalyzerInterface
 {
     use MetadataAnalyzerTrait;
     use ShortClassNameTrait;
+
+    /**
+     * Events dispatched while the unit of work is being flushed: a flush() there is nested in the running one.
+     */
+    private const array FLUSH_TIME_EVENTS = [
+        Events::prePersist,
+        Events::postPersist,
+        Events::preUpdate,
+        Events::postUpdate,
+        Events::preRemove,
+        Events::postRemove,
+        Events::preFlush,
+        Events::onFlush,
+        Events::postFlush,
+    ];
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
@@ -54,6 +70,8 @@ class FlushInEventListenerAnalyzer implements MetadataAnalyzerInterface
 
                     yield from $this->analyzeEntity($metadata);
                 }
+
+                yield from $this->analyzeListeners($allMetadata);
             },
         );
     }
@@ -65,7 +83,7 @@ class FlushInEventListenerAnalyzer implements MetadataAnalyzerInterface
 
     public function getDescription(): string
     {
-        return 'Detects flush() calls inside Doctrine lifecycle callbacks, which can cause infinite loops';
+        return 'Detects flush() calls inside lifecycle callbacks, entity listeners and Doctrine event listeners';
     }
 
     /**
@@ -92,6 +110,101 @@ class FlushInEventListenerAnalyzer implements MetadataAnalyzerInterface
                 }
             }
         }
+    }
+
+    /**
+     * Entity listeners (#[AsEntityListener], #[ORM\EntityListeners]) and listeners or subscribers registered on the
+     * event manager (#[AsDoctrineListener]). Classes under vendor/ and the bundle's own listeners are skipped.
+     *
+     * @param array<ClassMetadata<object>> $allMetadata
+     * @return iterable<IntegrityIssue>
+     */
+    private function analyzeListeners(array $allMetadata): iterable
+    {
+        $candidates = [];
+
+        foreach ($allMetadata as $metadata) {
+            foreach ($metadata->entityListeners as $event => $listeners) {
+                foreach ($listeners as $listener) {
+                    $candidates[] = [$listener['class'], $listener['method'], $event];
+                }
+            }
+        }
+
+        foreach ($this->entityManager->getEventManager()->getAllListeners() as $event => $listeners) {
+            foreach ($listeners as $listener) {
+                if (\is_object($listener)) {
+                    $candidates[] = [$listener::class, $event, $event];
+                }
+            }
+        }
+
+        $seen = [];
+        foreach ($candidates as [$class, $methodName, $event]) {
+            $key = $class . '::' . $methodName;
+            if (isset($seen[$key]) || !\in_array($event, self::FLUSH_TIME_EVENTS, true) || !method_exists($class, $methodName)) {
+                continue;
+            }
+            $seen[$key] = true;
+
+            $method = new \ReflectionMethod($class, $methodName);
+            $file = str_replace('\\', '/', (string) $method->getFileName());
+            if (str_contains($file, '/vendor/') || str_starts_with($file, str_replace('\\', '/', \dirname(__DIR__, 2)) . '/')) {
+                continue;
+            }
+
+            if ($this->phpCodeParser->hasFlushCall($method)) {
+                yield $this->createListenerIssue($method, $event);
+            }
+        }
+    }
+
+    private function createListenerIssue(\ReflectionMethod $method, string $event): IntegrityIssue
+    {
+        $class = $method->getDeclaringClass();
+        $shortName = $class->getShortName();
+
+        $description = Events::postFlush === $event
+            ? '{class}::{method}() calls flush() in a postFlush listener. Doctrine dispatches postFlush before it clears '
+              . 'the unit of work, so this flush replays the collection deletions of the previous one: many-to-many links '
+              . 'cleared then added again are deleted and not inserted back.'
+            : '{class}::{method}() calls flush() in a {event} listener, while Doctrine is still flushing. The nested flush '
+              . 'runs the pending work of the outer one and can fire the same event again or lose changes.';
+
+        $issueData = new IssueData(
+            type: IssueType::FLUSH_IN_LIFECYCLE_CALLBACK->value,
+            title: sprintf('Flush in Doctrine Listener: %s::%s() (%s)', $shortName, $method->getName(), $event),
+            description: DescriptionHighlighter::highlight($description, [
+                'class' => $shortName,
+                'method' => $method->getName(),
+                'event' => $event,
+            ]),
+            severity: Severity::critical(),
+            suggestion: $this->suggestionFactory->createFromTemplate(
+                templateName: 'Integrity/flush_in_doctrine_listener',
+                context: [
+                    'listener_class' => $shortName,
+                    'method_name' => $method->getName(),
+                    'event' => $event,
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::integrity(),
+                    severity: Severity::critical(),
+                    title: 'Move flush() out of the Doctrine listener',
+                    tags: ['lifecycle', 'flush', 'data-integrity'],
+                ),
+            ),
+            queries: [],
+            backtrace: $this->createMethodBacktrace($method),
+        );
+
+        /** @var IntegrityIssue $issue */
+        $issue = $this->issueFactory->createFromArray($issueData->toArray() + [
+            'class' => $class->getName(),
+            'method' => $method->getName(),
+        ]);
+
+        return $issue;
     }
 
     private function createIssue(

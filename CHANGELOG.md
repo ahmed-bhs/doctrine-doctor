@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `FlushInEventListener` also checks entity listeners (`#[AsEntityListener]`, `#[ORM\EntityListeners]`) and listeners or
+  subscribers of the event manager (`#[AsDoctrineListener]`), not only lifecycle callbacks of the entity. A `flush()` in
+  `postFlush` gets its own message: Doctrine dispatches `postFlush` before it clears the unit of work, so the nested
+  flush replays the collection deletions of the previous one and many-to-many links cleared then added again are lost.
+
+### Added
+
 - **`doctrine:doctor:analyze` reports findings like PHPStan.** Findings are grouped by file and sorted by line: the location comes from the class, field or method the analyzer reports (fully qualified or short class names, or the issue title as a last resort) or from the first application frame of the backtrace, relative to the project directory. Each row shows the severity, the title, the first sentences of the description and the finding ID; `--show-suggestion=<id>` still prints the fix.
 - **Baselines for existing projects.** `--generate-baseline[=file]` writes every current finding to `doctrine-doctor-baseline.json`; `--baseline=file` ignores them, reports how many were ignored, and notes baseline entries that no longer match. The command then fails only on new findings.
 - **`--error-format=table|github|json`.** `github` prints workflow annotations with file and line; `table` prints them too when `GITHUB_ACTIONS=true`, so findings show up on the pull request diff. `json` prints totals and findings with their location.
