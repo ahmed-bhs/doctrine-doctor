@@ -269,6 +269,8 @@ class InsecureRandomAnalyzer implements MetadataAnalyzerInterface
         );
 
         return new SecurityIssue([
+            'entity'      => $entityClass,
+            'method'      => $methodName,
             'title'       => sprintf('Insecure random generator in %s::%s()', $shortClassName, $methodName),
             'description' => $description,
             'severity'    => 'critical',
@@ -296,6 +298,8 @@ class InsecureRandomAnalyzer implements MetadataAnalyzerInterface
         );
 
         return new SecurityIssue([
+            'entity'      => $entityClass,
+            'method'      => $methodName,
             'title'       => sprintf('Weak hash-based randomness in %s::%s()', $shortClassName, $methodName),
             'description' => $description,
             'severity'    => 'critical',

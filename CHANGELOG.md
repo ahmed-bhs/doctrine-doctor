@@ -80,6 +80,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `doctrine:doctor:analyze`: a finding without a suggestion printed an empty `💡 --show-suggestion=…` line. It now
+  reads `💡 Details: --show-suggestion=…`, and the STI finding has its own suggestion (a CHECK constraint on the
+  discriminator).
+- `InsecureRandom` findings had no file nor line in the report: they now point to the method.
+- `InnoDBEngine` said "1 tables": a single table is now named in the title.
 - `JoinOptimization` looked for the NOT NULL foreign key in the joined table: a LEFT JOIN to the inverse side of an
   optional OneToOne (a user and their avatar) was reported as critical, and following the advice drops the rows
   without a match. It now checks the key held by the other table, and leaves alone a join that starts from a table

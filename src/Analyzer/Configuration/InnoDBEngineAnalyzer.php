@@ -71,11 +71,11 @@ class InnoDBEngineAnalyzer implements DatabaseAuditAnalyzerInterface
                         $engineList = array_unique(array_column($nonInnoDBTables, 'engine'));
 
                         yield new DatabaseConfigIssue([
-                            'title'       => sprintf('%d tables not using InnoDB engine', count($nonInnoDBTables)),
+                            'title'       => 1 === count($nonInnoDBTables) ? sprintf('Table not using InnoDB: %s', $tableList) : sprintf('%d tables not using InnoDB engine', count($nonInnoDBTables)),
                             'description' => sprintf(
-                                '%d tables use a non-InnoDB engine (%s): %s. ' .
+                                '%s a non-InnoDB engine (%s): %s. ' .
                                 'Engines such as MyISAM ignore transactions and foreign keys, so a rollback or a crash can leave partial data.',
-                                count($nonInnoDBTables),
+                                1 === count($nonInnoDBTables) ? '1 table uses' : count($nonInnoDBTables) . ' tables use',
                                 implode(', ', $engineList),
                                 $tableList,
                             ),

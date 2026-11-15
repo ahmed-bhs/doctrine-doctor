@@ -117,7 +117,7 @@ final class AnalyzeCommandReportTest extends TestCase
 
         $display = $tester->getDisplay();
         self::assertStringContainsString('🪪  test_finding', $display);
-        self::assertMatchesRegularExpression('/💡 --show-suggestion=[a-f0-9]{10}/', $display);
+        self::assertMatchesRegularExpression('/💡 Details: --show-suggestion=[a-f0-9]{10}/', $display);
     }
 
     private function tester(string $description): CommandTester

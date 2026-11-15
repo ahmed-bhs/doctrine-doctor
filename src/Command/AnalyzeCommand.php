@@ -234,9 +234,9 @@ class AnalyzeCommand extends Command
     private static function tip(array $finding): string
     {
         $issue = $finding['issue'] ?? null;
-        $title = $issue instanceof IssueInterface ? $issue->getSuggestion()?->getMetadata()->title : null;
+        $title = $issue instanceof IssueInterface ? (string) $issue->getSuggestion()?->getMetadata()->title : '';
 
-        return sprintf('💡 %s<fg=gray>--show-suggestion=%s</>', null !== $title && '' !== $title ? $title . ': ' : '', (string) $finding['id']);
+        return sprintf('💡 %s: <fg=gray>--show-suggestion=%s</>', '' !== $title ? $title : 'Details', (string) $finding['id']);
     }
 
     /**
@@ -284,14 +284,14 @@ class AnalyzeCommand extends Command
             usort($rows, static fn (array $left, array $right): int => [$left['line'] ?? 0, $left['title']] <=> [$right['line'] ?? 0, $right['title']]);
             $io->table(['Line', (string) $file], array_map(static fn (array $finding): array => [
                 $finding['line'] ?? '',
-                sprintf(
+                rtrim(sprintf(
                     "%s  %s\n%s\n<fg=gray>🪪  %s</>\n%s",
                     $marks[$finding['severity']] ?? $finding['severity'],
                     $finding['title'],
                     wordwrap((string) $finding['message'], 100),
                     implode(', ', array_filter([$finding['type'], self::shortAnchor((string) $finding['anchor'])])),
                     self::tip($finding),
-                ),
+                )),
             ], $rows));
         }
 
