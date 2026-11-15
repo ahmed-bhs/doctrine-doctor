@@ -266,6 +266,12 @@ doctrine_doctor:
         join_type_consistency:
             enabled: true
 
+        migration_state:
+            enabled: true
+
+        risky_migration:
+            enabled: true
+
         filtered_fetch_join:
             enabled: true
 

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Migration analyzers**, active when `doctrine/migrations` is installed:
+  - `MigrationState` (with `--with-database`): migrations that exist but were not executed, or, when every migration
+    has run, a mapping that differs from the database. The finding counts the statements and says when some of them
+    drop a table or a column, so that a migration generated from the diff would delete data.
+  - `RiskyMigration` (static): a migration whose `up()` drops a table or a column, that changes the schema without a
+    `down()`, or that uses the ORM (repositories, `persist()`, `flush()`…).
 - `FilteredFetchJoin` (critical, profiler): a to-many collection fetch-joined and filtered in WHERE, such as
   `->select('p', 'productTaxon')->innerJoin('p.productTaxons', 'productTaxon')->andWhere('productTaxon.taxon = :c')`.
   Doctrine hydrates the collection with the matching rows only and keeps it incomplete for the rest of the request.

@@ -118,6 +118,11 @@ enum IssueType: string
     case UNUSED_INVERSE_SIDE = 'unused_inverse_side';
     case COLLECTION_FILTERED_IN_PHP = 'collection_filtered_in_php';
     case FILTERED_FETCH_JOIN = 'filtered_fetch_join';
+    case MIGRATIONS_NOT_EXECUTED = 'migrations_not_executed';
+    case MAPPING_WITHOUT_MIGRATION = 'mapping_without_migration';
+    case MIGRATION_DROPS_DATA = 'migration_drops_data';
+    case MIGRATION_NOT_REVERSIBLE = 'migration_not_reversible';
+    case MIGRATION_USES_ORM = 'migration_uses_orm';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';

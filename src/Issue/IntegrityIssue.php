@@ -84,6 +84,11 @@ class IntegrityIssue extends AbstractIssue
             IssueType::ENTITY_MANAGER_IN_SERVICE->value,
             IssueType::UNUSED_INVERSE_SIDE->value,
             IssueType::FILTERED_FETCH_JOIN->value,
+            IssueType::MIGRATIONS_NOT_EXECUTED->value,
+            IssueType::MAPPING_WITHOUT_MIGRATION->value,
+            IssueType::MIGRATION_DROPS_DATA->value,
+            IssueType::MIGRATION_NOT_REVERSIBLE->value,
+            IssueType::MIGRATION_USES_ORM->value,
         ];
     }
 

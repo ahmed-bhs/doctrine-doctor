@@ -305,6 +305,8 @@ class Customer {
 | TypeHintMismatchAnalyzer | Type safety | Type inconsistency | Runtime errors |
 | NamingConventionAnalyzer | Code standards | Naming violations | Readability issues |
 | NullComparisonAnalyzer | SQL semantics | `= NULL` instead of `IS NULL` | Silently empty results |
+| MigrationStateAnalyzer | Migrations (`--with-database`) | Migrations not executed, mapping changed without a migration | Schema out of date, data dropped by a generated migration |
+| RiskyMigrationAnalyzer | Migration files | DROP in up(), no down(), ORM used in a migration | Lost data, no rollback |
 | FilteredFetchJoinAnalyzer | Fetch join | To-many collection fetch-joined and filtered in WHERE | Incomplete collection in memory |
 | DivisionByZeroAnalyzer | Expression safety | Unguarded division | Runtime error |
 | CompositeKeyComplexityAnalyzer | Identifier design | Composite primary key | Join and mapping complexity |
