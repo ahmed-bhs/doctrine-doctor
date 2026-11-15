@@ -87,7 +87,7 @@ class AnalyzeCommand extends Command
             ->bySeverityDescending()
             ->toArray();
 
-        $findings = array_map(fn (IssueInterface $issue): array => $this->finding($issue), array_values($issues));
+        $findings = array_map($this->finding(...), array_values($issues));
 
         $generate = $input->getOption('generate-baseline');
         if (false !== $generate) {
@@ -109,13 +109,13 @@ class AnalyzeCommand extends Command
                 return self::INVALID;
             }
             $current = array_column($findings, 'id');
-            $findings = array_values(array_filter($findings, static fn (array $f): bool => !isset($known[$f['id']])));
+            $findings = array_values(array_filter($findings, static fn (array $finding): bool => !isset($known[$finding['id']])));
             $ignored = count($current) - count($findings);
             $unmatched = count(array_diff_key($known, array_flip($current)));
         }
 
         match ($format) {
-            'json' => $output->writeln((string) json_encode(['totals' => $this->totals($findings), 'ignored_by_baseline' => $ignored, 'findings' => array_map(static fn (array $f): array => array_diff_key($f, ['issue' => true]), $findings)], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)),
+            'json' => $output->writeln((string) json_encode(['totals' => $this->totals($findings), 'ignored_by_baseline' => $ignored, 'findings' => array_map(static fn (array $finding): array => array_diff_key($finding, ['issue' => true]), $findings)], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)),
             'github' => $this->renderGithub($output, $findings),
             default => $this->renderTable($io, $output, $analysis, $findings, $ignored, $unmatched),
         };
@@ -207,21 +207,21 @@ class AnalyzeCommand extends Command
     {
         $escape = static fn (string $value, bool $property): string => strtr($value, ['%' => '%25', "\r" => '%0D', "\n" => '%0A'] + ($property ? [':' => '%3A', ',' => '%2C'] : []));
 
-        foreach ($findings as $f) {
-            $level = match ($f['severity']) {
+        foreach ($findings as $finding) {
+            $level = match ($finding['severity']) {
                 'critical' => 'error',
                 'warning' => 'warning',
                 default => 'notice',
             };
             $properties = [];
-            if (null !== $f['file']) {
-                $properties[] = 'file=' . $escape((string) $f['file'], true);
-                if (null !== $f['line']) {
-                    $properties[] = 'line=' . $f['line'];
+            if (null !== $finding['file']) {
+                $properties[] = 'file=' . $escape((string) $finding['file'], true);
+                if (null !== $finding['line']) {
+                    $properties[] = 'line=' . $finding['line'];
                 }
             }
-            $properties[] = 'title=' . $escape('Doctrine Doctor: ' . $f['title'], true);
-            $message = $f['message'] . "\n" . sprintf('php bin/console doctrine:doctor:analyze --show-suggestion=%s', $f['id']);
+            $properties[] = 'title=' . $escape('Doctrine Doctor: ' . $finding['title'], true);
+            $message = $finding['message'] . "\n" . sprintf('php bin/console doctrine:doctor:analyze --show-suggestion=%s', $finding['id']);
             $output->writeln(sprintf('::%s %s::%s', $level, implode(',', $properties), $escape($message, false)), OutputInterface::OUTPUT_RAW);
         }
     }
@@ -261,17 +261,17 @@ class AnalyzeCommand extends Command
         }
 
         $byFile = [];
-        foreach ($findings as $f) {
-            $byFile[$f['file'] ?? 'Configuration and database'][] = $f;
+        foreach ($findings as $finding) {
+            $byFile[$finding['file'] ?? 'Configuration and database'][] = $finding;
         }
         ksort($byFile);
 
         $marks = ['critical' => '<fg=red;options=bold>critical</>', 'warning' => '<fg=yellow;options=bold>warning</>', 'info' => '<fg=blue>info</>'];
         foreach ($byFile as $file => $rows) {
-            usort($rows, static fn (array $a, array $b): int => [$a['line'] ?? 0, $a['title']] <=> [$b['line'] ?? 0, $b['title']]);
-            $io->table(['Line', (string) $file], array_map(static fn (array $f): array => [
-                $f['line'] ?? '',
-                sprintf("%s  %s\n%s\n<fg=gray>%s</>", $marks[$f['severity']] ?? $f['severity'], $f['title'], wordwrap((string) $f['message'], 100), implode(', ', array_filter([self::shortAnchor((string) $f['anchor']), $f['category'], 'id ' . $f['id']]))),
+            usort($rows, static fn (array $left, array $right): int => [$left['line'] ?? 0, $left['title']] <=> [$right['line'] ?? 0, $right['title']]);
+            $io->table(['Line', (string) $file], array_map(static fn (array $finding): array => [
+                $finding['line'] ?? '',
+                sprintf("%s  %s\n%s\n<fg=gray>%s</>", $marks[$finding['severity']] ?? $finding['severity'], $finding['title'], wordwrap((string) $finding['message'], 100), implode(', ', array_filter([self::shortAnchor((string) $finding['anchor']), $finding['category'], 'id ' . $finding['id']]))),
             ], $rows));
         }
 
@@ -285,7 +285,7 @@ class AnalyzeCommand extends Command
      */
     private function renderSuggestion(SymfonyStyle $io, array $findings, string $requestedId): void
     {
-        $matches = array_values(array_filter($findings, static fn (array $f): bool => $requestedId === $f['id']));
+        $matches = array_values(array_filter($findings, static fn (array $finding): bool => $requestedId === $finding['id']));
 
         if ([] === $matches) {
             $io->error(sprintf('Unknown issue ID "%s". Available IDs: %s', $requestedId, implode(', ', array_column($findings, 'id'))));
@@ -367,8 +367,8 @@ class AnalyzeCommand extends Command
      */
     private function writeBaseline(string $file, array $findings): void
     {
-        $entries = array_map(static fn (array $f): array => ['id' => $f['id'], 'severity' => $f['severity'], 'type' => $f['type'], 'title' => $f['title'], 'file' => $f['file']], $findings);
-        usort($entries, static fn (array $a, array $b): int => [$a['file'] ?? '', $a['id']] <=> [$b['file'] ?? '', $b['id']]);
+        $entries = array_map(static fn (array $finding): array => ['id' => $finding['id'], 'severity' => $finding['severity'], 'type' => $finding['type'], 'title' => $finding['title'], 'file' => $finding['file']], $findings);
+        usort($entries, static fn (array $left, array $right): int => [$left['file'] ?? '', $left['id']] <=> [$right['file'] ?? '', $right['id']]);
 
         file_put_contents($file, json_encode(['doctrine_doctor_baseline' => 1, 'findings' => $entries], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n");
     }

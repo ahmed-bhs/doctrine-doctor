@@ -19,57 +19,97 @@ use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
  * of its backtrace. Paths are made relative to the project directory so that reports, IDs and
  * baselines are identical on a developer machine and in CI.
  */
-final class FindingLocator
+final readonly class FindingLocator
 {
     private const array CLASS_KEYS = ['entity_fqcn', 'entity', 'entity_class', 'class', 'entityClass', 'class_name', 'className', 'embeddable_class', 'root_fqcn', 'root_class', 'root'];
 
     private const array FIELD_KEYS = ['field', 'field_name', 'fieldName', 'property', 'property_name', 'association'];
 
-    private readonly string $projectDir;
+    private string $projectDir;
 
     public function __construct(?string $projectDir = null)
     {
         $this->projectDir = rtrim(str_replace('\\', '/', $projectDir ?? (string) getcwd()), '/') . '/';
     }
 
+    /**
+     * Three early-exit sources tried in order; pdepend reports an NPath that does not reflect this method.
+     *
+     * @SuppressWarnings("PHPMD.NPathComplexity")
+     */
     public function locate(IssueInterface $issue): FindingLocation
     {
         $data = $issue->getData();
-
-        $class = $this->resolveClass($this->firstString($data, self::CLASS_KEYS));
-        $field = $this->firstString($data, self::FIELD_KEYS);
+        [$class, $field] = $this->subject($issue, $data);
         $method = $this->firstString($data, ['method']);
 
-        // Last resort: "Float Used for Money: StockAlert::$targetPrice", "Deep CTI Hierarchy: DepositInvoice (3 levels)".
-        if (null === $class && 1 === preg_match('/\b([A-Z][A-Za-z0-9_]*)(?:::\$([A-Za-z_][A-Za-z0-9_]*))?\b/', strstr($issue->getTitle(), ':') ?: '', $m)) {
-            $class = $this->resolveClass($m[1]);
-            $field ??= $m[2] ?? null;
-            if ('' === $field) {
-                $field = null;
-            }
+        $location = $this->fromClass($class, $field, $method);
+        $location ??= $this->fromExplicitFile($data, $method);
+        $location ??= $this->fromBacktrace((array) $issue->getBacktrace());
+
+        return $location ?? new FindingLocation(null, null, $this->anchor($class, $field, $method));
+    }
+
+    /**
+     * The class and field a finding is about, from the issue data or, as a last resort, from a title
+     * such as "Float Used for Money: StockAlert::$targetPrice".
+     *
+     * @param array<string, mixed> $data
+     * @return array{0: ?string, 1: ?string}
+     */
+    private function subject(IssueInterface $issue, array $data): array
+    {
+        $class = $this->resolveClass($this->firstString($data, self::CLASS_KEYS));
+        $field = $this->firstString($data, self::FIELD_KEYS);
+
+        if (null !== $class) {
+            return [$class, $field];
         }
 
-        $anchor = null !== $class ? $class . (null !== $field ? '::$' . ltrim($field, '$') : '') . (null !== $method ? '::' . $method . '()' : '') : '';
-
-        if (null !== $class && class_exists($class)) {
-            $reflection = new \ReflectionClass($class);
-            $file = $reflection->getFileName();
-
-            if (false !== $file) {
-                return new FindingLocation($this->relative($file), $this->lineIn($reflection, $field, $method), $anchor);
-            }
-
-            return new FindingLocation(null, null, $anchor);
+        $subject = strstr($issue->getTitle(), ':');
+        if (false === $subject || 1 !== preg_match('/\b([A-Z]\w*)(?:::\$(\w+))?\b/', $subject, $matches)) {
+            return [null, $field];
         }
 
-        if (isset($data['file']) && \is_string($data['file']) && '' !== $data['file']) {
-            $file = $this->relative($data['file']);
-            $line = isset($data['line']) && is_numeric($data['line']) ? (int) $data['line'] : null;
+        return [$this->resolveClass($matches[1]), $field ?? ($matches[2] ?? null)];
+    }
 
-            return new FindingLocation($file, $line, $file . (null !== $method ? '::' . $method . '()' : ''));
+    private function fromClass(?string $class, ?string $field, ?string $method): ?FindingLocation
+    {
+        if (null === $class || !class_exists($class)) {
+            return null;
         }
 
-        foreach ($issue->getBacktrace() ?? [] as $frame) {
+        $reflection = new \ReflectionClass($class);
+        $file = $reflection->getFileName();
+        if (false === $file) {
+            return new FindingLocation(null, null, $this->anchor($class, $field, $method));
+        }
+
+        return new FindingLocation($this->relative($file), $this->lineIn($reflection, $field, $method), $this->anchor($class, $field, $method));
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function fromExplicitFile(array $data, ?string $method): ?FindingLocation
+    {
+        if (!isset($data['file']) || !\is_string($data['file']) || '' === $data['file']) {
+            return null;
+        }
+
+        $file = $this->relative($data['file']);
+        $line = isset($data['line']) && is_numeric($data['line']) ? (int) $data['line'] : null;
+
+        return new FindingLocation($file, $line, $file . (null !== $method ? '::' . $method . '()' : ''));
+    }
+
+    /**
+     * @param array<mixed> $backtrace
+     */
+    private function fromBacktrace(array $backtrace): ?FindingLocation
+    {
+        foreach ($backtrace as $frame) {
             if (!\is_array($frame) || !isset($frame['file']) || !\is_string($frame['file']) || str_contains($frame['file'], '/vendor/')) {
                 continue;
             }
@@ -80,7 +120,16 @@ final class FindingLocator
             return new FindingLocation($file, $line, $file . ':' . ($line ?? 0));
         }
 
-        return new FindingLocation(null, null, $anchor);
+        return null;
+    }
+
+    private function anchor(?string $class, ?string $field, ?string $method): string
+    {
+        if (null === $class) {
+            return '';
+        }
+
+        return $class . (null !== $field ? '::$' . ltrim($field, '$') : '') . (null !== $method ? '::' . $method . '()' : '');
     }
 
     /**

@@ -91,9 +91,9 @@ final class AnalyzeCommandReportTest extends TestCase
 
     private function tester(string $description): CommandTester
     {
-        $analyzer = new class($description) implements StaticAnalyzerInterface {
+        $analyzer = new readonly class($description) implements StaticAnalyzerInterface {
             public function __construct(
-                private readonly string $description,
+                private string $description,
             ) {
             }
 

@@ -313,6 +313,7 @@ class UniqueEntityWithoutDatabaseIndexAnalyzer implements MetadataAnalyzerInterf
     private function hasMatchingUniqueTableIndex(ClassMetadata $metadata, array $columns): bool
     {
         $table = $metadata->table ?? [];
+        /** @var array<array-key, array<string, mixed>|object> $indexes ORM 3.8 types them as an alias PHPStan cannot resolve here */
         $indexes = $table['indexes'] ?? [];
 
         foreach ($indexes as $index) {

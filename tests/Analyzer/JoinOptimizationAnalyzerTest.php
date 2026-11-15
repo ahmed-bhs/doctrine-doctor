@@ -551,7 +551,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
             ->addQuery('SELECT * FROM a')
             ->addQuery('SELECT * FROM b')
             ->addQuery('SELECT u.id FROM users u ' .
-                'JOIN orders o ON u.id = o.user_id ' .   // unused
+                'JOIN orders o ON u.id = o.user_id ' . // unused
                 'JOIN products p ON u.id = p.user_id ' . // unused
                 'JOIN categories c ON u.id = c.user_id ' . // unused
                 'JOIN tags t ON u.id = t.user_id ' . // unused
