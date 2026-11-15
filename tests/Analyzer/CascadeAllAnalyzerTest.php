@@ -464,4 +464,22 @@ final class CascadeAllAnalyzerTest extends TestCase
         self::assertStringContainsString('cascade', strtolower($description));
         self::assertStringContainsString('all', strtolower($description));
     }
+
+    #[Test]
+    public function it_leaves_a_composition_with_orphan_removal_alone(): void
+    {
+        $analyzer = new CascadeAllAnalyzer(
+            PlatformAnalyzerTestHelper::createTestEntityManager([__DIR__ . '/../Fixtures/Entity/CascadeAllCompositionTest']),
+            PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            new \AhmedBhs\DoctrineDoctor\Factory\IssueFactory(),
+        );
+
+        $entities = array_map(
+            static fn ($issue): string => (string) ($issue->getData()['entity'] ?? ''),
+            $analyzer->analyze(QueryDataBuilder::create()->build())->toArray(),
+        );
+
+        self::assertNotContains(\AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CascadeAllCompositionTest\Country::class, $entities);
+        self::assertContains(\AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\CascadeAllCompositionTest\Region::class, $entities);
+    }
 }

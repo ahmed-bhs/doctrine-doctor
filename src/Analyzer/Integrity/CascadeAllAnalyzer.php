@@ -131,6 +131,14 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
                 continue;
             }
 
+            // Composition: the children belong to this entity (OneToMany or OneToOne with orphanRemoval), the pattern
+            // Doctrine documents for cascade. Removing the owner must remove them.
+            $type = MappingHelper::getAssociationType($associationMapping);
+            if (\in_array($type, [ClassMetadata::ONE_TO_MANY, ClassMetadata::ONE_TO_ONE], true)
+                && true === MappingHelper::getBool($associationMapping, 'orphanRemoval')) {
+                continue;
+            }
+
             // Determine severity based on association type and target entity
             $severity     = $this->determineSeverity($associationMapping);
             $targetEntity = $associationMapping->targetEntity;
