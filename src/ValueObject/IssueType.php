@@ -96,6 +96,8 @@ enum IssueType: string
     case ENTITY_DETACHED_IN_ASSOCIATION = 'entity_detached_in_association';
     case JOIN_COLUMN_NON_PRIMARY_KEY = 'join_column_non_primary_key';
     case DUPLICATE_PRIVATE_FIELD_IN_HIERARCHY = 'duplicate_private_field_in_hierarchy';
+
+    case IDENTICAL_QUERY_REPEATED = 'identical_query_repeated';
     case COMPOSITE_KEY_COMPLEXITY = 'composite_key_complexity';
     case ONE_TO_ONE_INVERSE_SIDE = 'one_to_one_inverse_side';
     case STI_SPARSE_TABLE = 'sti_sparse_table';
