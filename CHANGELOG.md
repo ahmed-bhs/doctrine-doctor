@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Findings and suggestions are short and plain.** Each suggestion shows an imperative header, one or two sentences built from the measured facts, one Before/After code block, at most one alternative and the documentation link (the templates went from 8,319 to about 5,200 lines). Descriptions are one fact sentence and one consequence. Emoji, BAD/GOOD banners, invented percentages and inflated wording are gone, and examples that used APIs removed from ORM 3 (`PARTIAL`, `useResultCache()`) were rewritten. The rules live in `docs/rules/messages.md`; `MessageStyleTest` rejects emoji and templates over 90 lines. Titles lost their severity words (for example `Dangerous cascade="all" Detected` is now `cascade="all" on Association`), so finding IDs from earlier versions change: regenerate baselines after upgrading.
+
 - **Finding IDs no longer depend on the description.** They hash the type, the title and the location anchor (class, field, method or file). Descriptions can quote values that differ between a laptop and CI, such as a database user, which made the same finding look new in CI.
 
 - **`DoctrineDoctorDataCollector` takes an `AnalysisTiming` instead of `$deferAnalysisToLateCollect`.** The bool covered two of the four timings; pass `AnalysisTiming::AfterResponse` for `true` and `AnalysisTiming::Request` for `false`. The bundle wires the collector itself, so only code constructing it by hand is affected.
