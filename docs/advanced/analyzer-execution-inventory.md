@@ -11,7 +11,7 @@ This reference lists each built-in analyzer and the place where it runs. It is m
 
 | Execution path | Count | Contract |
 |---------------|------:|----------|
-| Runtime profiler | 40 | `AnalyzerInterface` without a static marker |
+| Runtime profiler | 41 | `AnalyzerInterface` without a static marker |
 | Code and mapping checks | 55 | `StaticAnalyzerInterface` (including `MetadataAnalyzerInterface`) |
 | Optional database audits | 8 | `DatabaseAuditAnalyzerInterface` |
 
@@ -19,19 +19,20 @@ The bundle keeps `doctrine_doctor.analyzer` as the service registration tag. Dur
 
 The lists below reflect the interfaces implemented by the current built-in analyzer classes. Parser helpers and configuration objects are excluded.
 
-## Runtime profiler (40)
+## Runtime profiler (41)
 
 These checks need SQL or other context captured while a request runs.
 
 - `BulkInsertAnalyzer`
 - `BulkOperationAnalyzer`
 - `CartesianProductAnalyzer`
-- `DQLInjectionAnalyzer`
-- `DTOHydrationAnalyzer`
 - `DeepOffsetPaginationAnalyzer`
 - `DivisionByZeroAnalyzer`
+- `DQLInjectionAnalyzer`
+- `DTOHydrationAnalyzer`
 - `EagerLoadingAnalyzer`
 - `EntityManagerClearAnalyzer`
+- `FilteredFetchJoinAnalyzer`
 - `FindAllAnalyzer`
 - `FlushInLoopAnalyzer`
 - `FunctionOnPredicateColumnAnalyzer`
@@ -45,10 +46,10 @@ These checks need SQL or other context captured while a request runs.
 - `MissingIndexAnalyzer`
 - `MissingTransactionOnBatchAnalyzer`
 - `MissingVersionFieldForConcurrencyAnalyzer`
-- `NPlusOneAnalyzer`
-- `NPlusOneSqlAnalyzer`
 - `NestedRelationshipN1Analyzer`
 - `NotInSubqueryAnalyzer`
+- `NPlusOneAnalyzer`
+- `NPlusOneSqlAnalyzer`
 - `NullComparisonAnalyzer`
 - `OrderByNullableLeadingColumnAnalyzer`
 - `OrderByWithoutLimitAnalyzer`
@@ -56,9 +57,9 @@ These checks need SQL or other context captured while a request runs.
 - `PartialObjectAnalyzer`
 - `QueryBuilderBestPracticesAnalyzer`
 - `QueryCachingOpportunityAnalyzer`
-- `SQLInjectionInRawQueriesAnalyzer`
 - `SetMaxResultsWithCollectionJoinAnalyzer`
 - `SlowQueryAnalyzer`
+- `SQLInjectionInRawQueriesAnalyzer`
 - `StructuralMissingIndexAnalyzer`
 - `TransactionBoundaryAnalyzer`
 - `UnusedEagerLoadAnalyzer`

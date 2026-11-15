@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `FilteredFetchJoin` (critical, profiler): a to-many collection fetch-joined and filtered in WHERE, such as
+  `->select('p', 'productTaxon')->innerJoin('p.productTaxons', 'productTaxon')->andWhere('productTaxon.taxon = :c')`.
+  Doctrine hydrates the collection with the matching rows only and keeps it incomplete for the rest of the request.
+  Grouped queries and translations joined for one locale are left out.
 - **Three analyzers that read the application code** (`analysis.source_dirs`, `src` by default) next to the mapping:
   - `EntityManagerInService` (info): an application class receives the EntityManager in its constructor, so its
     logic depends on Doctrine. Repositories, Doctrine listeners and classes whose namespace contains one of

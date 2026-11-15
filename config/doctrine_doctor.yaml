@@ -266,6 +266,9 @@ doctrine_doctor:
         join_type_consistency:
             enabled: true
 
+        filtered_fetch_join:
+            enabled: true
+
         null_comparison:
             enabled: true
 

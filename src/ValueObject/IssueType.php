@@ -117,6 +117,7 @@ enum IssueType: string
     case ENTITY_MANAGER_IN_SERVICE = 'entity_manager_in_service';
     case UNUSED_INVERSE_SIDE = 'unused_inverse_side';
     case COLLECTION_FILTERED_IN_PHP = 'collection_filtered_in_php';
+    case FILTERED_FETCH_JOIN = 'filtered_fetch_join';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';
