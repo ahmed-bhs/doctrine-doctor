@@ -9,9 +9,8 @@
 
 declare(strict_types=1);
 
-namespace AhmedBhs\DoctrineDoctor\Command\Report;
+namespace AhmedBhs\DoctrineDoctor\Issue;
 
-use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 
 /**
  * Resolves the file and line a finding refers to, from the data analyzers attach to issues

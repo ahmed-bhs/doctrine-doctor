@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace AhmedBhs\DoctrineDoctor\Command\Report;
+namespace AhmedBhs\DoctrineDoctor\Issue;
 
 /**
  * Where a finding points to in the project: a file relative to the project root and a line,

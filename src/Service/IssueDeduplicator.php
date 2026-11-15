@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Service;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
-use AhmedBhs\DoctrineDoctor\Command\Report\FindingLocator;
+use AhmedBhs\DoctrineDoctor\Issue\FindingLocator;
 use AhmedBhs\DoctrineDoctor\Issue\DeduplicatableIssueInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
