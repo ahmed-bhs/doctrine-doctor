@@ -83,6 +83,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Database configuration findings printed `🪪  Database Config` in the report, a label instead of an identifier like
+  every other finding. They now print `🪪  database_configuration`.
 - `CascadeAll` warned about `cascade: ['all']` on a OneToMany or OneToOne with `orphanRemoval: true` (a country and
   its provinces). That is the composition Doctrine documents for cascades: removing the owner must remove them. Those
   associations are no longer reported.
