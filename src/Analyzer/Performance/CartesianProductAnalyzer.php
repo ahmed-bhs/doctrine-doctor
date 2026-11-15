@@ -208,7 +208,7 @@ class CartesianProductAnalyzer implements AnalyzerInterface
         $sourceGroups = [];
 
         foreach ($queryDataCollection as $queryData) {
-            if (!$queryData->isSelect()) {
+            if (!$queryData->isSelect() || $this->loadsInverseOneToOne($queryData->backtrace)) {
                 continue;
             }
 
@@ -252,6 +252,23 @@ class CartesianProductAnalyzer implements AnalyzerInterface
 
             yield $this->createRiskIssue($sourceEntity, $tables, array_values($sampleQueries));
         }
+    }
+
+    /**
+     * The inverse side of a OneToOne has the query shape of a collection (WHERE fk = ?) but holds one row: joining it
+     * multiplies nothing.
+     *
+     * @param array<int, array<string, mixed>>|null $backtrace
+     */
+    private function loadsInverseOneToOne(?array $backtrace): bool
+    {
+        foreach ($backtrace ?? [] as $frame) {
+            if ('loadOneToOneEntity' === ($frame['function'] ?? null)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

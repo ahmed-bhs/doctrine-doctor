@@ -362,4 +362,22 @@ final class CartesianProductAnalyzerTest extends TestCase
 
         self::assertCount(1, $riskIssues);
     }
+
+    #[Test]
+    public function it_does_not_count_inverse_one_to_one_loads_as_collections(): void
+    {
+        $frames = [['class' => 'Doctrine\\ORM\\Persisters\\Entity\\BasicEntityPersister', 'function' => 'loadOneToOneEntity']];
+        $builder = QueryDataBuilder::create();
+        for ($i = 0; $i < 10; ++$i) {
+            $builder->addQueryWithBacktrace('SELECT t0.id FROM shop_user t0 WHERE t0.customer_id = ?', $frames);
+            $builder->addQueryWithBacktrace('SELECT t0.id FROM loyalty_account t0 WHERE t0.customer_id = ?', $frames);
+        }
+
+        $risks = array_filter(
+            $this->analyzer->analyze($builder->build())->toArray(),
+            static fn ($issue) => str_contains((string) $issue->getTitle(), 'Cartesian Product Risk'),
+        );
+
+        self::assertCount(0, $risks);
+    }
 }

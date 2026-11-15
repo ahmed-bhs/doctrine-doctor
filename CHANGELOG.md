@@ -80,6 +80,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- N+1 caused by the inverse side of a OneToOne (loaded with each entity because Doctrine cannot make it lazy) was
+  reported as a lazy-loaded collection, and two of them on one entity as a cartesian product risk. It is now titled
+  `(inverse OneToOne)`, with the OneToOne suggestion, and no longer counts as a collection. On Doctrine ORM 3, the
+  collection behind an N+1 is resolved again from the mapping, so the suggestion names it.
 - `ColumnType` suggested native enums for open lists (currency, country, language and locale codes, MIME types,
   fields ending in `Code`) and for columns holding a single value, and reported the same field again for each mapped
   superclass of the hierarchy. On a Sylius shop, enum suggestions went from 38 to 8, all distinct (#106).

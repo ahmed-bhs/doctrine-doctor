@@ -101,7 +101,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
                         // The nplusone exemption is context-dependent (e.g., loading ONE parent vs MANY)
                         // For now, disabled to avoid false negatives
 
-                        $detectedType    = $this->detectNPlusOneType($sql);
+                        $detectedType    = $this->detectNPlusOneType($sql, $backtrace);
                         $triggerLocation = $this->extractTriggerLocation($backtrace);
 
                         $issueData = new IssueData(
@@ -237,10 +237,17 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
      *
      * OPTIMIZED: Uses CachedSqlStructureExtractor (transparent via DI) for 1000x+ speedup
      *
-     * @return array{type: 'proxy'|'collection'|'lookup'|'unknown', hasLimit: bool}
+     * @param array<int, array<string, mixed>>|null $backtrace
+     * @return array{type: 'proxy'|'collection'|'inverse OneToOne'|'lookup'|'unknown', hasLimit: bool}
      */
-    private function detectNPlusOneType(string $sql): array
+    private function detectNPlusOneType(string $sql, ?array $backtrace = null): array
     {
+        // The inverse side of a OneToOne is loaded with its owner (it cannot be a proxy). Its query has the shape of a
+        // collection load (WHERE fk = ?), only the persister call tells them apart.
+        if ($this->loadsInverseOneToOne($backtrace)) {
+            return ['type' => 'inverse OneToOne', 'hasLimit' => false];
+        }
+
         // Check for partial collection load first (collection with LIMIT)
         if ($this->sqlExtractor->detectPartialCollectionLoad($sql)) {
             return ['type' => 'collection', 'hasLimit' => true];
@@ -282,8 +289,24 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
     private function generateSuggestion(array $queryGroup, ?string $triggerLocation = null): ?SuggestionInterface
     {
         $sql  = $queryGroup[0]->sql;
-        $type = $this->detectNPlusOneType($sql);
+        $type = $this->detectNPlusOneType($sql, $queryGroup[0]->backtrace);
         $queryCount = \count($queryGroup);
+
+        if ('inverse OneToOne' === $type['type']) {
+            $inverseSide = $this->resolveInverseOneToOne($sql);
+            if (null !== $inverseSide) {
+                return $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Integrity/one_to_one_inverse_side',
+                    context: $inverseSide,
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::performance(),
+                        severity: $this->calculateEagerLoadingSeverity($queryCount),
+                        title: sprintf('OneToOne Inverse Side: %d queries for %s::$%s', $queryCount, $inverseSide['entity_class'], $inverseSide['field_name']),
+                        tags: ['one-to-one', 'performance', 'n+1', 'lazy-loading'],
+                    ),
+                );
+            }
+        }
 
         // Try to detect N+1 pattern from WHERE clause (most common pattern)
         $wherePattern = $this->sqlExtractor->detectNPlusOnePattern($sql);
@@ -497,10 +520,10 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             }
 
             foreach ($joinColumns as $joinColumn) {
-                if (!\is_array($joinColumn)) {
+                if (!\is_array($joinColumn) && !\is_object($joinColumn)) {
                     continue;
                 }
-                /** @var array<string, mixed> $joinColumn */
+                /** @var array<string, mixed>|object $joinColumn */
                 $columnName = MappingHelper::getString($joinColumn, 'name');
                 if (null !== $columnName && strtolower($columnName) === strtolower($fkColumnName)) {
                     $targetEntity = MappingHelper::getString($mapping, 'targetEntity');
@@ -533,6 +556,69 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
                     'parentEntity' => $this->shortClassName($targetEntityClass),
                     'collectionField' => $parentFieldName,
                     'childEntity' => $this->shortClassName($childEntityClass),
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>>|null $backtrace
+     */
+    private function loadsInverseOneToOne(?array $backtrace): bool
+    {
+        foreach ($backtrace ?? [] as $frame) {
+            if ('loadOneToOneEntity' === ($frame['function'] ?? null)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The inverse field loaded by "SELECT ... FROM owning_table WHERE fk = ?", as the template context.
+     *
+     * @return array{entity_class: string, entity_fqcn: string, field_name: string, target_class: string, target_fqcn: string, mapped_by: string}|null
+     */
+    private function resolveInverseOneToOne(string $sql): ?array
+    {
+        $pattern = $this->sqlExtractor->detectNPlusOnePattern($sql);
+        if (null === $pattern) {
+            return null;
+        }
+        if (null === $this->tableToEntityCache) {
+            $this->warmUpTableToEntityCache();
+        }
+        $owningClass = $this->tableToEntityCache[$pattern['table']] ?? null;
+        if (null === $owningClass) {
+            return null;
+        }
+
+        try {
+            /** @var class-string $owningClass */
+            $owning = $this->entityManager->getClassMetadata($owningClass);
+            $owningSide = $this->findManyToOneByFkColumn($owning, $this->camelCaseToSnakeCase($pattern['foreignKey']) . '_id');
+            if (null === $owningSide) {
+                return null;
+            }
+            /** @var class-string $inverseClass */
+            $inverseClass = $owningSide['targetEntity'];
+            $inverse = $this->entityManager->getClassMetadata($inverseClass);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        foreach ($inverse->getAssociationMappings() as $field => $mapping) {
+            if ($owningSide['fieldName'] === MappingHelper::getString($mapping, 'mappedBy')) {
+                return [
+                    'entity_class' => $this->shortClassName($inverseClass),
+                    'entity_fqcn' => $inverseClass,
+                    'field_name' => (string) $field,
+                    'target_class' => $this->shortClassName($owningClass),
+                    'target_fqcn' => $owningClass,
+                    'mapped_by' => $owningSide['fieldName'],
                 ];
             }
         }
@@ -750,6 +836,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
     {
         $origin = match ($detectedType['type']) {
             'proxy' => 'Lazy loading of a ManyToOne/OneToOne proxy',
+            'inverse OneToOne' => 'Loading the inverse side of a OneToOne, which Doctrine cannot make lazy, with each entity',
             'collection' => $detectedType['hasLimit']
                 ? 'Partial access to a lazy collection (LIMIT in the query)'
                 : 'Lazy loading of a OneToMany/ManyToMany collection',
