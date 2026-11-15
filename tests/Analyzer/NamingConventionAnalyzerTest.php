@@ -294,7 +294,7 @@ final class NamingConventionAnalyzerTest extends TestCase
         self::assertNotFalse($issue);
         $data = $issue->getData();
         self::assertEquals('customer_id', $data['suggested_name']);
-        self::assertEquals('critical', $issue->getSeverity()->value);
+        self::assertEquals('info', $issue->getSeverity()->value);
     }
 
     #[Test]
@@ -323,7 +323,7 @@ final class NamingConventionAnalyzerTest extends TestCase
         self::assertNotFalse($issue);
         $data = $issue->getData();
         self::assertEquals('product_id', $data['suggested_name']);
-        self::assertEquals('critical', $issue->getSeverity()->value);
+        self::assertEquals('info', $issue->getSeverity()->value);
     }
 
     #[Test]
@@ -496,9 +496,9 @@ final class NamingConventionAnalyzerTest extends TestCase
                     break;
 
                 case 'missing_id_suffix':
-                    // Foreign key violations are CRITICAL
+                    // A foreign key name is a convention: nothing breaks
                     if (isset($data['fk_column'])) {
-                        self::assertEquals('critical', $severity, 'FK violations should be CRITICAL severity');
+                        self::assertEquals('info', $severity, 'FK naming is a convention, INFO severity');
                     }
                     break;
 

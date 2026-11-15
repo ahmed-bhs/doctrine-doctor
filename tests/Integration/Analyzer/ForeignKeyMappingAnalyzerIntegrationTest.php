@@ -148,4 +148,19 @@ final class ForeignKeyMappingAnalyzerIntegrationTest extends TestCase
 
         return new TwigTemplateRenderer($twigEnvironment);
     }
+
+    #[Test]
+    public function it_reports_a_foreign_key_whose_name_ends_with_the_entity(): void
+    {
+        $entityManager = new \Doctrine\ORM\EntityManager(
+            \Doctrine\DBAL\DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]),
+            PlatformAnalyzerTestHelper::createTestConfiguration([__DIR__ . '/../../Fixtures/Entity/ForeignKeySuffixTest']),
+        );
+        $analyzer = new ForeignKeyMappingAnalyzer($entityManager, PlatformAnalyzerTestHelper::createSuggestionFactory(), PlatformAnalyzerTestHelper::createIssueFactory());
+
+        $descriptions = array_map(static fn ($issue): string => (string) $issue->getDescription(), $analyzer->analyze(QueryDataCollection::empty())->toArray());
+
+        self::assertCount(1, $descriptions);
+        self::assertStringContainsString('defaultProductId', $descriptions[0]);
+    }
 }

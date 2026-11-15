@@ -328,6 +328,7 @@ class ForeignKeyMappingAnalyzer implements MetadataAnalyzerInterface
         }
 
         $baseNameLower = strtolower($baseName);
+        $suffixMatch = null;
 
         foreach ($allMetadata as $metadata) {
             $className = $metadata->getName();
@@ -336,9 +337,15 @@ class ForeignKeyMappingAnalyzer implements MetadataAnalyzerInterface
             if ($shortName === $baseNameLower) {
                 return $className;
             }
+
+            // defaultProductId, mainCustomerId: the field names a role, the entity ends it.
+            if (\strlen($shortName) >= 4 && str_ends_with($baseNameLower, $shortName)
+                && (null === $suffixMatch || \strlen($shortName) > \strlen($this->shortClassName($suffixMatch)))) {
+                $suffixMatch = $className;
+            }
         }
 
-        return ucfirst($baseName);
+        return $suffixMatch ?? ucfirst($baseName);
     }
 
     /**
