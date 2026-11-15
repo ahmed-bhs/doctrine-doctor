@@ -42,6 +42,7 @@ class PerformanceIssue extends AbstractIssue
             IssueType::UNUSED_EAGER_LOAD->value,
             IssueType::AGGREGATION_WITH_INNER_JOIN->value,
             IssueType::DTO_HYDRATION->value,
+            IssueType::COLLECTION_FILTERED_IN_PHP->value,
         ];
     }
 

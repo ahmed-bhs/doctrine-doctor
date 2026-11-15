@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Three analyzers that read the application code** (`analysis.source_dirs`, `src` by default) next to the mapping:
+  - `EntityManagerInService` (info): an application class receives the EntityManager in its constructor, so its
+    logic depends on Doctrine. Repositories, Doctrine listeners and classes whose namespace contains one of
+    `excluded_namespaces` (`Repository`, `Infrastructure`, `Persistence`, `Doctrine`, `DataFixtures`, `Migrations`…)
+    are left out. The finding names the repositories the class reaches through `getRepository()`.
+  - `UnusedInverseSide` (info): the inverse side of a to-many association is never read outside its entity (no
+    getter, adder or remover call, no DQL path, no criteria key). The suggestion keeps only the owning side and shows
+    the arbitrary DQL join that works without it.
+  - `CollectionFilteredInPhp` (warning): `$entity->getItems()->filter(...)` loads the whole collection to keep some
+    elements, where `matching()` with a Criteria filters in SQL. The methods are configurable (`methods: [filter]`).
+- `FlushInEventListener` also checks entity listeners (`#[AsEntityListener]`, `#[ORM\EntityListeners]`) and listeners or
+  subscribers of the event manager (`#[AsDoctrineListener]`), not only lifecycle callbacks of the entity. A `flush()` in
+  `postFlush` gets its own message: Doctrine dispatches `postFlush` before it clears the unit of work, so the nested
+  flush replays the collection deletions of the previous one and many-to-many links cleared then added again are lost.
 - **`doctrine:doctor:analyze` reports findings like PHPStan.** Findings are grouped by file and sorted by line: the location comes from the class, field or method the analyzer reports (fully qualified or short class names, or the issue title as a last resort) or from the first application frame of the backtrace, relative to the project directory. Each row shows the severity, the title, the first sentences of the description and the finding ID; `--show-suggestion=<id>` still prints the fix.
 - **Baselines for existing projects.** `--generate-baseline[=file]` writes every current finding to `doctrine-doctor-baseline.json`; `--baseline=file` ignores them, reports how many were ignored, and notes baseline entries that no longer match. The command then fails only on new findings.
 - **`--error-format=table|github|json`.** `github` prints workflow annotations with file and line; `table` prints them too when `GITHUB_ACTIONS=true`, so findings show up on the pull request diff. `json` prints totals and findings with their location.

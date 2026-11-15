@@ -81,6 +81,8 @@ class IntegrityIssue extends AbstractIssue
             IssueType::MANY_TO_MANY_EXTRA_COLUMNS->value,
             IssueType::MISSING_VERSION_FIELD_FOR_CONCURRENCY->value,
             IssueType::FLUSH_IN_LIFECYCLE_CALLBACK->value,
+            IssueType::ENTITY_MANAGER_IN_SERVICE->value,
+            IssueType::UNUSED_INVERSE_SIDE->value,
         ];
     }
 
