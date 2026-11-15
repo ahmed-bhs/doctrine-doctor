@@ -215,7 +215,7 @@ class ManyToManyWithExtraColumnsAnalyzer implements DatabaseAuditAnalyzerInterfa
 
         return new IntegrityIssue([
             'type' => IssueType::MANY_TO_MANY_EXTRA_COLUMNS->value,
-            'title' => sprintf('%s::%s has a join table with extra columns', $shortClassName, $fieldName),
+            'title' => sprintf('Join Table With Extra Columns: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity' => Severity::warning(),
             'suggestion' => $this->suggestionFactory->createFromTemplate(
@@ -235,6 +235,8 @@ class ManyToManyWithExtraColumnsAnalyzer implements DatabaseAuditAnalyzerInterfa
             ),
             'backtrace' => null,
             'queries' => [],
+            'entity' => $entityClass,
+            'field' => $fieldName,
         ]);
     }
 }
