@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Issue;
 
-
 /**
  * Resolves the file and line a finding refers to, from the data analyzers attach to issues
  * (entity class, field, method, explicit file and line) or from the first application frame
