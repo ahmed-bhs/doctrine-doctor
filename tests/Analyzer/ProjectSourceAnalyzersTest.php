@@ -128,6 +128,17 @@ final class ProjectSourceAnalyzersTest extends TestCase
         self::assertSame(42, $issues[0]->getData()['line']);
     }
 
+    #[Test]
+    public function it_flags_an_entity_manager_used_after_a_failed_flush(): void
+    {
+        $issues = $this->issues(new \AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EntityManagerUsedAfterFailureAnalyzer(new ProjectSourceScanner(self::PROJECT, ['App']), PlatformAnalyzerTestHelper::createSuggestionFactory()));
+
+        self::assertSame([
+            'EntityManager Used After Failure: NewsletterImport::importAll()',
+            'EntityManager Used After Failure: NewsletterImport::retryOnce()',
+        ], $this->titles($issues));
+    }
+
     private function entityManager(): \Doctrine\ORM\EntityManagerInterface
     {
         return PlatformAnalyzerTestHelper::createTestEntityManager([self::PROJECT . '/App/Entity']);

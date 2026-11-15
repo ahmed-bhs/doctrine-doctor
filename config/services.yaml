@@ -626,6 +626,20 @@ services:
         tags:
             - { name: doctrine_doctor.analyzer }
 
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MissingSoftDeleteFilterAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EntityManagerUsedAfterFailureAnalyzer:
+        arguments:
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MigrationStateAnalyzer:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'
