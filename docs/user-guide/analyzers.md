@@ -325,7 +325,7 @@ class Customer {
 | ClassTableInheritanceDepthAnalyzer | Class Table Inheritance | Deep hierarchy | One JOIN per level |
 | ClassTableInheritanceThinSubclassAnalyzer | Class Table Inheritance | Subclass adds almost no fields | JOIN cost for little data |
 | SingleTableInheritanceSparseTableAnalyzer | Single Table Inheritance | Mostly-empty columns | Wasted storage |
-| SingleTableInheritanceNullableColumnAnalyzer | Single Table Inheritance | Non-nullable subclass column | Inserts fail for siblings |
+| SingleTableInheritanceNullableColumnAnalyzer | Single Table Inheritance | Required subclass column | Created nullable, the database does not enforce it |
 | PartialObjectAnalyzer | Hydration | Full entity loaded for a few fields | Unnecessary data transfer |
 | FlushInEventListenerAnalyzer | Lifecycle | `flush()` inside a lifecycle callback, entity listener or Doctrine event listener | Nested unit of work; in `postFlush`, replayed collection deletions |
 | MissingVersionFieldForConcurrencyAnalyzer | Concurrency | No `#[ORM\Version]` field | Lost updates |

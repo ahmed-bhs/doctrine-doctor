@@ -75,4 +75,17 @@ final class SingleTableInheritanceNullableColumnAnalyzerTest extends TestCase
             self::assertStringContainsString('imei', $issue->getTitle());
         }
     }
+
+    #[Test]
+    public function it_says_the_database_does_not_enforce_the_column(): void
+    {
+        $issues = array_values(array_filter(
+            $this->analyzer->analyze(QueryDataBuilder::create()->build())->toArray(),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'imei'),
+        ));
+
+        self::assertSame('STI Column Not Enforced by the Database: StiPhone::$imei', $issues[0]->getTitle());
+        self::assertSame('info', $issues[0]->getSeverity()->value);
+        self::assertStringContainsString('creates the columns of single-table subclasses as nullable', (string) $issues[0]->getDescription());
+    }
 }
