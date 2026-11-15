@@ -94,9 +94,12 @@ class SingleTableInheritanceNullableColumnAnalyzer implements StaticAnalyzerInte
                     continue;
                 }
 
+                // SchemaTool creates every column of a single-table subclass as nullable: the siblings leave it empty.
                 $description = DescriptionHighlighter::highlight(
-                    'Field {field} in STI subclass {subclass} is NOT NULL, but all subtypes share one table. '
-                    . 'Inserting a {root} or any sibling fails because {field} has no value for them.',
+                    '{subclass}::{field} is required in the mapping, but Doctrine creates the columns of single-table '
+                    . 'subclasses as nullable, since the other {root} subtypes leave them empty. The database cannot reject '
+                    . 'a {subclass} without {field}: only the PHP code does. A CHECK constraint on the discriminator, or '
+                    . 'Class Table Inheritance, keeps the rule in the database.',
                     [
                         'field' => $fieldName,
                         'subclass' => $this->shortClassName($subClass),
@@ -107,12 +110,12 @@ class SingleTableInheritanceNullableColumnAnalyzer implements StaticAnalyzerInte
                 yield new IntegrityIssue(new IssueData(
                     type: IssueType::STI_NON_NULLABLE_SUBCLASS_COLUMN->value,
                     title: sprintf(
-                        'Non-nullable STI column: %s::$%s',
+                        'STI Column Not Enforced by the Database: %s::$%s',
                         $this->shortClassName($subClass),
                         $fieldName,
                     ),
                     description: $description,
-                    severity: Severity::critical(),
+                    severity: Severity::info(),
                 )->toArray());
             }
         }

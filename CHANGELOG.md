@@ -80,6 +80,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `SingleTableInheritanceNullableColumn` reported, as critical, that inserting a sibling fails when a subclass field
+  is not nullable. Doctrine's schema tool creates every column of a single-table subclass as nullable, so no insert
+  fails. The finding is now an info that says what really happens: the database does not enforce the field, only the
+  PHP code does, and a CHECK constraint or Class Table Inheritance keeps the rule in the database.
 - `EntityStateConsistency` reported every required ManyToOne or OneToOne without `cascade: ['persist']`, which is
   the normal mapping of an association to an entity that lives on its own (43 warnings on a Sylius shop), and implied
   adding a cascade. It now reads the application code (`analysis.source_dirs`) and reports only a new entity attached
