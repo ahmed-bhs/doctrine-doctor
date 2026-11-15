@@ -709,4 +709,22 @@ final class IssueDeduplicatorTest extends TestCase
 
         self::assertCount(2, $deduplicated);
     }
+
+    #[Test]
+    public function it_never_merges_a_limit_on_a_collection_join_into_a_performance_finding(): void
+    {
+        $query = new QueryData(
+            sql: 'SELECT p0_.id, v1_.id FROM product p0_ LEFT JOIN variant v1_ ON v1_.product_id = p0_.id LIMIT 24',
+            executionTime: QueryExecutionTime::fromMilliseconds(40.0),
+        );
+        $issues = IssueCollection::fromArray([
+            new PerformanceIssue(['type' => IssueType::CARTESIAN_PRODUCT->value, 'title' => 'Cartesian Product: 2 collection JOINs in one query', 'description' => 'Rows multiply.', 'severity' => 'critical', 'queries' => [$query]]),
+            new PerformanceIssue(['type' => IssueType::SET_MAX_RESULTS_WITH_COLLECTION_JOIN->value, 'title' => 'setMaxResults() with Collection Join Detected', 'description' => 'LIMIT cuts the collection.', 'severity' => 'critical', 'queries' => [$query]]),
+        ]);
+
+        $titles = array_map(static fn (IssueInterface $issue): string => $issue->getTitle(), $this->deduplicator->deduplicate($issues)->toArray());
+
+        self::assertContains('setMaxResults() with Collection Join Detected', $titles);
+        self::assertCount(2, $titles);
+    }
 }

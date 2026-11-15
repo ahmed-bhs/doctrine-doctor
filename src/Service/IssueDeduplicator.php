@@ -101,6 +101,9 @@ final readonly class IssueDeduplicator
         // issue that happens to touch the same SQL.
         $selfContainedTypes = [
             IssueType::DTO_HYDRATION->value,
+            // A LIMIT that cuts a fetch-joined collection returns wrong results: never hide it behind a
+            // performance finding on the same query.
+            IssueType::SET_MAX_RESULTS_WITH_COLLECTION_JOIN->value,
         ];
 
         if (in_array($type, $selfContainedTypes, true)) {

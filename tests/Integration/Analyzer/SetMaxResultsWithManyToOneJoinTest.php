@@ -75,4 +75,34 @@ final class SetMaxResultsWithManyToOneJoinTest extends DatabaseTestCase
 
         self::assertCount(1, $issues->toArray(), 'A OneToMany collection join multiplies rows, so LIMIT corrupts hydration and must be flagged');
     }
+
+    #[Test]
+    public function it_flags_a_collection_join_even_when_another_join_filters_on_locale(): void
+    {
+        // One join is a translation filtered on locale (one row per entity), the other a collection filtered
+        // on a column that is not unique: the collection still multiplies the rows.
+        $sql = 'SELECT b0_.id, b0_.title, t1_.locale, c2_.id AS c2_id, c2_.content '
+            . 'FROM blog_posts b0_ '
+            . 'LEFT JOIN blog_post_translation t1_ ON t1_.post_id = b0_.id AND (t1_.locale = ?) '
+            . 'LEFT JOIN comments c2_ ON c2_.post_id = b0_.id AND c2_.author_id = ? '
+            . 'LIMIT 24';
+
+        $issues = $this->analyzer->analyze(QueryDataBuilder::create()->addQuery($sql)->build());
+
+        self::assertCount(1, $issues->toArray());
+    }
+
+    #[Test]
+    public function it_does_not_flag_a_grouped_aggregate(): void
+    {
+        $sql = 'SELECT u0_.id, u0_.name, COUNT(b1_.id) AS sclr_2 '
+            . 'FROM users u0_ '
+            . 'INNER JOIN blog_posts b1_ ON b1_.author_id = u0_.id '
+            . 'GROUP BY u0_.id '
+            . 'LIMIT 50';
+
+        $issues = $this->analyzer->analyze(QueryDataBuilder::create()->addQuery($sql)->build());
+
+        self::assertCount(0, $issues->toArray(), 'GROUP BY returns one row per group: LIMIT counts groups');
+    }
 }
