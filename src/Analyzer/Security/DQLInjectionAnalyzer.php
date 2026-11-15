@@ -184,8 +184,34 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             return false;
         }
 
-        return 1 === preg_match("/WHERE\s+.+=\s*'[^']*'/i", $queryData->sql)
+        $hasLiteral = 1 === preg_match("/WHERE\s+.+=\s*'[^']*'/i", $queryData->sql)
             || 1 === preg_match('/WHERE\s+.+=\s*"[^"]*"/i', $queryData->sql);
+
+        return $hasLiteral && !$this->literalsAreWrittenInSource($queryData);
+    }
+
+    /**
+     * Every "= 'value'" of the SQL is written as is in the application file that ran the query: the value is a
+     * constant of the code, such as o.state = 'completed', not user input.
+     */
+    private function literalsAreWrittenInSource(QueryData $queryData): bool
+    {
+        preg_match_all("/=\s*'([^']*)'/", $queryData->sql, $matches);
+        if ([] === $matches[1]) {
+            return false;
+        }
+
+        foreach ($queryData->backtrace ?? [] as $frame) {
+            $file = \is_array($frame) && isset($frame['file']) && \is_string($frame['file']) ? $frame['file'] : '';
+            if ('' === $file || str_contains($file, '/vendor/') || !is_file($file)) {
+                continue;
+            }
+
+            $source = (string) file_get_contents($file);
+            return array_all($matches[1], fn ($value) => !(1 !== preg_match("/=\s*\\\\?'" . preg_quote($value, '/') . "\\\\?'/", $source)));
+        }
+
+        return false;
     }
 
     private function createUnparameterizedDqlIssue(QueryData $queryData): \AhmedBhs\DoctrineDoctor\Issue\IssueInterface

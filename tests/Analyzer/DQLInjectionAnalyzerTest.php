@@ -405,4 +405,26 @@ final class DQLInjectionAnalyzerTest extends TestCase
         );
         self::assertCount(0, $dqlIssues);
     }
+
+    #[Test]
+    public function it_does_not_flag_a_literal_written_as_a_constant_in_the_calling_code(): void
+    {
+        $sql = "SELECT s0_.id AS id_0 FROM sylius_order s0_ WHERE s0_.checkout_state = 'completed'";
+        $frame = [['file' => \dirname(__DIR__) . '/Fixtures/Dql/CompletedOrdersQuery.php', 'line' => 17]];
+
+        $issues = $this->analyzer->analyze(QueryDataBuilder::create()->addQueryWithBacktrace($sql, $frame)->build());
+
+        self::assertCount(0, $issues->toArray());
+    }
+
+    #[Test]
+    public function it_still_flags_a_literal_that_is_not_in_the_calling_code(): void
+    {
+        $sql = "SELECT s0_.id AS id_0 FROM sylius_product s0_ WHERE s0_.code = 'lin'";
+        $frame = [['file' => \dirname(__DIR__) . '/Fixtures/Dql/CompletedOrdersQuery.php', 'line' => 17]];
+
+        $issues = $this->analyzer->analyze(QueryDataBuilder::create()->addQueryWithBacktrace($sql, $frame)->build());
+
+        self::assertCount(1, $issues->toArray());
+    }
 }
