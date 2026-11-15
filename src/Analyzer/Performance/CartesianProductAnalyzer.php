@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\InverseOneToOneLoad;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -208,7 +209,7 @@ class CartesianProductAnalyzer implements AnalyzerInterface
         $sourceGroups = [];
 
         foreach ($queryDataCollection as $queryData) {
-            if (!$queryData->isSelect()) {
+            if (!$queryData->isSelect() || InverseOneToOneLoad::inBacktrace($queryData->backtrace)) {
                 continue;
             }
 
