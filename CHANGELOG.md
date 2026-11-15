@@ -80,6 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The `DQLInjection` message said "no bound parameter" for queries that bind other values, and quoted the start of
+  the SELECT. It now quotes the concatenated comparisons, such as `s1_.name LIKE '%lin%'`.
 - `SensitiveDataExposure` said that the serializer includes any sensitive field without `#[Ignore]`. When Symfony's
   serializer is installed, it now reads its mapping (attributes, XML or YAML, parent classes included): a field
   ignored there, or left out of every group while the other fields have groups, is not reported, and a field in

@@ -188,6 +188,16 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
     }
 
     /**
+     * The comparisons with a quoted value of the WHERE clause, such as "s1_.name LIKE '%lin%'" (three at most).
+     */
+    private function literalConditions(string $sql): string
+    {
+        preg_match_all("/[\\w.]+\\s*(?:=|<>|!=|\\bLIKE)\\s*'[^']*'/i", (string) stristr($sql, ' WHERE '), $matches);
+
+        return implode(', ', \array_slice(array_unique($matches[0]), 0, 3));
+    }
+
+    /**
      * Quoted values compared in the WHERE clause (=, <>, !=, LIKE).
      *
      * @return list<string>
@@ -248,9 +258,9 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             type: IssueType::DQL_INJECTION->value,
             title: 'DQL Injection Risk: Doctrine query with concatenated literal value',
             description: DescriptionHighlighter::highlight(
-                'Doctrine-generated SQL has a literal value in its WHERE clause and no bound parameter: {query}. '
+                'A column is compared to a value written into the Doctrine-generated SQL, not to a bound parameter: {conditions}. '
                 . 'The DQL was built by string concatenation, so any user input in it can change the query.',
-                ['query' => substr($queryData->sql, 0, 120)],
+                ['conditions' => $this->literalConditions($queryData->sql)],
             ),
             severity: $suggestion->getMetadata()->severity,
             suggestion: $suggestion,
