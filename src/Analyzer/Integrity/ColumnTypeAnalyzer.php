@@ -90,6 +90,12 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
                     $allMetadata     = $metadataFactory->getAllMetadata();
 
                     foreach ($allMetadata as $metadata) {
+                        // A mapped superclass has no table of its own: its fields are reported on the entities
+                        // that extend it, once.
+                        if ($metadata->isMappedSuperclass || $metadata->isEmbeddedClass) {
+                            continue;
+                        }
+
                         $entityIssues = $this->analyzeEntity($metadata);
 
                         foreach ($entityIssues as $entityIssue) {
@@ -340,7 +346,7 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
         }
 
         // Pre-filter on field name to avoid unnecessary DB queries
-        if (!$this->matchesEnumPattern($fieldName)) {
+        if (!$this->matchesEnumPattern($fieldName) || $this->isOpenVocabulary($fieldName)) {
             return null;
         }
 
@@ -351,8 +357,8 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
             return null;
         }
 
-        // Not an enum: too many distinct values or ratio too high
-        if ($analysis['distinct'] > 15 || $analysis['ratio'] > 0.03) {
+        // Not an enum: too many distinct values or ratio too high. A single value says nothing about the set.
+        if ($analysis['distinct'] < 2 || $analysis['distinct'] > 15 || $analysis['ratio'] > 0.03) {
             return null;
         }
 
@@ -429,6 +435,18 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
         } catch (\Throwable) {
             return ['distinct' => 0, 'total' => 0, 'ratio' => 1.0];
         }
+    }
+
+    /**
+     * Values from an open list: standard codes (currencies, countries, languages, MIME types, time zones) or codes
+     * that identify other records. Few values in today's rows do not make them a closed enum.
+     */
+    private function isOpenVocabulary(string $fieldName): bool
+    {
+        $lower = strtolower($fieldName);
+
+        return str_ends_with($lower, 'code')
+            || array_any(['currency', 'country', 'language', 'locale', 'mime', 'contenttype', 'timezone', 'extension'], static fn (string $word): bool => str_contains($lower, $word));
     }
 
     /**

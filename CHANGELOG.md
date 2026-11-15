@@ -76,6 +76,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `ColumnType` suggested native enums for open lists (currency, country, language and locale codes, MIME types,
+  fields ending in `Code`) and for columns holding a single value, and reported the same field again for each mapped
+  superclass of the hierarchy. On a Sylius shop, enum suggestions went from 38 to 8, all distinct (#106).
 - `DQLInjection` reported a constant of the code, such as `->where("o.state = 'completed'")`, as a DQL built by
   string concatenation. A literal that is written as is in the application file that ran the query is no longer
   reported; a literal that comes from elsewhere still is.
