@@ -9,9 +9,7 @@
 
 declare(strict_types=1);
 
-namespace AhmedBhs\DoctrineDoctor\Command\Report;
-
-use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
+namespace AhmedBhs\DoctrineDoctor\Issue;
 
 /**
  * Resolves the file and line a finding refers to, from the data analyzers attach to issues
@@ -48,6 +46,17 @@ final readonly class FindingLocator
         $location ??= $this->fromBacktrace((array) $issue->getBacktrace());
 
         return $location ?? new FindingLocation(null, null, $this->anchor($class, $field, $method));
+    }
+
+    /**
+     * "Class::$field" or "Class::method()" the finding is about, without reading any file; empty when unknown.
+     */
+    public function subjectOf(IssueInterface $issue): string
+    {
+        $data = $issue->getData();
+        [$class, $field] = $this->subject($issue, $data);
+
+        return $this->anchor($class, $field, $this->firstString($data, ['method']));
     }
 
     /**

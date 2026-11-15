@@ -46,6 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Mapping findings that share a title and a field name (for example `adjustments` on `Order`, `OrderItem`
+  and `Shipment`) were merged into one, and the one kept depended on the metadata load order. The same
+  project could report different findings locally and in CI, which broke baselines. They are now kept apart.
 - **The pending-analysis listener no longer builds services before authentication.** `kernel.request` listeners are instantiated before the firewall runs, and `PendingAnalysisSubscriber` (2.12.0) pulled in the profiler, every data collector and Twig with its globals. An application Twig global reading the user in its constructor then saw `null` and failed (`Call to a member function getOrganisation() on null`). The subscriber now receives its analyzer as a service closure, built only for `_wdt` and `_profiler` requests.
 - **Each analyzer no longer parses the same SQL again.** About forty call sites ran `new Parser($sql)` on every query, so a request with 149 queries spent 15.8 s in the runtime analysis. A shared, bounded `SqlParserCache` parses each distinct statement once: 0.48 s on the same queries, with identical findings.
 - **The static SQL caches are bounded.** `SqlNormalizationCache` and `CachedSqlStructureExtractor` grew for the lifetime of the process, which leaks in worker runtimes. Each cache now keeps at most 2,000 entries (FIFO).
