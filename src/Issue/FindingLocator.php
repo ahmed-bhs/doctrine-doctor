@@ -41,8 +41,12 @@ final readonly class FindingLocator
         [$class, $field] = $this->subject($issue, $data);
         $method = $this->firstString($data, ['method']);
 
-        $location = $this->fromClass($class, $field, $method);
+        // A class named in the data wins, then an explicit file and line, then a class read from the title:
+        // resolving a short name from the title depends on the classes already loaded, an explicit line does not.
+        $hasExplicitClass = null !== $this->firstString($data, self::CLASS_KEYS);
+        $location = $hasExplicitClass ? $this->fromClass($class, $field, $method) : null;
         $location ??= $this->fromExplicitFile($data, $method);
+        $location ??= $hasExplicitClass ? null : $this->fromClass($class, $field, $method);
         $location ??= $this->fromBacktrace((array) $issue->getBacktrace());
 
         return $location ?? new FindingLocation(null, null, $this->anchor($class, $field, $method));

@@ -89,6 +89,26 @@ final class AnalyzeCommandReportTest extends TestCase
         self::assertSame(2, $this->tester('x')->execute(['--error-format' => 'xml']));
     }
 
+    #[Test]
+    public function it_prefers_an_explicit_line_to_a_class_read_from_the_title(): void
+    {
+        $locator = new \AhmedBhs\DoctrineDoctor\Issue\FindingLocator(\dirname(__DIR__, 3));
+        $issue = new \AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue([
+            'type' => 'collection_filtered_in_php',
+            'title' => 'Collection Filtered in PHP: BaseOrderWithInit::items()',
+            'description' => 'A description.',
+            'severity' => 'warning',
+            'file' => \dirname(__DIR__, 3) . '/tests/Fixtures/Entity/BaseOrderWithInit.php',
+            'line' => 40,
+            'queries' => [],
+        ]);
+
+        $location = $locator->locate($issue);
+
+        self::assertSame('tests/Fixtures/Entity/BaseOrderWithInit.php', $location->file);
+        self::assertSame(40, $location->line);
+    }
+
     private function tester(string $description): CommandTester
     {
         $analyzer = new readonly class($description) implements StaticAnalyzerInterface {
