@@ -12,8 +12,8 @@ This reference lists each built-in analyzer and the place where it runs. It is m
 | Execution path | Count | Contract |
 |---------------|------:|----------|
 | Runtime profiler | 41 | `AnalyzerInterface` without a static marker |
-| Code and mapping checks | 55 | `StaticAnalyzerInterface` (including `MetadataAnalyzerInterface`) |
-| Optional database audits | 8 | `DatabaseAuditAnalyzerInterface` |
+| Code and mapping checks | 56 | `StaticAnalyzerInterface` (including `MetadataAnalyzerInterface`) |
+| Optional database audits | 9 | `DatabaseAuditAnalyzerInterface` |
 
 The bundle keeps `doctrine_doctor.analyzer` as the service registration tag. During container compilation, services marked static are sent to the CI command; other analyzer services are sent to the profiler. Database audits also implement the static contract, and the command skips them unless `--with-database` is set.
 
@@ -65,7 +65,7 @@ These checks need SQL or other context captured while a request runs.
 - `UnusedEagerLoadAnalyzer`
 - `YearFunctionOptimizationAnalyzer`
 
-## Code and mapping checks (55)
+## Code and mapping checks (56)
 
 These checks can run without SQL from the current web request.
 
@@ -114,6 +114,7 @@ These checks can run without SQL from the current web request.
 - `OverprivilegedDatabaseUserAnalyzer`
 - `PrimaryKeyStrategyAnalyzer`
 - `PropertyTypeMismatchAnalyzer`
+- `RiskyMigrationAnalyzer`
 - `SensitiveDataExposureAnalyzer`
 - `SingleTableInheritanceNullableColumnAnalyzer`
 - `SingleTableInheritanceSparseTableAnalyzer`
@@ -125,7 +126,7 @@ These checks can run without SQL from the current web request.
 - `UniqueEntityWithoutDatabaseIndexAnalyzer`
 - `UnusedInverseSideAnalyzer`
 
-## Optional database audits (8)
+## Optional database audits (9)
 
 The command includes these only when run with `--with-database`.
 
@@ -135,9 +136,6 @@ The command includes these only when run with `--with-database`.
 - `ConnectionPoolingAnalyzer`
 - `InnoDBEngineAnalyzer`
 - `ManyToManyWithExtraColumnsAnalyzer`
+- `MigrationStateAnalyzer`
 - `StrictModeAnalyzer`
 - `TimeZoneAnalyzer`
-
----
-
-**[← Architecture](architecture)** | **[Template Security →](template-security)**
