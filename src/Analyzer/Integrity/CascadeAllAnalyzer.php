@@ -145,10 +145,10 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
             ]);
 
             $issue->setSeverity($severity);
-            $issue->setTitle('Dangerous cascade="all" Detected');
+            $issue->setTitle('cascade="all" on Association');
 
             $message = DescriptionHighlighter::highlight(
-                "Field {field} in entity {class} uses {cascade}. This is dangerous and can lead to accidental data deletion or duplication.",
+                "Field {field} in entity {class} uses cascade {cascade}, which includes remove. Removing the owner also removes the related entities, even when other records still use them.",
                 [
                     'field' => $fieldName,
                     'class' => $entityClass,
@@ -232,8 +232,8 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
         }
 
         $suggestions[] = '';
-        $suggestions[] = ' cascade="all" = persist+remove+merge+detach+refresh (too broad!)';
-        $suggestions[] = '👉 Only use explicit cascades you actually need';
+        $suggestions[] = 'cascade="all" = persist+remove+merge+detach+refresh';
+        $suggestions[] = 'Only list the cascades you actually need';
 
         // Create suggestion using factory
         return $this->suggestionFactory->createFromTemplate(

@@ -318,7 +318,7 @@ final class LazyLoadingAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $description = $issuesArray[0]->getDescription();
 
-        self::assertStringContainsString('JOIN FETCH', $description);
+        self::assertStringContainsString('lazy-loaded queries', $description);
     }
 
     #[Test]

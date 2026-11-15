@@ -357,7 +357,7 @@ final class TemplateValidationTest extends TestCase
             'avg_time'   => 0.0,
         ]);
 
-        self::assertStringContainsString('Result cache saves ~0%', $result['code']);
+        self::assertStringContainsString('0.00ms total', $result['code']);
         self::assertStringContainsString('0.00ms total', $result['description']);
     }
 
@@ -369,7 +369,7 @@ final class TemplateValidationTest extends TestCase
             'query_count' => 0,
         ]);
 
-        self::assertStringContainsString('Query reduction:</strong> 0%', $result['code']);
+        self::assertStringContainsString('0 queries loaded', $result['code']);
     }
 
     public function test_configuration_handles_partial_context(): void
@@ -378,7 +378,7 @@ final class TemplateValidationTest extends TestCase
             'setting' => 'doctrine.orm.auto_generate_proxy_classes',
         ]);
 
-        self::assertStringContainsString('Configuration Issue', $result['code']);
+        self::assertStringContainsString('doctrine.orm.auto_generate_proxy_classes', $result['code']);
         self::assertStringContainsString('Change doctrine.orm.auto_generate_proxy_classes from "" to ""', $result['description']);
     }
 

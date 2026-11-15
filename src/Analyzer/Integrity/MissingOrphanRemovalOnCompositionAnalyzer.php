@@ -250,7 +250,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements MetadataAnalyzerInter
         $codeQualityIssue->setTitle($title);
 
         $message = DescriptionHighlighter::highlight(
-            "OneToMany field {field} in entity {class} appears to be a composition relationship but lacks {orphan}. This leaves orphaned records in the database when children are removed from the collection.",
+            "OneToMany field {field} in entity {class} looks like a composition but has no {orphan}. Children removed from the collection stay in the database as orphan rows.",
             [
                 'field' => $fieldName,
                 'class' => $entityClass,
@@ -259,11 +259,7 @@ class MissingOrphanRemovalOnCompositionAnalyzer implements MetadataAnalyzerInter
         );
 
         if ($isVendor) {
-            $message .= "\n\nWARNING: This entity is from a vendor dependency. " .
-                "This may be an intentional design choice. Consider:\n" .
-                "1. Verifying if this is intentional (e.g., Reviews should persist independently)\n" .
-                "2. Creating a local entity that extends this class if you need different behavior\n" .
-                "3. Accepting this as vendor design decision";
+            $message .= ' The entity comes from a vendor dependency, where this may be an intentional design choice.';
         }
 
         $codeQualityIssue->setMessage($message);

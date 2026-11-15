@@ -11,47 +11,24 @@ $shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Public setter on soft delete field'); ?>
+<?php echo suggestionHeader('Replace the soft delete setter'); ?>
 <div class="suggestion-content">
-<div class="alert alert-warning"><code><?php echo $e($fieldName); ?></code> has a public setter, allowing direct manipulation of the deletion timestamp.</div>
+<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> has a public setter, so any caller can backdate or clear a deletion. Expose <code>delete()</code> and <code>restore()</code> instead.</p>
 
-<p>Soft delete should be managed through business logic methods.</p>
-
-<h4>Fix</h4>
-<div class="query-item"><pre><code class="language-php">class <?php echo $e($shortClass); ?>
-
+<div class="query-item"><pre><code class="language-php">public function delete(): void
 {
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $<?php echo $e($fieldName); ?> = null;
+    $this-&gt;<?php echo $e($fieldName); ?> ??= new \DateTimeImmutable();
+}
 
-    public function delete(): void
-    {
-        if ($this->isDeleted()) {
-            throw new \LogicException('Already deleted');
-        }
-        $this-><?php echo $e($fieldName); ?> = new \DateTimeImmutable();
-    }
+public function restore(): void
+{
+    $this-&gt;<?php echo $e($fieldName); ?> = null;
+}
 
-    public function restore(): void
-    {
-        if (!$this->isDeleted()) {
-            throw new \LogicException('Not deleted');
-        }
-        $this-><?php echo $e($fieldName); ?> = null;
-    }
-
-    public function isDeleted(): bool
-    {
-        return null !== $this-><?php echo $e($fieldName); ?>;
-    }
-
-    public function get<?php echo $e(ucfirst($fieldName)); ?>(): ?\DateTimeImmutable
-    {
-        return $this-><?php echo $e($fieldName); ?>;
-    }
+public function get<?php echo $e(ucfirst($fieldName)); ?>(): ?\DateTimeImmutable
+{
+    return $this-&gt;<?php echo $e($fieldName); ?>;
 }</code></pre></div>
-
-<p>Use <code>delete()</code> and <code>restore()</code> methods instead of a setter.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#doctrine-mapping-types', 'Doctrine ORM Mapping Types'); ?>
 </div>

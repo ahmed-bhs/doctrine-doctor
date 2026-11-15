@@ -12,27 +12,17 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Cache query on static table'); ?>
+<?php echo suggestionHeader('Cache the result of this lookup query'); ?>
 <div class="suggestion-content">
-<div class="alert alert-info">Query on static table <code><?php echo $e($table_name); ?></code> (rarely-changing lookup data)</div>
+<div class="alert alert-info">
+    <code><?php echo $e($table_name); ?></code> holds rarely changing lookup data, yet the query reaches the database on every request.
+    A result cache serves it until the data changes.
+</div>
 
-<h4>Query</h4>
-<div class="query-item"><pre><code class="language-sql"><?php echo $e($sql); ?></code></pre></div>
+<div class="query-item"><pre><code class="language-php">$query-&gt;enableResultCache(86400, '<?php echo $e($table_name); ?>_all');
 
-<h4>Solution: Cache for 24h</h4>
-<div class="query-item"><pre><code class="language-php">$query->useResultCache(true, 86400, '<?php echo $e($table_name); ?>_all');</code></pre></div>
-
-<p><strong>Impact:</strong> 50-200x faster, 99% less DB load.</p>
-
-<h4>Cache durations</h4>
-<ul>
-    <li>Never changes (countries): 604800s (1 week)</li>
-    <li>Rarely changes (categories): 86400s (24h)</li>
-    <li>Occasionally (settings): 3600s (1h)</li>
-</ul>
-
-<h4>Invalidation (when data changes)</h4>
-<div class="query-item"><pre><code class="language-php">$cacheDriver->delete('<?php echo $e($table_name); ?>_all');</code></pre></div>
+// After writing to <?php echo $e($table_name); ?>, drop the cached entry
+$em-&gt;getConfiguration()-&gt;getResultCache()?-&gt;deleteItem('<?php echo $e($table_name); ?>_all');</code></pre></div>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html', 'Doctrine ORM Caching'); ?>
 </div>
@@ -41,5 +31,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Cache queries on the static table %s to improve performance', $table_name),
+    'description' => sprintf('Cache queries on the lookup table %s', $table_name),
 ];

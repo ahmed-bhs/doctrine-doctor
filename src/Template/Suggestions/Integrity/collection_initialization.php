@@ -18,29 +18,10 @@ $shortClass = false !== $lastBackslash ? substr($lastBackslash, 1) : $entityClas
 $mappedBy = 'OneToMany' === $associationType ? ", mappedBy: '" . $mappedByValue . "'" : '';
 ob_start();
 ?>
-<?php echo suggestionHeader('Uninitialized collection'); ?>
+<?php echo suggestionHeader('Initialize the collection in the constructor'); ?>
 <div class="suggestion-content">
-<div class="alert alert-danger"><strong><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></strong> is not initialized</div>
+<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> is never initialized<?php echo $hasConstructor ? ' by the existing constructor' : ', and the entity has no constructor'; ?>. On a new entity, calling <code>add()</code> or <code>count()</code> on it throws an Error.</p>
 
-<?php if ($hasConstructor) { ?>
-<p>The constructor exists but does not initialize <code>$<?php echo $e($fieldName); ?></code>. Add the initialization or use constructor promotion.</p>
-<?php } else { ?>
-<p>This entity has no constructor. Collections must be initialized to avoid null pointer errors.</p>
-<?php } ?>
-
-<h4>Current code</h4>
-<div class="query-item"><pre><code class="language-php">class <?php echo $e($shortClass); ?> {
-    #[ORM\<?php echo $e($associationType); ?>(targetEntity: <?php echo $e($targetEntity); ?>::class<?php echo $e($mappedBy); ?>)]
-    private Collection $<?php echo $e($fieldName); ?>;
-<?php if ($hasConstructor) { ?>
-
-    public function __construct() {
-        // $<?php echo $e($fieldName); ?> is not initialized here
-    }
-<?php } ?>
-}</code></pre></div>
-
-<h4>Option 1 — Constructor initialization</h4>
 <div class="query-item"><pre><code class="language-php">use Doctrine\Common\Collections\ArrayCollection;
 
 class <?php echo $e($shortClass); ?> {
@@ -49,17 +30,6 @@ class <?php echo $e($shortClass); ?> {
 
     public function __construct() {
         $this-><?php echo $e($fieldName); ?> = new ArrayCollection();
-    }
-}</code></pre></div>
-
-<h4>Option 2 — Constructor promotion (PHP 8.1+)</h4>
-<div class="query-item"><pre><code class="language-php">use Doctrine\Common\Collections\ArrayCollection;
-
-class <?php echo $e($shortClass); ?> {
-    public function __construct(
-        #[ORM\<?php echo $e($associationType); ?>(targetEntity: <?php echo $e($targetEntity); ?>::class<?php echo $e($mappedBy); ?>)]
-        private Collection $<?php echo $e($fieldName); ?> = new ArrayCollection(),
-    ) {
     }
 }</code></pre></div>
 

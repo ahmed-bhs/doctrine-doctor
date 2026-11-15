@@ -56,9 +56,7 @@ class MappedSuperclassOneToManyAnalyzer implements StaticAnalyzerInterface
 
                     $description = DescriptionHighlighter::highlight(
                         'Mapped Superclass {entity} declares a OneToMany association on ${field}. '
-                        . 'Doctrine does not support OneToMany associations on Mapped Superclasses '
-                        . 'because the inverse side cannot reference a non-entity class. '
-                        . 'This will cause a MappingException at runtime.',
+                        . 'The inverse side cannot point to a class that is not an entity, so Doctrine throws a MappingException at runtime.',
                         [
                             'entity' => $this->shortClassName($metadata->getName()),
                             'field' => $mapping->fieldName,

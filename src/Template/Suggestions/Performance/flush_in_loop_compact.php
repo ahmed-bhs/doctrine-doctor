@@ -5,40 +5,36 @@ declare(strict_types=1);
 /** @var array<string, mixed> $context */
 $flushCount = max(0, (int) ($context['flush_count'] ?? 0));
 $operationsBetweenFlush = max(0, (int) ($context['operations_between_flush'] ?? 20));
-$estimatedGain = $flushCount > 0 ? round((1 - (ceil($flushCount / 20) / $flushCount)) * 100) : 0;
 
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
-<div class="suggestion-header"><h4>flush() in loop (<?php echo $flushCount; ?> calls)</h4></div>
+<?php echo suggestionHeader('Flush in batches, not in the loop'); ?>
 <div class="suggestion-content">
-<div class="query-item"><pre><code class="language-php">// Current: <?php echo $flushCount; ?> flush()
+<p>flush() ran <?php echo $flushCount; ?> times inside a loop; each call computes the change set and opens a transaction.</p>
+<div class="query-item"><pre><code class="language-php">// Before
 foreach ($items as $item) {
-    $em->persist($entity);
-    $em->flush(); // Every iteration
+    $em-&gt;persist($item);
+    $em-&gt;flush();
 }
 
-// Better: batch of 20
-$batch = 20;
-foreach ($items as $i => $item) {
-    $em->persist($entity);
-    if ($i % $batch === 0) {
-        $em->flush();
-        $em->clear();
+// After: one flush per 20 entities
+foreach ($items as $i =&gt; $item) {
+    $em-&gt;persist($item);
+    if (0 === ($i + 1) % 20) {
+        $em-&gt;flush();
+        $em-&gt;clear();
     }
 }
-$em->flush();</code></pre></div>
+$em-&gt;flush();</code></pre></div>
 
-<p>
-    ~<?php echo $estimatedGain; ?>% faster
-    | <a href="https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html" target="_blank" rel="noopener noreferrer">Docs</a>
-</p>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html', 'Doctrine batch processing'); ?>
 </div>
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Use batch processing (%d flush() calls in a loop)', $flushCount),
+    'description' => sprintf('Flush in batches instead of %d times in a loop', $flushCount),
 ];

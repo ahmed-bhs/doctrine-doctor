@@ -292,17 +292,15 @@ class SoftDeleteableTraitAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
-            'CRITICAL: Soft delete field %s::$%s is NOT nullable! ' .
-            'For soft delete to work, deletedAt MUST be nullable. ' .
-            'NULL = not deleted, DateTime = deleted. ' .
-            'This is a critical misconfiguration that breaks soft delete functionality.',
+            'Soft delete field %s::$%s is not nullable, but soft delete relies on NULL = not deleted. ' .
+            'Every new row is either rejected or saved as already deleted.',
             $shortClassName,
             $fieldName,
         );
 
         return $this->issueFactory->createFromArray([
             'type' => IssueType::SOFT_DELETE_NOT_NULLABLE->value,
-            'title'       => sprintf('CRITICAL: deletedAt Not Nullable: %s::$%s', $shortClassName, $fieldName),
+            'title'       => sprintf('deletedAt Not Nullable: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity'    => 'critical',
             'category'    => 'configuration',
@@ -324,8 +322,8 @@ class SoftDeleteableTraitAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
-            'Soft delete field %s::$%s uses mutable DateTime. ' .
-            'Use DateTimeImmutable to prevent accidental modifications.',
+            'Soft delete field %s::$%s uses mutable DateTime instead of DateTimeImmutable. ' .
+            'Code that modifies the returned date changes the deletion time without Doctrine noticing.',
             $shortClassName,
             $fieldName,
         );
@@ -355,7 +353,7 @@ class SoftDeleteableTraitAnalyzer implements MetadataAnalyzerInterface
 
         $description = sprintf(
             'Soft delete field %s::$%s has a public setter. ' .
-            'Soft deletes should be managed through delete() method or Doctrine extensions, not manual setters.',
+            'Any code can delete or restore a row by hand, bypassing the soft delete listener and its events.',
             $shortClassName,
             $fieldName,
         );
@@ -384,8 +382,8 @@ class SoftDeleteableTraitAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
-            'Soft delete field %s::$%s is missing timezone information. ' .
-            'Use datetimetz_immutable for consistent soft delete timestamps across timezones.',
+            'Soft delete field %s::$%s is stored without timezone information. ' .
+            'Deletion times written from servers in different timezones cannot be compared reliably.',
             $shortClassName,
             $fieldName,
         );
@@ -414,9 +412,8 @@ class SoftDeleteableTraitAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
-            'CRITICAL: Entity %s has CASCADE DELETE on association %s but uses soft delete! ' .
-            'CASCADE DELETE will physically delete related records, bypassing soft delete. ' .
-            'This can cause data loss. Consider removing CASCADE DELETE or use application-level cascade.',
+            'Entity %s uses soft delete but has CASCADE DELETE on association %s. ' .
+            'Related records are physically deleted while the parent is only marked as deleted, a data loss that restoring the parent cannot undo.',
             $shortClassName,
             $fieldName,
         );

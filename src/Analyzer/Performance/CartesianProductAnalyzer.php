@@ -162,19 +162,13 @@ class CartesianProductAnalyzer implements AnalyzerInterface
 
         $issueData = new IssueData(
             type: IssueType::CARTESIAN_PRODUCT->value,
-            title: sprintf('Cartesian Product: %d Collection JOINs Causing O(n^%d) Hydration', $joinCount, $joinCount),
+            title: sprintf('Cartesian Product: %d collection JOINs in one query', $joinCount),
             description: sprintf(
-                'Query performs %d LEFT JOINs on collection-valued associations (%s). ',
+                'The query LEFT JOINs %d collections (%s), so the database returns one row for every combination of their rows. '
+                . 'Row count and hydration cost grow with the product of the collection sizes, not their sum.',
                 $joinCount,
                 implode(', ', $tables),
-            ) .
-            'This creates a cartesian product that exponentially increases SQL rows and hydration cost. ' .
-            sprintf(
-                'With %d collections, each row is duplicated across all combinations (O(n^%d)). ',
-                $joinCount,
-                $joinCount,
-            ) .
-            'Use multi-step hydration to split into separate queries.',
+            ),
             severity: Severity::critical(),
             suggestion: $this->createSuggestion($joinCount, $tables, $sql),
             queries: [$queryData],
@@ -270,20 +264,14 @@ class CartesianProductAnalyzer implements AnalyzerInterface
 
         $issueData = new IssueData(
             type: IssueType::CARTESIAN_PRODUCT_RISK->value,
-            title: sprintf(
-                'Cartesian Product Risk: %d Collections on %s (use Multi-Step Hydration)',
-                $collectionCount,
-                $sourceEntity,
-            ),
+            title: sprintf('Cartesian Product Risk: %d Collections on %s', $collectionCount, $sourceEntity),
             description: sprintf(
-                'Detected %d N+1 collection groups (%s) all loading from the same source entity "%s". ',
+                '%d collections (%s) of entity "%s" are each lazy-loaded in a loop. '
+                . 'Fetch-joining them all in one query to fix the N+1 would return the product of their rows.',
                 $collectionCount,
                 implode(', ', $tables),
                 $sourceEntity,
-            ) .
-            'If someone attempts to fix this N+1 by adding LEFT JOINs in a single query, ' .
-            sprintf('it will create a cartesian product with O(n^%d) hydration complexity. ', $collectionCount) .
-            'Use multi-step hydration instead: one separate query per collection.',
+            ),
             severity: Severity::warning(),
             suggestion: $this->createRiskSuggestion($collectionCount, $tables, $sourceEntity),
             queries: $sampleQueries,

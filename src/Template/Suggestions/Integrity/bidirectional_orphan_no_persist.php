@@ -12,33 +12,27 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('orphanRemoval without cascade="persist"'); ?>
-
+<?php echo suggestionHeader("Add cascade: ['persist'] next to orphanRemoval"); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <code><?php echo $e($parentField); ?></code> has <code>orphanRemoval=true</code> but no <code>cascade="persist"</code>. You can delete children but not automatically save new ones.
-    </div>
+<p><code><?php echo $e($parentClass); ?>::$<?php echo $e($parentField); ?></code> deletes children removed from the collection, but new children still need an explicit <code>persist()</code>. A parent that owns its children usually handles both.</p>
 
-    <p>With orphanRemoval but no cascade persist, removing children from the collection will delete them, but adding new children requires manual persist(). This is usually not what you want for a composition relationship.</p>
+<div class="query-item"><pre><code class="language-php">class <?php echo $e($parentClass); ?>
 
-    <h4>Fix</h4>
-    <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($parentClass); ?> {
-    #[ORM\OneToMany(cascade: ['persist', 'remove'], orphanRemoval: true)]
+{
+    #[ORM\OneToMany(
+        mappedBy: 'parent', // keep your current mappedBy
+        cascade: ['persist', 'remove'], // was missing 'persist'
+        orphanRemoval: true,
+    )]
     private Collection $<?php echo $e($parentField); ?>;
-}</code></pre>
-    </div>
+}</code></pre></div>
 
-    <p>For full composition (Order → OrderItems), use <code>cascade={"persist", "remove"}</code> with <code>orphanRemoval=true</code>. This way both adding and removing children works automatically.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#orphan-removal', 'Doctrine ORM Orphan Removal'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#orphan-removal', 'Doctrine ORM Orphan Removal'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Add cascade="persist" with orphanRemoval for complete composition semantics',
+    'description' => 'Add cascade="persist" next to orphanRemoval',
 ];

@@ -23,45 +23,12 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<div class="suggestion-header">
-    <h4>Composite Primary Key in <?php echo $e($shortName); ?></h4>
-</div>
-
+<?php echo suggestionHeader('Add a surrogate primary key'); ?>
 <div class="suggestion-content">
-<?php if ($columnCount >= 3) { ?>
-    <div class="alert alert-danger">
-        <strong><?php echo $e($shortName); ?></strong> has a composite primary key with <strong><?php echo $columnCount; ?> columns</strong> (<code><?php echo $e(implode(', ', $identifierFields)); ?></code>). This severely limits Doctrine ORM features.
-    </div>
-<?php } else { ?>
-    <div class="alert alert-warning">
-        <strong><?php echo $e($shortName); ?></strong> has a composite primary key (<code><?php echo $e(implode(', ', $identifierFields)); ?></code>). This limits Doctrine ORM features.
-    </div>
-<?php } ?>
+<p><code><?php echo $e($shortName); ?></code> has a <?php echo $columnCount; ?>-column primary key (<code><?php echo $e(implode(', ', $identifierFields)); ?></code>)<?php if ([] !== $referencedBy) { ?>, and <?php echo $e(implode(', ', array_map(strval(...), $referencedBy))); ?> must repeat all of it in their foreign keys<?php } ?>. Composite keys also rule out <code>#[ORM\GeneratedValue]</code> and need an array in <code>find()</code>.</p>
 
-    <h4>Limitations</h4>
-    <ul>
-        <li><code>getReference()</code> does not work with composite keys</li>
-        <li>Entities referencing <strong><?php echo $e($shortName); ?></strong> must map all <?php echo $columnCount; ?> key columns in their foreign keys</li>
-        <li>Identity map lookups are slower (hash of <?php echo $columnCount; ?> values instead of 1)</li>
-        <li><code>GeneratedValue</code> strategy is unavailable</li>
-        <li><code>$repository->find($id)</code> requires an array instead of a scalar</li>
-    </ul>
-
-<?php if ([] !== $referencedBy) { ?>
-    <h4>Impacted entities</h4>
-    <p>The following entities reference <strong><?php echo $e($shortName); ?></strong> and must carry the full composite foreign key:</p>
-    <ul>
-<?php foreach ($referencedBy as $ref) { ?>
-        <li><code><?php echo $e((string) $ref); ?></code></li>
-<?php } ?>
-    </ul>
-<?php } ?>
-
-    <h4>Solution: Add a surrogate primary key</h4>
-    <div class="query-item">
-        <pre><code class="language-php">#[ORM\Entity]
-#[ORM\UniqueConstraint(columns: [<?php echo implode(', ', array_map(fn ($f) => "'" . $e($f) . "'", $identifierFields)); ?>])]
+<div class="query-item"><pre><code class="language-php">#[ORM\Entity]
+#[ORM\UniqueConstraint(columns: [<?php echo implode(', ', array_map(fn ($f) => "'" . $e((string) $f) . "'", $identifierFields)); ?>])]
 class <?php echo $e($shortName); ?>
 
 {
@@ -70,15 +37,10 @@ class <?php echo $e($shortName); ?>
     #[ORM\Column]
     private ?int $id = null;
 
-<?php foreach ($identifierFields as $field) { ?>
-    // '<?php echo $e($field); ?>' is no longer part of the primary key
-<?php } ?>
-}
+    // Former key columns stay as regular columns, unique together
+}</code></pre></div>
 
-// Then generate a migration to update the schema</code></pre>
-    </div>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/composite-primary-keys.html', 'Doctrine Composite Keys'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/composite-primary-keys.html', 'Doctrine Composite Keys'); ?>
 </div>
 
 <?php

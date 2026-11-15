@@ -301,14 +301,12 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
         $isParameter = 'string_column_vs_integer_parameter' === $mismatch['kind'];
 
         $description = sprintf(
-            '%s MySQL and MariaDB convert the column value of every row to a number before comparing, so the index ' .
-            'on %s cannot be used to look the value up and every row is read (full scan)%s. %s',
+            '%s MySQL and MariaDB then convert %s to a number on every row, so its index is not used (full scan)%s.',
             $isParameter
                 ? sprintf('Text column %s is compared to %s, bound as an integer because DQL infers the type from the PHP int value.', $mismatch['column'], $mismatch['literal'])
                 : sprintf('Text column %s is compared to the number %s.', $mismatch['column'], $mismatch['literal']),
             $mismatch['column'],
             $isParameter ? '' : '; PostgreSQL rejects the comparison',
-            $isParameter ? 'Pass the value as a string, or declare the parameter type.' : 'Compare it to a string instead.',
         );
 
         $title = $isParameter

@@ -6,50 +6,35 @@ declare(strict_types=1);
  * @var string $entity_class Entity class name
  * @var string $field_name   Field name
  */
-
-// Extract context
 $entityClass = $context['entity_class'] ?? '';
 $entityClass = is_string($entityClass) ? $entityClass : '';
 $fieldName = $context['field_name'] ?? '';
 
-// Escaping function
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-
+<?php echo suggestionHeader('Make the creator column NOT NULL'); ?>
 <div class="suggestion-content">
-    <h4>createdBy should be NOT NULL</h4>
-    <p>
-        <code><?= $e($fieldName) ?></code> (usually createdBy/author) should be NOT NULL. Every entity must have a creator for proper audit trail. Nullable createdBy makes it impossible to know who created the entity, which breaks accountability and compliance requirements.
-    </p>
+<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> is nullable, so a row can be saved without knowing who created it. Require the creator in the constructor and drop the public setter.</p>
 
-    <h4>Fix</h4>
-    <pre><code class="language-php">use Doctrine\ORM\Mapping as ORM;
+<div class="query-item"><pre><code class="language-php">#[ORM\Entity]
+class <?php echo $e($shortClass); ?>
 
-#[ORM\Entity]
-class <?= $e(basename(str_replace('\\', '/', $entityClass))) . "\n" ?>
 {
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private User $<?= $e($fieldName) ?>;
+    private User $<?php echo $e($fieldName); ?>;
 
-    public function __construct(User $<?= $e($fieldName) ?>)
+    public function __construct(User $<?php echo $e($fieldName); ?>)
     {
-        $this-><?= $e($fieldName) ?> = $<?= $e($fieldName) ?>;
+        $this-><?php echo $e($fieldName); ?> = $<?php echo $e($fieldName); ?>;
     }
+}</code></pre></div>
 
-    public function get<?= $e(ucfirst($fieldName)) ?>(): User
-    {
-        return $this-><?= $e($fieldName) ?>;
-    }
-}</code></pre>
-
-    <p>Set in constructor to ensure it's always present. Don't add a public setter.</p>
-
-    <?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md', 'Doctrine Extensions Blameable'); ?>
+<?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md', 'Doctrine Extensions Blameable'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 

@@ -99,10 +99,8 @@ class OneToOneInverseSideAnalyzer implements MetadataAnalyzerInterface
 
             $description = DescriptionHighlighter::highlight(
                 "{class}::\${field} is the inverse side of a bidirectional OneToOne with {target}. "
-                . "Doctrine cannot lazy-load the inverse side because the foreign key is on {target}'s table. "
-                . 'Every time you load a {class}, Doctrine executes an extra SELECT to resolve this relation, '
-                . 'even if you never access ${field}. '
-                . 'On a findAll() returning N rows, this silently generates N+1 queries.',
+                . 'The foreign key is on the {target} table, so Doctrine runs one extra SELECT per loaded {class} '
+                . 'even when ${field} is never read, an N+1 on every list.',
                 [
                     'class' => $shortName,
                     'field' => $fieldName,

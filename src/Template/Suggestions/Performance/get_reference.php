@@ -4,45 +4,31 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var string $entity
- * @var mixed $occurrences
  * @var array<string, mixed> $context
  */
 $entity      = (string) ($context['entity'] ?? 'Entity');
 $occurrences = (int) ($context['occurrences'] ?? 0);
-$severity = (string) ($context['severity'] ?? 'info');
-$e                                                   = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$severity    = (string) ($context['severity'] ?? 'info');
+$e           = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Use getReference() for better performance'); ?>
-
+<?php echo suggestionHeader('Use getReference() to set a relation'); ?>
 <div class="suggestion-content">
-    <div class="alert <?php echo severityAlertClass($severity); ?>">
-        Found <strong><?php echo $occurrences; ?></strong> <?php echo $occurrences > 1 ? 'places' : 'place'; ?> where <code>find()</code> is used just to set a relationship.
-    </div>
-
-    <p>When you only need to set a foreign key, <code>find()</code> wastes a query. Use <code>getReference()</code> instead — it creates a proxy without hitting the database.</p>
-
-    <h4>Current code</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Triggers a SELECT query
-$user = $em->find(User::class, $userId);
-$order->setUser($user);</code></pre>
-    </div>
-
-    <h4>Use getReference()</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// No query until you access properties
-$user = $em->getReference(User::class, $userId);
-$order->setUser($user);</code></pre>
-    </div>
-
-    <p>Use <code>find()</code> when you need to access the entity's data or validate it exists. Use <code>getReference()</code> when you only need the ID for a relationship.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-objects.html#entity-object-graph-traversal', 'Doctrine getReference() docs'); ?>
+<div class="alert <?php echo severityAlertClass($severity); ?>">
+    <code>find()</code> loads <code><?php echo $e($entity); ?></code> in <?php echo $occurrences; ?> <?php echo 1 === $occurrences ? 'place' : 'places'; ?> only to assign it to a relation.
+    <code>getReference()</code> returns a proxy holding the identifier, without a query.
 </div>
 
+<div class="query-item"><pre><code class="language-php">// Before: SELECT to set a foreign key
+$order-&gt;setUser($em-&gt;find(User::class, $userId));
+
+// After: no query until a field of the proxy is read
+$order-&gt;setUser($em-&gt;getReference(User::class, $userId));</code></pre></div>
+
+<p>Keep <code>find()</code> when you read the entity or need to check that it exists.</p>
+
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-objects.html#entity-object-graph-traversal', 'Doctrine getReference() docs'); ?>
+</div>
 <?php
 $code = ob_get_clean();
 

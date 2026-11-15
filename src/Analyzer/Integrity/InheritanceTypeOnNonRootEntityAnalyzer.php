@@ -72,9 +72,8 @@ class InheritanceTypeOnNonRootEntityAnalyzer implements StaticAnalyzerInterface
                 $rootClass = $metadata->parentClasses[array_key_last($metadata->parentClasses)] ?? $className;
 
                 $description = DescriptionHighlighter::highlight(
-                    '{entity} declares #[InheritanceType] but is not the root entity of the hierarchy. '
-                    . 'Inheritance mapping attributes must be placed on the root entity {root}. '
-                    . 'Doctrine may silently ignore this or produce undefined behavior.',
+                    '{entity} declares #[InheritanceType] but the root of its hierarchy is {root}. '
+                    . 'Doctrine reads inheritance mapping on the root only, so this attribute is ignored or behaves unpredictably.',
                     [
                         'entity' => $this->shortClassName($className),
                         'root' => $this->shortClassName($rootClass),

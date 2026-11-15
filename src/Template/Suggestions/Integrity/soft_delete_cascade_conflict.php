@@ -11,33 +11,19 @@ $shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-<?php echo suggestionHeader('CASCADE DELETE vs Soft Delete conflict'); ?>
+<?php echo suggestionHeader('Drop onDelete CASCADE on soft-deleted rows'); ?>
 <div class="suggestion-content">
-<div class="alert alert-danger">Your entity uses soft delete but has a relation with <code>onDelete="CASCADE"</code>. This causes data loss.</div>
+<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> uses <code>onDelete: 'CASCADE'</code> on a soft-deleteable entity. A soft delete is an UPDATE, so the cascade never fires then, and a hard delete physically removes children that soft delete was meant to keep.</p>
 
-<p>Soft delete keeps entities in database. CASCADE DELETE physically deletes children when parent is removed.</p>
+<div class="query-item"><pre><code class="language-php">// Before
+#[ORM\JoinColumn(onDelete: 'CASCADE')]
+private ?Category $<?php echo $e($fieldName); ?>;
 
-<h4>Current</h4>
-<div class="query-item"><pre><code class="language-php">#[ORM\Entity]
-#[Gedmo\SoftDeleteable]
-class <?php echo $e($shortClass); ?>
+// After
+#[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+private ?Category $<?php echo $e($fieldName); ?>;</code></pre></div>
 
-{
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
-    private ?Category $<?php echo $e($fieldName); ?>;
-}</code></pre></div>
-
-<h4>Solution: Use SET NULL</h4>
-<div class="query-item"><pre><code class="language-php">#[ORM\Entity]
-#[Gedmo\SoftDeleteable]
-class <?php echo $e($shortClass); ?>
-
-{
-    #[ORM\JoinColumn(onDelete: 'SET NULL', nullable: true)]
-    private ?Category $<?php echo $e($fieldName); ?>;
-}</code></pre></div>
-
-<p>Use SET NULL to orphan children, or ORM cascade to soft delete children too. Never mix soft delete with database CASCADE DELETE.</p>
+<p>To soft-delete the children with their parent, use an ORM <code>cascade: ['remove']</code> instead: Gedmo turns each removal into a soft delete.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine ORM Cascade Operations'); ?>
 </div>
@@ -46,5 +32,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Resolve CASCADE DELETE conflict with soft delete on %s::%s', $shortClass, $fieldName),
+    'description' => sprintf('Replace onDelete CASCADE on %s::%s, which conflicts with soft delete', $shortClass, $fieldName),
 ];

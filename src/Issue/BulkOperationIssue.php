@@ -22,10 +22,8 @@ class BulkOperationIssue extends AbstractIssue
             'type'        => IssueType::BULK_OPERATION,
             'title'       => 'Use DQL Bulk Operations Instead of Loop',
             'description' => sprintf(
-                'Detected %d individual %s operations on table "%s". ' .
-                'Executing multiple UPDATE/DELETE queries in a loop is extremely inefficient. ' .
-                'Instead, use DQL bulk operations (UPDATE/DELETE queries) to perform mass operations in a single database query. ' .
-                'This can improve performance by 10-100x depending on the number of affected rows.',
+                '%d individual %s queries ran on table "%s". ' .
+                'Each row costs its own statement and round trip, where one batched statement would do.',
                 $data['query_count'] ?? 0,
                 $data['operation_type'] ?? 'UPDATE',
                 $data['table'] ?? 'unknown',

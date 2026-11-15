@@ -563,7 +563,7 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
                 ['table' => $tableName, 'class' => $entityClass],
             ),
             'plural' => DescriptionHighlighter::highlight(
-                "Table {table} should be singular to match entity naming. ORM best practice is to use singular table names (e.g., 'user' not 'users').",
+                "Table {table} is plural while its entity name is singular, so table and entity names no longer match one to one.",
                 ['table' => $tableName],
             ),
             'singular' => DescriptionHighlighter::highlight(
@@ -571,7 +571,7 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
                 ['table' => $tableName],
             ),
             'reserved_keyword' => DescriptionHighlighter::highlight(
-                "Table {table} is a SQL reserved keyword (reserved in PostgreSQL, MySQL, etc.). Doctrine quotes identifiers automatically, but raw SQL queries, database tools (DBeaver, Adminer), and migration scripts may fail or require manual quoting. Consider prefixing the table name (e.g., app_{table}) to avoid issues.",
+                "Table {table} is a SQL reserved keyword. Doctrine quotes it, but raw SQL, database tools and migration scripts fail unless they quote it too.",
                 ['table' => $tableName],
             ),
             'special_characters' => DescriptionHighlighter::highlight(
@@ -603,7 +603,7 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
                 ['column' => $columnName, 'field' => $fieldName, 'class' => $entityClass],
             ),
             'reserved_keyword' => DescriptionHighlighter::highlight(
-                "Column {column} is a SQL reserved keyword. While Doctrine quotes identifiers automatically, consider renaming it for better portability.",
+                "Column {column} is a SQL reserved keyword. Doctrine quotes it, but raw SQL and other tools fail unless they quote it too.",
                 ['column' => $columnName],
             ),
             'special_characters' => DescriptionHighlighter::highlight(

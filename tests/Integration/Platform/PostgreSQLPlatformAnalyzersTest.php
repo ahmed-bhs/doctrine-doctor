@@ -97,10 +97,10 @@ final class PostgreSQLPlatformAnalyzersTest extends TestCase
     public function it_reports_a_missing_idle_transaction_timeout_only_when_the_session_has_none(): void
     {
         $this->connection->executeStatement('SET idle_in_transaction_session_timeout = 0');
-        self::assertContains('No timeout for idle transactions (CRITICAL)', PlatformAnalyzerTestHelper::platformAnalyzerTitles($this->connection, ConnectionPoolingAnalyzer::class));
+        self::assertContains('No timeout for idle transactions', PlatformAnalyzerTestHelper::platformAnalyzerTitles($this->connection, ConnectionPoolingAnalyzer::class));
 
         $this->connection->executeStatement("SET idle_in_transaction_session_timeout = '1min'");
-        self::assertNotContains('No timeout for idle transactions (CRITICAL)', PlatformAnalyzerTestHelper::platformAnalyzerTitles($this->connection, ConnectionPoolingAnalyzer::class));
+        self::assertNotContains('No timeout for idle transactions', PlatformAnalyzerTestHelper::platformAnalyzerTitles($this->connection, ConnectionPoolingAnalyzer::class));
     }
 
     #[Test]

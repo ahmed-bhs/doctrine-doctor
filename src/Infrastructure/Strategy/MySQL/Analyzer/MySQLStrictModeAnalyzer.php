@@ -50,8 +50,8 @@ final readonly class MySQLStrictModeAnalyzer implements StrictModeAnalyzerInterf
             yield new DatabaseConfigIssue([
                 'title'       => 'Missing SQL Strict Mode Settings',
                 'description' => sprintf(
-                    'Your database is missing important SQL modes: %s. ' .
-                    'These modes prevent silent data truncation and invalid data insertion.',
+                    'sql_mode is missing %s. ' .
+                    'Without them, MySQL silently truncates values and accepts invalid data instead of raising an error.',
                     implode(', ', $missingModes),
                 ),
                 'severity'   => count($missingModes) >= 3 ? Severity::critical() : Severity::warning(),

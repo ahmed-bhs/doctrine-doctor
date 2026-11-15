@@ -25,37 +25,26 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Fix Decimal/Float Type Mismatch'); ?>
+<?php echo suggestionHeader('Type decimal properties as string'); ?>
 
 <div class="suggestion-content">
-    <p>The decimal type returns string from database but your property expects float. This causes performance issues and precision loss.</p>
-
     <div class="alert alert-danger">
-         <?php echo $e($warningMessage); ?>
+        <?php echo $e($warningMessage); ?> Doctrine hydrates <code>decimal</code> columns as strings, so a <code>float</code> property loses precision and differs from the loaded value on every flush.
     </div>
 
-    <h4>Solution: Change type hint to string</h4>
     <?php $option = $options[0] ?? ['title' => 'Change type hint', 'description' => 'Use string type hint', 'code' => 'private string $field;']; ?>
-    <p><?php echo $e($option['description']); ?></p>
-
     <div class="query-item">
         <pre><code class="language-php"><?php echo $e($option['code']); ?></code></pre>
     </div>
 
-    <p><?php echo $e($infoMessage); ?></p>
+    <p><?php echo $e($option['description']); ?> <?php echo $e($infoMessage); ?></p>
 
-    <p>
-        <a href="<?php echo $e($doctrineTypesLink); ?>" target="_blank" class="doc-link">
-            Doctrine Mapping Types Reference
-        </a>
-    </p>
+    <?php if ($doctrineTypesLink) { ?><?php echo suggestionDocLink((string) $doctrineTypesLink, 'Doctrine Mapping Types Reference'); ?><?php } ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Fix decimal/float type mismatch to prevent performance issues',
+    'description' => 'Type the decimal property as string instead of float',
 ];

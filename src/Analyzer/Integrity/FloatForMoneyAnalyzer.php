@@ -260,9 +260,8 @@ class FloatForMoneyAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
-            'Entity %s::$%s uses float/double type for what appears to be a monetary value. ' .
-            'Floating point arithmetic is imprecise and can cause financial discrepancies. ' .
-            'Use decimal type with string property or a Money library instead.',
+            'Entity %s::$%s stores what appears to be a monetary value as float/double instead of decimal. ' .
+            'Floating point cannot represent most cents exactly, so sums and comparisons drift.',
             $shortClassName,
             $fieldName,
         );

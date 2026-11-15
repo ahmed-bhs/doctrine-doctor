@@ -19,38 +19,20 @@ $shortTarget = false !== $lastBackslashTarget ? substr($lastBackslashTarget, 1) 
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('cascade="remove" on ManyToMany'); ?>
-
+<?php echo suggestionHeader('Remove cascade remove from the ManyToMany'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-danger">
-        <code>$<?= $e($fieldName) ?></code> in <code><?= $e($shortClass) ?></code> has <code>cascade="remove"</code> on a ManyToMany relation.
-        Deleting a <?= $e($shortClass) ?> will delete all related <?= $e($shortTarget) ?>s, even if other entities reference them.
-    </div>
+<p><code><?= $e($shortClass) ?>::$<?= $e($fieldName) ?></code> uses <code>cascade: ['remove']</code> on a ManyToMany association. Deleting a <?= $e($shortClass) ?> also deletes every linked <?= $e($shortTarget) ?>, even those still linked to other rows.</p>
 
-    <h4>Solution</h4>
-    <div class="code-comparison">
-        <pre><code class="language-php">// Before
-class <?= $e($shortClass) ?> {
-    #[ORM\ManyToMany(
-        targetEntity: <?= $e($shortTarget) ?>::class,
-        cascade: ['remove']
-    )]
-    private Collection $<?= $e($fieldName) ?>;
-}
+<div class="query-item"><pre><code class="language-php">// Before
+#[ORM\ManyToMany(targetEntity: <?= $e($shortTarget) ?>::class, cascade: ['remove'])]
+private Collection $<?= $e($fieldName) ?>;
 
 // After
-class <?= $e($shortClass) ?> {
-    #[ORM\ManyToMany(targetEntity: <?= $e($shortTarget) ?>::class)]
-    private Collection $<?= $e($fieldName) ?>;
-}</code></pre>
-    </div>
+#[ORM\ManyToMany(targetEntity: <?= $e($shortTarget) ?>::class)]
+private Collection $<?= $e($fieldName) ?>;</code></pre></div>
 
-    <p>In ManyToMany, entities are typically shared. Only use cascade="remove" if they're truly dependent.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine ORM Cascade Operations'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine ORM Cascade Operations'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 

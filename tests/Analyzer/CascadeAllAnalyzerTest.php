@@ -356,7 +356,7 @@ final class CascadeAllAnalyzerTest extends TestCase
         self::assertNotFalse($issue);
         $description = $issue->getDescription();
 
-        self::assertStringContainsString('dangerous', strtolower($description));
+        self::assertStringContainsString('removes the related entities', $description);
         // The description uses highlighting, so it will have HTML tags around "all"
         self::assertMatchesRegularExpression('/(\"all\"|&quot;all&quot;)/i', $description);
     }

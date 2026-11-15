@@ -15,31 +15,19 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
 <?php echo suggestionHeader('Use IS NULL instead of = NULL'); ?>
-
 <div class="suggestion-content">
-    <p>SQL NULL comparisons require IS NULL or IS NOT NULL operators. Direct equality comparisons with NULL always return NULL (unknown), not true or false.</p>
+<p>In SQL, <code>= NULL</code> and <code>!= NULL</code> evaluate to UNKNOWN, never TRUE, so the condition matches no row. Use <code>IS NULL</code> / <code>IS NOT NULL</code> or the QueryBuilder <code>isNull()</code> helpers.</p>
 
-    <h4>Current Code (Incorrect)</h4>
-    <div class="query-item">
-        <pre><code class="language-php"><?php echo $e($badCode); ?></code></pre>
-    </div>
+<div class="query-item"><pre><code class="language-php">// Before
+<?php echo $e($badCode); ?>
 
-    <div class="alert alert-warning">
-        Using <code>= NULL</code> or <code>!= NULL</code> will NOT work. The condition never matches rows because <code>= NULL</code> returns UNKNOWN, not TRUE.
-    </div>
 
-    <h4>Correct Code</h4>
-    <div class="query-item">
-        <pre><code class="language-php"><?php echo $e($goodCode); ?></code></pre>
-    </div>
+// After
+<?php echo $e($goodCode); ?></code></pre></div>
 
-    <p><code>IS NULL</code> and <code>IS NOT NULL</code> are the SQL standard. <code>= NULL</code> always returns UNKNOWN (three-valued logic), never TRUE or FALSE.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html#helper-methods', 'Doctrine QueryBuilder Helper Methods'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html#helper-methods', 'Doctrine QueryBuilder Helper Methods'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 

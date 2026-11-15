@@ -22,7 +22,7 @@ class HydrationIssue extends AbstractIssue
             'type'        => IssueType::HYDRATION,
             'title'       => 'Potential Hydration Issue',
             'description' => sprintf(
-                'Query returned %d rows in %dms. This might indicate excessive hydration overhead.',
+                'The query returned %d rows in %dms. Each row becomes an object that Doctrine hydrates and tracks in memory.',
                 $data['row_count'] ?? 0,
                 $data['execution_time'] ?? 0,
             ),

@@ -22,7 +22,7 @@ class NPlusOneIssue extends AbstractIssue
             'type'        => IssueType::N_PLUS_ONE,
             'title'       => 'N+1 Query Detected',
             'description' => sprintf(
-                'Detected %d similar queries with pattern "%s". This often indicates an N+1 query problem.',
+                'The same query ran %d times: "%s". One query per loop iteration means the page slows down as the data grows.',
                 $data['count'] ?? 0,
                 $data['pattern'] ?? 'N/A',
             ),

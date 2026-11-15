@@ -136,10 +136,9 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             type: IssueType::INTEGRITY_INCORRECT_NULL_COMPARISON->value,
             title: 'Incorrect NULL Comparison',
             description: sprintf(
-                "Found '%s' in query. Comparing to NULL with '%s' does not work as expected in SQL. " .
-                "This will always return no rows. Use '%s' instead.",
+                "The query uses '%s', which SQL never evaluates to true (only '%s' tests for NULL). " .
+                "The condition matches no rows, whatever the data.",
                 $fullMatch,
-                $operator,
                 $correctSyntax,
             ),
             severity: Severity::critical(),

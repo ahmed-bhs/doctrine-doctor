@@ -78,7 +78,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryGroups) {
-                foreach ($queryGroups as $pattern => $group) {
+                foreach ($queryGroups as $group) {
                     if ($group->count() >= $this->threshold) {
                         $groupArray = $group->toArray();
 
@@ -107,7 +107,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
                         $issueData = new IssueData(
                             type: IssueType::N_PLUS_ONE->value,
                             title: sprintf('N+1 Query Detected: %d queries (%s)', $group->count(), $detectedType['type']),
-                            description: $this->buildDescription($group->count(), $totalTime, $pattern, $backtrace, $detectedType),
+                            description: $this->buildDescription($group->count(), $totalTime, $sql, $backtrace, $detectedType),
                             severity: $this->calculateSeverity($group->count(), $totalTime, $detectedType['type']),
                             suggestion: $this->generateSuggestion($groupArray, $triggerLocation),
                             queries: $groupArray,
@@ -746,63 +746,41 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
      * @param array<int, array<string, mixed>>|null $backtrace
      * @param array{type: string, hasLimit: bool}   $detectedType
      */
-    private function buildDescription(int $count, float $totalTime, string $pattern, ?array $backtrace, array $detectedType): string
+    private function buildDescription(int $count, float $totalTime, string $sql, ?array $backtrace, array $detectedType): string
     {
-        $typeLabel = match ($detectedType['type']) {
-            'proxy' => 'Proxy N+1 (ManyToOne/OneToOne)',
-            'collection' => $detectedType['hasLimit'] ? 'Collection N+1 with partial access' : 'Collection N+1 (OneToMany/ManyToMany)',
-            'lookup' => 'Repeated Lookup (findBy/findOneBy in loop)',
-            default => 'N+1 Query',
+        $origin = match ($detectedType['type']) {
+            'proxy' => 'Lazy loading of a ManyToOne/OneToOne proxy',
+            'collection' => $detectedType['hasLimit']
+                ? 'Partial access to a lazy collection (LIMIT in the query)'
+                : 'Lazy loading of a OneToMany/ManyToMany collection',
+            'lookup' => 'Repeated lookup by a non-key column',
+            default => 'A loop',
         };
+
+        $table = $this->sqlExtractor->extractMainTable($sql)['table'] ?? null;
+
+        $values = [
+            'count' => $count,
+            'time' => sprintf('%.2f', $totalTime),
+        ];
+        if (null !== $table) {
+            $values['table'] = $table;
+        }
+
+        $description = DescriptionHighlighter::highlight(
+            $origin . (null !== $table ? ' ran the same query on {table} {count} times ({time}ms SQL)' : ' ran the same query {count} times ({time}ms SQL)'),
+            $values,
+        );
+
+        if ($this->isVendorCode($backtrace)) {
+            $description .= ', called from vendor code';
+        }
 
         $isLowTimeHighCount = $count > self::QUERY_COUNT_WARNING_THRESHOLD && $totalTime < self::LOW_EXECUTION_TIME_THRESHOLD;
 
-        if ($isLowTimeHighCount) {
-            $description = DescriptionHighlighter::highlight(
-                '{type_label}: Found {count} similar queries ({time}ms SQL time only). Pattern: {pattern}',
-                [
-                    'type_label' => $typeLabel,
-                    'count' => $count,
-                    'time' => sprintf('%.2f', $totalTime),
-                    'pattern' => $pattern,
-                ],
-            );
-        } else {
-            $description = DescriptionHighlighter::highlight(
-                '{type_label}: Found {count} similar queries with a total execution time of {time}ms. Pattern: {pattern}',
-                [
-                    'type_label' => $typeLabel,
-                    'count' => $count,
-                    'time' => sprintf('%.2f', $totalTime),
-                    'pattern' => $pattern,
-                ],
-            );
-        }
-
-        if ('proxy' === $detectedType['type']) {
-            $description .= "\nProxy initialization detected in a loop. Consider using a fetch join (join + addSelect) for better performance.";
-        } elseif ('collection' === $detectedType['type'] && $detectedType['hasLimit']) {
-            $description .= "\nDetected partial collection access (LIMIT in query). EXTRA_LAZY fetch mode is usually ideal here.";
-        } elseif ('lookup' === $detectedType['type']) {
-            $description .= "\nRepeated lookup by non-key column detected. Consider using an IN query to batch-load all needed rows, or add an in-memory cache to avoid duplicate queries within the same request.";
-        }
-
-        if ($isLowTimeHighCount) {
-            $description .= sprintf(
-                "\nThe %.2fms only measures database engine time. The main cost is in PHP: " .
-                '%d Doctrine hydration cycles, %d UnitOfWork snapshots kept in memory, and %d PDO round trips. ' .
-                'This overhead is not visible in SQL timing but can significantly increase total page time. ' .
-                'A single fetch-join query (join + addSelect) would eliminate most of this overhead.',
-                $totalTime,
-                $count,
-                $count,
-                $count,
-            );
-        }
-
-        if ($this->isVendorCode($backtrace)) {
-            $description .= "\nThis N+1 originates from vendor code.";
-        }
+        $description .= $isLowTimeHighCount
+            ? '. SQL time is low, but each query also costs a round trip, a hydration and a UnitOfWork snapshot in PHP.'
+            : '. One query runs per loop iteration, so response time grows with the number of rows.';
 
         return $description;
     }

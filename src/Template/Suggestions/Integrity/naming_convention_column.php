@@ -14,14 +14,11 @@ $severity  = (string) ($context['severity'] ?? 'info');
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Fix Column Naming'); ?>
+<?php echo suggestionHeader('Rename the column in snake_case'); ?>
 <div class="suggestion-content">
-<?php echo suggestionAlert($severity, '<strong>Column naming violation:</strong> \'' . escape($current) . '\' should be \'' . escape($suggested) . '\''); ?>
+<?php echo suggestionAlert($severity, 'Column <code>' . escape($current) . '</code> should be named <code>' . escape($suggested) . '</code>. Lowercase snake_case names (<code>first_name</code>, <code>created_at</code>) need no quoting on any platform.'); ?>
 
-<?php echo suggestionCodeBlock('Current', sprintf("#[ORM\\Column(name: '%s')]\nprivate \$%s;", $current, $fieldName)); ?>
-<?php echo suggestionCodeBlock('Recommended', sprintf("#[ORM\\Column(name: '%s')]\nprivate \$%s;", $suggested, $fieldName)); ?>
-
-<p><strong>Convention:</strong> snake_case, lowercase (first_name, created_at). Avoid SQL keywords.</p>
+<?php echo suggestionCodeBlock('', sprintf("// Before\n#[ORM\\Column(name: '%s')]\nprivate \$%s;\n\n// After\n#[ORM\\Column(name: '%s')]\nprivate \$%s;", $current, $fieldName, $suggested, $fieldName)); ?>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/naming-strategy.html', 'Doctrine Naming Strategy Documentation'); ?>
 </div>

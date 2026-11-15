@@ -14,14 +14,11 @@ $severity  = (string) ($context['severity'] ?? 'info');
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Fix Foreign Key Naming'); ?>
+<?php echo suggestionHeader('Rename the foreign key column'); ?>
 <div class="suggestion-content">
-<?php echo suggestionAlert($severity, '<strong>FK naming violation:</strong> \'' . escape($current) . '\' should be \'' . escape($suggested) . '\''); ?>
+<?php echo suggestionAlert($severity, 'Foreign key column <code>' . escape($current) . '</code> should be named <code>' . escape($suggested) . '</code>: snake_case with an <code>_id</code> suffix.'); ?>
 
-<?php echo suggestionCodeBlock('Current', sprintf("#[ORM\\JoinColumn(name: '%s')]\nprivate \$%s;", $current, $assocName)); ?>
-<?php echo suggestionCodeBlock('Recommended', sprintf("#[ORM\\JoinColumn(name: '%s')]\nprivate \$%s;", $suggested, $assocName)); ?>
-
-<p><strong>Convention:</strong> snake_case with _id suffix (user_id, product_id).</p>
+<?php echo suggestionCodeBlock('', sprintf("// Before\n#[ORM\\JoinColumn(name: '%s')]\nprivate \$%s;\n\n// After\n#[ORM\\JoinColumn(name: '%s')]\nprivate \$%s;", $current, $assocName, $suggested, $assocName)); ?>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#joincolumn', 'Doctrine JoinColumn Documentation'); ?>
 </div>

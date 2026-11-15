@@ -4,55 +4,38 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var string $method
- * @var mixed $resultCount
  * @var array<string, mixed> $context
  */
 $method      = (string) ($context['method'] ?? 'findAll');
 $resultCount = (int) ($context['result_count'] ?? 0);
-// Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
-$resultCountLabel = null === $resultCount ? 'an unknown number of' : (string) $resultCount;
+$resultCountLabel = (string) $resultCount;
 
-// Start output buffering
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Consider adding pagination'); ?>
-
+<?php echo suggestionHeader('Paginate the result'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <strong><?php echo $e($method); ?></strong> returned <?php echo $e($resultCountLabel); ?> results without pagination.
-    </div>
-
-    <h4>Solution: Add pagination</h4>
-    <div class="query-item">
-        <pre><code class="language-php">$page = 1;
-$pageSize = 50;
-
-$entities = $repository->createQueryBuilder('e')
-    ->setFirstResult(($page - 1) * $pageSize)
-    ->setMaxResults($pageSize)
-    ->getQuery()
-    ->getResult();
-
-// Only 50 entities in memory at once</code></pre>
-    </div>
-
-    <p>Batch jobs: use <code>toIterable()</code> with periodic <code>flush()/clear()</code>. Pages: 10-50 for web, 100-1000 for APIs.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/pagination.html', 'Doctrine pagination'); ?>
+<div class="alert alert-warning">
+    <code><?php echo $e($method); ?>()</code> returned <?php echo $e($resultCountLabel); ?> entities in one go.
+    Every one of them is hydrated and kept in memory, and the number grows with the table.
 </div>
 
+<div class="query-item"><pre><code class="language-php">$entities = $repository-&gt;createQueryBuilder('e')
+    -&gt;orderBy('e.id')
+    -&gt;setFirstResult(($page - 1) * 50)
+    -&gt;setMaxResults(50)
+    -&gt;getQuery()
+    -&gt;getResult();</code></pre></div>
+
+<p>For batch jobs, iterate with <code>toIterable()</code> and call <code>$em-&gt;clear()</code> every few hundred entities.</p>
+
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/pagination.html', 'Doctrine pagination'); ?>
+</div>
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
-        'Loading %s results without pagination in %s',
-        $resultCountLabel,
-        $method,
-    ),
+    'description' => sprintf('Paginate the %s results of %s', $resultCountLabel, $method),
 ];

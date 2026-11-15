@@ -95,10 +95,8 @@ class SingleTableInheritanceNullableColumnAnalyzer implements StaticAnalyzerInte
                 }
 
                 $description = DescriptionHighlighter::highlight(
-                    'Field {field} in STI subclass {subclass} is NOT NULL. '
-                    . 'In Single Table Inheritance, all subtypes share one table. '
-                    . 'Inserting a row of type {root} or any sibling will fail because {field} has no value. '
-                    . 'Subclass-specific columns must be nullable.',
+                    'Field {field} in STI subclass {subclass} is NOT NULL, but all subtypes share one table. '
+                    . 'Inserting a {root} or any sibling fails because {field} has no value for them.',
                     [
                         'field' => $fieldName,
                         'subclass' => $this->shortClassName($subClass),

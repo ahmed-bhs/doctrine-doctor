@@ -220,9 +220,8 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             type: IssueType::LEFT_JOIN_WITH_NOT_NULL->value,
             title: 'LEFT JOIN with IS NOT NULL Check',
             description: sprintf(
-                "Query uses LEFT JOIN on '%s' but then checks '%s.%s IS NOT NULL'. " .
-                "This is redundant. If the field is NOT NULL, use INNER JOIN instead for clarity and potential performance gains. " .
-                "LEFT JOIN is for optional relationships where NULL is expected.",
+                "The query uses LEFT JOIN on '%s' and then filters on '%s.%s IS NOT NULL'. " .
+                "The filter drops the rows LEFT JOIN kept, so the query behaves as an INNER JOIN while hiding it from the planner.",
                 $tableName,
                 $alias,
                 $field,
@@ -253,11 +252,10 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         if ($isProtected) {
             // Query is protected (e.g., Doctrine Paginator with DISTINCT)
             // Results are correct, but performance is suboptimal
-            $title = sprintf('%s with INNER JOIN - Performance Impact', $aggregation);
+            $title = sprintf('%s with INNER JOIN Over Duplicated Rows', $aggregation);
             $description = sprintf(
-                "Query uses %s() with INNER JOIN and row duplication is handled by DISTINCT (likely via Doctrine Paginator). " .
-                "While the results are **correct**, the query generates duplicate rows before applying DISTINCT, which impacts performance. " .
-                "Consider optimizing the underlying query to reduce the number of JOINs or using subqueries to avoid generating duplicates in the first place.",
+                "The query uses %s() with INNER JOIN, and DISTINCT removes the row duplication (likely through Doctrine Paginator). " .
+                "The results are correct, but the database builds and sorts the duplicate rows first.",
                 $aggregation,
             );
             $severity = Severity::info();
@@ -265,10 +263,8 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             // Query is NOT protected - potential correctness issue
             $title = sprintf('%s with INNER JOIN May Cause Incorrect Results', $aggregation);
             $description = sprintf(
-                "Query uses %s() with INNER JOIN, which may cause row duplication and incorrect aggregate results. " .
-                "When using INNER JOIN on a *-to-many relationship, each parent row is duplicated for each child, " .
-                "causing COUNT/SUM/AVG to return inflated values. Consider using LEFT JOIN with DISTINCT, " .
-                "or a subquery to avoid duplication.",
+                "The query uses %s() with INNER JOIN, which can cause row duplication and incorrect aggregate results. " .
+                "On a to-many relation each parent row repeats once per child, so COUNT, SUM and AVG are inflated.",
                 $aggregation,
             );
             $severity = Severity::warning();

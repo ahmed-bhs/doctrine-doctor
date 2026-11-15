@@ -169,7 +169,8 @@ final class NestedRelationshipN1AnalyzerTest extends TestCase
         $suggestion = $issue->getSuggestion();
 
         self::assertNotNull($suggestion);
-        self::assertStringContainsString('JOIN FETCH', strtoupper($suggestion->getCode()));
+        self::assertStringContainsString('leftJoin(', $suggestion->getCode());
+        self::assertStringContainsString('addSelect(', $suggestion->getCode());
     }
 
     #[Test]

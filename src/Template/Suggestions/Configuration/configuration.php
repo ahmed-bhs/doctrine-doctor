@@ -20,15 +20,12 @@ $e                                                                              
 $eCode                                                                                                                                                           = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_NOQUOTES, 'UTF-8');
 ob_start();
 ?>
-<div class="suggestion-header"><h4>Configuration Issue: <?php echo $e($setting); ?></h4></div>
+<?php echo suggestionHeader('Change ' . $setting); ?>
 <div class="suggestion-content">
-<div class="alert alert-warning"> <strong>Configuration needs adjustment</strong><?php if ($description) {
-    ?><br><?php echo $e($description); ?><?php
-} ?></div>
-<h4>Current vs Recommended</h4>
-<table><tr><th>Current</th><td><code><?php echo $e($currentValue); ?></code></td></tr><tr><th>Recommended</th><td><code><?php echo $e($recommendedValue); ?></code></td></tr></table>
+<p><code><?php echo $e($setting); ?></code> is set to <code><?php echo $e($currentValue); ?></code>; the recommended value is <code><?php echo $e($recommendedValue); ?></code>.<?php if ($description) {
+    ?> <?php echo $e($description); ?><?php
+} ?></p>
 <?php if ($fixCommand) { ?>
-<h4>How to Fix</h4>
 <div class="query-item"><pre><code class="language-bash"><?php echo $eCode($fixCommand); ?></code></pre></div>
 <?php } ?>
 

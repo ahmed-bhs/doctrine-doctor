@@ -22,10 +22,8 @@ class FindAllIssue extends AbstractIssue
 
         parent::__construct(array_merge([
             'title'       => 'Unrestricted Query: SELECT without WHERE or LIMIT',
-            'description' => 'Query retrieves rows from the table without a WHERE or LIMIT clause. ' .
-                'This may come from findAll(), a custom repository method, or a hand-built QueryBuilder, and ' .
-                'could load an unbounded number of rows into memory, causing performance issues and potential ' .
-                'out-of-memory errors. Always use pagination or filters for large datasets.',
+            'description' => 'A query reads the table without WHERE or LIMIT. ' .
+                'It hydrates every row into memory, however large the table grows.',
         ], $data));
     }
 

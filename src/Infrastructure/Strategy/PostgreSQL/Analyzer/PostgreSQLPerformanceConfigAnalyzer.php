@@ -44,10 +44,8 @@ final readonly class PostgreSQLPerformanceConfigAnalyzer implements PerformanceC
             yield new DatabaseConfigIssue([
                 'title'       => 'shared_buffers too small',
                 'description' => sprintf(
-                    'shared_buffers is %dMB, which is very small. ' .
-                    'shared_buffers caches table and index data in PostgreSQL shared memory. ' .
-                    'A small buffer causes excessive disk I/O and poor performance. ' .
-                    'Recommended: 25%% of available RAM (minimum 128MB, ideally 256MB+ for dev).',
+                    'shared_buffers is %dMB. ' .
+                    'Table and index data that does not fit in this shared memory cache is read from disk on each access.',
                     $sharedBuffersMB,
                 ),
                 'severity'   => $sharedBuffers < 67108864 ? 'warning' : 'info', // < 64MB = warning
@@ -81,10 +79,8 @@ final readonly class PostgreSQLPerformanceConfigAnalyzer implements PerformanceC
             yield new DatabaseConfigIssue([
                 'title'       => 'work_mem too small',
                 'description' => sprintf(
-                    'work_mem is %.1fMB, which is very small. ' .
-                    'work_mem controls memory used for sorts, hashes, and joins. ' .
-                    'Low work_mem causes disk-based operations (temp files) which are 10-100x slower. ' .
-                    'Recommended: 4-16MB for web apps, 32-256MB for analytics.',
+                    'work_mem is %.1fMB. ' .
+                    'Sorts, hashes and joins that need more memory spill to temporary files on disk.',
                     $workMemMB,
                 ),
                 'severity'   => $workMem < 2097152 ? 'warning' : 'info', // < 2MB = warning
@@ -115,10 +111,8 @@ final readonly class PostgreSQLPerformanceConfigAnalyzer implements PerformanceC
         if ('on' === $synchronousCommit) {
             yield new DatabaseConfigIssue([
                 'title'       => 'synchronous commit enabled in development',
-                'description' => 'synchronous_commit is ON (full durability). ' .
-                    'This waits for WAL writes to disk on every commit, which is slow. ' .
-                    'In development, you can safely use "off" for 10x faster writes. ' .
-                    'Note: Keep "on" in production for data safety.',
+                'description' => 'synchronous_commit is ON (full durability) in development. ' .
+                    'Every commit waits for the WAL to reach disk, which slows down tests and fixtures that write a lot.',
                 'severity'   => 'info',
                 'suggestion' => $this->suggestionFactory->createFromTemplate(
                     templateName: 'Configuration/configuration',

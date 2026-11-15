@@ -82,7 +82,7 @@ final class HydrationAnalyzerTest extends TestCase
         $issue = $issues->toArray()[0];
         self::assertStringContainsString('Excessive Hydration', $issue->getTitle());
         self::assertStringContainsString('150 rows', $issue->getTitle());
-        self::assertStringContainsString('hydration overhead', $issue->getDescription());
+        self::assertStringContainsString('fetches up to', $issue->getDescription());
     }
 
     #[Test]
@@ -219,7 +219,7 @@ final class HydrationAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_warns_that_partial_objects_lazy_load_the_fields_left_out(): void
+    public function it_suggests_lighter_hydration_without_partial_objects(): void
     {
         $issues = $this->analyzer->analyze(
             QueryDataBuilder::create()->addQuery('SELECT * FROM users LIMIT 500')->build(),
@@ -227,7 +227,9 @@ final class HydrationAnalyzerTest extends TestCase
 
         $suggestion = $issues->toArray()[0]->getSuggestion();
         self::assertNotNull($suggestion);
-        self::assertStringContainsString('one extra query per entity', $suggestion->getCode());
+        self::assertStringContainsString('500 rows', $suggestion->getCode());
+        self::assertStringContainsString('SELECT NEW', $suggestion->getCode());
+        self::assertStringNotContainsString('PARTIAL', $suggestion->getCode());
     }
 
     #[Test]

@@ -38,21 +38,19 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Add Explicit Precision/Scale'); ?>
-
+<?php echo suggestionHeader('Set precision and scale on the decimal column'); ?>
 <div class="suggestion-content">
-    <p>Always specify precision and scale for decimal columns to ensure consistent behavior across databases.</p>
+<p>The column has no explicit precision and scale, so each database applies its own default. <?php echo $e((string) $infoMessage); ?></p>
 
-    <?php $option = $options[0] ?? ['title' => 'Standard Configuration', 'description' => 'Use (10,2) for typical decimal values', 'code' => '#[ORM\Column(type: "decimal", precision: 10, scale: 2)]']; ?>
-    <h4><?php echo $e($option['title'] ?? 'Solution'); ?></h4>
-    <pre><code class="language-php"><?php echo $e($option['code'] ?? ''); ?></code></pre>
+<?php $option = $options[0] ?? ['title' => 'Standard Configuration', 'description' => 'Use (10,2) for typical decimal values', 'code' => '#[ORM\Column(type: "decimal", precision: 10, scale: 2)]']; ?>
+<div class="query-item"><pre><code class="language-php">// <?php echo $e((string) ($option['description'] ?? '')); ?>
 
-    <p><strong>Precision</strong> is total digits, <strong>scale</strong> is digits after decimal. <?php echo $e($infoMessage); ?></p>
+<?php echo $e((string) ($option['code'] ?? '')); ?></code></pre></div>
 
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal', 'Doctrine decimal type docs'); ?>
+<p>Precision is the total number of digits, scale the digits after the decimal point.</p>
+
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal', 'Doctrine decimal type docs'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
