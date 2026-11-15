@@ -176,39 +176,52 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
     private function isDqlWithUnparameterizedLiteral(QueryData $queryData): bool
     {
-        if (!empty($queryData->params)) {
-            return false;
-        }
-
+        // Bound parameters elsewhere in the query do not make a concatenated value safe: "locale = ? AND name LIKE
+        // '%lin%'" still carries the search terms in the SQL text.
         if (!$this->dqlPatternMatcher->hasDoctrineSQLPattern($queryData->sql)) {
             return false;
         }
 
-        $hasLiteral = 1 === preg_match("/WHERE\s+.+=\s*'[^']*'/i", $queryData->sql)
-            || 1 === preg_match('/WHERE\s+.+=\s*"[^"]*"/i', $queryData->sql);
+        $literals = $this->whereLiterals($queryData->sql);
 
-        return $hasLiteral && !$this->literalsAreWrittenInSource($queryData);
+        return [] !== $literals && !$this->literalsAreWrittenInSource($queryData, $literals);
     }
 
     /**
-     * Every "= 'value'" of the SQL is written as is in the application file that ran the query: the value is a
-     * constant of the code, such as o.state = 'completed', not user input.
+     * Quoted values compared in the WHERE clause (=, <>, !=, LIKE).
+     *
+     * @return list<string>
      */
-    private function literalsAreWrittenInSource(QueryData $queryData): bool
+    private function whereLiterals(string $sql): array
     {
-        preg_match_all("/=\s*'([^']*)'/", $queryData->sql, $matches);
-        if ([] === $matches[1]) {
-            return false;
+        $where = stristr($sql, ' WHERE ');
+        if (false === $where) {
+            return [];
         }
 
+        preg_match_all("/(?:=|<>|!=|\\bLIKE)\\s*'([^']*)'/i", $where, $matches);
+
+        return $matches[1];
+    }
+
+    /**
+     * Every literal of the SQL is written as is in a file that built the query, the application or a library such
+     * as a shop framework: the value is a constant of the code, such as o.state = 'completed', not user input.
+     *
+     * @param list<string> $literals
+     */
+    private function literalsAreWrittenInSource(QueryData $queryData, array $literals): bool
+    {
         foreach ($queryData->backtrace ?? [] as $frame) {
             $file = \is_array($frame) && isset($frame['file']) && \is_string($frame['file']) ? $frame['file'] : '';
-            if ('' === $file || str_contains($file, '/vendor/') || !is_file($file)) {
+            if ('' === $file || 1 === preg_match('#/vendor/(?:doctrine|symfony)/#', $file) || !is_file($file)) {
                 continue;
             }
 
             $source = (string) file_get_contents($file);
-            return array_all($matches[1], fn ($value) => !(1 !== preg_match("/=\s*\\\\?'" . preg_quote($value, '/') . "\\\\?'/", $source)));
+            if (array_all($literals, fn ($value) => 1 === preg_match("/(?:=|<>|!=|LIKE)\\s*\\\\?'" . preg_quote($value, '/') . "\\\\?'/i", $source))) {
+                return true;
+            }
         }
 
         return false;

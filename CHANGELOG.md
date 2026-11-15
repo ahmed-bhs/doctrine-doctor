@@ -80,6 +80,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `DQLInjection` missed a value concatenated into a Doctrine query when the query also had a bound parameter, or
+  when the value was compared with `LIKE`: `locale = :locale AND name LIKE '%" . $terms . "%'` was only reported
+  once someone typed an attack. It is now reported on any search. A literal written in a library that built the query
+  (a shop framework, for example) counts as a constant of the code, like one written in the application.
 - N+1 caused by the inverse side of a OneToOne (loaded with each entity because Doctrine cannot make it lazy) was
   reported as a lazy-loaded collection, and two of them on one entity as a cartesian product risk. It is now titled
   `(inverse OneToOne)`, with the OneToOne suggestion, and no longer counts as a collection. On Doctrine ORM 3, the
