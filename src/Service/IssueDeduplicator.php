@@ -105,6 +105,8 @@ final readonly class IssueDeduplicator
             // performance finding on the same query.
             IssueType::SET_MAX_RESULTS_WITH_COLLECTION_JOIN->value,
             IssueType::FILTERED_FETCH_JOIN->value,
+            // A leading wildcard is its own cause, distinct from a function wrapping the same column.
+            'ineffective_like_pattern',
         ];
 
         if (in_array($type, $selfContainedTypes, true)) {

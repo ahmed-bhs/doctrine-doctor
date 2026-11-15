@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Security;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\DQLPatternMatcher;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\PhpCodeParser;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -48,6 +49,16 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         'query',
         'prepare',
         'createNativeQuery',
+        'fetchAllAssociative',
+        'fetchAllAssociativeIndexed',
+        'fetchAllKeyValue',
+        'fetchAllNumeric',
+        'fetchAssociative',
+        'fetchFirstColumn',
+        'fetchNumeric',
+        'fetchOne',
+        'iterateAssociative',
+        'iterateNumeric',
     ];
 
     public function __construct(
@@ -56,6 +67,7 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         private readonly ?LoggerInterface $logger = null,
         private ?PhpCodeParser $phpCodeParser = null,
         private readonly DQLPatternMatcher $dqlPatternMatcher = new DQLPatternMatcher(),
+        private readonly ?ProjectSourceScanner $projectSourceScanner = null,
     ) {
     }
 
@@ -110,13 +122,29 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
                         }
                     }
 
+                    $analyzed = [];
                     foreach ($allMetadata as $metadata) {
+                        $analyzed[$metadata->getName()] = true;
                         $repositoryClass = $metadata->customRepositoryClassName;
 
                         if (null !== $repositoryClass && class_exists($repositoryClass)) {
+                            $analyzed[$repositoryClass] = true;
                             foreach ($this->analyzeClass($repositoryClass) as $issue) {
                                 yield $issue;
                             }
+                        }
+                    }
+
+                    // Raw SQL is also built in controllers, commands and services of the application.
+                    foreach ($this->projectSourceScanner?->classes() ?? [] as ['class' => $class]) {
+                        $className = (string) $class->namespacedName;
+                        if (isset($analyzed[$className]) || !class_exists($className)) {
+                            continue;
+                        }
+                        $analyzed[$className] = true;
+
+                        foreach ($this->analyzeClass($className) as $issue) {
+                            yield $issue;
                         }
                     }
                 } catch (\Throwable $throwable) {
@@ -378,6 +406,8 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             'description' => $description,
             'severity'    => 'critical',
             'suggestion'  => $this->createParameterizedQuerySuggestion($className, $methodName, $reflectionMethod),
+            'class'       => $className,
+            'method'      => $methodName,
             'backtrace'   => [
                 'file' => $reflectionMethod->getFileName(),
                 'line' => $reflectionMethod->getStartLine(),
@@ -405,6 +435,8 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             'description' => $description,
             'severity'    => 'critical',
             'suggestion'  => $this->createParameterizedQuerySuggestion($className, $methodName, $reflectionMethod),
+            'class'       => $className,
+            'method'      => $methodName,
             'backtrace'   => [
                 'file' => $reflectionMethod->getFileName(),
                 'line' => $reflectionMethod->getStartLine(),
@@ -434,6 +466,8 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             'description' => $description,
             'severity'    => 'critical',
             'suggestion'  => $this->createParameterBindingSuggestion($className, $methodName, $sqlMethod, $reflectionMethod),
+            'class'       => $className,
+            'method'      => $methodName,
             'backtrace'   => [
                 'file' => $reflectionMethod->getFileName(),
                 'line' => $reflectionMethod->getStartLine(),
@@ -461,6 +495,8 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             'description' => $description,
             'severity'    => 'critical',
             'suggestion'  => $this->createParameterizedQuerySuggestion($className, $methodName, $reflectionMethod),
+            'class'       => $className,
+            'method'      => $methodName,
             'backtrace'   => [
                 'file' => $reflectionMethod->getFileName(),
                 'line' => $reflectionMethod->getStartLine(),

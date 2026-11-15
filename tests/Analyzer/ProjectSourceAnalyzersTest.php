@@ -87,6 +87,28 @@ final class ProjectSourceAnalyzersTest extends TestCase
         self::assertStringNotContainsString('only uses it', $description);
     }
 
+    #[Test]
+    public function it_finds_raw_sql_concatenation_in_application_services(): void
+    {
+        $analyzer = new \AhmedBhs\DoctrineDoctor\Analyzer\Security\SQLInjectionInRawQueriesAnalyzer(
+            $this->entityManager(),
+            PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            null,
+            null,
+            new \AhmedBhs\DoctrineDoctor\Analyzer\Helper\DQLPatternMatcher(),
+            new ProjectSourceScanner(self::PROJECT, ['App']),
+        );
+
+        $texts = array_map(static fn (IssueInterface $issue): string => $issue->getTitle() . ' ' . strip_tags($issue->getDescription()), array_values($analyzer->analyzeSourceCode()->toArray()));
+
+        self::assertNotSame([], array_filter($texts, static fn (string $text): bool => str_contains($text, 'AuditSearch')), implode("\n", $texts));
+
+        $issue = array_values(array_filter($analyzer->analyzeSourceCode()->toArray(), static fn (IssueInterface $issue): bool => str_contains($issue->getTitle(), 'AuditSearch')))[0];
+        $location = new \AhmedBhs\DoctrineDoctor\Issue\FindingLocator(\dirname(__DIR__, 2))->locate($issue);
+        self::assertSame('tests/Fixtures/Project/App/Service/AuditSearch.php', $location->file);
+        self::assertSame(24, $location->line);
+    }
+
     private function entityManager(): \Doctrine\ORM\EntityManagerInterface
     {
         return PlatformAnalyzerTestHelper::createTestEntityManager([self::PROJECT . '/App/Entity']);

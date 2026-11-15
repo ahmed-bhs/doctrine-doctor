@@ -435,6 +435,7 @@ services:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
             $logger: '@?logger'
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
         tags:
             - { name: doctrine_doctor.analyzer }
 
