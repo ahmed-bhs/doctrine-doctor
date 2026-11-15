@@ -151,6 +151,7 @@ final class CompositionRelationshipDetectorTest extends TestCase
         $className = 'PaymentMethod';
         /** @phpstan-ignore-next-line Test uses string literal for simplicity */
         $metadata = new ClassMetadata($className);
+        /** @phpstan-ignore assign.propertyType (ORM 3.8 types unique constraints with an alias this fixture does not need) */
         $metadata->table = [
             'name' => 'payment_method',
             'uniqueConstraints' => [

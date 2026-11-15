@@ -23,7 +23,8 @@ class MoneyWithFloat
         /**
          * @readonly
          */
-        #[ORM\Column(type: 'float')] // CRITICAL PROBLEM: Float for money!
+        #[ORM\Column(type: 'float')]
+        // CRITICAL PROBLEM: Float for money!
         private float $amount,
         /**
          * @readonly
