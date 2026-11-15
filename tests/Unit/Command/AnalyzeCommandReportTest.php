@@ -1,0 +1,129 @@
+<?php
+
+/*
+ * This file is part of the Doctrine Doctor.
+ * (c) 2025-2026 Ahmed EBEN HASSINE
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Command;
+
+use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
+use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
+use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
+use AhmedBhs\DoctrineDoctor\Command\AnalyzeCommand;
+use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
+use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
+use AhmedBhs\DoctrineDoctor\Tests\Fixtures\Entity\BaseOrderWithInit;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Tester\CommandTester;
+
+/**
+ * CI reporting: locations, stable IDs, baselines and GitHub annotations.
+ */
+final class AnalyzeCommandReportTest extends TestCase
+{
+    private string $baseline;
+
+    protected function setUp(): void
+    {
+        $this->baseline = sys_get_temp_dir() . '/dd-baseline-' . bin2hex(random_bytes(4)) . '.json';
+    }
+
+    protected function tearDown(): void
+    {
+        @unlink($this->baseline);
+    }
+
+    #[Test]
+    public function it_reports_the_file_and_line_of_the_field(): void
+    {
+        $tester = $this->tester('A description.');
+        $tester->execute(['--fail-on' => 'never']);
+
+        $display = $tester->getDisplay();
+        self::assertStringContainsString('tests/Fixtures/Entity/BaseOrderWithInit.php', $display);
+        self::assertMatchesRegularExpression('/\s32\s+.*Items collection/', $display);
+    }
+
+    #[Test]
+    public function it_keeps_the_same_id_when_only_the_description_changes(): void
+    {
+        $first = $this->tester('Password of user root is empty.');
+        $first->execute(['--fail-on' => 'never', '--error-format' => 'json']);
+        $second = $this->tester('Password of user ci is empty.');
+        $second->execute(['--fail-on' => 'never', '--error-format' => 'json']);
+
+        self::assertSame($this->ids($first), $this->ids($second));
+    }
+
+    #[Test]
+    public function it_ignores_findings_listed_in_the_baseline(): void
+    {
+        $tester = $this->tester('A description.');
+        self::assertSame(0, $tester->execute(['--generate-baseline' => $this->baseline]));
+        self::assertFileExists($this->baseline);
+
+        self::assertSame(1, $tester->execute([]));
+        self::assertSame(0, $tester->execute(['--baseline' => $this->baseline]));
+        self::assertStringContainsString('1 ignored by the baseline', $tester->getDisplay());
+    }
+
+    #[Test]
+    public function it_prints_github_annotations_with_file_and_line(): void
+    {
+        $tester = $this->tester('First sentence. Second sentence.');
+        $tester->execute(['--fail-on' => 'never', '--error-format' => 'github']);
+
+        $display = $tester->getDisplay();
+        self::assertMatchesRegularExpression('/^::warning file=tests\/Fixtures\/Entity\/BaseOrderWithInit\.php,line=32,title=Doctrine Doctor%3A Items collection::First sentence\. Second sentence\.%0Aphp bin\/console doctrine:doctor:analyze --show-suggestion=[a-f0-9]{10}$/m', $display);
+    }
+
+    #[Test]
+    public function it_rejects_an_unknown_error_format(): void
+    {
+        self::assertSame(2, $this->tester('x')->execute(['--error-format' => 'xml']));
+    }
+
+    private function tester(string $description): CommandTester
+    {
+        $analyzer = new class($description) implements StaticAnalyzerInterface {
+            public function __construct(
+                private readonly string $description,
+            ) {
+            }
+
+            public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+            {
+                return IssueCollection::fromArray([
+                    new IntegrityIssue([
+                        'type' => 'test_finding',
+                        'title' => 'Items collection',
+                        'description' => $this->description,
+                        'severity' => 'warning',
+                        'entity' => BaseOrderWithInit::class,
+                        'field' => 'items',
+                        'queries' => [],
+                    ]),
+                ]);
+            }
+        };
+
+        return new CommandTester(new AnalyzeCommand([$analyzer], new IssueDeduplicator(), \dirname(__DIR__, 3)));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function ids(CommandTester $tester): array
+    {
+        $json = json_decode($tester->getDisplay(), true);
+        self::assertIsArray($json);
+
+        return array_column($json['findings'], 'id');
+    }
+}

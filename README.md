@@ -108,6 +108,22 @@ The command exits with a failure when it finds a warning or critical issue. Use
 on every finding, or `--fail-on=never` to report without failing. Live database
 audits are opt-in with `--with-database`.
 
+Findings are grouped by file with their line, like PHPStan. On GitHub Actions the
+command also prints annotations, so each finding appears on the line of the pull
+request. `--error-format=github` prints only the annotations, `--error-format=json`
+prints a machine-readable report.
+
+On an existing project, accept the current findings once and fail only on new ones:
+
+```bash
+php bin/console doctrine:doctor:analyze --generate-baseline   # writes doctrine-doctor-baseline.json
+php bin/console doctrine:doctor:analyze --baseline=doctrine-doctor-baseline.json
+```
+
+Finding IDs depend on the finding type, its title and the class, field or file it
+points to, never on machine-specific values, so a baseline generated locally is
+valid in CI.
+
 See the [profiler and CI checks guide](docs/user-guide/execution-modes.md) for
 the full analyzer inventory and execution rules.
 

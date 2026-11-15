@@ -114,6 +114,7 @@ services:
     AhmedBhs\DoctrineDoctor\Command\AnalyzeCommand:
         arguments:
             $analyzers: !tagged_iterator doctrine_doctor.static_analyzer
+            $projectDir: '%kernel.project_dir%'
         tags:
             - { name: console.command }
 
