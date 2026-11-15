@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\QueryFieldAccessorTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -39,15 +40,6 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface
 {
     use QueryFieldAccessorTrait;
-
-    /**
-     * Pattern to detect Doctrine Paginator COUNT queries.
-     * These queries wrap the original query in subqueries with DISTINCT to handle row duplication.
-     * Example: SELECT COUNT(*) FROM (SELECT DISTINCT id FROM (...) dctrn_result) dctrn_table
-     *
-     * This specific pattern is kept as regex because it's a very specific Doctrine internal pattern.
-     */
-    private const string DOCTRINE_PAGINATOR_PATTERN = '/SELECT\s+COUNT\(\*\).*?FROM\s*\(\s*SELECT\s+DISTINCT.*?dctrn_(result|table)/is';
 
     /**
      * @var array<string, ClassMetadata>|null Cached metadata map
@@ -115,54 +107,17 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                         }
                     }
 
-                    // Pattern 2: COUNT/SUM/AVG with INNER JOIN on collection (potential duplication bug)
-                    // IMPROVED: Now only alerts if INNER JOIN is on a collection (OneToMany/ManyToMany)
-                    // INNER JOIN on ManyToOne doesn't cause row duplication, so no false positive
-                    $aggregations = $this->sqlExtractor->extractAggregationFunctions($sql);
+                    // Pattern 2: an aggregate whose rows are repeated by a to-many join (wrong SUM/COUNT/AVG)
+                    $key = 'aggregation_inner_join_' . md5($sql);
+                    if (isset($seenIssues[$key])) {
+                        continue;
+                    }
 
-                    if (!empty($aggregations)) {
-                        // Extract INNER JOINs specifically
-                        $joins = $this->sqlExtractor->extractJoins($sql);
-                        $innerJoins = array_filter($joins, fn ($join) => 'INNER' === $join['type']);
+                    $finding = $this->findInflatedAggregate($sql);
+                    if (null !== $finding) {
+                        $seenIssues[$key] = true;
 
-                        if (!empty($innerJoins)) {
-                            $metadataMap = $this->getMetadataMap();
-                            $fromTable = $this->extractFromTable($sql, $metadataMap);
-
-                            $shouldAlert = false;
-
-                            if (null !== $fromTable && isset($metadataMap[$fromTable])) {
-                                foreach ($innerJoins as $join) {
-                                    if ($this->isCollectionJoin($join, $metadataMap, $sql, $fromTable)) {
-                                        $shouldAlert = true;
-                                        break;
-                                    }
-                                }
-                            } elseif ([] === $metadataMap) {
-                                $shouldAlert = true;
-                            }
-
-                            if ($shouldAlert) {
-                                $aggregation = $aggregations[0];
-
-                                $key = 'aggregation_inner_join_' . md5($sql);
-                                if (isset($seenIssues[$key])) {
-                                    continue;
-                                }
-
-                                $seenIssues[$key] = true;
-
-                                // Check if the query is protected against row duplication
-                                $isProtected = $this->isQueryProtectedAgainstDuplication($sql);
-
-                                yield $this->createAggregationWithInnerJoinIssue(
-                                    $aggregation,
-                                    $sql,
-                                    $query,
-                                    $isProtected,
-                                );
-                            }
-                        }
+                        yield $this->createAggregationWithInnerJoinIssue($finding['function'], $sql, $query, $finding['distinct'], $finding);
                     }
                 }
             },
@@ -182,28 +137,6 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     /**
      * Extract SQL from query data.
      */
-
-    /**
-     * Check if a query is protected against row duplication.
-     * Returns true if:
-     * - Query uses Doctrine Paginator pattern (COUNT with DISTINCT in subquery)
-     * - Query explicitly uses DISTINCT or COUNT(DISTINCT)
-     */
-    private function isQueryProtectedAgainstDuplication(string $sql): bool
-    {
-        // Check for Doctrine Paginator pattern (kept as regex - specific Doctrine pattern)
-        if (1 === preg_match(self::DOCTRINE_PAGINATOR_PATTERN, $sql)) {
-            return true;
-        }
-
-        // Check for explicit DISTINCT usage
-        // Migration from regex to SQL Parser: use hasDistinct() method
-        if ($this->sqlExtractor->hasDistinct($sql)) {
-            return true;
-        }
-
-        return false;
-    }
 
     /**
      * Create issue for LEFT JOIN with IS NOT NULL check.
@@ -240,32 +173,196 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     /**
      * Create issue for aggregation with INNER JOIN.
      */
+    /**
+     * The first aggregate of the SELECT whose rows a to-many join repeats.
+     *
+     * A join "P (one) to C (many)" repeats every row of the tables on P's side once per matching C row. SUM(x.col),
+     * AVG(x.col) or COUNT(x.col) is inflated when x sits on P's side of such a join. An aggregate over the many side
+     * itself (SUM(o.total) with orders joined to their customer) is correct. When only DISTINCT aggregates are
+     * repeated, the result is correct and the finding is informational.
+     *
+     * @return array{function: string, expression: string, alias: string, table: string, multiplier: string, distinct: bool}|null
+     */
+    private function findInflatedAggregate(string $sql): ?array
+    {
+        $select = preg_split('/\bFROM\b/i', $sql, 2)[0] ?? '';
+        if (0 === preg_match_all('/\b(SUM|AVG|COUNT)\s*\(\s*(DISTINCT\s+)?(\w+)\.(\w+)\s*\)/i', $select, $matches, PREG_SET_ORDER)) {
+            return null;
+        }
+
+        $tables = $this->aliasTables($sql);
+        $edges = $this->joinEdges($sql, $tables);
+        if ([] === $edges) {
+            return null;
+        }
+
+        $distinctOnly = null;
+        foreach ($matches as $match) {
+            $alias = strtolower($match[3]);
+            if (!isset($tables[$alias])) {
+                continue;
+            }
+
+            foreach ($edges as $edge) {
+                if (null === $edge['one'] || $this->sameSide($alias, $edge, $edges)) {
+                    continue;
+                }
+
+                $finding = [
+                    'function' => strtoupper($match[1]),
+                    'expression' => $match[0],
+                    'alias' => $alias,
+                    'table' => $tables[$alias],
+                    'multiplier' => $tables[$edge['many']],
+                    'distinct' => '' !== trim($match[2]),
+                ];
+
+                if (!$finding['distinct']) {
+                    return $finding;
+                }
+                $distinctOnly ??= $finding;
+            }
+        }
+
+        return $distinctOnly;
+    }
+
+    /**
+     * True when $alias is on the many side of $edge, i.e. still connected to the many table once the edge is cut.
+     *
+     * @param array{one: ?string, many: string, a: string, b: string} $edge
+     * @param list<array{one: ?string, many: string, a: string, b: string}> $edges
+     */
+    private function sameSide(string $alias, array $edge, array $edges): bool
+    {
+        $seen = [$edge['many'] => true];
+        $queue = [$edge['many']];
+        while ([] !== $queue) {
+            $current = array_shift($queue);
+            foreach ($edges as $other) {
+                if ($other === $edge) {
+                    continue;
+                }
+                foreach ([[$other['a'], $other['b']], [$other['b'], $other['a']]] as [$from, $to]) {
+                    if ($from === $current && !isset($seen[$to])) {
+                        $seen[$to] = true;
+                        $queue[] = $to;
+                    }
+                }
+            }
+        }
+
+        return isset($seen[$alias]);
+    }
+
+    /**
+     * @return array<string, string> alias (lowercase) => table
+     */
+    private function aliasTables(string $sql): array
+    {
+        $tables = [];
+        if (1 === preg_match('/\bFROM\s+`?(\w+)`?(?:\s+(?:AS\s+)?(?!WHERE|JOIN|INNER|LEFT|RIGHT|GROUP|ORDER|LIMIT)(\w+))?/i', $sql, $from)) {
+            $tables[strtolower($from[2] ?? $from[1])] = $from[1];
+        }
+        foreach ($this->sqlExtractor->extractJoins($sql) as $join) {
+            if (\is_string($join['table'])) {
+                $alias = \is_string($join['alias']) && '' !== $join['alias'] ? $join['alias'] : $join['table'];
+                $tables[strtolower($alias)] = $join['table'];
+            }
+        }
+
+        return $tables;
+    }
+
+    /**
+     * Equalities between two aliases in the ON clauses, with the side that is unique (the "one" side) when known.
+     *
+     * @param array<string, string> $tables
+     * @return list<array{one: ?string, many: string, a: string, b: string}>
+     */
+    private function joinEdges(string $sql, array $tables): array
+    {
+        $edges = [];
+        foreach ($this->sqlExtractor->extractJoins($sql) as $join) {
+            $onClause = \is_object($join['expr']) && property_exists($join['expr'], 'on') && \is_array($join['expr']->on)
+                ? implode(' AND ', array_map(static fn (mixed $condition): string => \is_scalar($condition) || $condition instanceof \Stringable ? (string) $condition : '', $join['expr']->on))
+                : '';
+            preg_match_all('/\b(\w+)\.(\w+)\s*=\s*(\w+)\.(\w+)\b/', $onClause, $pairs, PREG_SET_ORDER);
+            foreach ($pairs as [, $aliasA, $columnA, $aliasB, $columnB]) {
+                $aliasA = strtolower($aliasA);
+                $aliasB = strtolower($aliasB);
+                if ($aliasA === $aliasB || !isset($tables[$aliasA], $tables[$aliasB])) {
+                    continue;
+                }
+
+                $uniqueA = $this->isUniqueColumn($tables[$aliasA], $columnA);
+                $uniqueB = $this->isUniqueColumn($tables[$aliasB], $columnB);
+                $one = $uniqueA === $uniqueB ? null : ($uniqueA ? $aliasA : $aliasB);
+                $edges[] = ['one' => $one, 'many' => $uniqueA ? $aliasB : $aliasA, 'a' => $aliasA, 'b' => $aliasB];
+            }
+        }
+
+        return $edges;
+    }
+
+    /**
+     * The column alone identifies a row: single-column primary key or unique field of a mapped table, or a column
+     * named "id" on a table Doctrine does not map.
+     */
+    private function isUniqueColumn(string $table, string $column): bool
+    {
+        $metadata = $this->getMetadataMap()[$table] ?? null;
+        if (null === $metadata) {
+            return 'id' === strtolower($column);
+        }
+
+        $identifier = $metadata->getIdentifierColumnNames();
+        if (1 === \count($identifier) && strtolower($identifier[0]) === strtolower($column)) {
+            return true;
+        }
+
+        foreach ($metadata->fieldMappings as $mapping) {
+            if (strtolower((string) MappingHelper::getString($mapping, 'columnName')) === strtolower($column)) {
+                return true === MappingHelper::getBool($mapping, 'unique');
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array{function: string, expression: string, alias: string, table: string, multiplier: string, distinct: bool} $finding
+     */
     private function createAggregationWithInnerJoinIssue(
         string $aggregation,
         string $sql,
         array|object $query,
         bool $isProtected,
+        array $finding,
     ): PerformanceIssue {
         $backtrace = $this->extractBacktrace($query);
 
-        // Adapt message and severity based on whether the query is protected
         if ($isProtected) {
-            // Query is protected (e.g., Doctrine Paginator with DISTINCT)
-            // Results are correct, but performance is suboptimal
             $title = sprintf('%s with INNER JOIN Over Duplicated Rows', $aggregation);
             $description = sprintf(
-                "The query uses %s() with INNER JOIN, and DISTINCT removes the row duplication (likely through Doctrine Paginator). " .
-                "The results are correct, but the database builds and sorts the duplicate rows first.",
-                $aggregation,
+                '%s counts each %s row once although the join with %s repeats it, so the result is correct. '
+                . 'The database still builds and sorts the repeated rows first.',
+                $finding['expression'],
+                $finding['table'],
+                $finding['multiplier'],
             );
             $severity = Severity::info();
         } else {
-            // Query is NOT protected - potential correctness issue
             $title = sprintf('%s with INNER JOIN May Cause Incorrect Results', $aggregation);
             $description = sprintf(
-                "The query uses %s() with INNER JOIN, which can cause row duplication and incorrect aggregate results. " .
-                "On a to-many relation each parent row repeats once per child, so COUNT, SUM and AVG are inflated.",
-                $aggregation,
+                '%s reads %s, and the join with %s repeats each %s row once per matching %s row. '
+                . 'The %s is inflated by those repeated rows.',
+                $finding['expression'],
+                $finding['table'],
+                $finding['multiplier'],
+                $finding['table'],
+                $finding['multiplier'],
+                'COUNT' === $aggregation ? 'count' : ('AVG' === $aggregation ? 'average is weighted' : 'sum'),
             );
             $severity = Severity::warning();
         }
@@ -365,121 +462,5 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         $this->metadataMapCache = $map;
 
         return $map;
-    }
-
-    /**
-     * Extract FROM table from SQL.
-     * @param array<string, ClassMetadata> $metadataMap
-     */
-    private function extractFromTable(string $sql, array $metadataMap): ?string
-    {
-        $mainTable = $this->sqlExtractor->extractMainTable($sql);
-
-        if (null === $mainTable) {
-            return null;
-        }
-
-        $tableName = $mainTable['table'];
-
-        if (!isset($metadataMap[$tableName])) {
-            return null;
-        }
-
-        return $tableName;
-    }
-
-    /**
-     * Determine if a JOIN is on a collection (OneToMany/ManyToMany).
-     * @param array<string, mixed> $join
-     * @param array<string, ClassMetadata> $metadataMap
-     */
-    private function isCollectionJoin(array $join, array $metadataMap, string $sql, string $fromTable): bool
-    {
-        $joinTable = $join['table'];
-
-        if (!is_string($joinTable)) {
-            return false;
-        }
-
-        $metadata = $metadataMap[$joinTable] ?? null;
-
-        if (null === $metadata) {
-            return false;
-        }
-
-        return $this->isForeignKeyInJoinedTable($sql, $fromTable, $joinTable, $metadataMap);
-    }
-
-    /**
-     * Determine if FK is in joined table (making it a collection).
-     * @param array<string, ClassMetadata> $metadataMap
-     */
-    private function isForeignKeyInJoinedTable(string $sql, string $fromTable, string $joinTable, array $metadataMap): bool
-    {
-        $fromMetadata = $metadataMap[$fromTable] ?? null;
-        $joinMetadata = $metadataMap[$joinTable] ?? null;
-
-        if (null === $fromMetadata || null === $joinMetadata) {
-            return false;
-        }
-
-        $fromPKs = $fromMetadata->getIdentifierColumnNames();
-        $joinPKs = $joinMetadata->getIdentifierColumnNames();
-
-        $conditions = $this->sqlExtractor->extractJoinOnConditions($sql, $joinTable);
-
-        if ([] === $conditions) {
-            return $this->canBeCollection($joinTable, $metadataMap);
-        }
-
-        $condition = $conditions[0];
-
-        $leftParts = explode('.', $condition['left']);
-        $rightParts = explode('.', $condition['right']);
-
-        $leftCol = end($leftParts);
-        $rightCol = end($rightParts);
-
-        // from.PK = join.nonPK → Collection
-        if (in_array($leftCol, $fromPKs, true) && !in_array($rightCol, $joinPKs, true)) {
-            return true;
-        }
-
-        // from.nonPK = join.PK → NOT collection
-        if (!in_array($leftCol, $fromPKs, true) && in_array($rightCol, $joinPKs, true)) {
-            return false;
-        }
-
-        return $this->canBeCollection($joinTable, $metadataMap);
-    }
-
-    /**
-     * Fallback: Check if table CAN be a collection based on metadata.
-     * @param array<string, ClassMetadata> $metadataMap
-     */
-    private function canBeCollection(string $tableName, array $metadataMap): bool
-    {
-        foreach ($metadataMap as $metadata) {
-            foreach ($metadata->getAssociationMappings() as $mapping) {
-                $targetEntity = $mapping->targetEntity;
-
-                try {
-                    $targetMetadata = $this->entityManager->getClassMetadata($targetEntity);
-
-                    if ($targetMetadata->getTableName() === $tableName) {
-                        if (
-                            ClassMetadata::ONE_TO_MANY === $mapping->type()
-                            || ClassMetadata::MANY_TO_MANY === $mapping->type()
-                        ) {
-                            return true;
-                        }
-                    }
-                } catch (\Exception) {
-                    continue;
-                }
-            }
-        }
-
-        return false;
     }
 }

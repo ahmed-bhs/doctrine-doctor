@@ -60,6 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Aggregates next to a join are judged one by one. `SUM(o.total)` with orders joined to their customer is no longer
+  reported (each order appears once), and `SUM(o.total)` next to a `COUNT(DISTINCT o.id)` is reported when a join with
+  the order lines repeats the orders: a DISTINCT elsewhere in the SELECT no longer marks the whole query as safe. The
+  message names the aggregate, its table and the table that repeats its rows.
 - `SetMaxResultsWithCollectionJoin` stayed silent on the most common case: a translation joined on `locale` (or any
   join with an extra `AND x.y = ?`) silenced the warning for every other join of the query. Each fetch-joined table
   is now checked on its own; a filtered join counts as one row only when its columns cover the primary key or a

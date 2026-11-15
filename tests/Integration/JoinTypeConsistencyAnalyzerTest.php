@@ -85,15 +85,15 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
         $issue = $issueCollection->first();
         self::assertInstanceOf(IssueInterface::class, $issue);
         self::assertSame('COUNT with INNER JOIN May Cause Incorrect Results', $issue->getTitle());
-        self::assertStringContainsString('COUNT()', $issue->getDescription());
-        self::assertStringContainsString('row duplication', $issue->getDescription());
+        self::assertStringContainsString('COUNT(o.id)', $issue->getDescription());
+        self::assertStringContainsString('repeats each', $issue->getDescription());
         self::assertSame('warning', $issue->getSeverity()->value);
     }
 
     public function test_detects_sum_with_inner_join(): void
     {
         $queryData = new QueryData(
-            sql: 'SELECT SUM(o.total) FROM orders o INNER JOIN customers c ON o.customer_id = c.id',
+            sql: 'SELECT SUM(o.total) FROM orders o INNER JOIN order_items oi ON o.id = oi.order_id',
             executionTime: QueryExecutionTime::fromMilliseconds(80.0),
             params: [],
         );
@@ -105,7 +105,7 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
         $issue = $issueCollection->first();
         self::assertInstanceOf(IssueInterface::class, $issue);
         self::assertSame('SUM with INNER JOIN May Cause Incorrect Results', $issue->getTitle());
-        self::assertStringContainsString('SUM()', $issue->getDescription());
+        self::assertStringContainsString('SUM(o.total)', $issue->getDescription());
     }
 
     public function test_detects_avg_with_inner_join(): void
