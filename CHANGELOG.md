@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Mapping findings that share a title and a field name (for example `adjustments` on `Order`, `OrderItem`
+  and `Shipment`) were merged into one, and the one kept depended on the metadata load order. The same
+  project could report different findings locally and in CI, which broke baselines. They are now kept apart.
+
 ### Added
 
 - **`doctrine:doctor:analyze` reports findings like PHPStan.** Findings are grouped by file and sorted by line: the location comes from the class, field or method the analyzer reports (fully qualified or short class names, or the issue title as a last resort) or from the first application frame of the backtrace, relative to the project directory. Each row shows the severity, the title, the first sentences of the description and the finding ID; `--show-suggestion=<id>` still prints the fix.

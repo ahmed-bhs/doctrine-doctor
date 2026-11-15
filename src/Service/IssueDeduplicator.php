@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Service;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
+use AhmedBhs\DoctrineDoctor\Command\Report\FindingLocator;
 use AhmedBhs\DoctrineDoctor\Issue\DeduplicatableIssueInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
@@ -25,8 +26,15 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
  * - Merge similar issues into one with higher severity
  * - Suppress low-impact issues that add noise
  */
-final class IssueDeduplicator
+final readonly class IssueDeduplicator
 {
+    private FindingLocator $findingLocator;
+
+    public function __construct()
+    {
+        $this->findingLocator = new FindingLocator();
+    }
+
     /**
      * Remove duplicate and redundant issues.
      */
@@ -102,6 +110,16 @@ final class IssueDeduplicator
         $signature = $this->getEntityTypeSignature($type, $title, $description, $entityOrTable);
         if (null !== $signature) {
             return $signature;
+        }
+
+        // Mapping findings carry no SQL: two of them are the same finding only when they say the same
+        // thing about the same class and field. A coarser key kept one of N, chosen by the metadata
+        // load order, which differs between machines.
+        if ('' === $sql) {
+            $subject = $this->findingLocator->subjectOf($issue);
+            if ('' !== $subject) {
+                return 'subject:' . md5($type . ':' . $title . ':' . $subject . ':' . $description);
+            }
         }
 
         // Try specific signature strategies in order of priority

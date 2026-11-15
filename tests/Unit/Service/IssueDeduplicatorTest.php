@@ -688,4 +688,25 @@ final class IssueDeduplicatorTest extends TestCase
             }
         };
     }
+
+    #[Test]
+    public function it_keeps_the_same_mapping_finding_on_different_entities(): void
+    {
+        $issues = [];
+        foreach (['App\\Entity\\Order', 'App\\Entity\\OrderItem', 'App\\Entity\\OrderItem'] as $entity) {
+            $issues[] = new IntegrityIssue([
+                'type' => 'integrity_generic',
+                'title' => 'Bidirectional Association Inconsistency',
+                'description' => sprintf('Field adjustments in %s has orphanRemoval=true, but the owning side is nullable.', $entity),
+                'severity' => 'critical',
+                'entity' => $entity,
+                'field' => 'adjustments',
+                'queries' => [],
+            ]);
+        }
+
+        $deduplicated = $this->deduplicator->deduplicate(IssueCollection::fromArray($issues));
+
+        self::assertCount(2, $deduplicated);
+    }
 }

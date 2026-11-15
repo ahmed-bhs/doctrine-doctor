@@ -51,6 +51,17 @@ final readonly class FindingLocator
     }
 
     /**
+     * "Class::$field" or "Class::method()" the finding is about, without reading any file; empty when unknown.
+     */
+    public function subjectOf(IssueInterface $issue): string
+    {
+        $data = $issue->getData();
+        [$class, $field] = $this->subject($issue, $data);
+
+        return $this->anchor($class, $field, $this->firstString($data, ['method']));
+    }
+
+    /**
      * The class and field a finding is about, from the issue data or, as a last resort, from a title
      * such as "Float Used for Money: StockAlert::$targetPrice".
      *
