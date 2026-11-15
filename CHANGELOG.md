@@ -62,6 +62,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `NullComparison` also reports `col = ?` when the bound parameter is NULL, as Doctrine produces for
+  `->andWhere('s.shippedAt = :value')->setParameter('value', null)`. Only `= NULL` written in the SQL was seen.
 - Aggregates next to a join are judged one by one. `SUM(o.total)` with orders joined to their customer is no longer
   reported (each order appears once), and `SUM(o.total)` next to a `COUNT(DISTINCT o.id)` is reported when a join with
   the order lines repeats the orders: a DISTINCT elsewhere in the SELECT no longer marks the whole query as safe. The

@@ -292,4 +292,30 @@ final class NullComparisonAnalyzerTest extends TestCase
         $issue = $issues->toArray()[0];
         self::assertStringContainsString('status = NULL', $issue->getDescription());
     }
+
+    #[Test]
+    public function it_detects_an_equality_whose_parameter_is_bound_to_null(): void
+    {
+        // ->andWhere('s.shippedAt = :notShipped')->setParameter('notShipped', null)
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithParams('SELECT s0_.id FROM sylius_shipment s0_ WHERE s0_.state = ? AND s0_.shipped_at = ? ORDER BY s0_.id', ['ready', null])
+            ->build();
+
+        $issues = $this->analyzer->analyze($queries)->toArray();
+
+        self::assertCount(1, $issues);
+        self::assertStringContainsString('s0_.shipped_at = ? (bound to NULL)', $issues[0]->getDescription());
+        self::assertStringContainsString('s0_.shipped_at IS NULL', $issues[0]->getDescription());
+    }
+
+    #[Test]
+    public function it_ignores_a_bound_parameter_that_is_not_null(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQueryWithParams('SELECT s0_.id FROM sylius_shipment s0_ WHERE s0_.shipped_at IS NULL AND s0_.id IN (?, ?)', [3, 4])
+            ->addQueryWithParams('SELECT s0_.id FROM sylius_shipment s0_ WHERE s0_.state = ?', ['ready'])
+            ->build();
+
+        self::assertCount(0, $this->analyzer->analyze($queries)->toArray());
+    }
 }
