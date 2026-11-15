@@ -109,6 +109,17 @@ final class AnalyzeCommandReportTest extends TestCase
         self::assertSame(40, $location->line);
     }
 
+    #[Test]
+    public function it_prints_the_type_and_the_fix_like_phpstan(): void
+    {
+        $tester = $this->tester('A description.');
+        $tester->execute(['--fail-on' => 'never']);
+
+        $display = $tester->getDisplay();
+        self::assertStringContainsString('🪪  test_finding', $display);
+        self::assertMatchesRegularExpression('/💡 --show-suggestion=[a-f0-9]{10}/', $display);
+    }
+
     private function tester(string $description): CommandTester
     {
         $analyzer = new readonly class($description) implements StaticAnalyzerInterface {

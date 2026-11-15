@@ -227,6 +227,19 @@ class AnalyzeCommand extends Command
     }
 
     /**
+     * The fix in one line, and how to print it in full.
+     *
+     * @param array<string, mixed> $finding
+     */
+    private static function tip(array $finding): string
+    {
+        $issue = $finding['issue'] ?? null;
+        $title = $issue instanceof IssueInterface ? $issue->getSuggestion()?->getMetadata()->title : null;
+
+        return sprintf('💡 %s<fg=gray>--show-suggestion=%s</>', null !== $title && '' !== $title ? $title . ': ' : '', (string) $finding['id']);
+    }
+
+    /**
      * @param list<array<string, mixed>> $findings
      */
     private function renderSummary(SymfonyStyle $io, int $analyzerCount, array $findings, float $durationMs, int $ignored): void
@@ -271,7 +284,14 @@ class AnalyzeCommand extends Command
             usort($rows, static fn (array $left, array $right): int => [$left['line'] ?? 0, $left['title']] <=> [$right['line'] ?? 0, $right['title']]);
             $io->table(['Line', (string) $file], array_map(static fn (array $finding): array => [
                 $finding['line'] ?? '',
-                sprintf("%s  %s\n%s\n<fg=gray>%s</>", $marks[$finding['severity']] ?? $finding['severity'], $finding['title'], wordwrap((string) $finding['message'], 100), implode(', ', array_filter([self::shortAnchor((string) $finding['anchor']), $finding['category'], 'id ' . $finding['id']]))),
+                sprintf(
+                    "%s  %s\n%s\n<fg=gray>🪪  %s</>\n%s",
+                    $marks[$finding['severity']] ?? $finding['severity'],
+                    $finding['title'],
+                    wordwrap((string) $finding['message'], 100),
+                    implode(', ', array_filter([$finding['type'], self::shortAnchor((string) $finding['anchor'])])),
+                    self::tip($finding),
+                ),
             ], $rows));
         }
 

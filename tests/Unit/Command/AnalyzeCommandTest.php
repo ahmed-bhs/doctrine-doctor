@@ -160,7 +160,7 @@ final class AnalyzeCommandTest extends TestCase
         self::assertStringContainsString('This', $display);
         self::assertStringContainsString('prevents Doctrine from reparsing entity metadata on every request.', $display);
 
-        preg_match('/id ([a-f0-9]{10})/', $commandTester->getDisplay(), $matches);
+        preg_match('/--show-suggestion=([a-f0-9]{10})/', $commandTester->getDisplay(), $matches);
         self::assertNotSame([], $matches);
         $commandTester->execute(['--fail-on' => 'never', '--show-suggestion' => $matches[1]]);
 

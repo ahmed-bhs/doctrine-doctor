@@ -39,7 +39,8 @@ After:  The query fetch-joins 7 collections, so every row of one collection is r
 
 ## Banned everywhere
 
-- Emoji and pictographs in descriptions, suggestions and titles (`⚠️ ✅ 🔴 😱 …`).
+- Emoji and pictographs in descriptions, suggestions and titles (`⚠️ ✅ 🔴 😱 …`). The CLI report adds two markers of
+  its own around the message, as PHPStan does: 🪪 before the finding type and 💡 before the fix.
 - Exclamation marks, `BAD:` / `GOOD:` in capitals, `WRONG` / `CORRECT` banners.
 - Inflated wording: *severe(ly)*, *massive*, *exponential(ly)*, *huge*, *dramatic(ally)*, *catastrophic*,
   *Mathematical Reality*, invented percentages (*50-70% faster*) that the analyzer did not measure.
