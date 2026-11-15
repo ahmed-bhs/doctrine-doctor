@@ -67,6 +67,12 @@ readonly class NPlusOneSqlAnalyzer implements AnalyzerInterface
                     default => Severity::info(),
                 };
 
+                if ($this->allIdentical($queries)) {
+                    yield $this->createIdenticalQueryIssue($queries, $count, $totalMs, $severity);
+
+                    continue;
+                }
+
                 $suggestion = $this->suggestionFactory->createFromTemplate(
                     templateName: 'Integrity/code_suggestion',
                     context: [
@@ -101,6 +107,61 @@ readonly class NPlusOneSqlAnalyzer implements AnalyzerInterface
                 yield $this->issueFactory->create($issueData);
             }
         });
+    }
+
+    /**
+     * The same SQL with the same parameters: nothing varies between the runs, so no IN (...) can replace them.
+     *
+     * @param array<int, QueryData> $queries
+     */
+    private function allIdentical(array $queries): bool
+    {
+        // A placeholder without recorded values could hide a different value on each run: not provably identical.
+        if ([] === $queries[0]->params && 1 === preg_match('/\\?|:\\w+/', $queries[0]->sql)) {
+            return false;
+        }
+
+        $first = $queries[0]->sql . json_encode($queries[0]->params);
+
+        return array_all($queries, static fn (QueryData $query): bool => $query->sql . json_encode($query->params) === $first);
+    }
+
+    /**
+     * @param array<int, QueryData> $queries
+     */
+    private function createIdenticalQueryIssue(array $queries, int $count, float $totalMs, Severity $severity): \AhmedBhs\DoctrineDoctor\Issue\IssueInterface
+    {
+        $sql = $queries[0]->sql;
+
+        return $this->issueFactory->create(new IssueData(
+            type: IssueType::IDENTICAL_QUERY_REPEATED->value,
+            title: sprintf('Identical Query Repeated: %d times in one request (%.2fms total)', $count, $totalMs),
+            description: sprintf(
+                'The same SQL with the same parameters ran %d times in one request: %s. Each run returns the same rows. '
+                . 'Doctrine keeps no query result between calls (the identity map only avoids loading an entity twice by its id): '
+                . 'read it once and keep the result for the request.',
+                $count,
+                mb_substr($sql, 0, 160),
+            ),
+            severity: $severity,
+            suggestion: $this->suggestionFactory->createFromTemplate(
+                templateName: 'Integrity/code_suggestion',
+                context: [
+                    'description' => sprintf('The same query ran %d times with the same parameters. Keep its result in the service for the request.', $count),
+                    'code' => "private ?array \$rows = null;\n\n"
+                        . "public function rows(): array\n{\n"
+                        . '    return $this->rows ??= $this->connection->fetchAllAssociative(' . var_export($sql, true) . ");\n}\n",
+                ],
+                suggestionMetadata: new SuggestionMetadata(
+                    type: SuggestionType::performance(),
+                    severity: $severity,
+                    title: 'Keep the result for the request',
+                    tags: ['performance', 'repeated-query', 'dbal'],
+                ),
+            ),
+            queries: $queries,
+            backtrace: $queries[0]->backtrace,
+        ));
     }
 
     /**

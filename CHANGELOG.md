@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `NPlusOneSql` tells an identical query from an N+1: the same SQL with the same parameters, run several times in one
+  request (a Twig function called in a loop, a service called from several templates), is now reported as
+  `Identical Query Repeated`, with the advice to keep the result for the request. An IN (...) cannot replace it.
 - `MissingSoftDeleteFilter` (static): an entity deleted by setting `deletedAt` (or an `isDeleted` flag) while no SQL
   filter is enabled to hide those rows, so every query that forgets the condition shows deleted records.
 - `EntityManagerUsedAfterFailure` (static): a caught failed `flush()` followed by more work on the same EntityManager,
