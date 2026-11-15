@@ -12,7 +12,7 @@ This reference lists each built-in analyzer and the place where it runs. It is m
 | Execution path | Count | Contract |
 |---------------|------:|----------|
 | Runtime profiler | 41 | `AnalyzerInterface` without a static marker |
-| Code and mapping checks | 58 | `StaticAnalyzerInterface` (including `MetadataAnalyzerInterface`) |
+| Code and mapping checks | 60 | `StaticAnalyzerInterface` (including `MetadataAnalyzerInterface`) |
 | Optional database audits | 9 | `DatabaseAuditAnalyzerInterface` |
 
 The bundle keeps `doctrine_doctor.analyzer` as the service registration tag. During container compilation, services marked static are sent to the CI command; other analyzer services are sent to the profiler. Database audits also implement the static contract, and the command skips them unless `--with-database` is set.
@@ -65,7 +65,7 @@ These checks need SQL or other context captured while a request runs.
 - `UnusedEagerLoadAnalyzer`
 - `YearFunctionOptimizationAnalyzer`
 
-## Code and mapping checks (58)
+## Code and mapping checks (60)
 
 These checks can run without SQL from the current web request.
 
@@ -92,6 +92,7 @@ These checks can run without SQL from the current web request.
 - `EmbeddableWithoutValueObjectAnalyzer`
 - `EntityManagerInEntityAnalyzer`
 - `EntityManagerInServiceAnalyzer`
+- `EntityManagerUsedAfterFailureAnalyzer`
 - `EntityStateConsistencyAnalyzer`
 - `FinalEntityAnalyzer`
 - `FloatForMoneyAnalyzer`
@@ -108,6 +109,7 @@ These checks can run without SQL from the current web request.
 - `MappedSuperclassOneToManyAnalyzer`
 - `MissingEmbeddableOpportunityAnalyzer`
 - `MissingOrphanRemovalOnCompositionAnalyzer`
+- `MissingSoftDeleteFilterAnalyzer`
 - `NamingConventionAnalyzer`
 - `NullablePrimaryKeyAnalyzer`
 - `OnDeleteCascadeMismatchAnalyzer`

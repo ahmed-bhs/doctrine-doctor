@@ -89,6 +89,8 @@ class IntegrityIssue extends AbstractIssue
             IssueType::MIGRATION_DROPS_DATA->value,
             IssueType::MIGRATION_NOT_REVERSIBLE->value,
             IssueType::MIGRATION_USES_ORM->value,
+            IssueType::SOFT_DELETE_WITHOUT_FILTER->value,
+            IssueType::ENTITY_MANAGER_USED_AFTER_FAILURE->value,
         ];
     }
 

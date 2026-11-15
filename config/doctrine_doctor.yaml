@@ -272,6 +272,12 @@ doctrine_doctor:
         join_type_consistency:
             enabled: true
 
+        missing_soft_delete_filter:
+            enabled: true
+
+        entity_manager_used_after_failure:
+            enabled: true
+
         migration_state:
             enabled: true
 

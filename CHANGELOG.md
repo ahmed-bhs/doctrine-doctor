@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `MissingSoftDeleteFilter` (static): an entity deleted by setting `deletedAt` (or an `isDeleted` flag) while no SQL
+  filter is enabled to hide those rows, so every query that forgets the condition shows deleted records.
+- `EntityManagerUsedAfterFailure` (static): a caught failed `flush()` followed by more work on the same EntityManager,
+  in the catch block or in the next turn of a loop. A failed flush closes the EntityManager.
 - `CollectionCountedInPhp` (static): `count($customer->getOrders())`, `->count()` or `->isEmpty()` on a to-many
   collection that is not EXTRA_LAZY, which loads the whole collection to return a number.
 - `AggregateInPhp` (static): a method that loads entities and adds up a getter in PHP (`$total += $o->getTotal()` in
