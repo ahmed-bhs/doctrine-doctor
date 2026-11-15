@@ -937,8 +937,8 @@ final class NPlusOneAnalyzerTest extends TestCase
     {
         // Same shape as a collection load (WHERE fk = ?), but Doctrine loads it from loadOneToOneEntity().
         $frames = [
-            ['class' => 'Doctrine\\ORM\\Persisters\\Entity\\BasicEntityPersister', 'function' => 'loadOneToOneEntity'],
-            ['class' => 'Doctrine\\ORM\\UnitOfWork', 'function' => 'createEntity'],
+            ['class' => \Doctrine\ORM\Persisters\Entity\BasicEntityPersister::class, 'function' => 'loadOneToOneEntity'],
+            ['class' => \Doctrine\ORM\UnitOfWork::class, 'function' => 'createEntity'],
         ];
         $builder = QueryDataBuilder::create();
         for ($id = 1; $id <= 6; ++$id) {

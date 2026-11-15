@@ -366,7 +366,7 @@ final class CartesianProductAnalyzerTest extends TestCase
     #[Test]
     public function it_does_not_count_inverse_one_to_one_loads_as_collections(): void
     {
-        $frames = [['class' => 'Doctrine\\ORM\\Persisters\\Entity\\BasicEntityPersister', 'function' => 'loadOneToOneEntity']];
+        $frames = [['class' => \Doctrine\ORM\Persisters\Entity\BasicEntityPersister::class, 'function' => 'loadOneToOneEntity']];
         $builder = QueryDataBuilder::create();
         for ($i = 0; $i < 10; ++$i) {
             $builder->addQueryWithBacktrace('SELECT t0.id FROM shop_user t0 WHERE t0.customer_id = ?', $frames);

@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\InverseOneToOneLoad;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -244,7 +245,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
     {
         // The inverse side of a OneToOne is loaded with its owner (it cannot be a proxy). Its query has the shape of a
         // collection load (WHERE fk = ?), only the persister call tells them apart.
-        if ($this->loadsInverseOneToOne($backtrace)) {
+        if (InverseOneToOneLoad::inBacktrace($backtrace)) {
             return ['type' => 'inverse OneToOne', 'hasLimit' => false];
         }
 
@@ -293,7 +294,8 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
         $queryCount = \count($queryGroup);
 
         if ('inverse OneToOne' === $type['type']) {
-            $inverseSide = $this->resolveInverseOneToOne($sql);
+            $pattern = $this->sqlExtractor->detectNPlusOnePattern($sql);
+            $inverseSide = null === $pattern ? null : InverseOneToOneLoad::resolve($this->entityManager, $pattern['table'], $this->camelCaseToSnakeCase($pattern['foreignKey']) . '_id');
             if (null !== $inverseSide) {
                 return $this->suggestionFactory->createFromTemplate(
                     templateName: 'Integrity/one_to_one_inverse_side',
@@ -556,69 +558,6 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
                     'parentEntity' => $this->shortClassName($targetEntityClass),
                     'collectionField' => $parentFieldName,
                     'childEntity' => $this->shortClassName($childEntityClass),
-                ];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param array<int, array<string, mixed>>|null $backtrace
-     */
-    private function loadsInverseOneToOne(?array $backtrace): bool
-    {
-        foreach ($backtrace ?? [] as $frame) {
-            if ('loadOneToOneEntity' === ($frame['function'] ?? null)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * The inverse field loaded by "SELECT ... FROM owning_table WHERE fk = ?", as the template context.
-     *
-     * @return array{entity_class: string, entity_fqcn: string, field_name: string, target_class: string, target_fqcn: string, mapped_by: string}|null
-     */
-    private function resolveInverseOneToOne(string $sql): ?array
-    {
-        $pattern = $this->sqlExtractor->detectNPlusOnePattern($sql);
-        if (null === $pattern) {
-            return null;
-        }
-        if (null === $this->tableToEntityCache) {
-            $this->warmUpTableToEntityCache();
-        }
-        $owningClass = $this->tableToEntityCache[$pattern['table']] ?? null;
-        if (null === $owningClass) {
-            return null;
-        }
-
-        try {
-            /** @var class-string $owningClass */
-            $owning = $this->entityManager->getClassMetadata($owningClass);
-            $owningSide = $this->findManyToOneByFkColumn($owning, $this->camelCaseToSnakeCase($pattern['foreignKey']) . '_id');
-            if (null === $owningSide) {
-                return null;
-            }
-            /** @var class-string $inverseClass */
-            $inverseClass = $owningSide['targetEntity'];
-            $inverse = $this->entityManager->getClassMetadata($inverseClass);
-        } catch (\Throwable) {
-            return null;
-        }
-
-        foreach ($inverse->getAssociationMappings() as $field => $mapping) {
-            if ($owningSide['fieldName'] === MappingHelper::getString($mapping, 'mappedBy')) {
-                return [
-                    'entity_class' => $this->shortClassName($inverseClass),
-                    'entity_fqcn' => $inverseClass,
-                    'field_name' => (string) $field,
-                    'target_class' => $this->shortClassName($owningClass),
-                    'target_fqcn' => $owningClass,
-                    'mapped_by' => $owningSide['fieldName'],
                 ];
             }
         }

@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\InverseOneToOneLoad;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -208,7 +209,7 @@ class CartesianProductAnalyzer implements AnalyzerInterface
         $sourceGroups = [];
 
         foreach ($queryDataCollection as $queryData) {
-            if (!$queryData->isSelect() || $this->loadsInverseOneToOne($queryData->backtrace)) {
+            if (!$queryData->isSelect() || InverseOneToOneLoad::inBacktrace($queryData->backtrace)) {
                 continue;
             }
 
@@ -252,23 +253,6 @@ class CartesianProductAnalyzer implements AnalyzerInterface
 
             yield $this->createRiskIssue($sourceEntity, $tables, array_values($sampleQueries));
         }
-    }
-
-    /**
-     * The inverse side of a OneToOne has the query shape of a collection (WHERE fk = ?) but holds one row: joining it
-     * multiplies nothing.
-     *
-     * @param array<int, array<string, mixed>>|null $backtrace
-     */
-    private function loadsInverseOneToOne(?array $backtrace): bool
-    {
-        foreach ($backtrace ?? [] as $frame) {
-            if ('loadOneToOneEntity' === ($frame['function'] ?? null)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
