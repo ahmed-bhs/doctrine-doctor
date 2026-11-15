@@ -80,6 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `OrderByNullableLeadingColumn` still reported a nullable sort column when the WHERE clause already excludes NULL
+  (`col IS NOT NULL`, `col > ?`, `BETWEEN`, `IN`), which is the fix it suggests.
 - `--show-suggestion=ID` printed the whole report before the requested suggestion, and could not find an ID kept in
   the baseline when `--baseline` was given. It now prints the suggestion alone, whatever the baseline.
 - `ForeignKeyMapping` missed an id stored as an integer when the field names a role before the entity
