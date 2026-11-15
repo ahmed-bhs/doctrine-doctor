@@ -17,10 +17,13 @@ use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
@@ -30,6 +33,7 @@ class SingleTableInheritanceNullableColumnAnalyzer implements StaticAnalyzerInte
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly ?SuggestionFactoryInterface $suggestionFactory = null,
     ) {
     }
 
@@ -116,6 +120,23 @@ class SingleTableInheritanceNullableColumnAnalyzer implements StaticAnalyzerInte
                     ),
                     description: $description,
                     severity: Severity::info(),
+                    suggestion: $this->suggestionFactory?->createFromTemplate(
+                        templateName: 'Integrity/sti_column_not_enforced',
+                        context: [
+                            'subclass' => $this->shortClassName($subClass),
+                            'field' => $fieldName,
+                            'column' => $subMetadata->getColumnName($fieldName),
+                            'table' => $rootMetadata->getTableName(),
+                            'discriminator_column' => (string) ($rootMetadata->discriminatorColumn->name ?? 'dtype'),
+                            'discriminator_value' => (string) $subMetadata->discriminatorValue,
+                        ],
+                        suggestionMetadata: new SuggestionMetadata(
+                            type: SuggestionType::integrity(),
+                            severity: Severity::info(),
+                            title: 'Keep the rule in the database with a CHECK constraint',
+                            tags: ['inheritance', 'single-table', 'constraint'],
+                        ),
+                    ),
                 )->toArray());
             }
         }
