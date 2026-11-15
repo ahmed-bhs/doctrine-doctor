@@ -60,6 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `EntityManagerInService` said a class "only uses" the EntityManager to reach repositories even when it also built
+  queries with it. The message now lists the methods actually called on the EntityManager.
 - A finding that gives an explicit file and line (such as `CollectionFilteredInPhp`) could be located at the start of
   the class named in its title instead, depending on the classes PHP had already loaded. The explicit line now wins.
 - Mapping findings that share a title and a field name (for example `adjustments` on `Order`, `OrderItem`

@@ -151,15 +151,45 @@ class EntityManagerInServiceAnalyzer implements MetadataAnalyzerInterface
         return $entities;
     }
 
+    /**
+     * Methods called on $this->{parameter}, the injected EntityManager.
+     *
+     * @return list<string>
+     */
+    private function entityManagerCalls(Node\Stmt\Class_ $class, string $parameter): array
+    {
+        $calls = [];
+        foreach (new NodeFinder()->findInstanceOf($class->stmts, Node\Expr\MethodCall::class) as $call) {
+            if ($call->name instanceof Node\Identifier
+                && $call->var instanceof Node\Expr\PropertyFetch
+                && $call->var->var instanceof Node\Expr\Variable
+                && 'this' === $call->var->var->name
+                && $call->var->name instanceof Node\Identifier
+                && $parameter === $call->var->name->toString()) {
+                $calls[] = $call->name->toString();
+            }
+        }
+
+        $calls = array_values(array_unique($calls));
+        sort($calls);
+
+        return $calls;
+    }
+
     private function createIssue(Node\Stmt\Class_ $class, string $file, string $parameter): IntegrityIssue
     {
         $fqcn = (string) $class->namespacedName;
         $shortName = $this->shortName($fqcn);
         $repositories = $this->repositoriesUsed($class);
+        $otherCalls = array_values(array_diff($this->entityManagerCalls($class, $parameter), ['getRepository']));
 
-        $description = [] === $repositories
-            ? '{class} receives the EntityManager in its constructor. Its logic depends on Doctrine directly and can only be tested with a database or a mock of the EntityManager.'
-            : '{class} receives the EntityManager in its constructor and only uses it to reach {repositories}. Its logic depends on Doctrine directly and can only be tested with a database or a mock of the EntityManager.';
+        $consequence = ' Its logic depends on Doctrine directly and can only be tested with a database or a mock of the EntityManager.';
+        $description = match (true) {
+            [] !== $repositories && [] === $otherCalls => '{class} receives the EntityManager in its constructor and only uses it to reach {repositories}.',
+            [] !== $repositories => '{class} receives the EntityManager in its constructor, calls {calls} on it and reaches {repositories}.',
+            [] !== $otherCalls => '{class} receives the EntityManager in its constructor and calls {calls} on it.',
+            default => '{class} receives the EntityManager in its constructor.',
+        } . $consequence;
 
         $issueData = new IssueData(
             type: IssueType::ENTITY_MANAGER_IN_SERVICE->value,
@@ -167,6 +197,7 @@ class EntityManagerInServiceAnalyzer implements MetadataAnalyzerInterface
             description: DescriptionHighlighter::highlight($description, [
                 'class' => $shortName,
                 'repositories' => implode(', ', array_map(static fn (string $entity): string => $entity . 'Repository', $repositories)),
+                'calls' => implode(', ', array_map(static fn (string $call): string => $call . '()', $otherCalls)),
             ]),
             severity: Severity::info(),
             suggestion: $this->suggestionFactory->createFromTemplate(

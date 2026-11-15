@@ -19,4 +19,9 @@ final class OrderRepository
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
+
+    public function countAll(): int
+    {
+        return (int) $this->entityManager->createQueryBuilder()->select('COUNT(o.id)')->from('Order', 'o')->getQuery()->getSingleScalarResult();
+    }
 }

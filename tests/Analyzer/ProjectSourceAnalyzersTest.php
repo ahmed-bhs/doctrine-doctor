@@ -34,7 +34,7 @@ final class ProjectSourceAnalyzersTest extends TestCase
         $issues = $this->issues(new EntityManagerInServiceAnalyzer(new ProjectSourceScanner(self::PROJECT, ['App']), PlatformAnalyzerTestHelper::createSuggestionFactory(), PlatformAnalyzerTestHelper::createIssueFactory()));
 
         self::assertSame(['EntityManager Injected in Service: ShippingService'], $this->titles($issues));
-        self::assertStringContainsString('OrderRepository', strip_tags($issues[0]->getDescription()));
+        self::assertStringContainsString('only uses it to reach OrderRepository', strip_tags($issues[0]->getDescription()));
         self::assertSame('info', $issues[0]->getSeverity()->value);
     }
 
@@ -74,6 +74,17 @@ final class ProjectSourceAnalyzersTest extends TestCase
 
         self::assertSame(['EntityManager Injected in Service: OrderRepository'], $this->titles($this->issues($services)));
         self::assertSame([], $this->issues($filters));
+    }
+
+    #[Test]
+    public function it_does_not_say_only_when_the_service_also_builds_queries(): void
+    {
+        $analyzer = new EntityManagerInServiceAnalyzer(new ProjectSourceScanner(self::PROJECT, ['App']), PlatformAnalyzerTestHelper::createSuggestionFactory(), PlatformAnalyzerTestHelper::createIssueFactory(), ['Service']);
+
+        $description = strip_tags($this->issues($analyzer)[0]->getDescription());
+
+        self::assertStringContainsString('calls createQueryBuilder() on it', $description);
+        self::assertStringNotContainsString('only uses it', $description);
     }
 
     private function entityManager(): \Doctrine\ORM\EntityManagerInterface
