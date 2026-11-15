@@ -624,6 +624,7 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EntityStateConsistencyAnalyzer:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
         tags:
             - { name: doctrine_doctor.analyzer }
 

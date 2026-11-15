@@ -80,6 +80,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `EntityStateConsistency` reported every required ManyToOne or OneToOne without `cascade: ['persist']`, which is
+  the normal mapping of an association to an entity that lives on its own (43 warnings on a Sylius shop), and implied
+  adding a cascade. It now reads the application code (`analysis.source_dirs`) and reports only a new entity attached
+  inline to such an association, `->setCustomer(new Customer())` or `$this->customer = new Customer()`, which cannot
+  have been persisted and makes `flush()` fail. The finding gives the file and the line.
 - The `DQLInjection` message said "no bound parameter" for queries that bind other values, and quoted the start of
   the SELECT. It now quotes the concatenated comparisons, such as `s1_.name LIKE '%lin%'`.
 - `SensitiveDataExposure` said that the serializer includes any sensitive field without `#[Ignore]`. When Symfony's
