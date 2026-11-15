@@ -83,6 +83,7 @@ class IntegrityIssue extends AbstractIssue
             IssueType::FLUSH_IN_LIFECYCLE_CALLBACK->value,
             IssueType::ENTITY_MANAGER_IN_SERVICE->value,
             IssueType::UNUSED_INVERSE_SIDE->value,
+            IssueType::FILTERED_FETCH_JOIN->value,
         ];
     }
 

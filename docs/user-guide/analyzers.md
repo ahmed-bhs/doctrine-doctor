@@ -305,6 +305,7 @@ class Customer {
 | TypeHintMismatchAnalyzer | Type safety | Type inconsistency | Runtime errors |
 | NamingConventionAnalyzer | Code standards | Naming violations | Readability issues |
 | NullComparisonAnalyzer | SQL semantics | `= NULL` instead of `IS NULL` | Silently empty results |
+| FilteredFetchJoinAnalyzer | Fetch join | To-many collection fetch-joined and filtered in WHERE | Incomplete collection in memory |
 | DivisionByZeroAnalyzer | Expression safety | Unguarded division | Runtime error |
 | CompositeKeyComplexityAnalyzer | Identifier design | Composite primary key | Join and mapping complexity |
 | JoinColumnNonPrimaryKeyAnalyzer | Referential integrity | Join column targets a non-primary key | Fragile association |

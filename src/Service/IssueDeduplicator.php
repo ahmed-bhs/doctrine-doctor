@@ -104,6 +104,7 @@ final readonly class IssueDeduplicator
             // A LIMIT that cuts a fetch-joined collection returns wrong results: never hide it behind a
             // performance finding on the same query.
             IssueType::SET_MAX_RESULTS_WITH_COLLECTION_JOIN->value,
+            IssueType::FILTERED_FETCH_JOIN->value,
         ];
 
         if (in_array($type, $selfContainedTypes, true)) {
