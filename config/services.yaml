@@ -742,6 +742,23 @@ services:
         tags:
             - { name: doctrine_doctor.analyzer }
 
+    AhmedBhs\DoctrineDoctor\Analyzer\Performance\CollectionCountedInPhpAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Performance\AggregateInPhpAnalyzer:
+        arguments:
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
     AhmedBhs\DoctrineDoctor\Analyzer\Performance\CollectionFilteredInPhpAnalyzer:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'

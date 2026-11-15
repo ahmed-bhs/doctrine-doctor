@@ -249,6 +249,12 @@ doctrine_doctor:
         unused_inverse_side:
             enabled: true
 
+        collection_counted_in_php:
+            enabled: true
+
+        aggregate_in_php:
+            enabled: true
+
         collection_filtered_in_php:
             enabled: true
             # Collection methods that load every element to keep some of them

@@ -43,6 +43,8 @@ class PerformanceIssue extends AbstractIssue
             IssueType::AGGREGATION_WITH_INNER_JOIN->value,
             IssueType::DTO_HYDRATION->value,
             IssueType::COLLECTION_FILTERED_IN_PHP->value,
+            IssueType::COLLECTION_COUNTED_IN_PHP->value,
+            IssueType::AGGREGATE_IN_PHP->value,
         ];
     }
 

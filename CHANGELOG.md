@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `CollectionCountedInPhp` (static): `count($customer->getOrders())`, `->count()` or `->isEmpty()` on a to-many
+  collection that is not EXTRA_LAZY, which loads the whole collection to return a number.
+- `AggregateInPhp` (static): a method that loads entities and adds up a getter in PHP (`$total += $o->getTotal()` in
+  a loop, `array_sum(array_map(...))`), where `SUM()` returns one row.
 - **Migration analyzers**, active when `doctrine/migrations` is installed:
   - `MigrationState` (with `--with-database`): migrations that exist but were not executed, or, when every migration
     has run, a mapping that differs from the database. The finding counts the statements and says when some of them
