@@ -358,14 +358,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
     {
         $onClause = (string) $this->sqlExtractor->extractJoinOnClause($sql, (string) $join['full_match']);
         preg_match_all('/\\b(\\w+)\\.\\w+/', $onClause, $aliases);
-
-        foreach (array_unique($aliases[1]) as $alias) {
-            if ($alias !== ($join['alias'] ?? null) && 1 === preg_match('/\\bLEFT\\s+(?:OUTER\\s+)?JOIN\\s+\\S+\\s+(?:AS\\s+)?' . preg_quote($alias, '/') . '\\b/i', $sql)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(array_unique($aliases[1]), fn ($alias) => $alias !== ($join['alias'] ?? null) && 1 === preg_match('/\\bLEFT\\s+(?:OUTER\\s+)?JOIN\\s+\\S+\\s+(?:AS\\s+)?' . preg_quote($alias, '/') . '\\b/i', $sql));
     }
 
     private function createLeftJoinOnNotNullIssue(
