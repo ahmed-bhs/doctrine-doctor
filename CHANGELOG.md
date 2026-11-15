@@ -66,6 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `ManyToManyWithExtraColumns` findings name the entity and the field (`Join Table With Extra Columns:
+  Customer::$wishlist`), so the report shows their file and line. They were listed without a location.
 - `SQLInjectionInRawQueries` (static half) also reads the application code (`analysis.source_dirs`), knows the DBAL
   `fetch*()` and `iterate*()` methods, and sees SQL concatenated straight in the call
   (`$connection->fetchAllAssociative("… '" . $action . "'")`). Its findings name the class and method, so the report
