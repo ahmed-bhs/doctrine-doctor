@@ -44,11 +44,14 @@ final class PostgreSQLPlatformAnalyzersTest extends TestCase
     protected function setUp(): void
     {
         try {
-            $this->connection = PlatformAnalyzerTestHelper::createPostgreSQLConnection();
-            $this->connection->executeQuery('SELECT 1');
+            $connection = PlatformAnalyzerTestHelper::createPostgreSQLConnection();
+            $connection->executeQuery('SELECT 1');
         } catch (\Throwable $throwable) {
             self::markTestSkipped('PostgreSQL is not reachable: ' . $throwable->getMessage());
         }
+
+        // Only keep a connection that answered, so tearDown() does not query a dead server.
+        $this->connection = $connection;
     }
 
     protected function tearDown(): void

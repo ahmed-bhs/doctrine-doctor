@@ -46,11 +46,14 @@ final class MySQLPlatformAnalyzersTest extends TestCase
     protected function setUp(): void
     {
         try {
-            $this->connection = PlatformAnalyzerTestHelper::createMySQLConnection();
-            $this->connection->executeQuery('SELECT 1');
+            $connection = PlatformAnalyzerTestHelper::createMySQLConnection();
+            $connection->executeQuery('SELECT 1');
         } catch (\Throwable $throwable) {
             self::markTestSkipped('MySQL is not reachable: ' . $throwable->getMessage());
         }
+
+        // Only keep a connection that answered, so tearDown() does not query a dead server.
+        $this->connection = $connection;
 
         $this->dropTables();
     }
