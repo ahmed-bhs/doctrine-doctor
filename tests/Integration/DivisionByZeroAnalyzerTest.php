@@ -45,7 +45,7 @@ final class DivisionByZeroAnalyzerTest extends TestCase
         self::assertCount(1, $issueCollection);
         $issue = $issueCollection->first();
         self::assertInstanceOf(IssueInterface::class, $issue);
-        self::assertSame('Potential Division By Zero Error', $issue->getTitle());
+        self::assertSame('Possible Division by Zero', $issue->getTitle());
         self::assertStringContainsString('revenue / quantity', $issue->getDescription());
         self::assertStringContainsString('NULLIF', $issue->getDescription());
     }

@@ -57,6 +57,12 @@ class QueryData
          * @readonly
          */
         public array $types = [],
+        /**
+         * Entities hydrated during the request from the tables this query reads, or null
+         * when unknown. A query read as arrays or DTOs hydrates none.
+         * @readonly
+         */
+        public ?int $hydratedEntities = null,
     ) {
     }
 
@@ -104,12 +110,13 @@ class QueryData
                 static fn (mixed $type): mixed => $type instanceof \UnitEnum ? $type->name : $type,
                 $types,
             ) : [],
+            hydratedEntities: is_int($data['hydratedEntities'] ?? null) ? $data['hydratedEntities'] : null,
         );
     }
 
     /**
      * Convert to array (for serialization).
-     * @return array{sql: string, executionMS: float, params: array<string, mixed>, backtrace: array<int, array<string, mixed>>|null, rowCount: int|null, types: array<mixed>}
+     * @return array{sql: string, executionMS: float, params: array<string, mixed>, backtrace: array<int, array<string, mixed>>|null, rowCount: int|null, types: array<mixed>, hydratedEntities: int|null}
      */
     public function toArray(): array
     {
@@ -120,6 +127,7 @@ class QueryData
             'backtrace'   => $this->backtrace,
             'rowCount'    => $this->rowCount,
             'types'       => $this->types,
+            'hydratedEntities' => $this->hydratedEntities,
         ];
     }
 

@@ -62,15 +62,20 @@ class HydrationAnalyzer implements AnalyzerInterface
                         continue;
                     }
 
+                    // Read as arrays or DTOs: no entity was built from these rows.
+                    if (null !== $queryData->hydratedEntities && $queryData->hydratedEntities <= $this->rowThreshold) {
+                        continue;
+                    }
+
                     if ($rowCount > $this->rowThreshold) {
                         // Any query returning more than threshold is a hydration concern
                         $issueData = new IssueData(
                             type: IssueType::HYDRATION->value,
                             title: sprintf('Excessive Hydration: %d rows', $rowCount),
                             description: DescriptionHighlighter::highlight(
-                                'Query {action} {count} rows, which may cause significant hydration overhead (threshold: {threshold}).',
+                                'The query ' . (null === $queryData->rowCount ? 'fetches up to' : 'returned') . ' {count} rows (threshold: {threshold}). '
+                                . 'Each row becomes an object that Doctrine hydrates and tracks in memory.',
                                 [
-                                    'action' => null === $queryData->rowCount ? 'fetches up to' : 'returned',
                                     'count' => $rowCount,
                                     'threshold' => $this->rowThreshold,
                                 ],

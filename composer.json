@@ -47,7 +47,8 @@
   },
   "suggest": {
     "doctrine/orm": "Required for ORM-specific analyzers (N+1 detection via metadata, eager loading, entity mapping checks). Without it, only DBAL-native analyzers run.",
-    "symfony/ai-symfony-mate-extension": "Required for AI Mate / MCP integration of Doctrine Doctor profiler issues"
+    "symfony/ai-symfony-mate-extension": "Required for AI Mate / MCP integration of Doctrine Doctor profiler issues",
+    "doctrine/migrations": "Required for the migration analyzers (pending migrations, mapping changed without a migration, risky migration files)."
   },
   "require": {
     "php": "^8.4",
@@ -59,6 +60,7 @@
   },
   "require-dev": {
     "deptrac/deptrac": "^4.2",
+    "doctrine/migrations": "^3.8",
     "doctrine/orm": "^3.0",
     "pdepend/pdepend": "3.x-dev",
     "php-parallel-lint/php-parallel-lint": "^1.4",
@@ -71,6 +73,7 @@
     "phpunit/phpunit": "^13.4",
     "rector/rector": "^2.3",
     "symfony/ai-symfony-mate-extension": "^0.13.0",
+    "symfony/serializer": "^6.4|^7.0|^8.0",
     "symfony/stopwatch": "^6.0|^7.0|^8.0",
     "symfony/validator": "^8.0",
     "symfony/var-dumper": "^6.0|^7.0|^8.0",

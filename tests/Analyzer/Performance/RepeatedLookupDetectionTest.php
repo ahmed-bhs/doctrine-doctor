@@ -111,8 +111,8 @@ final class RepeatedLookupDetectionTest extends TestCase
         $issues = $this->analyzer->analyze($builder->build());
         $issuesArray = $issues->toArray();
 
-        self::assertStringContainsString('Repeated Lookup', $issuesArray[0]->getDescription());
-        self::assertStringContainsString('IN query', $issuesArray[0]->getDescription());
+        self::assertStringContainsString('Repeated lookup by a non-key column', $issuesArray[0]->getDescription());
+        self::assertStringContainsString('configuration_item', $issuesArray[0]->getDescription());
     }
 
     // --- Pattern Detector unit tests ---

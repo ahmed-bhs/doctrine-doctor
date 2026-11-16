@@ -29,25 +29,19 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Increase Decimal Precision'); ?>
-
+<?php echo suggestionHeader('Increase the decimal precision'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <?php echo $e($description); ?>
-    </div>
+<p><?php echo $e(rtrim((string) $description, '. ')); ?>. <?php echo $e((string) $infoMessage); ?>.</p>
 
-    <h4>Current (insufficient)</h4>
-    <pre><code class="language-php"><?php echo $e($badCode); ?></code></pre>
+<div class="query-item"><pre><code class="language-php">// Before
+<?php echo $e((string) $badCode); ?>
 
-    <h4>Recommended</h4>
-    <pre><code class="language-php"><?php echo $e($goodCode); ?></code></pre>
 
-    <p><?php echo $e($infoMessage); ?> - Prevents data truncation and runtime errors.</p>
+// After
+<?php echo $e((string) $goodCode); ?></code></pre></div>
 
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal', 'Doctrine Decimal Type Documentation'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal', 'Doctrine Decimal Type Documentation'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 

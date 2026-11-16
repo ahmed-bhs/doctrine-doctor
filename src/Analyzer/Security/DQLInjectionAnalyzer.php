@@ -116,8 +116,8 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                 type: IssueType::DQL_INJECTION->value,
                 title: sprintf('Security Vulnerability: %d queries with SQL injection risks', count($criticalQueries)),
                 description: DescriptionHighlighter::highlight(
-                    'Detected {count} queries with critical injection risk. Indicators: {indicators}. '
-                    . 'Always use parameterized queries and never concatenate user input.',
+                    '{count} queries carry a critical injection risk ({indicators}). '
+                    . 'Input concatenated into the query can change its meaning and read or modify any data.',
                     [
                         'count' => (string) count($criticalQueries),
                         'indicators' => implode(', ', $indicators),
@@ -161,8 +161,8 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                 type: IssueType::DQL_INJECTION->value,
                 title: sprintf('Security Warning: %d queries with potential injection risks', count($highRiskQueries)),
                 description: sprintf(
-                    'Detected %d queries with high injection risk. Indicators: %s. '
-                    . 'Review these queries and ensure proper parameter binding.',
+                    '%d queries carry a high injection risk (%s). '
+                    . 'If any of these values comes from user input, it can change the meaning of the query.',
                     count($highRiskQueries),
                     implode(', ', $indicators),
                 ),
@@ -176,16 +176,65 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
 
     private function isDqlWithUnparameterizedLiteral(QueryData $queryData): bool
     {
-        if (!empty($queryData->params)) {
-            return false;
-        }
-
+        // Bound parameters elsewhere in the query do not make a concatenated value safe: "locale = ? AND name LIKE
+        // '%lin%'" still carries the search terms in the SQL text.
         if (!$this->dqlPatternMatcher->hasDoctrineSQLPattern($queryData->sql)) {
             return false;
         }
 
-        return 1 === preg_match("/WHERE\s+.+=\s*'[^']*'/i", $queryData->sql)
-            || 1 === preg_match('/WHERE\s+.+=\s*"[^"]*"/i', $queryData->sql);
+        $literals = $this->whereLiterals($queryData->sql);
+
+        return [] !== $literals && !$this->literalsAreWrittenInSource($queryData, $literals);
+    }
+
+    /**
+     * The comparisons with a quoted value of the WHERE clause, such as "s1_.name LIKE '%lin%'" (three at most).
+     */
+    private function literalConditions(string $sql): string
+    {
+        preg_match_all("/[\\w.]+\\s*(?:=|<>|!=|\\bLIKE)\\s*'[^']*'/i", (string) stristr($sql, ' WHERE '), $matches);
+
+        return implode(', ', \array_slice(array_unique($matches[0]), 0, 3));
+    }
+
+    /**
+     * Quoted values compared in the WHERE clause (=, <>, !=, LIKE).
+     *
+     * @return list<string>
+     */
+    private function whereLiterals(string $sql): array
+    {
+        $where = stristr($sql, ' WHERE ');
+        if (false === $where) {
+            return [];
+        }
+
+        preg_match_all("/(?:=|<>|!=|\\bLIKE)\\s*'([^']*)'/i", $where, $matches);
+
+        return $matches[1];
+    }
+
+    /**
+     * Every literal of the SQL is written as is in a file that built the query, the application or a library such
+     * as a shop framework: the value is a constant of the code, such as o.state = 'completed', not user input.
+     *
+     * @param list<string> $literals
+     */
+    private function literalsAreWrittenInSource(QueryData $queryData, array $literals): bool
+    {
+        foreach ($queryData->backtrace ?? [] as $frame) {
+            $file = \is_array($frame) && isset($frame['file']) && \is_string($frame['file']) ? $frame['file'] : '';
+            if ('' === $file || 1 === preg_match('#/vendor/(?:doctrine|symfony)/#', $file) || !is_file($file)) {
+                continue;
+            }
+
+            $source = (string) file_get_contents($file);
+            if (array_all($literals, fn ($value) => 1 === preg_match("/(?:=|<>|!=|LIKE)\\s*\\\\?'" . preg_quote($value, '/') . "\\\\?'/i", $source))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function createUnparameterizedDqlIssue(QueryData $queryData): \AhmedBhs\DoctrineDoctor\Issue\IssueInterface
@@ -209,10 +258,9 @@ class DQLInjectionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             type: IssueType::DQL_INJECTION->value,
             title: 'DQL Injection Risk: Doctrine query with concatenated literal value',
             description: DescriptionHighlighter::highlight(
-                'Doctrine-generated SQL contains a literal value in the WHERE clause with no bound parameters: {query}. '
-                . 'This indicates the DQL was built using string concatenation instead of setParameter(). '
-                . 'Use parameterized DQL: $qb->setParameter() or $query->setParameter().',
-                ['query' => substr($queryData->sql, 0, 120)],
+                'A column is compared to a value written into the Doctrine-generated SQL, not to a bound parameter: {conditions}. '
+                . 'The DQL was built by string concatenation, so any user input in it can change the query.',
+                ['conditions' => $this->literalConditions($queryData->sql)],
             ),
             severity: $suggestion->getMetadata()->severity,
             suggestion: $suggestion,

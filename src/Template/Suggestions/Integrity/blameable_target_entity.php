@@ -10,70 +10,28 @@ $currentTarget = $context['current_target'] ?? 'unknown';
 $severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 $shortClass = basename(str_replace('\\', '/', $entityClass));
+$blameOn = str_contains(strtolower((string) $fieldName), 'update') ? 'update' : 'create';
+$shortTarget = basename(str_replace('\\', '/', (string) $currentTarget));
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Blameable field points to wrong entity'); ?>
+<?php echo suggestionHeader('Point the blameable field to the user entity'); ?>
 <div class="suggestion-content">
-<div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($fieldName); ?></code> should reference a User entity, but currently points to <code><?php echo $e($currentTarget); ?></code>.</div>
+<div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> is a blameable field but references <code><?php echo $e($currentTarget); ?></code>. Blameable stores the authenticated user, so the association must target your user class.</div>
 
-<p>Blameable fields must reference the user/account entity to properly track who created or modified the entity.</p>
-<p>This rule applies to fields used with <code>Gedmo\Blameable</code> (or equivalent blameable behavior).</p>
-
-<h4>If your intent is business author</h4>
-<p>Keep <code><?php echo $e($fieldName); ?></code> as a business relation (for example <code>Author</code>), and remove Blameable from this field. Track audit with dedicated fields:</p>
-<div class="query-item"><pre><code class="language-php">use App\Entity\Author;
-use App\Entity\User;
-use Gedmo\Mapping\Annotation as Gedmo;
-use Doctrine\ORM\Mapping as ORM;
+<div class="query-item"><pre><code class="language-php">use Gedmo\Mapping\Annotation as Gedmo;
 
 #[ORM\Entity]
 class <?php echo $e($shortClass); ?>
 
 {
-    #[ORM\ManyToOne(targetEntity: Author::class)]
-    private ?Author $<?php echo $e($fieldName); ?> = null;
-<?php if ('createdBy' !== $fieldName) { ?>
-
-    #[Gedmo\Blameable(on: 'create')]
+    #[Gedmo\Blameable(on: '<?php echo $blameOn; ?>')]
+    // Before: #[ORM\ManyToOne(targetEntity: <?php echo $e($shortTarget); ?>::class)]
     #[ORM\ManyToOne(targetEntity: User::class)]
-    private ?User $createdBy = null;
-<?php } ?>
-<?php if ('updatedBy' !== $fieldName) { ?>
-
-    #[Gedmo\Blameable(on: 'update')]
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    private ?User $updatedBy = null;
-<?php } ?>
+    private ?User $<?php echo $e($fieldName); ?> = null;
 }</code></pre></div>
 
-<h4>If your intent is audit actor</h4>
-<p>Use dedicated audit fields mapped to your User entity (preferred naming: <code>createdBy</code>/<code>updatedBy</code>):</p>
-<div class="query-item"><pre><code class="language-php">use App\Entity\User;
-use Gedmo\Mapping\Annotation as Gedmo;
-use Doctrine\ORM\Mapping as ORM;
-
-#[ORM\Entity]
-class <?php echo $e($shortClass); ?>
-{
-    #[Gedmo\Blameable(on: 'create')]
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $createdBy = null;
-
-    #[Gedmo\Blameable(on: 'update')]
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    private ?User $updatedBy = null;
-}</code></pre></div>
-
-<p>Make sure to use your actual User entity class. Common names include App\Entity\User, App\Entity\Account, or App\Security\User.</p>
-
-<h4>Enable Blameable in Symfony (YAML)</h4>
-<div class="query-item"><pre><code class="language-yaml"># config/packages/stof_doctrine_extensions.yaml
-stof_doctrine_extensions:
-  orm:
-    default:
-      blameable: true</code></pre></div>
+<p>If this field is a business relation to <code><?php echo $e($shortTarget); ?></code>, keep it, remove Blameable from it and track the actor in separate audit fields mapped to your user class.</p>
 
 <?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md', 'Doctrine Extensions Blameable'); ?>
 </div>

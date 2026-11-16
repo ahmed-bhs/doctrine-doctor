@@ -22,9 +22,8 @@ class EntityManagerClearIssue extends AbstractIssue
             'type'        => IssueType::ENTITY_MANAGER_CLEAR,
             'title'       => 'Batch Operations Without EntityManager Clear',
             'description' => sprintf(
-                'Detected %d sequential INSERT/UPDATE/DELETE operations on table "%s" without apparent EntityManager::clear() calls. ' .
-                'This can lead to memory leaks in batch processing as Doctrine keeps all managed entities in memory. ' .
-                'Consider calling $entityManager->clear() periodically (e.g., every 50-100 operations) to free memory.',
+                '%d sequential INSERT/UPDATE/DELETE operations ran on table "%s" without EntityManager::clear(). ' .
+                'Every entity stays managed by the unit of work, so memory and flush time grow with the batch.',
                 $data['operation_count'] ?? 0,
                 $data['table'] ?? 'unknown',
             ),

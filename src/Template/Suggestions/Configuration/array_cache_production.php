@@ -8,52 +8,24 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<?php echo suggestionHeader('ArrayCache in production'); ?>
+<?php echo suggestionHeader('Use a persistent cache pool in production'); ?>
 <div class="suggestion-content">
-<div class="alert alert-danger"><?php echo $e($cacheLabel); ?> is using '<?php echo $e($currentConfig); ?>' in production.</div>
+<p><?php echo $e($cacheLabel); ?> uses <code><?php echo $e($currentConfig); ?></code> in production. An array cache is emptied after each request, so Doctrine parses metadata and compiles DQL again on every request.</p>
 
-<p>This is a common misconfiguration that significantly impacts performance.</p>
+<div class="query-item"><pre><code class="language-yaml"># config/packages/doctrine.yaml
+when@prod:
+    doctrine:
+        orm:
+            metadata_cache_driver: { type: pool, pool: doctrine.system_cache_pool }
+            query_cache_driver: { type: pool, pool: doctrine.system_cache_pool }
+            result_cache_driver: { type: pool, pool: doctrine.result_cache_pool }
+    framework:
+        cache:
+            pools:
+                doctrine.system_cache_pool: { adapter: cache.system }
+                doctrine.result_cache_pool: { adapter: cache.app }</code></pre></div>
 
-<h4>Recommended configuration</h4>
-<p>Use Redis (multi-server) or APCu (single-server):</p>
-
-<div class="query-item"><pre><code class="language-yaml"># config/packages/prod/doctrine.yaml
-doctrine:
-    orm:
-        metadata_cache_driver:
-            type: pool
-            pool: doctrine.system_cache_pool
-        query_cache_driver:
-            type: pool
-            pool: doctrine.system_cache_pool
-        result_cache_driver:
-            type: pool
-            pool: doctrine.result_cache_pool
-
-# config/packages/cache.yaml
-framework:
-    cache:
-        pools:
-            doctrine.system_cache_pool:
-                adapter: cache.adapter.redis  # or cache.adapter.apcu
-                default_lifetime: 3600
-            doctrine.result_cache_pool:
-                adapter: cache.adapter.redis
-                default_lifetime: 3600</code></pre></div>
-
-<h4>Why this matters</h4>
-<ul>
-<li>ArrayCache loses data after each request (no persistence)</li>
-<li>Redis/APCu persists cache across all requests</li>
-<li>Metadata parsing and DQL compilation are expensive operations</li>
-</ul>
-
-<h4>After configuration</h4>
-<ol>
-<li>Clear cache: <code>php bin/console cache:clear --env=prod</code></li>
-<li>Warm up: <code>php bin/console cache:warmup --env=prod</code></li>
-<li>Monitor cache hit rate in production</li>
-</ol>
+<p>For the result cache, use Redis (<code>cache.adapter.redis</code>) when several servers must share it, or APCu (<code>cache.adapter.apcu</code>) on a single server.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html', 'Doctrine ORM Caching Documentation'); ?>
 </div>
@@ -62,5 +34,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Using ArrayCache in production can severely degrade performance',
+    'description' => 'Replace the array cache with a persistent pool in production',
 ];

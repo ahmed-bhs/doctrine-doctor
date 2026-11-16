@@ -14,37 +14,27 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Mutable DateTime in timestamp field'); ?>
+<?php echo suggestionHeader('Use DateTimeImmutable for the timestamp'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> uses mutable DateTime. External code can modify it, breaking encapsulation.
-    </div>
+    <p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> holds a mutable <code>DateTime</code>. A caller that gets it from the getter can modify it in place, and Doctrine does not detect that change.</p>
 
-    <p>When you return a DateTime from a getter, external code can modify it without going through setters.</p>
+    <div class="query-item">
+        <pre><code class="language-php">// Before
+#[ORM\Column(type: Types::DATETIME_MUTABLE)]
+private \DateTime $<?php echo $e($fieldName); ?>;
 
-    <h4>Current</h4>
-    <pre><code class="language-php">#[ORM\Column(type: 'datetime')]
-private \DateTime $<?php echo $e($fieldName); ?>;</code></pre>
-
-    <h4>Solution: DateTimeImmutable</h4>
-    <pre><code class="language-php">#[ORM\Column(type: 'datetime_immutable')]
-private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
-
-// With Gedmo
-#[Gedmo\Timestampable(on: 'create')]
+// After: same column type, no migration needed
+#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
 private \DateTimeImmutable $<?php echo $e($fieldName); ?>;</code></pre>
-
-    <p>No database migration needed - Doctrine handles both types the same way.</p>
+    </div>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/working-with-datetime.html', 'Doctrine datetime docs'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Replace DateTime with DateTimeImmutable',
+    'description' => sprintf('Use DateTimeImmutable for %s::$%s', $entityClass, $fieldName),
 ];

@@ -26,6 +26,8 @@ use PHPUnit\Framework\TestCase;
  */
 final class DQLInjectionAnalyzerTest extends TestCase
 {
+    private string $lastDescription = '';
+
     private DQLInjectionAnalyzer $analyzer;
 
     protected function setUp(): void
@@ -404,5 +406,76 @@ final class DQLInjectionAnalyzerTest extends TestCase
             fn ($issue) => str_contains((string) $issue->getTitle(), 'concatenated literal'),
         );
         self::assertCount(0, $dqlIssues);
+    }
+
+    #[Test]
+    public function it_does_not_flag_a_literal_written_as_a_constant_in_the_calling_code(): void
+    {
+        $sql = "SELECT s0_.id AS id_0 FROM sylius_order s0_ WHERE s0_.checkout_state = 'completed'";
+        $frame = [['file' => \dirname(__DIR__) . '/Fixtures/Dql/CompletedOrdersQuery.php', 'line' => 17]];
+
+        $issues = $this->analyzer->analyze(QueryDataBuilder::create()->addQueryWithBacktrace($sql, $frame)->build());
+
+        self::assertCount(0, $issues->toArray());
+    }
+
+    #[Test]
+    public function it_still_flags_a_literal_that_is_not_in_the_calling_code(): void
+    {
+        $sql = "SELECT s0_.id AS id_0 FROM sylius_product s0_ WHERE s0_.code = 'lin'";
+        $frame = [['file' => \dirname(__DIR__) . '/Fixtures/Dql/CompletedOrdersQuery.php', 'line' => 17]];
+
+        $issues = $this->analyzer->analyze(QueryDataBuilder::create()->addQueryWithBacktrace($sql, $frame)->build());
+
+        self::assertCount(1, $issues->toArray());
+    }
+
+    #[Test]
+    public function it_flags_a_concatenated_like_even_when_another_value_is_bound(): void
+    {
+        $issues = $this->analyzeSearch(
+            "WHERE (s1_.name LIKE '%lin%' OR s1_.description LIKE '%lin%') AND s0_.enabled = 1",
+            '->andWhere("translation.name LIKE \'%" . $terms . "%\'")',
+        );
+
+        self::assertSame(['DQL Injection Risk: Doctrine query with concatenated literal value'], $issues);
+        self::assertStringContainsString("s1_.name LIKE '%lin%'", $this->lastDescription);
+        self::assertStringNotContainsString('no bound parameter', $this->lastDescription);
+    }
+
+    #[Test]
+    public function it_ignores_a_like_pattern_written_in_the_code(): void
+    {
+        $issues = $this->analyzeSearch(
+            "WHERE s0_.code LIKE 'SUMMER%' AND s0_.enabled = 1",
+            '->andWhere("p.code LIKE \'SUMMER%\'")',
+        );
+
+        self::assertSame([], $issues);
+    }
+
+    /**
+     * @return list<string> titles of the issues for a Doctrine query run from a file holding $source
+     */
+    private function analyzeSearch(string $where, string $source): array
+    {
+        $file = (string) tempnam(sys_get_temp_dir(), 'dd-repository');
+        file_put_contents($file, "<?php\n" . $source . "\n");
+
+        try {
+            $query = new \AhmedBhs\DoctrineDoctor\DTO\QueryData(
+                sql: 'SELECT s0_.id AS id_0 FROM sylius_product s0_ INNER JOIN sylius_product_translation s1_ ON s0_.id = s1_.translatable_id AND (s1_.locale = ?) ' . $where,
+                executionTime: \AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime::fromMilliseconds(5.0),
+                params: ['fr_FR'],
+                backtrace: [['file' => $file, 'line' => 2]],
+            );
+
+            $found = $this->analyzer->analyze(\AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection::fromArray([$query]))->toArray();
+            $this->lastDescription = (string) ($found[0] ?? null)?->getDescription();
+
+            return array_values(array_map(static fn ($issue): string => $issue->getTitle(), $found));
+        } finally {
+            unlink($file);
+        }
     }
 }

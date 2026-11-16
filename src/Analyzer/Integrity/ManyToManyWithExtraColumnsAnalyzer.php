@@ -202,9 +202,8 @@ class ManyToManyWithExtraColumnsAnalyzer implements DatabaseAuditAnalyzerInterfa
         $columnsList = implode(', ', array_map(fn ($col) => "`{$col}`", $extraColumns));
 
         $description = DescriptionHighlighter::highlight(
-            '{entity}::{field} is a {many_to_many} with a join table that has extra columns: {columns}. '
-            . 'When the join table needs extra data, refactor to an explicit join entity with two {one_to_many} associations. '
-            . 'This is a significant refactoring best done early.',
+            '{entity}::{field} is a {many_to_many} whose join table has extra columns: {columns}. '
+            . 'Doctrine never reads or writes these columns, so they keep their database defaults.',
             [
                 'entity' => $shortClassName,
                 'field' => '$' . $fieldName,
@@ -216,7 +215,7 @@ class ManyToManyWithExtraColumnsAnalyzer implements DatabaseAuditAnalyzerInterfa
 
         return new IntegrityIssue([
             'type' => IssueType::MANY_TO_MANY_EXTRA_COLUMNS->value,
-            'title' => sprintf('%s::%s has a join table with extra columns', $shortClassName, $fieldName),
+            'title' => sprintf('Join Table With Extra Columns: %s::$%s', $shortClassName, $fieldName),
             'description' => $description,
             'severity' => Severity::warning(),
             'suggestion' => $this->suggestionFactory->createFromTemplate(
@@ -236,6 +235,8 @@ class ManyToManyWithExtraColumnsAnalyzer implements DatabaseAuditAnalyzerInterfa
             ),
             'backtrace' => null,
             'queries' => [],
+            'entity' => $entityClass,
+            'field' => $fieldName,
         ]);
     }
 }

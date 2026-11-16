@@ -92,9 +92,8 @@ final readonly class PostgreSQLCollationAnalyzer implements CollationAnalyzerInt
         return new DatabaseConfigIssue([
             'title'       => sprintf('Database using "%s" collation (byte-order, not locale-aware)', $collation),
             'description' => sprintf(
-                'Database "%s" uses "%s" collation which sorts by byte values, not linguistic rules. ' .
-                'This causes incorrect sorting for non-ASCII characters (e.g., "ä" sorts after "z"). ' .
-                'Use a locale-aware collation like "en_US.UTF-8" for proper internationalization.',
+                'Database "%s" uses "%s" collation, which sorts by byte value instead of linguistic rules. ' .
+                'Non-ASCII characters sort in the wrong place (for example "ä" after "z").',
                 $databaseName,
                 $collation,
             ),
@@ -136,8 +135,7 @@ final readonly class PostgreSQLCollationAnalyzer implements CollationAnalyzerInt
             'title'       => 'Database collation and ctype mismatch',
             'description' => sprintf(
                 'Database has collation "%s" but ctype "%s". ' .
-                'These should normally match for consistent behavior. ' .
-                'Mismatches can cause unexpected sorting and case conversion issues.',
+                'Sorting follows one locale and case conversion another, so ORDER BY and LOWER() disagree.',
                 $collation,
                 $ctype,
             ),
@@ -228,9 +226,10 @@ final readonly class PostgreSQLCollationAnalyzer implements CollationAnalyzerInt
         return new DatabaseConfigIssue([
             'title'       => sprintf('%d foreign key collation mismatches detected', count($mismatches)),
             'description' => sprintf(
-                'Found %d foreign key relationships where child and parent columns have different collations. ' .
-                'This can cause performance issues and query failures:' . "\n- " . $descriptionStr,
+                '%d foreign keys join columns with different collations: %s. ' .
+                'Comparisons on these keys need a conversion, which prevents index use and can fail.',
                 count($mismatches),
+                str_replace("\n- ", '; ', $descriptionStr),
             ),
             'severity'   => 'warning',
             'suggestion' => $this->suggestionFactory->createFromTemplate(
@@ -289,13 +288,9 @@ final readonly class PostgreSQLCollationAnalyzer implements CollationAnalyzerInt
     private function createICUCollationSuggestionIssue(): DatabaseConfigIssue
     {
         return new DatabaseConfigIssue([
-            'title'       => 'Consider using ICU collations (PostgreSQL 10+)',
-            'description' => 'Your PostgreSQL version supports ICU collations, but you are using libc provider. ' .
-                'ICU collations provide: ' . "\n" .
-                '- Better Unicode support' . "\n" .
-                '- Consistent collation across platforms' . "\n" .
-                '- Deterministic versions (no breaking changes)' . "\n" .
-                'Consider using ICU for new databases.',
+            'title'       => 'Database using libc collation provider',
+            'description' => 'The database uses the libc collation provider although PostgreSQL supports ICU. ' .
+                'libc collations depend on the operating system, so sorting can change after an OS upgrade and corrupt indexes.',
             'severity'   => 'info',
             'suggestion' => $this->suggestionFactory->createFromTemplate(
                 templateName: 'Configuration/configuration',

@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Collector\Helper\DataCollectorLogger;
 use AhmedBhs\DoctrineDoctor\Collector\Helper\IssueReconstructor;
+use AhmedBhs\DoctrineDoctor\Collector\Helper\QueryEnricher;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
@@ -65,6 +66,9 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
     private readonly AnalysisTiming $analysisTiming;
 
+    /**
+     * @SuppressWarnings("PHPMD.ExcessiveParameterList")
+     */
     public function __construct(
         /**
          * @var AnalyzerInterface[]
@@ -90,6 +94,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
          * without rebuilding the container.
          */
         private readonly bool $enabled = true,
+        private readonly ?RowCount\RowCountRecorder $rowCounts = null,
     ) {
         $this->analysisTiming = ($analysisTiming ?? AnalysisTiming::Auto)->resolve();
     }
@@ -126,9 +131,11 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
         $queries = $this->doctrineDataCollector->getQueries();
 
-        foreach ($queries as $query) {
+        $enricher = new QueryEnricher($this->rowCounts);
+
+        foreach ($queries as $connection => $query) {
             if (is_array($query)) {
-                foreach ($query as $connectionQuery) {
+                foreach ($enricher->enrich((string) $connection, $query) as $connectionQuery) {
                     $this->data['timeline_queries'][] = $connectionQuery;
                 }
             }

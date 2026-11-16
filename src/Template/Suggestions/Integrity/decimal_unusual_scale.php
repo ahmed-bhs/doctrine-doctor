@@ -21,27 +21,19 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Review Decimal Scale'); ?>
-
+<?php echo suggestionHeader('Check the decimal scale'); ?>
 <div class="suggestion-content">
-    <p><?php echo $e($description); ?></p>
+<p><?php echo $e((string) $description); ?> <?php echo $e((string) $infoMessage); ?></p>
 
-    <p>Most currencies use 2 decimal places. Some like BTC use more, but an unusual scale might indicate a misconfiguration.</p>
+<div class="query-item"><pre><code class="language-php">#[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+private string $amount;</code></pre></div>
 
-    <?php if ($infoMessage) { ?>
-    <div class="alert alert-info">
-        <?php echo $e($infoMessage); ?>
-    </div>
-    <?php } ?>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal', 'Doctrine decimal type docs'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#decimal', 'Doctrine decimal type docs'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Review decimal scale to ensure it matches your currency requirements',
+    'description' => 'Check that the decimal scale matches the currency',
 ];

@@ -77,9 +77,7 @@ class OverprivilegedDatabaseUserAnalyzer implements MetadataAnalyzerInterface
             'title' => sprintf('Overprivileged Database User: %s', $user),
             'description' => sprintf(
                 'The database connection uses the privileged user "%s". '
-                . 'This violates the principle of least privilege (OWASP). '
-                . 'A compromised application could be used to drop tables, create users, or access other databases. '
-                . 'Create a dedicated database user with only SELECT, INSERT, UPDATE, DELETE privileges on the application database.',
+                . 'A compromised application could drop tables, create users or read other databases.',
                 $user,
             ),
             'severity' => 'warning',
@@ -93,8 +91,7 @@ class OverprivilegedDatabaseUserAnalyzer implements MetadataAnalyzerInterface
         return new SecurityIssue([
             'title' => 'Empty Database User',
             'description' => 'The database connection has no user configured. '
-                . 'This may indicate a misconfiguration or the use of a default anonymous connection. '
-                . 'Always use a named, dedicated user for database connections.',
+                . 'It relies on a default or anonymous account whose privileges the application does not control.',
             'severity' => 'warning',
             'suggestion' => $this->createLeastPrivilegeSuggestion('(empty)'),
             'queries' => [],
@@ -107,8 +104,7 @@ class OverprivilegedDatabaseUserAnalyzer implements MetadataAnalyzerInterface
             'title' => sprintf('Empty Database Password for User: %s', $user),
             'description' => sprintf(
                 'The database user "%s" has an empty password. '
-                . 'This is a critical security risk: anyone with network access to the database server can connect. '
-                . 'Set a strong password for all database users.',
+                . 'Anyone with network access to the database server can connect as this user.',
                 $user,
             ),
             'severity' => 'critical',

@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var string $entity
- * @var mixed $relation
- * @var int $queryCount
- * @var mixed $hasLimit
  * @var array<string, mixed> $context
  */
 $entity          = (string) ($context['entity'] ?? 'Entity');
@@ -15,196 +11,51 @@ $relation        = (string) ($context['relation'] ?? 'items');
 $queryCount      = (int) ($context['query_count'] ?? 0);
 $hasLimit        = (bool) ($context['has_limit'] ?? false);
 $triggerLocation = (string) ($context['trigger_location'] ?? 'the calling code');
-// Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$getter = 'get' . ucfirst($relation);
 
-// Start output buffering for clean code block
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Extra Lazy Collections'); ?>
-
+<?php echo suggestionHeader($hasLimit ? 'Mark the collection EXTRA_LAZY' : 'Fetch-join the collection'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <strong>Collection N+1 Query Detected<?php echo $hasLimit ? ' (Partial Access)' : ''; ?></strong><br>
-        Detected <strong><?php echo $queryCount; ?> sequential queries</strong> loading <code><?php echo $e($relation); ?></code> collection.
-        <?php if ($hasLimit) { ?>
-            Your queries use LIMIT, suggesting you only need part of the collection.
-        <?php } else { ?>
-            This happens when accessing a lazy-loaded collection inside a loop.
-        <?php } ?>
-    </div>
-
-<?php if ('' !== $triggerLocation) { ?>
-    <div class="alert alert-info">
-        <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
-    </div>
+<div class="alert alert-warning">
+    <?php echo $queryCount; ?> queries loaded the <code><?php echo $e($entity); ?>::$<?php echo $e($relation); ?></code> collection one parent at a time<?php if ('' !== $triggerLocation) { ?>, triggered at <code><?php echo $e($triggerLocation); ?></code><?php } ?>.
+<?php if ($hasLimit) { ?>
+    The code only reads part of it, so EXTRA_LAZY can answer <code>count()</code>, <code>slice()</code> and <code>contains()</code> without loading it.
+<?php } else { ?>
+    The loop reads every element, so loading the collection with its parents removes the extra queries.
 <?php } ?>
-
-    <h4>Problem: Collection Loading in Loop</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// BAD: Each collection access triggers a separate query
-$entities = $repository->findAll();
-Assert::isIterable($entities, '$entities must be iterable');
-
-foreach ($entities as $entity) {
-    <?php if ($hasLimit) { ?>
-    // Counting or partial access still loads entire collection
-    echo count($entity->get<?php echo $e(ucfirst((string) $relation)); ?>()); // Full collection loaded!
-    <?php } else { ?>
-    foreach ($entity->get<?php echo $e(ucfirst((string) $relation)); ?>() as $item) { // Collection loaded here!
-        // Process items...
-    }
-    <?php } ?>
-}
-// Result: <?php echo $queryCount; ?> queries instead of 1<?php echo $hasLimit ? ' (even if you only need counts!)' : ''; ?></code></pre>
-    </div>
-
-    <?php if ($hasLimit) { ?>
-    <h4>Solution 1: EXTRA_LAZY (Recommended for Partial Access)</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// BEST for counts, contains(), slice(), etc.
-use Doctrine\ORM\Mapping as ORM;
-
-#[ORM\OneToMany(mappedBy: 'parent', fetch: 'EXTRA_LAZY')]
-private Collection $<?php echo $e($relation); ?>;
-
-// Now these operations are optimized:
-$entities = $repository->findAll();
-Assert::isIterable($entities, '$entities must be iterable');
-
-foreach ($entities as $entity) {
-    // COUNT query instead of loading all items!
-    echo count($entity->get<?php echo $e(ucfirst((string) $relation)); ?>());
-
-    // LIMIT query instead of loading all items!
-    $first3 = $entity->get<?php echo $e(ucfirst((string) $relation)); ?>()->slice(0, 3);
-
-    // EXISTS query instead of loading all items!
-    if ($entity->get<?php echo $e(ucfirst((string) $relation)); ?>()->contains($someItem)) {
-        // ...
-    }
-}
-// Result: Optimized queries (COUNT, LIMIT, EXISTS)</code></pre>
-    </div>
-    <?php } else { ?>
-    <h4>Solution 1: EXTRA_LAZY (For Partial Access)</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// GOOD if you only need counts or partial access
-use Doctrine\ORM\Mapping as ORM;
-
-#[ORM\OneToMany(mappedBy: 'parent', fetch: 'EXTRA_LAZY')]
-private Collection $<?php echo $e($relation); ?>;
-
-// Optimized for:
-$count = $entity->get<?php echo $e(ucfirst((string) $relation)); ?>()->count(); // COUNT query only
-$first5 = $entity->get<?php echo $e(ucfirst((string) $relation)); ?>()->slice(0, 5); // LIMIT query only</code></pre>
-    </div>
-    <?php } ?>
-
-    <h4>Solution 2: JOIN FETCH (For Full Access)</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// BEST if you need to iterate over ALL items
-$entities = $entityManager
-    ->createQuery('
-        SELECT e, r
-        FROM App\\Entity\\<?php echo $e($entity); ?> e
-        LEFT JOIN e.<?php echo $e($relation); ?> r
-    ')
-    ->getResult();
-
-Assert::isIterable($entities, '$entities must be iterable');
-
-foreach ($entities as $entity) {
-    foreach ($entity->get<?php echo $e(ucfirst((string) $relation)); ?>() as $item) { // Already loaded!
-        // Process items...
-    }
-}
-// Result: 1 query total</code></pre>
-    </div>
-
-    <h4>Solution 3: Repository Method</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// In your repository
-/**
- * @return array<mixed>
- */
-public function findAllWith<?php echo $e(ucfirst((string) $relation)); ?>(): array
-{
-    return $this->createQueryBuilder('e')
-        ->leftJoin('e.<?php echo $e($relation); ?>', 'r')
-        ->addSelect('r')
-        ->getQuery()
-        ->getResult();
-}</code></pre>
-    </div>
-
-    <h4>When to Use Each Solution</h4>
-    <ul>
-        <li><strong>EXTRA_LAZY</strong>: When you need count(), contains(), slice(), or rarely iterate full collection</li>
-        <li><strong>JOIN FETCH</strong>: When you consistently iterate over the entire collection</li>
-        <li><strong>Repository Method</strong>: When eager loading is needed in specific use cases only</li>
-    </ul>
-
-    <h4>EXTRA_LAZY Benefits</h4>
-    <ul>
-        <li><code>count()</code>: Executes COUNT query instead of loading all items</li>
-        <li><code>slice(0, 10)</code>: Executes LIMIT query for subset</li>
-        <li><code>contains($item)</code>: Executes EXISTS query</li>
-        <li><code>containsKey($key)</code>: Executes EXISTS query with key lookup</li>
-        <li><code>isEmpty()</code>: Executes EXISTS query</li>
-        <li><code>first()</code>: Executes LIMIT 1 query to get first element</li>
-        <li><code>get($key)</code>: Executes query to fetch single element by key</li>
-    </ul>
-
-    <h4>Trade-offs: EXTRA_LAZY</h4>
-    <div class="alert alert-warning">
-        <strong>Pros:</strong>
-        <ul>
-            <li><strong>Memory efficient</strong>: Only loads what you need</li>
-            <li><strong>Optimized queries</strong>: COUNT/EXISTS/LIMIT instead of SELECT *</li>
-            <li><strong>Great for large collections</strong>: Thousands of items? No problem</li>
-            <li><strong>Perfect for partial access</strong>: count(), first(), slice()</li>
-        </ul>
-        <strong>Cons:</strong>
-        <ul>
-            <li><strong>N+1 problem remains</strong>: Multiple queries (but lightweight)</li>
-            <li><strong>Not for full iteration</strong>: If you need all items, use JOIN FETCH</li>
-            <li><strong>Slightly slower than eager</strong>: Multiple round-trips vs one JOIN</li>
-        </ul>
-    </div>
-
-    <h4>Best Practices</h4>
-    <ul>
-        <li>Use EXTRA_LAZY for large collections where you need counts or partial access</li>
-        <li>Use JOIN FETCH when you need to iterate over entire collection</li>
-        <li>Avoid accessing collections in loops without optimization</li>
-        <li>Monitor query patterns with Doctrine profiler</li>
-    </ul>
-
-    <div class="alert alert-info">
-        ℹ<strong>Expected Performance Improvement:</strong><br>
-        <ul>
-            <li><strong>Current:</strong> <?php echo $queryCount; ?> queries<?php echo $hasLimit ? ' (loading partial data each time)' : ''; ?></li>
-            <?php if ($hasLimit) { ?>
-            <li><strong>With EXTRA_LAZY:</strong> <?php echo $queryCount; ?> optimized COUNT/LIMIT queries (much faster)</li>
-            <?php } else { ?>
-            <li><strong>With JOIN FETCH:</strong> 1 query (if full access needed)</li>
-            <li><strong>With EXTRA_LAZY:</strong> <?php echo $queryCount; ?> COUNT queries (if only counting)</li>
-            <?php } ?>
-        </ul>
-    </div>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/extra-lazy-associations.html', 'Doctrine Extra Lazy Associations Documentation'); ?>
 </div>
 
+<?php if ($hasLimit) { ?>
+<div class="query-item"><pre><code class="language-php">#[ORM\OneToMany(targetEntity: Item::class, mappedBy: 'parent', fetch: 'EXTRA_LAZY')]
+private Collection $<?php echo $e($relation); ?>;
+
+// Each call now runs a small query instead of loading the collection
+$entity-&gt;<?php echo $e($getter); ?>()-&gt;count();       // SELECT COUNT(*)
+$entity-&gt;<?php echo $e($getter); ?>()-&gt;slice(0, 3);   // LIMIT 3</code></pre></div>
+
+<p>If the loop ends up iterating every element, fetch-join the collection with <code>leftJoin()</code> and <code>addSelect()</code> instead.</p>
+<?php } else { ?>
+<div class="query-item"><pre><code class="language-php">$entities = $repository-&gt;createQueryBuilder('e')
+    -&gt;leftJoin('e.<?php echo $e($relation); ?>', 'r')
+    -&gt;addSelect('r')
+    -&gt;getQuery()
+    -&gt;getResult();
+// 1 query instead of <?php echo $queryCount; ?></code></pre></div>
+
+<p>If the loop only counts or checks the collection, map it with <code>fetch: 'EXTRA_LAZY'</code> instead.</p>
+<?php } ?>
+
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/extra-lazy-associations.html', 'Doctrine Extra Lazy Associations Documentation'); ?>
+</div>
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
     'description' => sprintf(
-        'Use EXTRA_LAZY fetch mode to optimize collection access for %s.%s',
+        $hasLimit ? 'Use EXTRA_LAZY on %s.%s for partial access' : 'Fetch-join %s.%s instead of loading it per entity',
         $entity,
         $relation,
     ),

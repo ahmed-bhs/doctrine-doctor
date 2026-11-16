@@ -202,7 +202,7 @@ class StructuralMissingIndexAnalyzer implements AnalyzerInterface
             'backtrace' => $queryData->backtrace,
             'queries' => [$queryData->toArray()],
             'description' => sprintf(
-                'Query on table "%s" filters by "%s" without a leading index. Harmless today, becomes a full table scan as the table grows.',
+                'A query on table "%s" filters by "%s", which leads no index. It is cheap on a small table and becomes a full scan as the table grows.',
                 $tableName,
                 $column,
             ),

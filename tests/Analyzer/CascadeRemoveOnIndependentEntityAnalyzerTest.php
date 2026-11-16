@@ -774,4 +774,18 @@ final class CascadeRemoveOnIndependentEntityAnalyzerTest extends TestCase
         self::assertEquals('critical', $issue->getSeverity()->value);
         self::assertEquals('ManyToOne', $data['association_type']);
     }
+
+    #[Test]
+    public function it_names_the_real_association_type_in_title_and_message(): void
+    {
+        foreach ($this->analyzer->analyzeMetadata()->toArray() as $issue) {
+            $type = $issue->getData()['association_type'] ?? null;
+            if (!\is_string($type) || !str_contains($issue->getTitle(), 'Independent Entity')) {
+                continue;
+            }
+
+            self::assertStringContainsString($type, $issue->getTitle());
+            self::assertStringContainsString('on a ' . $type . ' relation', strip_tags($issue->getDescription()));
+        }
+    }
 }

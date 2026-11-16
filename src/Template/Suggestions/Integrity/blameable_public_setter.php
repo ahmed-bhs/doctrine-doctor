@@ -12,13 +12,10 @@ $shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Public setter on blameable field'); ?>
+<?php echo suggestionHeader('Remove the setter on the audit field'); ?>
 <div class="suggestion-content">
-<div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($fieldName); ?></code> has a public setter, allowing the audit field to be changed.</div>
+<div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> has a public setter, so any code can rewrite who created the entity. Set it once in the constructor.</div>
 
-<p>Blameable fields should be set once and immutable.</p>
-
-<h4>Fix</h4>
 <div class="query-item"><pre><code class="language-php">class <?php echo $e($shortClass); ?>
 
 {
@@ -31,13 +28,8 @@ ob_start();
         $this-><?php echo $e($fieldName); ?> = $<?php echo $e($fieldName); ?>;
     }
 
-    public function get<?php echo $e(ucfirst($fieldName)); ?>(): User
-    {
-        return $this-><?php echo $e($fieldName); ?>;
-    }
+    // Before: public function set<?php echo $e(ucfirst($fieldName)); ?>(User $user): void
 }</code></pre></div>
-
-<p>Remove the setter. Set in constructor.</p>
 
 <?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md', 'Doctrine Extensions Blameable'); ?>
 </div>

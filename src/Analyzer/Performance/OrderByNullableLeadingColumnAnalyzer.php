@@ -97,7 +97,7 @@ class OrderByNullableLeadingColumnAnalyzer implements AnalyzerInterface
             return;
         }
 
-        if ($column->getNotnull()) {
+        if ($column->getNotnull() || $this->excludesNull($sql, $this->columnName($column))) {
             return;
         }
 
@@ -108,6 +108,22 @@ class OrderByNullableLeadingColumnAnalyzer implements AnalyzerInterface
             'backtrace' => $queryData->backtrace,
             'queries' => [$queryData->toArray()],
         ]);
+    }
+
+    /**
+     * The WHERE clause already rules NULL out: "col IS NOT NULL", or a comparison such as "col = ?", "col > ?",
+     * "col BETWEEN ? AND ?" or "col IN (...)", which are never true for NULL.
+     */
+    private function excludesNull(string $sql, string $column): bool
+    {
+        $where = stristr($sql, ' WHERE ');
+        if (false === $where) {
+            return false;
+        }
+        $where = (string) preg_replace('/\\b(ORDER\\s+BY|GROUP\\s+BY|LIMIT)\\b.*$/is', '', $where);
+        $col = '(?:\\w+\\.)?`?' . preg_quote($column, '/') . '`?';
+
+        return 1 === preg_match('/' . $col . '\\s*(?:IS\\s+NOT\\s+NULL|(?:=|<>|!=|<=|>=|<|>)\\s*\\S|BETWEEN\\b|IN\\s*\\()/i', $where);
     }
 
     private function extractLeadingOrderByColumn(string $sql): ?string

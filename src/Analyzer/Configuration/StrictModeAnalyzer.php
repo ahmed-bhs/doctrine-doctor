@@ -113,11 +113,9 @@ class StrictModeAnalyzer implements DatabaseAuditAnalyzerInterface
 
             if (0 === $foreignKeys) {
                 yield new DatabaseConfigIssue([
-                    'title'       => 'SQLite foreign keys disabled (CRITICAL)',
-                    'description' => 'PRAGMA foreign_keys is OFF (default in SQLite). ' .
-                        'This means foreign key constraints are NOT enforced! ' .
-                        'You can insert invalid foreign keys, orphan records, etc. ' .
-                        'ALWAYS enable foreign_keys in SQLite.',
+                    'title'       => 'SQLite foreign keys disabled',
+                    'description' => 'PRAGMA foreign_keys is OFF (the SQLite default). ' .
+                        'Foreign key constraints are not enforced, so invalid references and orphan rows are accepted.',
                     'severity'   => 'critical',
                     'suggestion' => $this->suggestionFactory->createFromTemplate(
                         templateName: 'Configuration/configuration',

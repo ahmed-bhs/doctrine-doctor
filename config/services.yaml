@@ -81,9 +81,27 @@ services:
             $showDebugInfo: '%doctrine_doctor.profiler.show_debug_info%'
             $dataCollectorHelpers: '@AhmedBhs\DoctrineDoctor\Collector\DataCollectorHelpers'
             $excludePaths: '%doctrine_doctor.analysis.exclude_paths%'
+            $rowCounts: '@AhmedBhs\DoctrineDoctor\Collector\RowCount\RowCountRecorder'
         tags:
             - { name: data_collector, id: doctrine_doctor, template: '@doctrine_doctor/profiler/doctrine_doctor.html.twig', priority: 249 }
             - { name: kernel.reset, method: reset }
+
+    # Rows returned by each SELECT: the profiler records the SQL, not the result size
+    AhmedBhs\DoctrineDoctor\Collector\RowCount\RowCountRecorder:
+        tags:
+            - { name: kernel.reset, method: reset }
+
+    AhmedBhs\DoctrineDoctor\Collector\RowCount\EntityHydrationListener:
+        arguments:
+            $recorder: '@AhmedBhs\DoctrineDoctor\Collector\RowCount\RowCountRecorder'
+        tags:
+            - { name: doctrine.event_listener, event: postLoad }
+
+    AhmedBhs\DoctrineDoctor\Collector\RowCount\RowCountMiddleware:
+        arguments:
+            $recorder: '@AhmedBhs\DoctrineDoctor\Collector\RowCount\RowCountRecorder'
+        tags:
+            - { name: doctrine.middleware }
 
     # Deferred analysis (AnalysisTiming::OnView): run when a profile is opened,
     # or on demand from the CLI (used by the AI Mate tools)
@@ -114,6 +132,7 @@ services:
     AhmedBhs\DoctrineDoctor\Command\AnalyzeCommand:
         arguments:
             $analyzers: !tagged_iterator doctrine_doctor.static_analyzer
+            $projectDir: '%kernel.project_dir%'
         tags:
             - { name: console.command }
 
@@ -418,6 +437,7 @@ services:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $logger: '@?logger'
             $sensitivePatterns: '%doctrine_doctor.analyzers.sensitive_data_exposure.sensitive_patterns%'
+            $serializerMetadata: '@?serializer.mapping.class_metadata_factory'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -434,6 +454,7 @@ services:
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $entityManager: '@doctrine_doctor.entity_manager'
             $logger: '@?logger'
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -621,6 +642,44 @@ services:
     AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EntityStateConsistencyAnalyzer:
         arguments:
             $entityManager: '@doctrine_doctor.entity_manager'
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MissingSoftDeleteFilterAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EntityManagerUsedAfterFailureAnalyzer:
+        arguments:
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\MigrationStateAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $dependencyFactory: '@?doctrine.migrations.dependency_factory'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\RiskyMigrationAnalyzer:
+        arguments:
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $dependencyFactory: '@?doctrine.migrations.dependency_factory'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\FilteredFetchJoinAnalyzer:
+        arguments:
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $sqlExtractor: '@AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor'
+            $collectionJoinDetector: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector'
         tags:
             - { name: doctrine_doctor.analyzer }
 
@@ -691,6 +750,56 @@ services:
             $entityManager: '@doctrine_doctor.entity_manager'
             $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
             $maxDepth: '%doctrine_doctor.analyzers.class_table_inheritance_depth.max_depth%'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+            $sourceDirs: '%doctrine_doctor.analysis.source_dirs%'
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\EntityManagerInServiceAnalyzer:
+        arguments:
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+            $excludedNamespaces: '%doctrine_doctor.analyzers.entity_manager_in_service.excluded_namespaces%'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Integrity\UnusedInverseSideAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Performance\CollectionCountedInPhpAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Performance\AggregateInPhpAnalyzer:
+        arguments:
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+        tags:
+            - { name: doctrine_doctor.analyzer }
+
+    AhmedBhs\DoctrineDoctor\Analyzer\Performance\CollectionFilteredInPhpAnalyzer:
+        arguments:
+            $entityManager: '@doctrine_doctor.entity_manager'
+            $projectSourceScanner: '@AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner'
+            $suggestionFactory: '@AhmedBhs\DoctrineDoctor\Factory\SuggestionFactory'
+            $issueFactory: '@AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface'
+            $methods: '%doctrine_doctor.analyzers.collection_filtered_in_php.methods%'
         tags:
             - { name: doctrine_doctor.analyzer }
 

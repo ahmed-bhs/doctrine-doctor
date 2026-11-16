@@ -247,4 +247,27 @@ final class DivisionByZeroAnalyzerTest extends TestCase
         self::assertNotNull($issue->getBacktrace());
         self::assertEquals($backtrace, $issue->getBacktrace());
     }
+
+    #[Test]
+    public function it_flags_a_count_divisor_when_the_dividend_is_not_an_aggregate(): void
+    {
+        $issues = $this->analyzer->analyze(QueryDataBuilder::create()
+            ->addQuery('SELECT 100 / COUNT(o.id) AS share FROM orders o WHERE o.state = ?')
+            ->build())->toArray();
+
+        self::assertCount(1, $issues);
+        self::assertStringContainsString('COUNT(o.id)', $issues[0]->getDescription());
+    }
+
+    #[Test]
+    public function it_does_not_flag_an_aggregate_divided_by_count(): void
+    {
+        // No row: SUM() is NULL and NULL / 0 is NULL. In a group, COUNT(*) is never 0.
+        $issues = $this->analyzer->analyze(QueryDataBuilder::create()
+            ->addQuery('SELECT SUM(total) AS revenue, COUNT(*) AS orders, SUM(total) / COUNT(*) AS basket FROM sylius_order')
+            ->addQuery('SELECT 100 / NULLIF(COUNT(o.id), 0) FROM orders o')
+            ->build())->toArray();
+
+        self::assertCount(0, $issues);
+    }
 }

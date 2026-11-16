@@ -261,16 +261,16 @@ class InsecureRandomAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = $this->shortClassName($entityClass);
 
         $description = sprintf(
-            'Method "%s::%s()" uses insecure random function "%s()" for security-sensitive operations. ' .
-            'Functions like rand(), mt_rand(), and uniqid() are NOT cryptographically secure and can be ' .
-            'predicted by attackers. This can lead to token prediction, session hijacking, or authentication bypass. ' .
-            'Use random_bytes() or random_int() instead, which use CSPRNG (Cryptographically Secure Pseudo-Random Number Generator).',
+            'Method "%s::%s()" uses "%s()", which is NOT cryptographically secure (not a CSPRNG), for a security-sensitive value. ' .
+            'Its output can be predicted by attackers, which allows token guessing, session hijacking or authentication bypass.',
             $shortClassName,
             $methodName,
             $function,
         );
 
         return new SecurityIssue([
+            'entity'      => $entityClass,
+            'method'      => $methodName,
             'title'       => sprintf('Insecure random generator in %s::%s()', $shortClassName, $methodName),
             'description' => $description,
             'severity'    => 'critical',
@@ -291,14 +291,15 @@ class InsecureRandomAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = $this->shortClassName($entityClass);
 
         $description = sprintf(
-            'Method "%s::%s()" combines weak random functions with hashing (e.g., md5(rand())). ' .
-            'This does NOT make it secure! Hashing a predictable value produces a predictable hash. ' .
-            'Attackers can still predict the output. Use random_bytes() for cryptographic randomness.',
+            'Method "%s::%s()" hashes a weak random value (such as md5(rand())), which does NOT make it secure. ' .
+            'A predictable input gives a predictable hash, so attackers can still guess the result.',
             $shortClassName,
             $methodName,
         );
 
         return new SecurityIssue([
+            'entity'      => $entityClass,
+            'method'      => $methodName,
             'title'       => sprintf('Weak hash-based randomness in %s::%s()', $shortClassName, $methodName),
             'description' => $description,
             'severity'    => 'critical',

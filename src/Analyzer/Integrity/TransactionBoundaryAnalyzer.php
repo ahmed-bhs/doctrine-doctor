@@ -296,10 +296,11 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      */
     private function createNestedTransactionIssue(QueryData $queryData, int $depth): IssueInterface
     {
-        $description = sprintf("Nested transaction detected (depth: %d).\n", $depth);
-        $description .= "Impact: A second START TRANSACTION on an open transaction makes MySQL and MariaDB commit the open one implicitly; PostgreSQL ignores it with a warning.\n";
-        $description .= "Impact: Work meant to be atomic is split, which can leave partial commits and inconsistent data.\n";
-        $description .= 'Fix: open transactions through the connection or EntityManager (beginTransaction(), wrapInTransaction()); DBAL nests them with savepoints.';
+        $description = sprintf(
+            'Nested transaction detected (depth: %d): a second START TRANSACTION ran while one was open. '
+            . 'MySQL and MariaDB then commit the open one implicitly, so work meant to be atomic is split.',
+            $depth,
+        );
 
         $issueData = new IssueData(
             type: IssueType::TRANSACTION_NESTED->value,
@@ -319,10 +320,11 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      */
     private function createMultipleFlushIssue(QueryData $queryData, int $flushCount): IssueInterface
     {
-        $description = sprintf("Multiple flush() calls detected in one transaction (%d).\n", $flushCount);
-        $description .= "Impact: Each flush adds round-trips and lock acquisitions.\n";
-        $description .= "Impact: Deadlock risk increases and transaction throughput degrades.\n";
-        $description .= sprintf("Impact: At least %d extra flush round-trips were executed.", max(0, $flushCount - 1));
+        $description = sprintf(
+            'Multiple flush() calls detected in one transaction (%d). '
+            . 'Each flush adds round trips and holds locks longer, so throughput drops and the deadlock risk grows.',
+            $flushCount,
+        );
 
         $issueData = new IssueData(
             type: IssueType::TRANSACTION_MULTIPLE_FLUSH->value,
@@ -342,14 +344,10 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
      */
     private function createUnclosedTransactionIssue(int $flushCount): IssueInterface
     {
-        $description = "Transaction started but never committed or rolled back.\n";
-        $description .= "Impact: Locks may stay open and reduce connection availability.\n";
-        $description .= "Impact: Work may be rolled back when the connection closes.\n";
-        if ($flushCount > 0) {
-            $description .= sprintf("Impact: %d flush operation(s) were executed in an unclosed transaction.", $flushCount);
-        } else {
-            $description .= "Impact: This can cause pool exhaustion and timeout chains.";
-        }
+        $description = $flushCount > 0
+            ? sprintf('Transaction started but never committed or rolled back, after %d flush operation(s). ', $flushCount)
+            : 'Transaction started but never committed or rolled back. ';
+        $description .= 'Its locks stay held and its work is rolled back when the connection closes.';
 
         $issueData = new IssueData(
             type: IssueType::TRANSACTION_UNCLOSED->value,
@@ -369,13 +367,11 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function createLongTransactionIssue(QueryData $queryData, float $duration): IssueInterface
     {
         $description = sprintf(
-            "Transaction held open for %.2fs (threshold: %.2fs).\n",
+            'Transaction held open for %.2fs (threshold: %.2fs). '
+            . 'Its locks block concurrent queries for that long, which raises latency and deadlock risk.',
             $duration,
             $this->maxTransactionDuration,
         );
-        $description .= "Impact: Longer lock retention increases contention and deadlock probability.\n";
-        $description .= "Impact: Concurrent queries can be blocked, causing latency spikes.\n";
-        $description .= "Impact: Timeout and retry pressure may increase under load.";
 
         $issueData = new IssueData(
             type: IssueType::TRANSACTION_TOO_LONG->value,

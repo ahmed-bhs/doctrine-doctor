@@ -688,4 +688,77 @@ final class IssueDeduplicatorTest extends TestCase
             }
         };
     }
+
+    #[Test]
+    public function it_keeps_the_same_mapping_finding_on_different_entities(): void
+    {
+        $issues = [];
+        foreach (['App\\Entity\\Order', 'App\\Entity\\OrderItem', 'App\\Entity\\OrderItem'] as $entity) {
+            $issues[] = new IntegrityIssue([
+                'type' => 'integrity_generic',
+                'title' => 'Bidirectional Association Inconsistency',
+                'description' => sprintf('Field adjustments in %s has orphanRemoval=true, but the owning side is nullable.', $entity),
+                'severity' => 'critical',
+                'entity' => $entity,
+                'field' => 'adjustments',
+                'queries' => [],
+            ]);
+        }
+
+        $deduplicated = $this->deduplicator->deduplicate(IssueCollection::fromArray($issues));
+
+        self::assertCount(2, $deduplicated);
+    }
+
+    #[Test]
+    public function it_never_merges_a_limit_on_a_collection_join_into_a_performance_finding(): void
+    {
+        $query = new QueryData(
+            sql: 'SELECT p0_.id, v1_.id FROM product p0_ LEFT JOIN variant v1_ ON v1_.product_id = p0_.id LIMIT 24',
+            executionTime: QueryExecutionTime::fromMilliseconds(40.0),
+        );
+        $issues = IssueCollection::fromArray([
+            new PerformanceIssue(['type' => IssueType::CARTESIAN_PRODUCT->value, 'title' => 'Cartesian Product: 2 collection JOINs in one query', 'description' => 'Rows multiply.', 'severity' => 'critical', 'queries' => [$query]]),
+            new PerformanceIssue(['type' => IssueType::SET_MAX_RESULTS_WITH_COLLECTION_JOIN->value, 'title' => 'setMaxResults() with Collection Join Detected', 'description' => 'LIMIT cuts the collection.', 'severity' => 'critical', 'queries' => [$query]]),
+        ]);
+
+        $titles = array_map(static fn (IssueInterface $issue): string => $issue->getTitle(), $this->deduplicator->deduplicate($issues)->toArray());
+
+        self::assertContains('setMaxResults() with Collection Join Detected', $titles);
+        self::assertCount(2, $titles);
+    }
+
+    #[Test]
+    public function it_groups_type_mismatches_by_their_own_entity_not_by_a_word_of_the_description(): void
+    {
+        $issues = [];
+        foreach (['ProductImage' => 'position', 'ProductTranslation' => 'locale', 'TaxonTranslation' => 'locale'] as $class => $field) {
+            $issues[] = new IntegrityIssue([
+                'type' => 'property_type_mismatch',
+                'title' => sprintf('Type Mismatch: %s::$%s', $class, $field),
+                'description' => sprintf('Property %s::$%s is typed ?string but the mapping expects string. Doctrine can see a change on every flush.', $class, $field),
+                'severity' => 'warning',
+                'entity' => 'App\\Entity\\' . $class,
+                'field' => $field,
+                'queries' => [],
+            ]);
+        }
+
+        self::assertCount(3, $this->deduplicator->deduplicate(IssueCollection::fromArray($issues)));
+    }
+
+    #[Test]
+    public function it_keeps_a_leading_wildcard_next_to_a_function_on_the_same_column(): void
+    {
+        $query = new QueryData(
+            sql: "SELECT subject FROM audit_log WHERE LOWER(subject) LIKE '%1234%'",
+            executionTime: QueryExecutionTime::fromMilliseconds(43.0),
+        );
+        $issues = IssueCollection::fromArray([
+            new PerformanceIssue(['type' => 'function_on_predicate_column', 'title' => 'LOWER() Wraps Predicate Column subject', 'description' => 'No index.', 'severity' => 'warning', 'queries' => [$query]]),
+            new PerformanceIssue(['type' => 'ineffective_like_pattern', 'title' => 'LIKE With Leading Wildcard', 'description' => 'No index.', 'severity' => 'warning', 'queries' => [$query]]),
+        ]);
+
+        self::assertCount(2, $this->deduplicator->deduplicate($issues));
+    }
 }

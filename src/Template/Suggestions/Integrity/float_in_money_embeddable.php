@@ -14,47 +14,23 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Float Used in Money Embeddable'); ?>
-
+<?php echo suggestionHeader('Store the amount in minor units'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-danger">
-        Money embeddable <code><?php echo $e($embeddableClass); ?>::$<?php echo $e($fieldName); ?></code> uses float, which causes rounding errors in financial calculations (0.1 + 0.2 ≠ 0.3).
-    </div>
+<p>Money embeddable <code><?php echo $e($embeddableClass); ?>::$<?php echo $e($fieldName); ?></code> uses a float, which cannot represent most decimal amounts exactly (<code>0.1 + 0.2 !== 0.3</code>). Store the smallest currency unit as an integer.</p>
 
-    <h4>Solution: Use Integer (Cents)</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Before:
-#[ORM\Embeddable]
-class <?php echo $e($embeddableClass); ?> {
-    #[ORM\Column(type: 'float')]
-    private float $<?php echo $e($fieldName); ?>;
-}
+<div class="query-item"><pre><code class="language-php">#[ORM\Embeddable]
+final readonly class <?php echo $e($embeddableClass); ?>
 
-// After:
-#[ORM\Embeddable]
-readonly class <?php echo $e($embeddableClass); ?> {
-    #[ORM\Column(type: 'integer')]
-    private int $amountInCents;
-    
-    #[ORM\Column(type: 'string', length: 3)]
-    private string $currency;
-    
-    public static function fromDecimal(float $amount, string $currency): self {
-        return new self((int)round($amount * 100), $currency);
-    }
-    
-    public function toDecimal(): float {
-        return $this->amountInCents / 100;
-    }
-}</code></pre>
-    </div>
+{
+    public function __construct(
+        // Before: #[ORM\Column(type: 'float')] private float $<?php echo $e($fieldName); ?>,
+        #[ORM\Column(type: 'integer')] private int $amountInCents,
+        #[ORM\Column(length: 3)] private string $currency,
+    ) {}
+}</code></pre></div>
 
-    <p>Store monetary values as integers (smallest unit: cents, pence, etc.) to avoid float precision issues.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html', 'Doctrine ORM Embeddables'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html', 'Doctrine ORM Embeddables'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 

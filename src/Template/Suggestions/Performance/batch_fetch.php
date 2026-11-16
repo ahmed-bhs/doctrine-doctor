@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 /**
  * Variables provided by PhpTemplateRenderer::extract($context)
- * @var string $entity
- * @var mixed $relation
- * @var int $queryCount
  * @var array<string, mixed> $context
  */
 $entity          = (string) ($context['entity'] ?? 'Entity');
@@ -17,71 +14,34 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Proxy N+1 Query Problem'); ?>
-
+<?php echo suggestionHeader('Fetch-join the to-one relation'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <strong>Proxy N+1 Query Detected</strong><br>
-        Detected <strong><?php echo $queryCount; ?> sequential queries</strong> loading <code><?php echo $e($relation); ?></code> proxy entities.
-        This happens when accessing a ManyToOne or OneToOne relation inside a loop where each proxy is lazily initialized.
-    </div>
-
-<?php if ('' !== $triggerLocation) { ?>
-    <div class="alert alert-info">
-        <strong>Triggered at:</strong> <code><?php echo $e($triggerLocation); ?></code>
-    </div>
-<?php } ?>
-
-    <h4>Problem: Proxy Initialization in Loop</h4>
-    <div class="query-item">
-        <pre><code class="language-php">$entities = $repository->findAll();
-
-foreach ($entities as $entity) {
-    echo $entity->get<?php echo $e(ucfirst((string) $relation)); ?>()->getName(); // Query triggered here!
-}
-// Result: <?php echo $queryCount; ?> queries instead of 1</code></pre>
-    </div>
-
-    <h4>Solution: Fetch Join (join + addSelect)</h4>
-    <div class="query-item">
-        <pre><code class="language-php">public function findAllWith<?php echo $e(ucfirst((string) $relation)); ?>(): array
-{
-    return $this->createQueryBuilder('e')
-        ->leftJoin('e.<?php echo $e($relation); ?>', 'r')
-        ->addSelect('r')
-        ->getQuery()
-        ->getResult();
-}
-// Result: 1 query instead of <?php echo $queryCount; ?></code></pre>
-    </div>
-    <p>
-        <code>addSelect('r')</code> after a <code>leftJoin()</code> turns it into a <strong>fetch join</strong>:
-        Doctrine loads the related entity in the same SQL query, so no proxy is created.
-    </p>
-    <p>
-        Without <code>addSelect()</code>, the JOIN only filters/conditions the query but does <strong>not</strong> hydrate the relation.
-    </p>
-
-    <div class="alert alert-info">
-        <strong>Expected improvement:</strong><br>
-        <ul>
-            <li><strong>Current:</strong> <?php echo $queryCount; ?> queries (one per entity)</li>
-            <li><strong>With fetch join:</strong> 1 query total</li>
-        </ul>
-    </div>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL Joins Documentation'); ?>
+<div class="alert alert-warning">
+    <?php echo $queryCount; ?> queries initialized <code><?php echo $e($entity); ?>::$<?php echo $e($relation); ?></code> proxies one by one inside a loop<?php if ('' !== $triggerLocation) { ?>, triggered at <code><?php echo $e($triggerLocation); ?></code><?php } ?>.
+    A fetch join loads the related entities with their parents.
 </div>
 
+<div class="query-item"><pre><code class="language-php">// Before: one query per proxy
+foreach ($repository-&gt;findAll() as $entity) {
+    $entity-&gt;get<?php echo $e(ucfirst($relation)); ?>()-&gt;getName();
+}
+
+// After: 1 query instead of <?php echo $queryCount; ?>
+
+$entities = $repository-&gt;createQueryBuilder('e')
+    -&gt;leftJoin('e.<?php echo $e($relation); ?>', 'r')
+    -&gt;addSelect('r')
+    -&gt;getQuery()
+    -&gt;getResult();</code></pre></div>
+
+<p>Without <code>addSelect()</code>, the JOIN only filters and the proxies stay uninitialized.</p>
+
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL Joins Documentation'); ?>
+</div>
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
-        'Proxy N+1 on %s.%s - use a fetch join (join + addSelect) to load in a single query',
-        $entity,
-        $relation,
-    ),
+    'description' => sprintf('Fetch-join %s.%s (join + addSelect) to load it in a single query', $entity, $relation),
 ];

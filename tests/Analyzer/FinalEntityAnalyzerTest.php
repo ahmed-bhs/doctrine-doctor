@@ -196,7 +196,7 @@ final class FinalEntityAnalyzerTest extends TestCase
 
             // Should clearly describe the risk
             self::assertStringContainsString('final', $description);
-            self::assertStringContainsString('Impact:', $description);
+            self::assertStringContainsString('proxy', $description);
         }
     }
 

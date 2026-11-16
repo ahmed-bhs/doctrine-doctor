@@ -18,51 +18,34 @@ $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Consider extracting an embeddable'); ?>
+<?php echo suggestionHeader('Group related fields in an embeddable'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-info">
-        <code><?= $e($entityClass) ?></code> has related fields that could be grouped into an embeddable: <code><?= implode(', ', array_map(static fn (mixed $field): string => $e((string) $field), $fields)) ?></code>
-    </div>
+    <p><code><?= $e($entityClass) ?></code> has fields that belong together: <code><?= implode(', ', array_map(static fn (mixed $field): string => $e((string) $field), $fields)) ?></code>. An embeddable keeps them and their validation in one value object.</p>
 
-    <p>When you have several fields that belong together conceptually (like address fields or money amounts), grouping them into an embeddable value object can make your code clearer.</p>
-
-    <h4>Example refactoring</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Before: separate fields
-class <?= $e($entityClass) ?> {
-<?php foreach ($fields as $field) { ?>
-    private string $<?= $e($field) ?>;
-<?php } ?>
-}
-
-// After: grouped as value object
-#[ORM\Embeddable]
-readonly class Address {
+        <pre><code class="language-php">#[ORM\Embeddable]
+final class Address
+{
     public function __construct(
-<?php foreach ($fields as $i => $field) { ?>
-        private string $<?= $e($field) ?><?= $i < count($fields) - 1 ? ',' : '' ?>
-
+<?php foreach ($fields as $field) { ?>
+        #[ORM\Column] private string $<?= $e($field) ?>,
 <?php } ?>
     ) {}
 }
 
-class <?= $e($entityClass) ?> {
-    #[ORM\Embedded(class: Address::class)]
-    private Address $address;
-}</code></pre>
-    </div>
+// <?= $e($entityClass) ?>
 
-    <p><strong>Benefits:</strong> Better encapsulation, reusability, validation in one place.</p>
+#[ORM\Embedded(class: Address::class)]
+private Address $address;</code></pre>
+    </div>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html', 'Doctrine ORM Embeddables'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Extract related fields into an Embeddable Value Object',
+    'description' => sprintf('Group related fields of %s in an embeddable', $entityClass),
 ];

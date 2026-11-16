@@ -22,10 +22,8 @@ class GetReferenceIssue extends AbstractIssue
             'type'        => IssueType::GET_REFERENCE,
             'title'       => 'Use getReference() Instead of find()',
             'description' => sprintf(
-                'Detected %d queries selecting "%s" entities by ID. ' .
-                'If these entities are only used as references (e.g., for setting relationships), ' .
-                'consider using EntityManager::getReference() instead of find(). ' .
-                'This creates a proxy without executing a database query, which can eliminate unnecessary SELECT statements.',
+                '%d queries selected "%s" entities by ID. ' .
+                'When the entity only sets an association, each query loads a row that getReference() would not need.',
                 $data['query_count'] ?? 0,
                 $data['entity'] ?? 'unknown',
             ),

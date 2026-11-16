@@ -13,20 +13,11 @@ $severity  = (string) ($context['severity'] ?? 'info');
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Fix Index Naming Convention'); ?>
+<?php echo suggestionHeader('Rename the index'); ?>
 <div class="suggestion-content">
-<?php echo suggestionAlert($severity, '<strong>Index naming convention violation detected.</strong>'); ?>
+<?php echo suggestionAlert($severity, 'Index <code>' . escape($current) . '</code> should be named <code>' . escape($suggested) . '</code>: <code>idx_</code> or <code>uniq_</code> followed by the column names in snake_case.'); ?>
 
-<?php echo suggestionCodeBlock('Current', sprintf("#[ORM\\Index(name: '%s', columns: ['...'])]", $current)); ?>
-<?php echo suggestionCodeBlock('Recommended', sprintf("#[ORM\\Index(name: '%s', columns: ['...'])]", $suggested)); ?>
-
-<h4>Index/Constraint conventions</h4>
-<ul>
-    <li>Regular indexes: idx_{columns} (idx_email, idx_status_created_at)</li>
-    <li>Unique constraints: uniq_{columns} (uniq_email, uniq_username)</li>
-    <li>Use snake_case</li>
-    <li>Include column names in index name for clarity</li>
-</ul>
+<?php echo suggestionCodeBlock('', sprintf("// Before\n#[ORM\\Index(name: '%s', columns: ['...'])]\n\n// After\n#[ORM\\Index(name: '%s', columns: ['...'])]", $current, $suggested)); ?>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index', 'Doctrine Index Documentation'); ?>
 </div>

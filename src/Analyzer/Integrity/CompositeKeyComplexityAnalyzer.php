@@ -103,8 +103,7 @@ class CompositeKeyComplexityAnalyzer implements MetadataAnalyzerInterface
 
         $description = sprintf(
             "Entity '%s' uses a composite primary key with %d columns (%s). " .
-            'Composite keys limit Doctrine features: getReference() is unavailable, ' .
-            'associations require all key columns, and identity map lookups are slower.',
+            'Every association to it must map all key columns, and getReference() needs the full key.',
             $entityClass,
             $columnCount,
             implode(', ', $identifierFields),
@@ -112,7 +111,7 @@ class CompositeKeyComplexityAnalyzer implements MetadataAnalyzerInterface
 
         if ([] !== $referencedBy) {
             $description .= sprintf(
-                ' This entity is referenced by %d other entit%s (%s), which must all map the full composite key.',
+                ' %d other entit%s (%s) already map the full key.',
                 count($referencedBy),
                 1 === count($referencedBy) ? 'y' : 'ies',
                 implode(', ', array_map($this->shortClassName(...), $referencedBy)),

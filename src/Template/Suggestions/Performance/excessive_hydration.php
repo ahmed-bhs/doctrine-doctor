@@ -17,33 +17,26 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
+<?php echo suggestionHeader('Hydrate fewer rows or lighter results'); ?>
 <div class="suggestion-content">
-    <div class="suggestion-options">
-        <pre><code class="language-php">// Array hydration (faster for read-only)
-$result = $query->getResult(Query::HYDRATE_ARRAY);
+<p>The query hydrated <?php echo (int) $rowCount; ?> rows into managed entities, each one tracked by the unit of work.
+A read-only screen rarely needs that: page the result or hydrate plain data.</p>
 
-// DTO hydration (best performance + type-safe)
-SELECT NEW App\DTO\MyDTO(e.id, e.name) FROM Entity e
+<div class="query-item"><pre><code class="language-php">// Page the result
+$query-&gt;setFirstResult($offset)-&gt;setMaxResults(50);
 
-// PARTIAL objects (select only needed fields)
-// Reading any other field later costs one extra query per entity
-SELECT PARTIAL e.{id, name} FROM Entity e
+// Or read DTOs, not tracked by the unit of work
+$em-&gt;createQuery('SELECT NEW App\DTO\ProductRow(p.id, p.name) FROM App\Entity\Product p');
 
-// Pagination (limit results)
-$query->setFirstResult($offset)->setMaxResults($limit);</code></pre>
-    </div>
+// Or arrays
+$rows = $query-&gt;getArrayResult();</code></pre></div>
 
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#query-result-formats-hydration-modes', 'Doctrine ORM Hydration Modes'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#query-result-formats-hydration-modes', 'Doctrine ORM Hydration Modes'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
-        'Query returned %d rows which may cause significant hydration overhead. Consider limiting results or using lighter hydration modes.',
-        $rowCount,
-    ),
+    'description' => sprintf('Query hydrated %d rows: paginate or use DTO or array hydration', $rowCount),
 ];

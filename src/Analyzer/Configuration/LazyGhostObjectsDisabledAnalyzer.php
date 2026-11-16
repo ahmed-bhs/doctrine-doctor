@@ -228,8 +228,8 @@ class LazyGhostObjectsDisabledAnalyzer implements MetadataAnalyzerInterface
     {
         return new DatabaseConfigIssue([
             'title' => 'Native lazy objects not enabled',
-            'description' => 'Doctrine ORM native lazy objects are explicitly disabled in your configuration. '
-                . 'Enable them to use the modern proxy mechanism with better performance and compatibility.',
+            'description' => 'Doctrine ORM native lazy objects are explicitly disabled in the configuration. '
+                . 'Doctrine falls back to generated proxy classes, which are deprecated in favor of native lazy objects.',
             'severity' => Severity::info(),
             'suggestion' => $this->suggestionFactory->createFromTemplate(
                 templateName: 'Configuration/lazy_ghost_objects_disabled',

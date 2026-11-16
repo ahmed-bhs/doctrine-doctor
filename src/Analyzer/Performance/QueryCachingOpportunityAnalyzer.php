@@ -427,22 +427,14 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
     ): PerformanceIssue {
         $severity = $this->determineFrequencySeverity($count);
 
-        $avgTime = $totalTime / $count;
-        $cacheAccessTime = $avgTime / 100; // Cache is ~100x faster
-        $timeWithCache = $avgTime + ($cacheAccessTime * ($count - 1));
-        $timeSaved = $totalTime - $timeWithCache;
-        $improvementPercent = ($timeSaved / $totalTime) * 100;
-
         $issueData = new IssueData(
             type: 'frequent_query_without_cache',
             title: sprintf('Frequent Query Executed %d Times', $count),
             description: sprintf(
-                "Query executed %d times in this request, consuming %.2fms total. " .
-                "Using result cache with useResultCache() would save ~%.2fms (%d%% faster) by avoiding %d redundant database hits.",
+                "The same query ran %d times in this request, %.2fms in total. " .
+                "%d of these round trips fetch data the first one already returned.",
                 $count,
                 $totalTime,
-                $timeSaved,
-                (int) round($improvementPercent),
                 $count - 1,
             ),
             severity: $severity,
@@ -467,9 +459,8 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
             type: 'static_table_caching_opportunity',
             title: sprintf("Query on Static Table '%s'", $tableName),
             description: sprintf(
-                "Query accesses '%s' table, which typically contains static/rarely-changing data. " .
-                "Consider caching results for 1-24 hours to reduce database load. " .
-                "Static lookup tables are excellent caching candidates.",
+                "The query reads table '%s', which usually holds static reference data. " .
+                "It hits the database on every request although its content seldom changes.",
                 $tableName,
             ),
             severity: Severity::info(),
@@ -492,8 +483,8 @@ class QueryCachingOpportunityAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyz
             type: 'doctrine_2lc_opportunity',
             title: sprintf('Doctrine 2LC Opportunity (%d fast entity loads)', $count),
             description: sprintf(
-                "Detected %d fast SELECT queries (avg %.2fms) with different parameter sets. " .
-                "This pattern suggests repeated entity loading that can benefit from Doctrine second-level cache.",
+                "%d fast SELECT queries (avg %.2fms) loaded entities one by one with different parameters. " .
+                "Each load is a database round trip, even for entities that rarely change.",
                 $count,
                 $avgTime,
             ),

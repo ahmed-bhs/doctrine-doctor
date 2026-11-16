@@ -37,7 +37,7 @@ class DatabaseConfigIssue extends AbstractIssue
     #[\Override]
     public function getType(): string
     {
-        return 'Database Config';
+        return 'database_configuration';
     }
 
     public function getCategory(): IssueCategory

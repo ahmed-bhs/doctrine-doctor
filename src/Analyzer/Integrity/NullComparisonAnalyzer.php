@@ -88,6 +88,17 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                             yield $this->createNullComparisonIssue($field, $operator, $fullMatch, $query);
                         }
                     }
+
+                    foreach ($this->comparisonsBoundToNull($cleaned, $this->extractParams($query)) as [$field, $operator, $fullMatch]) {
+                        $key = $field . $operator . 'NULL';
+                        if (isset($seenComparisons[$key])) {
+                            continue;
+                        }
+
+                        $seenComparisons[$key] = true;
+
+                        yield $this->createNullComparisonIssue($field, $operator, $fullMatch . ' (bound to NULL)', $query);
+                    }
                 }
             },
         );
@@ -121,6 +132,45 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     }
 
     /**
+     * "col = ?" comparisons whose positional parameter is NULL, as Doctrine produces for
+     * ->andWhere('s.shippedAt = :value')->setParameter('value', null).
+     *
+     * @param array<mixed> $params
+     * @return list<array{0: string, 1: string, 2: string}>
+     */
+    private function comparisonsBoundToNull(string $sql, array $params): array
+    {
+        if ([] === $params || !\in_array(null, $params, true)) {
+            return [];
+        }
+
+        $params = array_values($params);
+        preg_match_all('/\?/', $sql, $placeholders, PREG_OFFSET_CAPTURE);
+        $positions = array_column($placeholders[0], 1);
+
+        preg_match_all('/(\w+(?:\.\w+)?)\s*(=|!=|<>)\s*(\?)/', $sql, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+        $found = [];
+        foreach ($matches as $match) {
+            $index = array_search($match[3][1], $positions, true);
+            if (false !== $index && \array_key_exists($index, $params) && null === $params[$index]) {
+                $found[] = [$match[1][0], $match[2][0], $match[0][0]];
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    private function extractParams(array|object $query): array
+    {
+        $params = \is_array($query) ? ($query['params'] ?? []) : ($query->params ?? []);
+
+        return \is_array($params) ? $params : [];
+    }
+
+    /**
      * Create issue for incorrect NULL comparison.
      */
     private function createNullComparisonIssue(
@@ -136,10 +186,9 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
             type: IssueType::INTEGRITY_INCORRECT_NULL_COMPARISON->value,
             title: 'Incorrect NULL Comparison',
             description: sprintf(
-                "Found '%s' in query. Comparing to NULL with '%s' does not work as expected in SQL. " .
-                "This will always return no rows. Use '%s' instead.",
+                "The query uses '%s', which SQL never evaluates to true (only '%s' tests for NULL). " .
+                "The condition matches no rows, whatever the data.",
                 $fullMatch,
-                $operator,
                 $correctSyntax,
             ),
             severity: Severity::critical(),

@@ -47,9 +47,8 @@ final readonly class PostgreSQLConnectionPoolingAnalyzer implements ConnectionPo
             yield new DatabaseConfigIssue([
                 'title'       => 'Low max_connections setting',
                 'description' => sprintf(
-                    'Current max_connections is %d, which is below the recommended minimum of %d. ' .
-                    'Note: PostgreSQL uses ~10MB RAM per connection vs MySQL ~200KB. ' .
-                    'Consider using pgbouncer for connection pooling.',
+                    'max_connections is %d, below the recommended minimum of %d. ' .
+                    'Peak traffic can hit the limit and new connections are refused.',
                     $maxConnections,
                     self::RECOMMENDED_MIN_CONNECTIONS,
                 ),
@@ -82,9 +81,8 @@ final readonly class PostgreSQLConnectionPoolingAnalyzer implements ConnectionPo
             yield new DatabaseConfigIssue([
                 'title'       => 'High connection pool utilization',
                 'description' => sprintf(
-                    'Connection pool utilization is %.1f%% (%d/%d connections). ' .
-                    'PostgreSQL connections consume more RAM than MySQL. ' .
-                    'Strongly recommend using pgbouncer or pgpool for connection pooling.',
+                    'Connection pool utilization reached %.1f%% (%d/%d connections). ' .
+                    'Each PostgreSQL connection is a server process, so nearing the limit also costs memory.',
                     $utilizationPercent,
                     $currentConnections,
                     $maxConnections,
@@ -114,13 +112,9 @@ final readonly class PostgreSQLConnectionPoolingAnalyzer implements ConnectionPo
         // Issue 3: CRITICAL - idle_in_transaction_session_timeout = 0 (no timeout!)
         if (0 === $idleInTransactionTimeout) {
             yield new DatabaseConfigIssue([
-                'title'       => 'No timeout for idle transactions (CRITICAL)',
+                'title'       => 'No timeout for idle transactions',
                 'description' => 'idle_in_transaction_session_timeout is 0 (disabled). ' .
-                    'This allows transactions to stay open indefinitely, causing: ' .
-                    '- Table locks that block other queries' . "\n" .
-                    '- VACUUM blocked (table bloat)' . "\n" .
-                    '- Connection pool exhaustion' . "\n" .
-                    '- Memory leaks in long-running transactions',
+                    'A transaction left open keeps its locks, blocks VACUUM and holds a connection indefinitely.',
                 'severity'   => 'critical',
                 'suggestion' => $this->suggestionFactory->createFromTemplate(
                     templateName: 'Configuration/configuration',
@@ -148,8 +142,7 @@ final readonly class PostgreSQLConnectionPoolingAnalyzer implements ConnectionPo
             yield new DatabaseConfigIssue([
                 'title'       => 'No statement timeout configured',
                 'description' => 'statement_timeout is 0 (disabled). ' .
-                    'Long-running queries can block the database and exhaust resources. ' .
-                    'Recommended: 30-60 seconds for web apps.',
+                    'A runaway query can run indefinitely, holding locks and a connection.',
                 'severity'   => 'warning',
                 'suggestion' => $this->suggestionFactory->createFromTemplate(
                     templateName: 'Configuration/configuration',
@@ -275,9 +268,8 @@ final readonly class PostgreSQLConnectionPoolingAnalyzer implements ConnectionPo
         return new DatabaseConfigIssue([
             'title'       => sprintf('%d connections idle for >5 minutes', count($idleConnections)),
             'description' => sprintf(
-                'Found %d connections that have been idle for more than 5 minutes. ' .
-                'Idle connections consume resources and may indicate connection pooling issues. ' .
-                'Consider using pgbouncer to manage connection lifecycle.',
+                '%d connections have been idle for more than 5 minutes. ' .
+                'Each one holds a server process and memory without doing work.',
                 count($idleConnections),
             ),
             'severity'   => 'info',

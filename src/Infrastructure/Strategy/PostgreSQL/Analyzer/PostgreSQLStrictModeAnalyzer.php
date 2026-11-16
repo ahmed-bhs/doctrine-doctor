@@ -41,10 +41,9 @@ final readonly class PostgreSQLStrictModeAnalyzer implements StrictModeAnalyzerI
         // Issue 1: standard_conforming_strings = off (old, dangerous behavior)
         if ('off' === $standardConformingStrings) {
             yield new DatabaseConfigIssue([
-                'title'       => 'Non-standard string escaping enabled (security risk)',
+                'title'       => 'Non-standard string escaping enabled',
                 'description' => 'standard_conforming_strings is OFF. ' .
-                    'This enables legacy backslash escaping which can cause SQL injection vulnerabilities. ' .
-                    'PostgreSQL (9.1+) uses standard-compliant string escaping by default.',
+                    'Backslashes in string literals act as escapes, so input escaped for standard SQL can break out of a string (SQL injection).',
                 'severity'   => 'critical',
                 'suggestion' => $this->suggestionFactory->createFromTemplate(
                     templateName: 'Configuration/configuration',
@@ -72,8 +71,7 @@ final readonly class PostgreSQLStrictModeAnalyzer implements StrictModeAnalyzerI
             yield new DatabaseConfigIssue([
                 'title'       => 'Function body validation disabled',
                 'description' => 'check_function_bodies is OFF. ' .
-                    'This skips validation when creating functions, allowing invalid code to be stored. ' .
-                    'Recommended to enable for catching errors early.',
+                    'Functions with invalid bodies are accepted at creation and only fail when called.',
                 'severity'   => 'warning',
                 'suggestion' => $this->suggestionFactory->createFromTemplate(
                     templateName: 'Configuration/configuration',

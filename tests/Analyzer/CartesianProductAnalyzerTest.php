@@ -85,8 +85,8 @@ final class CartesianProductAnalyzerTest extends TestCase
 
         $issue = $issuesArray[0];
         self::assertStringContainsString('Cartesian Product', $issue->getTitle());
-        self::assertStringContainsString('O(n^2)', $issue->getTitle());
-        self::assertStringContainsString('cartesian product', $issue->getDescription());
+        self::assertStringContainsString('2 collection JOINs', $issue->getTitle());
+        self::assertStringContainsString('2 collections', $issue->getDescription());
     }
 
     #[Test]
@@ -236,7 +236,7 @@ final class CartesianProductAnalyzerTest extends TestCase
         $issue = array_values($riskIssues)[0];
         self::assertStringContainsString('3 Collections', $issue->getTitle());
         self::assertStringContainsString('resource', $issue->getTitle());
-        self::assertStringContainsString('Multi-Step Hydration', $issue->getTitle());
+        self::assertStringContainsString('3 collections', $issue->getDescription());
         self::assertEquals('warning', $issue->getSeverity()->value);
         self::assertNotNull($issue->getSuggestion());
     }
@@ -361,5 +361,23 @@ final class CartesianProductAnalyzerTest extends TestCase
         );
 
         self::assertCount(1, $riskIssues);
+    }
+
+    #[Test]
+    public function it_does_not_count_inverse_one_to_one_loads_as_collections(): void
+    {
+        $frames = [['class' => \Doctrine\ORM\Persisters\Entity\BasicEntityPersister::class, 'function' => 'loadOneToOneEntity']];
+        $builder = QueryDataBuilder::create();
+        for ($i = 0; $i < 10; ++$i) {
+            $builder->addQueryWithBacktrace('SELECT t0.id FROM shop_user t0 WHERE t0.customer_id = ?', $frames);
+            $builder->addQueryWithBacktrace('SELECT t0.id FROM loyalty_account t0 WHERE t0.customer_id = ?', $frames);
+        }
+
+        $risks = array_filter(
+            $this->analyzer->analyze($builder->build())->toArray(),
+            static fn ($issue) => str_contains((string) $issue->getTitle(), 'Cartesian Product Risk'),
+        );
+
+        self::assertCount(0, $risks);
     }
 }

@@ -12,23 +12,16 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Division by zero'); ?>
+<?php echo suggestionHeader('Guard the divisor with NULLIF()'); ?>
 <div class="suggestion-content">
-<div class="alert alert-danger"><strong>Unsafe:</strong> <code><?php echo $e($unsafe_division); ?></code></div>
+<p><code><?php echo $e((string) $unsafe_division); ?></code> raises an error on PostgreSQL and SQL Server when <code><?php echo $e((string) $divisor); ?></code> is 0. <code>NULLIF(<?php echo $e((string) $divisor); ?>, 0)</code> turns that case into <code>NULL</code>.</p>
 
-<p>If <code><?php echo $e($divisor); ?></code> is zero, database error.</p>
+<div class="query-item"><pre><code class="language-sql">-- Before
+<?php echo $e((string) $unsafe_division); ?>
 
-<h4>Use NULLIF()</h4>
-<div class="query-item"><pre><code class="language-sql"><?php echo $e((string) $safe_division); ?></code></pre></div>
 
-<p><code>NULLIF(<?php echo $e($divisor); ?>, 0)</code> returns <code>NULL</code> when divisor is 0.</p>
-
-<h4>DQL Example</h4>
-<div class="query-item"><pre><code class="language-php">// Unsafe
-$qb->select('(o.revenue / o.quantity) as avg_price');
-
-// Safe
-$qb->select('(o.revenue / NULLIF(o.quantity, 0)) as avg_price');</code></pre></div>
+-- After
+<?php echo $e((string) $safe_division); ?></code></pre></div>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html', 'Doctrine Query Language (DQL)'); ?>
 </div>

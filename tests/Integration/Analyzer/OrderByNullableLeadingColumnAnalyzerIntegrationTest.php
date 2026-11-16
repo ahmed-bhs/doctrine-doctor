@@ -161,4 +161,34 @@ final class OrderByNullableLeadingColumnAnalyzerIntegrationTest extends Database
 
         self::assertCount(0, $issueCollection);
     }
+
+    #[Test]
+    public function it_stays_silent_when_the_where_clause_already_excludes_null(): void
+    {
+        foreach (['t0.dueDate IS NOT NULL', 'dueDate > ?', 'dueDate BETWEEN ? AND ?'] as $condition) {
+            $issueCollection = $this->orderByNullableLeadingColumnAnalyzer->analyze(QueryDataCollection::fromArray([
+                new QueryData(
+                    sql: 'SELECT * FROM tasks_with_nullable_due_date t0 WHERE ' . $condition . ' ORDER BY t0.dueDate ASC LIMIT 1',
+                    executionTime: QueryExecutionTime::fromMilliseconds(1),
+                    params: [],
+                ),
+            ]));
+
+            self::assertCount(0, $issueCollection, $condition);
+        }
+    }
+
+    #[Test]
+    public function it_flags_the_column_when_the_where_clause_filters_another_one(): void
+    {
+        $issueCollection = $this->orderByNullableLeadingColumnAnalyzer->analyze(QueryDataCollection::fromArray([
+            new QueryData(
+                sql: 'SELECT * FROM tasks_with_nullable_due_date t0 WHERE t0.title IS NOT NULL ORDER BY t0.dueDate ASC LIMIT 1',
+                executionTime: QueryExecutionTime::fromMilliseconds(1),
+                params: [],
+            ),
+        ]));
+
+        self::assertCount(1, $issueCollection);
+    }
 }

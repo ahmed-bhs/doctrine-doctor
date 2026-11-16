@@ -11,32 +11,22 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Upgrade to UUID v7 for better performance'); ?>
+<?php echo suggestionHeader('Generate UUID v7 instead of v4'); ?>
 <div class="suggestion-content">
-<div class="alert <?php echo severityAlertClass($severity); ?>"><strong>Entity:</strong> <code><?php echo $e($short_name); ?></code></div>
+<div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($short_name); ?></code> uses random UUID v4 identifiers. Random keys land anywhere in the primary key index, which splits pages on insert; UUID v7 starts with a timestamp, so new rows are appended in order.</div>
 
-<p>UUID v4 (random) causes slow inserts and fragmented indexes. UUID v7 (sequential, timestamp-based) offers <strong>58% faster inserts, 29% smaller indexes</strong>.</p>
-
-<h4>Before: UUID v4</h4>
-<div class="query-item"><pre><code class="language-php">use Symfony\Bridge\Doctrine\IdGenerator\UuidV4Generator;
-
-#[ORM\Id]
-#[ORM\GeneratedValue(strategy: 'CUSTOM')]
+<div class="query-item"><pre><code class="language-php">// Before
 #[ORM\CustomIdGenerator(class: UuidV4Generator::class)]
-private UuidInterface $id;</code></pre></div>
 
-<h4>After: UUID v7</h4>
-<div class="query-item"><pre><code class="language-php">use Symfony\Component\Uid\UuidV7;
+// After
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Id]
-#[ORM\Column(type: 'uuid')]
-private UuidV7 $id;
+#[ORM\Column(type: UuidType::NAME, unique: true)]
+private Uuid $id;
 
-public function __construct() {
-    $this->id = new UuidV7();
-}</code></pre></div>
-
-<p>Sequential ordering reduces B-tree page splits by 98%, improving insert speed and index efficiency.</p>
+public function __construct() { $this-&gt;id = Uuid::v7(); }</code></pre></div>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#identifier-generation-strategies', 'Doctrine ORM Identifier Generation Strategies'); ?>
 </div>
@@ -45,5 +35,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Upgrade to UUID v7 for better performance',
+    'description' => 'Generate UUID v7 identifiers instead of v4',
 ];
