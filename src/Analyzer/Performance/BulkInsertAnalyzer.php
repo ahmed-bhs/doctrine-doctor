@@ -84,15 +84,14 @@ class BulkInsertAnalyzer implements AnalyzerInterface
         $bypassed = null === $metadata ? [] : $this->bypassedBehaviours($metadata);
 
         $description = sprintf(
-            '%d single-row INSERT statements into %s, one round trip per row. A multi-row INSERT through DBAL ' .
-            '(Connection::executeStatement) writes them in a few statements.',
+            '%d single-row INSERT statements ran into %s, one round trip per row.',
             $count,
             $table,
         );
 
         if (null !== $metadata) {
             $description .= sprintf(
-                ' It bypasses the unit of work for %s%s.',
+                ' A DBAL multi-row INSERT would bypass the unit of work for %s%s.',
                 $metadata->getName(),
                 [] === $bypassed ? '' : ', so it skips: ' . implode('; ', $bypassed),
             );

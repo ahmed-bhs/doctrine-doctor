@@ -506,25 +506,16 @@ class NestedRelationshipN1Analyzer implements AnalyzerInterface
         $depth = $chain['depth'];
         $count = $chain['count'];
         $pattern = $chain['pattern'];
-        $tables = $chain['tables'];
 
         $description = DescriptionHighlighter::highlight(
-            'Detected nested relationship N+1: {count} queries across a {depth}-level relationship chain: {pattern}',
+            'Nested lazy loading ran {count} queries per level across a {depth}-level relationship chain ({pattern}). '
+            . 'Each level runs one query per parent row, so the total reaches ' . ($count * $depth) . ' queries.',
             [
                 'count' => $count,
                 'depth' => $depth,
                 'pattern' => $pattern,
             ],
         );
-
-        $description .= "\n\nThis occurs when accessing nested relationships in a loop:";
-        $description .= "\n\$entity->getRelation1()->getRelation2()->getValue()";
-        $description .= "\n\nEach level of nesting multiplies the queries:";
-        $description .= "\n- Level 1: {$count} queries for " . $tables[0];
-        if (isset($tables[1])) {
-            $description .= "\n- Level 2: {$count} additional queries for " . $tables[1];
-        }
-        $description .= "\n- Total impact: " . ($count * $depth) . ' queries!';
 
         return new IssueData(
             type: IssueType::NESTED_N_PLUS_ONE->value,

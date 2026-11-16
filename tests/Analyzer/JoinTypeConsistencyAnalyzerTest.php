@@ -109,8 +109,8 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
 
         self::assertEquals('aggregation_with_inner_join', $data['type']);
         self::assertEquals('COUNT with INNER JOIN May Cause Incorrect Results', $issue->getTitle());
-        self::assertStringContainsString('COUNT()', $issue->getDescription());
-        self::assertStringContainsString('row duplication', $issue->getDescription());
+        self::assertStringContainsString('COUNT(o.id)', $issue->getDescription());
+        self::assertStringContainsString('repeats each', $issue->getDescription());
         self::assertEquals('warning', $data['severity']);
     }
 
@@ -118,7 +118,7 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
     public function it_detects_sum_with_inner_join(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT SUM(o.total) FROM orders o INNER JOIN customers c ON o.customer_id = c.id')
+            ->addQuery('SELECT SUM(o.total) FROM orders o INNER JOIN order_items oi ON o.id = oi.order_id')
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -129,7 +129,7 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
 
         self::assertEquals('aggregation_with_inner_join', $data['type']);
         self::assertEquals('SUM with INNER JOIN May Cause Incorrect Results', $issue->getTitle());
-        self::assertStringContainsString('SUM()', $issue->getDescription());
+        self::assertStringContainsString('SUM(o.total)', $issue->getDescription());
     }
 
     #[Test]
@@ -147,7 +147,7 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
 
         self::assertEquals('aggregation_with_inner_join', $data['type']);
         self::assertEquals('AVG with INNER JOIN May Cause Incorrect Results', $issue->getTitle());
-        self::assertStringContainsString('AVG()', $issue->getDescription());
+        self::assertStringContainsString('AVG(o.total)', $issue->getDescription());
     }
 
     #[Test]
@@ -287,9 +287,9 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
         $data = $issue->getData();
 
         self::assertEquals('aggregation_with_inner_join', $data['type']);
-        self::assertEquals('COUNT with INNER JOIN - Performance Impact', $issue->getTitle());
+        self::assertEquals('COUNT with INNER JOIN Over Duplicated Rows', $issue->getTitle());
         self::assertEquals('info', $data['severity']);
-        self::assertStringContainsString('results are **correct**', $issue->getDescription());
+        self::assertStringContainsString('result is correct', $issue->getDescription());
     }
 
     #[Test]
@@ -399,14 +399,14 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
         self::assertEquals('aggregation_with_inner_join', $data['type']);
         self::assertEquals('COUNT with INNER JOIN May Cause Incorrect Results', $issue->getTitle());
         self::assertEquals('warning', $data['severity']);
-        self::assertStringContainsString('incorrect aggregate results', $issue->getDescription());
+        self::assertStringContainsString('inflated', $issue->getDescription());
     }
 
     #[Test]
     public function it_detects_sum_with_distinct_as_protected(): void
     {
         $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT SUM(DISTINCT o.total) FROM orders o INNER JOIN customers c ON o.customer_id = c.id')
+            ->addQuery('SELECT SUM(DISTINCT o.total) FROM orders o INNER JOIN order_items oi ON o.id = oi.order_id')
             ->build();
 
         $issues = $this->analyzer->analyze($queries);
@@ -416,7 +416,7 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
         $data = $issue->getData();
 
         self::assertEquals('aggregation_with_inner_join', $data['type']);
-        self::assertEquals('SUM with INNER JOIN - Performance Impact', $issue->getTitle());
+        self::assertEquals('SUM with INNER JOIN Over Duplicated Rows', $issue->getTitle());
         self::assertEquals('info', $data['severity']);
     }
 
@@ -436,5 +436,31 @@ final class JoinTypeConsistencyAnalyzerTest extends TestCase
         self::assertEquals('aggregation_with_inner_join', $data['type']);
         self::assertEquals('AVG with INNER JOIN May Cause Incorrect Results', $issue->getTitle());
         self::assertEquals('warning', $data['severity']);
+    }
+
+    #[Test]
+    public function it_does_not_flag_a_sum_over_the_many_side_of_a_to_one_join(): void
+    {
+        // One row per order: the customer join repeats customers, not orders.
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT c.id, SUM(o.total) FROM customers c INNER JOIN orders o ON o.customer_id = c.id GROUP BY c.id')
+            ->build();
+
+        self::assertCount(0, $this->analyzer->analyze($queries));
+    }
+
+    #[Test]
+    public function it_flags_a_sum_next_to_a_count_distinct_when_a_deeper_join_repeats_rows(): void
+    {
+        // Revenue per brand: COUNT(DISTINCT o.id) is right, SUM(o.total) counts each order once per item.
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT tt.name, COUNT(DISTINCT o.id), SUM(o.total) FROM orders o JOIN order_items i ON i.order_id = o.id JOIN variants v ON v.id = i.variant_id GROUP BY tt.name')
+            ->build();
+
+        $issue = $this->analyzer->analyze($queries)->toArray()[0] ?? null;
+
+        self::assertNotNull($issue);
+        self::assertSame('SUM with INNER JOIN May Cause Incorrect Results', $issue->getTitle());
+        self::assertStringContainsString('SUM(o.total) reads orders, and the join with order_items', $issue->getDescription());
     }
 }

@@ -47,8 +47,8 @@ final readonly class MySQLConnectionPoolingAnalyzer implements ConnectionPooling
             yield new DatabaseConfigIssue([
                 'title'       => 'Low max_connections setting',
                 'description' => sprintf(
-                    'Current max_connections is %d, which is below the recommended minimum of %d. ' .
-                    'This may cause "Too many connections" errors during peak load.',
+                    'max_connections is %d, below the recommended minimum of %d. ' .
+                    'Peak traffic can hit the limit and fail with "Too many connections".',
                     $maxConnections,
                     self::RECOMMENDED_MIN_CONNECTIONS,
                 ),
@@ -81,8 +81,8 @@ final readonly class MySQLConnectionPoolingAnalyzer implements ConnectionPooling
             yield new DatabaseConfigIssue([
                 'title'       => 'High connection pool utilization',
                 'description' => sprintf(
-                    'Connection pool utilization is %.1f%% (%d/%d connections used). ' .
-                    'You are approaching the max_connections limit. Consider increasing it.',
+                    'Connection pool utilization reached %.1f%% (%d/%d connections used). ' .
+                    'A little more traffic hits max_connections and new connections are refused.',
                     $utilizationPercent,
                     $maxUsedConnections,
                     $maxConnections,

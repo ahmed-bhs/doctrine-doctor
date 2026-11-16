@@ -10,32 +10,19 @@ declare(strict_types=1);
  */
 
 /** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context
 $description = $context['description'] ?? '';
 $title = $context['title'] ?? null;
 
-// Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
-
-<div class="suggestion-header">
-    <h4><?php echo $e($title); ?></h4>
-</div>
-
+<?php echo suggestionHeader((string) ($title ?? 'Align both sides of the association')); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <strong>Bidirectional association has inconsistent configuration</strong>
-    </div>
+<p><?php echo $e($description); ?> Compare <code>cascade</code>, <code>orphanRemoval</code>, <code>nullable</code> and <code>onDelete</code> on both sides so the ORM and the database behave the same way.</p>
 
-    <p><?php echo $e($description); ?></p>
-
-    <p>Check cascade settings, orphanRemoval, onDelete constraints, and nullable settings on both sides of the relationship. Make sure they're aligned.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html', 'Doctrine Associations Documentation'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html', 'Doctrine Associations Documentation'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 

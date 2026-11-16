@@ -43,7 +43,7 @@ final class FindAllAnalyzerFalsePositiveTest extends TestCase
     }
 
     #[Test]
-    public function it_does_not_flag_query_with_inner_join(): void
+    public function it_flags_an_unrestricted_query_even_with_an_inner_join(): void
     {
         $collection = QueryDataBuilder::create()
             ->addQuery(
@@ -59,7 +59,9 @@ final class FindAllAnalyzerFalsePositiveTest extends TestCase
             static fn ($issue): bool => str_contains((string) $issue->getType(), 'find_all'),
         );
 
-        self::assertCount(0, $findAllIssues, 'INNER JOIN queries are correctly handled by the analyzer');
+        // A join without WHERE nor LIMIT still reads the whole table. This test filtered on the label "Find All"
+        // before the type became an identifier, and so never checked anything.
+        self::assertCount(1, $findAllIssues);
     }
 
     #[Test]

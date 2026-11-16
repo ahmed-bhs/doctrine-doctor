@@ -13,32 +13,15 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Use DateTimeImmutable for soft delete'); ?>
 <div class="suggestion-content">
-<div class="alert alert-warning"><code><?php echo $e($fieldName); ?></code> uses mutable <code>DateTime</code>. Use <code>DateTimeImmutable</code> instead.</div>
+<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> holds a mutable <code>DateTime</code>. Code that receives it can change the deletion date in place, and Doctrine will not notice the change.</p>
 
-<p>DateTimeImmutable prevents accidental modifications to the deletion timestamp.</p>
+<div class="query-item"><pre><code class="language-php">#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+private ?\DateTimeImmutable $<?php echo $e($fieldName); ?> = null;
 
-<h4>Fix</h4>
-<div class="query-item"><pre><code class="language-php">use Doctrine\ORM\Mapping as ORM;
-
-#[ORM\Entity]
-class <?php echo $e($shortClass); ?>
-
+public function delete(): void
 {
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $<?php echo $e($fieldName); ?> = null;
-
-    public function delete(): void
-    {
-        $this-><?php echo $e($fieldName); ?> = new \DateTimeImmutable();
-    }
-
-    public function restore(): void
-    {
-        $this-><?php echo $e($fieldName); ?> = null;
-    }
+    $this-&gt;<?php echo $e($fieldName); ?> = new \DateTimeImmutable();
 }</code></pre></div>
-
-<p>DateTimeImmutable is thread-safe. Once a deletion time is set, it should never change.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#doctrine-mapping-types', 'Doctrine ORM Mapping Types'); ?>
 </div>

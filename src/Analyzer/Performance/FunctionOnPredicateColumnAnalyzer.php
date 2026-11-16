@@ -156,10 +156,8 @@ class FunctionOnPredicateColumnAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
         $severity = $executionTime > 100 ? Severity::critical() : Severity::warning();
 
         $description = sprintf(
-            'WHERE clause wraps column %s in %s(), which prevents the database from using an index on that column ' .
-            'and forces a full scan or function-based evaluation per row. Execution time: %.2fms. ' .
-            'Rewrite the predicate so the column appears bare on one side of the comparison, ' .
-            'or create a functional/expression index matching the function.',
+            'The WHERE clause wraps column %s in %s() (%.2fms). ' .
+            'The database cannot use a plain index on that column and evaluates the function on every row.',
             $column,
             $function,
             $executionTime,

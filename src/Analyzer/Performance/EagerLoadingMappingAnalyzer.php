@@ -115,15 +115,12 @@ class EagerLoadingMappingAnalyzer implements MetadataAnalyzerInterface
         $targetShortName = $this->shortClassName($targetEntity);
 
         $description = DescriptionHighlighter::highlight(
-            'Association {entity}::{field} declares {fetch_mode} which forces eager loading for ALL queries. '
-            . 'This is almost always wrong — eager loading should be decided per-query via {querybuilder}. '
-            . 'Remove {fetch_mode} from the mapping and use {addselect} in the repository when needed.',
+            'Association {entity}::{field} declares {fetch_mode}. '
+            . 'Every query that loads {entity} also loads this association, even when the page never reads it.',
             [
                 'entity' => $shortClassName,
                 'field' => '$' . $fieldName,
-                'fetch_mode' => 'EAGER fetch mode',
-                'querybuilder' => 'QueryBuilder::addSelect()',
-                'addselect' => 'leftJoin()\'s addSelect()',
+                'fetch_mode' => 'fetch: EAGER',
             ],
         );
 

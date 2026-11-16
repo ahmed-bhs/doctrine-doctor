@@ -26,11 +26,8 @@ class DQLInjectionIssue extends AbstractIssue
             'type'        => IssueType::DQL_INJECTION,
             'title'       => 'Potential SQL/DQL Injection Risk',
             'description' => sprintf(
-                'Detected %d %s risk quer%s with potential SQL/DQL injection vulnerabilities. ' .
-                'Indicators found: %s. ' .
-                'NEVER concatenate user input directly into SQL/DQL queries. ' .
-                'Always use parameter binding (:param or ?) to prevent SQL injection attacks. ' .
-                'This is a critical security issue that could allow attackers to access, modify, or delete your database.',
+                '%d %s risk quer%s show signs of SQL/DQL injection (%s). ' .
+                'Input concatenated into a query can change its meaning and read or modify any data.',
                 $queryCount,
                 $riskLevel,
                 $queryCount > 1 ? 'ies' : 'y',

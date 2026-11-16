@@ -169,7 +169,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
 
                 // Has cascade remove but not a clear composition - might be problematic
                 if (null !== $targetEntity && $this->isIndependentEntity($targetEntity, $referenceCountMap)) {
-                    $issue    = $this->createHighIssue($entityClass, $fieldName, $associationMapping, $referenceCountMap);
+                    $issue    = $this->createHighIssue($entityClass, $fieldName, $associationMapping, $referenceCountMap, 'OneToMany');
                     $issues[] = $issue;
                 }
 
@@ -185,7 +185,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
 
                 // Has cascade remove but no orphanRemoval - check if independent
                 if (null !== $targetEntity && $this->isIndependentEntity($targetEntity, $referenceCountMap)) {
-                    $issue    = $this->createHighIssue($entityClass, $fieldName, $associationMapping, $referenceCountMap);
+                    $issue    = $this->createHighIssue($entityClass, $fieldName, $associationMapping, $referenceCountMap, 'OneToOne');
                     $issues[] = $issue;
                 }
 
@@ -194,7 +194,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
 
             // HIGH: cascade="remove" on ManyToMany to independent entity
             if (null !== $targetEntity && ClassMetadata::MANY_TO_MANY === $type && $this->isIndependentEntity($targetEntity, $referenceCountMap)) {
-                $issue    = $this->createHighIssue($entityClass, $fieldName, $associationMapping, $referenceCountMap);
+                $issue    = $this->createHighIssue($entityClass, $fieldName, $associationMapping, $referenceCountMap, 'ManyToMany');
                 $issues[] = $issue;
             }
         }
@@ -251,7 +251,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
                 }
 
                 // Check if this ManyToOne is a composition relationship
-                if ($this->isCompositionRelationship($metadata, $association)) {
+                if ($this->isCompositionRelationship($association)) {
                     return true; // This entity is dependent on its parent
                 }
             }
@@ -271,7 +271,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
      * 2. Unique constraint with FK (e.g., user_id + provider = one token per provider per user)
      * 3. Inverse side has orphanRemoval=true
      */
-    private function isCompositionRelationship(ClassMetadata $metadata, array|object $association): bool
+    private function isCompositionRelationship(array|object $association): bool
     {
         // Indicator 1: Check if FK is NOT NULL
         $joinColumns = MappingHelper::getArray($association, 'joinColumns') ?? [];
@@ -335,7 +335,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
         $codeQualityIssue->setTitle('cascade="remove" on ManyToOne (Data Loss Risk)');
 
         $message = DescriptionHighlighter::highlight(
-            "Field {field} in entity {class} has {cascade} on {type} relation to {target}. Deleting a {shortClass} will also delete the {target}, which may be referenced by other entities. {target} is referenced by {refCount} entities.",
+            "Field {field} in entity {class} has cascade {cascade} on a {type} relation to {target}, which {refCount} entities reference. Deleting a {shortClass} also deletes its {target}, even while other records still point to it.",
             [
                 'field' => $fieldName,
                 'class' => $entityClass,
@@ -356,6 +356,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
         string $fieldName,
         array|object $mapping,
         array $referenceCountMap,
+        string $associationType,
     ): IntegrityIssue {
         $targetEntity   = MappingHelper::getString($mapping, 'targetEntity') ?? 'Unknown';
         $cascade        = MappingHelper::getArray($mapping, 'cascade') ?? [];
@@ -365,22 +366,22 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
         $codeQualityIssue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
             'entity'           => $entityClass,
             'field'            => $fieldName,
-            'association_type' => 'ManyToMany',
+            'association_type' => $associationType,
             'target_entity'    => $targetEntity,
             'cascade'          => $cascade,
             'reference_count'  => $referenceCount,
         ]);
 
         $codeQualityIssue->setSeverity('critical');
-        $codeQualityIssue->setTitle('cascade="remove" on ManyToMany to Independent Entity');
+        $codeQualityIssue->setTitle(sprintf('cascade="remove" on %s to Independent Entity', $associationType));
 
         $message = DescriptionHighlighter::highlight(
-            "Field {field} in entity {class} has {cascade} on {type} relation to independent entity {target}. Deleting a {shortClass} will delete all related {target}s, even if other entities reference them. {target} is referenced by {refCount} entities.",
+            "Field {field} in entity {class} has cascade {cascade} on a {type} relation to independent entity {target}, which {refCount} entities reference. Deleting a {shortClass} also deletes all its related {target} rows, even those other records still use.",
             [
                 'field' => $fieldName,
                 'class' => $entityClass,
                 'cascade' => '"remove"',
-                'type' => 'ManyToMany',
+                'type' => $associationType,
                 'target' => $targetEntity,
                 'shortClass' => $this->shortClassName($entityClass),
                 'refCount' => (string) $referenceCount,

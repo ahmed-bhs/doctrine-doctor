@@ -142,8 +142,8 @@ class YearFunctionOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
             type: 'date_function_prevents_index',
             title: sprintf('%s() Function Prevents Index Usage', $function),
             description: sprintf(
-                "Using %s(%s) in WHERE clause prevents index usage, causing full table scan. " .
-                "This query took %.2fms. Rewrite using BETWEEN or range operators for better performance.",
+                "The WHERE clause filters on %s(%s), which prevents index usage (%.2fms). " .
+                "The database computes the function for every row instead of reading an index range, as BETWEEN would.",
                 $function,
                 $field,
                 $executionTime,

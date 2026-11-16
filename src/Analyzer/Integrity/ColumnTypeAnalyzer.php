@@ -90,6 +90,12 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
                     $allMetadata     = $metadataFactory->getAllMetadata();
 
                     foreach ($allMetadata as $metadata) {
+                        // A mapped superclass has no table of its own: its fields are reported on the entities
+                        // that extend it, once.
+                        if ($metadata->isMappedSuperclass || $metadata->isEmbeddedClass) {
+                            continue;
+                        }
+
                         $entityIssues = $this->analyzeEntity($metadata);
 
                         foreach ($entityIssues as $entityIssue) {
@@ -213,13 +219,12 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
         // Adjust severity and message for vendor entities
         $severity = $typeInfo['severity'];
         $description = sprintf(
-            'Field "%s::$%s" uses deprecated type "%s". %s. ' .
-            'Use "%s" type instead for better security, performance, and maintainability.',
+            'Field "%s::$%s" uses deprecated type "%s" instead of "%s". %s.',
             $shortClassName,
             $fieldName,
             $type,
-            $typeInfo['reason'],
             $typeInfo['replacement'],
+            $typeInfo['reason'],
         );
 
         if ($isVendor) {
@@ -228,11 +233,7 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
             $severity = $severityEnum->isCritical() ? 'warning' : 'info';
 
             $description .= sprintf(
-                "\n\nWARNING: This entity is from a vendor dependency. " .
-                "You cannot modify it directly. Consider:\n" .
-                "1. Creating a local entity that extends this class and overrides the field mapping\n" .
-                "2. Opening an issue/PR with the vendor to migrate to JSON\n" .
-                "3. Accepting this as a known vendor limitation",
+                ' The entity comes from a vendor dependency, so its mapping cannot be changed in place.',
             );
         }
 
@@ -254,7 +255,7 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
                         ? sprintf('Vendor entity - consider creating local override or opening vendor issue')
                         : sprintf('Replace "%s" type with "%s"', $type, $typeInfo['replacement']),
                     'code' => $isVendor
-                        ? $this->generateVendorOverrideCode($entityClass, $fieldName, $type, $typeInfo['replacement'])
+                        ? $this->generateVendorOverrideCode($entityClass, $fieldName, $typeInfo['replacement'])
                         : $this->generateTypeReplacementCode($entityClass, $fieldName, $type),
                     'file_path' => $entityClass,
                 ],
@@ -294,9 +295,8 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
             $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
                 'title'       => sprintf('simple_array type with limited length in %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
-                    'Field "%s::$%s" uses "simple_array" type with length=%d. ' .
-                    'This type has limitations: cannot contain commas, limited length, no type preservation. ' .
-                    'Consider using "json" type for better flexibility and data integrity.',
+                    'Field "%s::$%s" uses "simple_array" type with length=%d instead of "json". ' .
+                    'Items cannot contain commas, are always read back as strings, and the list is cut at the column length.',
                     $shortClassName,
                     $fieldName,
                     $length,
@@ -346,7 +346,7 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
         }
 
         // Pre-filter on field name to avoid unnecessary DB queries
-        if (!$this->matchesEnumPattern($fieldName)) {
+        if (!$this->matchesEnumPattern($fieldName) || $this->isOpenVocabulary($fieldName)) {
             return null;
         }
 
@@ -357,8 +357,8 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
             return null;
         }
 
-        // Not an enum: too many distinct values or ratio too high
-        if ($analysis['distinct'] > 15 || $analysis['ratio'] > 0.03) {
+        // Not an enum: too many distinct values or ratio too high. A single value says nothing about the set.
+        if ($analysis['distinct'] < 2 || $analysis['distinct'] > 15 || $analysis['ratio'] > 0.03) {
             return null;
         }
 
@@ -366,11 +366,10 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
 
         /** @var IntegrityIssue $issue */
         $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
-            'title'       => sprintf('Consider using native enum for %s::$%s', $shortClassName, $fieldName),
+            'title'       => sprintf('String field with enum-like values: %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Field "%s::$%s" has only %d distinct values across %d rows (%.1f%% uniqueness). ' .
-                'This suggests a fixed set of values that would benefit from a PHP 8.1+ native enum. ' .
-                'This provides type safety, IDE autocomplete, and prevents invalid values.',
+                'It looks like a fixed set stored as free strings instead of a native enum, so nothing stops an invalid value.',
                 $shortClassName,
                 $fieldName,
                 $analysis['distinct'],
@@ -436,6 +435,18 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
         } catch (\Throwable) {
             return ['distinct' => 0, 'total' => 0, 'ratio' => 1.0];
         }
+    }
+
+    /**
+     * Values from an open list: standard codes (currencies, countries, languages, MIME types, time zones) or codes
+     * that identify other records. Few values in today's rows do not make them a closed enum.
+     */
+    private function isOpenVocabulary(string $fieldName): bool
+    {
+        $lower = strtolower($fieldName);
+
+        return str_ends_with($lower, 'code')
+            || array_any(['currency', 'country', 'language', 'locale', 'mime', 'contenttype', 'timezone', 'extension'], static fn (string $word): bool => str_contains($lower, $word));
     }
 
     /**
@@ -713,7 +724,6 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
     private function generateVendorOverrideCode(
         string $vendorEntityClass,
         string $fieldName,
-        string $oldType,
         string $newType,
     ): string {
         $vendorShortName = $this->shortClassName($vendorEntityClass);
@@ -758,10 +768,8 @@ class ColumnTypeAnalyzer implements DatabaseAuditAnalyzerInterface
                 $fieldName,
             ),
             'description' => sprintf(
-                'Field "%s::$%s" uses mutable type "%s". '
-                . 'Mutating a DateTime returned by a getter silently changes entity state '
-                . 'without Doctrine\'s change tracking detecting it. '
-                . 'Use "%s" with \DateTimeImmutable instead.',
+                'Field "%s::$%s" uses mutable type "%s" instead of "%s". '
+                . 'Modifying the DateTime returned by a getter changes the entity without Doctrine detecting it, so the change is not saved.',
                 $shortClassName,
                 $fieldName,
                 $type,

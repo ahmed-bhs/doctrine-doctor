@@ -14,42 +14,30 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Missing timezone information'); ?>
+<?php echo suggestionHeader('Store timestamps in UTC'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <code>datetime</code> without timezone causes issues across timezones. Store in UTC and convert for display.
-    </div>
+    <p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> uses <code>datetime</code>, which drops the timezone. Values written from different timezones become ambiguous unless they are all converted to UTC first.</p>
 
-    <h4>Solution: Store in UTC</h4>
     <div class="query-item">
-        <pre><code class="language-php">#[ORM\Column(type: 'datetime_immutable')]
+        <pre><code class="language-php">#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
 private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
 
 #[ORM\PrePersist]
 public function onCreate(): void
 {
-    $this-><?php echo $e($fieldName); ?> = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-}
-
-public function get<?php echo $e(ucfirst((string) $fieldName)); ?>Display(string $userTimezone): string
-{
-    return $this-><?php echo $e($fieldName); ?>
-        ->setTimezone(new \DateTimeZone($userTimezone))
-        ->format('Y-m-d H:i:s');
+    $this-&gt;<?php echo $e($fieldName); ?> = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 }</code></pre>
     </div>
 
-    <p>Or use <code>datetimetz_immutable</code> to preserve original timezone.</p>
+    <p>To keep the original offset instead, map the field as <code>datetimetz_immutable</code>.</p>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz', 'Doctrine DateTimeTZ'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Add timezone support using the datetimetz type',
+    'description' => sprintf('Store %s::$%s in UTC or map it as datetimetz', $entityClass, $fieldName),
 ];

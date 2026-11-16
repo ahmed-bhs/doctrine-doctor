@@ -358,7 +358,7 @@ readonly class TypeHintMismatchAnalyzer implements MetadataAnalyzerInterface
 
         $description = sprintf(
             'Entity %s::$%s has type hint "%s" but Doctrine type "%s" expects "%s". ' .
-            'This causes the UnitOfWork to detect false changes and execute unnecessary UPDATE statements on every flush.',
+            'The UnitOfWork then sees a change on every flush and runs a needless UPDATE.',
             $shortClassName,
             $fieldName,
             $actualType,
@@ -496,7 +496,7 @@ readonly class TypeHintMismatchAnalyzer implements MetadataAnalyzerInterface
                         ],
                     ],
                 ],
-                'warning_message'     => 'NEVER use float for money! Floating point arithmetic has precision issues that can cause financial discrepancies.',
+                'warning_message'     => 'Float cannot represent most money amounts exactly, so sums and comparisons drift.',
                 'info_message'        => 'Each unnecessary UPDATE increases database load, lock contention, and can lead to deadlocks in high-traffic applications.',
                 'money_library_link'  => 'https://github.com/moneyphp/money',
                 'doctrine_types_link' => 'https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/basic-mapping.html#doctrine-mapping-types',

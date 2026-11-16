@@ -49,7 +49,7 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
         );
 
         self::assertNotNull($suggestion);
-        self::assertStringContainsString('Denormalization', $suggestion->getCode());
+        self::assertStringContainsString('counter column', $suggestion->getCode());
         self::assertStringContainsString('commentsCount', $suggestion->getCode());
         self::assertStringContainsString('counter', strtolower($suggestion->getCode()));
         self::assertStringContainsString('Article', $suggestion->getCode());
@@ -104,7 +104,7 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
     }
 
     #[Test]
-    public function it_includes_trade_offs_in_denormalization(): void
+    public function it_keeps_the_denormalized_counter_in_sync(): void
     {
         $suggestion = $this->factory->createFromTemplate(
             templateName: 'Performance/denormalization',
@@ -123,15 +123,13 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
         );
 
         $code = $suggestion->getCode();
-        self::assertStringContainsString('Trade-offs', $code);
-        self::assertStringContainsString('Pros:', $code);
-        self::assertStringContainsString('Cons:', $code);
-        self::assertStringContainsString('Zero queries', $code);
-        self::assertStringContainsString('Data redundancy', $code);
+        self::assertStringContainsString('++$this-&gt;commentsCount', $code);
+        self::assertStringContainsString('--$this-&gt;commentsCount', $code);
+        self::assertStringContainsString('SELECT COUNT(*)', $code);
     }
 
     #[Test]
-    public function it_includes_trade_offs_in_group_by(): void
+    public function it_aggregates_in_a_single_group_by_query(): void
     {
         $suggestion = $this->factory->createFromTemplate(
             templateName: 'Performance/group_by_aggregation',
@@ -149,13 +147,12 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
         );
 
         $code = $suggestion->getCode();
-        self::assertStringContainsString('Trade-offs', $code);
-        self::assertStringContainsString('Single query', $code);
-        self::assertStringContainsString('No data duplication', $code);
+        self::assertStringContainsString("groupBy('e.id')", $code);
+        self::assertStringContainsString('COUNT(r.id) AS commentsCount', $code);
     }
 
     #[Test]
-    public function it_includes_lifecycle_callbacks_option_in_denormalization(): void
+    public function it_maps_the_counter_column_in_denormalization(): void
     {
         $suggestion = $this->factory->createFromTemplate(
             templateName: 'Performance/denormalization',
@@ -173,13 +170,12 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
             ),
         );
 
-        self::assertStringContainsString('Lifecycle Callbacks', $suggestion->getCode());
-        self::assertStringContainsString('PrePersist', $suggestion->getCode());
-        self::assertStringContainsString('PreUpdate', $suggestion->getCode());
+        self::assertStringContainsString('#[ORM\\Column]', $suggestion->getCode());
+        self::assertStringContainsString('private int $commentsCount = 0;', $suggestion->getCode());
     }
 
     #[Test]
-    public function it_includes_database_trigger_option_in_denormalization(): void
+    public function it_derives_the_item_methods_in_denormalization(): void
     {
         $suggestion = $this->factory->createFromTemplate(
             templateName: 'Performance/denormalization',
@@ -197,8 +193,8 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
             ),
         );
 
-        self::assertStringContainsString('Database Trigger', $suggestion->getCode());
-        self::assertStringContainsString('CREATE TRIGGER', $suggestion->getCode());
+        self::assertStringContainsString('addComment(Comment $item)', $suggestion->getCode());
+        self::assertStringContainsString('removeComment(Comment $item)', $suggestion->getCode());
     }
 
     #[Test]
@@ -219,13 +215,12 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
             ),
         );
 
-        self::assertStringContainsString('Query Builder', $suggestion->getCode());
-        self::assertStringContainsString('Repository', $suggestion->getCode());
         self::assertStringContainsString('createQueryBuilder', $suggestion->getCode());
+        self::assertStringContainsString("leftJoin('e.comments', 'r')", $suggestion->getCode());
     }
 
     #[Test]
-    public function it_includes_multiple_aggregations_example_in_group_by(): void
+    public function it_offers_to_keep_the_entities_in_group_by(): void
     {
         $suggestion = $this->factory->createFromTemplate(
             templateName: 'Performance/group_by_aggregation',
@@ -242,9 +237,7 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
             ),
         );
 
-        self::assertStringContainsString('Multiple Aggregations', $suggestion->getCode());
-        self::assertStringContainsString('SUM', $suggestion->getCode());
-        self::assertStringContainsString('MAX', $suggestion->getCode());
+        self::assertStringContainsString('select <code>e, COUNT(r.id) AS commentsCount</code>', $suggestion->getCode());
     }
 
     #[Test]
@@ -267,9 +260,7 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
         );
 
         $code = $suggestion->getCode();
-        self::assertStringContainsString('Expected Performance Improvement', $code);
-        self::assertStringContainsString('20', $code);
-        self::assertStringContainsString('0 queries', $code);
+        self::assertStringContainsString('20 COUNT queries', $code);
     }
 
     #[Test]
@@ -291,8 +282,7 @@ final class SuggestionFactoryNewTemplatesTest extends TestCase
         );
 
         $code = $suggestion->getCode();
-        self::assertStringContainsString('Expected Performance Improvement', $code);
-        self::assertStringContainsString('25', $code);
-        self::assertStringContainsString('1 query', $code);
+        self::assertStringContainsString('25 queries', $code);
+        self::assertStringContainsString('One GROUP BY query', $code);
     }
 }

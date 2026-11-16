@@ -100,13 +100,11 @@ class DeepOffsetPaginationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\
         $severity = $offset >= $this->offsetCriticalThreshold ? Severity::critical() : Severity::warning();
 
         $description = sprintf(
-            'Query uses OFFSET %d, which forces the database to read and discard %d rows before returning results. ' .
-            'Cost grows linearly with page depth. Execution time: %.2fms. ' .
-            'Replace with keyset (seek) pagination using WHERE on an indexed sortable column (e.g. WHERE id > :lastId ORDER BY id LIMIT N)%s.',
-            $offset,
+            'The query uses OFFSET %d (%.2fms), so the database reads and discards %d rows before returning a page. ' .
+            'The cost grows with every page further down the list.',
             $offset,
             $executionTime,
-            $this->isCursorPaginatorAvailable() ? ', or Doctrine\ORM\Tools\Pagination\CursorPaginator which builds it from the ORDER BY' : '',
+            $offset,
         );
 
         $issueData = new IssueData(

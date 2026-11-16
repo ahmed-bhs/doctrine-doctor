@@ -77,7 +77,7 @@ final class SensitiveDataExposureAnalyzerIntegrationTest extends DatabaseTestCas
         $passwordIssue = array_find($issuesArray, fn ($issueArray) => str_contains((string) $issueArray->getTitle(), 'password'));
 
         self::assertInstanceOf(IssueInterface::class, $passwordIssue, 'Should detect unprotected password field');
-        self::assertStringContainsString('lacks serialization protection', (string) $passwordIssue->getDescription(), 'Should mention lack of protection');
+        self::assertStringContainsString('from serialization (no #[Ignore]', (string) $passwordIssue->getDescription(), 'Should mention lack of protection');
     }
 
     #[Test]

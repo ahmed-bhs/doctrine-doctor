@@ -355,7 +355,7 @@ final class FlushInLoopAnalyzerTest extends TestCase
         $issuesArray = $issues->toArray();
         $description = $issuesArray[0]->getDescription();
 
-        self::assertStringContainsString('performance', strtolower($description));
+        self::assertStringContainsString('flush()', $description);
     }
 
     #[Test]

@@ -65,7 +65,7 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
                             suggestionMetadata: new SuggestionMetadata(
                                 type: SuggestionType::performance(),
                                 severity: $severity,
-                                title: sprintf('Performance Anti-Pattern: %d flush() calls in loop', $flushCount),
+                                title: sprintf('Flush in Loop: %d flush() calls', $flushCount),
                                 tags: ['performance', 'doctrine', 'flush', 'batch'],
                             ),
                         );
@@ -76,10 +76,10 @@ class FlushInLoopAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerI
 
                         $issueData = new IssueData(
                             type: IssueType::FLUSH_IN_LOOP->value,
-                            title: sprintf('Performance Anti-Pattern: %d flush() calls in loop', $flushCount),
+                            title: sprintf('Flush in Loop: %d flush() calls', $flushCount),
                             description: DescriptionHighlighter::highlight(
-                                'Detected {flushCount} {flushMethod} calls with an average of {avgOps} operations between each flush. ' .
-                                'This anti-pattern causes severe performance degradation. Use batch operations and flush once (threshold: {threshold})',
+                                '{flushCount} {flushMethod} calls ran in a loop, with {avgOps} operations between flushes on average (threshold: {threshold}). ' .
+                                'Each flush computes the change set of every managed entity and opens its own transaction.',
                                 [
                                     'flushCount' => (string) $flushCount,
                                     'flushMethod' => 'flush()',

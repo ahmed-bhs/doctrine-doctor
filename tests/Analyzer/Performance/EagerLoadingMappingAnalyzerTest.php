@@ -65,7 +65,7 @@ final class EagerLoadingMappingAnalyzerTest extends TestCase
         $issue = reset($eagerIssues);
         self::assertEquals(Severity::INFO, $issue->getSeverity());
         self::assertStringContainsString('EAGER', $issue->getDescription());
-        self::assertStringContainsString('QueryBuilder', $issue->getDescription());
+        self::assertStringContainsString('$category', $issue->getDescription());
     }
 
     #[Test]
@@ -243,7 +243,7 @@ final class EagerLoadingMappingAnalyzerTest extends TestCase
             $description = $issue->getDescription();
 
             self::assertNotEmpty($description);
-            self::assertStringContainsString('Remove', $description);
+            self::assertStringContainsString('fetch: EAGER', $description);
         }
     }
 
@@ -266,8 +266,8 @@ final class EagerLoadingMappingAnalyzerTest extends TestCase
             self::assertNotNull($suggestion);
 
             $code = $suggestion->getCode();
-            self::assertStringContainsString('BEFORE', $code);
-            self::assertStringContainsString('AFTER', $code);
+            self::assertStringContainsString('// Before', $code);
+            self::assertStringContainsString('// After', $code);
             self::assertStringContainsString('Remove', $code);
         }
     }

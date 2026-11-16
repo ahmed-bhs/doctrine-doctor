@@ -181,11 +181,8 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
     private function createSuboptimalCollationIssue(string $databaseName, string $currentCollation, string $level): DatabaseConfigIssue
     {
         $description = sprintf(
-            '%s "%s" is using collation "%s". ' .
-            'This is a valid choice with trade-offs: ' .
-            'utf8mb4_general_ci is **faster** but less accurate for Unicode sorting (e.g., "ä" vs "a"). ' .
-            'utf8mb4_unicode_ci is more accurate for multilingual sorting but slightly slower. ' .
-            'utf8mb4_0900_ai_ci (MySQL 8.0+) offers best of both worlds.',
+            '%s "%s" uses collation "%s". ' .
+            'It sorts and compares some accented characters differently from the Unicode rules (for example "ä" and "a").',
             ucfirst($level),
             $databaseName,
             $currentCollation,
@@ -196,7 +193,7 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
             : sprintf('ALTER TABLE `%s` COLLATE = ', $databaseName) . self::RECOMMENDED_COLLATION . ';';
 
         return new DatabaseConfigIssue([
-            'title'       => sprintf('%s using collation: %s (performance vs accuracy trade-off)', ucfirst($level), $currentCollation),
+            'title'       => sprintf('%s using collation %s', ucfirst($level), $currentCollation),
             'description' => $description,
             'severity' => Severity::info(), // INFO instead of WARNING (it's a valid choice)
             'suggestion'  => $this->suggestionFactory->createFromTemplate(
@@ -257,8 +254,8 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
             // All tables use the same collation (intentional)
             $severity = 'info';
             $description = sprintf(
-                'Found %d tables ALL using collation "%s" while database default is "%s". ' .
-                'This appears to be intentional (consistent). Only problematic if JOINing with tables using "%s".',
+                '%d tables all use collation "%s" while the database default is "%s". ' .
+                'A JOIN or comparison with a column in "%s" fails with an illegal mix of collations or skips the index.',
                 count($tables),
                 $commonCollation,
                 $dbCollation,
@@ -268,8 +265,8 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
             // Mixed collations (real problem)
             $severity = count($tables) > 10 ? Severity::warning() : Severity::info();
             $description = sprintf(
-                'Found %d tables with MIXED collations different from database default (%s): %s. ' .
-                'This can cause performance issues in JOINs and unexpected sorting behavior.',
+                '%d tables use collations that differ from the database default (%s): %s. ' .
+                'JOINs across them can skip indexes or fail, and sorting differs from table to table.',
                 count($tables),
                 $dbCollation,
                 $tableNamesStr,
@@ -342,13 +339,11 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
         return new DatabaseConfigIssue([
             'title'       => sprintf('%d view columns incompatible with connection collation', count($mismatches)),
             'description' => sprintf(
-                'Found %d view columns whose collation differs from the connection collation (%s) ' .
-                'within the same character set. A CREATE VIEW statement freezes the session collation ' .
-                'into the literals of its definition, so comparing such a column against a literal ' .
-                'raises error 1267 (Illegal mix of collations) — both operands share the same ' .
-                'coercibility and MySQL cannot arbitrate:' . "\n- " . $descriptionStr,
+                '%d view columns use a collation that differs from the connection collation (%s): %s. ' .
+                'Comparing such a column with a literal raises error 1267 (Illegal mix of collations).',
                 count($mismatches),
                 $this->getConnectionCollation(),
+                str_replace("\n- ", '; ', $descriptionStr),
             ),
             'severity' => Severity::critical(),
             'suggestion' => $this->suggestionFactory->createFromTemplate(
@@ -421,9 +416,10 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
         return new DatabaseConfigIssue([
             'title'       => sprintf('%d foreign key collation mismatches detected', count($mismatches)),
             'description' => sprintf(
-                'Found %d foreign key relationships where child and parent columns have different collations. ' .
-                'This prevents index usage in JOINs and causes severe performance degradation:' . "\n- " . $descriptionStr,
+                '%d foreign keys join columns with different collations: %s. ' .
+                'JOINs on these keys cannot use the index and scan the joined table.',
                 count($mismatches),
+                str_replace("\n- ", '; ', $descriptionStr),
             ),
             'severity' => Severity::critical(),
             'suggestion' => $this->suggestionFactory->createFromTemplate(

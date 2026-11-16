@@ -50,7 +50,7 @@ class MissingVersionFieldForConcurrencyAnalyzer implements AnalyzerInterface
                         continue;
                     }
 
-                    yield $this->createIssue($metadata->getName(), $tableName);
+                    yield $this->createIssue($metadata->getName());
                 }
             } catch (\Throwable) {
                 // Swallow exceptions to avoid breaking the profiler
@@ -161,7 +161,7 @@ class MissingVersionFieldForConcurrencyAnalyzer implements AnalyzerInterface
         return null;
     }
 
-    private function createIssue(string $entityClass, string $tableName): IntegrityIssue
+    private function createIssue(string $entityClass): IntegrityIssue
     {
         $shortClassName = $this->shortClassName($entityClass);
 
@@ -169,9 +169,8 @@ class MissingVersionFieldForConcurrencyAnalyzer implements AnalyzerInterface
             'type' => IssueType::MISSING_VERSION_FIELD_FOR_CONCURRENCY->value,
             'title' => sprintf('%s entity has no version field for concurrency control', $shortClassName),
             'description' => sprintf(
-                'The %s entity is involved in concurrent write patterns but lacks an #[ORM\Version] field. '
-                . 'Without optimistic locking, concurrent processes may overwrite each other\'s changes (lost updates). '
-                . 'Consider adding a version field to detect and prevent concurrency conflicts.',
+                '%s is written in this request (repeated UPDATEs, SELECT ... FOR UPDATE or an explicit transaction) but has no #[ORM\Version] field. '
+                . 'Two concurrent requests can overwrite each other\'s changes without any error (lost update).',
                 $entityClass,
             ),
             'severity' => Severity::warning(),

@@ -18,59 +18,33 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Incomplete Value Object'); ?>
-
+<?php echo suggestionHeader('Add value object methods'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-info">
-        <strong>Embeddable:</strong> <code><?php echo $e($embeddableClass); ?></code><br>
-        <strong>Missing:</strong> <?php echo implode(', ', array_map(static fn (mixed $method): string => $e((string) $method), $missingMethods)); ?>
-    </div>
+<p>Embeddable <code><?php echo $e($embeddableClass); ?></code> lacks <?php echo implode(', ', array_map(static fn (mixed $method): string => '<code>' . $e((string) $method) . '</code>', $missingMethods)); ?>. Without them, callers compare and print its fields by hand.</p>
 
-    <h4>Recommended Implementation</h4>
-    <div class="query-item">
-        <pre><code class="language-php">#[ORM\Embeddable]
-readonly class <?php echo $e($embeddableClass); ?> {
-    public function __construct(
-        private int $amount,
-        private string $currency
-    ) {
-        // Validate in constructor
-        if ($amount < 0) {
-            throw new \InvalidArgumentException('Amount cannot be negative');
-        }
+<div class="query-item"><pre><code class="language-php">#[ORM\Embeddable]
+final readonly class <?php echo $e($embeddableClass); ?>
+
+{
+    // ... constructor and mapped columns
+
+    public function equals(self $other): bool
+    {
+        return $this->amount === $other->amount && $this->currency === $other->currency;
     }
 
-    // Equality check
-    public function equals(self $other): bool {
-        return $this->amount === $other->amount
-            && $this->currency === $other->currency;
+    public function __toString(): string
+    {
+        return sprintf('%d %s', $this->amount, $this->currency);
     }
+}</code></pre></div>
 
-    // Immutable operations
-    public function add(self $other): self {
-        if ($this->currency !== $other->currency) {
-            throw new \InvalidArgumentException('Currency mismatch');
-        }
-        return new self($this->amount + $other->amount, $this->currency);
-    }
-
-    // String representation
-    public function __toString(): string {
-        return sprintf('%.2f %s', $this->amount / 100, $this->currency);
-    }
-}</code></pre>
-    </div>
-
-    <p><strong>Value Object best practices:</strong> immutability (readonly), validation in constructor, equals(), domain methods.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html', 'Doctrine ORM Embeddables'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/embeddables.html', 'Doctrine ORM Embeddables'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Add Value Object methods (equals, validation, domain logic)',
+    'description' => 'Add the missing value object methods',
 ];

@@ -109,8 +109,7 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issuesArray = $issues->toArray();
         $notNullableIssues = array_filter(
             $issuesArray,
-            fn ($issue) => str_contains((string) $issue->getTitle(), 'CRITICAL') &&
-                          str_contains((string) $issue->getTitle(), 'Not Nullable') &&
+            fn ($issue) => str_contains((string) $issue->getTitle(), 'Not Nullable') &&
                           str_contains((string) $issue->getTitle(), 'PostWithBadSoftDelete'),
         );
 
@@ -119,7 +118,7 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
         $issue = reset($notNullableIssues);
 
         assert($issue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
-        self::assertStringContainsString('CRITICAL', $issue->getDescription());
+        self::assertSame('critical', $issue->getSeverity()->value);
         self::assertStringContainsString('nullable', $issue->getDescription());
         self::assertSame('critical', $issue->getSeverity()->value);
     }
@@ -393,7 +392,7 @@ final class SoftDeleteableTraitAnalyzerTest extends DatabaseTestCase
 
         foreach ($criticalIssues as $issue) {
             self::assertSame('critical', $issue->getSeverity()->value);
-            self::assertStringContainsString('CRITICAL', $issue->getDescription());
+            self::assertMatchesRegularExpression('/(not nullable|CASCADE DELETE)/', $issue->getDescription());
         }
     }
 

@@ -20,53 +20,26 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<div class="suggestion-header">
-    <h4>Timezone awareness (<?php echo $totalFields; ?> fields)</h4>
-</div>
+<?php echo suggestionHeader('Store timestamps in UTC'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-info">
-        Found <strong><?php echo $totalFields; ?> timestamp fields</strong> using <code>datetime</code> without timezone information.
-    </div>
+    <p><?php echo $totalFields; ?> timestamp fields use <code>datetime</code>, which stores no timezone. That is fine when the application writes UTC and converts for display; use <code>datetimetz</code> only when the original offset matters.</p>
 
-    <p>This is fine for most applications. If you store everything in UTC and convert to the user's timezone when displaying, you don't need to change anything.</p>
-
-    <h4>When this is acceptable</h4>
     <div class="query-item">
-        <pre><code class="language-bash">Most web applications:
-<ul>
-<li>Store everything in UTC</li>
-<li>Convert to user timezone in PHP</li>
-<li>Simple and works well</code></pre></li>
-</ul>
-    </div>
+        <pre><code class="language-php">// Writing in UTC
+$this-&gt;createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
-    <h4>When to use datetimetz</h4>
-    <div class="query-item">
-        <pre><code class="language-bash">Multi-timezone applications:
-<ul>
-<li>Users in different timezones</li>
-<li>Direct SQL reports or BI tools</li>
-<li>Need to preserve original timezone</code></pre></li>
-</ul>
+// Only where the original offset must be kept
+#[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE)]
+private \DateTimeImmutable $startsAt;</code></pre>
     </div>
-
-    <h4>Switching to datetimetz</h4>
-    <div class="query-item">
-        <pre><code class="language-php">#[ORM\Column(type: 'datetimetz_immutable')]
-private \DateTimeImmutable $createdAt;</code></pre>
-    </div>
-
-    <p>If you're not sure, stick with <code>datetime</code> and UTC. It's simpler and works for most cases. Only switch to <code>datetimetz</code> if you have a specific need to preserve timezones.</p>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz', 'Doctrine: DateTimeTZ Type'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('%d timestamp fields without timezone data (acceptable for single-timezone applications)', $totalFields),
+    'description' => sprintf('%d timestamp fields store no timezone; write them in UTC', $totalFields),
 ];

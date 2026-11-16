@@ -173,7 +173,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
         foreach ($enumIssues as $issue) {
             self::assertEquals(Severity::INFO, $issue->getSeverity());
             self::assertStringContainsString('native enum', $issue->getDescription());
-            self::assertStringContainsString('PHP 8.1', $issue->getDescription());
+            self::assertStringContainsString('native enum', $issue->getDescription());
             // New: should mention distinct values count
             self::assertStringContainsString('distinct values', $issue->getDescription());
         }
@@ -676,14 +676,6 @@ final class ColumnTypeAnalyzerTest extends TestCase
     {
         $issues = iterator_to_array($this->analyzer->analyze(QueryDataCollection::empty()));
 
-        $fieldReferences = array_map(function ($issue) {
-            // Extract entity::field pattern from title
-            if (1 === preg_match('/(\w+)::\$(\w+)/', $issue->getTitle(), $matches)) {
-                return $matches[0]; // entity::$field
-            }
-            return $issue->getTitle();
-        }, $issues);
-
         // Each field should only appear once per issue type
         $titleGroups = [];
         foreach ($issues as $issue) {
@@ -768,7 +760,7 @@ final class ColumnTypeAnalyzerTest extends TestCase
         foreach ($mutableDatetimeIssues as $issue) {
             self::assertEquals(Severity::INFO, $issue->getSeverity());
             self::assertStringContainsString('Mutable datetime type', $issue->getTitle());
-            self::assertStringContainsString('silently changes entity state', $issue->getDescription());
+            self::assertStringContainsString('without Doctrine detecting it', $issue->getDescription());
             self::assertStringContainsString('_immutable', $issue->getDescription());
         }
     }

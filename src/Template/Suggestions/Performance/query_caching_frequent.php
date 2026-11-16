@@ -12,7 +12,6 @@ declare(strict_types=1);
  */
 
 /** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context for clarity
 $sql = (string) ($context['sql'] ?? '');
 $count = max(0, (int) ($context['count'] ?? 0));
 $totalTime = max(0.0, (float) ($context['total_time'] ?? 0.0));
@@ -20,38 +19,30 @@ $avgTime = max(0.0, (float) ($context['avg_time'] ?? 0.0));
 
 // Decode HTML entities if SQL is already encoded (from Doctrine Profiler)
 $sql = html_entity_decode($sql, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-$timeSaved = max(0.0, $totalTime - ($avgTime + ($avgTime / 100) * max(0, $count - 1)));
-$improvement = $totalTime > 0.0 ? ($timeSaved / $totalTime) * 100 : 0.0;
 
-// Helper function for safe HTML escaping
 $severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Enable Result Cache for Frequent Query'); ?>
-
+<?php echo suggestionHeader('Cache the result of this repeated query'); ?>
 <div class="suggestion-content">
-    <div class="alert <?php echo severityAlertClass($severity); ?>">
-        Query executed <?php echo $count; ?> times (<?php echo number_format($totalTime, 2); ?>ms total, <?php echo number_format($avgTime, 2); ?>ms avg). Result cache saves ~<?php echo number_format($improvement, 0); ?>%.
-    </div>
-
-    <h4>Query:</h4>
-    <div class="query-item">
-        <pre><code class="language-sql"><?php echo $e($sql); ?></code></pre>
-    </div>
-
-    <h4>Solution: Enable result cache</h4>
-    <div class="query-item">
-        <pre><code class="language-php">$query->useResultCache(true, 3600, 'unique_cache_key');</code></pre>
-    </div>
-
-    <p>Cache durations: Static (countries) 24h, Products 1h, Stock 5min. Use descriptive keys: <code>'product_' . $id</code>.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html', 'Doctrine ORM Caching'); ?>
+<div class="alert <?php echo severityAlertClass($severity); ?>">
+    The same query ran <?php echo $count; ?> <?php echo 1 === $count ? 'time' : 'times'; ?> (<?php echo number_format($totalTime, 2); ?>ms total, <?php echo number_format($avgTime, 2); ?>ms on average).
+    A result cache answers the repeats without reaching the database.
 </div>
 
+<div class="query-item"><pre><code class="language-sql"><?php echo $e($sql); ?></code></pre></div>
+
+<div class="query-item"><pre><code class="language-php">$query-&gt;enableResultCache(3600, 'product_' . $id);
+
+// When the data changes, drop the entry
+$em-&gt;getConfiguration()-&gt;getResultCache()?-&gt;deleteItem('product_' . $id);</code></pre></div>
+
+<p>If the repeats come from one request, store the result in a variable instead of caching it.</p>
+
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html', 'Doctrine ORM Caching'); ?>
+</div>
 <?php
 $code = ob_get_clean();
 

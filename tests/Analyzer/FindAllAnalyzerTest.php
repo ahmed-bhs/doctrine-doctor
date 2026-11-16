@@ -123,7 +123,7 @@ final class FindAllAnalyzerTest extends TestCase
         $suggestion = $issue->getSuggestion();
 
         self::assertNotNull($suggestion, 'Should provide suggestion');
-        self::assertStringContainsString('pagination', strtolower($issue->getDescription()));
+        self::assertStringContainsString('WHERE', $issue->getDescription());
     }
 
     #[Test]

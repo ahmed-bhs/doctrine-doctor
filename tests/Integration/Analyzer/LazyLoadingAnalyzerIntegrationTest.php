@@ -145,7 +145,7 @@ final class LazyLoadingAnalyzerIntegrationTest extends DatabaseTestCase
             ->getResult();
 
         foreach ($posts as $post) {
-            $authorName = $post->getAuthor()->getName(); // No extra query!
+            $post->getAuthor()->getName(); // No extra query!
         }
 
         $queryDataCollection = $this->stopQueryCollection();
@@ -194,7 +194,7 @@ final class LazyLoadingAnalyzerIntegrationTest extends DatabaseTestCase
 
         foreach ($posts as $post) {
             // This triggers lazy loading of comments collection
-            $commentCount = count($post->getComments());
+            count($post->getComments());
         }
 
         $queryDataCollection = $this->stopQueryCollection();

@@ -441,7 +441,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
         // Should be INFO severity for single_result context
         self::assertEquals('info', $data['severity']);
         self::assertStringContainsString('Single-Result Query', $issue->getTitle());
-        self::assertStringContainsString('setMaxResults(1)', $issue->getDescription());
+        self::assertStringContainsString('getOneOrNullResult/getSingleResult', $issue->getDescription());
     }
 
     #[Test]
@@ -472,7 +472,7 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
         self::assertEquals('warning', $data['severity']);
         self::assertStringContainsString('Array Query', $issue->getTitle());
         self::assertStringContainsString('array of results', $issue->getDescription());
-        self::assertStringContainsString('Add LIMIT', $issue->getDescription());
+        self::assertStringContainsString('created_at DESC', $issue->getDescription());
     }
 
     #[Test]
@@ -608,5 +608,25 @@ final class OrderByWithoutLimitAnalyzerTest extends TestCase
         $issues = $this->analyzer->analyze($queries);
 
         self::assertGreaterThan(0, count($issues));
+    }
+
+    #[Test]
+    public function it_ignores_the_order_of_fetch_joined_collections(): void
+    {
+        $issues = $this->analyzer->analyze(QueryDataBuilder::create()
+            ->addQuery('SELECT s0_.id AS id_0, s1_.id AS id_1 FROM sylius_product s0_ LEFT JOIN sylius_product_variant s1_ ON s0_.id = s1_.product_id WHERE s0_.code = ? ORDER BY s1_.position ASC, s1_.id ASC', 600.0)
+            ->build());
+
+        self::assertCount(0, $issues);
+    }
+
+    #[Test]
+    public function it_reports_a_sort_of_the_results_next_to_a_join(): void
+    {
+        $issues = $this->analyzer->analyze(QueryDataBuilder::create()
+            ->addQuery('SELECT s0_.id AS id_0 FROM sylius_product s0_ LEFT JOIN sylius_product_variant s1_ ON s0_.id = s1_.product_id ORDER BY s0_.created_at DESC', 600.0)
+            ->build());
+
+        self::assertCount(1, $issues);
     }
 }

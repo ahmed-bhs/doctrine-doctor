@@ -345,15 +345,9 @@ class TimestampableTraitAnalyzer implements MetadataAnalyzerInterface
     {
         // Check for KnpLabs trait usage
         $traits = $reflectionClass->getTraitNames();
-        foreach ($traits as $trait) {
-            if (str_contains($trait, 'TimestampableEntity') ||
-                str_contains($trait, 'Timestampable') ||
-                str_contains($trait, 'BlameableEntity')) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($traits, fn ($trait) => str_contains($trait, 'TimestampableEntity') ||
+            str_contains($trait, 'Timestampable') ||
+            str_contains($trait, 'BlameableEntity'));
     }
 
     /**
@@ -367,8 +361,7 @@ class TimestampableTraitAnalyzer implements MetadataAnalyzerInterface
 
         $description = sprintf(
             'Timestamp field %s::$%s uses mutable DateTime instead of DateTimeImmutable. ' .
-            'Mutable DateTime objects can be accidentally modified, causing bugs. ' .
-            'Always use DateTimeImmutable for timestamp fields.',
+            'Code that modifies the returned date changes the timestamp without Doctrine noticing.',
             $shortClassName,
             $fieldName,
         );
@@ -417,13 +410,11 @@ class TimestampableTraitAnalyzer implements MetadataAnalyzerInterface
         }
 
         $description = sprintf(
-            'Detected inconsistent timezone handling: %d fields use datetime (no timezone) while %d fields use datetimetz (with timezone). ' .
-            'This mixing can lead to bugs and data inconsistencies. ' .
-            'Choose ONE approach for your application: either use datetime everywhere (mono-timezone/UTC) or datetimetz everywhere (multi-timezone). ' .
-            'datetime fields: %s. datetimetz fields: %s.',
+            'Timezone handling is inconsistent: %d fields use datetime (%s) and %d use datetimetz (%s). ' .
+            'Comparing or sorting dates across the two groups gives wrong results when servers or users are in different timezones.',
             $datetimeCount,
-            $datetimetzCount,
             $datetimeList,
+            $datetimetzCount,
             $datetimetzList,
         );
 
@@ -453,9 +444,8 @@ class TimestampableTraitAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
-            'Field %s::$%s (creation timestamp) is nullable. ' .
-            'Creation timestamp should never be null - every entity has a creation time. ' .
-            'Mark this field as NOT NULL and initialize it in the constructor or use lifecycle callbacks.',
+            'Field %s::$%s (creation timestamp) is nullable, with no NOT NULL constraint. ' .
+            'Rows can be saved without a creation time, which breaks sorting and auditing by date.',
             $shortClassName,
             $fieldName,
         );
@@ -485,8 +475,7 @@ class TimestampableTraitAnalyzer implements MetadataAnalyzerInterface
 
         $description = sprintf(
             'Timestamp field %s::$%s has a public setter. ' .
-            'Timestamps should be managed automatically by Doctrine lifecycle callbacks or extensions. ' .
-            'Remove public setters or make them protected to prevent manual manipulation.',
+            'Any code can overwrite a timestamp that lifecycle callbacks are meant to manage.',
             $shortClassName,
             $fieldName,
         );

@@ -113,11 +113,9 @@ class StrictModeAnalyzer implements DatabaseAuditAnalyzerInterface
 
             if (0 === $foreignKeys) {
                 yield new DatabaseConfigIssue([
-                    'title'       => 'SQLite foreign keys disabled (CRITICAL)',
-                    'description' => 'PRAGMA foreign_keys is OFF (default in SQLite). ' .
-                        'This means foreign key constraints are NOT enforced! ' .
-                        'You can insert invalid foreign keys, orphan records, etc. ' .
-                        'ALWAYS enable foreign_keys in SQLite.',
+                    'title'       => 'SQLite foreign keys disabled',
+                    'description' => 'PRAGMA foreign_keys is OFF (the SQLite default). ' .
+                        'Foreign key constraints are not enforced, so invalid references and orphan rows are accepted.',
                     'severity'   => 'critical',
                     'suggestion' => $this->suggestionFactory->createFromTemplate(
                         templateName: 'Configuration/configuration',
@@ -143,7 +141,7 @@ class StrictModeAnalyzer implements DatabaseAuditAnalyzerInterface
             // Check for strict mode (SQLite 3.37+)
             // Note: This will fail on older SQLite versions, which is fine
             try {
-                $result = $this->connection->executeQuery('PRAGMA strict=ON');
+                $this->connection->executeQuery('PRAGMA strict=ON');
             } catch (\Throwable) {
                 // SQLite < 3.37 doesn't support STRICT tables, ignore
             }

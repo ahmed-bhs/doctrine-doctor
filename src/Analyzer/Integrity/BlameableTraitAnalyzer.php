@@ -204,10 +204,8 @@ class BlameableTraitAnalyzer implements MetadataAnalyzerInterface
         }
 
         $description = sprintf(
-            'Entity %s has timestamp field(s) (%s) but no blameable fields (createdBy/updatedBy). ' .
-            'Consider using BlameableTrait and TimestampableTrait for proper audit trail. ' .
-            'Missing fields: %s. ' .
-            'Benefits: automatic tracking of who created/updated records, standardized audit across entities.',
+            'Entity %s has timestamp field(s) (%s) but no blameable field (missing: %s). ' .
+            'The audit trail records when a row changed but not who changed it.',
             $shortClassName,
             implode(', ', array_keys($timestampFields)),
             count($missingFields) > 0 ? implode(', ', $missingFields) . ', createdBy, updatedBy' : 'createdBy, updatedBy',
@@ -404,15 +402,9 @@ class BlameableTraitAnalyzer implements MetadataAnalyzerInterface
 
         // Check for KnpLabs trait usage
         $traits = $reflectionClass->getTraitNames();
-        foreach ($traits as $trait) {
-            if (str_contains($trait, 'BlameableEntity') ||
-                str_contains($trait, 'Blameable') ||
-                str_contains($trait, 'Timestampable')) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($traits, fn ($trait) => str_contains($trait, 'BlameableEntity') ||
+            str_contains($trait, 'Blameable') ||
+            str_contains($trait, 'Timestampable'));
     }
 
     /**
@@ -446,9 +438,8 @@ class BlameableTraitAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
-            'Blameable field %s::$%s (creator) is nullable. ' .
-            'Every entity should have a creator - this field should never be NULL. ' .
-            'Mark the join column as NOT NULL for data integrity.',
+            'Blameable field %s::$%s (creator) is nullable, with no NOT NULL constraint. ' .
+            'Rows can be saved with a NULL creator, which leaves gaps in the audit trail.',
             $shortClassName,
             $fieldName,
         );
@@ -478,8 +469,7 @@ class BlameableTraitAnalyzer implements MetadataAnalyzerInterface
 
         $description = sprintf(
             'Blameable field %s::$%s has a public setter. ' .
-            'Blameable fields should be set automatically by Doctrine extensions or security context. ' .
-            'Public setters allow manual manipulation and break the audit trail. Remove or make protected.',
+            'Any code can overwrite who created or changed the record, so the audit trail cannot be trusted.',
             $shortClassName,
             $fieldName,
         );
@@ -513,8 +503,8 @@ class BlameableTraitAnalyzer implements MetadataAnalyzerInterface
         $targetEntity = MappingHelper::getString($mapping, 'targetEntity');
 
         $description = sprintf(
-            'Blameable field %s::$%s points to %s which doesn\'t appear to be a User entity. ' .
-            'Blameable fields should reference your main User/Account entity for proper audit trails.',
+            'Blameable field %s::$%s points to %s, which does not look like a user entity. ' .
+            'The audit trail would record that entity instead of the user who made the change.',
             $shortClassName,
             $fieldName,
             $targetEntity,

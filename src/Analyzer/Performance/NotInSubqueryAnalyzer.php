@@ -99,10 +99,8 @@ class NotInSubqueryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyze
     private function createIssue(string $column, string $sql, array|object $query): PerformanceIssue
     {
         $description = sprintf(
-            'Query uses %s NOT IN (SELECT ...). If the subquery returns any NULL value, the whole NOT IN predicate ' .
-            'evaluates to UNKNOWN and the outer query silently returns zero rows. This is a frequent source of bugs ' .
-            'that disappear in tests but appear in production once a NULL slips into the related column. ' .
-            'Rewrite with NOT EXISTS or LEFT JOIN ... IS NULL, which both handle NULLs correctly.',
+            'The query filters on %s NOT IN (SELECT ...). As soon as the subquery returns one NULL, the predicate ' .
+            'is UNKNOWN for every row and the query silently returns zero rows.',
             $column,
         );
 

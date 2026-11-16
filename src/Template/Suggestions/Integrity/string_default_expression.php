@@ -12,40 +12,24 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<div class="suggestion-header">
-    <h4>Deprecated String Default: <?php echo $e($entityClass); ?></h4>
-</div>
+<?php echo suggestionHeader('Use a default expression object'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        Field <code><?php echo $e($fieldName); ?></code> uses the raw string
-        <code><?php echo $e($defaultValue); ?></code> as its default.
-        Doctrine ORM 3.6 deprecated string defaults on temporal columns and ORM 4.0 removes them.
-        DBAL 4.4 introduced typed expressions as the replacement.
-    </div>
+    <p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> uses the raw string <code><?php echo $e($defaultValue); ?></code> as its default. ORM 3.6 deprecates string defaults on temporal columns and ORM 4.0 removes them; DBAL 4.4 replaces them with expression objects.</p>
 
-    <h4>Before</h4>
     <div class="query-item">
-        <pre><code class="language-php">#[ORM\Column(options: ['default' => '<?php echo $e($defaultValue); ?>'])]
-private \DateTimeImmutable $<?php echo $e($fieldName); ?>;</code></pre>
-    </div>
+        <pre><code class="language-php">// Before
+#[ORM\Column(options: ['default' => '<?php echo $e($defaultValue); ?>'])]
 
-    <h4>After</h4>
-    <div class="query-item">
-        <pre><code class="language-php">use Doctrine\DBAL\Schema\DefaultExpression\<?php echo $e($expressionName); ?>;
+// After: same DDL, no migration needed
+use Doctrine\DBAL\Schema\DefaultExpression\<?php echo $e($expressionName); ?>;
 
 #[ORM\Column(options: ['default' => new <?php echo $e($expressionName); ?>()])]
 private \DateTimeImmutable $<?php echo $e($fieldName); ?>;</code></pre>
     </div>
 
-    <p>The generated DDL is unchanged, so no migration is required.
-    The expression object renders the correct SQL per platform, which the hardcoded string did not.</p>
-
-    <p>Setting the value in the constructor instead keeps the default in PHP and drops the
-    database default entirely, which is often clearer for entities that are only written through the ORM.</p>
+    <p>For entities written only through the ORM, setting the value in the constructor and dropping the database default also works.</p>
 </div>
-
 <?php
 $html = (string) ob_get_clean();
 

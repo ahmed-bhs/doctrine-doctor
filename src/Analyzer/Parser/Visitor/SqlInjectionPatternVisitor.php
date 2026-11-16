@@ -53,7 +53,7 @@ final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
     private const array SQL_KEYWORDS = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'FROM', 'WHERE'];
 
     /** @var array<string> SQL execution methods */
-    private const array SQL_EXECUTION_METHODS = ['executeQuery', 'executeStatement', 'exec', 'query', 'prepare', 'createNativeQuery'];
+    private const array SQL_EXECUTION_METHODS = ['executeQuery', 'executeStatement', 'exec', 'query', 'prepare', 'createNativeQuery', 'fetchAllAssociative', 'fetchAllAssociativeIndexed', 'fetchAllKeyValue', 'fetchAllNumeric', 'fetchAssociative', 'fetchFirstColumn', 'fetchNumeric', 'fetchOne', 'iterateAssociative', 'iterateNumeric'];
 
     /** @var array<string> User input sources */
     private const array USER_INPUT_SOURCES = ['_GET', '_POST', '_REQUEST', '_COOKIE', '_SERVER'];
@@ -85,7 +85,8 @@ final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
 
         // Pattern 1: String concatenation with variables
         // Example: $sql = "SELECT * FROM users WHERE id = " . $userId
-        if ($this->isStringConcatenationWithVariable($node)) {
+        // or straight in the call: $conn->fetchAllAssociative("SELECT ... '" . $action . "'")
+        if ($this->isStringConcatenationWithVariable($node) || $this->isSqlCallWithConcatenatedArgument($node)) {
             $this->hasConcatenation = true;
             // Track this variable as potentially containing SQL
             if ($node instanceof Assign && $node->var instanceof Variable) {
@@ -247,6 +248,21 @@ final class SqlInjectionPatternVisitor extends NodeVisitorAbstract
         }
 
         return false;
+    }
+
+    /**
+     * $conn->fetchAllAssociative("SELECT ... '" . $value . "'"): the SQL is concatenated in the call itself.
+     */
+    private function isSqlCallWithConcatenatedArgument(Node $node): bool
+    {
+        if (!$node instanceof MethodCall || !$node->name instanceof Node\Identifier
+            || !in_array($node->name->toString(), self::SQL_EXECUTION_METHODS, true)) {
+            return false;
+        }
+
+        $firstArg = $node->args[0] ?? null;
+
+        return $firstArg instanceof Node\Arg && $firstArg->value instanceof Concat && $this->hasSqlKeywordInConcat($firstArg->value);
     }
 
     /**

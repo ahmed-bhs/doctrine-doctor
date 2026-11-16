@@ -131,6 +131,14 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
                 continue;
             }
 
+            // Composition: the children belong to this entity (OneToMany or OneToOne with orphanRemoval), the pattern
+            // Doctrine documents for cascade. Removing the owner must remove them.
+            $type = MappingHelper::getAssociationType($associationMapping);
+            if (\in_array($type, [ClassMetadata::ONE_TO_MANY, ClassMetadata::ONE_TO_ONE], true)
+                && true === MappingHelper::getBool($associationMapping, 'orphanRemoval')) {
+                continue;
+            }
+
             // Determine severity based on association type and target entity
             $severity     = $this->determineSeverity($associationMapping);
             $targetEntity = $associationMapping->targetEntity;
@@ -145,10 +153,10 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
             ]);
 
             $issue->setSeverity($severity);
-            $issue->setTitle('Dangerous cascade="all" Detected');
+            $issue->setTitle('cascade="all" on Association');
 
             $message = DescriptionHighlighter::highlight(
-                "Field {field} in entity {class} uses {cascade}. This is dangerous and can lead to accidental data deletion or duplication.",
+                "Field {field} in entity {class} uses cascade {cascade}, which includes remove. Removing the owner also removes the related entities, even when other records still use them.",
                 [
                     'field' => $fieldName,
                     'class' => $entityClass,
@@ -232,8 +240,8 @@ class CascadeAllAnalyzer implements MetadataAnalyzerInterface
         }
 
         $suggestions[] = '';
-        $suggestions[] = ' cascade="all" = persist+remove+merge+detach+refresh (too broad!)';
-        $suggestions[] = '👉 Only use explicit cascades you actually need';
+        $suggestions[] = 'cascade="all" = persist+remove+merge+detach+refresh';
+        $suggestions[] = 'Only list the cascades you actually need';
 
         // Create suggestion using factory
         return $this->suggestionFactory->createFromTemplate(

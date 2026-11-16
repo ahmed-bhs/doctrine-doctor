@@ -241,6 +241,25 @@ doctrine_doctor:
         entity_manager_in_entity:
             enabled: true
 
+        entity_manager_in_service:
+            enabled: true
+            # Namespace segments of classes allowed to use the EntityManager
+            excluded_namespaces: [Repository, Repositories, Infrastructure, Persistence, Doctrine, DataFixtures, Migration, Migrations]
+
+        unused_inverse_side:
+            enabled: true
+
+        collection_counted_in_php:
+            enabled: true
+
+        aggregate_in_php:
+            enabled: true
+
+        collection_filtered_in_php:
+            enabled: true
+            # Collection methods that load every element to keep some of them
+            methods: [filter]
+
         float_in_money_embeddable:
             enabled: true
 
@@ -251,6 +270,21 @@ doctrine_doctor:
             enabled: true
 
         join_type_consistency:
+            enabled: true
+
+        missing_soft_delete_filter:
+            enabled: true
+
+        entity_manager_used_after_failure:
+            enabled: true
+
+        migration_state:
+            enabled: true
+
+        risky_migration:
+            enabled: true
+
+        filtered_fetch_join:
             enabled: true
 
         null_comparison:

@@ -34,7 +34,7 @@ class MissingTransactionOnBatchIssue extends AbstractIssue
     #[\Override]
     public function getType(): string
     {
-        return 'Missing Transaction on Batch';
+        return IssueType::MISSING_TRANSACTION_ON_BATCH->value;
     }
 
     public function getCategory(): IssueCategory

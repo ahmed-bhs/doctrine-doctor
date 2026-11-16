@@ -98,7 +98,7 @@ final readonly class DoctrineDoctorMcpSanitizer
             try {
                 $summary = $this->normalizeText(strip_tags($suggestion->getCode()));
             } catch (Throwable) {
-                $summary = '';
+                // Keep the empty summary
             }
         }
 

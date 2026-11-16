@@ -192,8 +192,6 @@ final class FlushInLoopIntegrationTest extends DatabaseTestCase
     {
         $this->startQueryCollection();
 
-        $batchSize = 20;
-
         // BEST PRACTICE: Batch processing with periodic flush (without clear for memory optimization)
         // Using 60 items with batch size 30 to create 2 flush groups (well below the threshold of 5)
         $batchSize = 30;

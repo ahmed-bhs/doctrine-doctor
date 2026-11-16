@@ -239,8 +239,8 @@ class DecimalPrecisionAnalyzer implements MetadataAnalyzerInterface
         $recommended    = self::RECOMMENDED_CONFIGS[$useCase];
 
         $description = sprintf(
-            'Entity %s::$%s has precision=%d, scale=%d which may be insufficient for %s values. ' .
-            'Recommended: precision=%d, scale=%d.',
+            'Entity %s::$%s has precision=%d, scale=%d, which is insufficient for %s values (expected precision=%d, scale=%d). ' .
+            'Larger or more precise values are rounded or rejected by the database.',
             $shortClassName,
             $fieldName,
             $currentPrecision,
@@ -306,8 +306,8 @@ class DecimalPrecisionAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
-            'Entity %s::$%s has scale=%d which is unusual for %s. ' .
-            'Most currencies use 2 decimal places, some use 4 for precision.',
+            'Entity %s::$%s has scale=%d, which is unusual for %s. ' .
+            'Most currencies use 2 decimal places, so amounts may be stored with a precision the business does not use.',
             $shortClassName,
             $fieldName,
             $scale,
@@ -359,8 +359,8 @@ class DecimalPrecisionAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
-            'Entity %s::$%s has precision=%d which is very high and may waste storage. ' .
-            'Consider if you really need this level of precision.',
+            'Entity %s::$%s has precision=%d, which is very high. ' .
+            'Every row and index entry pays for digits the values may never use, which can waste storage.',
             $shortClassName,
             $fieldName,
             $precision,

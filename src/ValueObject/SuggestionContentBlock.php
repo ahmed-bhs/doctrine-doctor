@@ -363,7 +363,7 @@ final class SuggestionContentBlock
     private function renderLinkHtml(): string
     {
         $rawText = trim((string) ($this->metadata['text'] ?? ''));
-        $text = '' !== $rawText ? $rawText : '📖 Documentation';
+        $text = '' !== $rawText ? $rawText : 'Documentation';
         $text = htmlspecialchars($text);
         $url  = htmlspecialchars($this->getStringContent());
 
@@ -380,11 +380,11 @@ final class SuggestionContentBlock
         return <<<HTML
             <div class="code-comparison">
                 <div class="comparison-side comparison-bad">
-                    <div class="code-label label-bad">📢 Bad</div>
+                    <div class="code-label label-bad">Before</div>
                     <pre><code class="language-{$language}">{$badCode}</code></pre>
                 </div>
                 <div class="comparison-side comparison-good">
-                    <div class="code-label label-good"> Good</div>
+                    <div class="code-label label-good">After</div>
                     <pre><code class="language-{$language}">{$goodCode}</code></pre>
                 </div>
             </div>
@@ -423,10 +423,10 @@ final class SuggestionContentBlock
         $bad = (string) ($content['bad'] ?? '');
         $good = (string) ($content['good'] ?? '');
 
-        return "📢 BAD:
+        return "Before:
 {$bad}
 
- GOOD:
+After:
 {$good}";
     }
 }

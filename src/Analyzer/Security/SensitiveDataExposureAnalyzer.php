@@ -25,6 +25,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Webmozart\Assert\Assert;
 
 /**
@@ -106,6 +107,7 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
         private readonly ?LoggerInterface $logger = null,
         ?PhpCodeParser $phpCodeParser = null,
         private readonly array $sensitivePatterns = self::DEFAULT_SENSITIVE_PATTERNS,
+        private readonly ?ClassMetadataFactoryInterface $serializerMetadata = null,
     ) {
         $this->phpCodeParser = $phpCodeParser ?? new PhpCodeParser($logger);
     }
@@ -252,9 +254,8 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
             return new SecurityIssue([
                 'title'       => 'Sensitive data exposure in __toString() method',
                 'description' => sprintf(
-                    'Entity "%s" has a __toString() method that serializes the entire object. ' .
-                    'This entity contains sensitive fields (%s) that will be exposed in logs, ' .
-                    'error messages, and debug output. This is a critical security vulnerability.',
+                    'Entity "%s" has a __toString() method that serializes the entire object, including sensitive fields (%s). ' .
+                    'Those values appear in logs, error messages and debug output.',
                     $this->shortClassName($entityClass),
                     implode(', ', array_map(fn (string $field): string => '$' . $field, $sensitiveFields)),
                 ),
@@ -290,8 +291,7 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
                 'title'       => 'Sensitive data in jsonSerialize() method',
                 'description' => sprintf(
                     'Entity "%s" exposes sensitive fields in jsonSerialize(): %s. ' .
-                    'These fields will be included in JSON API responses, potentially exposing ' .
-                    'passwords, tokens, or other sensitive data to clients.',
+                    'Every JSON response that includes the entity sends these values to the client.',
                     $this->shortClassName($entityClass),
                     implode(', ', array_map(fn (string $field): string => '$' . $field, $exposedFields)),
                 ),
@@ -327,8 +327,7 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
                 'title'       => 'Sensitive data in toArray() method',
                 'description' => sprintf(
                     'Entity "%s" exposes sensitive fields in toArray(): %s. ' .
-                    'This method is often used for serialization, logging, or API responses, ' .
-                    'which can leak sensitive data.',
+                    'Any serialization, log or API response built from toArray() leaks these values.',
                     $this->shortClassName($entityClass),
                     implode(', ', array_map(fn (string $field): string => '$' . $field, $exposedFields)),
                 ),
@@ -343,6 +342,33 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
         }
 
         return null;
+    }
+
+    /**
+     * What the Symfony serializer mapping (attributes, XML or YAML, parent classes included) says of the field:
+     * excluded when it is ignored, or left out of every group while other fields have groups; otherwise the groups
+     * that serialize it.
+     *
+     * @return array{excluded: bool, groups: list<string>}
+     */
+    private function serializerMapping(string $entityClass, string $fieldName): array
+    {
+        if (null === $this->serializerMetadata) {
+            return ['excluded' => false, 'groups' => []];
+        }
+
+        try {
+            $attributes = $this->serializerMetadata->getMetadataFor($entityClass)->getAttributesMetadata();
+        } catch (\Throwable) {
+            return ['excluded' => false, 'groups' => []];
+        }
+
+        $field = $attributes[$fieldName] ?? null;
+        if (null !== $field && ($field->isIgnored() || [] !== $field->getGroups())) {
+            return ['excluded' => $field->isIgnored(), 'groups' => array_values($field->getGroups())];
+        }
+
+        return ['excluded' => array_any($attributes, static fn ($attribute): bool => [] !== $attribute->getGroups()), 'groups' => []];
     }
 
     private function checkSerializationProtection(
@@ -377,18 +403,23 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
                 }
             }
 
-            if (!$hasProtection) {
+            $mapping = $hasProtection ? ['excluded' => true, 'groups' => []] : $this->serializerMapping($entityClass, $fieldName);
+            if (!$mapping['excluded']) {
                 return new SecurityIssue([
                     'title'       => sprintf('Unprotected sensitive field: %s::$%s', $this->shortClassName($entityClass), $fieldName),
-                    'description' => sprintf(
-                        'The sensitive field "$%s" in entity "%s" lacks serialization protection. ' .
-                        'Without @JsonIgnore or #[Ignore] annotations, this field will be included in ' .
-                        'JSON serialization, API responses, and logs. Additionally, consider using ' .
-                        '#[SensitiveParameter] on setter methods to prevent values from appearing in stack traces. ' .
-                        'Add appropriate annotations to prevent data leakage.',
-                        $fieldName,
-                        $this->shortClassName($entityClass),
-                    ),
+                    'description' => [] !== $mapping['groups']
+                        ? sprintf(
+                            'The sensitive field "$%s" of entity "%s" is in the serialization groups %s: every normalization with these groups includes it.',
+                            $fieldName,
+                            $this->shortClassName($entityClass),
+                            implode(', ', $mapping['groups']),
+                        )
+                        : sprintf(
+                            'Nothing excludes the sensitive field "$%s" of entity "%s" from serialization (no #[Ignore], '
+                            . 'no serialization group). Normalizing the entity, for an API response or a log context, includes it.',
+                            $fieldName,
+                            $this->shortClassName($entityClass),
+                        ),
                     'severity'   => 'warning',
                     'suggestion' => $this->createProtectionSuggestion($entityClass, $fieldName),
                     'backtrace'  => [
@@ -452,9 +483,7 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
                 'title' => sprintf('Public getter exposes sensitive field: %s::%s()', $this->shortClassName($entityClass), $getterName),
                 'description' => sprintf(
                     'Entity "%s" has a public getter "%s()" that returns the sensitive field "$%s". '
-                    . 'Public getters on sensitive fields allow any caller to access raw sensitive data. '
-                    . 'Consider restricting visibility, adding #[Ignore] for serialization, '
-                    . 'or returning a masked/hashed value instead.',
+                    . 'Any caller, including the serializer and templates, gets the raw value.',
                     $this->shortClassName($entityClass),
                     $getterName,
                     $fieldName,

@@ -15,13 +15,12 @@ $filePath = (string) ($context['file_path'] ?? '');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-<?php echo suggestionHeader('Suggestion'); ?>
+<?php echo suggestionHeader('Apply this change'); ?>
 <div class="suggestion-content">
 <p><?php echo nl2br($e($description)); ?></p>
 <?php if ($filePath) { ?>
-<p><strong>File:</strong> <code><?php echo $e($filePath); ?></code></p>
+<p>In <code><?php echo $e($filePath); ?></code></p>
 <?php } ?>
-<h4>Suggested Code</h4>
 <div class="query-item"><pre><code class="language-php"><?php echo $e($code); ?></code></pre></div>
 </div>
 <?php

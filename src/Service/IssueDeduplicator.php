@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Service;
 
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Issue\DeduplicatableIssueInterface;
+use AhmedBhs\DoctrineDoctor\Issue\FindingLocator;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -25,8 +26,15 @@ use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
  * - Merge similar issues into one with higher severity
  * - Suppress low-impact issues that add noise
  */
-final class IssueDeduplicator
+final readonly class IssueDeduplicator
 {
+    private FindingLocator $findingLocator;
+
+    public function __construct()
+    {
+        $this->findingLocator = new FindingLocator();
+    }
+
     /**
      * Remove duplicate and redundant issues.
      */
@@ -93,15 +101,31 @@ final class IssueDeduplicator
         // issue that happens to touch the same SQL.
         $selfContainedTypes = [
             IssueType::DTO_HYDRATION->value,
+            // A LIMIT that cuts a fetch-joined collection returns wrong results: never hide it behind a
+            // performance finding on the same query.
+            IssueType::SET_MAX_RESULTS_WITH_COLLECTION_JOIN->value,
+            IssueType::FILTERED_FETCH_JOIN->value,
+            // A leading wildcard is its own cause, distinct from a function wrapping the same column.
+            'ineffective_like_pattern',
         ];
 
         if (in_array($type, $selfContainedTypes, true)) {
             return $type . ':' . md5($sql);
         }
 
-        $signature = $this->getEntityTypeSignature($type, $title, $description, $entityOrTable);
+        $signature = $this->getEntityTypeSignature($type, $title, $description, $entityOrTable, $this->findingLocator->subjectOf($issue));
         if (null !== $signature) {
             return $signature;
+        }
+
+        // Mapping findings carry no SQL: two of them are the same finding only when they say the same
+        // thing about the same class and field. A coarser key kept one of N, chosen by the metadata
+        // load order, which differs between machines.
+        if ('' === $sql) {
+            $subject = $this->findingLocator->subjectOf($issue);
+            if ('' !== $subject) {
+                return 'subject:' . md5($type . ':' . $title . ':' . $subject . ':' . $description);
+            }
         }
 
         // Try specific signature strategies in order of priority
@@ -137,6 +161,7 @@ final class IssueDeduplicator
         string $title,
         string $description,
         ?string $entityOrTable,
+        string $subject = '',
     ): ?string {
         $entityScopedTypes = [
             'collection_uninitialized',
@@ -151,16 +176,19 @@ final class IssueDeduplicator
             return null;
         }
 
-        // Prefer pre-extracted entity/table when available.
-        $entity = $entityOrTable;
+        // The class named in the issue data first, then the one in the title ("X::$field"), and only then a word
+        // read from the prose, which can be anything ("on every flush" gave "every").
+        $entity = $this->subjectClass($subject);
 
-        if (null === $entity && 1 === preg_match('/\b([A-Z][A-Za-z0-9_]*)::\$/', $title, $matches)) {
+        if (null === $entity && 1 === preg_match('/\b([A-Z][A-Za-z0-9_]*)::\\?\$/', $title, $matches)) {
             $entity = $matches[1];
         }
 
         if (null === $entity && 1 === preg_match('/\b([A-Z][A-Za-z0-9_]*)::\$/', $description, $matches)) {
             $entity = $matches[1];
         }
+
+        $entity ??= $entityOrTable;
 
         if (null === $entity) {
             return null;
@@ -169,6 +197,21 @@ final class IssueDeduplicator
         $normalizedEntity = str_replace('_', '', strtolower($entity));
 
         return "entity_type:{$type}:{$normalizedEntity}";
+    }
+
+    /**
+     * Short class name of a "Fully\\Qualified\\Class::$field" subject, or null.
+     */
+    private function subjectClass(string $subject): ?string
+    {
+        $class = explode('::', $subject)[0];
+        if ('' === $class) {
+            return null;
+        }
+
+        $position = strrpos($class, '\\');
+
+        return false === $position ? $class : substr($class, $position + 1);
     }
 
     /**

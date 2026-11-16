@@ -59,9 +59,8 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
 
                         $description = $isKnownCount
                             ? DescriptionHighlighter::highlight(
-                                'A query without a {where} or {limit} clause returned {count} rows. ' .
-                                'This may come from findAll(), a custom repository method, or a hand-built ' .
-                                'QueryBuilder. Consider adding pagination or filters (threshold: {threshold})',
+                                'A query without {where} or {limit} returned {count} rows (threshold: {threshold}). ' .
+                                'Every row is hydrated into memory, so memory and response time grow with the table.',
                                 [
                                     'where' => 'WHERE',
                                     'limit' => 'LIMIT',
@@ -70,10 +69,8 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                                 ],
                             )
                             : DescriptionHighlighter::highlight(
-                                'A query without a {where} or {limit} clause was detected, but the actual row ' .
-                                'count could not be measured. This may come from findAll(), a custom repository ' .
-                                'method, or a hand-built QueryBuilder, and may load an unbounded number of rows ' .
-                                'into memory. Verify the table size and consider adding pagination or filters.',
+                                'A query without {where} or {limit} ran, but its row count could not be measured. ' .
+                                'It hydrates the whole table into memory, however large the table grows.',
                                 [
                                     'where' => 'WHERE',
                                     'limit' => 'LIMIT',

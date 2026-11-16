@@ -25,57 +25,37 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<div class="suggestion-header">
-    <h4>Sparse STI Table: <?php echo $e($rootClass); ?></h4>
-</div>
+<?php echo suggestionHeader('Consider JOINED inheritance'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        Subclass <strong><?php echo $e($subclass); ?></strong> uses only <strong><?php echo $ownFieldsCount; ?></strong> of <strong><?php echo $totalColumns; ?></strong> columns (<?php echo $sparsePercentage; ?>% unused).
-        The remaining columns are always NULL for rows of this type, wasting storage and reducing cache efficiency.
-    </div>
+    <p><code><?php echo $e($subclass); ?></code> uses <?php echo $ownFieldsCount; ?> of the <?php echo $totalColumns; ?> columns of the single table shared by <?php echo $subclassCount; ?> subclasses (<?php echo $sparsePercentage; ?>% unused). Its rows carry NULL in every column of the other subclasses.</p>
 
-    <h4>Why this matters</h4>
-    <p>Single Table Inheritance stores all <?php echo $subclassCount; ?> subclass(es) in one table.
-    When subtypes have very different fields, the table becomes wide and sparse.
-    Each row carries NULL values for columns belonging to other subtypes.</p>
-
-    <h4>Consider: Switch to Class Table Inheritance (JOINED)</h4>
     <div class="query-item">
-        <pre><code class="language-php">use Doctrine\ORM\Mapping as ORM;
-
-#[ORM\Entity]
+        <pre><code class="language-php">#[ORM\Entity]
 #[ORM\InheritanceType('JOINED')]
 #[ORM\DiscriminatorColumn(name: 'type', type: 'string')]
 class <?php echo $e($rootClass); ?>
 
 {
-    // Shared fields stay in the parent table
+    // shared fields stay in the root table
 }
 
+#[ORM\Entity]
 class <?php echo $e($subclass); ?> extends <?php echo $e($rootClass); ?>
 
 {
-    // Specific fields get their own table
-    // No more NULL columns for other subtypes
+    // its own fields move to its own table
 }</code></pre>
     </div>
 
+    <p>JOINED adds a join per query on the hierarchy; keep single table if the subclasses are mostly read together.</p>
+
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html#class-table-inheritance', 'Doctrine: Class Table Inheritance'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
-        'STI hierarchy %s is sparse: subclass %s uses only %d of %d columns (%d%% unused) — consider switching to JOINED inheritance',
-        $rootClass,
-        $subclass,
-        $ownFieldsCount,
-        $totalColumns,
-        $sparsePercentage,
-    ),
+    'description' => sprintf('Consider JOINED inheritance for %s: %s uses %d of %d columns', $rootClass, $subclass, $ownFieldsCount, $totalColumns),
 ];

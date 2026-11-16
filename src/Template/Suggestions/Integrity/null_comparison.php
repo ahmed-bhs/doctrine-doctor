@@ -12,18 +12,17 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Incorrect NULL comparison'); ?>
+<?php echo suggestionHeader('Compare with IS NULL'); ?>
 <div class="suggestion-content">
-<div class="alert alert-danger"><code>NULL = NULL</code> returns UNKNOWN, not TRUE. Use <code>IS NULL</code> instead.</div>
+<p>In SQL, <code>= NULL</code> and <code>!= NULL</code> evaluate to UNKNOWN, so the condition never matches a row. Use <code>IS NULL</code> or <code>IS NOT NULL</code>.</p>
 
-<h4>Your query</h4>
-<div class="query-item"><pre><code class="language-sql"><?php echo $e($incorrect); ?></code></pre></div>
+<div class="query-item"><pre><code class="language-sql">-- Before
+<?php echo $e((string) $incorrect); ?>
 
-<h4>Solution</h4>
-<div class="query-item"><pre><code class="language-sql"><?php echo $e((string) $correct); ?>
+-- After
+<?php echo $e((string) $correct); ?></code></pre></div>
 
--- DQL example
-$qb->where('e.<?php echo $e((string) $field); ?> IS NULL');</code></pre></div>
+<p>In a QueryBuilder: <code>$qb-&gt;andWhere($qb-&gt;expr()-&gt;isNull('e.<?php echo $e((string) $field); ?>'))</code>.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html', 'Doctrine Query Language (DQL)'); ?>
 </div>
@@ -32,5 +31,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Use IS NULL instead of = NULL for correct NULL comparison',
+    'description' => 'Use IS NULL instead of = NULL',
 ];

@@ -20,36 +20,32 @@ $benefits = $context['benefits'] ?? null;
 
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$shortClass = 1 === preg_match('/\bclass\s+(\w+)/', (string) $badCode, $matches) ? $matches[1] : 'Entity';
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('EntityManager in Entity'); ?>
-
+<?php echo suggestionHeader('Move persistence out of the entity'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-danger">
-        Entities should not handle database operations. Move persistence logic to services or repositories.
-    </div>
+<p><code><?php echo $e($shortClass); ?></code> calls the EntityManager itself, so it cannot be built or tested without a database and flushes at hidden points. Keep the domain logic in the entity and let a service persist it.</p>
 
-    <h4>Current code</h4>
-    <div class="query-item">
-        <pre><code class="language-php"><?php echo $e($badCode); ?></code></pre>
-    </div>
+<div class="query-item"><pre><code class="language-php">final class <?php echo $e($shortClass); ?>Service
+{
+    public function __construct(private EntityManagerInterface $em) {}
 
-    <h4>Solution</h4>
-    <div class="query-item">
-        <pre><code class="language-php"><?php echo $e($goodCode); ?></code></pre>
-    </div>
+    public function addItem(<?php echo $e($shortClass); ?> $entity, Item $item): void
+    {
+        $entity->addItem($item); // domain logic only, no EntityManager
+        $this->em->persist($item);
+        $this->em->flush();
+    }
+}</code></pre></div>
 
-    <p>Entities represent data. Services handle persistence.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/architecture.html', 'Doctrine architecture'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/architecture.html', 'Doctrine architecture'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Remove EntityManager from entity to maintain domain model purity',
+    'description' => 'Move EntityManager calls from the entity to a service',
 ];

@@ -102,21 +102,15 @@ final readonly class PostgreSQLCharsetAnalyzer implements CharsetAnalyzerInterfa
     private function createProblematicEncodingIssue(string $databaseName, string $encoding): DatabaseConfigIssue
     {
         $description = sprintf(
-            'Database "%s" is using encoding "%s" which is problematic. ',
+            'Database "%s" uses encoding "%s". ',
             $databaseName,
             $encoding,
         );
 
         if ('SQL_ASCII' === $encoding) {
-            $description .= 'SQL_ASCII is a "catch-all" encoding that accepts any byte sequence without validation. ' .
-                'This leads to corrupt data, inconsistent sorting, and encoding errors. ' .
-                'ALWAYS use UTF8 for new databases.';
+            $description .= 'SQL_ASCII accepts any byte sequence without validation, so text can be stored corrupt and sorts inconsistently.';
         } else {
-            $description .= sprintf(
-                '%s is a legacy single-byte encoding that cannot handle international characters. ' .
-                'Use UTF8 for full Unicode support.',
-                $encoding,
-            );
+            $description .= sprintf('%s is a single-byte encoding, so characters outside its set cannot be stored.', $encoding);
         }
 
         return new DatabaseConfigIssue([
@@ -161,8 +155,7 @@ final readonly class PostgreSQLCharsetAnalyzer implements CharsetAnalyzerInterfa
             'title'       => 'Encoding mismatch between server and client',
             'description' => sprintf(
                 'Server encoding is "%s" but client encoding is "%s". ' .
-                'This mismatch can cause character corruption when data is transferred between client and server. ' .
-                'Both should be UTF8 for consistency.',
+                'Characters are converted between the two on every transfer, and those missing from one set are corrupted.',
                 $serverEncoding,
                 $clientEncoding,
             ),
@@ -198,9 +191,8 @@ final readonly class PostgreSQLCharsetAnalyzer implements CharsetAnalyzerInterfa
         return new DatabaseConfigIssue([
             'title'       => 'Template databases with problematic encoding',
             'description' => sprintf(
-                'Template databases %s have problematic encodings. ' .
-                'New databases created from these templates will inherit the bad encoding. ' .
-                'Fix template1 to prevent future issues.',
+                'Template databases %s use a non-UTF8 encoding. ' .
+                'Every new database created from them inherits that encoding.',
                 $templateList,
             ),
             'severity'   => 'warning',

@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Integrity;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\MetadataAnalyzerTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\NamingConventionHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -159,18 +160,15 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
             );
         }
 
-        // Check 3: SQL reserved keyword (INFO level - Doctrine quotes identifiers by default)
-        // Skip if the table name matches the entity's snake_case short name (Symfony convention: User -> user, Order -> order)
-        $entityShortName = $this->shortClassName($entityClass);
-        $expectedTableName = $this->helper->toSnakeCase($entityShortName);
-
-        if ($this->isSQLReservedKeyword($tableName) && $tableName !== $expectedTableName) {
+        // Check 3: SQL reserved keyword. Doctrine quotes it in the schema it creates, but not in the SQL of DQL queries
+        // unless the mapping quotes it (`order`): an Order entity in an "order" table breaks every query.
+        if ($this->isSQLReservedKeyword($tableName) && !($classMetadata->table['quoted'] ?? false)) {
             $issues[] = $this->createTableNamingIssue(
                 $entityClass,
                 $tableName,
                 'reserved_keyword',
                 'app_' . $tableName,
-                'info',
+                'warning',
             );
         }
 
@@ -210,15 +208,15 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
                 );
             }
 
-            // Check 2: SQL reserved keyword (INFO level - Doctrine quotes identifiers by default)
-            if ($this->isSQLReservedKeyword($columnName)) {
+            // Check 2: SQL reserved keyword, unless the mapping quotes it (Doctrine does not quote it in DQL queries)
+            if ($this->isSQLReservedKeyword($columnName) && !(MappingHelper::getBool($classMetadata->fieldMappings[$fieldName], 'quoted') ?? false)) {
                 $issues[] = $this->createColumnNamingIssue(
                     $entityClass,
                     $columnName,
                     $fieldName,
                     'reserved_keyword',
                     $columnName . '_value',
-                    'info',  // Changed from 'warning' to 'info' - Doctrine handles this automatically
+                    'warning',
                 );
             }
 
@@ -435,15 +433,12 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
      */
     private function isSQLReservedKeyword(string $name): bool
     {
-        // Check the exact name (lowercase comparison)
-        $lowerName = strtolower($name);
-
-        // If it contains underscores, it's a compound name - not a simple reserved keyword
-        if (str_contains($name, '_')) {
-            return false;
+        // The keywords of the configured database (USER is reserved on PostgreSQL, not on MySQL).
+        try {
+            return $this->entityManager->getConnection()->getDatabasePlatform()->getReservedKeywordsList()->isKeyword($name);
+        } catch (\Throwable) {
+            return !str_contains($name, '_') && in_array(strtolower($name), self::SQL_RESERVED_KEYWORDS, true);
         }
-
-        return in_array($lowerName, self::SQL_RESERVED_KEYWORDS, true);
     }
 
     private function createTableNamingIssue(
@@ -510,7 +505,8 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
             'suggested_name' => $suggestedName,
         ]);
 
-        $codeQualityIssue->setSeverity('critical');
+        // A naming convention: nothing breaks, the schema is only harder to read.
+        $codeQualityIssue->setSeverity('info');
         $codeQualityIssue->setTitle($this->getFKViolationTitle($violationType));
         $codeQualityIssue->setMessage($this->getFKViolationMessage($violationType, $columnName, $assocName, $entityClass));
         $codeQualityIssue->setSuggestion($this->buildFKNamingSuggestion($columnName, $suggestedName, $assocName, $entityClass));
@@ -563,7 +559,7 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
                 ['table' => $tableName, 'class' => $entityClass],
             ),
             'plural' => DescriptionHighlighter::highlight(
-                "Table {table} should be singular to match entity naming. ORM best practice is to use singular table names (e.g., 'user' not 'users').",
+                "Table {table} is plural while its entity name is singular, so table and entity names no longer match one to one.",
                 ['table' => $tableName],
             ),
             'singular' => DescriptionHighlighter::highlight(
@@ -571,7 +567,7 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
                 ['table' => $tableName],
             ),
             'reserved_keyword' => DescriptionHighlighter::highlight(
-                "Table {table} is a SQL reserved keyword (reserved in PostgreSQL, MySQL, etc.). Doctrine quotes identifiers automatically, but raw SQL queries, database tools (DBeaver, Adminer), and migration scripts may fail or require manual quoting. Consider prefixing the table name (e.g., app_{table}) to avoid issues.",
+                "Table {table} is a reserved keyword of the database. Doctrine quotes it in the schema it creates, but not in the SQL of DQL queries: every query on this table fails with a syntax error. Quote it in the mapping (`{table}`) or rename the table.",
                 ['table' => $tableName],
             ),
             'special_characters' => DescriptionHighlighter::highlight(
@@ -603,7 +599,7 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
                 ['column' => $columnName, 'field' => $fieldName, 'class' => $entityClass],
             ),
             'reserved_keyword' => DescriptionHighlighter::highlight(
-                "Column {column} is a SQL reserved keyword. While Doctrine quotes identifiers automatically, consider renaming it for better portability.",
+                "Column {column} is a reserved keyword of the database. Doctrine quotes it in the schema it creates, but not in the SQL of DQL queries: every query that reads it fails with a syntax error. Quote it in the mapping (`{column}`) or rename the column.",
                 ['column' => $columnName],
             ),
             'special_characters' => DescriptionHighlighter::highlight(
@@ -630,7 +626,7 @@ class NamingConventionAnalyzer implements MetadataAnalyzerInterface
     {
         return match ($type) {
             'not_snake_case' => sprintf("Foreign key '%s' (association '%s') in entity '%s' is not in snake_case format.", $columnName, $assocName, $entityClass),
-            'missing_id_suffix' => sprintf("Foreign key '%s' should end with '_id' suffix according to Doctrine conventions.", $columnName),
+            'missing_id_suffix' => sprintf("Foreign key column '%s' does not end with '_id', the name Doctrine gives by default: the schema is harder to read, nothing breaks.", $columnName),
             default => sprintf("Foreign key '%s' violates naming conventions.", $columnName),
         };
     }

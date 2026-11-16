@@ -348,8 +348,7 @@ final class RegexValidationTest extends TestCase
             'Should match string with escaped quote',
         );
 
-        // Multiple backslashes (Windows paths)
-        $pattern = "/'(?:[^'\\\\]|\\\\.)*'/";
+        // Multiple backslashes (Windows paths), same pattern
         self::assertSame(
             1,
             preg_match($pattern, "'C:\\\\path\\\\to\\\\file'"),

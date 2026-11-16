@@ -64,7 +64,6 @@ final class PhpCodeParserCacheTest extends TestCase
 
         // First call - cache MISS
         $result1 = $this->parser->detectSqlInjectionPatterns($method);
-        $stats1 = $this->parser->getCacheStats();
 
         // Second call - should be cache HIT
         $result2 = $this->parser->detectSqlInjectionPatterns($method);
@@ -127,9 +126,6 @@ final class PhpCodeParserCacheTest extends TestCase
         // Note: We can't reload the class definition in PHP
         // So this test only validates that mtime tracking works
         // In real usage, each request loads fresh class definitions
-
-        // Get new ReflectionMethod (points to modified file)
-        $modifiedMethod = new ReflectionMethod('InvalidationTestClass', 'testMethod');
 
         // Second analysis - cache should be invalidated due to mtime change
         // But since we can't reload PHP class, we just verify mtime changed

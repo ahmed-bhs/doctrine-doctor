@@ -14,14 +14,11 @@ $severity    = (string) ($context['severity'] ?? 'info');
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Fix Table Naming'); ?>
+<?php echo suggestionHeader('Rename the table in snake_case'); ?>
 <div class="suggestion-content">
-<?php echo suggestionAlert($severity, '<strong>Schema change</strong>' . "\n" . '<p>Table naming violation: \'' . escape($current) . '\' should be \'' . escape($suggested) . '\'</p>'); ?>
+<?php echo suggestionAlert($severity, 'Table <code>' . escape($current) . '</code> should be named <code>' . escape($suggested) . '</code>: lowercase snake_case, not an SQL reserved word. Generate a migration after renaming.'); ?>
 
-<?php echo suggestionCodeBlock('Current', sprintf("#[ORM\\Table(name: '%s')]\nclass %s {}", $current, $entityClass)); ?>
-<?php echo suggestionCodeBlock('Recommended', sprintf("#[ORM\\Table(name: '%s')]\nclass %s {}", $suggested, $entityClass)); ?>
-
-<p><strong>Convention:</strong> snake_case, singular (user, order_item). Avoid SQL reserved keywords. Generate a migration with <code>make:migration</code> after renaming.</p>
+<?php echo suggestionCodeBlock('', sprintf("// Before\n#[ORM\\Table(name: '%s')]\nclass %s {}\n\n// After\n#[ORM\\Table(name: '%s')]\nclass %s {}", $current, $entityClass, $suggested, $entityClass)); ?>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/naming-strategy.html', 'Doctrine Naming Strategy Documentation'); ?>
 </div>

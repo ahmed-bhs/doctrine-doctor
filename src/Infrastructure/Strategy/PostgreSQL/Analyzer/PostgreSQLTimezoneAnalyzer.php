@@ -100,11 +100,7 @@ final readonly class PostgreSQLTimezoneAnalyzer implements TimezoneAnalyzerInter
             'title'       => 'Timezone mismatch between PostgreSQL and PHP',
             'description' => sprintf(
                 'PostgreSQL timezone is "%s" but PHP timezone is "%s". ' .
-                'This mismatch causes subtle bugs:' . "\n" .
-                '- DateTime values converted incorrectly' . "\n" .
-                '- NOW(), CURRENT_TIMESTAMP return different times than PHP' . "\n" .
-                '- Date comparisons fail' . "\n" .
-                'Always use UTC for storage and convert in application layer.',
+                'NOW() and CURRENT_TIMESTAMP return a different time than PHP, so date filters and comparisons are off by the offset.',
                 $pgTz,
                 $phpTz,
             ),
@@ -133,10 +129,9 @@ final readonly class PostgreSQLTimezoneAnalyzer implements TimezoneAnalyzerInter
     private function createLocaltimeWarningIssue(): DatabaseConfigIssue
     {
         return new DatabaseConfigIssue([
-            'title'       => 'PostgreSQL using "localtime" timezone (ambiguous)',
-            'description' => 'PostgreSQL is configured to use "localtime" which depends on the server\'s system timezone. ' .
-                'This is ambiguous and can change if the server timezone changes. ' .
-                'Explicitly set to UTC or a named timezone (e.g., "America/New_York").',
+            'title'       => 'PostgreSQL using "localtime" timezone',
+            'description' => 'PostgreSQL uses the "localtime" timezone, which follows the server system timezone. ' .
+                'Stored dates shift if the server timezone changes.',
             'severity'   => 'warning',
             'suggestion' => $this->suggestionFactory->createFromTemplate(
                 templateName: 'Configuration/configuration',
@@ -206,19 +201,10 @@ final readonly class PostgreSQLTimezoneAnalyzer implements TimezoneAnalyzerInter
         }
 
         return new DatabaseConfigIssue([
-            'title'       => sprintf('%d columns using TIMESTAMP without timezone (CRITICAL)', count($tables)),
+            'title'       => sprintf('%d columns using TIMESTAMP without timezone', count($tables)),
             'description' => sprintf(
-                'Found %d columns using "timestamp without time zone": %s. ' . "\n\n" .
-                'TIMESTAMP WITHOUT TIME ZONE stores values without timezone info, causing bugs:' . "\n" .
-                '- Values are stored as-is (no UTC conversion)' . "\n" .
-                '- PHP DateTime conversions fail or produce wrong times' . "\n" .
-                '- Daylight saving time changes break data' . "\n" .
-                '- Moving servers across timezones corrupts timestamps' . "\n\n" .
-                'ALWAYS use TIMESTAMP WITH TIME ZONE (TIMESTAMPTZ) which:' . "\n" .
-                '- Stores in UTC internally' . "\n" .
-                '- Converts to session timezone on retrieval' . "\n" .
-                '- Works correctly with PHP DateTime' . "\n\n" .
-                'Note: Doctrine uses TIMESTAMP (without tz) by default - you must override!',
+                '%d columns use "timestamp without time zone": %s. ' .
+                'Values are stored without an offset, so they shift with daylight saving changes or a server timezone change.',
                 count($tables),
                 $tableStr,
             ),

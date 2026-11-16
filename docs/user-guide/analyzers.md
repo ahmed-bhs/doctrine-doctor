@@ -107,6 +107,9 @@ Performance analyzers detect patterns that degrade application responsiveness, i
 | EagerLoadingAnalyzer | JOIN count | Query optimization | `join_threshold: 4` |
 | LazyLoadingAnalyzer | Proxy initialization | Query reduction | `threshold: 10` |
 | DTOHydrationAnalyzer | Hydration mode | Memory + performance | — |
+| CollectionCountedInPhpAnalyzer | Source scan of `analysis.source_dirs` | Collection loaded to be counted | `EXTRA_LAZY` or `COUNT()` |
+| AggregateInPhpAnalyzer | Source scan of `analysis.source_dirs` | Sum computed in PHP over loaded entities | `SUM()` in DQL |
+| CollectionFilteredInPhpAnalyzer | Source scan of `analysis.source_dirs` | Whole collection loaded to keep some elements; `matching()` filters in SQL | `methods: [filter]` |
 | BulkOperationAnalyzer | Entity count | 100-1000x | `threshold: 20` |
 | BulkInsertAnalyzer | Single-row INSERTs into one table | Multi-row INSERT through DBAL; names the callbacks, listeners and generated ids it bypasses | `threshold: 100` |
 | QueryCachingOpportunityAnalyzer | Cache statistics | 50-90% reduction | — |
@@ -299,9 +302,16 @@ class Customer {
 | PrimaryKeyStrategyAnalyzer | ID generation | Inefficient strategy | Performance issues |
 | QueryBuilderBestPracticesAnalyzer | Code quality | Bad QueryBuilder patterns | Maintainability |
 | EntityManagerInEntityAnalyzer | Architecture | Dependency injection | Architecture violation |
+| EntityManagerInServiceAnalyzer | Architecture | Application class receives the EntityManager (`excluded_namespaces`) | Business code coupled to Doctrine |
+| UnusedInverseSideAnalyzer | Association mapping | Inverse side of a to-many association that the application never reads | Sync code for nothing |
 | TypeHintMismatchAnalyzer | Type safety | Type inconsistency | Runtime errors |
 | NamingConventionAnalyzer | Code standards | Naming violations | Readability issues |
 | NullComparisonAnalyzer | SQL semantics | `= NULL` instead of `IS NULL` | Silently empty results |
+| MissingSoftDeleteFilterAnalyzer | Soft delete | `deletedAt` without an enabled SQL filter | Deleted rows shown again |
+| EntityManagerUsedAfterFailureAnalyzer | Exceptions | EntityManager reused after a failed flush | "The EntityManager is closed" |
+| MigrationStateAnalyzer | Migrations (`--with-database`) | Migrations not executed, mapping changed without a migration | Schema out of date, data dropped by a generated migration |
+| RiskyMigrationAnalyzer | Migration files | DROP in up(), no down(), ORM used in a migration | Lost data, no rollback |
+| FilteredFetchJoinAnalyzer | Fetch join | To-many collection fetch-joined and filtered in WHERE | Incomplete collection in memory |
 | DivisionByZeroAnalyzer | Expression safety | Unguarded division | Runtime error |
 | CompositeKeyComplexityAnalyzer | Identifier design | Composite primary key | Join and mapping complexity |
 | JoinColumnNonPrimaryKeyAnalyzer | Referential integrity | Join column targets a non-primary key | Fragile association |
@@ -315,9 +325,9 @@ class Customer {
 | ClassTableInheritanceDepthAnalyzer | Class Table Inheritance | Deep hierarchy | One JOIN per level |
 | ClassTableInheritanceThinSubclassAnalyzer | Class Table Inheritance | Subclass adds almost no fields | JOIN cost for little data |
 | SingleTableInheritanceSparseTableAnalyzer | Single Table Inheritance | Mostly-empty columns | Wasted storage |
-| SingleTableInheritanceNullableColumnAnalyzer | Single Table Inheritance | Non-nullable subclass column | Inserts fail for siblings |
+| SingleTableInheritanceNullableColumnAnalyzer | Single Table Inheritance | Required subclass column | Created nullable, the database does not enforce it |
 | PartialObjectAnalyzer | Hydration | Full entity loaded for a few fields | Unnecessary data transfer |
-| FlushInEventListenerAnalyzer | Lifecycle | `flush()` inside a lifecycle callback | Nested unit of work |
+| FlushInEventListenerAnalyzer | Lifecycle | `flush()` inside a lifecycle callback, entity listener or Doctrine event listener | Nested unit of work; in `postFlush`, replayed collection deletions |
 | MissingVersionFieldForConcurrencyAnalyzer | Concurrency | No `#[ORM\Version]` field | Lost updates |
 | DenormalizedAggregateWithoutLockingAnalyzer | Concurrency | Denormalized aggregate without locking | Drifting totals |
 | UniqueEntityWithoutDatabaseIndexAnalyzer | Constraints | `#[UniqueEntity]` with no UNIQUE index | Duplicates under concurrency |

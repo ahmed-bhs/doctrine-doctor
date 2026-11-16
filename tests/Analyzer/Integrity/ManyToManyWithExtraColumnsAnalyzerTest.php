@@ -171,4 +171,21 @@ final class ManyToManyWithExtraColumnsAnalyzerTest extends DatabaseTestCase
             self::assertStringContainsString('discount_percent', strtolower($description));
         }
     }
+
+    #[Test]
+    public function it_names_the_entity_and_field_so_the_report_can_locate_it(): void
+    {
+        $this->createSchema([TeacherOwner::class, TeacherTarget::class, EnrollmentOwner::class, EnrollmentTarget::class]);
+        $this->connection->executeStatement('ALTER TABLE enrollmentowner_enrollmenttarget ADD COLUMN quantity INTEGER DEFAULT 1');
+
+        $issues = array_values(array_filter(
+            $this->analyzer->analyzeMetadata()->toArray(),
+            static fn ($issue): bool => str_contains((string) $issue->getTitle(), 'products'),
+        ));
+
+        self::assertNotEmpty($issues);
+        self::assertMatchesRegularExpression('/^Join Table With Extra Columns: \w+::\$products$/', $issues[0]->getTitle());
+        self::assertSame('products', $issues[0]->getData()['field']);
+        self::assertTrue(class_exists($issues[0]->getData()['entity']));
+    }
 }

@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\InverseOneToOneLoad;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -78,7 +79,7 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
              * @return \Generator<int, \AhmedBhs\DoctrineDoctor\Issue\IssueInterface, mixed, void>
              */
             function () use ($queryGroups) {
-                foreach ($queryGroups as $pattern => $group) {
+                foreach ($queryGroups as $group) {
                     if ($group->count() >= $this->threshold) {
                         $groupArray = $group->toArray();
 
@@ -101,13 +102,13 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
                         // The nplusone exemption is context-dependent (e.g., loading ONE parent vs MANY)
                         // For now, disabled to avoid false negatives
 
-                        $detectedType    = $this->detectNPlusOneType($sql);
+                        $detectedType    = $this->detectNPlusOneType($sql, $backtrace);
                         $triggerLocation = $this->extractTriggerLocation($backtrace);
 
                         $issueData = new IssueData(
                             type: IssueType::N_PLUS_ONE->value,
                             title: sprintf('N+1 Query Detected: %d queries (%s)', $group->count(), $detectedType['type']),
-                            description: $this->buildDescription($group->count(), $totalTime, $pattern, $backtrace, $detectedType),
+                            description: $this->buildDescription($group->count(), $totalTime, $sql, $backtrace, $detectedType),
                             severity: $this->calculateSeverity($group->count(), $totalTime, $detectedType['type']),
                             suggestion: $this->generateSuggestion($groupArray, $triggerLocation),
                             queries: $groupArray,
@@ -237,10 +238,17 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
      *
      * OPTIMIZED: Uses CachedSqlStructureExtractor (transparent via DI) for 1000x+ speedup
      *
-     * @return array{type: 'proxy'|'collection'|'lookup'|'unknown', hasLimit: bool}
+     * @param array<int, array<string, mixed>>|null $backtrace
+     * @return array{type: 'proxy'|'collection'|'inverse OneToOne'|'lookup'|'unknown', hasLimit: bool}
      */
-    private function detectNPlusOneType(string $sql): array
+    private function detectNPlusOneType(string $sql, ?array $backtrace = null): array
     {
+        // The inverse side of a OneToOne is loaded with its owner (it cannot be a proxy). Its query has the shape of a
+        // collection load (WHERE fk = ?), only the persister call tells them apart.
+        if (InverseOneToOneLoad::inBacktrace($backtrace)) {
+            return ['type' => 'inverse OneToOne', 'hasLimit' => false];
+        }
+
         // Check for partial collection load first (collection with LIMIT)
         if ($this->sqlExtractor->detectPartialCollectionLoad($sql)) {
             return ['type' => 'collection', 'hasLimit' => true];
@@ -282,8 +290,25 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
     private function generateSuggestion(array $queryGroup, ?string $triggerLocation = null): ?SuggestionInterface
     {
         $sql  = $queryGroup[0]->sql;
-        $type = $this->detectNPlusOneType($sql);
+        $type = $this->detectNPlusOneType($sql, $queryGroup[0]->backtrace);
         $queryCount = \count($queryGroup);
+
+        if ('inverse OneToOne' === $type['type']) {
+            $pattern = $this->sqlExtractor->detectNPlusOnePattern($sql);
+            $inverseSide = null === $pattern ? null : InverseOneToOneLoad::resolve($this->entityManager, $pattern['table'], $this->camelCaseToSnakeCase($pattern['foreignKey']) . '_id');
+            if (null !== $inverseSide) {
+                return $this->suggestionFactory->createFromTemplate(
+                    templateName: 'Integrity/one_to_one_inverse_side',
+                    context: $inverseSide,
+                    suggestionMetadata: new SuggestionMetadata(
+                        type: SuggestionType::performance(),
+                        severity: $this->calculateEagerLoadingSeverity($queryCount),
+                        title: sprintf('OneToOne Inverse Side: %d queries for %s::$%s', $queryCount, $inverseSide['entity_class'], $inverseSide['field_name']),
+                        tags: ['one-to-one', 'performance', 'n+1', 'lazy-loading'],
+                    ),
+                );
+            }
+        }
 
         // Try to detect N+1 pattern from WHERE clause (most common pattern)
         $wherePattern = $this->sqlExtractor->detectNPlusOnePattern($sql);
@@ -497,10 +522,10 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             }
 
             foreach ($joinColumns as $joinColumn) {
-                if (!\is_array($joinColumn)) {
+                if (!\is_array($joinColumn) && !\is_object($joinColumn)) {
                     continue;
                 }
-                /** @var array<string, mixed> $joinColumn */
+                /** @var array<string, mixed>|object $joinColumn */
                 $columnName = MappingHelper::getString($joinColumn, 'name');
                 if (null !== $columnName && strtolower($columnName) === strtolower($fkColumnName)) {
                     $targetEntity = MappingHelper::getString($mapping, 'targetEntity');
@@ -746,63 +771,42 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
      * @param array<int, array<string, mixed>>|null $backtrace
      * @param array{type: string, hasLimit: bool}   $detectedType
      */
-    private function buildDescription(int $count, float $totalTime, string $pattern, ?array $backtrace, array $detectedType): string
+    private function buildDescription(int $count, float $totalTime, string $sql, ?array $backtrace, array $detectedType): string
     {
-        $typeLabel = match ($detectedType['type']) {
-            'proxy' => 'Proxy N+1 (ManyToOne/OneToOne)',
-            'collection' => $detectedType['hasLimit'] ? 'Collection N+1 with partial access' : 'Collection N+1 (OneToMany/ManyToMany)',
-            'lookup' => 'Repeated Lookup (findBy/findOneBy in loop)',
-            default => 'N+1 Query',
+        $origin = match ($detectedType['type']) {
+            'proxy' => 'Lazy loading of a ManyToOne/OneToOne proxy',
+            'inverse OneToOne' => 'Loading the inverse side of a OneToOne, which Doctrine cannot make lazy, with each entity',
+            'collection' => $detectedType['hasLimit']
+                ? 'Partial access to a lazy collection (LIMIT in the query)'
+                : 'Lazy loading of a OneToMany/ManyToMany collection',
+            'lookup' => 'Repeated lookup by a non-key column',
+            default => 'A loop',
         };
+
+        $table = $this->sqlExtractor->extractMainTable($sql)['table'] ?? null;
+
+        $values = [
+            'count' => $count,
+            'time' => sprintf('%.2f', $totalTime),
+        ];
+        if (null !== $table) {
+            $values['table'] = $table;
+        }
+
+        $description = DescriptionHighlighter::highlight(
+            $origin . (null !== $table ? ' ran the same query on {table} {count} times ({time}ms SQL)' : ' ran the same query {count} times ({time}ms SQL)'),
+            $values,
+        );
+
+        if ($this->isVendorCode($backtrace)) {
+            $description .= ', called from vendor code';
+        }
 
         $isLowTimeHighCount = $count > self::QUERY_COUNT_WARNING_THRESHOLD && $totalTime < self::LOW_EXECUTION_TIME_THRESHOLD;
 
-        if ($isLowTimeHighCount) {
-            $description = DescriptionHighlighter::highlight(
-                '{type_label}: Found {count} similar queries ({time}ms SQL time only). Pattern: {pattern}',
-                [
-                    'type_label' => $typeLabel,
-                    'count' => $count,
-                    'time' => sprintf('%.2f', $totalTime),
-                    'pattern' => $pattern,
-                ],
-            );
-        } else {
-            $description = DescriptionHighlighter::highlight(
-                '{type_label}: Found {count} similar queries with a total execution time of {time}ms. Pattern: {pattern}',
-                [
-                    'type_label' => $typeLabel,
-                    'count' => $count,
-                    'time' => sprintf('%.2f', $totalTime),
-                    'pattern' => $pattern,
-                ],
-            );
-        }
-
-        if ('proxy' === $detectedType['type']) {
-            $description .= "\nProxy initialization detected in a loop. Consider using a fetch join (join + addSelect) for better performance.";
-        } elseif ('collection' === $detectedType['type'] && $detectedType['hasLimit']) {
-            $description .= "\nDetected partial collection access (LIMIT in query). EXTRA_LAZY fetch mode is usually ideal here.";
-        } elseif ('lookup' === $detectedType['type']) {
-            $description .= "\nRepeated lookup by non-key column detected. Consider using an IN query to batch-load all needed rows, or add an in-memory cache to avoid duplicate queries within the same request.";
-        }
-
-        if ($isLowTimeHighCount) {
-            $description .= sprintf(
-                "\nThe %.2fms only measures database engine time. The main cost is in PHP: " .
-                '%d Doctrine hydration cycles, %d UnitOfWork snapshots kept in memory, and %d PDO round trips. ' .
-                'This overhead is not visible in SQL timing but can significantly increase total page time. ' .
-                'A single fetch-join query (join + addSelect) would eliminate most of this overhead.',
-                $totalTime,
-                $count,
-                $count,
-                $count,
-            );
-        }
-
-        if ($this->isVendorCode($backtrace)) {
-            $description .= "\nThis N+1 originates from vendor code.";
-        }
+        $description .= $isLowTimeHighCount
+            ? '. SQL time is low, but each query also costs a round trip, a hydration and a UnitOfWork snapshot in PHP.'
+            : '. One query runs per loop iteration, so response time grows with the number of rows.';
 
         return $description;
     }

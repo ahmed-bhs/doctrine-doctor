@@ -195,11 +195,9 @@ class DenormalizedAggregateWithoutLockingAnalyzer implements MetadataAnalyzerInt
         $entityClass = $metadata->getName();
 
         $description = DescriptionHighlighter::highlight(
-            '{class}::{method}() modifies aggregate field(s) {fields} alongside collection(s) {collections} '
-            . 'without a locking mechanism (#[ORM\Version]). Under concurrent requests, two processes can '
-            . 'read the same stale aggregate value, both compute a new value, and both flush — resulting in '
-            . 'a lost update. This is explicitly documented by Doctrine as a race condition risk for '
-            . 'denormalized schemas.',
+            '{class}::{method}() updates aggregate field(s) {fields} along with collection(s) {collections} '
+            . 'and the entity has no #[ORM\Version] field. Two concurrent requests can read the same value and '
+            . 'both write theirs, a race condition that loses one update.',
             [
                 'class' => $shortName,
                 'method' => $method->getName(),

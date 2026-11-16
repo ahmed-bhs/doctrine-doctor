@@ -22,8 +22,7 @@ class MissingIndexIssue extends AbstractIssue
             'type'        => IssueType::MISSING_INDEX,
             'title'       => 'Missing Index Detected',
             'description' => sprintf(
-                'Query "%s" on table "%s" scanned %d rows, suggesting a missing index.',
-                $data['query'] ?? 'N/A',
+                'A query on table "%s" scanned %d rows without a usable index. The scan cost grows with the table size.',
                 $data['table'] ?? 'N/A',
                 $data['rows_scanned'] ?? 0,
             ),

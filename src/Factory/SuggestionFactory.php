@@ -44,7 +44,6 @@ final readonly class SuggestionFactory implements SuggestionFactoryInterface
             foreach ($categories as $category) {
                 $categoryPath = __DIR__ . '/../Template/Suggestions/' . $category . '/' . $templateName . '.php';
                 if (file_exists($categoryPath)) {
-                    $templatePath = $categoryPath;
                     $templateName = $category . '/' . $templateName;
                     $found = true;
                     break;

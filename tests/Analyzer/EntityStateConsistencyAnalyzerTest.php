@@ -125,34 +125,40 @@ final class EntityStateConsistencyAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_reports_a_required_association_without_cascade_persist(): void
+    public function it_reports_a_new_entity_attached_to_a_required_association_without_cascade(): void
     {
-        $titles = $this->titlesForRequiredAssociationFixtures();
+        $issues = $this->issuesForRequiredAssociationFixtures();
 
-        self::assertContains('Required Association Without Cascade: Invoice::$customer', $titles);
+        // Invoice::$customer is left out: Shipment::$customer cascades, and setCustomer() may target either.
+        self::assertSame(['New Entity in Required Association: Payment::$invoice'], array_map(static fn ($issue): string => $issue->getTitle(), $issues));
+        self::assertStringContainsString('InvoiceFactory::deposit() attaches a new Invoice', (string) $issues[0]->getDescription());
+        $source = (string) file_get_contents(__DIR__ . '/../Fixtures/RequiredAssociationProject/App/InvoiceFactory.php');
+        $line = substr_count(strstr($source, 'setInvoice(new Invoice', true) ?: '', "\n") + 1;
+        self::assertSame($line, $issues[0]->getData()['line'] ?? null);
     }
 
     #[Test]
-    public function it_does_not_report_a_required_association_with_cascade_persist(): void
-    {
-        $titles = $this->titlesForRequiredAssociationFixtures();
-
-        self::assertNotContains('Required Association Without Cascade: Shipment::$customer', $titles);
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function titlesForRequiredAssociationFixtures(): array
+    public function it_reports_nothing_without_the_application_code(): void
     {
         $analyzer = new EntityStateConsistencyAnalyzer(
             PlatformAnalyzerTestHelper::createTestEntityManager([__DIR__ . '/../Fixtures/Entity/RequiredAssociationTest']),
             PlatformAnalyzerTestHelper::createIssueFactory(),
         );
 
-        return array_values(array_map(
-            static fn ($issue): string => $issue->getTitle(),
-            $analyzer->analyze(QueryDataCollection::empty())->toArray(),
-        ));
+        self::assertCount(0, $analyzer->analyze(QueryDataCollection::empty()));
+    }
+
+    /**
+     * @return list<\AhmedBhs\DoctrineDoctor\Issue\IssueInterface>
+     */
+    private function issuesForRequiredAssociationFixtures(): array
+    {
+        $analyzer = new EntityStateConsistencyAnalyzer(
+            PlatformAnalyzerTestHelper::createTestEntityManager([__DIR__ . '/../Fixtures/Entity/RequiredAssociationTest']),
+            PlatformAnalyzerTestHelper::createIssueFactory(),
+            new \AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProjectSourceScanner(__DIR__ . '/../Fixtures/RequiredAssociationProject', ['App']),
+        );
+
+        return array_values($analyzer->analyze(QueryDataCollection::empty())->toArray());
     }
 }

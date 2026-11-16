@@ -112,7 +112,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
         // Pattern 1: Detect JOINs with unused aliases
         $unusedJoins = $this->detectUnusedJoinAliases($sql, $backtrace);
         if (\count($unusedJoins) > 0) {
-            $issues[] = $this->createUnusedJoinIssue($sql, $unusedJoins, $backtrace);
+            $issues[] = $this->createUnusedJoinIssue($unusedJoins, $backtrace);
         }
 
         // Pattern 2: Detect over-eager loading (too many JOINs)
@@ -216,29 +216,23 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
      */
     private function createOverEagerIssue(int $joinCount, ?array $backtrace, ?bool $isCollection): IssueData
     {
-        $joinType = true === $isCollection ? 'collection JOINs (OneToMany/ManyToMany)'
+        $joinType = true === $isCollection ? 'collection JOINs'
                   : (false === $isCollection ? 'JOINs' : 'JOINs (possibly collections)');
 
-        $description = DescriptionHighlighter::highlight(
-            'Over-eager loading detected: {count} {type} in a single query. This can cause significant data duplication and memory waste.',
-            [
-                'count' => $joinCount,
-                'type' => $joinType,
-            ],
-        );
-
-        if (true === $isCollection) {
-            $description .= "\n\n⚠️ Each collection JOIN multiplies the result rows. With {$joinCount} collection JOINs, you may be loading the same parent entity data hundreds or thousands of times.";
-            $description .= "\n\nExample: 1 parent × 10 items × 5 comments = 50 SQL rows for 1 entity!";
-        } else {
-            $description .= "\n\nMultiple JOINs can impact performance and memory usage.";
-        }
-
-        $description .= "\n\nConsider using separate queries, batch fetching, or loading only the relations you actually need.";
+        $description = true === $isCollection
+            ? DescriptionHighlighter::highlight(
+                'The query fetch-joins {count} collections, so every row of one collection is repeated for each row of the others. '
+                . '1 parent with 10 items and 5 comments already returns 50 rows.',
+                ['count' => $joinCount],
+            )
+            : DescriptionHighlighter::highlight(
+                'The query loads {count} {type} at once. Each extra JOIN widens the result set and the objects Doctrine has to hydrate.',
+                ['count' => $joinCount, 'type' => $joinType],
+            );
 
         return new IssueData(
             type: self::ISSUE_TYPE,
-            title: "Over-Eager Loading: {$joinCount} {$joinType} in Single Query",
+            title: "Over-Eager Loading: {$joinCount} {$joinType} in one query",
             description: $description,
             severity: $this->calculateOverEagerSeverity($joinCount, true === $isCollection),
             suggestion: $this->createOverEagerSuggestion($joinCount),
@@ -251,14 +245,15 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
      * @param array<int, array{type: string, table: string, alias: ?string, expr: mixed}> $unusedJoins
      * @param array<int, array<string, mixed>>|null                          $backtrace
      */
-    private function createUnusedJoinIssue(string $sql, array $unusedJoins, ?array $backtrace): IssueData
+    private function createUnusedJoinIssue(array $unusedJoins, ?array $backtrace): IssueData
     {
         $joinCount = \count($unusedJoins);
         $tables = array_map(fn ($join) => $join['table'], $unusedJoins);
         $aliases = array_map(fn ($join) => $join['alias'] ?? 'unknown', $unusedJoins);
 
         $description = DescriptionHighlighter::highlight(
-            'Unused eager loading detected: {count} JOIN(s) fetching data that is never used. Tables: {tables} (aliases: {aliases})',
+            '{count} JOIN(s) on {tables} (aliases: {aliases}) are fetched but never accessed in the code. '
+            . 'The query transfers and hydrates rows that nobody reads.',
             [
                 'count' => $joinCount,
                 'tables' => implode(', ', $tables),
@@ -266,16 +261,9 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
             ],
         );
 
-        $description .= "\n\nThese JOINs load data into memory but the joined entities are never accessed in your code.";
-        $description .= "\nThis wastes:";
-        $description .= "\n- Memory (loading unused entities)";
-        $description .= "\n- Bandwidth (transferring unused data)";
-        $description .= "\n- CPU (hydrating unused objects)";
-        $description .= "\n- Time (larger result sets to process)";
-
         return new IssueData(
             type: self::ISSUE_TYPE,
-            title: "Unused Eager Load: {$joinCount} JOIN(s) Never Accessed",
+            title: "Unused Eager Load: {$joinCount} JOIN(s) never accessed",
             description: $description,
             severity: $this->calculateSeverity($joinCount),
             suggestion: $this->createSuggestion($unusedJoins),

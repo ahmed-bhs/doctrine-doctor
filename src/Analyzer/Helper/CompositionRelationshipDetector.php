@@ -230,6 +230,7 @@ final class CompositionRelationshipDetector
 
         // Check table unique constraints
         $table = $metadata->table ?? [];
+        /** @var array<array-key, array<string, mixed>> $uniqueConstraints ORM 3.8 types them as an alias PHPStan cannot resolve here */
         $uniqueConstraints = $table['uniqueConstraints'] ?? [];
 
         foreach ($uniqueConstraints as $constraint) {
@@ -241,6 +242,7 @@ final class CompositionRelationshipDetector
         }
 
         // Check for unique index on single FK column
+        /** @var array<array-key, array<string, mixed>> $indexes */
         $indexes = $table['indexes'] ?? [];
         foreach ($indexes as $index) {
             $columns = $index['columns'] ?? [];

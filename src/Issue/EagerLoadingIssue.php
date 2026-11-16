@@ -22,9 +22,8 @@ class EagerLoadingIssue extends AbstractIssue
             'type'        => IssueType::EAGER_LOADING,
             'title'       => 'Excessive Eager Loading Detected',
             'description' => sprintf(
-                'Query has %d JOINs, potentially indicating excessive eager loading. Review the query: "%s"',
+                'The query has %d JOINs. Each joined collection multiplies the rows returned, which can turn into a cartesian product.',
                 $data['join_count'] ?? 0,
-                $data['query'] ?? 'N/A',
             ),
             'severity' => $data['severity'] ?? 'warning',
         ], $data));
