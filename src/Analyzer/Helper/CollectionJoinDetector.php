@@ -95,7 +95,10 @@ class CollectionJoinDetector
             $leftIsPK = in_array($leftCol, $fromPKs, true);
             $rightIsPK = in_array($rightCol, $joinPKs, true);
 
-            if ($leftIsPK && !$rightIsPK) {
+            if ($leftIsPK && !$rightIsPK && $this->isOneToOneJoinColumn($joinMetadata, (string) $rightCol)) {
+                // The foreign key of a OneToOne: at most one row per parent, nothing multiplies.
+                ++$notCollectionVotes;
+            } elseif ($leftIsPK && !$rightIsPK) {
                 ++$collectionVotes;
             } elseif (!$leftIsPK && $rightIsPK) {
                 ++$notCollectionVotes;
@@ -115,6 +118,21 @@ class CollectionJoinDetector
         }
 
         return $this->canBeCollection($joinTable, $metadataMap);
+    }
+
+    private function isOneToOneJoinColumn(ClassMetadata $metadata, string $column): bool
+    {
+        foreach ($metadata->getAssociationMappings() as $field => $mapping) {
+            if (ClassMetadata::ONE_TO_ONE !== $mapping->type() || !$metadata->isAssociationWithSingleJoinColumn($field)) {
+                continue;
+            }
+
+            if (strtolower($metadata->getSingleAssociationJoinColumnName($field)) === strtolower($column)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
