@@ -138,9 +138,19 @@ class CollectionJoinDetector
             return false;
         }
 
-        $constraints = array_merge($metadata->table['uniqueConstraints'] ?? [], array_filter($metadata->table['indexes'] ?? [], static fn (array $index): bool => true === ($index['unique'] ?? false)));
-        foreach ($constraints as $constraint) {
-            $columns = array_map(strtolower(...), $constraint['columns'] ?? []);
+        // ORM 2 and 3.x describe indexes as arrays, newer versions as mapping objects.
+        $constraints = [];
+        foreach ($metadata->table['uniqueConstraints'] ?? [] as $constraint) {
+            $constraints[] = MappingHelper::getArray($constraint, 'columns') ?? [];
+        }
+        foreach ($metadata->table['indexes'] ?? [] as $index) {
+            if (true === MappingHelper::getBool($index, 'unique')) {
+                $constraints[] = MappingHelper::getArray($index, 'columns') ?? [];
+            }
+        }
+
+        foreach ($constraints as $constraintColumns) {
+            $columns = array_map(static fn (mixed $column): string => strtolower((string) $column), $constraintColumns);
             if (!\in_array(strtolower($foreignKey), $columns, true)) {
                 continue;
             }
