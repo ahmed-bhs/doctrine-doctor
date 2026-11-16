@@ -19,6 +19,10 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\Command\AnalyzeCommand;
 use AhmedBhs\DoctrineDoctor\Issue\ConfigurationIssue;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
+use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -165,5 +169,37 @@ final class AnalyzeCommandTest extends TestCase
         $commandTester->execute(['--fail-on' => 'never', '--show-suggestion' => $matches[1]]);
 
         self::assertStringContainsString('does not provide a suggestion', $commandTester->getDisplay());
+    }
+
+    #[Test]
+    public function it_prints_a_suggestion_description_once(): void
+    {
+        $analyzer = new class() implements StaticAnalyzerInterface {
+            public function analyze(QueryDataCollection $queryDataCollection): IssueCollection
+            {
+                $issue = new ConfigurationIssue([
+                    'type' => 'ci_warning',
+                    'title' => 'Configuration warning',
+                    'description' => 'Something to change.',
+                    'severity' => 'warning',
+                    'queries' => [],
+                ]);
+                $issue->setSuggestion(PlatformAnalyzerTestHelper::createSuggestionFactory()->createFromTemplate(
+                    'Integrity/code_suggestion',
+                    ['title' => 'Change it', 'description' => 'Pass every value as a parameter.', 'code' => '$a = 1;'],
+                    new SuggestionMetadata(type: SuggestionType::integrity(), severity: Severity::warning(), title: 'Change it'),
+                ));
+
+                return IssueCollection::fromArray([$issue]);
+            }
+        };
+        $commandTester = new CommandTester(new AnalyzeCommand([$analyzer], new IssueDeduplicator()));
+        $commandTester->execute(['--fail-on' => 'never']);
+        self::assertSame(1, preg_match('/--show-suggestion=([a-f0-9]{10})/', $commandTester->getDisplay(), $matches));
+
+        $commandTester->execute(['--fail-on' => 'never', '--show-suggestion' => $matches[1]]);
+
+        self::assertSame(1, substr_count($commandTester->getDisplay(), 'Pass every value as a parameter.'));
+        self::assertStringContainsString('$a = 1;', $commandTester->getDisplay());
     }
 }
