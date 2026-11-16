@@ -98,6 +98,9 @@ class CollectionJoinDetector
             if ($leftIsPK && !$rightIsPK && $this->isOneToOneJoinColumn($joinMetadata, (string) $rightCol)) {
                 // The foreign key of a OneToOne: at most one row per parent, nothing multiplies.
                 ++$notCollectionVotes;
+            } elseif ($leftIsPK && !$rightIsPK && $this->isPinnedToOneRow($sql, $rightParts[0] ?? '', $joinMetadata, (string) $rightCol)) {
+                // A translation filtered on its locale: (translatable_id, locale) is unique, one row per parent.
+                ++$notCollectionVotes;
             } elseif ($leftIsPK && !$rightIsPK) {
                 ++$collectionVotes;
             } elseif (!$leftIsPK && $rightIsPK) {
@@ -118,6 +121,36 @@ class CollectionJoinDetector
         }
 
         return $this->canBeCollection($joinTable, $metadataMap);
+    }
+
+    /**
+     * The other columns of a unique constraint containing the foreign key are each compared to one value.
+     */
+    private function isPinnedToOneRow(string $sql, string $alias, ClassMetadata $metadata, string $foreignKey): bool
+    {
+        if ('' === $alias) {
+            return false;
+        }
+
+        preg_match_all('/\\b' . preg_quote($alias, '/') . '\\.(\\w+)\\s*=\\s*(?:\\?|:\\w+|\'[^\']*\'|\\d+)/i', $sql, $matches);
+        $pinned = array_map(strtolower(...), $matches[1]);
+        if ([] === $pinned) {
+            return false;
+        }
+
+        $constraints = array_merge($metadata->table['uniqueConstraints'] ?? [], array_filter($metadata->table['indexes'] ?? [], static fn (array $index): bool => true === ($index['unique'] ?? false)));
+        foreach ($constraints as $constraint) {
+            $columns = array_map(strtolower(...), $constraint['columns'] ?? []);
+            if (!\in_array(strtolower($foreignKey), $columns, true)) {
+                continue;
+            }
+
+            if ([] === array_diff($columns, [strtolower($foreignKey)], $pinned)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function isOneToOneJoinColumn(ClassMetadata $metadata, string $column): bool
