@@ -177,7 +177,8 @@ final class SQLInjectionInRawQueriesAnalyzerTest extends TestCase
         $suggestion = $issue->getSuggestion();
 
         self::assertNotNull($suggestion, 'Should provide suggestion');
-        self::assertStringContainsString('parameterized', strtolower($suggestion->getDescription()));
+        self::assertStringContainsString('as a parameter', strtolower($suggestion->getDescription()));
+        self::assertStringNotContainsString('VULNERABLE', $suggestion->getCode());
     }
 
     #[Test]

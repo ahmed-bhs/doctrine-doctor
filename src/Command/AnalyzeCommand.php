@@ -344,10 +344,22 @@ class AnalyzeCommand extends Command
 
     private function formatSuggestionCode(string $code): string
     {
-        $code = preg_replace('/<\\/(p|div|h[1-6]|li)>/i', "\n", $code) ?? $code;
-        $code = html_entity_decode(strip_tags($code), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Code blocks keep their indentation; the prose around them loses the template's.
+        $parts = preg_split('/(<pre\b.*?<\/pre>)/is', $code, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [$code];
+        $text = '';
+        foreach ($parts as $part) {
+            $isCode = 1 === preg_match('/^<pre\b/i', $part);
+            if (!$isCode) {
+                $part = preg_replace('/<\/(p|div|h[1-6]|li)>/i', "\n", $part) ?? $part;
+            }
+            $part = html_entity_decode(strip_tags($part), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            if (!$isCode) {
+                $part = implode("\n", array_map(trim(...), explode("\n", $part)));
+            }
+            $text .= $isCode ? "\n" . trim($part, "\n") . "\n" : $part;
+        }
 
-        return trim(preg_replace('/\n{3,}/', "\n\n", $code) ?? $code);
+        return trim(preg_replace('/\n{3,}/', "\n\n", $text) ?? $text);
     }
 
     /**

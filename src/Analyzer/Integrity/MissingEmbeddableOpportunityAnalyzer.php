@@ -208,10 +208,11 @@ class MissingEmbeddableOpportunityAnalyzer implements MetadataAnalyzerInterface
         $fieldsList = implode(', ', array_map(fn (string $field): string => '$' . $field, $fields));
 
         $description = sprintf(
-            'Entity %s has properties (%s) that together form a %s value. ' .
+            'Entity %s has properties (%s) that together form %s %s value. ' .
             'Kept as separate scalars, their validation and behavior are repeated wherever they are used.',
             $shortClassName,
             $fieldsList,
+            1 === preg_match('/^[AEIOU]/i', $embeddableName) ? 'an' : 'a',
             $embeddableName,
         );
 

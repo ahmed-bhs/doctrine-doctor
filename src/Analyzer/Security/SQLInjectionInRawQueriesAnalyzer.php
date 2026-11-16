@@ -265,18 +265,17 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
      */
     private function createRuntimeQuerySuggestion(string $sql): SuggestionInterface
     {
-        $code = "// VULNERABLE - Query without parameters:\n";
-        $code .= "// \$connection->executeQuery('{$sql}');\n\n";
-        $code .= "// SECURE - Use prepared statements:\n";
-        $code .= "\$sql = 'SELECT * FROM table WHERE column = :value';\n";
-        $code .= "\$result = \$connection->executeQuery(\$sql, ['value' => \$userInput]);\n";
+        $code = "// Before\n\$connection->executeQuery('{$sql}');\n\n";
+        $code .= "// After: the value is bound, never written into the SQL\n";
+        $code .= "\$result = \$connection->executeQuery('SELECT * FROM table WHERE column = :value', ['value' => \$userInput]);\n";
 
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Integrity/code_suggestion',
             context: [
-                'description' => 'Use parameterized queries with bound parameters',
+                'title' => 'Bind the values as parameters',
+                'description' => 'Pass every value as a parameter: a parameter is never read as SQL.',
                 'code' => $code,
-                'file_path' => 'Runtime Query',
+                'file_path' => '',
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),
@@ -512,68 +511,32 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     ): SuggestionInterface {
         $shortClassName = $this->shortClassName($className);
 
-        $code = "// In {$shortClassName}::{$methodName}():
+        $code = <<<PHP
+            use Doctrine\\DBAL\\ArrayParameterType;
 
-";
-        $code .= "// VULNERABLE - String concatenation:
-";
-        $code .= "// \$sql = \"SELECT * FROM users WHERE username = '\" . \$username . \"'\";
-";
-        $code .= "// \$sql = \"SELECT * FROM users WHERE id = \" . (int)\$id; // Safe for ids only: parameters cover every type
-";
-        $code .= "// \$sql = \"SELECT * FROM users WHERE username = '\$username'\"; // Interpolation
-";
-        $code .= "// \$connection->executeQuery(\$sql); // SQL injection
+            // In {$shortClassName}::{$methodName}()
+            // Before: the value becomes part of the SQL
+            \$rows = \$connection->fetchAllAssociative("SELECT * FROM orders WHERE status = '" . \$status . "'");
 
-";
+            // After: the SQL and the value travel separately, the value can never become SQL
+            \$rows = \$connection->fetchAllAssociative(
+                'SELECT * FROM orders WHERE status = :status',
+                ['status' => \$status],
+            );
 
-        $code .= "//  SECURE - Parameterized query:
-
-";
-        $code .= "// Using Doctrine Connection
-";
-        $code .= "\$sql = 'SELECT * FROM users WHERE username = :username';
-";
-        $code .= "\$result = \$connection->executeQuery(\$sql, [
-";
-        $code .= "    'username' => \$username // Parameter is properly escaped
-";
-        $code .= "]);
-
-";
-
-        $code .= "// Multiple parameters
-";
-        $code .= "\$sql = 'SELECT * FROM orders WHERE user_id = :userId AND status = :status';
-";
-        $code .= "\$result = \$connection->executeQuery(\$sql, [
-";
-        $code .= "    'userId' => \$userId,
-";
-        $code .= "    'status' => \$status
-";
-        $code .= "]);
-
-";
-
-        $code .= "// Using Query Builder (even safer)
-";
-        $code .= "\$qb = \$connection->createQueryBuilder();
-";
-        $code .= "\$result = \$qb->select('*')
-";
-        $code .= "    ->from('users')
-";
-        $code .= "    ->where('username = :username')
-";
-        $code .= "    ->setParameter('username', \$username)
-";
-        $code .= '    ->executeQuery();';
+            // A list of values
+            \$rows = \$connection->fetchAllAssociative(
+                'SELECT * FROM orders WHERE id IN (:ids)',
+                ['ids' => \$ids],
+                ['ids' => ArrayParameterType::INTEGER],
+            );
+            PHP;
 
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Integrity/code_suggestion',
             context: [
-                'description' => 'Use parameterized queries with bound parameters',
+                'title' => 'Bind the values as parameters',
+                'description' => 'Pass every value as a parameter: a parameter is never read as SQL. A table or column name cannot be a parameter: check it against a list of allowed names.',
                 'code' => $code,
                 'file_path' => $this->getFileLocation($reflectionMethod),
             ],
@@ -594,33 +557,22 @@ class SQLInjectionInRawQueriesAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
     ): SuggestionInterface {
         $shortClassName = $this->shortClassName($className);
 
-        $code = "// In {$shortClassName}::{$methodName}():
+        $code = <<<PHP
+            use Doctrine\\DBAL\\ParameterType;
 
-";
-        $code .= "// VULNERABLE:
-";
-        $code .= "// \$sql = \"SELECT * FROM users WHERE id = \" . \$id;
-";
-        $code .= "// \$connection->{$sqlMethod}(\$sql); // No parameters!
+            // In {$shortClassName}::{$methodName}()
+            // Before: no parameter, the value is written into the SQL
+            \$connection->{$sqlMethod}('SELECT * FROM orders WHERE id = ' . \$id);
 
-";
-
-        $code .= "//  SECURE:
-";
-        $code .= "\$sql = 'SELECT * FROM users WHERE id = :id';
-";
-        $code .= "\$connection->{$sqlMethod}(\$sql, ['id' => \$id]); // Parameters bound
-
-";
-
-        $code .= "// Or with explicit types:
-";
-        $code .= sprintf('$connection->%s($sql, [\'id\' => $id], [\'id\' => ' . \PDO::class . '::PARAM_INT]);', $sqlMethod);
+            // After
+            \$connection->{$sqlMethod}('SELECT * FROM orders WHERE id = :id', ['id' => \$id], ['id' => ParameterType::INTEGER]);
+            PHP;
 
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Integrity/code_suggestion',
             context: [
-                'description' => 'Add parameter binding to prevent SQL injection',
+                'title' => 'Bind the values as parameters',
+                'description' => 'Pass the value as a parameter instead of writing it into the SQL.',
                 'code' => $code,
                 'file_path' => $this->getFileLocation($reflectionMethod),
             ],

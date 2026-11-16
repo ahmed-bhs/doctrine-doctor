@@ -18,9 +18,14 @@ use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
+use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
+use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
@@ -58,6 +63,7 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
         private readonly EntityManagerInterface $entityManager,
         private readonly IssueFactoryInterface $issueFactory,
         ?CompositionRelationshipDetector $compositionDetector = null,
+        private readonly ?SuggestionFactoryInterface $suggestionFactory = null,
     ) {
         // Keep detector overrideable in tests while defaulting to concrete implementation.
         $this->compositionDetector = $compositionDetector ?? new CompositionRelationshipDetector($entityManager);
@@ -347,8 +353,46 @@ class CascadeRemoveOnIndependentEntityAnalyzer implements MetadataAnalyzerInterf
             ],
         );
         $codeQualityIssue->setMessage($message);
+        $codeQualityIssue->setSuggestion($this->manyToOneSuggestion($entityClass, $fieldName, $targetEntity));
 
         return $codeQualityIssue;
+    }
+
+    private function manyToOneSuggestion(string $entityClass, string $fieldName, string $targetEntity): ?SuggestionInterface
+    {
+        if (!$this->suggestionFactory instanceof SuggestionFactoryInterface) {
+            return null;
+        }
+
+        $owner = $this->shortClassName($entityClass);
+        $target = $this->shortClassName($targetEntity);
+        $code = <<<PHP
+            // In {$owner}
+            // Before: deleting a {$owner} also deletes the {$target} it points to
+            #[ORM\\ManyToOne(targetEntity: {$target}::class, cascade: ['remove'])]
+            private {$target} \${$fieldName};
+
+            // After: deleting a {$owner} deletes only the {$owner}
+            // and when a {$target} is deleted, the database deletes its {$owner} rows
+            #[ORM\\ManyToOne(targetEntity: {$target}::class)]
+            #[ORM\\JoinColumn(onDelete: 'CASCADE')]
+            private {$target} \${$fieldName};
+            PHP;
+
+        return $this->suggestionFactory->createFromTemplate(
+            templateName: 'Integrity/code_suggestion',
+            context: [
+                'title' => 'Remove cascade remove from the ManyToOne',
+                'description' => sprintf('A cascade follows the relation from %s to %s, the wrong way for a many-to-one: one %s is shared by many %s rows. Cascade from the parent instead, or let the database delete the children with onDelete.', $owner, $target, $target, $owner),
+                'code' => $code,
+            ],
+            suggestionMetadata: new SuggestionMetadata(
+                type: SuggestionType::integrity(),
+                severity: Severity::critical(),
+                title: sprintf('Remove cascade remove from %s::$%s', $owner, $fieldName),
+                tags: ['cascade', 'data-loss'],
+            ),
+        );
     }
 
     private function createHighIssue(
