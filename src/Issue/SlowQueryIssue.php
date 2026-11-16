@@ -41,7 +41,7 @@ class SlowQueryIssue extends AbstractIssue
     #[\Override]
     public function getType(): string
     {
-        return 'Slow Query';
+        return IssueType::SLOW_QUERY->value;
     }
 
     public function getCategory(): IssueCategory

@@ -23,82 +23,30 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<div class="suggestion-header">
-    <h4>OneToOne Inverse Side: <?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></h4>
-</div>
+<?php echo suggestionHeader('Avoid loading the OneToOne inverse side'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <strong><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></strong> is the <strong>inverse side</strong> (mappedBy) of a bidirectional OneToOne with <strong><?php echo $e($targetClass); ?></strong>.
-        Doctrine <strong>cannot lazy-load</strong> this side because the foreign key lives in <code><?php echo $e($targetClass); ?></code>'s table.
-        Every load of <code><?php echo $e($entityClass); ?></code> triggers an extra SELECT, even if <code>$<?php echo $e($fieldName); ?></code> is never accessed.
-    </div>
+    <p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> is the inverse side of a OneToOne; the foreign key lives in the <code><?php echo $e($targetClass); ?></code> table. Doctrine cannot proxy it, so each loaded <code><?php echo $e($entityClass); ?></code> runs one more SELECT, even if the field is never read.</p>
 
-    <h4>Why this happens</h4>
-    <p>Doctrine needs to know whether the related <code><?php echo $e($targetClass); ?></code> exists (or is <code>null</code>) and what its ID is.
-    Since the FK is on <code><?php echo $e($targetClass); ?></code>'s table, it cannot determine this without querying. A proxy cannot be created because Doctrine doesn't even know <em>if</em> the target row exists.</p>
-
-    <h4>Option 1: Move the owning side to <?php echo $e($entityClass); ?></h4>
-    <p>If you load <code><?php echo $e($entityClass); ?></code> more often than <code><?php echo $e($targetClass); ?></code>, flip the owning side:</p>
     <div class="query-item">
-        <pre><code class="language-php">// <?php echo $e($entityClass); ?> becomes the owning side (has the FK)
-class <?php echo $e($entityClass); ?>
+        <pre><code class="language-php">// Before: <?php echo $e($entityClass); ?> holds the inverse side
+#[ORM\OneToOne(mappedBy: '<?php echo $e($mappedBy); ?>', targetEntity: <?php echo $e($targetClass); ?>::class)]
+private ?<?php echo $e($targetClass); ?> $<?php echo $e($fieldName); ?> = null;
 
-{
-    #[ORM\OneToOne(targetEntity: <?php echo $e($targetClass); ?>::class, inversedBy: '<?php echo $e($mappedBy); ?>')]
-    #[ORM\JoinColumn(nullable: false)]
-    private <?php echo $e($targetClass); ?> $<?php echo $e($fieldName); ?>;
-}
-
-// <?php echo $e($targetClass); ?> becomes the inverse side
-class <?php echo $e($targetClass); ?>
-
-{
-    #[ORM\OneToOne(mappedBy: '<?php echo $e($fieldName); ?>', targetEntity: <?php echo $e($entityClass); ?>::class)]
-    private <?php echo $e($entityClass); ?> $<?php echo $e($mappedBy); ?>;
-}
-
-// Then generate a migration to move the FK column</code></pre>
+// After: <?php echo $e($entityClass); ?> owns the foreign key
+#[ORM\OneToOne(targetEntity: <?php echo $e($targetClass); ?>::class, inversedBy: '<?php echo $e($mappedBy); ?>')]
+#[ORM\JoinColumn(nullable: true)]
+private ?<?php echo $e($targetClass); ?> $<?php echo $e($fieldName); ?> = null;</code></pre>
     </div>
 
-    <h4>Option 2: Make the relation unidirectional</h4>
-    <p>If <code><?php echo $e($entityClass); ?></code> doesn't really need to access <code>$<?php echo $e($fieldName); ?></code>, remove the inverse side entirely:</p>
-    <div class="query-item">
-        <pre><code class="language-php">// Keep only the owning side on <?php echo $e($targetClass); ?>
-
-class <?php echo $e($targetClass); ?>
-
-{
-    #[ORM\OneToOne(targetEntity: <?php echo $e($entityClass); ?>::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private <?php echo $e($entityClass); ?> $<?php echo $e($mappedBy); ?>;
-}
-
-// Remove $<?php echo $e($fieldName); ?> from <?php echo $e($entityClass); ?> entirely</code></pre>
-    </div>
-
-    <h4>Option 3: Use a fetch join when loading <?php echo $e($entityClass); ?></h4>
-    <p>If you cannot change the mapping, always use a fetch join to avoid N+1:</p>
-    <div class="query-item">
-        <pre><code class="language-php">$qb = $repository->createQueryBuilder('e')
-    ->leftJoin('e.<?php echo $e($fieldName); ?>', 't')
-    ->addSelect('t')
-    ->getQuery()
-    ->getResult();</code></pre>
-    </div>
+    <p>If the mapping cannot move, drop the inverse field, or fetch-join it: <code>-&gt;leftJoin('e.<?php echo $e($fieldName); ?>', 't')-&gt;addSelect('t')</code>.</p>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/faq.html', 'Doctrine FAQ: OneToOne Inverse Side'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
-        'OneToOne inverse side %s::$%s forces extra queries on every load — consider flipping owning side or making it unidirectional',
-        $entityClass,
-        $fieldName,
-    ),
+    'description' => sprintf('Move the foreign key of the OneToOne %s::$%s to the side that is loaded most', $entityClass, $fieldName),
 ];

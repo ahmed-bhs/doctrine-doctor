@@ -329,26 +329,29 @@ class PropertyTypeMismatchAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = $this->shortClassName($entityClass);
 
         $description = sprintf(
-            "Property %s::\$%s has a type mismatch.\n",
+            'Property %s::$%s is typed %s but the mapping expects %s. '
+            . 'Doctrine can see a change on every flush and issue needless UPDATEs, and values can differ from what the code expects.',
             $shortClassName,
             $fieldName,
+            $actualType,
+            $expectedType,
         );
-        $description .= sprintf("Impact: Expected %s, actual %s.\n", $expectedType, $actualType);
-        $description .= "Impact: Doctrine may detect false changes and issue unnecessary UPDATE queries.\n";
-        $description .= "Impact: Persisted values can diverge from PHP expectations at runtime.";
 
         $suggestion = $this->buildSuggestion($shortClassName, $fieldName, $expectedType, $actualType, $severity);
 
         $issueData = new IssueData(
             type: IssueType::PROPERTY_TYPE_MISMATCH->value,
-            title: sprintf('Type Mismatch: %s::\$%s', $shortClassName, $fieldName),
+            title: sprintf('Type Mismatch: %s::$%s', $shortClassName, $fieldName),
             description: $description,
             severity: $severity,
             suggestion: $suggestion,
             queries: [],
         );
 
-        return $this->issueFactory->create($issueData);
+        return $this->issueFactory->createFromArray($issueData->toArray() + [
+            'entity' => $entityClass,
+            'field' => $fieldName,
+        ]);
     }
 
     private function buildSuggestion(

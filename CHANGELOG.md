@@ -9,6 +9,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `NPlusOneSql` tells an identical query from an N+1: the same SQL with the same parameters, run several times in one
+  request (a Twig function called in a loop, a service called from several templates), is now reported as
+  `Identical Query Repeated`, with the advice to keep the result for the request. An IN (...) cannot replace it.
+- `MissingSoftDeleteFilter` (static): an entity deleted by setting `deletedAt` (or an `isDeleted` flag) while no SQL
+  filter is enabled to hide those rows, so every query that forgets the condition shows deleted records.
+- `EntityManagerUsedAfterFailure` (static): a caught failed `flush()` followed by more work on the same EntityManager,
+  in the catch block or in the next turn of a loop. A failed flush closes the EntityManager.
+- `CollectionCountedInPhp` (static): `count($customer->getOrders())`, `->count()` or `->isEmpty()` on a to-many
+  collection that is not EXTRA_LAZY, which loads the whole collection to return a number.
+- `AggregateInPhp` (static): a method that loads entities and adds up a getter in PHP (`$total += $o->getTotal()` in
+  a loop, `array_sum(array_map(...))`), where `SUM()` returns one row.
+- **Migration analyzers**, active when `doctrine/migrations` is installed:
+  - `MigrationState` (with `--with-database`): migrations that exist but were not executed, or, when every migration
+    has run, a mapping that differs from the database. The finding counts the statements and says when some of them
+    drop a table or a column, so that a migration generated from the diff would delete data.
+  - `RiskyMigration` (static): a migration whose `up()` drops a table or a column, that changes the schema without a
+    `down()`, or that uses the ORM (repositories, `persist()`, `flush()`…).
+- `FilteredFetchJoin` (critical, profiler): a to-many collection fetch-joined and filtered in WHERE, such as
+  `->select('p', 'productTaxon')->innerJoin('p.productTaxons', 'productTaxon')->andWhere('productTaxon.taxon = :c')`.
+  Doctrine hydrates the collection with the matching rows only and keeps it incomplete for the rest of the request.
+  Grouped queries and translations joined for one locale are left out.
+- **Three analyzers that read the application code** (`analysis.source_dirs`, `src` by default) next to the mapping:
+  - `EntityManagerInService` (info): an application class receives the EntityManager in its constructor, so its
+    logic depends on Doctrine. Repositories, Doctrine listeners and classes whose namespace contains one of
+    `excluded_namespaces` (`Repository`, `Infrastructure`, `Persistence`, `Doctrine`, `DataFixtures`, `Migrations`…)
+    are left out. The finding names the repositories the class reaches through `getRepository()`.
+  - `UnusedInverseSide` (info): the inverse side of a to-many association is never read outside its entity (no
+    getter, adder or remover call, no DQL path, no criteria key). The suggestion keeps only the owning side and shows
+    the arbitrary DQL join that works without it.
+  - `CollectionFilteredInPhp` (warning): `$entity->getItems()->filter(...)` loads the whole collection to keep some
+    elements, where `matching()` with a Criteria filters in SQL. The methods are configurable (`methods: [filter]`).
+- `FlushInEventListener` also checks entity listeners (`#[AsEntityListener]`, `#[ORM\EntityListeners]`) and listeners or
+  subscribers of the event manager (`#[AsDoctrineListener]`), not only lifecycle callbacks of the entity. A `flush()` in
+  `postFlush` gets its own message: Doctrine dispatches `postFlush` before it clears the unit of work, so the nested
+  flush replays the collection deletions of the previous one and many-to-many links cleared then added again are lost.
+- **`doctrine:doctor:analyze` reports findings like PHPStan.** Findings are grouped by file and sorted by line: the location comes from the class, field or method the analyzer reports (fully qualified or short class names, or the issue title as a last resort) or from the first application frame of the backtrace, relative to the project directory. Each row shows the severity, the title, the first sentences of the description and the finding ID; `--show-suggestion=<id>` still prints the fix.
+- **Baselines for existing projects.** `--generate-baseline[=file]` writes every current finding to `doctrine-doctor-baseline.json`; `--baseline=file` ignores them, reports how many were ignored, and notes baseline entries that no longer match. The command then fails only on new findings.
+- **`--error-format=table|github|json`.** `github` prints workflow annotations with file and line; `table` prints them too when `GITHUB_ACTIONS=true`, so findings show up on the pull request diff. `json` prints totals and findings with their location.
+
 - **Analysis no longer blocks the profiled request outside php-fpm.** Analysis ran in `collect()` whenever `fastcgi_finish_request()` was missing, so on Apache mod_php, FrankenPHP worker mode, RoadRunner or Swoole every request waited for it: a datatable request with 149 queries passed `max_execution_time` (30 s) under Xdebug. The new `profiler.analysis_timing` option (`auto`, `request`, `after_response`, `on_view`) adds an `on_view` mode, used by `auto` outside php-fpm and the CLI: the request only stores its queries, and the analysis runs when the profile is opened in the web debug toolbar, which loads asynchronously after the page, or in the profiler. Results go to `%kernel.cache_dir%/doctrine_doctor/analysis`: a profile loaded from the storage cannot be serialized again (Symfony's `FormDataCollector::__serialize()` assumes live data), so stored profiles are never rewritten. Verified on Apache mod_php with Xdebug: the profile is pending after the request and analyzed when `_wdt` loads.
 - **`doctrine:doctor:analyze-profile <token>...` runs a pending analysis from the CLI.** The AI Mate tools read profiles without the application, so `doctrine-doctor-issues` now reads stored results and runs this command for profiles that were never opened; the profiler formatter reports `analysis_pending` with a hint instead of an empty issue list.
 - **`enabled` accepts an env var as a runtime switch.** `enabled: '%env(bool:DOCTRINE_DOCTOR_ENABLED)%'` keeps the services registered and reads the value on every request, so the bundle can be turned on and off without `cache:clear`.
@@ -20,6 +59,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Platform tests against real MySQL and PostgreSQL servers.** The platform-specific Configuration analyzers and `OverprivilegedDatabaseUserAnalyzer` only ran against mocks or SQLite, and the MySQL/PostgreSQL connection helpers in `PlatformAnalyzerTestHelper` were unused. `tests/Integration/Platform` now runs every one of them on both servers, and checks their detections against conditions the tests set up themselves (a MyISAM table, a `utf8mb3` table, a table collation, the session `sql_mode`, `statement_timeout` and `idle_in_transaction_session_timeout`). The tests are skipped when no server is reachable; a new `Platform Tests` CI job provides MySQL 8.4 and PostgreSQL 16 and fails if they are skipped. They were run locally against MariaDB 10.11 and PostgreSQL 16.
 
 ### Changed
+
+- The table report shows each finding like PHPStan: the type after 🪪 (the identifier to search for or to disable),
+  and the fix after 💡 with the `--show-suggestion` option that prints it in full.
+- **Findings and suggestions are short and plain.** Each suggestion shows an imperative header, one or two sentences built from the measured facts, one Before/After code block, at most one alternative and the documentation link (the templates went from 8,319 to about 5,200 lines). Descriptions are one fact sentence and one consequence. Emoji, BAD/GOOD banners, invented percentages and inflated wording are gone, and examples that used APIs removed from ORM 3 (`PARTIAL`, `useResultCache()`) were rewritten. The rules live in `docs/rules/messages.md`; `MessageStyleTest` rejects emoji and templates over 90 lines. Titles lost their severity words (for example `Dangerous cascade="all" Detected` is now `cascade="all" on Association`), so finding IDs from earlier versions change: regenerate baselines after upgrading.
+
+- **Finding IDs no longer depend on the description.** They hash the type, the title and the location anchor (class, field, method or file). Descriptions can quote values that differ between a laptop and CI, such as a database user, which made the same finding look new in CI.
 
 - **`DoctrineDoctorDataCollector` takes an `AnalysisTiming` instead of `$deferAnalysisToLateCollect`.** The bool covered two of the four timings; pass `AnalysisTiming::AfterResponse` for `true` and `AnalysisTiming::Request` for `false`. The bundle wires the collector itself, so only code constructing it by hand is affected.
 - **`BulkOperationAnalyzer` and `DTOHydrationAnalyzer` suggestions offer DBAL where it fits.** `BulkOperationAnalyzer` told users to replace repeated `UPDATE`/`DELETE` statements with a bulk operation, but its template only showed `flush()` and `clear()`, which still sends one statement per entity. The suggestion now leads with one set-based statement matching the detected kind, in DQL or through `Connection::executeStatement()`, states what it bypasses (callbacks, listeners, cascades, stale loaded entities), and keeps flush and clear in batches as the ORM option. Its title no longer speaks of a memory leak. The DTO hydration suggestion adds plain rows through `fetchAllAssociative()` for reports that only read values.
@@ -38,6 +83,112 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `MigrationState` names what the diff would delete (`table legacy_newsletter, app_wishlist.added_at`) instead of
+  quoting the SQL, so that the CLI report, which shortens messages, shows all of it.
+- `MigrationState` said "3 of which drop a table or a column" and named only two of them. Every destructive statement
+  is now named (up to five).
+- A baseline entry now also matches a finding by title and file, so renaming a finding type no longer brings it back
+  as new. Several types were labels (`Find All`, `Flush In Loop`, `Lazy Loading`, `Slow Query`, `Configuration`,
+  `Missing Transaction on Batch`): they are now identifiers (`find_all`, `flush_in_loop`…), like the others, without
+  breaking existing baselines.
+- Database configuration findings printed `🪪  Database Config` in the report, a label instead of an identifier like
+  every other finding. They now print `🪪  database_configuration`.
+- `CascadeAll` warned about `cascade: ['all']` on a OneToMany or OneToOne with `orphanRemoval: true` (a country and
+  its provinces). That is the composition Doctrine documents for cascades: removing the owner must remove them. Those
+  associations are no longer reported.
+- `OrderByNullableLeadingColumn` still reported a nullable sort column when the WHERE clause already excludes NULL
+  (`col IS NOT NULL`, `col > ?`, `BETWEEN`, `IN`), which is the fix it suggests.
+- `--show-suggestion=ID` printed the whole report before the requested suggestion, and could not find an ID kept in
+  the baseline when `--baseline` was given. It now prints the suggestion alone, whatever the baseline.
+- `ForeignKeyMapping` missed an id stored as an integer when the field names a role before the entity
+  (`defaultProductId`, `mainCustomerId`): it now also matches the entity that ends the field name.
+- A foreign key column without the `_id` suffix (`tree_root`, `country_code`) was reported as critical. It is a naming
+  convention, nothing breaks: it is now an info.
+- `doctrine:doctor:analyze`: a finding without a suggestion printed an empty `💡 --show-suggestion=…` line. It now
+  reads `💡 Details: --show-suggestion=…`, and the STI finding has its own suggestion (a CHECK constraint on the
+  discriminator).
+- `InsecureRandom` findings had no file nor line in the report: they now point to the method.
+- `InnoDBEngine` said "1 tables": a single table is now named in the title.
+- `JoinOptimization` looked for the NOT NULL foreign key in the joined table: a LEFT JOIN to the inverse side of an
+  optional OneToOne (a user and their avatar) was reported as critical, and following the advice drops the rows
+  without a match. It now checks the key held by the other table, and leaves alone a join that starts from a table
+  itself reached by a LEFT JOIN, where an INNER JOIN would cancel the first one.
+- `OrderByWithoutLimit` reported the ORDER BY of fetch-joined collections (`#[OrderBy]` on variants, images…) as a
+  sort of the results, and advised removing it or adding a LIMIT, which breaks the collections. A sort that only uses
+  joined tables is now left out.
+- `NamingConvention` skipped a reserved table name matching its entity (`Order` in `order`) and said that Doctrine
+  quotes identifiers. Doctrine quotes them in the schema it creates, but not in the SQL of DQL queries, which fail
+  with a syntax error. Reserved names are now warnings, read from the database platform's keyword list (`USER` is
+  reserved on PostgreSQL, not on MySQL), and names quoted in the mapping are left out.
+- `MissingEmbeddableOpportunity` suggested an `Address` value object to the `Address` entity itself, and reported a
+  single field (`$email`) as properties that "together form" a value. It now needs at least two fields of the
+  pattern, and skips the entity named after the value.
+- `SingleTableInheritanceNullableColumn` reported, as critical, that inserting a sibling fails when a subclass field
+  is not nullable. Doctrine's schema tool creates every column of a single-table subclass as nullable, so no insert
+  fails. The finding is now an info that says what really happens: the database does not enforce the field, only the
+  PHP code does, and a CHECK constraint or Class Table Inheritance keeps the rule in the database.
+- `EntityStateConsistency` reported every required ManyToOne or OneToOne without `cascade: ['persist']`, which is
+  the normal mapping of an association to an entity that lives on its own (43 warnings on a Sylius shop), and implied
+  adding a cascade. It now reads the application code (`analysis.source_dirs`) and reports only a new entity attached
+  inline to such an association, `->setCustomer(new Customer())` or `$this->customer = new Customer()`, which cannot
+  have been persisted and makes `flush()` fail. The finding gives the file and the line.
+- The `DQLInjection` message said "no bound parameter" for queries that bind other values, and quoted the start of
+  the SELECT. It now quotes the concatenated comparisons, such as `s1_.name LIKE '%lin%'`.
+- `SensitiveDataExposure` said that the serializer includes any sensitive field without `#[Ignore]`. When Symfony's
+  serializer is installed, it now reads its mapping (attributes, XML or YAML, parent classes included): a field
+  ignored there, or left out of every group while the other fields have groups, is not reported, and a field in
+  groups is reported with the groups that serialize it. The message says what is missing instead of asserting a leak.
+- `DQLInjection` missed a value concatenated into a Doctrine query when the query also had a bound parameter, or
+  when the value was compared with `LIKE`: `locale = :locale AND name LIKE '%" . $terms . "%'` was only reported
+  once someone typed an attack. It is now reported on any search. A literal written in a library that built the query
+  (a shop framework, for example) counts as a constant of the code, like one written in the application.
+- N+1 caused by the inverse side of a OneToOne (loaded with each entity because Doctrine cannot make it lazy) was
+  reported as a lazy-loaded collection, and two of them on one entity as a cartesian product risk. It is now titled
+  `(inverse OneToOne)`, with the OneToOne suggestion, and no longer counts as a collection. On Doctrine ORM 3, the
+  collection behind an N+1 is resolved again from the mapping, so the suggestion names it.
+- `ColumnType` suggested native enums for open lists (currency, country, language and locale codes, MIME types,
+  fields ending in `Code`) and for columns holding a single value, and reported the same field again for each mapped
+  superclass of the hierarchy. On a Sylius shop, enum suggestions went from 38 to 8, all distinct (#106).
+- `DQLInjection` reported a constant of the code, such as `->where("o.state = 'completed'")`, as a DQL built by
+  string concatenation. A literal that is written as is in the application file that ran the query is no longer
+  reported; a literal that comes from elsewhere still is.
+- `ManyToManyWithExtraColumns` findings name the entity and the field (`Join Table With Extra Columns:
+  Customer::$wishlist`), so the report shows their file and line. They were listed without a location.
+- `SQLInjectionInRawQueries` (static half) also reads the application code (`analysis.source_dirs`), knows the DBAL
+  `fetch*()` and `iterate*()` methods, and sees SQL concatenated straight in the call
+  (`$connection->fetchAllAssociative("… '" . $action . "'")`). Its findings name the class and method, so the report
+  shows their file and line.
+- A LIKE with a leading wildcard is no longer merged into a "function wraps the predicate column" finding on the same
+  query: both causes are reported.
+- `DivisionByZero` reads `COUNT(...)` and `SUM(...)` divisors whole, and reports them only when the dividend is not an
+  aggregate (`SUM(x) / COUNT(*)` is NULL, not an error, when no row matches).
+- `CascadeRemoveOnIndependentEntity` named every relation "ManyToMany"; it now names OneToMany and OneToOne relations
+  as such.
+- Per-entity grouping of findings (type mismatches, float for money, uninitialized collections…) took the entity
+  from a word of the description when the issue did not name it: "on every flush" grouped every
+  `PropertyTypeMismatch` finding under "every", so only one was reported and which one depended on the metadata load
+  order. The class named in the issue data, then in the title, is used first. `PropertyTypeMismatch` now names the
+  entity and the field, and its titles no longer contain a literal `\$`. Projects will see the findings that were
+  hidden: regenerate the baseline.
+- `NullComparison` also reports `col = ?` when the bound parameter is NULL, as Doctrine produces for
+  `->andWhere('s.shippedAt = :value')->setParameter('value', null)`. Only `= NULL` written in the SQL was seen.
+- Aggregates next to a join are judged one by one. `SUM(o.total)` with orders joined to their customer is no longer
+  reported (each order appears once), and `SUM(o.total)` next to a `COUNT(DISTINCT o.id)` is reported when a join with
+  the order lines repeats the orders: a DISTINCT elsewhere in the SELECT no longer marks the whole query as safe. The
+  message names the aggregate, its table and the table that repeats its rows.
+- `SetMaxResultsWithCollectionJoin` stayed silent on the most common case: a translation joined on `locale` (or any
+  join with an extra `AND x.y = ?`) silenced the warning for every other join of the query. Each fetch-joined table
+  is now checked on its own; a filtered join counts as one row only when its columns cover the primary key or a
+  unique constraint of a mapped table. A grouped query (`GROUP BY`) is no longer reported: its LIMIT counts groups.
+- A LIMIT on a fetch-joined collection is no longer merged into a performance finding on the same query: it returns
+  wrong results and is always reported on its own.
+- `EntityManagerInService` said a class "only uses" the EntityManager to reach repositories even when it also built
+  queries with it. The message now lists the methods actually called on the EntityManager.
+- A finding that gives an explicit file and line (such as `CollectionFilteredInPhp`) could be located at the start of
+  the class named in its title instead, depending on the classes PHP had already loaded. The explicit line now wins.
+- Mapping findings that share a title and a field name (for example `adjustments` on `Order`, `OrderItem`
+  and `Shipment`) were merged into one, and the one kept depended on the metadata load order. The same
+  project could report different findings locally and in CI, which broke baselines. They are now kept apart.
 - **The pending-analysis listener no longer builds services before authentication.** `kernel.request` listeners are instantiated before the firewall runs, and `PendingAnalysisSubscriber` (2.12.0) pulled in the profiler, every data collector and Twig with its globals. An application Twig global reading the user in its constructor then saw `null` and failed (`Call to a member function getOrganisation() on null`). The subscriber now receives its analyzer as a service closure, built only for `_wdt` and `_profiler` requests.
 - **Each analyzer no longer parses the same SQL again.** About forty call sites ran `new Parser($sql)` on every query, so a request with 149 queries spent 15.8 s in the runtime analysis. A shared, bounded `SqlParserCache` parses each distinct statement once: 0.48 s on the same queries, with identical findings.
 - **The static SQL caches are bounded.** `SqlNormalizationCache` and `CachedSqlStructureExtractor` grew for the lifetime of the process, which leaks in worker runtimes. Each cache now keeps at most 2,000 entries (FIFO).

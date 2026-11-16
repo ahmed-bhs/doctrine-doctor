@@ -186,10 +186,8 @@ class FloatInMoneyEmbeddableAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = substr($className, false !== $lastBackslashPos ? $lastBackslashPos + 1 : 0);
 
         $description = sprintf(
-            'Money Embeddable %s::$%s uses float/double type.' . "\n" .
-            'Impact: Floating-point arithmetic is imprecise for financial amounts.' . "\n" .
-            'Impact: Rounding drift can cause inconsistent totals and reconciliation gaps.' . "\n" .
-            'Impact: Errors propagate across aggregates, taxes, and reports.',
+            'Money Embeddable %s::$%s uses float/double type. ' .
+            'Floating point cannot represent most cents exactly, so totals, taxes and reports drift.',
             $shortClassName,
             $fieldName,
         );

@@ -122,7 +122,8 @@ class MissingEmbeddableOpportunityAnalyzer implements MetadataAnalyzerInterface
                     foreach (self::EMBEDDABLE_PATTERNS as $embeddableName => $pattern) {
                         $matchedFields = $this->findMatchingFields($fieldLowerMap, $pattern);
 
-                        if ([] !== $matchedFields) {
+                        // A value object groups several fields; an entity named after the concept already is it.
+                        if (\count($matchedFields) >= 2 && !$this->namedAfter($classMetadatum, $embeddableName)) {
                             $matchesByPattern[$embeddableName][] = [
                                 'metadata' => $classMetadatum,
                                 'fields' => $matchedFields,
@@ -146,6 +147,14 @@ class MissingEmbeddableOpportunityAnalyzer implements MetadataAnalyzerInterface
                 }
             },
         );
+    }
+
+    /**
+     * @param ClassMetadata<object> $classMetadata
+     */
+    private function namedAfter(ClassMetadata $classMetadata, string $embeddableName): bool
+    {
+        return 0 === strcasecmp($classMetadata->getReflectionClass()->getShortName(), $embeddableName);
     }
 
     /**
@@ -199,10 +208,8 @@ class MissingEmbeddableOpportunityAnalyzer implements MetadataAnalyzerInterface
         $fieldsList = implode(', ', array_map(fn (string $field): string => '$' . $field, $fields));
 
         $description = sprintf(
-            'Entity %s has properties (%s) that should be refactored into a %s Embeddable. ' .
-            'Embeddables provide better cohesion by grouping related properties into Value Objects ' .
-            'without creating separate entities (no identity, no extra joins). ' .
-            'This improves Domain-Driven Design, code reusability, and type safety.',
+            'Entity %s has properties (%s) that together form a %s value. ' .
+            'Kept as separate scalars, their validation and behavior are repeated wherever they are used.',
             $shortClassName,
             $fieldsList,
             $embeddableName,

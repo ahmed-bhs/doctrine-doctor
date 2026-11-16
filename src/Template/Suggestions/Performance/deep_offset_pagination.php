@@ -11,77 +11,38 @@ $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Deep OFFSET pagination'); ?>
-
+<?php echo suggestionHeader('Paginate with a cursor, not an OFFSET'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        OFFSET <?= (int) $offset ?> forces the database to read and discard <?= (int) $offset ?> rows before returning a single row.
-        The deeper the page, the slower the query.
-    </div>
-
-    <h4>Original query</h4>
-    <div class="query-item">
-        <pre><code class="language-sql"><?= $e((string) $originalQuery) ?></code></pre>
-    </div>
-
-    <h4>Solution: keyset (seek) pagination</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Before: OFFSET grows costly with page depth
-$qb-&gt;select('u')
-   -&gt;from(User::class, 'u')
-   -&gt;orderBy('u.id', 'ASC')
-   -&gt;setFirstResult(<?= (int) $offset ?>)
-   -&gt;setMaxResults(20);
-
-// After: keyset pagination using last seen id
-$qb-&gt;select('u')
-   -&gt;from(User::class, 'u')
-   -&gt;where('u.id &gt; :lastId')
-   -&gt;setParameter('lastId', $lastSeenId)
-   -&gt;orderBy('u.id', 'ASC')
-   -&gt;setMaxResults(20);</code></pre>
-    </div>
-
-    <?php if ($cursorPaginatorAvailable) { ?>
-    <h4>With Doctrine's CursorPaginator (ORM 3.7+)</h4>
-    <div class="query-item">
-        <pre><code class="language-php">use Doctrine\ORM\Tools\Pagination\CursorPaginator;
-
-// ORDER BY must be deterministic: add the id as a tie-breaker
-$qb-&gt;select('u')
-   -&gt;from(User::class, 'u')
-   -&gt;orderBy('u.createdAt', \SortDirection::Descending)
-   -&gt;addOrderBy('u.id', \SortDirection::Descending);
-
-$page = (new CursorPaginator(20))-&gt;paginate($qb, $request-&gt;query-&gt;get('cursor'));
-
-foreach ($page as $user) {
-    // ...
-}
-
-$nextCursor = $page-&gt;hasNextPage() ? $page-&gt;getNextCursorAsString() : null;</code></pre>
-    </div>
-    <p>
-        Builds the keyset <code>WHERE</code> clause from the <code>ORDER BY</code> columns for you and
-        returns opaque, URL-safe cursors for the next and previous pages.
-    </p>
-    <?php } ?>
-
-    <h4>When you must keep OFFSET</h4>
-    <ul>
-        <li>Cap the maximum offset at the application level (e.g. forbid page &gt; N).</li>
-        <li>Make sure the ORDER BY column is indexed.</li>
-        <li>Use a covering index when possible to avoid extra row lookups.</li>
-    </ul>
-
-    <?php echo suggestionDocLink('https://use-the-index-luke.com/no-offset', 'Use The Index, Luke! No Offset'); ?>
+<div class="alert alert-warning">
+    OFFSET <?= (int) $offset ?> makes the database read and discard <?= (int) $offset ?> rows before returning the page.
+    Filtering on the last seen sort key reads only the rows of the page.
 </div>
 
+<div class="query-item"><pre><code class="language-php">// Before
+$qb-&gt;orderBy('u.id', 'ASC')-&gt;setFirstResult(<?= (int) $offset ?>)-&gt;setMaxResults(20);
+
+// After: keyset pagination on the last seen id
+$qb-&gt;where('u.id &gt; :lastId')
+   -&gt;setParameter('lastId', $lastSeenId)
+   -&gt;orderBy('u.id', 'ASC')
+   -&gt;setMaxResults(20);</code></pre></div>
+
+<?php if ($cursorPaginatorAvailable) { ?>
+<p>ORM 3.7+ builds this clause for you with <code>CursorPaginator</code>, from a deterministic ORDER BY:</p>
+<div class="query-item"><pre><code class="language-php">use Doctrine\ORM\Tools\Pagination\CursorPaginator;
+
+$page = (new CursorPaginator(20))-&gt;paginate($qb, $request-&gt;query-&gt;get('cursor'));
+$nextCursor = $page-&gt;hasNextPage() ? $page-&gt;getNextCursorAsString() : null;</code></pre></div>
+<?php } else { ?>
+<p>If OFFSET must stay, cap the page number and index the ORDER BY column.</p>
+<?php } ?>
+
+<?php echo suggestionDocLink('https://use-the-index-luke.com/no-offset', 'Use The Index, Luke! No Offset'); ?>
+</div>
 <?php
 $code = ob_get_clean();
 
 return [
     'code' => $code,
-    'description' => 'Replace deep OFFSET pagination with keyset (seek) pagination based on a sortable indexed column',
+    'description' => 'Replace deep OFFSET pagination with keyset pagination on an indexed sort column',
 ];

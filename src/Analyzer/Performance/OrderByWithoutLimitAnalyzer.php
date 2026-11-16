@@ -89,6 +89,12 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                             continue;
                         }
 
+                        // Sorting only joined tables orders the elements of fetch-joined collections (#[OrderBy]),
+                        // not the results: removing it or adding a LIMIT would break the collections.
+                        if ($this->sortsOnlyJoinedTables($sql, $orderByClause)) {
+                            continue;
+                        }
+
                         // Skip queries with WHERE ... IN (...) — bounded result set
                         if ($this->hasBoundedWhereInClause($sql)) {
                             continue;
@@ -128,6 +134,17 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
                 }
             },
         );
+    }
+
+    private function sortsOnlyJoinedTables(string $sql, string $orderByClause): bool
+    {
+        if (1 !== preg_match('/\\bFROM\\s+[`"]?\\w+[`"]?\\s+(?:AS\\s+)?([a-z]\\w*)/i', $sql, $from) || 1 !== preg_match('/\\bJOIN\\b/i', $sql)) {
+            return false;
+        }
+
+        preg_match_all('/\\b([a-z]\\w*)\\.\\w+/i', $orderByClause, $aliases);
+
+        return [] !== $aliases[1] && !\in_array(strtolower($from[1]), array_map(strtolower(...), $aliases[1]), true);
     }
 
     public function getName(): string
@@ -268,12 +285,10 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             $severity = $executionTime > 100 ? Severity::warning() : Severity::info();
             $title = sprintf('ORDER BY in Single-Result Query (%s)', $executionTimeStr);
             $description = sprintf(
-                "Query uses ORDER BY without LIMIT in a single-result context (getOneOrNullResult/getSingleResult). " .
-                "While the method returns only one result, the database still processes ORDER BY on all matching rows. " .
-                "Execution time: %s. Consider adding setMaxResults(1) before calling getOneOrNullResult() " .
-                "to limit database processing. ORDER BY clause: %s",
-                $executionTimeStr,
+                "The query uses ORDER BY without LIMIT on %s (%s), but the code reads only one result (getOneOrNullResult/getSingleResult). " .
+                "The database still sorts every matching row to return the first one.",
                 $orderByClause,
+                $executionTimeStr,
             );
 
             return [$severity, $title, $description];
@@ -289,13 +304,10 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             };
             $title = sprintf('ORDER BY Without LIMIT in Array Query (%s)', $executionTimeStr);
             $description = sprintf(
-                "Query uses ORDER BY without LIMIT and returns an array of results (getResult/findBy). " .
-                "This sorts the entire result set without limiting rows. " .
-                "Current execution time is %s, but as data volume grows in production this query will become significantly slower. " .
-                "Add LIMIT for pagination or to restrict the number of returned rows. " .
-                "ORDER BY clause: %s",
-                $executionTimeStr,
+                "The query uses ORDER BY without LIMIT on %s and returns an array of results (getResult/findBy) in %s. " .
+                "Every matching row is sorted and hydrated, so the cost grows with the table.",
                 $orderByClause,
+                $executionTimeStr,
             );
 
             return [$severity, $title, $description];
@@ -309,11 +321,10 @@ class OrderByWithoutLimitAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         };
         $title = 'ORDER BY Without LIMIT Detected';
         $description = sprintf(
-            "Query uses ORDER BY without LIMIT, potentially sorting the entire table. " .
-            "Execution time: %s. Consider adding LIMIT for pagination or if you only need the top N results. " .
-            "ORDER BY clause: %s",
-            $executionTimeStr,
+            "The query uses ORDER BY without LIMIT on %s (%s). " .
+            "Every matching row is sorted, so the cost grows with the table.",
             $orderByClause,
+            $executionTimeStr,
         );
 
         return [$severity, $title, $description];

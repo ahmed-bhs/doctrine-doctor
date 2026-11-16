@@ -99,8 +99,8 @@ class GedmoExtensionPerformanceAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = $this->shortClassName($entityClass);
 
         $description = DescriptionHighlighter::highlight(
-            '{entity} uses the Gedmo {loggable} extension. This generates an additional INSERT query in the changelog table '
-            . 'for every tracked field that changes. With many fields or frequent updates, this can significantly impact performance.',
+            '{entity} uses the Gedmo {loggable} extension. '
+            . 'Every flush that changes a tracked field writes one more INSERT into the changelog table.',
             [
                 'entity' => $shortClassName,
                 'loggable' => 'Loggable',
@@ -136,8 +136,8 @@ class GedmoExtensionPerformanceAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = $this->shortClassName($entityClass);
 
         $description = DescriptionHighlighter::highlight(
-            '{entity} uses the Gedmo {translatable} extension. This generates additional queries for each translatable field and locale combination. '
-            . 'The query count grows linearly with the number of locales — consider the performance impact of maintaining translations.',
+            '{entity} uses the Gedmo {translatable} extension. '
+            . 'Loading or saving a translation costs extra queries per translatable field and locale.',
             [
                 'entity' => $shortClassName,
                 'translatable' => 'Translatable',

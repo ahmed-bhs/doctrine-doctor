@@ -65,9 +65,8 @@ class MappedSuperclassAsTargetEntityAnalyzer implements StaticAnalyzerInterface
                     }
 
                     $description = DescriptionHighlighter::highlight(
-                        'Association {entity}::${field} targets {target}, which is a Mapped Superclass. '
-                        . 'Mapped Superclasses have no table and cannot be queried. '
-                        . 'This will cause a runtime MappingException.',
+                        'Association {entity}::${field} targets {target}, which is a Mapped Superclass with no table. '
+                        . 'Loading the association throws a MappingException at runtime.',
                         [
                             'entity' => $this->shortClassName($metadata->getName()),
                             'field' => $mapping->fieldName,

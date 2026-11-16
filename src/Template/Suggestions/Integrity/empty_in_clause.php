@@ -23,34 +23,22 @@ if (!is_array($options) || (isset($options[0]) && !is_array($options[0]))) {
 
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$option = $options[0] ?? ['title' => 'Early Return Pattern', 'description' => 'Check for empty array before building query', 'code' => 'if (empty($ids)) { return []; }'];
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Check array before using IN()'); ?>
-
+<?php echo suggestionHeader('Check the array before using IN()'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-danger">
-         <strong>An empty IN() clause will cause a SQL syntax error at runtime.</strong>
-    </div>
+<p>An empty array bound to <code>IN()</code> produces <code>IN ()</code>, which is a SQL syntax error. <?php echo $e((string) ($option['description'] ?? '')); ?></p>
 
-    <p>Always validate that the array is not empty before using IN() clause.</p>
+<div class="query-item"><pre><code class="language-php"><?php echo $e((string) ($option['code'] ?? '')); ?></code></pre></div>
 
-    <?php $option = $options[0] ?? ['title' => 'Early Return Pattern', 'description' => 'Check for empty array before building query', 'code' => 'if (empty($ids)) { return []; }']; ?>
-    <h4><?php echo $e($option['title'] ?? 'Solution'); ?></h4>
-    <p><?php echo $e($option['description'] ?? ''); ?></p>
-
-    <div class="query-item">
-        <pre><code class="language-php"><?php echo $e($option['code'] ?? ''); ?></code></pre>
-    </div>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html', 'Doctrine QueryBuilder Documentation'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html', 'Doctrine QueryBuilder Documentation'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Check array before using IN() clause to prevent SQL syntax errors',
+    'description' => 'Check the array is not empty before using IN()',
 ];

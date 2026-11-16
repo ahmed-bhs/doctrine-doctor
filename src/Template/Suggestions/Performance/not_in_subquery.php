@@ -9,60 +9,27 @@ $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('NOT IN (SELECT ...) NULL pitfall'); ?>
-
+<?php echo suggestionHeader('Replace NOT IN (SELECT ...) with NOT EXISTS'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <code><?= $e((string) $column) ?> NOT IN (SELECT ...)</code> returns zero rows as soon as the subquery contains a single NULL value.
-        SQL three-valued logic: <code>x NOT IN (a, b, NULL)</code> evaluates to UNKNOWN, never TRUE.
-        Tests pass with clean data, production breaks silently the first time a NULL appears.
-    </div>
-
-    <h4>Original query</h4>
-    <div class="query-item">
-        <pre><code class="language-sql"><?= $e((string) $originalQuery) ?></code></pre>
-    </div>
-
-    <h4>Fix 1: NOT EXISTS (recommended)</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Before: silent zero-row bug if the subquery contains NULL
-$qb-&gt;select('u')
-   -&gt;from(User::class, 'u')
-   -&gt;andWhere('u.id NOT IN (SELECT b.userId FROM Banned b)');
-
-// After: NOT EXISTS handles NULL correctly and is usually faster
-$qb-&gt;select('u')
-   -&gt;from(User::class, 'u')
-   -&gt;andWhere('NOT EXISTS (
-        SELECT 1 FROM Banned b WHERE b.userId = u.id
-   )');</code></pre>
-    </div>
-
-    <h4>Fix 2: LEFT JOIN ... IS NULL (anti-join)</h4>
-    <div class="query-item">
-        <pre><code class="language-sql">-- Functionally equivalent, sometimes preferred by the planner
-SELECT u.*
-FROM users u
-LEFT JOIN banned b ON b.user_id = u.id
-WHERE b.user_id IS NULL;</code></pre>
-    </div>
-
-    <h4>Fix 3: keep NOT IN but exclude NULLs explicitly</h4>
-    <div class="query-item">
-        <pre><code class="language-sql">-- Only safe if the subquery has a stable schema you control
-WHERE u.id NOT IN (
-    SELECT b.user_id FROM banned b WHERE b.user_id IS NOT NULL
-);</code></pre>
-    </div>
-
-    <?php echo suggestionDocLink('https://use-the-index-luke.com/sql/where-clause/null/not-in', 'Use The Index, Luke! NOT IN and NULLs'); ?>
+<div class="alert alert-warning">
+    <code><?= $e((string) $column) ?> NOT IN (SELECT ...)</code> returns no rows as soon as the subquery returns one NULL, because <code>x NOT IN (a, NULL)</code> is never true.
+    NOT EXISTS does not have this trap.
 </div>
 
+<div class="query-item"><pre><code class="language-php">// Before
+$qb-&gt;andWhere('u.id NOT IN (SELECT IDENTITY(b.user) FROM App\Entity\Ban b)');
+
+// After
+$qb-&gt;andWhere('NOT EXISTS (SELECT b.id FROM App\Entity\Ban b WHERE b.user = u)');</code></pre></div>
+
+<p>To keep NOT IN, exclude NULLs in the subquery with <code>WHERE b.user IS NOT NULL</code>.</p>
+
+<?php echo suggestionDocLink('https://use-the-index-luke.com/sql/where-clause/null/not-in', 'Use The Index, Luke! NOT IN and NULLs'); ?>
+</div>
 <?php
 $code = ob_get_clean();
 
 return [
     'code' => $code,
-    'description' => 'Replace NOT IN (SELECT ...) with NOT EXISTS or LEFT JOIN ... IS NULL to handle NULLs correctly',
+    'description' => 'Replace NOT IN (SELECT ...) with NOT EXISTS so NULLs do not empty the result',
 ];

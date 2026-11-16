@@ -551,7 +551,7 @@ final class JoinOptimizationAnalyzerTest extends TestCase
             ->addQuery('SELECT * FROM a')
             ->addQuery('SELECT * FROM b')
             ->addQuery('SELECT u.id FROM users u ' .
-                'JOIN orders o ON u.id = o.user_id ' .   // unused
+                'JOIN orders o ON u.id = o.user_id ' . // unused
                 'JOIN products p ON u.id = p.user_id ' . // unused
                 'JOIN categories c ON u.id = c.user_id ' . // unused
                 'JOIN tags t ON u.id = t.user_id ' . // unused
@@ -600,5 +600,52 @@ final class JoinOptimizationAnalyzerTest extends TestCase
         $cartesianIssues = array_filter($issuesArray, static fn ($issue) => str_contains((string) $issue->getTitle(), 'Collection JOINs') || str_contains((string) $issue->getTitle(), 'Cartesian'));
 
         self::assertCount(0, $cartesianIssues, 'Collection JOIN detection is now handled by CartesianProductAnalyzer');
+    }
+
+    #[Test]
+    public function it_reports_a_left_join_through_a_not_null_foreign_key_of_the_starting_table(): void
+    {
+        $titles = $this->leftJoinTitles('SELECT c0_.id AS id_0, c1_.id AS id_1 FROM oto_capital_cities c0_ LEFT JOIN oto_countries c1_ ON c0_.country_id = c1_.id');
+
+        self::assertContains('Suboptimal LEFT JOIN on NOT NULL Relation', $titles);
+    }
+
+    #[Test]
+    public function it_keeps_a_left_join_to_the_inverse_side_whose_foreign_key_is_in_the_joined_table(): void
+    {
+        // Every capital has a country, but a country may have no capital: the LEFT JOIN keeps those countries.
+        $titles = $this->leftJoinTitles('SELECT c0_.id AS id_0, c1_.id AS id_1 FROM oto_countries c0_ LEFT JOIN oto_capital_cities c1_ ON c0_.id = c1_.country_id');
+
+        self::assertNotContains('Suboptimal LEFT JOIN on NOT NULL Relation', $titles);
+    }
+
+    #[Test]
+    public function it_keeps_a_left_join_chained_from_a_left_joined_table(): void
+    {
+        // The country of a capital that may be missing: an INNER JOIN would drop the countries without capital.
+        $titles = $this->leftJoinTitles('SELECT c0_.id AS id_0 FROM oto_countries c0_ LEFT JOIN oto_capital_cities c1_ ON c0_.id = c1_.country_id LEFT JOIN oto_countries c2_ ON c1_.country_id = c2_.id');
+
+        self::assertNotContains('Suboptimal LEFT JOIN on NOT NULL Relation', $titles);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function leftJoinTitles(string $sql): array
+    {
+        $sqlExtractor = new SqlStructureExtractor();
+        $entityManager = PlatformAnalyzerTestHelper::createTestEntityManager([__DIR__ . '/../Fixtures/Entity/OneToOneInverseSideTest']);
+        $analyzer = new JoinOptimizationAnalyzer(
+            new CollectionJoinDetector($entityManager, $sqlExtractor),
+            PlatformAnalyzerTestHelper::createSuggestionFactory(),
+            $sqlExtractor,
+            5,
+            8,
+        );
+
+        return array_values(array_map(
+            static fn ($issue): string => (string) $issue->getTitle(),
+            $analyzer->analyze(QueryDataBuilder::create()->addQuery($sql)->build())->toArray(),
+        ));
     }
 }

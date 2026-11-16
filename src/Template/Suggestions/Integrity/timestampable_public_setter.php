@@ -14,49 +14,28 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Public setter on timestamp field'); ?>
+<?php echo suggestionHeader('Remove the timestamp setter'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-info">
-        <code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> has a public setter.
-    </div>
+    <p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> has a public setter, so any caller can overwrite a value that Timestampable is meant to set. Keep only the getter.</p>
 
-    <p>Timestamps should be managed automatically.</p>
-
-    <h4>Current code</h4>
     <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
-    #[Gedmo\Timestampable(on: 'create')]
-    private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
+        <pre><code class="language-php">#[ORM\Column]
+#[Gedmo\Timestampable(on: 'create')]
+private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
 
-    public function set<?php echo $e(ucfirst((string) $fieldName)); ?>(\DateTimeImmutable $date): void {
-        $this-><?php echo $e($fieldName); ?> = $date;
-    }
+public function get<?php echo $e(ucfirst((string) $fieldName)); ?>(): \DateTimeImmutable
+{
+    return $this-&gt;<?php echo $e($fieldName); ?>;
 }</code></pre>
     </div>
-
-    <h4>Fix</h4>
-    <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
-    #[Gedmo\Timestampable(on: 'create')]
-    private \DateTimeImmutable $<?php echo $e($fieldName); ?>;
-
-    public function get<?php echo $e(ucfirst((string) $fieldName)); ?>(): \DateTimeImmutable {
-        return $this-><?php echo $e($fieldName); ?>;
-    }
-}</code></pre>
-    </div>
-
-    <p>Remove the setter.</p>
 
     <?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/timestampable.md', 'Doctrine Extensions Timestampable'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Remove public setter on timestamp field',
+    'description' => sprintf('Remove the public setter of %s::$%s', $entityClass, $fieldName),
 ];

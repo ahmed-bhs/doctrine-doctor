@@ -185,16 +185,14 @@ class CascadeConfigurationAnalyzer implements MetadataAnalyzerInterface
         if ($this->isIndependentEntity(MappingHelper::getString($mapping, 'targetEntity') ?? '')) {
             /** @var IntegrityIssue $issue */
             $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
-                'title'       => sprintf('Dangerous cascade="all" in %s::$%s', $shortClassName, $fieldName),
+                'title'       => sprintf('cascade="all" on Independent Entity in %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
-                    'Entity "%s" has cascade="all" on property "$%s" (relation to %s). ' .
-                    'Using cascade="all" on independent entities like %s is dangerous because ' .
-                    'removing the parent entity will CASCADE DELETE all related entities. ' .
-                    'This can cause massive accidental data loss in production. ' .
-                    'Consider using more specific cascade options like ["persist"] only.',
+                    'Entity "%s" has cascade="all" on property "$%s" to the independent entity %s. ' .
+                    'Removing a %s also removes the related %s, along with data other records may still use.',
                     $shortClassName,
                     $fieldName,
                     $targetEntity,
+                    $shortClassName,
                     $targetEntity,
                 ),
                 'severity'   => 'critical',
@@ -212,9 +210,7 @@ class CascadeConfigurationAnalyzer implements MetadataAnalyzerInterface
             'title'       => sprintf('Overuse of cascade="all" in %s::$%s', $shortClassName, $fieldName),
             'description' => sprintf(
                 'Entity "%s" uses cascade="all" on property "$%s" (relation to %s). ' .
-                'While this might work, cascade="all" includes persist, remove, merge, detach, and refresh. ' .
-                'Be explicit about which cascade operations you actually need. ' .
-                'This prevents unexpected behavior and makes the code more maintainable.',
+                'It enables persist, remove, merge, detach and refresh at once, including operations the code may not expect.',
                 $shortClassName,
                 $fieldName,
                 $targetEntity,
@@ -275,12 +271,10 @@ class CascadeConfigurationAnalyzer implements MetadataAnalyzerInterface
 
         /** @var IntegrityIssue $issue */
         $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
-            'title'       => 'Dangerous cascade remove on independent entity ' . $targetShortName,
+            'title'       => 'Independent entity ' . $targetShortName . ' deleted by cascade remove',
             'description' => sprintf(
                 'Entity "%s" has cascade remove on property "$%s" pointing to independent entity "%s". ' .
-                'Deleting a %s will automatically delete all associated %s entities. ' .
-                'This is usually NOT what you want for independent entities. ' .
-                'Consider removing cascade="remove" and handling deletion separately.',
+                'Deleting a %s also deletes every associated %s, even when other records still use it.',
                 $shortClassName,
                 $fieldName,
                 $targetShortName,
@@ -313,10 +307,8 @@ class CascadeConfigurationAnalyzer implements MetadataAnalyzerInterface
             $issue = $this->issueFactory->createFromArray(['type' => IssueType::INTEGRITY_GENERIC->value,
                 'title'       => sprintf('Missing cascade on composition relationship %s::$%s', $shortClassName, $fieldName),
                 'description' => sprintf(
-                    'Entity "%s" has a composition relationship with "%s" (property "$%s") but no cascaconfiguration. ' .
-                    'Composition relationships typically need cascade=["persist", "remove"] so that child entities ' .
-                    'are automatically persisted and removed with the parent. Without cascade, you must manually ' .
-                    'persist each child entity, which is error-prone.',
+                    'Entity "%s" has a composition relationship with "%s" (property "$%s") but no cascade. ' .
+                    'Each child must be persisted and removed by hand, and a forgotten call leaves orphans or unsaved children.',
                     $shortClassName,
                     $targetEntity,
                     $fieldName,

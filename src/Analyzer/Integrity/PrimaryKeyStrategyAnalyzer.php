@@ -218,10 +218,8 @@ class PrimaryKeyStrategyAnalyzer implements MetadataAnalyzerInterface
             type: IssueType::AUTO_INCREMENT_EDUCATIONAL->value,
             title: sprintf('%s Uses Auto-Increment ID', $shortName),
             description: sprintf(
-                "Entity '%s' uses auto-increment ID strategy. This is fine for most applications, but consider UUIDs if you need: " .
-                "1) Prevention of ID enumeration in APIs, 2) Distributed system support, or 3) Data merging from multiple sources. " .
-                "Trade-off: UUIDs are 4x larger and slightly slower than auto-increment. " .
-                "Note: %d/%d entities in your codebase use auto-increment.",
+                "Entity '%s' uses an auto-increment ID, like %d of the %d entities in the codebase. " .
+                "Sequential IDs are guessable in public URLs and collide when data from several databases is merged.",
                 $entityName,
                 $statistics['autoIncrement'],
                 $statistics['total'],
@@ -249,9 +247,8 @@ class PrimaryKeyStrategyAnalyzer implements MetadataAnalyzerInterface
             type: IssueType::UUID_V4_PERFORMANCE->value,
             title: sprintf('%s Uses UUID v4 (Random)', $shortName),
             description: sprintf(
-                "Entity '%s' uses UUID v4 (random generation). Consider UUID v7 instead for better performance. " .
-                "UUID v7 is sequential (timestamp-based) like auto-increment, providing 50-200%% faster inserts and smaller indexes, " .
-                "while keeping all benefits of UUIDs (uniqueness, unpredictability, distribution).",
+                "Entity '%s' uses random UUID v4 identifiers, unlike time-ordered v7. " .
+                "Each insert lands at a random place in the primary key index, which fragments it and slows inserts as the table grows.",
                 $entityName,
             ),
             severity: Severity::info(),
@@ -274,9 +271,8 @@ class PrimaryKeyStrategyAnalyzer implements MetadataAnalyzerInterface
             type: IssueType::MIXED_ID_STRATEGIES->value,
             title: 'Mixed Primary Key Strategies Detected',
             description: sprintf(
-                "Your codebase uses both auto-increment (%d entities) and UUIDs (%d entities). " .
-                "While this is not necessarily wrong, consider standardizing for consistency. " .
-                "Mixed strategies can cause foreign key type mismatches and increase complexity.",
+                "The codebase uses both auto-increment (%d entities) and UUIDs (%d entities). " .
+                "Foreign keys between the two groups need different column types, which is easy to get wrong.",
                 $statistics['autoIncrement'],
                 $statistics['uuid'],
             ),

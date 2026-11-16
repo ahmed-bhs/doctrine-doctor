@@ -10,58 +10,40 @@ declare(strict_types=1);
  */
 
 /** @var array<string, mixed> $context PHPStan: Template context */
-// Extract context for clarity
 $flushCount = $context['flush_count'] ?? null;
 $operationsBetweenFlush = $context['operations_between_flush'] ?? null;
 
-// Helper function for safe HTML escaping
 $severity = (string) ($context['severity'] ?? 'info');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$flushes = (int) $flushCount;
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('flush() in loop'); ?>
-
+<?php echo suggestionHeader('Flush in batches, not in the loop'); ?>
 <div class="suggestion-content">
-    <div class="alert <?php echo severityAlertClass($severity); ?>">
-        <?php echo $flushCount; ?> flush() calls = <?php echo $flushCount; ?> separate transactions
-    </div>
-
-    <h4>Batch processing</h4>
-    <div class="query-item">
-        <pre><code class="language-php">$batchSize = 20;
-$i = 0;
-
-foreach ($items as $item) {
-    $entity = new Entity();
-    $entity->setData($item);
-    $em->persist($entity);
-
-    if (($i % $batchSize) === 0) {
-        $em->flush();
-        $em->clear();
-    }
-    $i++;
-}
-
-$em->flush();
-$em->clear();
-// ~<?php echo ceil($flushCount / 20); ?> transactions instead of <?php echo $flushCount; ?></code></pre>
-    </div>
-
-    <p>Use batch size 20-50. Always call <code>clear()</code> after <code>flush()</code>.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html', 'Doctrine batch processing'); ?>
+<div class="alert <?php echo severityAlertClass($severity); ?>">
+    flush() ran <?php echo $flushes; ?> times inside a loop, each call computing the change set and opening a transaction.
+    Flushing every 20 entities would need about <?php echo (int) ceil($flushes / 20); ?>.
 </div>
 
+<div class="query-item"><pre><code class="language-php">foreach ($items as $i =&gt; $item) {
+    $entity = new Entity();
+    $entity-&gt;setData($item);
+    $em-&gt;persist($entity);
+
+    if (0 === ($i + 1) % 20) {
+        $em-&gt;flush();
+        $em-&gt;clear(); // detaches the processed entities
+    }
+}
+$em-&gt;flush();</code></pre></div>
+
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/batch-processing.html', 'Doctrine batch processing'); ?>
+</div>
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
-        'Use batch processing (%d flush() calls found in a loop)',
-        $flushCount,
-    ),
+    'description' => sprintf('Flush in batches instead of %d times in a loop', $flushes),
 ];

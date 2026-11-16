@@ -96,6 +96,8 @@ enum IssueType: string
     case ENTITY_DETACHED_IN_ASSOCIATION = 'entity_detached_in_association';
     case JOIN_COLUMN_NON_PRIMARY_KEY = 'join_column_non_primary_key';
     case DUPLICATE_PRIVATE_FIELD_IN_HIERARCHY = 'duplicate_private_field_in_hierarchy';
+
+    case IDENTICAL_QUERY_REPEATED = 'identical_query_repeated';
     case COMPOSITE_KEY_COMPLEXITY = 'composite_key_complexity';
     case ONE_TO_ONE_INVERSE_SIDE = 'one_to_one_inverse_side';
     case STI_SPARSE_TABLE = 'sti_sparse_table';
@@ -114,6 +116,19 @@ enum IssueType: string
     case MANY_TO_MANY_EXTRA_COLUMNS = 'many_to_many_extra_columns';
     case MISSING_VERSION_FIELD_FOR_CONCURRENCY = 'missing_version_field_for_concurrency';
     case FLUSH_IN_LIFECYCLE_CALLBACK = 'flush_in_lifecycle_callback';
+    case ENTITY_MANAGER_IN_SERVICE = 'entity_manager_in_service';
+    case UNUSED_INVERSE_SIDE = 'unused_inverse_side';
+    case COLLECTION_FILTERED_IN_PHP = 'collection_filtered_in_php';
+    case FILTERED_FETCH_JOIN = 'filtered_fetch_join';
+    case COLLECTION_COUNTED_IN_PHP = 'collection_counted_in_php';
+    case AGGREGATE_IN_PHP = 'aggregate_in_php';
+    case SOFT_DELETE_WITHOUT_FILTER = 'soft_delete_without_filter';
+    case ENTITY_MANAGER_USED_AFTER_FAILURE = 'entity_manager_used_after_failure';
+    case MIGRATIONS_NOT_EXECUTED = 'migrations_not_executed';
+    case MAPPING_WITHOUT_MIGRATION = 'mapping_without_migration';
+    case MIGRATION_DROPS_DATA = 'migration_drops_data';
+    case MIGRATION_NOT_REVERSIBLE = 'migration_not_reversible';
+    case MIGRATION_USES_ORM = 'migration_uses_orm';
 
     // Configuration issues
     case CONFIGURATION = 'configuration';

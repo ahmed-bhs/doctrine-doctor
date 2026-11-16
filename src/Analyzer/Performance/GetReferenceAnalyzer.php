@@ -140,14 +140,12 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                             type: IssueType::LAZY_LOADING->value,
                             title: sprintf('Lazy Loading Detected: %d queries triggered', $totalCount),
                             description: DescriptionHighlighter::highlight(
-                                'Detected {count} lazy loading queries across {tableCount} table(s): {tables}. ' .
-                                'These queries are triggered automatically when accessing collections in templates and application code. ' .
-                                'Consider using {eagerLoading} in your repository queries to load related entities upfront and avoid N+1 problems (threshold: {threshold})',
+                                '{count} lazy loading queries ran on {tableCount} table(s): {tables} (threshold: {threshold}). ' .
+                                'Each relation accessed in code or templates triggered its own query instead of being loaded with the parent.',
                                 [
                                     'count' => $totalCount,
                                     'tableCount' => count($tables),
                                     'tables' => $tableList,
-                                    'eagerLoading' => 'eager loading (JOIN + addSelect)',
                                     'threshold' => $this->threshold,
                                 ],
                             ),
@@ -176,8 +174,8 @@ class GetReferenceAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                             type: IssueType::GET_REFERENCE->value,
                             title: sprintf('Inefficient Entity Loading: %d find() queries detected', $totalCount),
                             description: DescriptionHighlighter::highlight(
-                                'Detected {count} simple SELECT by ID queries across {tableCount} table(s): {tables}. ' .
-                                'Consider using {getReference} instead of {find} when you only need the entity reference for associations (threshold: {threshold})',
+                                '{count} {find} calls ran SELECT by ID queries on {tableCount} table(s): {tables} (threshold: {threshold}). ' .
+                                'When the entity only sets an association, each query loads a row that {getReference} would not need.',
                                 [
                                     'count' => $totalCount,
                                     'tableCount' => count($tables),

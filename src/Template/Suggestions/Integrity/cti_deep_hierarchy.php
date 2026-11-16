@@ -21,36 +21,22 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<div class="suggestion-header">
-    <h4>Deep CTI Hierarchy: <?php echo $e($entityClass); ?> (<?php echo $depth; ?> levels)</h4>
-</div>
-
+<?php echo suggestionHeader('Flatten the inheritance hierarchy'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-<?php echo $depth >= 4 ? 'danger' : 'warning'; ?>">
-        Entity <strong><?php echo $e($entityClass); ?></strong> is <?php echo $depth; ?> levels deep in a Class Table Inheritance hierarchy.
-        Every query for this entity requires <strong><?php echo $joinsRequired; ?> JOIN(s)</strong>.
-    </div>
+<p><code><?php echo $e($entityClass); ?></code> sits <?php echo $depth; ?> levels deep in a JOINED hierarchy<?php if ([] !== $chain) { ?> (<code><?php echo $e(implode(' -> ', array_map(strval(...), $chain))); ?></code>)<?php } ?>, so every query on it needs <?php echo $joinsRequired; ?> JOIN(s). If the subclasses share most fields, a single table removes these JOINs.</p>
 
-    <?php if ([] !== $chain) { ?>
-    <h4>Inheritance chain</h4>
-    <div class="query-item">
-        <pre><code><?php echo $e(implode(' -> ', $chain)); ?></code></pre>
-    </div>
-    <?php } ?>
+<div class="query-item"><pre><code class="language-php">#[ORM\Entity]
+// Before: #[ORM\InheritanceType('JOINED')]
+#[ORM\InheritanceType('SINGLE_TABLE')]
+#[ORM\DiscriminatorColumn(name: 'type', type: 'string')]
+class <?php echo $e($rootClass); ?>
 
-    <h4>Why this matters</h4>
-    <p>Each level in a JOINED hierarchy adds a mandatory JOIN to every SELECT, UPDATE, and DELETE.
-    With <?php echo $joinsRequired; ?> JOINs, query plans become complex and index usage deteriorates.</p>
+{
+}</code></pre></div>
 
-    <h4>Options</h4>
-    <ul>
-        <li><strong>Flatten</strong>: Merge intermediate classes that add few fields into their parent or child</li>
-        <li><strong>Switch to STI</strong>: If most subclasses share similar fields, Single Table Inheritance avoids all JOINs</li>
-        <li><strong>Use composition</strong>: Replace deep inheritance with embeddables or associations</li>
-    </ul>
+<p>Otherwise, merge intermediate classes that add few fields, or replace a level with an embeddable or an association.</p>
 
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html', 'Doctrine: Inheritance Mapping'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html', 'Doctrine: Inheritance Mapping'); ?>
 </div>
 
 <?php
@@ -59,7 +45,7 @@ $code = ob_get_clean();
 return [
     'code'        => $code,
     'description' => sprintf(
-        'CTI entity %s is %d levels deep — every query requires %d JOIN(s), consider flattening or switching to STI',
+        'Flatten the %s hierarchy: %d levels deep, %d JOIN(s) per query',
         $entityClass,
         $depth,
         $joinsRequired,

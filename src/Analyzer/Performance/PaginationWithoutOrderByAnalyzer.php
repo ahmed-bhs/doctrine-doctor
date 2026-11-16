@@ -106,15 +106,14 @@ class PaginationWithoutOrderByAnalyzer implements \AhmedBhs\DoctrineDoctor\Analy
         $severity = $hasOffset ? Severity::warning() : Severity::info();
 
         $description = sprintf(
-            'Query uses %s without ORDER BY. SQL standard does not guarantee result order when no ORDER BY is provided, ' .
-            'so the same page can return different rows on different executions, and consecutive pages can return ' .
-            'duplicates or skip rows. Add a deterministic ORDER BY on a stable, indexed column (typically the primary key).',
+            'The query uses %s without ORDER BY, so the database returns rows in no guaranteed order. ' .
+            'The same page can change between runs, and consecutive pages can repeat or skip rows.',
             $hasOffset ? 'LIMIT/OFFSET pagination' : 'LIMIT',
         );
 
         $issueData = new IssueData(
             type: 'pagination_without_order_by',
-            title: 'Pagination Without ORDER BY (Non-Deterministic Results)',
+            title: 'Pagination Without ORDER BY',
             description: $description,
             severity: $severity,
             suggestion: $this->createSuggestion($sql),

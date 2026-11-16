@@ -138,10 +138,10 @@ class OrphanRemovalWithoutCascadeRemoveAnalyzer implements MetadataAnalyzerInter
         ]);
 
         $codeQualityIssue->setSeverity('warning');
-        $codeQualityIssue->setTitle('orphanRemoval Without cascade="remove" (Incomplete)');
+        $codeQualityIssue->setTitle('orphanRemoval Without cascade="remove"');
 
         $message = DescriptionHighlighter::highlight(
-            "Field {field} in entity {class} has {orphan} but no {cascade}. This creates inconsistent behavior: removing from collection deletes children, but deleting the parent does not.",
+            "Field {field} in entity {class} has {orphan} but no {cascade}. Removing a child from the collection deletes it, but deleting the parent leaves its children behind or fails on the foreign key.",
             [
                 'field' => $fieldName,
                 'class' => $entityClass,

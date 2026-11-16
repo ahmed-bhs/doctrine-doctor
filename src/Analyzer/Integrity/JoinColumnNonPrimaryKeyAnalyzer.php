@@ -163,9 +163,7 @@ class JoinColumnNonPrimaryKeyAnalyzer implements MetadataAnalyzerInterface
         $description = sprintf(
             'Association "%s::%s" references column(s) "%s" on target entity "%s", '
             . 'but %s not part of the primary key (primary key: %s). '
-            . 'Doctrine will treat the referenced column value as the identifier for lazy-loading proxies, '
-            . 'which can lead to incorrect data being loaded. '
-            . 'This is a known Doctrine ORM limitation that cannot be validated at runtime.',
+            . 'Doctrine uses that value as the identifier of lazy-loading proxies, so the wrong row can be loaded.',
             $shortEntity,
             $fieldName,
             $invalidColumnsStr,

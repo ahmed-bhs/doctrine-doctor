@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 /**
  * Template for orphanRemoval with nullable FK inconsistency.
- * Context variables:
  */
 $parentClass = $context['parent_class'] ?? 'ClassName';
 $parentField = $context['parent_field'] ?? 'field';
@@ -16,45 +15,21 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('orphanRemoval=true with nullable FK'); ?>
-
+<?php echo suggestionHeader('Make the foreign key NOT NULL'); ?>
 <div class="suggestion-content">
-    <div class="alert <?php echo severityAlertClass($severity); ?>">
-        <code><?php echo $e($parentField); ?></code> has <code>orphanRemoval=true</code> but
-        <code><?php echo $e($childField); ?></code> has <code>nullable=true</code>.
-    </div>
+<div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($parentClass); ?>::$<?php echo $e($parentField); ?></code> uses <code>orphanRemoval: true</code>, but <code><?php echo $e($childClass); ?>::$<?php echo $e($childField); ?></code> is nullable. A child cannot exist without its parent, so its foreign key should never be NULL.</div>
 
-    <p>orphanRemoval means Doctrine should DELETE orphans, but nullable FK allows the foreign key to be NULL. This creates an inconsistency: should orphans be deleted or set to NULL?</p>
+<div class="query-item"><pre><code class="language-php">class <?php echo $e($childClass); ?>
 
-    <h4>Current code</h4>
-    <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($parentClass); ?> {
-    #[ORM\OneToMany(orphanRemoval: true)]
-    private Collection $<?php echo $e($parentField); ?>;
-}
-
-class <?php echo $e($childClass); ?> {
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?<?php echo $e($parentClass); ?> $<?php echo $e($childField); ?>;
-}</code></pre>
-    </div>
-
-    <h4>Fix</h4>
-    <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($childClass); ?> {
-    #[ORM\ManyToOne]
+{
+    #[ORM\ManyToOne(inversedBy: '<?php echo $e($parentField); ?>')]
+    // Before: #[ORM\JoinColumn(nullable: true)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private <?php echo $e($parentClass); ?> $<?php echo $e($childField); ?>;
-}</code></pre>
-    </div>
+}</code></pre></div>
 
-    <p>Make the FK NOT NULL to match orphanRemoval=true. Children can't exist without a parent, so the FK should never be NULL.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal', 'Doctrine Orphan Removal Documentation'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal', 'Doctrine Orphan Removal Documentation'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 

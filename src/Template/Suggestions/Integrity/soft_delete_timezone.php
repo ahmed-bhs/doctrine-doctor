@@ -11,27 +11,14 @@ $shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Timezone for soft delete'); ?>
+<?php echo suggestionHeader('Store the deletion date with its timezone'); ?>
 <div class="suggestion-content">
-<div class="alert alert-info"><code><?php echo $e($fieldName); ?></code> uses <code>datetime</code> without timezone information.</div>
+<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> uses <code>datetime</code>, which drops the timezone. Deletion dates written from servers or users in different timezones then cannot be compared.</p>
 
-<h4>Fix</h4>
-<div class="query-item"><pre><code class="language-php">use Doctrine\ORM\Mapping as ORM;
+<div class="query-item"><pre><code class="language-php">#[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
+private ?\DateTimeImmutable $<?php echo $e($fieldName); ?> = null;</code></pre></div>
 
-#[ORM\Entity]
-class <?php echo $e($shortClass); ?>
-
-{
-    #[ORM\Column(type: 'datetimetz_immutable', nullable: true)]
-    private ?\DateTimeImmutable $<?php echo $e($fieldName); ?> = null;
-
-    public function delete(): void
-    {
-        $this-><?php echo $e($fieldName); ?> = new \DateTimeImmutable();
-    }
-}</code></pre></div>
-
-<p>Use <code>datetimetz_immutable</code> for audit fields in multi-timezone applications.</p>
+<p>If the whole application stores UTC, keeping <code>datetime</code> is fine.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#doctrine-mapping-types', 'Doctrine ORM Mapping Types'); ?>
 </div>

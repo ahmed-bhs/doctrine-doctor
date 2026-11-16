@@ -27,44 +27,29 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Missing orphanRemoval'); ?>
+<?php echo suggestionHeader('Add orphanRemoval to the collection'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        Removing from collection leaves orphan records. Add <code>orphanRemoval=true</code> for composition relationships.
-    </div>
+    <p>Removing an item from <code><?php echo $e((string) $entityClass); ?>::$<?php echo $e((string) $fieldName); ?></code> only unlinks it, so the <code><?php echo $e((string) $targetClass); ?></code> row stays in the table<?php if ($isNotNullFK) { ?>, and its NOT NULL foreign key makes the flush fail<?php } ?>. With <code>orphanRemoval</code>, Doctrine deletes the removed child.</p>
 
-    <h4>Solution</h4>
     <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
-    #[ORM\OneToMany(
-        targetEntity: <?php echo $e($targetClass); ?>::class,
-        mappedBy: '<?php echo $e($mappedBy); ?>',
-        cascade: ['persist', 'remove'],
-        orphanRemoval: true  // Add this
-    )]
-    private Collection $<?php echo $e($fieldName); ?>;
-}
-
-// Removing from collection now deletes the record
-$<?php echo $e(lcfirst($e($entityClass))); ?>->remove<?php echo $e(ucfirst(rtrim($e($fieldName), 's'))); ?>($item);
-$em->flush();</code></pre>
+        <pre><code class="language-php">#[ORM\OneToMany(
+    targetEntity: <?php echo $e((string) $targetClass); ?>::class,
+    mappedBy: '<?php echo $e((string) $mappedBy); ?>',
+    cascade: ['persist', 'remove'],
+    orphanRemoval: true,
+)]
+private Collection $<?php echo $e((string) $fieldName); ?>;</code></pre>
     </div>
 
-    <p>Use when parent owns children (Order → OrderItems). Don't use for shared entities (Order → Products).</p>
+    <p>Use it only when the parent owns its children (order and order lines), not for shared entities.</p>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal', 'Doctrine Orphan Removal'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
-        'Add orphanRemoval=true to %s::$%s for proper composition handling',
-        $entityClass,
-        $fieldName,
-    ),
+    'description' => sprintf('Add orphanRemoval: true to %s::$%s', $entityClass, $fieldName),
 ];

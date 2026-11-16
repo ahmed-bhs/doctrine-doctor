@@ -17,10 +17,13 @@ use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
+use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
@@ -30,6 +33,7 @@ class SingleTableInheritanceNullableColumnAnalyzer implements StaticAnalyzerInte
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly ?SuggestionFactoryInterface $suggestionFactory = null,
     ) {
     }
 
@@ -94,11 +98,12 @@ class SingleTableInheritanceNullableColumnAnalyzer implements StaticAnalyzerInte
                     continue;
                 }
 
+                // SchemaTool creates every column of a single-table subclass as nullable: the siblings leave it empty.
                 $description = DescriptionHighlighter::highlight(
-                    'Field {field} in STI subclass {subclass} is NOT NULL. '
-                    . 'In Single Table Inheritance, all subtypes share one table. '
-                    . 'Inserting a row of type {root} or any sibling will fail because {field} has no value. '
-                    . 'Subclass-specific columns must be nullable.',
+                    '{subclass}::{field} is required in the mapping, but Doctrine creates the columns of single-table '
+                    . 'subclasses as nullable, since the other {root} subtypes leave them empty. The database cannot reject '
+                    . 'a {subclass} without {field}: only the PHP code does. A CHECK constraint on the discriminator, or '
+                    . 'Class Table Inheritance, keeps the rule in the database.',
                     [
                         'field' => $fieldName,
                         'subclass' => $this->shortClassName($subClass),
@@ -109,12 +114,29 @@ class SingleTableInheritanceNullableColumnAnalyzer implements StaticAnalyzerInte
                 yield new IntegrityIssue(new IssueData(
                     type: IssueType::STI_NON_NULLABLE_SUBCLASS_COLUMN->value,
                     title: sprintf(
-                        'Non-nullable STI column: %s::$%s',
+                        'STI Column Not Enforced by the Database: %s::$%s',
                         $this->shortClassName($subClass),
                         $fieldName,
                     ),
                     description: $description,
-                    severity: Severity::critical(),
+                    severity: Severity::info(),
+                    suggestion: $this->suggestionFactory?->createFromTemplate(
+                        templateName: 'Integrity/sti_column_not_enforced',
+                        context: [
+                            'subclass' => $this->shortClassName($subClass),
+                            'field' => $fieldName,
+                            'column' => $subMetadata->getColumnName($fieldName),
+                            'table' => $rootMetadata->getTableName(),
+                            'discriminator_column' => (string) ($rootMetadata->discriminatorColumn->name ?? 'dtype'),
+                            'discriminator_value' => (string) $subMetadata->discriminatorValue,
+                        ],
+                        suggestionMetadata: new SuggestionMetadata(
+                            type: SuggestionType::integrity(),
+                            severity: Severity::info(),
+                            title: 'Keep the rule in the database with a CHECK constraint',
+                            tags: ['inheritance', 'single-table', 'constraint'],
+                        ),
+                    ),
                 )->toArray());
             }
         }

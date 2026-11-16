@@ -11,39 +11,17 @@ $shortClass = basename(str_replace('\\', '/', $entityClass));
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Soft delete field must be nullable'); ?>
+<?php echo suggestionHeader('Make the soft delete field nullable'); ?>
 <div class="suggestion-content">
-<div class="alert alert-danger"><code><?php echo $e($fieldName); ?></code> is NOT NULL. This breaks soft delete functionality.</div>
+<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> is NOT NULL. Soft delete treats NULL as active and a date as deleted, so every row needs a date and counts as deleted.</p>
 
-<p>Soft delete works like this: NULL = active entity, DateTime = deleted entity. If the field is NOT NULL, the entity is always considered deleted.</p>
+<div class="query-item"><pre><code class="language-php">#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+private ?\DateTimeImmutable $<?php echo $e($fieldName); ?> = null;
 
-<h4>Fix</h4>
-<div class="query-item"><pre><code class="language-php">use Doctrine\ORM\Mapping as ORM;
-
-#[ORM\Entity]
-class <?php echo $e($shortClass); ?>
-
+public function isDeleted(): bool
 {
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTime $<?php echo $e($fieldName); ?> = null;
-
-    public function delete(): void
-    {
-        $this-><?php echo $e($fieldName); ?> = new \DateTime();
-    }
-
-    public function restore(): void
-    {
-        $this-><?php echo $e($fieldName); ?> = null;
-    }
-
-    public function isDeleted(): bool
-    {
-        return null !== $this-><?php echo $e($fieldName); ?>;
-    }
+    return null !== $this-&gt;<?php echo $e($fieldName); ?>;
 }</code></pre></div>
-
-<p>Make the field nullable so it can be NULL when the entity is active.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/basic-mapping.html#doctrine-mapping-types', 'Doctrine ORM Mapping Types'); ?>
 </div>

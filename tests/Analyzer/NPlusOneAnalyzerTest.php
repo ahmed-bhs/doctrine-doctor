@@ -302,8 +302,9 @@ final class NPlusOneAnalyzerTest extends TestCase
 
         $suggestion = $issuesArray[0]->getSuggestion();
         self::assertNotNull($suggestion, 'Should provide suggestion');
-        self::assertStringContainsString('JOIN', $suggestion->getCode());
-        self::assertStringContainsString('post', strtolower($suggestion->getCode()));
+        // The collection is resolved from the mapping: the suggestion names it and fetch-joins it.
+        self::assertStringContainsString('::$comments', $suggestion->getCode());
+        self::assertStringContainsString('leftJoin', $suggestion->getCode());
     }
 
     #[Test]
@@ -392,13 +393,12 @@ final class NPlusOneAnalyzerTest extends TestCase
         // Act
         $issues = $this->analyzer->analyze($queries);
 
-        // Assert: Description should include normalized pattern
+        // Assert: Description should name the queried table and the query count
         $issuesArray = $issues->toArray();
         $description = $issuesArray[0]->getDescription();
 
-        self::assertStringContainsString('Pattern:', $description);
-        self::assertStringContainsString('SELECT', $description);
         self::assertStringContainsString('users', strtolower($description));
+        self::assertStringContainsString('3', $description);
     }
 
     #[Test]
@@ -571,7 +571,7 @@ final class NPlusOneAnalyzerTest extends TestCase
 
         $issue = $issuesArray[0];
         self::assertStringContainsString('proxy', strtolower($issue->getTitle()));
-        self::assertStringContainsString('Proxy initialization', $issue->getDescription());
+        self::assertStringContainsString('ManyToOne/OneToOne proxy', $issue->getDescription());
 
         $suggestion = $issue->getSuggestion();
         self::assertNotNull($suggestion);
@@ -630,7 +630,7 @@ final class NPlusOneAnalyzerTest extends TestCase
 
         $issue = $issuesArray[0];
         self::assertStringContainsString('partial access', strtolower($issue->getDescription()));
-        self::assertStringContainsString('EXTRA_LAZY', $issue->getDescription());
+        self::assertStringContainsString('LIMIT', $issue->getDescription());
 
         // Should suggest Extra Lazy for partial collection access
         $suggestion = $issue->getSuggestion();
@@ -930,5 +930,27 @@ final class NPlusOneAnalyzerTest extends TestCase
         // Assert: Should NOT detect DELETE queries as N+1
         $issuesArray = $issues->toArray();
         self::assertCount(0, $issuesArray, 'DELETE queries should not be detected as N+1');
+    }
+
+    #[Test]
+    public function it_names_the_inverse_side_of_a_one_to_one_instead_of_a_collection(): void
+    {
+        // Same shape as a collection load (WHERE fk = ?), but Doctrine loads it from loadOneToOneEntity().
+        $frames = [
+            ['class' => \Doctrine\ORM\Persisters\Entity\BasicEntityPersister::class, 'function' => 'loadOneToOneEntity'],
+            ['class' => \Doctrine\ORM\UnitOfWork::class, 'function' => 'createEntity'],
+        ];
+        $builder = QueryDataBuilder::create();
+        for ($id = 1; $id <= 6; ++$id) {
+            $builder->addQueryWithBacktrace('SELECT t0.id AS id_1, t0.country_id AS country_id_2 FROM oto_capital_cities t0 WHERE t0.country_id = ' . $id, $frames, 0.005);
+        }
+
+        $issues = $this->analyzer->analyze($builder->build())->toArray();
+
+        self::assertCount(1, $issues);
+        self::assertStringContainsString('(inverse OneToOne)', $issues[0]->getTitle());
+        self::assertStringContainsString('inverse side of a OneToOne', $issues[0]->getDescription());
+        self::assertStringNotContainsString('collection', $issues[0]->getDescription());
+        self::assertStringContainsString('Country::$capitalCity', (string) $issues[0]->getSuggestion()?->getMetadata()->title);
     }
 }

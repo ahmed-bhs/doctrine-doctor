@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\QueryFieldAccessorTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CollectionJoinDetector;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\PaginatorQueryDetector;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
@@ -254,8 +255,8 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $performanceIssue->setSeverity($severity);
         $performanceIssue->setTitle(sprintf('Too Many JOINs in Single Query (%d tables)', $joinCount));
         $performanceIssue->setMessage(
-            sprintf('Query contains %d JOINs (recommended: ', $joinCount) . $this->maxJoinsRecommended . ' max). ' .
-            'This can severely impact performance. Consider splitting into multiple queries or using subqueries.',
+            sprintf('The query joins %d tables (recommended: %d max). ', $joinCount, $this->maxJoinsRecommended) .
+            'The database has more join orders to plan and returns wider rows for Doctrine to hydrate.',
         );
         $performanceIssue->setSuggestion($this->createTooManyJoinsSuggestion($joinCount, $sql));
 
@@ -294,7 +295,7 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
                 return null;
             }
 
-            $isNullable = $this->isJoinNullable($join, $sql, $metadata);
+            $isNullable = $this->isJoinNullable($join, $sql, $metadata, $metadataMap);
 
             if (false === $isNullable) {
                 return $this->createLeftJoinOnNotNullIssue($join, $metadata, $sql, $executionTime, $query);
@@ -304,31 +305,60 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         return null;
     }
 
-    private function isJoinNullable(array $join, string $sql, ClassMetadata $classMetadata): ?bool
+    /**
+     * Whether a row of the other side can lack a joined row. Only a NOT NULL foreign key held by another table of the
+     * query and pointing to the joined entity guarantees a match. A NOT NULL key held by the joined table itself (the
+     * inverse side of a OneToOne, such as an avatar that belongs to a user) says nothing about the other side: a user
+     * may have no avatar, and the LEFT JOIN is needed.
+     *
+     * @param array<string, ClassMetadata<object>> $metadataMap
+     */
+    private function isJoinNullable(array $join, string $sql, ClassMetadata $joinedMetadata, array $metadataMap): ?bool
     {
         $columnsInOnClause = $this->extractColumnsInOnClause($join, $sql);
-        if ([] === $columnsInOnClause) {
+        if ([] === $columnsInOnClause || $this->startsFromLeftJoinedTable($join, $sql)) {
             return null;
         }
 
         $bestMatch = null;
         $bestMatchCount = 0;
 
-        foreach ($classMetadata->getAssociationMappings() as $associationMapping) {
-            $joinColumns = $this->normalizeJoinColumns($associationMapping);
-            if ([] === $joinColumns) {
+        foreach ($metadataMap as $ownerMetadata) {
+            if ($ownerMetadata === $joinedMetadata) {
                 continue;
             }
 
-            [$matchedColumns, $allNullable] = $this->matchJoinColumns($joinColumns, $columnsInOnClause);
+            foreach ($ownerMetadata->getAssociationMappings() as $associationMapping) {
+                if (!is_a($joinedMetadata->getName(), (string) MappingHelper::getString($associationMapping, 'targetEntity'), true)) {
+                    continue;
+                }
 
-            if ($matchedColumns === count($joinColumns) && $matchedColumns > $bestMatchCount) {
-                $bestMatchCount = $matchedColumns;
-                $bestMatch = $allNullable;
+                $joinColumns = $this->normalizeJoinColumns($associationMapping);
+                if ([] === $joinColumns) {
+                    continue;
+                }
+
+                [$matchedColumns, $allNullable] = $this->matchJoinColumns($joinColumns, $columnsInOnClause);
+
+                if ($matchedColumns === count($joinColumns) && $matchedColumns > $bestMatchCount) {
+                    $bestMatchCount = $matchedColumns;
+                    $bestMatch = $allNullable;
+                }
             }
         }
 
         return $bestMatch;
+    }
+
+    /**
+     * "LEFT JOIN a ... LEFT JOIN b ON a.b_id = b.id": a may be missing, so b must stay a LEFT JOIN even when a.b_id is
+     * NOT NULL. An INNER JOIN there would drop the rows without a, and cancel the first LEFT JOIN.
+     */
+    private function startsFromLeftJoinedTable(array $join, string $sql): bool
+    {
+        $onClause = (string) $this->sqlExtractor->extractJoinOnClause($sql, (string) $join['full_match']);
+        preg_match_all('/\\b(\\w+)\\.\\w+/', $onClause, $aliases);
+        return array_any(array_unique($aliases[1]), fn ($alias) => $alias !== ($join['alias'] ?? null) && 1 === preg_match('/\\bLEFT\\s+(?:OUTER\\s+)?JOIN\\s+\\S+\\s+(?:AS\\s+)?' . preg_quote($alias, '/') . '\\b/i', $sql));
     }
 
     private function createLeftJoinOnNotNullIssue(
@@ -354,8 +384,8 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
         $performanceIssue->setSeverity('critical');
         $performanceIssue->setTitle('Suboptimal LEFT JOIN on NOT NULL Relation');
         $performanceIssue->setMessage(
-            sprintf("Query uses LEFT JOIN on table '%s' which appears to have a NOT NULL foreign key. ", $tableName) .
-            'Using INNER JOIN instead would be 20-30% faster.',
+            sprintf("The query uses LEFT JOIN on table '%s' although the foreign key is NOT NULL. ", $tableName) .
+            'LEFT JOIN limits the join orders the database can choose, with no row it could add.',
         );
         $performanceIssue->setSuggestion($this->createLeftJoinSuggestion($join, $entityClass, $tableName));
 
@@ -389,8 +419,8 @@ class JoinOptimizationAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Anal
             $performanceIssue->setSeverity('warning');
             $performanceIssue->setTitle('Unused JOIN Detected');
             $performanceIssue->setMessage(
-                sprintf("Query performs %s JOIN on table '%s' (alias '%s') but never uses it. ", $join['type'], $join['table'], $alias) .
-                'Remove this JOIN to improve performance.',
+                sprintf("The query performs %s JOIN on table '%s' (alias '%s') but never reads from it. ", $join['type'], $join['table'], $alias) .
+                'The database still executes the join for every row.',
             );
             $performanceIssue->setSuggestion($this->createUnusedJoinSuggestion($join));
 

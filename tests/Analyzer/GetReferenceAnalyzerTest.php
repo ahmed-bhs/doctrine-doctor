@@ -502,7 +502,7 @@ final class GetReferenceAnalyzerTest extends TestCase
         $data = $issue->getData();
         self::assertEquals('lazy_loading', $data['type']);
         self::assertStringContainsString('Lazy Loading Detected', $issue->getTitle());
-        self::assertStringContainsString('eager loading', $issue->getDescription());
+        self::assertStringContainsString('lazy loading', $issue->getDescription());
         self::assertStringNotContainsString('getReference()', $issue->getDescription());
     }
 

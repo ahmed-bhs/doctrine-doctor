@@ -25,40 +25,27 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Incomplete composition setup'); ?>
+<?php echo suggestionHeader('Add cascade remove next to orphanRemoval'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <code>orphanRemoval=true</code> without <code>cascade="remove"</code> causes inconsistent deletion.
-    </div>
+    <p><code><?php echo $e((string) $entityClass); ?>::$<?php echo $e((string) $fieldName); ?></code> has <code>orphanRemoval: true</code> without <code>cascade: ['remove']</code>. Children removed from the collection are deleted, but removing the parent deletes them only if the ORM cascade is set, so both paths disagree.</p>
 
-    <h4>Solution: Add cascade remove</h4>
     <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
-    #[ORM\OneToMany(
-        targetEntity: <?php echo $e($targetClass); ?>::class,
-        mappedBy: '<?php echo $e($mappedBy); ?>',
-        cascade: ['persist', 'remove'],  // Add this
-        orphanRemoval: true
-    )]
-    private Collection $<?php echo $e($fieldName); ?>;
-}</code></pre>
+        <pre><code class="language-php">#[ORM\OneToMany(
+    targetEntity: <?php echo $e((string) $targetClass); ?>::class,
+    mappedBy: '<?php echo $e((string) $mappedBy); ?>',
+    cascade: ['persist', 'remove'],
+    orphanRemoval: true,
+)]
+private Collection $<?php echo $e((string) $fieldName); ?>;</code></pre>
     </div>
-
-    <p>Complete composition requires both <code>cascade: ['persist', 'remove']</code> and <code>orphanRemoval: true</code>.</p>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal', 'Doctrine orphan removal'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
-        'Add cascade remove to %s::$%s for consistent deletion',
-        $entityClass,
-        $fieldName,
-    ),
+    'description' => sprintf("Add cascade: ['remove'] to %s::$%s", $entityClass, $fieldName),
 ];

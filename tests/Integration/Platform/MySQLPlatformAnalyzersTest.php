@@ -92,7 +92,7 @@ final class MySQLPlatformAnalyzersTest extends TestCase
     {
         $this->connection->executeStatement('CREATE TABLE dd_platform_myisam (id INT PRIMARY KEY) ENGINE=MyISAM');
 
-        self::assertContains('1 tables not using InnoDB engine', PlatformAnalyzerTestHelper::platformAnalyzerTitles($this->connection, InnoDBEngineAnalyzer::class));
+        self::assertContains('Table not using InnoDB: dd_platform_myisam', PlatformAnalyzerTestHelper::platformAnalyzerTitles($this->connection, InnoDBEngineAnalyzer::class));
     }
 
     #[Test]

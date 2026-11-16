@@ -45,6 +45,12 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
      */
     private const string DIVISION_PATTERN = '/(\w+(?:\.\w+)?)\s*\/\s*(\w+(?:\.\w+)?)/';
 
+    /**
+     * A COUNT() or SUM() divisor. It is 0 when no row matches, while an aggregate dividend is then NULL, and
+     * NULL / 0 is NULL: only a dividend that is not an aggregate can divide by zero.
+     */
+    private const string AGGREGATE_DIVISOR_PATTERN = '/((?:\b\w+\s*\([^()]*\))|\b\w+(?:\.\w+)?)\s*\/\s*((?:COUNT|SUM)\s*\([^()]*\))/i';
+
     public function __construct(
         private readonly SuggestionFactoryInterface $suggestionFactory,
     ) {
@@ -69,6 +75,15 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
                         continue;
                     }
 
+                    foreach ($this->unguardedAggregateDivisions($sql) as [$dividend, $divisor, $fullMatch]) {
+                        $key = $dividend . '/' . $divisor;
+                        if (!isset($seenDivisions[$key])) {
+                            $seenDivisions[$key] = true;
+
+                            yield $this->createDivisionByZeroIssue($dividend, $divisor, $fullMatch, $query);
+                        }
+                    }
+
                     if (preg_match_all(self::DIVISION_PATTERN, $sql, $matches, PREG_SET_ORDER) >= 1) {
                         foreach ($matches as $match) {
                             $fullMatch = $match[0];
@@ -77,6 +92,11 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
 
                             $key = $dividend . '/' . $divisor;
                             if (isset($seenDivisions[$key])) {
+                                continue;
+                            }
+
+                            // COUNT() and SUM() divisors are judged with their dividend above.
+                            if (\in_array(strtoupper($divisor), ['COUNT', 'SUM', 'AVG', 'MIN', 'MAX'], true)) {
                                 continue;
                             }
 
@@ -136,6 +156,26 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
     }
 
     /**
+     * @return list<array{0: string, 1: string, 2: string}>
+     */
+    private function unguardedAggregateDivisions(string $sql): array
+    {
+        preg_match_all(self::AGGREGATE_DIVISOR_PATTERN, $sql, $matches, PREG_SET_ORDER);
+        $found = [];
+        foreach ($matches as [$fullMatch, $dividend, $divisor]) {
+            if (1 === preg_match('/^(?:SUM|AVG|MIN|MAX|NULLIF|COALESCE)\s*\(/i', $dividend) || $this->isDivisionProtected($sql, $divisor)) {
+                continue;
+            }
+            if (1 === preg_match('/NULLIF\s*\(\s*' . preg_quote($divisor, '/') . '/i', $sql)) {
+                continue;
+            }
+            $found[] = [$dividend, $divisor, $fullMatch];
+        }
+
+        return $found;
+    }
+
+    /**
      * Check if divisor is a non-zero constant.
      */
     private function isNonZeroConstant(string $divisor): bool
@@ -161,10 +201,10 @@ class DivisionByZeroAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
 
         $issueData = new IssueData(
             type: 'division_by_zero',
-            title: 'Potential Division By Zero Error',
+            title: 'Possible Division by Zero',
             description: sprintf(
-                "Division operation '%s' found in query. If '%s' is zero, this will cause a database error. " .
-                "Use NULLIF(%s, 0) to safely handle zero values.",
+                "The query divides '%s' with no NULLIF or CASE guard on '%s'. " .
+                "When '%s' is zero, the database raises an error or returns NULL, depending on the platform and SQL mode.",
                 $fullMatch,
                 $divisor,
                 $divisor,

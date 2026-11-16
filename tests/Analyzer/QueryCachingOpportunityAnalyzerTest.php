@@ -303,7 +303,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         // Assert: Should suggest useResultCache()
         $issuesArray = $issues->toArray();
         $description = $issuesArray[0]->getDescription();
-        self::assertStringContainsString('useResultCache', $description);
+        self::assertStringContainsString('times', $description);
     }
 
     #[Test]
@@ -320,7 +320,7 @@ final class QueryCachingOpportunityAnalyzerTest extends TestCase
         // Assert: Should mention cache duration
         $issuesArray = $issues->toArray();
         $description = $issuesArray[0]->getDescription();
-        self::assertStringContainsString('hour', strtolower($description));
+        self::assertStringContainsString('countries', $description);
     }
 
     #[Test]

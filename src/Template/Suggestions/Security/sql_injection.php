@@ -17,29 +17,21 @@ $isDbal = 'dbal' === ($context['layer'] ?? 'orm');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-
-<?php echo suggestionHeader('SQL Injection vulnerability'); ?>
+<?php echo suggestionHeader('Bind values instead of concatenating them'); ?>
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        <?php echo $e($className); ?>::<?php echo $e($methodName); ?>() - <?php echo $e($vulnType); ?> vulnerability
+        <?php echo $e($className); ?>::<?php echo $e($methodName); ?>() builds a query by string concatenation (<?php echo $e($vulnType); ?>). Input containing quotes can change what the query does.
     </div>
-
-    <p>String concatenation in SQL queries allows query manipulation.</p>
 
 <?php if ($isDbal) { ?>
-    <h4>Current code</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Vulnerable
-$sql = 'SELECT * FROM users WHERE id = ' . $userId;
-$conn-&gt;executeQuery($sql);</code></pre>
-    </div>
-
-    <h4>Fix: bind the value</h4>
     <div class="query-item">
         <pre><code class="language-php">use Doctrine\DBAL\ParameterType;
 
-// Safe: the value travels separately from the SQL
+// Before
+$conn-&gt;executeQuery('SELECT * FROM users WHERE id = ' . $userId);
+
+// After: the value travels separately from the SQL
 $result = $conn-&gt;executeQuery(
     'SELECT * FROM users WHERE id = ?',
     [$userId],
@@ -47,17 +39,11 @@ $result = $conn-&gt;executeQuery(
 );</code></pre>
     </div>
 <?php } else { ?>
-    <h4>Current code</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Vulnerable
-$qb-&gt;select('u')
-   -&gt;from(User::class, 'u')
-   -&gt;where('u.email = \'' . $email . '\'');</code></pre>
-    </div>
+        <pre><code class="language-php">// Before
+$qb-&gt;where('u.email = \'' . $email . '\'');
 
-    <h4>Fix: bind the value</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Safe: the value travels separately from the DQL
+// After: the value travels separately from the DQL
 $qb-&gt;select('u')
    -&gt;from(User::class, 'u')
    -&gt;where('u.email = :email')
@@ -67,8 +53,7 @@ $qb-&gt;select('u')
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/security.html', 'Doctrine ORM Security'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => 'SQL injection risk - use prepared statements'];
+return ['code' => $code, 'description' => 'Bind query values as parameters instead of concatenating them'];

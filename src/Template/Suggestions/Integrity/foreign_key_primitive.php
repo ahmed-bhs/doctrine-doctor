@@ -12,53 +12,31 @@ $targetEntity = $context['target_entity'] ?? 'Entity';
 $associationType = $context['association_type'] ?? null;
 
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+$association = (string) ($associationType ?? 'ManyToOne');
+$propertyName = (string) preg_replace('/_?id$/i', '', (string) $fieldName);
+$propertyName = '' !== $propertyName ? $propertyName : (string) $fieldName;
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Foreign Key Mapped as Primitive Type (Anti-Pattern)'); ?>
-
+<?php echo suggestionHeader('Map the foreign key as an association'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <strong>Doctrine Anti-Pattern Detected</strong><br>
-        Field <code><?php echo $e($fieldName); ?></code> in <code><?php echo $e($entityClass); ?></code> appears to be a foreign key
-        but is mapped as a primitive type (integer).<br>
-        This defeats the purpose of using an ORM!
-    </div>
+<p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> stores the id of a <code><?php echo $e($targetEntity); ?></code> as a plain integer. Doctrine then cannot load, join or check the related entity, and every caller must look it up by hand.</p>
 
-    <h4>Current Anti-Pattern</h4>
-    <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
-    #[ORM\Column(type: Types::INTEGER)]
-    private int $<?php echo $e($fieldName); ?>;
+<div class="query-item"><pre><code class="language-php">// Before
+#[ORM\Column(type: Types::INTEGER)]
+private int $<?php echo $e($fieldName); ?>;
 
-    public function get<?php echo $e(ucfirst((string) $fieldName)); ?>(): int {
-        return $this-><?php echo $e($fieldName); ?>;
-    }
-}</code></pre>
-    </div>
+// After
+#[ORM\<?php echo $e($association); ?>(targetEntity: <?php echo $e($targetEntity); ?>::class)]
+#[ORM\JoinColumn(nullable: false)]
+private <?php echo $e($targetEntity); ?> $<?php echo $e($propertyName); ?>;</code></pre></div>
 
-    <h4>Solution: Use Proper Object Relations</h4>
-    <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($entityClass); ?> {
-    #[ORM\<?php echo $e($associationType); ?>(targetEntity: <?php echo $e($targetEntity); ?>::class)]
-    private <?php echo $e($targetEntity); ?> $<?php echo $e(rtrim((string) $fieldName, 'Id_')); ?>;
-
-    public function get<?php echo $e(ucfirst(rtrim((string) $fieldName, 'Id_'))); ?>(): <?php echo $e($targetEntity); ?> {
-        return $this-><?php echo $e(rtrim((string) $fieldName, 'Id_')); ?>;
-    }
-}</code></pre>
-    </div>
-
-    <p>Object relations give you automatic lazy loading, type safety, IDE autocomplete, and easier queries. This is what ORMs are for.</p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/association-mapping.html', 'Doctrine Association Mapping'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/association-mapping.html', 'Doctrine Association Mapping'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Replace primitive foreign key with proper object relation',
+    'description' => 'Map the foreign key as an association',
 ];

@@ -65,9 +65,8 @@ final readonly class MySQLCharsetAnalyzer implements CharsetAnalyzerInterface
             yield new DatabaseConfigIssue([
                 'title'       => 'Database using utf8 instead of utf8mb4',
                 'description' => sprintf(
-                    'Database "%s" is using charset "%s" which only supports 3-byte UTF-8. ' .
-                    'This causes issues with emojis (😱), some Asian characters, and mathematical symbols. ' .
-                    'Use utf8mb4 for full Unicode support.',
+                    'Database "%s" uses charset "%s", which stores at most 3 bytes per character. ' .
+                    'Emoji, some Asian characters and mathematical symbols are rejected or truncated on insert.',
                     $databaseName,
                     $dbCharset,
                 ),
@@ -104,8 +103,8 @@ final readonly class MySQLCharsetAnalyzer implements CharsetAnalyzerInterface
             yield new DatabaseConfigIssue([
                 'title'       => sprintf('%d tables using utf8 charset', count($problematicTables)),
                 'description' => sprintf(
-                    'Found %d tables using utf8/utf8mb3 charset: %s. ' .
-                    'These tables should use utf8mb4 to support emojis and full Unicode.',
+                    '%d tables use the utf8/utf8mb3 charset: %s. ' .
+                    'Characters that need 4 bytes, such as emoji, are rejected or truncated on insert.',
                     count($problematicTables),
                     $tableList,
                 ),

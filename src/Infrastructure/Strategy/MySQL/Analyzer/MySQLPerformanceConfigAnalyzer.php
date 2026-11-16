@@ -42,13 +42,8 @@ final readonly class MySQLPerformanceConfigAnalyzer implements PerformanceConfig
             yield new DatabaseConfigIssue([
                 'title'       => 'Query Cache enabled (deprecated)',
                 'description' => sprintf(
-                    'Query cache is enabled (query_cache_type = %s). ' .
-                    'This feature is DEPRECATED since MySQL 5.7.20 and REMOVED in MySQL 8.0+. ' .
-                    'Query cache causes severe performance problems:' . "\n" .
-                    '- Global mutex lock contention' . "\n" .
-                    '- Cache invalidation on ANY table write' . "\n" .
-                    '- Modern systems have enough RAM for InnoDB buffer pool' . "\n" .
-                    'Disable query_cache immediately for better performance.',
+                    'Query cache is enabled (query_cache_type = %s), a feature deprecated in MySQL 5.7.20 and removed in 8.0. ' .
+                    'Every write to a table flushes its cached results under a global lock, which serializes concurrent queries.',
                     $queryCacheType,
                 ),
                 'severity' => Severity::critical(),
@@ -79,10 +74,8 @@ final readonly class MySQLPerformanceConfigAnalyzer implements PerformanceConfig
         if (1 === $flushLog) {
             yield new DatabaseConfigIssue([
                 'title'       => 'InnoDB full ACID durability in development',
-                'description' => 'innodb_flush_log_at_trx_commit is set to 1 (full ACID durability). ' .
-                    'This flushes logs to disk on EVERY transaction commit, which is very slow. ' .
-                    'In development, you can safely use value 2 for 10x faster writes. ' .
-                    'Note: Keep value 1 in production for data safety.',
+                'description' => 'innodb_flush_log_at_trx_commit is 1 (full durability) in development. ' .
+                    'Every commit waits for a disk flush, which slows down tests and fixtures that write a lot.',
                 'severity' => Severity::info(),
                 'suggestion' => $this->suggestionFactory->createFromTemplate(
                     templateName: 'Configuration/configuration',
@@ -109,9 +102,8 @@ final readonly class MySQLPerformanceConfigAnalyzer implements PerformanceConfig
         if ($this->isBinaryLogEnabled()) {
             yield new DatabaseConfigIssue([
                 'title'       => 'Binary logging enabled in development',
-                'description' => 'Binary logging (binlog) is enabled. ' .
-                    'Binary logs are used for replication and point-in-time recovery, but waste disk space in development. ' .
-                    'Unless you are testing replication, disable binlog in dev environments.',
+                'description' => 'Binary logging (binlog) is enabled in development. ' .
+                    'Every write is also logged for replication, which uses disk space and I/O that development does not need.',
                 'severity' => Severity::info(),
                 'suggestion' => $this->suggestionFactory->createFromTemplate(
                     templateName: 'Configuration/configuration',
@@ -143,10 +135,8 @@ final readonly class MySQLPerformanceConfigAnalyzer implements PerformanceConfig
             yield new DatabaseConfigIssue([
                 'title'       => 'InnoDB buffer pool size too small',
                 'description' => sprintf(
-                    'innodb_buffer_pool_size is %dMB, which is very small. ' .
-                    'The buffer pool caches table and index data in memory. ' .
-                    'A small buffer pool causes excessive disk I/O and poor performance. ' .
-                    'Recommended: 50-70%% of available RAM (minimum 128MB, ideally 512MB+ for dev).',
+                    'innodb_buffer_pool_size is %dMB. ' .
+                    'Table and index data that does not fit in this memory cache is read from disk on each access.',
                     $bufferPoolMB,
                 ),
                 'severity'   => $bufferPoolSize < 67108864 ? Severity::warning() : Severity::info(), // < 64MB = warning

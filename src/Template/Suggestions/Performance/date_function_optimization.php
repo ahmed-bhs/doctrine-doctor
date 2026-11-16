@@ -12,41 +12,25 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-<?php echo suggestionHeader('Date function prevents index usage'); ?>
+<?php echo suggestionHeader('Compare the date column to a range'); ?>
 <div class="suggestion-content">
-<div class="alert alert-warning">Using <code><?php echo $e($function); ?>()</code> on <code><?php echo $e((string) $field); ?></code> prevents index usage, forcing a full table scan.</div>
+<div class="alert alert-warning">
+    <code><?php echo $e($function); ?>(<?php echo $e((string) $field); ?>)</code> is computed for every row, so the index on <code><?php echo $e((string) $field); ?></code> cannot be used.
+    A range on the bare column can use it.
+</div>
 
-<h4>Your query</h4>
-<div class="query-item"><pre><code class="language-sql">WHERE <?php echo $e((string) $originalClause); ?></code></pre></div>
+<div class="query-item"><pre><code class="language-php">// Before: WHERE <?php echo $e((string) $originalClause); ?>
 
-<h4>Solution: Use range comparison</h4>
-<div class="query-item"><pre><code class="language-sql">WHERE <?php echo $e((string) $optimizedClause); ?></code></pre></div>
+// After:  WHERE <?php echo $e((string) $optimizedClause); ?>
 
-<h4>Examples</h4>
-<div class="query-item"><pre><code class="language-sql">-- Slow (full scan)
-WHERE YEAR(created_at) = 2023
-WHERE DATE(created_at) = '2023-01-15'
-
--- Fast (uses index)
-WHERE created_at >= '2023-01-01' AND created_at < '2024-01-01'
-WHERE created_at >= '2023-01-15' AND created_at < '2023-01-16'</code></pre></div>
-
-<h4>Doctrine QueryBuilder</h4>
-<div class="query-item"><pre><code class="language-php">// Slow
-$qb->where('YEAR(o.createdAt) = :year')
-   ->setParameter('year', 2023);
-
-// Fast
-$qb->where('o.createdAt BETWEEN :start AND :end')
-   ->setParameter('start', new \DateTime('2023-01-01'))
-   ->setParameter('end', new \DateTime('2023-12-31'));</code></pre></div>
-
-<p><strong>Never use functions on indexed columns in WHERE clause.</strong> Common culprits: <code>YEAR()</code>, <code>MONTH()</code>, <code>DATE()</code>, <code>UPPER()</code>, <code>LOWER()</code>.</p>
+$qb-&gt;andWhere('o.createdAt &gt;= :start AND o.createdAt &lt; :end')
+   -&gt;setParameter('start', new \DateTimeImmutable('2023-01-01'))
+   -&gt;setParameter('end', new \DateTimeImmutable('2024-01-01'));</code></pre></div>
 </div>
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Replace %s() with range comparison for index usage', $function),
+    'description' => sprintf('Replace %s() with a range comparison so the index can be used', $function),
 ];

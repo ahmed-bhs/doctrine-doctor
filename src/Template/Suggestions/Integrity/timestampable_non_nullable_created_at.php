@@ -14,40 +14,28 @@ $e = fn (?string $s): string => htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Nullable Timestamp Field'); ?>
+<?php echo suggestionHeader('Make the timestamp NOT NULL'); ?>
 
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        Field <code>$<?= $e($fieldName) ?></code> in <code><?= $e($entityClass) ?></code> is nullable. Timestamp fields should be NOT NULL.
-    </div>
+    <p><code><?= $e($entityClass) ?>::$<?= $e($fieldName) ?></code> is nullable, but a timestamp is always set when the row is written. NOT NULL lets the database reject rows that skipped it.</p>
 
-    <h4>Solution: Make it non-nullable</h4>
     <div class="query-item">
-        <pre><code class="language-php">// Before:
-class <?= $e($entityClass) ?> {
-    #[ORM\Column(nullable: true)]
-    #[Gedmo\Timestampable(on: 'create')]
-    private ?\DateTimeImmutable $<?= $e($fieldName) ?>;
-}
+        <pre><code class="language-php">// Before
+#[ORM\Column(nullable: true)]
+private ?\DateTimeImmutable $<?= $e($fieldName) ?>;
 
-// After:
-class <?= $e($entityClass) ?> {
-    #[ORM\Column(nullable: false)]
-    #[Gedmo\Timestampable(on: 'create')]
-    private \DateTimeImmutable $<?= $e($fieldName) ?>;
-}</code></pre>
+// After
+#[ORM\Column]
+#[Gedmo\Timestampable(on: 'create')]
+private \DateTimeImmutable $<?= $e($fieldName) ?>;</code></pre>
     </div>
-
-    <p>Timestamps are always set automatically - they should never be NULL.</p>
 
     <?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/timestampable.md', 'Doctrine Extensions Timestampable'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Make timestamp field non-nullable',
+    'description' => sprintf('Make %s::$%s NOT NULL', $entityClass, $fieldName),
 ];

@@ -32,31 +32,26 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Synchronize Property Type with Column Type'); ?>
+<?php echo suggestionHeader('Match the property type to the column'); ?>
 
 <div class="suggestion-content">
-    <p><?php echo $e($description); ?></p>
+    <p><?php echo $e($description); ?> The UnitOfWork compares values with <code>===</code>, so a mismatched type looks changed on every flush and triggers an UPDATE.</p>
 
-    <h4>Current Code (Incorrect)</h4>
     <div class="query-item">
-        <pre><code class="language-php"><?php echo $e($badCode); ?></code></pre>
-    </div>
+        <pre><code class="language-php">// Before
+<?php echo $e($badCode); ?>
 
-    <h4>Correct Code</h4>
-    <div class="query-item">
-        <pre><code class="language-php"><?php echo $e($goodCode); ?></code></pre>
-    </div>
 
-    <p>Doctrine's UnitOfWork uses strict comparison (===) to detect changes. When the property type doesn't match the column type, Doctrine thinks the value changed even when it didn't. This triggers unnecessary UPDATE statements.</p>
+// After
+<?php echo $e($goodCode); ?></code></pre>
+    </div>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/basic-mapping.html', 'Doctrine basic mapping docs'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Synchronize property type with column type to prevent unnecessary UPDATEs',
+    'description' => 'Match the property type to the column type to avoid needless UPDATEs',
 ];

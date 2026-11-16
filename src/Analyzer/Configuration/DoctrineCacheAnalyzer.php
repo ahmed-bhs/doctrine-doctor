@@ -160,7 +160,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
                         'critical',
                         'Missing Metadata Cache in Production Config',
                         'Production configuration (when@prod) does not define metadata_cache_driver. ' .
-                        'Doctrine will reparse all entity metadata on EVERY request in production!',
+                        'Doctrine reparses all entity metadata on every request in production.',
                         'metadata',
                         'not configured',
                         '-50 to -80%',
@@ -172,7 +172,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
                         'critical',
                         'Array Cache in Production Config (Metadata)',
                         'Production configuration (when@prod) uses array cache for metadata. ' .
-                        'This will cause entity metadata to be reparsed on EVERY request in production!',
+                        'Entity metadata is reparsed on every request in production.',
                         'metadata',
                         'array (in when@prod)',
                         '-50 to -80%',
@@ -185,7 +185,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
                         'critical',
                         'Missing Query Cache in Production Config',
                         'Production configuration (when@prod) does not define query_cache_driver. ' .
-                        'DQL queries will be recompiled on EVERY execution in production!',
+                        'DQL queries are recompiled to SQL on every execution in production.',
                         'query',
                         'not configured',
                         '-30 to -50%',
@@ -197,7 +197,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
                         'critical',
                         'Array Cache in Production Config (Query)',
                         'Production configuration (when@prod) uses array cache for queries. ' .
-                        'DQL queries will be recompiled on EVERY execution in production!',
+                        'DQL queries are recompiled to SQL on every request in production.',
                         'query',
                         'array (in when@prod)',
                         '-30 to -50%',
@@ -259,9 +259,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
         $configurationIssue->setSeverity($severity);
         $configurationIssue->setTitle($title);
         $configurationIssue->setMessage(
-            $message . "\n\n" .
-            "Configuration file: " . basename($configFile) . "\n" .
-            "Performance impact: " . $performanceImpact,
+            $message . ' Configuration file: ' . basename($configFile) . '.',
         );
 
         $cacheLabel = match ($cacheType) {
@@ -310,7 +308,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             return $this->createIssue(
                 'critical',
                 'No Metadata Cache Configured',
-                'Metadata cache is not configured. Doctrine will reparse all entity metadata on EVERY request!',
+                'Metadata cache is not configured. Doctrine reparses all entity metadata on every request.',
                 'metadata',
                 'none',
                 '-70 to -90%',
@@ -321,7 +319,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             return $this->createIssue(
                 'critical',
                 'Array Cache in Production (Metadata)',
-                'metadata_cache_driver is using ArrayCache. Entity metadata is reparsed on EVERY request, causing massive performance degradation.',
+                'metadata_cache_driver is using ArrayCache, which lives for one request only. Entity metadata is reparsed on every request.',
                 'metadata',
                 'array',
                 '-50 to -80%',
@@ -332,7 +330,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             return $this->createIssue(
                 'warning',
                 'Filesystem Cache for Metadata (Suboptimal)',
-                'metadata_cache_driver is using filesystem cache. Consider using Redis or APCu for better performance.',
+                'metadata_cache_driver is using filesystem cache. Every metadata read goes to disk instead of shared memory.',
                 'metadata',
                 'filesystem',
                 '-20 to -30%',
@@ -353,7 +351,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             return $this->createIssue(
                 'warning',
                 'No Query Cache Configured',
-                'Query cache is not configured. DQL queries are recompiled on EVERY execution!',
+                'Query cache is not configured. DQL queries are recompiled to SQL on every execution.',
                 'query',
                 'none',
                 '-40 to -60%',
@@ -364,7 +362,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             return $this->createIssue(
                 'warning',
                 'Array Cache in Production (Query)',
-                'query_cache_driver is using ArrayCache. DQL queries are recompiled on EVERY execution instead of being cached.',
+                'query_cache_driver is using ArrayCache, which lives for one request only. DQL queries are recompiled to SQL on every request.',
                 'query',
                 'array',
                 '-30 to -50%',
@@ -375,7 +373,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             return $this->createIssue(
                 'warning',
                 'Filesystem Cache for Queries (Suboptimal)',
-                'query_cache_driver is using filesystem cache. Consider using Redis or APCu for better performance.',
+                'query_cache_driver is using filesystem cache. Every compiled query is read from disk instead of shared memory.',
                 'query',
                 'filesystem',
                 '-10 to -20%',
@@ -396,7 +394,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             return $this->createIssue(
                 'warning',
                 'No Result Cache Configured',
-                'Result cache is not configured. Query results cannot be cached, missing optimization opportunities.',
+                'Result cache is not configured. Queries that call enableResultCache() still hit the database every time.',
                 'result',
                 'none',
                 'Varies (0-50% for cacheable queries)',
@@ -407,7 +405,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             return $this->createIssue(
                 'warning',
                 'Array Cache for Results',
-                'result_cache_driver is using ArrayCache. This provides no persistent caching across requests.',
+                'result_cache_driver is using ArrayCache, which lives for one request only. Cached results are lost between requests.',
                 'result',
                 'array',
                 'Varies',
@@ -440,12 +438,8 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             $configurationIssue->setSeverity('critical');
             $configurationIssue->setTitle('Proxy Auto-Generation Enabled in Production (runtime)');
             $configurationIssue->setMessage(
-                'auto_generate_proxy_classes is enabled in production. ' .
-                'Doctrine checks filesystem on every request to regenerate proxy classes. ' .
-                'This should be disabled in production (set to false). ' .
-                'This value is read from the EntityManager at runtime, so it reflects what ' .
-                'Doctrine actually uses, including overrides applied after the configuration ' .
-                'files are loaded.',
+                'auto_generate_proxy_classes is enabled at runtime in production (value read from the EntityManager). ' .
+                'Doctrine checks the filesystem for proxy classes on every request.',
             );
 
             $suggestion = $this->suggestionFactory->createFromTemplate(
@@ -549,7 +543,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
 
         $configurationIssue->setSeverity($severity);
         $configurationIssue->setTitle($title);
-        $configurationIssue->setMessage($message . ' Performance impact: ' . $performanceImpact);
+        $configurationIssue->setMessage($message);
 
         $cacheLabel = match ($cacheType) {
             'metadata' => 'Metadata Cache',

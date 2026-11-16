@@ -56,6 +56,16 @@ final class MissingEmbeddableOpportunityAnalyzerIntegrationTest extends TestCase
     }
 
     #[Test]
+    public function it_does_not_suggest_a_value_object_to_the_entity_named_after_it_or_for_one_field(): void
+    {
+        $analyzer = $this->createAnalyzerForFixtures([__DIR__ . '/../../Fixtures/Entity/EmbeddableNoiseTest'], 1);
+
+        $titles = array_map(static fn ($issue): string => (string) $issue->getTitle(), $analyzer->analyze(QueryDataCollection::empty())->toArray());
+
+        self::assertSame(['Missing Address Embeddable: Supplier'], array_values($titles));
+    }
+
+    #[Test]
     public function it_reports_single_entity_when_min_entities_is_one(): void
     {
         $analyzer = $this->createAnalyzerForFixtures(

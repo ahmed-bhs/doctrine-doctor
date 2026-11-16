@@ -76,13 +76,12 @@ final class DeepOffsetPaginationAnalyzerTest extends TestCase
             QueryDataBuilder::create()->addQuery('SELECT * FROM users ORDER BY id LIMIT 20 OFFSET 5000')->build(),
         );
 
-        $description = $issues->toArray()[0]->getDescription();
-
-        if (class_exists(\Doctrine\ORM\Tools\Pagination\CursorPaginator::class)) {
-            self::assertStringContainsString(\Doctrine\ORM\Tools\Pagination\CursorPaginator::class, $description);
-        } else {
-            self::assertStringNotContainsString('CursorPaginator', $description);
-        }
+        $suggestion = $issues->toArray()[0]->getSuggestion();
+        self::assertInstanceOf(\AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion::class, $suggestion);
+        self::assertSame(
+            class_exists(\Doctrine\ORM\Tools\Pagination\CursorPaginator::class),
+            $suggestion->getContext()['cursor_paginator_available'],
+        );
     }
 
     #[Test]

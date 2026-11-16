@@ -67,7 +67,8 @@ class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
                             type: IssueType::EAGER_LOADING->value,
                             title: sprintf('Excessive Eager Loading: %d JOINs', $joinCount),
                             description: DescriptionHighlighter::highlight(
-                                'Query contains {count} JOINs which may cause cartesian product issues (threshold: {threshold})',
+                                'The query has {count} JOINs (threshold: {threshold}). '
+                                . 'Each joined collection multiplies the rows returned, which can turn into a cartesian product.',
                                 [
                                     'count' => $joinCount,
                                     'threshold' => $this->joinThreshold,
@@ -167,8 +168,7 @@ class EagerLoadingAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyzer
             context: [
                 'code' => implode("\n", $suggestions),
                 'optimization' => sprintf(
-                    'Excessive JOINs (%d) might indicate over-fetching data through eager loading. ' .
-                    'This can significantly impact query performance and memory usage.',
+                    '%d JOINs in one query often means more data is fetched than the page uses.',
                     $joinCount,
                 ),
                 'execution_time' => 0.0,

@@ -25,19 +25,11 @@ $eventAttribute = match ($event) {
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('Remove flush() from lifecycle callback'); ?>
-
+<?php echo suggestionHeader('Remove flush() from the lifecycle callback'); ?>
 <div class="suggestion-content">
-    <div class="alert alert-danger">
-        <strong>Infinite loop risk:</strong> <code><?php echo $e($entityClass); ?>::<?php echo $e($methodName); ?>()</code>
-        calls <code>flush()</code> inside a <code>#[<?php echo $e($eventAttribute); ?>]</code> lifecycle callback.
-        This re-triggers the UnitOfWork computation, which can invoke the same callback again, causing an infinite loop.
-    </div>
+<p><code><?php echo $e($entityClass); ?>::<?php echo $e($methodName); ?>()</code> calls <code>flush()</code> inside a <code>#[<?php echo $e($eventAttribute); ?>]</code> callback. The nested flush recomputes the unit of work and can trigger the same callback again, in a loop.</p>
 
-    <h4>Problem</h4>
-    <div class="query-item">
-        <pre><code class="language-php">#[ORM\Entity]
+<div class="query-item"><pre><code class="language-php">#[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
 class <?php echo $e($entityClass); ?>
 
@@ -45,33 +37,14 @@ class <?php echo $e($entityClass); ?>
     #[ORM\<?php echo $e($eventAttribute); ?>]
     public function <?php echo $e($methodName); ?>(): void
     {
-        // ...
-        $this->entityManager->flush(); // DANGEROUS: triggers UnitOfWork again
+        // Change this entity's fields only: the running flush saves them.
+        // Before: $this->entityManager->flush();
     }
-}</code></pre>
-    </div>
+}</code></pre></div>
 
-    <h4>Solution: Use an event listener service</h4>
-    <div class="query-item">
-        <pre><code class="language-php">// Remove #[HasLifecycleCallbacks] and move logic to a listener
-class <?php echo $e($entityClass); ?>Listener
-{
-    #[ORM\<?php echo $e($eventAttribute); ?>]
-    public function <?php echo $e($event); ?>(<?php echo $e($entityClass); ?> $entity, LifecycleEventArgs $event): void
-    {
-        // Perform your logic here WITHOUT calling flush()
-        // Doctrine will flush automatically at the end of the request
-    }
-}</code></pre>
-    </div>
+<p>To persist other entities, do it in an <code>onFlush</code> listener and call <code>$uow->computeChangeSet()</code> for each of them.</p>
 
-    <p>
-        <strong>Note:</strong> Doctrine explicitly warns against calling <code>flush()</code> inside lifecycle events.
-        If you need to persist additional changes, schedule them via <code>UnitOfWork::scheduleExtraUpdate()</code>
-        or use the <code>onFlush</code> event with <code>UnitOfWork::computeChangeSet()</code>.
-    </p>
-
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/events.html', 'Doctrine Events documentation'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/events.html', 'Doctrine Events documentation'); ?>
 </div>
 
 <?php
@@ -80,7 +53,7 @@ $code = ob_get_clean();
 return [
     'code'        => $code,
     'description' => sprintf(
-        'Remove flush() call from %s::%s() lifecycle callback (%s) to prevent infinite loops',
+        'Remove flush() from the %s::%s() lifecycle callback (%s)',
         $entityClass,
         $methodName,
         $event,

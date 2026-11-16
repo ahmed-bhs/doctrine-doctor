@@ -97,4 +97,32 @@ final class NPlusOneSqlAnalyzerTest extends TestCase
 
         self::assertCount(0, $issues);
     }
+
+    #[Test]
+    public function it_names_an_identical_query_repeated_in_the_request(): void
+    {
+        $builder = QueryDataBuilder::create();
+        for ($i = 1; $i <= 5; $i++) {
+            $builder->addQuery('SELECT code FROM sylius_country WHERE enabled = 1 ORDER BY code', 0.6);
+        }
+
+        $issues = $this->analyzer->analyze($builder->build())->toArray();
+
+        self::assertCount(1, $issues);
+        self::assertStringStartsWith('Identical Query Repeated: 5 times', $issues[0]->getTitle());
+        self::assertStringContainsString('Keep the result for the request', (string) $issues[0]->getSuggestion()?->getMetadata()->title);
+    }
+
+    #[Test]
+    public function it_keeps_the_n_plus_one_when_the_values_differ(): void
+    {
+        $builder = QueryDataBuilder::create();
+        for ($i = 1; $i <= 5; $i++) {
+            $builder->addQueryWithParams('SELECT id, title FROM book WHERE author_id = ?', [$i], 0.1);
+        }
+
+        $issues = $this->analyzer->analyze($builder->build())->toArray();
+
+        self::assertStringContainsString('N+1 SQL pattern (DBAL)', $issues[0]->getTitle());
+    }
 }

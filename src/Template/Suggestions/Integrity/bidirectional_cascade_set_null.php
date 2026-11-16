@@ -14,36 +14,23 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 
 ob_start();
 ?>
-
-<?php echo suggestionHeader('cascade="remove" with onDelete="SET NULL"'); ?>
-
+<?php echo suggestionHeader("Align onDelete with cascade: ['remove']"); ?>
 <div class="suggestion-content">
-    <div class="alert alert-warning">
-        <code><?php echo $e($parentField); ?></code> has <code>cascade="remove"</code> (ORM deletes children)
-        but database has <code>onDelete="SET NULL"</code> (sets FK to NULL).
-    </div>
+<p><code><?php echo $e($parentClass); ?>::$<?php echo $e($parentField); ?></code> deletes its children through <code>cascade: ['remove']</code>, but the foreign key on <code><?php echo $e($childClass); ?>::$<?php echo $e($childField); ?></code> uses <code>onDelete: 'SET NULL'</code>. A delete through the ORM removes the children, a delete in SQL keeps them with a NULL parent.</p>
 
-    <p>Behavior differs depending on how you delete. ORM delete removes children via cascade. Database delete sets FK to NULL. This is confusing and error-prone.</p>
+<div class="query-item"><pre><code class="language-php">class <?php echo $e($childClass); ?>
 
-    <h4>Fix</h4>
-    <div class="query-item">
-        <pre><code class="language-php">class <?php echo $e($parentClass); ?> {
-    #[ORM\OneToMany(cascade: ['remove'])]
-    private Collection $<?php echo $e($parentField); ?>;
-}
-
-class <?php echo $e($childClass); ?> {
-    #[ORM\ManyToOne]
+{
+    #[ORM\ManyToOne(inversedBy: '<?php echo $e($parentField); ?>')]
+    // Before: #[ORM\JoinColumn(onDelete: 'SET NULL')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private <?php echo $e($parentClass); ?> $<?php echo $e($childField); ?>;
-}</code></pre>
-    </div>
+}</code></pre></div>
 
-    <p>Make cascade="remove" match onDelete="CASCADE" so behavior is consistent whether you delete via ORM or database.</p>
+<p>If children must outlive their parent, remove <code>cascade: ['remove']</code> from <code>$<?php echo $e($parentField); ?></code> instead.</p>
 
-    <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine ORM Cascade Operations'); ?>
+<?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine ORM Cascade Operations'); ?>
 </div>
-
 <?php
 $code = ob_get_clean();
 
