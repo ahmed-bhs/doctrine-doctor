@@ -1,0 +1,11 @@
+foreach ($order->getItems() as $item) {
+    $rows[] = $item->getVariant()->getName();
+}
+
+
+
+
+
+
+
+$alone = $line->getVariant()->getName();

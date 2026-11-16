@@ -439,10 +439,11 @@
                 });
             }
 
-            function detectActionability(text) {
+            function detectActionability(text, code) {
                 var t = (text || '').toLowerCase();
+                // A schema change is what the proposed code does to the database, not a word in the explanation.
+                if (/\b(alter table|create (unique )?index|drop (table|column|index)|add constraint)\b|#\[orm\\(index|column|uniqueconstraint|joincolumn|table)\b|addsql\(|doctrine:migrations/.test((code || '').toLowerCase())) return 'schema_change';
                 if (/rename|refactor|architecture|value object|embeddable|migration strategy/.test(t)) return 'refactor';
-                if (/schema|migration|column|index|foreign key|nullable|type mismatch|decimal/.test(t)) return 'schema_change';
                 return 'quick_fix';
             }
 
@@ -460,7 +461,8 @@
                     var title = (parentCard && parentCard.getAttribute('data-title')) || '';
                     var type = (parentCard && parentCard.getAttribute('data-type')) || '';
                     var text = title + ' ' + type + ' ' + (container.textContent || '');
-                    var key = detectActionability(text);
+                    var code = Array.prototype.map.call(container.querySelectorAll('pre, code'), function(el) { return el.textContent; }).join('\n');
+                    var key = detectActionability(text, code);
                     var chip = document.createElement('span');
                     chip.className = 'dd-suggestion-actionability ' + key;
                     chip.textContent = actionabilityLabel(key);
