@@ -263,9 +263,10 @@ class AnalyzeCommand extends Command
             ['Duration' => sprintf('%.2f ms', $durationMs)],
         );
         $io->text(sprintf(
-            '<fg=red;options=bold>%d critical</>  <fg=yellow;options=bold>%d warnings</>  <fg=blue;options=bold>%d info</>',
+            '<fg=red;options=bold>%d critical</>  <fg=yellow;options=bold>%d %s</>  <fg=blue;options=bold>%d info</>',
             $counts['critical'],
             $counts['warning'],
+            1 === $counts['warning'] ? 'warning' : 'warnings',
             $counts['info'],
         ));
     }
@@ -307,7 +308,15 @@ class AnalyzeCommand extends Command
         }
 
         $totals = $this->totals($findings);
-        $message = sprintf('Found %d findings: %d critical, %d warnings, %d info. Show a fix with --show-suggestion=<id>.', count($findings), $totals['critical'], $totals['warning'], $totals['info']);
+        $message = sprintf(
+            'Found %d %s: %d critical, %d %s, %d info. Show a fix with --show-suggestion=<id>.',
+            count($findings),
+            1 === count($findings) ? 'finding' : 'findings',
+            $totals['critical'],
+            $totals['warning'],
+            1 === $totals['warning'] ? 'warning' : 'warnings',
+            $totals['info'],
+        );
         $totals['critical'] + $totals['warning'] > 0 ? $io->error($message) : $io->note($message);
     }
 
