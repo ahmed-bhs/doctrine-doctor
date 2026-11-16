@@ -7,6 +7,8 @@ $incorrect = $context['incorrect'] ?? 'field = NULL';
 $correct = $context['correct'] ?? 'field IS NULL';
 $field = $context['field'] ?? 'field_name';
 $operator = $context['operator'] ?? '=';
+// The SQL column (s0_.shipped_at) becomes the DQL property (e.shippedAt).
+$property = lcfirst(str_replace('_', '', ucwords((string) preg_replace('/^\w+\./', '', (string) $field), '_')));
 
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
@@ -22,7 +24,7 @@ ob_start();
 -- After
 <?php echo $e((string) $correct); ?></code></pre></div>
 
-<p>In a QueryBuilder: <code>$qb-&gt;andWhere($qb-&gt;expr()-&gt;isNull('e.<?php echo $e((string) $field); ?>'))</code>.</p>
+<p>In a QueryBuilder: <code>$qb-&gt;andWhere($qb-&gt;expr()-&gt;isNull('e.<?php echo $e($property); ?>'))</code>.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html', 'Doctrine Query Language (DQL)'); ?>
 </div>
