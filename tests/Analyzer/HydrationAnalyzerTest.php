@@ -12,6 +12,8 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Performance\HydrationAnalyzer;
+use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
+use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -299,5 +301,17 @@ final class HydrationAnalyzerTest extends TestCase
         self::assertCount(1, $issues);
         $issue = $issues->toArray()[0];
         self::assertStringContainsString('250 rows', $issue->getTitle());
+    }
+
+    #[Test]
+    public function it_ignores_rows_read_as_arrays_or_dtos(): void
+    {
+        $sql = 'SELECT s0_.id AS id_0, s0_.number AS number_1 FROM sylius_order s0_ LEFT JOIN sylius_customer s1_ ON s0_.customer_id = s1_.id';
+        $asArrays = QueryData::fromArray(['sql' => $sql, 'rowCount' => 3020, 'hydratedEntities' => 0]);
+        $asEntities = QueryData::fromArray(['sql' => $sql, 'rowCount' => 3020, 'hydratedEntities' => 3841]);
+
+        self::assertCount(0, $this->analyzer->analyze(QueryDataCollection::fromArray([$asArrays])));
+        self::assertCount(1, $this->analyzer->analyze(QueryDataCollection::fromArray([$asEntities])));
+        self::assertSame(0, QueryData::fromArray($asArrays->toArray())->hydratedEntities);
     }
 }
