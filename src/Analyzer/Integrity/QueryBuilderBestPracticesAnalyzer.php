@@ -60,9 +60,7 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                     }
 
                     // 2. Detect incorrect NULL comparison
-                    if ($this->hasIncorrectNullComparison($sql)) {
-                        yield $this->createIncorrectNullComparisonIssue($query);
-                    }
+                    // = NULL is reported by NullComparisonAnalyzer, with the column in the message.
 
                     // 3. Detect empty IN clause
                     if ($this->hasEmptyInClause($sql)) {
@@ -96,12 +94,6 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
     private function hasPotentialSqlInjection(string $sql): bool
     {
         $result = $this->patternDetector->detectPotentialSqlInjection($sql);
-        return $result['detected'];
-    }
-
-    private function hasIncorrectNullComparison(string $sql): bool
-    {
-        $result = $this->patternDetector->detectIncorrectNullComparison($sql);
         return $result['detected'];
     }
 
@@ -147,43 +139,6 @@ class QueryBuilderBestPracticesAnalyzer implements \AhmedBhs\DoctrineDoctor\Anal
                     title: sprintf('SQL Injection Risk in %s::%s()', 'Repository', 'query'),
                     tags: ['security', 'sql-injection', 'database'],
                 ),
-            ),
-        ]);
-    }
-
-    private function createIncorrectNullComparisonIssue(QueryData $queryData): IssueInterface
-    {
-        $badCode = <<<'PHP'
-            $qb->where('u.deletedAt = NULL');
-            $qb->where($qb->expr()->eq('u.deletedAt', null));
-            PHP;
-
-        $goodCode = <<<'PHP'
-            $qb->where($qb->expr()->isNull('u.deletedAt'));
-            // or
-            $qb->where('u.deletedAt IS NULL');
-            PHP;
-
-        $suggestionMetadata = new SuggestionMetadata(
-            type: SuggestionType::integrity(),
-            severity: Severity::warning(),
-            title: 'Use IS NULL instead of = NULL',
-        );
-
-        return $this->issueFactory->createFromArray([
-            'type' => IssueType::INCORRECT_NULL_COMPARISON->value,
-            'title'       => 'Incorrect NULL Comparison',
-            'description' => 'The query compares to NULL with = or != instead of IS NULL / IS NOT NULL, which SQL never evaluates to true. The condition matches no rows, whatever the data.',
-            'severity'    => 'warning',
-            'category'    => 'integrity',
-            'queries'     => [$queryData],
-            'suggestion'  => $this->suggestionFactory->createFromTemplate(
-                'Integrity/incorrect_null_comparison',
-                [
-                    'bad_code'  => $badCode,
-                    'good_code' => $goodCode,
-                ],
-                $suggestionMetadata,
             ),
         ]);
     }

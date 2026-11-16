@@ -68,63 +68,6 @@ final class QueryBuilderBestPracticesAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_detects_incorrect_null_comparison_with_equals(): void
-    {
-        // Arrange: = NULL (incorrect in SQL)
-        // Note: Current regex in analyzer has a bug - it only detects != NULL, not = NULL
-        // Using != NULL for this test
-        $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u0_.id FROM user u0_ WHERE deletedAt != NULL')
-            ->build();
-
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert
-        self::assertCount(1, $issues);
-        $issue = $issues->toArray()[0];
-        self::assertEquals('Incorrect NULL Comparison', $issue->getTitle());
-        // Note: IssueFactory returns 'security' category for all issues
-        self::assertEquals('security', $issue->getCategory()->value);
-        self::assertEquals('warning', $issue->getSeverity()->value);
-        self::assertStringContainsString('IS NULL', $issue->getDescription());
-    }
-
-    #[Test]
-    public function it_detects_incorrect_null_comparison_with_not_equals(): void
-    {
-        // Arrange: != NULL (incorrect in SQL)
-        $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u0_.id FROM user u0_ WHERE u0_.deletedAt != NULL')
-            ->build();
-
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert
-        self::assertCount(1, $issues);
-        $issue = $issues->toArray()[0];
-        self::assertEquals('Incorrect NULL Comparison', $issue->getTitle());
-    }
-
-    #[Test]
-    public function it_detects_incorrect_null_comparison_case_insensitive(): void
-    {
-        // Arrange: Various NULL cases (using != due to regex limitation in analyzer)
-        $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u0_.id FROM user u0_ WHERE field != null')
-            ->addQuery('SELECT u0_.id FROM user u0_ WHERE field != Null')
-            ->addQuery('SELECT u0_.id FROM user u0_ WHERE field != NULL')
-            ->build();
-
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert: Should detect all 3 variations
-        self::assertCount(3, $issues);
-    }
-
-    #[Test]
     public function it_ignores_correct_is_null_syntax(): void
     {
         // Arrange: Correct IS NULL syntax
@@ -206,60 +149,16 @@ final class QueryBuilderBestPracticesAnalyzerTest extends TestCase
     }
 
     #[Test]
-    public function it_detects_multiple_issues_in_single_query(): void
+    public function it_leaves_null_comparisons_to_the_dedicated_analyzer(): void
     {
-        // Arrange: Query with both problems (using != due to regex limitation)
         $queries = QueryDataBuilder::create()
             ->addQuery('SELECT u0_.id FROM user u0_ WHERE deletedAt != NULL AND status IN ()')
             ->build();
 
-        // Act
-        $issues = $this->analyzer->analyze($queries);
+        $titles = array_map(static fn ($issue): string => $issue->getTitle(), $this->analyzer->analyze($queries)->toArray());
 
-        // Assert: Should detect both issues
-        self::assertCount(2, $issues);
-    }
-
-    #[Test]
-    public function it_detects_multiple_null_comparisons_in_query(): void
-    {
-        // Arrange: Multiple NULL comparisons (using != due to regex limitation)
-        $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u0_.id FROM user u0_ WHERE deletedAt != NULL AND archivedAt != NULL')
-            ->build();
-
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert: Generator may yield multiple issues for same query
-        self::assertGreaterThanOrEqual(1, count($issues));
-    }
-
-    #[Test]
-    public function it_provides_suggestion_for_incorrect_null_comparison(): void
-    {
-        // Arrange (using != due to regex limitation in analyzer)
-        $queries = QueryDataBuilder::create()
-            ->addQuery('SELECT u0_.id FROM user u0_ WHERE deletedAt != NULL')
-            ->build();
-
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert
-        self::assertCount(1, $issues);
-        $issue = $issues->toArray()[0];
-        $suggestion = $issue->getSuggestion();
-        self::assertNotNull($suggestion);
-
-        // Verify template and context
-        /** @var \AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion $suggestion */
-        self::assertEquals('Integrity/incorrect_null_comparison', $suggestion->getTemplateName());
-        /** @var \AhmedBhs\DoctrineDoctor\Suggestion\ModernSuggestion $suggestion */
-        $context = $suggestion->getContext();
-        self::assertArrayHasKey('bad_code', $context);
-        self::assertArrayHasKey('good_code', $context);
-        self::assertStringContainsString('IS NULL', $context['good_code']);
+        self::assertCount(1, $titles);
+        self::assertNotContains('Incorrect NULL Comparison', $titles);
     }
 
     #[Test]
@@ -296,27 +195,6 @@ final class QueryBuilderBestPracticesAnalyzerTest extends TestCase
             self::assertArrayHasKey('description', $option);
             self::assertArrayHasKey('code', $option);
         }
-    }
-
-    #[Test]
-    public function it_handles_complex_queries_with_joins(): void
-    {
-        // Arrange: Complex query with JOIN and incorrect NULL (using != due to regex limitation)
-        $queries = QueryDataBuilder::create()
-            ->addQuery(
-                'SELECT u0_.id, p1_.id FROM user u0_ ' .
-                'LEFT JOIN post p1_ ON u0_.id = p1_.user_id ' .
-                'WHERE deletedAt != NULL',
-            )
-            ->build();
-
-        // Act
-        $issues = $this->analyzer->analyze($queries);
-
-        // Assert
-        self::assertGreaterThanOrEqual(1, count($issues));
-        $issue = $issues->toArray()[0];
-        self::assertEquals('Incorrect NULL Comparison', $issue->getTitle());
     }
 
     #[Test]
