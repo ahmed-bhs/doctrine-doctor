@@ -43,7 +43,7 @@ class LazyLoadingIssue extends AbstractIssue
     #[\Override]
     public function getType(): string
     {
-        return 'Lazy Loading';
+        return IssueType::LAZY_LOADING->value;
     }
 
     public function getCategory(): IssueCategory

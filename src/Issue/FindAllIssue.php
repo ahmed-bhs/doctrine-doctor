@@ -38,7 +38,7 @@ class FindAllIssue extends AbstractIssue
     #[\Override]
     public function getType(): string
     {
-        return 'Find All';
+        return IssueType::FIND_ALL->value;
     }
 
     public function getCategory(): IssueCategory

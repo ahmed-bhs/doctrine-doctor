@@ -83,6 +83,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A baseline entry now also matches a finding by title and file, so renaming a finding type no longer brings it back
+  as new. Several types were labels (`Find All`, `Flush In Loop`, `Lazy Loading`, `Slow Query`, `Configuration`,
+  `Missing Transaction on Batch`): they are now identifiers (`find_all`, `flush_in_loop`…), like the others, without
+  breaking existing baselines.
 - Database configuration findings printed `🪪  Database Config` in the report, a label instead of an identifier like
   every other finding. They now print `🪪  database_configuration`.
 - `CascadeAll` warned about `cascade: ['all']` on a OneToMany or OneToOne with `orphanRemoval: true` (a country and

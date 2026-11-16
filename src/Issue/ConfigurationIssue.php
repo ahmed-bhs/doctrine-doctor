@@ -52,7 +52,7 @@ class ConfigurationIssue extends AbstractIssue
     #[\Override]
     public function getType(): string
     {
-        return 'Configuration';
+        return IssueType::CONFIGURATION->value;
     }
 
     public function getCategory(): IssueCategory
