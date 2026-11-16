@@ -83,7 +83,7 @@ final class MigrationAnalyzersTest extends TestCase
 
         self::assertStringContainsString('3 of which drop', $issues[0]->getDescription());
         foreach (['legacy_a', 'legacy_b', 'legacy_c'] as $table) {
-            self::assertStringContainsString('DROP TABLE ' . $table, $issues[0]->getDescription());
+            self::assertStringContainsString('table ' . $table, $issues[0]->getDescription());
         }
     }
 

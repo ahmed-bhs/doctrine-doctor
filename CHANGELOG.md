@@ -83,6 +83,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `MigrationState` names what the diff would delete (`table legacy_newsletter, app_wishlist.added_at`) instead of
+  quoting the SQL, so that the CLI report, which shortens messages, shows all of it.
 - `MigrationState` said "3 of which drop a table or a column" and named only two of them. Every destructive statement
   is now named (up to five).
 - A baseline entry now also matches a finding by title and file, so renaming a finding type no longer brings it back

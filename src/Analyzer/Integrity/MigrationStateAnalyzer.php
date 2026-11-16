@@ -118,6 +118,21 @@ class MigrationStateAnalyzer implements DatabaseAuditAnalyzerInterface
     }
 
     /**
+     * "legacy_newsletter" for DROP TABLE legacy_newsletter, "app_wishlist.added_at" for ALTER TABLE app_wishlist DROP added_at.
+     */
+    private function droppedObject(string $sql): string
+    {
+        if (1 === preg_match('/\\bDROP\\s+TABLE\\s+(?:IF\\s+EXISTS\\s+)?[`"]?([\\w.]+)/i', $sql, $table)) {
+            return 'table ' . $table[1];
+        }
+        if (1 === preg_match('/\\bALTER\\s+TABLE\\s+[`"]?([\\w.]+)[`"]?.*?\\bDROP\\s+(?:COLUMN\\s+)?[`"]?(\\w+)/is', $sql, $column)) {
+            return $column[1] . '.' . $column[2];
+        }
+
+        return mb_strimwidth($sql, 0, 80, '…');
+    }
+
+    /**
      * @param list<string> $statements
      */
     private function driftIssue(array $statements): IntegrityIssue
@@ -126,9 +141,9 @@ class MigrationStateAnalyzer implements DatabaseAuditAnalyzerInterface
         $shown = \array_slice([] !== $destructive ? $destructive : $statements, 0, self::SHOWN_STATEMENTS);
 
         // Every destructive statement is named (they are the reason for the finding); other statements, two examples.
-        $examples = implode('; ', array_map(static fn (string $sql): string => mb_strimwidth($sql, 0, 80, '…'), [] !== $destructive ? $shown : \array_slice($shown, 0, 2)));
+        $examples = implode('; ', array_map(static fn (string $sql): string => mb_strimwidth($sql, 0, 80, '…'), \array_slice($shown, 0, 2)));
         $description = [] !== $destructive
-            ? sprintf('Every migration has run, yet the mapping differs from the database by %d statement(s), %d of which drop a table or a column (%s). A migration generated from this diff deletes that data.', \count($statements), \count($destructive), $examples)
+            ? sprintf('Every migration has run, yet the mapping differs from the database by %d statement(s), %d of which drop a table or a column: %s. A migration generated from this diff deletes that data.', \count($statements), \count($destructive), implode(', ', array_map($this->droppedObject(...), $shown)))
             : sprintf('Every migration has run, yet the mapping differs from the database by %d statement(s) (%s). A mapping change was made without generating its migration.', \count($statements), $examples);
 
         return new IntegrityIssue([
