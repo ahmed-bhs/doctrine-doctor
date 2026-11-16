@@ -43,10 +43,24 @@ final class ProxyOwner
         // The lines just above often say where the owner comes from: foreach ($order->getItems() as $item).
         $context = self::getters(implode('', \array_slice($lines, max(0, $line - 7), 7)));
 
+        $found = self::candidates($entityManager, $targetClass, $fields, $context);
+
+        return 1 === \count($found) ? $found[0] : null;
+    }
+
+    /**
+     * Single-valued associations named like a getter of the line, targeting the loaded entity.
+     * When several match, keep those whose owner a getter of the lines above reaches.
+     * @param list<string> $fields
+     * @param list<string> $context
+     * @return list<array{entity: string, field: string}>
+     */
+    private static function candidates(EntityManagerInterface $entityManager, string $targetClass, array $fields, array $context): array
+    {
         try {
             $metadatas = $entityManager->getMetadataFactory()->getAllMetadata();
         } catch (\Throwable) {
-            return null;
+            return [];
         }
 
         $found = [];
@@ -67,10 +81,10 @@ final class ProxyOwner
         }
 
         if (\count($found) > 1) {
-            $found = array_values(array_filter($found, static fn (array $owner): bool => isset($reached[$owner['entity']])));
+            return array_values(array_filter($found, static fn (array $owner): bool => isset($reached[$owner['entity']])));
         }
 
-        return 1 === \count($found) ? $found[0] : null;
+        return $found;
     }
 
     /**
