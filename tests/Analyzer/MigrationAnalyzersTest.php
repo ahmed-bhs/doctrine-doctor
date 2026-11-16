@@ -71,6 +71,23 @@ final class MigrationAnalyzersTest extends TestCase
     }
 
     #[Test]
+    public function it_names_every_statement_that_drops_data(): void
+    {
+        $em = $this->entityManager();
+        new \Doctrine\ORM\Tools\SchemaTool($em)->createSchema($em->getMetadataFactory()->getAllMetadata());
+        foreach (['legacy_a', 'legacy_b', 'legacy_c'] as $table) {
+            $em->getConnection()->executeStatement(sprintf('CREATE TABLE %s (id INTEGER)', $table));
+        }
+
+        $issues = new MigrationStateAnalyzer($em, PlatformAnalyzerTestHelper::createSuggestionFactory(), $this->factory(null, $em))->analyzeMetadata()->toArray();
+
+        self::assertStringContainsString('3 of which drop', $issues[0]->getDescription());
+        foreach (['legacy_a', 'legacy_b', 'legacy_c'] as $table) {
+            self::assertStringContainsString('DROP TABLE ' . $table, $issues[0]->getDescription());
+        }
+    }
+
+    #[Test]
     public function it_does_nothing_without_doctrine_migrations(): void
     {
         self::assertSame([], new RiskyMigrationAnalyzer(PlatformAnalyzerTestHelper::createSuggestionFactory())->analyzeMetadata()->toArray());

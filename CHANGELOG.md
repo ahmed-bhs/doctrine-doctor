@@ -83,6 +83,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `MigrationState` said "3 of which drop a table or a column" and named only two of them. Every destructive statement
+  is now named (up to five).
 - A baseline entry now also matches a finding by title and file, so renaming a finding type no longer brings it back
   as new. Several types were labels (`Find All`, `Flush In Loop`, `Lazy Loading`, `Slow Query`, `Configuration`,
   `Missing Transaction on Batch`): they are now identifiers (`find_all`, `flush_in_loop`…), like the others, without

@@ -125,7 +125,8 @@ class MigrationStateAnalyzer implements DatabaseAuditAnalyzerInterface
         $destructive = array_values(array_filter($statements, static fn (string $sql): bool => 1 === preg_match('/\bDROP\s+(?!INDEX|FOREIGN\s+KEY|CONSTRAINT|PRIMARY\s+KEY)/i', $sql)));
         $shown = \array_slice([] !== $destructive ? $destructive : $statements, 0, self::SHOWN_STATEMENTS);
 
-        $examples = implode('; ', array_map(static fn (string $sql): string => mb_strimwidth($sql, 0, 80, '…'), \array_slice($shown, 0, 2)));
+        // Every destructive statement is named (they are the reason for the finding); other statements, two examples.
+        $examples = implode('; ', array_map(static fn (string $sql): string => mb_strimwidth($sql, 0, 80, '…'), [] !== $destructive ? $shown : \array_slice($shown, 0, 2)));
         $description = [] !== $destructive
             ? sprintf('Every migration has run, yet the mapping differs from the database by %d statement(s), %d of which drop a table or a column (%s). A migration generated from this diff deletes that data.', \count($statements), \count($destructive), $examples)
             : sprintf('Every migration has run, yet the mapping differs from the database by %d statement(s) (%s). A mapping change was made without generating its migration.', \count($statements), $examples);
