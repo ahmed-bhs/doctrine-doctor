@@ -198,13 +198,14 @@ final class TransactionBoundaryAnalyzerIntegrationTest extends DatabaseTestCase
 
         $multipleFlushIssues = array_filter($issues, fn ($issue) => 'transaction_multiple_flush' === $issue->getType());
 
-        self::assertGreaterThan(0, count($multipleFlushIssues), 'Should detect multiple flush operations');
+        self::assertCount(1, $multipleFlushIssues, 'One issue per transaction, not one per extra flush');
 
         $firstIssue = reset($multipleFlushIssues);
 
         assert($firstIssue instanceof \AhmedBhs\DoctrineDoctor\Issue\IssueInterface);
         self::assertSame('warning', $firstIssue->getSeverity()->value);
-        self::assertStringContainsString('Multiple flush() calls detected', $firstIssue->getDescription());
+        self::assertStringContainsString('3 flush() calls ran in one transaction', $firstIssue->getDescription());
+        self::assertSame('Multiple Flush in Transaction (3 flushes)', $firstIssue->getTitle());
         self::assertStringContainsString('deadlock risk', $firstIssue->getDescription());
     }
 

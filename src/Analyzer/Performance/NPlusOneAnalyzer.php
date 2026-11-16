@@ -712,6 +712,10 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             $metadatas = $this->entityManager->getMetadataFactory()->getAllMetadata();
 
             foreach ($metadatas as $metadata) {
+                // A mapped superclass (Sylius\Component\Core\Model\Order) shares the table name of the entity that extends it.
+                if ($metadata->isMappedSuperclass || $metadata->isEmbeddedClass) {
+                    continue;
+                }
                 $this->tableToEntityCache[$metadata->getTableName()] = $metadata->getName();
             }
         } catch (\Throwable) {

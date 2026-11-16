@@ -88,6 +88,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
         return [
             'transactionStack'            => [],
             'flushesInCurrentTransaction' => [],
+            'firstExtraFlush' => [],
             'transactionStartTime'        => null,
             'lastQueryTime'               => 0,
             'currentTime'                 => 0,
@@ -115,7 +116,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
 
         if ($this->isFlushQuery($sql)) {
             if (!$state['lastQueryWasFlush']) {
-                yield from $this->handleFlush($queryData, $state);
+                $this->handleFlush($queryData, $state);
             }
             $state['lastQueryWasFlush'] = true;
         } elseif ($this->isCommit($sql)) {
@@ -123,7 +124,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             yield from $this->handleCommit($queryData, $state);
         } elseif ($this->isRollback($sql)) {
             $state['lastQueryWasFlush'] = false;
-            $this->handleRollback($state);
+            yield from $this->handleRollback($state);
         } else {
             $state['lastQueryWasFlush'] = false;
         }
@@ -179,18 +180,30 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     /**
      * Handle flush operation.
      * @param array<string, mixed> $state
-     * @return \Generator<IssueInterface>
      */
-    private function handleFlush(QueryData $queryData, array &$state): \Generator
+    private function handleFlush(QueryData $queryData, array &$state): void
     {
         $currentTxId = $this->enclosingTransactionId($state);
         ++$state['flushesInCurrentTransaction'][$currentTxId];
 
-        if ($state['flushesInCurrentTransaction'][$currentTxId] > $this->maxFlushPerTransaction) {
-            yield $this->createMultipleFlushIssue(
-                $queryData,
-                (int) $state['flushesInCurrentTransaction'][$currentTxId],
-            );
+        if ($state['flushesInCurrentTransaction'][$currentTxId] === $this->maxFlushPerTransaction + 1) {
+            $state['firstExtraFlush'][$currentTxId] = $queryData;
+        }
+    }
+
+    /**
+     * One issue per transaction, with its final flush count, once it ends.
+     * @param array<string, mixed> $state
+     * @return \Generator<IssueInterface>
+     */
+    private function reportFlushes(string $transactionId, array &$state): \Generator
+    {
+        $flushes = (int) ($state['flushesInCurrentTransaction'][$transactionId] ?? 0);
+        $firstExtra = $state['firstExtraFlush'][$transactionId] ?? null;
+        unset($state['flushesInCurrentTransaction'][$transactionId], $state['firstExtraFlush'][$transactionId]);
+
+        if ($flushes > $this->maxFlushPerTransaction && $firstExtra instanceof QueryData) {
+            yield $this->createMultipleFlushIssue($firstExtra, $flushes);
         }
     }
 
@@ -214,15 +227,16 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             yield $this->createLongTransactionIssue($queryData, $duration);
         }
 
-        unset($state['flushesInCurrentTransaction'][$transactionId]);
+        yield from $this->reportFlushes($transactionId, $state);
         $state['transactionStartTime'] = [] === $state['transactionStack'] ? null : $state['transactionStartTime'];
     }
 
     /**
      * Handle transaction rollback.
      * @param array<string, mixed> $state
+     * @return \Generator<IssueInterface>
      */
-    private function handleRollback(array &$state): void
+    private function handleRollback(array &$state): \Generator
     {
         $transactionId = array_pop($state['transactionStack']);
         Assert::string($transactionId);
@@ -231,7 +245,7 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             return; // ROLLBACK TO SAVEPOINT: the enclosing transaction is still open
         }
 
-        unset($state['flushesInCurrentTransaction'][$transactionId]);
+        yield from $this->reportFlushes($transactionId, $state);
         $state['transactionStartTime'] = [] === $state['transactionStack'] ? null : $state['transactionStartTime'];
     }
 
@@ -321,8 +335,8 @@ class TransactionBoundaryAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
     private function createMultipleFlushIssue(QueryData $queryData, int $flushCount): IssueInterface
     {
         $description = sprintf(
-            'Multiple flush() calls detected in one transaction (%d). '
-            . 'Each flush adds round trips and holds locks longer, so throughput drops and the deadlock risk grows.',
+            '%d flush() calls ran in one transaction. Each flush sends its writes, but every row lock they take '
+            . 'is held until the commit: the longer the transaction, the longer other requests wait, and the higher the deadlock risk.',
             $flushCount,
         );
 
