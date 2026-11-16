@@ -42,7 +42,7 @@ class FlushInLoopIssue extends AbstractIssue
     #[\Override]
     public function getType(): string
     {
-        return 'Flush In Loop';
+        return IssueType::FLUSH_IN_LOOP->value;
     }
 
     public function getCategory(): IssueCategory

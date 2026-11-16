@@ -138,6 +138,26 @@ final class AnalyzeCommandReportTest extends TestCase
         self::assertSame(0, $tester->getStatusCode());
     }
 
+    #[Test]
+    public function it_keeps_a_finding_in_the_baseline_when_only_its_type_was_renamed(): void
+    {
+        $tester = $this->tester('A description.');
+        $baseline = (string) tempnam(sys_get_temp_dir(), 'dd-baseline');
+        $tester->execute(['--generate-baseline' => $baseline]);
+
+        // The baseline of an older version: another type, so another ID, same title and file.
+        $data = json_decode((string) file_get_contents($baseline), true);
+        $data['findings'][0]['id'] = '0000000000';
+        $data['findings'][0]['type'] = 'Old Label';
+        file_put_contents($baseline, json_encode($data));
+
+        $tester->execute(['--baseline' => $baseline]);
+        unlink($baseline);
+
+        self::assertStringContainsString('No findings detected', $tester->getDisplay());
+        self::assertStringNotContainsString('no longer match', $tester->getDisplay());
+    }
+
     private function tester(string $description): CommandTester
     {
         $analyzer = new readonly class($description) implements StaticAnalyzerInterface {

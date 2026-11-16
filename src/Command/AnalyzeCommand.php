@@ -113,10 +113,20 @@ class AnalyzeCommand extends Command
 
                 return self::INVALID;
             }
-            $current = array_column($findings, 'id');
-            $findings = array_values(array_filter($findings, static fn (array $finding): bool => !isset($known[$finding['id']])));
-            $ignored = count($current) - count($findings);
-            $unmatched = count(array_diff_key($known, array_flip($current)));
+            $total = count($findings);
+            $matched = [];
+            $findings = array_values(array_filter($findings, static function (array $finding) use ($known, &$matched): bool {
+                // By ID first; by title and file when only the type was renamed between two versions.
+                $entry = $known['ids'][$finding['id']] ?? $known['titles'][$finding['title'] . "\0" . ($finding['file'] ?? '')] ?? null;
+                if (null === $entry) {
+                    return true;
+                }
+                $matched[$entry] = true;
+
+                return false;
+            }));
+            $ignored = $total - count($findings);
+            $unmatched = $known['count'] - count($matched);
         }
 
         match ($format) {
@@ -399,6 +409,9 @@ class AnalyzeCommand extends Command
     /**
      * @return array<string, true>|null
      */
+    /**
+     * @return array{ids: array<string, int>, titles: array<string, int>, count: int}|null entry number by ID and by "title\0file"
+     */
     private function readBaseline(string $file): ?array
     {
         $content = is_file($file) ? file_get_contents($file) : false;
@@ -408,13 +421,17 @@ class AnalyzeCommand extends Command
         }
 
         $ids = [];
-        foreach ($data['findings'] as $entry) {
+        $titles = [];
+        foreach (array_values($data['findings']) as $number => $entry) {
             if (\is_array($entry) && isset($entry['id']) && \is_string($entry['id'])) {
-                $ids[$entry['id']] = true;
+                $ids[$entry['id']] = $number;
+                if (isset($entry['title']) && \is_string($entry['title'])) {
+                    $titles[$entry['title'] . "\0" . (\is_string($entry['file'] ?? null) ? $entry['file'] : '')] ??= $number;
+                }
             }
         }
 
-        return $ids;
+        return ['ids' => $ids, 'titles' => $titles, 'count' => count($ids)];
     }
 
     /**
