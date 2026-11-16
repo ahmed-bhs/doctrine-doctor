@@ -392,4 +392,29 @@ final class CartesianProductAnalyzerTest extends TestCase
 
         self::assertCount(0, $this->analyzer->analyze($queries));
     }
+
+    #[Test]
+    public function a_translation_filtered_on_its_locale_does_not_multiply_rows(): void
+    {
+        $sql = 'SELECT a0_.id, t1_.id, c2_.id FROM ct_article a0_ '
+            . 'LEFT JOIN ct_article_translation t1_ ON a0_.id = t1_.translatable_id '
+            . 'LEFT JOIN ct_article_comment c2_ ON a0_.id = c2_.article_id';
+
+        self::assertCount(1, $this->analyzer->analyze(QueryDataBuilder::create()->addQuery($sql)->build()));
+        self::assertCount(0, $this->analyzer->analyze(QueryDataBuilder::create()->addQuery($sql . ' WHERE t1_.locale = ?')->build()));
+    }
+
+    #[Test]
+    public function mapped_translations_of_different_entities_are_not_one_parent(): void
+    {
+        $builder = QueryDataBuilder::create();
+        for ($i = 1; $i <= 5; ++$i) {
+            $builder->addQuery('SELECT t0_.id FROM ct_article_translation t0_ WHERE t0_.translatable_id = ?');
+            $builder->addQuery('SELECT c0_.id FROM ct_article_comment c0_ WHERE c0_.article_id = ?');
+        }
+
+        $titles = array_map(static fn ($issue): string => $issue->getTitle(), $this->analyzer->analyze($builder->build())->toArray());
+
+        self::assertContains('Cartesian Product Risk: 2 Collections on Article', $titles);
+    }
 }

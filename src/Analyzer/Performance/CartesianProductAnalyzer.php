@@ -27,6 +27,7 @@ use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Webmozart\Assert\Assert;
@@ -201,12 +202,36 @@ class CartesianProductAnalyzer implements AnalyzerInterface
     }
 
     /**
+     * Short name of the entity a foreign key column of $metadata points to.
+     * @param ClassMetadata<object>|null $metadata
+     */
+    private function parentEntity(?ClassMetadata $metadata, string $foreignKey): ?string
+    {
+        if (null === $metadata) {
+            return null;
+        }
+
+        $column = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $foreignKey));
+        $column = str_ends_with($column, '_id') ? $column : $column . '_id';
+        foreach ($metadata->getAssociationNames() as $field) {
+            if ($metadata->isAssociationWithSingleJoinColumn($field) && strtolower($metadata->getSingleAssociationJoinColumnName($field)) === $column) {
+                $target = $metadata->getAssociationTargetClass($field);
+
+                return substr($target, (int) strrpos('\\' . $target, '\\'));
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @return \Generator<IssueInterface>
      */
     private function detectCollectionN1Risk(QueryDataCollection $queryDataCollection): \Generator
     {
         /** @var array<string, array<string, list<QueryData>>> $sourceGroups */
         $sourceGroups = [];
+        $metadataMap = $this->collectionJoinDetector->buildMetadataMap();
 
         foreach ($queryDataCollection as $queryData) {
             if (!$queryData->isSelect() || InverseOneToOneLoad::inBacktrace($queryData->backtrace)) {
@@ -220,8 +245,10 @@ class CartesianProductAnalyzer implements AnalyzerInterface
                 continue;
             }
 
-            $sourceEntity = $pattern['foreignKey'];
             $collectionTable = $pattern['table'];
+            // translatable_id on two tables means two different parents: group by the entity the key points to.
+            // Without mapping, the key name is all there is.
+            $sourceEntity = $this->parentEntity($metadataMap[$collectionTable] ?? null, $pattern['foreignKey']) ?? $pattern['foreignKey'];
 
             $sourceGroups[$sourceEntity][$collectionTable][] = $queryData;
         }
