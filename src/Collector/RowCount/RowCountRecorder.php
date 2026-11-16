@@ -14,8 +14,8 @@ namespace AhmedBhs\DoctrineDoctor\Collector\RowCount;
 use Symfony\Contracts\Service\ResetInterface;
 
 /**
- * Rows read by each SELECT of the request, per connection, in execution order.
- * The profiler records the SQL but not how many rows came back.
+ * Rows read by each SELECT of the request, per connection, in execution order, and the
+ * entities hydrated from them. The profiler records the SQL but neither of these.
  */
 final class RowCountRecorder implements ResetInterface
 {
@@ -25,6 +25,9 @@ final class RowCountRecorder implements ResetInterface
     private array $entries = [];
 
     private int $total = 0;
+
+    /** @var array<string, int> */
+    private array $hydrated = [];
 
     public function start(string $connection, string $sql): ?RowCountEntry
     {
@@ -47,9 +50,25 @@ final class RowCountRecorder implements ResetInterface
         return $this->entries[$connection] ?? [];
     }
 
+    public function entityHydrated(string $table): void
+    {
+        $table = strtolower($table);
+        $this->hydrated[$table] = ($this->hydrated[$table] ?? 0) + 1;
+    }
+
+    /**
+     * Entities hydrated during the request, per table, even if cleared since.
+     * @return array<string, int>
+     */
+    public function hydratedByTable(): array
+    {
+        return $this->hydrated;
+    }
+
     public function reset(): void
     {
         $this->entries = [];
+        $this->hydrated = [];
         $this->total = 0;
     }
 }

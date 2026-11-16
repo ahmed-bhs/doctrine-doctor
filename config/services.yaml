@@ -91,6 +91,12 @@ services:
         tags:
             - { name: kernel.reset, method: reset }
 
+    AhmedBhs\DoctrineDoctor\Collector\RowCount\EntityHydrationListener:
+        arguments:
+            $recorder: '@AhmedBhs\DoctrineDoctor\Collector\RowCount\RowCountRecorder'
+        tags:
+            - { name: doctrine.event_listener, event: postLoad }
+
     AhmedBhs\DoctrineDoctor\Collector\RowCount\RowCountMiddleware:
         arguments:
             $recorder: '@AhmedBhs\DoctrineDoctor\Collector\RowCount\RowCountRecorder'

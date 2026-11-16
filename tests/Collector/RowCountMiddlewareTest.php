@@ -44,7 +44,12 @@ final class RowCountMiddlewareTest extends TestCase
         self::assertSame([5, 2, 0], array_map(static fn ($e): int => $e->rows, $entries));
         self::assertSame([], $recorder->entries('default'));
 
+        $recorder->entityHydrated('Sylius_Order');
+        $recorder->entityHydrated('sylius_order');
+        self::assertSame(['sylius_order' => 2], $recorder->hydratedByTable());
+
         $recorder->reset();
         self::assertSame([], $recorder->entries('shop'));
+        self::assertSame([], $recorder->hydratedByTable());
     }
 }
