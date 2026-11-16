@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Result;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
@@ -35,8 +36,7 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
 
         // Mock: query_cache_type = ON
         $result = $this->createMock(Result::class);
-        $connection->expects(self::any())
-            ->method('executeQuery')
+        $connection->method('executeQuery')
             ->willReturnCallback(function ($sql) use ($result) {
                 if (str_contains($sql, 'query_cache_type')) {
                     return $result;
@@ -44,8 +44,7 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
                 return $this->createDefaultResult();
             });
 
-        $detector->expects(self::any())
-            ->method('fetchAssociative')
+        $detector->method('fetchAssociative')
             ->willReturnCallback(function ($res) use ($result) {
                 if ($res === $result) {
                     return ['Value' => 'ON'];
@@ -265,19 +264,15 @@ final class MySQLAnalysisStrategyPerformanceTest extends TestCase
         self::assertCount(0, $issues, 'Should return no issues when all configs are optimal');
     }
 
-    private function mockShowVariables(Connection $connection, DatabasePlatformDetector $detector, array $values): void
+    private function mockShowVariables(Connection&Stub $connection, DatabasePlatformDetector&Stub $detector, array $values): void
     {
-        /** @phpstan-ignore-next-line Mock object has expects() method */
-        $connection->expects(self::any())
-            ->method('executeQuery')
+        $connection->method('executeQuery')
             ->willReturnCallback(function () {
                 $result = $this->createMock(Result::class);
                 return $result;
             });
 
-        /** @phpstan-ignore-next-line Mock object has expects() method */
-        $detector->expects(self::any())
-            ->method('fetchAssociative')
+        $detector->method('fetchAssociative')
             ->willReturnCallback(function () use ($values) {
                 static $callCount = 0;
                 $callCount++;

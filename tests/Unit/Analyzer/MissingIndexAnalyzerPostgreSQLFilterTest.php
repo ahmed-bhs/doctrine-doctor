@@ -57,9 +57,11 @@ final class MissingIndexAnalyzerPostgreSQLFilterTest extends TestCase
         // Replay PostgreSQL's EXPLAIN and index catalog through the public analyzer API.
         // Only the database boundary is mocked; parsing and issue creation are real.
         $schemaManager = $this->createMock(PostgreSQLSchemaManager::class);
-        $schemaManager->method('listTableIndexes')->with('users')->willReturn([
-            'idx_name' => new Index('idx_name', ['name'], options: $indexOptions),
-        ]);
+        $schemaManager->method('listTableIndexes')->willReturnCallback(static function (string $table) use ($indexOptions): array {
+            self::assertSame('users', $table);
+
+            return ['idx_name' => new Index('idx_name', ['name'], options: $indexOptions)];
+        });
         $connection = $this->createMock(Connection::class);
         $connection->method('getDatabasePlatform')->willReturn(new PostgreSQLPlatform());
         $connection->method('createSchemaManager')->willReturn($schemaManager);

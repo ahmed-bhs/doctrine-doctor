@@ -49,7 +49,7 @@ Then open `coverage/index.html` in your browser.
 Example: `StrictModeAnalyzerTest`
 
 ```php
-/** @test */
+#[Test]
 public function it_detects_missing_configuration(): void
 {
     // Arrange: Mock non-compliant configuration
@@ -70,7 +70,7 @@ public function it_detects_missing_configuration(): void
 Example: `NPlusOneAnalyzerTest`
 
 ```php
-/** @test */
+#[Test]
 public function it_detects_n_plus_one_queries(): void
 {
     // Arrange: Create query pattern
@@ -95,7 +95,7 @@ public function it_detects_n_plus_one_queries(): void
 Example: `CollectionInitializationAnalyzerTest`
 
 ```php
-/** @test */
+#[Test]
 public function it_detects_uninitialized_collection(): void
 {
     // Arrange: Create entity metadata with uninitialized collection

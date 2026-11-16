@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Result;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
@@ -268,16 +269,12 @@ final class PostgreSQLAnalysisStrategyPerformanceTest extends TestCase
         self::assertCount(3, $issues, 'Should detect all 3 performance issues');
     }
 
-    private function mockShowVariables(Connection $connection, DatabasePlatformDetector $detector, array $values): void
+    private function mockShowVariables(Connection&Stub $connection, DatabasePlatformDetector&Stub $detector, array $values): void
     {
-        /** @phpstan-ignore-next-line Mock object has expects() method */
-        $connection->expects(self::any())
-            ->method('executeQuery')
+        $connection->method('executeQuery')
             ->willReturnCallback(fn () => $this->createMock(Result::class));
 
-        /** @phpstan-ignore-next-line Mock object has expects() method */
-        $detector->expects(self::any())
-            ->method('fetchAssociative')
+        $detector->method('fetchAssociative')
             ->willReturnCallback(function () use ($values) {
                 static $callCount = 0;
                 $callCount++;

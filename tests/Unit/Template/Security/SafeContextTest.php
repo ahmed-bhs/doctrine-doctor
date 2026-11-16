@@ -13,11 +13,10 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Template\Security;
 
 use AhmedBhs\DoctrineDoctor\Template\Security\SafeContext;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @covers \AhmedBhs\DoctrineDoctor\Template\Security\SafeContext
- */
+#[CoversClass(SafeContext::class)]
 final class SafeContextTest extends TestCase
 {
     public function test_auto_escapes_string_values(): void
