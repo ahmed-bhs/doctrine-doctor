@@ -81,9 +81,21 @@ services:
             $showDebugInfo: '%doctrine_doctor.profiler.show_debug_info%'
             $dataCollectorHelpers: '@AhmedBhs\DoctrineDoctor\Collector\DataCollectorHelpers'
             $excludePaths: '%doctrine_doctor.analysis.exclude_paths%'
+            $rowCounts: '@AhmedBhs\DoctrineDoctor\Collector\RowCount\RowCountRecorder'
         tags:
             - { name: data_collector, id: doctrine_doctor, template: '@doctrine_doctor/profiler/doctrine_doctor.html.twig', priority: 249 }
             - { name: kernel.reset, method: reset }
+
+    # Rows returned by each SELECT: the profiler records the SQL, not the result size
+    AhmedBhs\DoctrineDoctor\Collector\RowCount\RowCountRecorder:
+        tags:
+            - { name: kernel.reset, method: reset }
+
+    AhmedBhs\DoctrineDoctor\Collector\RowCount\RowCountMiddleware:
+        arguments:
+            $recorder: '@AhmedBhs\DoctrineDoctor\Collector\RowCount\RowCountRecorder'
+        tags:
+            - { name: doctrine.middleware }
 
     # Deferred analysis (AnalysisTiming::OnView): run when a profile is opened,
     # or on demand from the CLI (used by the AI Mate tools)

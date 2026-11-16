@@ -65,6 +65,9 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
     private readonly AnalysisTiming $analysisTiming;
 
+    /**
+     * @SuppressWarnings("PHPMD.ExcessiveParameterList")
+     */
     public function __construct(
         /**
          * @var AnalyzerInterface[]
@@ -90,6 +93,7 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
          * without rebuilding the container.
          */
         private readonly bool $enabled = true,
+        private readonly ?RowCount\RowCountRecorder $rowCounts = null,
     ) {
         $this->analysisTiming = ($analysisTiming ?? AnalysisTiming::Auto)->resolve();
     }
@@ -126,9 +130,9 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
 
         $queries = $this->doctrineDataCollector->getQueries();
 
-        foreach ($queries as $query) {
+        foreach ($queries as $connection => $query) {
             if (is_array($query)) {
-                foreach ($query as $connectionQuery) {
+                foreach ($this->withRowCounts((string) $connection, $query) as $connectionQuery) {
                     $this->data['timeline_queries'][] = $connectionQuery;
                 }
             }
@@ -139,6 +143,33 @@ class DoctrineDoctorDataCollector extends DataCollector implements LateDataColle
             AnalysisTiming::OnView  => $this->markAnalysisPending(),
             default                 => null,
         };
+    }
+
+    /**
+     * Adds the rows each SELECT returned, matched by SQL in execution order.
+     * @param array<mixed> $queries
+     * @return array<mixed>
+     */
+    private function withRowCounts(string $connection, array $queries): array
+    {
+        if (!$this->rowCounts instanceof RowCount\RowCountRecorder) {
+            return $queries;
+        }
+
+        $bySql = [];
+        foreach ($this->rowCounts->entries($connection) as $entry) {
+            $bySql[$entry->sql][] = $entry->rows;
+        }
+
+        foreach ($queries as $index => $query) {
+            if (!is_array($query) || !is_string($query['sql'] ?? null) || isset($query['rowCount']) || [] === ($bySql[$query['sql']] ?? [])) {
+                continue;
+            }
+
+            $queries[$index]['rowCount'] = array_shift($bySql[$query['sql']]);
+        }
+
+        return $queries;
     }
 
     public function lateCollect(): void

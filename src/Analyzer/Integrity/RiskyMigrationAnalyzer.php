@@ -183,7 +183,7 @@ class RiskyMigrationAnalyzer implements MetadataAnalyzerInterface
     }
 
     /**
-     * @return list<string> "table x" or "column y" for each DROP in up()
+     * @return list<string> "table x" or "column x.y" for each DROP in up()
      */
     private function droppedObjects(Node\Stmt\ClassMethod $upMethod): array
     {
@@ -193,8 +193,9 @@ class RiskyMigrationAnalyzer implements MetadataAnalyzerInterface
                 $dropped[] = 'table ' . $match[1];
             }
             if (1 === preg_match_all('/\bDROP\s+(?:COLUMN\s+)?`?(?!INDEX\b|FOREIGN\b|CONSTRAINT\b|PRIMARY\b|TABLE\b|KEY\b)(\w+)/i', (string) preg_replace('/^\s*DROP\s+TABLE.*/i', '', $sql), $matches)) {
+                $table = 1 === preg_match('/\bALTER\s+TABLE\s+`?(\w+)/i', $sql, $tableMatch) ? $tableMatch[1] . '.' : '';
                 foreach ($matches[1] as $column) {
-                    $dropped[] = 'column ' . $column;
+                    $dropped[] = 'column ' . $table . $column;
                 }
             }
         }

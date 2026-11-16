@@ -45,7 +45,7 @@ final class MigrationAnalyzersTest extends TestCase
             static fn (IssueInterface $issue): bool => str_starts_with($issue->getTitle(), 'Destructive'),
         ));
 
-        self::assertStringContainsString('drops column added_at.', $issues[0]->getDescription());
+        self::assertStringContainsString('drops column app_wishlist.added_at.', $issues[0]->getDescription());
     }
 
     #[Test]
