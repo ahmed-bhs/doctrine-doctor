@@ -53,6 +53,17 @@ final class SuggestionWordingTest extends TestCase
         self::assertStringContainsString("name: 'default_product_id'", $code);
     }
 
+    #[Test]
+    public function the_join_table_entity_uses_the_real_target_and_columns(): void
+    {
+        $code = html_entity_decode($this->render('Integrity/many_to_many_extra_columns', ['entity_class' => 'App\\Entity\\Customer', 'field_name' => 'wishlist', 'join_table' => 'app_wishlist', 'extra_columns' => ['added_at'], 'target_entity' => 'App\\Entity\\ProductVariant']), ENT_QUOTES);
+
+        self::assertStringContainsString('class WishlistEntry', $code);
+        self::assertStringContainsString('private ProductVariant $productVariant;', $code);
+        self::assertStringContainsString("#[ORM\\Column(name: 'added_at', type: Types::DATETIME_IMMUTABLE)]", $code);
+        self::assertStringContainsString('private \\DateTimeImmutable $addedAt;', $code);
+    }
+
     /**
      * @param array<string, mixed> $context
      */

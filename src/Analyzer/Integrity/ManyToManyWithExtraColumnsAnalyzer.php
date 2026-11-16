@@ -192,6 +192,16 @@ class ManyToManyWithExtraColumnsAnalyzer implements DatabaseAuditAnalyzerInterfa
         return MappingHelper::getString($column, 'name');
     }
 
+    private function targetOf(string $entityClass, string $fieldName): string
+    {
+        try {
+            /** @var class-string $entityClass */
+            return (string) $this->entityManager->getClassMetadata($entityClass)->getAssociationTargetClass($fieldName);
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
     private function createIssue(
         string $entityClass,
         string $fieldName,
@@ -225,6 +235,7 @@ class ManyToManyWithExtraColumnsAnalyzer implements DatabaseAuditAnalyzerInterfa
                     'field_name' => $fieldName,
                     'join_table' => $joinTableName,
                     'extra_columns' => $extraColumns,
+                    'target_entity' => $this->targetOf($entityClass, $fieldName),
                 ],
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::refactoring(),

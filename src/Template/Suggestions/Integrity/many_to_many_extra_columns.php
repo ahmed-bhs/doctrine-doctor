@@ -10,6 +10,10 @@ $entity_class = (string) ($context['entity_class'] ?? '');
 $field_name = (string) ($context['field_name'] ?? '');
 $join_table = (string) ($context['join_table'] ?? '');
 $extra_columns = (array) ($context['extra_columns'] ?? []);
+$target_entity = (string) ($context['target_entity'] ?? '');
+$shortTarget = '' === $target_entity ? 'Target' : substr($target_entity, (int) strrpos('\\' . $target_entity, '\\'));
+$linkClass = ucfirst((string) preg_replace('/s$/', '', $field_name)) . 'Entry';
+$camel = static fn (string $column): string => lcfirst(str_replace('_', '', ucwords($column, '_')));
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -21,7 +25,8 @@ ob_start();
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Entity]
 #[ORM\Table(name: '<?php echo $e($join_table); ?>')]
-class <?php echo $e($shortEntity); ?>Link
+class <?php echo $e($linkClass); ?>
+
 {
     #[ORM\Id, ORM\ManyToOne(inversedBy: '<?php echo $e($field_name); ?>')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -29,18 +34,22 @@ class <?php echo $e($shortEntity); ?>Link
 
     #[ORM\Id, ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private Target $target;
+    private <?php echo $e($shortTarget); ?> $<?php echo $e(lcfirst($shortTarget)); ?>;
+<?php foreach ($extra_columns as $column) {
+    $column = (string) $column;
+    $isDate = 1 === preg_match('/_(at|on|date)$/', $column); ?>
 
-    #[ORM\Column] // one property per extra column
-    private string $<?php echo $e((string) ($extra_columns[0] ?? 'extraColumn')); ?>;
+    #[ORM\Column(name: '<?php echo $e($column); ?>'<?php echo $isDate ? ', type: Types::DATETIME_IMMUTABLE' : ''; ?>)]
+    private <?php echo $isDate ? '\\DateTimeImmutable' : 'string'; ?> $<?php echo $e($camel($column)); ?>;
+<?php } ?>
 }</code></pre></div>
 
-<p>On <code><?php echo $e($shortEntity); ?></code>, replace <code>$<?php echo $e($field_name); ?></code> with <code>#[ORM\OneToMany(targetEntity: <?php echo $e($shortEntity); ?>Link::class, mappedBy: 'owner')]</code>.</p>
+<p>On <code><?php echo $e($shortEntity); ?></code>, replace <code>$<?php echo $e($field_name); ?></code> with <code>#[ORM\OneToMany(targetEntity: <?php echo $e($linkClass); ?>::class, mappedBy: 'owner')]</code>.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/composite-primary-keys.html#use-case-3-join-table-with-metadata', 'Doctrine ORM: join table with metadata'); ?>
 </div>
 <?php
-$code = ob_get_clean();
+    $code = ob_get_clean();
 
 return [
     'code' => $code,
