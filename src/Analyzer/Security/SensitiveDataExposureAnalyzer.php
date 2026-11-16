@@ -692,49 +692,29 @@ class SensitiveDataExposureAnalyzer implements MetadataAnalyzerInterface
         $shortClassName = $this->shortClassName($entityClass);
         $capitalizedFieldName = ucfirst($fieldName);
 
-        $code = "// In {$shortClassName} class:
+        $code = <<<PHP
+            use Symfony\\Component\\Serializer\\Attribute\\Ignore;
 
-";
-        $code .= "use Symfony\Component\Serializer\Annotation\Ignore;
-";
-        $code .= "use SensitiveParameter;
+            // In {$shortClassName}
+            // Never written by the serializer (API, JSON, cache)
+            #[Ignore]
+            #[ORM\\Column]
+            private string \${$fieldName};
 
-";
-
-        $code .= "// Step 1: Protect the property from serialization
-";
-        $code .= "#[Ignore]
-";
-        $code .= "private string \${$fieldName};
-
-";
-
-        $code .= "// Step 2: Protect the setter parameter from stack traces (PHP 8.2+)
-";
-        $code .= "public function set{$capitalizedFieldName}(#[SensitiveParameter] string \${$fieldName}): self
-";
-        $code .= "{
-";
-        $code .= "    \$this->{$fieldName} = \${$fieldName};
-";
-        $code .= "    return \$this;
-";
-        $code .= "}
-
-";
-
-        $code .= "#[Ignore]
-";
-        $code .= "#[ORM\Column(type: Types::STRING)]
-";
-        $code .= sprintf('private string $%s;', $fieldName);
+            // Never shown in a stack trace or an error log
+            public function set{$capitalizedFieldName}(#[\\SensitiveParameter] string \${$fieldName}): void
+            {
+                \$this->{$fieldName} = \${$fieldName};
+            }
+            PHP;
 
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Integrity/code_suggestion',
             context: [
-                'description' => 'Add serialization protection and sensitive parameter attributes',
+                'title' => 'Keep the secret out of serialization and stack traces',
+                'description' => 'Ignore the field in the serializer, and mark the setter parameter as sensitive. Better still, store the secret outside the database (a vault, an environment variable), or encrypted.',
                 'code' => $code,
-                'file_path' => $entityClass,
+                'file_path' => '',
             ],
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::integrity(),

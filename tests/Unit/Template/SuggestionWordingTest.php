@@ -43,6 +43,16 @@ final class SuggestionWordingTest extends TestCase
         self::assertStringContainsString("isNull('e.shippedAt')", $code);
     }
 
+    #[Test]
+    public function the_foreign_key_fix_imports_the_target_and_keeps_the_column(): void
+    {
+        $code = $this->render('Integrity/foreign_key_primitive', ['entity_class' => 'Supplier', 'field_name' => 'defaultProductId', 'target_entity' => 'App\\Entity\\Product\\Product']);
+
+        self::assertStringContainsString('use App\\Entity\\Product\\Product;', $code);
+        self::assertStringContainsString('targetEntity: Product::class', $code);
+        self::assertStringContainsString("name: 'default_product_id'", $code);
+    }
+
     /**
      * @param array<string, mixed> $context
      */

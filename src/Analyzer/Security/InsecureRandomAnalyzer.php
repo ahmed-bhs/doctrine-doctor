@@ -320,78 +320,29 @@ class InsecureRandomAnalyzer implements MetadataAnalyzerInterface
     ): SuggestionInterface {
         $shortClassName = $this->shortClassName($entityClass);
 
-        $code = "// In {$shortClassName}::{$methodName}():
+        $before = match ($insecureFunction) {
+            'rand', 'mt_rand' => sprintf('$token = md5((string) %s());', $insecureFunction),
+            'uniqid' => '$token = uniqid();',
+            default => '$token = md5(uniqid((string) mt_rand(), true));',
+        };
 
-";
-        $code .= "// INSECURE - DO NOT USE:
-";
+        $code = <<<PHP
+            // In {$shortClassName}::{$methodName}()
+            // Before: {$insecureFunction} can be guessed, and hashing it does not change that
+            {$before}
 
-        if ('rand' === $insecureFunction || 'mt_rand' === $insecureFunction) {
-            $code .= "// \$token = bin2hex(random_int(0, PHP_INT_MAX)); // Still predictable!
-";
-            $code .= "// \$token = md5(rand()); // Hashing weak random is still weak!
-";
-            $code .= "// \$token = uniqid(); // Based on timestamp, predictable!
+            // After: random_bytes() reads the operating system's cryptographic source
+            \$token = bin2hex(random_bytes(32));
 
-";
-        }
-
-        $code .= "//  SECURE - Cryptographically secure random:
-
-";
-        $code .= "// Generate random token (hex string)
-";
-        $code .= "public function generateToken(): string
-";
-        $code .= "{
-";
-        $code .= "    return bin2hex(random_bytes(32)); // 64 character hex string
-";
-        $code .= "}
-
-";
-
-        $code .= "// Generate random integer
-";
-        $code .= "public function generateRandomInt(int \$min, int \$max): int
-";
-        $code .= "{
-";
-        $code .= "    return random_int(\$min, \$max); // Cryptographically secure
-";
-        $code .= "}
-
-";
-
-        $code .= "// Generate UUID v4 (Symfony)
-";
-        $code .= "use Symfony\Component\Uid\Uuid;
-
-";
-        $code .= "public function generateUuid(): string
-";
-        $code .= "{
-";
-        $code .= "    return Uuid::v4()->toRfc4122(); // Cryptographically secure UUID
-";
-        $code .= "}
-
-";
-
-        $code .= "// Generate base64 token
-";
-        $code .= "public function generateBase64Token(int \$length = 32): string
-";
-        $code .= "{
-";
-        $code .= "    return base64_encode(random_bytes(\$length));
-";
-        $code .= '}';
+            // A random number in a range, for a code sent by email
+            \$code = random_int(100000, 999999);
+            PHP;
 
         return $this->suggestionFactory->createFromTemplate(
             templateName: 'Integrity/code_suggestion',
             context: [
-                'description' => 'Replace with cryptographically secure random generator',
+                'title' => 'Use a cryptographic random source',
+                'description' => sprintf('Generate the value of %s::%s() with random_bytes()', $shortClassName, $methodName),
                 'code' => $code,
                 'file_path' => $this->getFileLocation($reflectionMethod),
             ],

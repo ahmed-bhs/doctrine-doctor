@@ -15,6 +15,10 @@ $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-
 $association = (string) ($associationType ?? 'ManyToOne');
 $propertyName = (string) preg_replace('/_?id$/i', '', (string) $fieldName);
 $propertyName = '' !== $propertyName ? $propertyName : (string) $fieldName;
+$targetParts = explode('\\', ltrim((string) $targetEntity, '\\'));
+$targetShort = (string) end($targetParts);
+$targetFqcn = ltrim((string) $targetEntity, '\\');
+$columnName = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', (string) $fieldName));
 
 ob_start();
 ?>
@@ -22,14 +26,18 @@ ob_start();
 <div class="suggestion-content">
 <p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> stores the id of a <code><?php echo $e($targetEntity); ?></code> as a plain integer. Doctrine then cannot load, join or check the related entity, and every caller must look it up by hand.</p>
 
-<div class="query-item"><pre><code class="language-php">// Before
+<div class="query-item"><pre><code class="language-php">use <?php echo $e($targetFqcn); ?>;
+
+// Before
 #[ORM\Column(type: Types::INTEGER)]
 private int $<?php echo $e($fieldName); ?>;
 
-// After
-#[ORM\<?php echo $e($association); ?>(targetEntity: <?php echo $e($targetEntity); ?>::class)]
-#[ORM\JoinColumn(nullable: false)]
-private <?php echo $e($targetEntity); ?> $<?php echo $e($propertyName); ?>;</code></pre></div>
+// After: same column, now with a foreign key the database checks
+#[ORM\<?php echo $e($association); ?>(targetEntity: <?php echo $e($targetShort); ?>::class)]
+#[ORM\JoinColumn(name: '<?php echo $e($columnName); ?>', nullable: false)]
+private <?php echo $e($targetShort); ?> $<?php echo $e($propertyName); ?>;</code></pre></div>
+
+<p>Keeping the column name keeps the data: the migration only adds the foreign key constraint, and fails if a row points to a missing <?php echo $e($targetShort); ?>.</p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/association-mapping.html', 'Doctrine Association Mapping'); ?>
 </div>

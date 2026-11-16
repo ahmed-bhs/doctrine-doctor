@@ -425,12 +425,9 @@ readonly class TypeHintMismatchAnalyzer implements MetadataAnalyzerInterface
     private function createDecimalFloatSuggestion(string $fieldName): mixed
     {
         $goodCode = <<<PHP
+            // Doctrine hydrates a decimal column as a string: the property keeps that type
             #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-            public string \${$fieldName};
-
-            //  Types match
-            //  No precision loss
-            //  No unnecessary UPDATE
+            private string \${$fieldName};
             PHP;
 
         $moneyLibraryCode = <<<PHP

@@ -12,10 +12,15 @@ declare(strict_types=1);
 $description = (string) ($context['description'] ?? '');
 $code = (string) ($context['code'] ?? '');
 $filePath = (string) ($context['file_path'] ?? '');
+$title = (string) ($context['title'] ?? 'Suggested change');
+// /app/src/Entity/Supplier.php:93 reads better as src/Entity/Supplier.php:93
+if (false !== ($srcPosition = strpos($filePath, '/src/'))) {
+    $filePath = substr($filePath, $srcPosition + 1);
+}
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>
-<?php echo suggestionHeader('Apply this change'); ?>
+<?php echo suggestionHeader($title); ?>
 <div class="suggestion-content">
 <p><?php echo nl2br($e($description)); ?></p>
 <?php if ($filePath) { ?>
