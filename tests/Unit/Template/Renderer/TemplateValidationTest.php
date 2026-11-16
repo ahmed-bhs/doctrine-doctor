@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Template\Renderer;
 
 use AhmedBhs\DoctrineDoctor\Template\Renderer\PhpTemplateRenderer;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -30,9 +31,7 @@ final class TemplateValidationTest extends TestCase
         );
     }
 
-    /**
-     * @dataProvider templateEdgeCasesProvider
-     */
+    #[DataProvider('templateEdgeCasesProvider')]
     public function test_template_handles_edge_cases(string $templateName, array $context, string $testCase): void
     {
         self::assertTrue($this->renderer->exists($templateName), sprintf('Template %s does not exist', $templateName));
@@ -294,9 +293,7 @@ final class TemplateValidationTest extends TestCase
         self::assertEmpty($failures, "Templates failing with empty context:\n" . implode("\n", $failures));
     }
 
-    /**
-     * @dataProvider entityClassFormatsProvider
-     */
+    #[DataProvider('entityClassFormatsProvider')]
     public function test_collection_initialization_with_various_formats(string $entityClass, string $expectedShortName): void
     {
         self::assertTrue($this->renderer->exists('Integrity/collection_initialization'));
@@ -395,9 +392,7 @@ final class TemplateValidationTest extends TestCase
         yield 'class with number' => ['App\\Entity\\Product2', 'Product2'];
     }
 
-    /**
-     * @dataProvider allTemplatesProvider
-     */
+    #[DataProvider('allTemplatesProvider')]
     public function test_all_templates_can_render_with_valid_data(string $templateName, array $context): void
     {
         self::assertTrue($this->renderer->exists($templateName), sprintf('Template %s does not exist', $templateName));
@@ -884,9 +879,7 @@ final class TemplateValidationTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider blameableFieldNameCollisionProvider
-     */
+    #[DataProvider('blameableFieldNameCollisionProvider')]
     public function test_blameable_template_does_not_produce_duplicate_properties(string $fieldName): void
     {
         $result = $this->renderer->render('Integrity/blameable_target_entity', [
@@ -912,9 +905,7 @@ final class TemplateValidationTest extends TestCase
         yield 'field named updatedBy' => ['updatedBy'];
     }
 
-    /**
-     * @dataProvider queryCachingFrequentProvider
-     */
+    #[DataProvider('queryCachingFrequentProvider')]
     public function test_query_caching_frequent_template(array $context, string $scenario): void
     {
         self::assertTrue($this->renderer->exists('Performance/query_caching_frequent'));

@@ -14,6 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer\Helper;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\CompositionRelationshipDetector;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -178,9 +179,7 @@ final class CompositionRelationshipDetectorTest extends TestCase
     // Child Name Pattern Tests
     // ========================================================================
 
-    /**
-     * @dataProvider compositionChildNameProvider
-     */
+    #[DataProvider('compositionChildNameProvider')]
     public function test_detects_composition_child_names(string $entityName, bool $expectedResult): void
     {
         $metadata = $this->createMock(ClassMetadata::class);

@@ -14,6 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Analyzer\Parser\Visitor;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\Visitor\MethodCallVisitor;
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -139,9 +140,7 @@ final class MethodCallVisitorTest extends TestCase
         self::assertTrue($visitor->hasMethodCall());
     }
 
-    /**
-     * @dataProvider wildcardPatternsProvider
-     */
+    #[DataProvider('wildcardPatternsProvider')]
     public function test_various_wildcard_patterns(string $pattern, string $methodCall, bool $shouldMatch): void
     {
         // Given: Code with specific method call
