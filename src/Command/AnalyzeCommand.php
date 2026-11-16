@@ -334,9 +334,13 @@ class AnalyzeCommand extends Command
                 continue;
             }
 
-            $io->text($suggestion->getDescription());
+            $code = $this->formatSuggestionCode($suggestion->getCode());
+            // Many templates open with the description: printing it twice adds nothing.
+            if (!str_contains($code, trim($suggestion->getDescription()))) {
+                $io->text($suggestion->getDescription());
+            }
             $io->text('<fg=cyan;options=bold>Suggested fix</>');
-            $io->text($this->formatSuggestionCode($suggestion->getCode()));
+            $io->text($code);
         }
 
         return true;
