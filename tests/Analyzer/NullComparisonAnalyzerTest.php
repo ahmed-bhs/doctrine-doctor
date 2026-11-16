@@ -14,6 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 use AhmedBhs\DoctrineDoctor\Analyzer\Integrity\NullComparisonAnalyzer;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -317,5 +318,29 @@ final class NullComparisonAnalyzerTest extends TestCase
             ->build();
 
         self::assertCount(0, $this->analyzer->analyze($queries)->toArray());
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function comparisonsToNull(): iterable
+    {
+        yield 'not equals, unqualified' => ['SELECT u0_.id FROM user u0_ WHERE deletedAt != NULL'];
+        yield 'not equals, qualified' => ['SELECT u0_.id FROM user u0_ WHERE u0_.deletedAt != NULL'];
+        yield 'lower case' => ['SELECT u0_.id FROM user u0_ WHERE field != null'];
+        yield 'mixed case' => ['SELECT u0_.id FROM user u0_ WHERE field != Null'];
+        yield 'with a join' => ['SELECT u0_.id, p1_.id FROM user u0_ LEFT JOIN post p1_ ON u0_.id = p1_.user_id WHERE deletedAt != NULL'];
+        yield 'two columns' => ['SELECT u0_.id FROM user u0_ WHERE deletedAt != NULL AND archivedAt != NULL'];
+    }
+
+    #[Test]
+    #[DataProvider('comparisonsToNull')]
+    public function it_reports_each_comparison_to_null(string $sql): void
+    {
+        $issues = $this->analyzer->analyze(QueryDataBuilder::create()->addQuery($sql)->build())->toArray();
+
+        self::assertNotEmpty($issues);
+        self::assertSame('Incorrect NULL Comparison', $issues[0]->getTitle());
+        self::assertStringContainsString('IS', $issues[0]->getSuggestion()?->getCode() ?? '');
     }
 }
