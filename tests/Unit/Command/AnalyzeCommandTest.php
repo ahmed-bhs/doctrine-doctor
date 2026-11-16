@@ -160,6 +160,7 @@ final class AnalyzeCommandTest extends TestCase
 
         $display = (string) preg_replace('/\\s+/', ' ', $commandTester->getDisplay());
         self::assertStringContainsString('Order::$total', $display);
+        self::assertStringContainsString('Found 1 finding: 0 critical, 1 warning, 0 info.', $display);
         self::assertStringContainsString('Enable the metadata cache in production configuration.', $display);
         self::assertStringContainsString('This', $display);
         self::assertStringContainsString('prevents Doctrine from reparsing entity metadata on every request.', $display);
