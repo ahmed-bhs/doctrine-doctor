@@ -52,6 +52,9 @@ final class ProxyOwner
         $found = [];
         $reached = [];
         foreach ($metadatas as $metadata) {
+            if ($metadata->isMappedSuperclass) {
+                continue;
+            }
             foreach ($metadata->getAssociationNames() as $field) {
                 $target = $metadata->getAssociationTargetClass($field);
                 if (\in_array($field, $context, true)) {
