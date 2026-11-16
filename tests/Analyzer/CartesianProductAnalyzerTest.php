@@ -380,4 +380,16 @@ final class CartesianProductAnalyzerTest extends TestCase
 
         self::assertCount(0, $risks);
     }
+
+    #[Test]
+    public function it_does_not_count_a_one_to_one_join_as_a_collection(): void
+    {
+        $queries = QueryDataBuilder::create()
+            ->addQuery('SELECT o0_.id, c1_.id, p2_.id FROM oto_countries o0_ ' .
+                'LEFT JOIN oto_capital_cities c1_ ON o0_.id = c1_.country_id ' .
+                'LEFT JOIN oto_capital_cities p2_ ON o0_.id = p2_.country_id')
+            ->build();
+
+        self::assertCount(0, $this->analyzer->analyze($queries));
+    }
 }
