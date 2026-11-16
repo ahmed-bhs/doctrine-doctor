@@ -195,7 +195,7 @@ final class AnalyzeCommandTest extends TestCase
         };
         $commandTester = new CommandTester(new AnalyzeCommand([$analyzer], new IssueDeduplicator()));
         $commandTester->execute(['--fail-on' => 'never']);
-        preg_match('/--show-suggestion=([a-f0-9]{10})/', $commandTester->getDisplay(), $matches);
+        self::assertSame(1, preg_match('/--show-suggestion=([a-f0-9]{10})/', $commandTester->getDisplay(), $matches));
 
         $commandTester->execute(['--fail-on' => 'never', '--show-suggestion' => $matches[1]]);
 
