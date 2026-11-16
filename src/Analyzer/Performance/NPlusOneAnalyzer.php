@@ -14,6 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Analyzer\Performance;
 use AhmedBhs\DoctrineDoctor\Analyzer\Concern\ShortClassNameTrait;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\InverseOneToOneLoad;
 use AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper;
+use AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProxyOwner;
 use AhmedBhs\DoctrineDoctor\Analyzer\Parser\SqlStructureExtractor;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
@@ -328,19 +329,20 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             $lazyTable = $this->sqlExtractor->detectLazyLoadingPattern($sql);
             if (null !== $lazyTable) {
                 $entity = $this->tableToEntity($lazyTable);
+                $owner = ProxyOwner::resolve($this->entityManager, $entity, $queryGroup[0]->backtrace);
                 $severity = $this->calculateEagerLoadingSeverity($queryCount);
                 return $this->suggestionFactory->createFromTemplate(
                     templateName: 'Performance/batch_fetch',
                     context: [
-                        'entity' => $entity,
-                        'relation' => 'relation',
+                        'entity' => $owner['entity'] ?? $entity,
+                        'relation' => $owner['field'] ?? '',
                         'query_count' => $queryCount,
                         'trigger_location' => $triggerLocation,
                     ],
                     suggestionMetadata: new SuggestionMetadata(
                         type: SuggestionType::performance(),
                         severity: $severity,
-                        title: sprintf('Proxy N+1 Query: %d queries for %s.%s', $queryCount, $entity, 'relation'),
+                        title: sprintf('Proxy N+1 Query: %d queries for %s', $queryCount, null === $owner ? $entity : $owner['entity'] . '.' . $owner['field']),
                         tags: ['performance', 'doctrine', 'batch-fetch', 'n+1', 'proxy'],
                     ),
                 );
@@ -553,7 +555,9 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
 
         foreach ($parentMetadata->getAssociationMappings() as $parentFieldName => $parentMapping) {
             $mappedBy = MappingHelper::getString($parentMapping, 'mappedBy');
-            if ($mappedBy === $matchedFieldName) {
+            $target = MappingHelper::getString($parentMapping, 'targetEntity');
+            // Product::$variants and Product::$productTaxons are both mappedBy "product": the target tells them apart.
+            if ($mappedBy === $matchedFieldName && (null === $target || is_a($childEntityClass, $target, true))) {
                 return [
                     'parentEntity' => $this->shortClassName($targetEntityClass),
                     'collectionField' => $parentFieldName,

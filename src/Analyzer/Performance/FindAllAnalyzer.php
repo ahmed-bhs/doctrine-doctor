@@ -80,7 +80,7 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                         $suggestion = $this->suggestionFactory->createFromTemplate(
                             templateName: 'Performance/pagination',
                             context: [
-                                'method' => 'this query',
+                                'method' => $this->callerMethod($queryData->backtrace),
                                 'result_count' => $rowCount,
                             ],
                             suggestionMetadata: new SuggestionMetadata(
@@ -106,6 +106,22 @@ class FindAllAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInter
                 }
             },
         );
+    }
+
+    /**
+     * The repository or query method that ran the query, read from the backtrace.
+     * @param array<int, array<string, mixed>>|null $backtrace
+     */
+    private function callerMethod(?array $backtrace): string
+    {
+        $called = array_column($backtrace ?? [], 'function');
+        foreach (['findAll', 'findBy', 'getResult', 'getArrayResult', 'toIterable', 'execute'] as $name) {
+            if (\in_array($name, $called, true)) {
+                return $name;
+            }
+        }
+
+        return '';
     }
 
     private function isFindAllPattern(string $sql): bool

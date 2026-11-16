@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 $entity          = (string) ($context['entity'] ?? 'Entity');
 $relation        = (string) ($context['relation'] ?? 'items');
+$field           = '' === $relation ? 'relation' : $relation;
 $queryCount      = (int) ($context['query_count'] ?? 0);
 $triggerLocation = (string) ($context['trigger_location'] ?? 'the calling code');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
@@ -17,19 +18,19 @@ ob_start();
 <?php echo suggestionHeader('Fetch-join the to-one relation'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    <?php echo $queryCount; ?> queries initialized <code><?php echo $e($entity); ?>::$<?php echo $e($relation); ?></code> proxies one by one inside a loop<?php if ('' !== $triggerLocation) { ?>, triggered at <code><?php echo $e($triggerLocation); ?></code><?php } ?>.
+    <?php echo $queryCount; ?> queries initialized <?php if ('' === $relation) { ?><code><?php echo $e($entity); ?></code><?php } else { ?><code><?php echo $e($entity); ?>::$<?php echo $e($relation); ?></code><?php } ?> proxies one by one inside a loop<?php if ('' !== $triggerLocation) { ?>, triggered at <code><?php echo $e($triggerLocation); ?></code><?php } ?>.
     A fetch join loads the related entities with their parents.
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Before: one query per proxy
 foreach ($repository-&gt;findAll() as $entity) {
-    $entity-&gt;get<?php echo $e(ucfirst($relation)); ?>()-&gt;getName();
+    $entity-&gt;get<?php echo $e(ucfirst($field)); ?>()-&gt;getName();
 }
 
 // After: 1 query instead of <?php echo $queryCount; ?>
 
 $entities = $repository-&gt;createQueryBuilder('e')
-    -&gt;leftJoin('e.<?php echo $e($relation); ?>', 'r')
+    -&gt;leftJoin('e.<?php echo $e($field); ?>', 'r')
     -&gt;addSelect('r')
     -&gt;getQuery()
     -&gt;getResult();</code></pre></div>

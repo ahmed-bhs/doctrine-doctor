@@ -12,6 +12,8 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Analyzer;
 
 use AhmedBhs\DoctrineDoctor\Analyzer\Performance\FindAllAnalyzer;
+use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
+use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper;
 use AhmedBhs\DoctrineDoctor\Tests\Support\QueryDataBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -210,5 +212,23 @@ final class FindAllAnalyzerTest extends TestCase
     {
         // Assert
         self::assertInstanceOf(\AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface::class, $this->analyzer);
+    }
+
+    #[Test]
+    public function it_names_the_method_that_ran_the_query(): void
+    {
+        $query = QueryData::fromArray([
+            'sql' => 'SELECT c0_.id AS id_0 FROM sylius_customer c0_',
+            'rowCount' => 821,
+            'backtrace' => [
+                ['class' => \Doctrine\ORM\Query::class, 'function' => 'execute', 'file' => '/app/vendor/doctrine/orm/src/Query.php', 'line' => 10],
+                ['class' => \Doctrine\ORM\EntityRepository::class, 'function' => 'findAll', 'file' => '/app/src/Controller/LoyaltyController.php', 'line' => 34],
+            ],
+        ]);
+
+        $code = $this->analyzer->analyze(QueryDataCollection::fromArray([$query]))->toArray()[0]->getSuggestion()?->getCode() ?? '';
+
+        self::assertStringContainsString('<code>findAll()</code> returned 821 entities', $code);
+        self::assertStringNotContainsString('this query', $code);
     }
 }

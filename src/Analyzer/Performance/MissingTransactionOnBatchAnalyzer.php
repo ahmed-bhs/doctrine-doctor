@@ -78,15 +78,11 @@ readonly class MissingTransactionOnBatchAnalyzer implements AnalyzerInterface
             };
 
             $suggestion = $this->suggestionFactory->createFromTemplate(
-                templateName: 'Performance/query_optimization',
+                templateName: 'Performance/batch_without_transaction',
                 context: [
-                    'code' => $unwrappedWrites[0]->sql,
-                    'optimization' => sprintf(
-                        'Wrap %d INSERT/UPDATE/DELETE queries in a transaction. Each statement currently triggers its own implicit commit, causing N fsync() calls and ~10-100x slowdown.',
-                        $count,
-                    ),
-                    'execution_time' => $totalMs,
-                    'threshold' => $this->threshold,
+                    'count' => $count,
+                    'total_ms' => $totalMs,
+                    'table' => 1 === preg_match('/^\s*(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+`?(\w+)/i', $unwrappedWrites[0]->sql, $match) ? $match[1] : 'the table',
                 ],
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::performance(),

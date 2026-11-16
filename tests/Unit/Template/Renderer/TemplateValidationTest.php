@@ -856,6 +856,11 @@ final class TemplateValidationTest extends TestCase
                 'aggregations' => ['COUNT', 'SUM'],
                 'has_group_by' => true,
             ],
+            'Performance/batch_without_transaction' => [
+                'count'    => 120,
+                'total_ms' => 231.65,
+                'table'    => 'legacy_newsletter',
+            ],
             'Performance/excessive_hydration' => [
                 'query'        => 'SELECT p FROM Product p',
                 'column_count' => 50,

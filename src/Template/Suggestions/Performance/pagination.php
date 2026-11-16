@@ -17,7 +17,7 @@ ob_start();
 <?php echo suggestionHeader('Paginate the result'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    <code><?php echo $e($method); ?>()</code> returned <?php echo $e($resultCountLabel); ?> entities in one go.
+    <?php if ('' === $method) { ?>The query<?php } else { ?><code><?php echo $e($method); ?>()</code><?php } ?> <?php if ($resultCount > 0) { ?>returned <?php echo $e($resultCountLabel); ?> entities<?php } else { ?>loads the whole table<?php } ?> in one go.
     Every one of them is hydrated and kept in memory, and the number grows with the table.
 </div>
 
