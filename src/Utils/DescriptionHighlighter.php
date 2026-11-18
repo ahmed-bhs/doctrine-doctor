@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Utils;
 
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use Webmozart\Assert\Assert;
 
 /**
@@ -41,7 +42,8 @@ final class DescriptionHighlighter
     {
         Assert::stringNotEmpty($template, 'Template cannot be empty');
 
-        $description = $template;
+        // Translate the template before inserting the values, so the catalog keeps the {placeholders}.
+        $description = Translator::trans($template);
 
         Assert::isIterable($values, '$values must be iterable');
 

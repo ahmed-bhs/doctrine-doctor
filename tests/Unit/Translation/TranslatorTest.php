@@ -45,6 +45,16 @@ final class TranslatorTest extends TestCase
         );
     }
 
+    public function testSentencesAreTranslatedOneByOne(): void
+    {
+        Translator::setLocale('fr');
+
+        self::assertSame(
+            'Jointure inutilisée. Something else.',
+            Translator::trans('Unused JOIN Detected. Something else.'),
+        );
+    }
+
     public function testMissingEntryFallsBackToEnglish(): void
     {
         Translator::setLocale('fr');

@@ -46,20 +46,62 @@ final class Translator
         }
 
         $catalog = self::catalog(self::$locale);
+        $whole = self::lookup($catalog, $text);
 
-        if (isset($catalog['exact'][$text])) {
-            return $catalog['exact'][$text];
+        if (null !== $whole) {
+            return $whole;
+        }
+
+        // A description is often built from several sentences: translate them one by one.
+        $sentences = preg_split('/(?<=[.!?])(\s+)(?=[A-Z0-9`"\'(])/u', $text, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [$text];
+
+        if (\count($sentences) < 3) {
+            return $text;
+        }
+
+        $translated = '';
+        foreach ($sentences as $i => $part) {
+            $translated .= 1 === $i % 2 ? $part : (self::lookup($catalog, $part) ?? $part);
+        }
+
+        return $translated;
+    }
+
+    /**
+     * @param array{exact: array<string, string>, patterns: list<array{0: string, 1: string}>} $catalog
+     */
+    private static function lookup(array $catalog, string $text): ?string
+    {
+        $key = trim($text);
+        $found = self::find($catalog, $key);
+
+        if (null === $found && str_ends_with($key, '.')) {
+            $bare = self::find($catalog, rtrim($key, '.'));
+            $found = null === $bare ? null : rtrim($bare, '.') . '.';
+        }
+
+        return null === $found ? null : str_replace($key, $found, $text);
+    }
+
+    /**
+     * @param array{exact: array<string, string>, patterns: list<array{0: string, 1: string}>} $catalog
+     */
+    private static function find(array $catalog, string $key): ?string
+    {
+
+        if (isset($catalog['exact'][$key])) {
+            return $catalog['exact'][$key];
         }
 
         foreach ($catalog['patterns'] as [$regex, $target]) {
-            if (1 === preg_match($regex, $text, $matches)) {
+            if (1 === preg_match($regex, $key, $matches)) {
                 array_shift($matches);
 
                 return vsprintf($target, $matches);
             }
         }
 
-        return $text;
+        return null;
     }
 
     /**
@@ -85,10 +127,10 @@ final class Translator
                 continue;
             }
 
-            $parts = preg_split('/(%(?:\d+\$)?[-+ 0]*\d*(?:\.\d+)?[sdfu])/', $source, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
+            $parts = preg_split('/(%%|%(?:\d+\$)?[-+ 0]*\d*(?:\.\d+)?[sdfu])/', $source, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
             $regex = '';
             foreach ($parts as $part) {
-                $regex .= 1 === preg_match('/^%/', $part) ? '(.+?)' : preg_quote($part, '/');
+                $regex .= 1 === preg_match('/^%(?!%)/', $part) ? '(.+?)' : preg_quote(str_replace('%%', '%', $part), '/');
             }
 
             $catalog['patterns'][] = ['/^' . $regex . '$/su', preg_replace('/%(?:\d+\$)?[-+ 0]*\d*(?:\.\d+)?[dfu]/', '%s', $target) ?? $target];
