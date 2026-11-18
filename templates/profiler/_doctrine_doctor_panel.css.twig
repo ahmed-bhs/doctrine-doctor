@@ -808,10 +808,6 @@
             color: #ffffff;
         }
 
-        .suggestion-content .label-bad::before {
-            content: "📢 ";
-            margin-right: 4px;
-        }
 
         .suggestion-content .label-good {
             background: #10b981;
@@ -909,6 +905,26 @@
             flex-grow: 1;
             width: 100%;
             box-sizing: border-box;
+        }
+
+        .suggestion-content .comparison-note {
+            padding: 6px 12px 0;
+            font-size: 11px;
+            color: #57606a;
+        }
+
+        .suggestion-content .code-comparison pre {
+            padding: 10px 12px;
+        }
+
+        .suggestion-content .code-comparison pre code {
+            background: transparent;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .suggestion-content .query-item > .code-comparison {
+            margin-top: 32px;
         }
 
         /* ============================================
@@ -2208,8 +2224,29 @@
         .query-item .highlight .error { color: #8f3f36; background: #f6e4e2; }
 
         .suggestion-header {
-            background: linear-gradient(135deg, #a06a3d 0%, #705446 100%);
-            box-shadow: 0 1px 2px rgba(80, 62, 53, 0.2);
+            background: linear-gradient(135deg, #d7f8de 0%, #b8f2c4 100%);
+            border-bottom: 1px solid #8fd9a0;
+            box-shadow: 0 1px 2px rgba(22, 101, 52, 0.12);
+        }
+
+        .suggestion-header h4 {
+            color: #14532d;
+        }
+
+        .suggestion-header .dd-suggestion-actionability {
+            color: #ffffff;
+        }
+
+        .suggestion-header .dd-suggestion-actionability.quick_fix {
+            background: #15803d;
+        }
+
+        .suggestion-header .dd-suggestion-actionability.schema_change {
+            background: #c2410c;
+        }
+
+        .suggestion-header .dd-suggestion-actionability.refactor {
+            background: #7e2d5c;
         }
 
         .dd-duplicate-badge,

@@ -213,9 +213,65 @@
                 });
             }
 
+            function splitBeforeAfter(root) {
+                var BEFORE = /^\s*\/\/\s*Before\b\s*:?\s*(.*)$/i;
+                var AFTER = /^\s*\/\/\s*After\b\s*:?\s*(.*)$/i;
+                root.querySelectorAll('.suggestion-content pre > code, .suggestion-container pre > code').forEach(function(code) {
+                    var pre = code.parentElement;
+                    if (pre.closest('.code-comparison') || code.classList.contains('prism-highlighted')) return;
+                    var lines = (code.textContent || '').replace(/\r\n?/g, '\n').split('\n');
+                    var first = 0;
+                    while (first < lines.length && lines[first].trim() === '') first++;
+                    if (first >= lines.length || !BEFORE.test(lines[first])) return;
+                    var afterIdx = -1, count = 0;
+                    for (var i = first + 1; i < lines.length; i++) {
+                        if (BEFORE.test(lines[i])) return;
+                        if (AFTER.test(lines[i])) { afterIdx = i; count++; }
+                    }
+                    if (count !== 1) return;
+                    var trim = function(list) {
+                        while (list.length && list[0].trim() === '') list.shift();
+                        while (list.length && list[list.length - 1].trim() === '') list.pop();
+                        return list;
+                    };
+                    var beforeLines = trim(lines.slice(first + 1, afterIdx));
+                    var afterLines = trim(lines.slice(afterIdx + 1));
+                    if (!beforeLines.length || !afterLines.length) return;
+                    var lang = (code.className.match(/language-[\w-]+/) || ['language-php'])[0];
+                    var side = function(kind, label, note, body) {
+                        var div = document.createElement('div');
+                        div.className = 'comparison-side comparison-' + kind;
+                        var tag = document.createElement('span');
+                        tag.className = 'code-label label-' + kind;
+                        tag.textContent = label;
+                        div.appendChild(tag);
+                        if (note) {
+                            var p = document.createElement('div');
+                            p.className = 'comparison-note';
+                            p.textContent = note;
+                            div.appendChild(p);
+                        }
+                        var newPre = document.createElement('pre');
+                        var newCode = document.createElement('code');
+                        newCode.className = lang;
+                        newCode.textContent = body.join('\n');
+                        newPre.appendChild(newCode);
+                        div.appendChild(newPre);
+                        return div;
+                    };
+                    var wrap = document.createElement('div');
+                    wrap.className = 'code-comparison';
+                    wrap.appendChild(side('bad', 'Before', lines[first].match(BEFORE)[1], beforeLines));
+                    wrap.appendChild(side('good', 'After', lines[afterIdx].match(AFTER)[1], afterLines));
+                    pre.replaceWith(wrap);
+                });
+            }
+
             function highlightAndAddCopyButtons(container) {
                 var root = container || document;
+                splitBeforeAfter(root);
                 root.querySelectorAll('pre[class*="language-"], .query-item pre').forEach(function(pre) {
+                    if (pre.closest('.code-comparison')) return;
                     pre.classList.add('line-numbers');
                 });
 
@@ -238,7 +294,7 @@
 
                 root.querySelectorAll('.query-item').forEach(function(item) {
                     if (item.querySelector('.dd-copy-btn')) return;
-                    var code = item.querySelector('code');
+                    var code = item.querySelector('.comparison-good code') || item.querySelector('code');
                     if (!code) return;
                     var btn = document.createElement('button');
                     btn.className = 'dd-copy-btn';
