@@ -8,7 +8,7 @@
         class="issue-card"
         data-issue-card="true"
         data-severity="{{ severityKey }}"
-        data-title="{{ issue.getTitle()|e('html_attr') }}"
+        data-title="{{ issue.getTitle()|dd_trans|e('html_attr') }}"
         data-type="{{ issue.getType()|e('html_attr') }}"
     >
         <div class="issue-header">
@@ -17,7 +17,7 @@
                     {{ issue.getSeverity().getEmoji() }} {{ issue.getType() }}
                 </span>
                 <h3 class="issue-title">
-                    {{ issue.getTitle() }}
+                    {{ issue.getTitle()|dd_trans }}
                     {% if issue.getDuplicatedIssues()|length > 0 %}
                         <span class="dd-duplicate-wrapper">
                             <button
@@ -45,7 +45,7 @@
         </div>
 
         <div class="issue-body">
-            <p class="issue-description">{{ issue.getDescription()|raw|nl2br }}</p>
+            <p class="issue-description">{{ issue.getDescription()|dd_trans|raw|nl2br }}</p>
 
             {# Action buttons container #}
             <div class="issue-actions">

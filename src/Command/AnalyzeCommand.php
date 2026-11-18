@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Command;
 
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\DatabaseAuditAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
@@ -169,8 +170,8 @@ class AnalyzeCommand extends Command
             'severity' => $issue->getSeverity()->getValue(),
             'category' => $issue->getCategory()->value,
             'type' => $issue->getType(),
-            'title' => $issue->getTitle(),
-            'message' => $this->firstSentences($issue->getDescription()),
+            'title' => Translator::trans($issue->getTitle()),
+            'message' => $this->firstSentences(Translator::trans($issue->getDescription())),
             'file' => $location->file,
             'line' => $location->line,
             'anchor' => $location->anchor,

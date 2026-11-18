@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor;
 
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore;
@@ -51,6 +52,11 @@ class DoctrineDoctorBundle extends Bundle
     #[\Override]
     public function boot(): void
     {
+        if ($this->container?->hasParameter('doctrine_doctor.locale')) {
+            $locale = $this->container->getParameter('doctrine_doctor.locale');
+            Translator::setLocale(\is_string($locale) ? $locale : 'en');
+        }
+
         // Collectors loaded from the profiler storage have no services: give them
         // access to the results of deferred analyses (AnalysisTiming::OnView)
         if ($this->container?->has(AnalysisResultStore::class)) {

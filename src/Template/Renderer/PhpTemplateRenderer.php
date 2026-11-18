@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Template\Renderer;
 
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionRendererInterface;
 use AhmedBhs\DoctrineDoctor\Template\Security\SafeContext;
 use InvalidArgumentException;
@@ -131,6 +132,11 @@ final readonly class PhpTemplateRenderer implements TemplateRendererInterface, S
         }
 
         $path = $this->templateDirectory . '/' . $templateName . '.php';
+        $localized = $this->templateDirectory . '/' . Translator::getLocale() . '/' . $templateName . '.php';
+
+        if ('en' !== Translator::getLocale() && is_file($localized)) {
+            $path = $localized;
+        }
 
         $resolvedBase = realpath($this->templateDirectory);
         $resolvedPath = realpath($path);
