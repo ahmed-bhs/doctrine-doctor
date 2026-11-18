@@ -316,7 +316,8 @@
 
                 root.querySelectorAll('.query-item').forEach(function(item) {
                     if (item.querySelector('.dd-copy-btn')) return;
-                    var code = item.querySelector('.comparison-good code') || item.querySelector('code');
+                    if (item.querySelector('.code-comparison')) return;
+                    var code = item.querySelector('code');
                     if (!code) return;
                     var btn = document.createElement('button');
                     btn.className = 'dd-copy-btn';
