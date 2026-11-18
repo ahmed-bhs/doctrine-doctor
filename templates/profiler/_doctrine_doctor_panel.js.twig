@@ -235,12 +235,29 @@
                         p.textContent = /^[a-z]+(?:\s|,|$)/.test(note) ? note.charAt(0).toUpperCase() + note.slice(1) : note;
                         div.appendChild(p);
                     }
-                    var newPre = document.createElement('pre');
-                    var newCode = document.createElement('code');
-                    newCode.className = lang;
-                    newCode.textContent = body.join('\n');
-                    newPre.appendChild(newCode);
-                    div.appendChild(newPre);
+                    var OR = /^\s*(?:\/\/|#|--)\s*Or\b\s*[:,]?\s*(.*)$/i;
+                    var segments = [{ note: '', lines: [] }];
+                    body.forEach(function(l) {
+                        var m = l.match(OR);
+                        if (m) segments.push({ note: 'Or' + (m[1] ? ', ' + m[1] : ''), lines: [] });
+                        else segments[segments.length - 1].lines.push(l);
+                    });
+                    segments.forEach(function(seg, i) {
+                        trim(seg.lines);
+                        if (!seg.lines.length) return;
+                        if (i > 0) {
+                            var sep = document.createElement('div');
+                            sep.className = 'comparison-note comparison-note-or';
+                            sep.textContent = seg.note.replace(/:\s*$/, '');
+                            div.appendChild(sep);
+                        }
+                        var newPre = document.createElement('pre');
+                        var newCode = document.createElement('code');
+                        newCode.className = lang;
+                        newCode.textContent = seg.lines.join('\n');
+                        newPre.appendChild(newCode);
+                        div.appendChild(newPre);
+                    });
                     return div;
                 };
                 root.querySelectorAll('.suggestion-content pre > code, .suggestion-container pre > code').forEach(function(code) {
