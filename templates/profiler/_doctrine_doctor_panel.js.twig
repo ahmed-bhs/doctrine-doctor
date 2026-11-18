@@ -232,7 +232,7 @@
                     if (note) {
                         var p = document.createElement('div');
                         p.className = 'comparison-note';
-                        p.textContent = note;
+                        p.textContent = /^[a-z]+(?:\s|,|$)/.test(note) ? note.charAt(0).toUpperCase() + note.slice(1) : note;
                         div.appendChild(p);
                     }
                     var newPre = document.createElement('pre');
