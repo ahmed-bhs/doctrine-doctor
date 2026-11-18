@@ -3985,3 +3985,49 @@
         .dd-text-muted-666 {
             color: #666;
         }
+
+        /* ============================================
+           Suggestion body: fewer boxes, one frame for the code
+           ============================================ */
+
+        .dd-panel-typography .suggestion-container .suggestion-content .alert,
+        .suggestion-container .suggestion-content .alert {
+            background: transparent !important;
+            border-top: none !important;
+            border-right: none !important;
+            border-bottom: none !important;
+            border-left-width: 2px !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            padding: 2px 0 2px 10px !important;
+            margin: 0 !important;
+        }
+
+        .dd-panel-typography .suggestion-container .suggestion-content > p,
+        .suggestion-container .suggestion-content > p {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .dd-panel-typography .suggestion-container .suggestion-content .query-item:has(> .code-comparison),
+        .suggestion-container .suggestion-content .query-item:has(> .code-comparison) {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+
+        .dd-panel-typography .suggestion-container .suggestion-content .doc-link,
+        .suggestion-container .suggestion-content .doc-link {
+            font-size: 12px;
+        }
+
+        .suggestion-container .suggestion-content .doc-link::before {
+            content: "📖";
+            margin-right: 6px;
+            text-decoration: none;
+            display: inline-block;
+        }
