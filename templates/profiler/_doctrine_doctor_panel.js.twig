@@ -283,8 +283,9 @@
                     var lang = (code.className.match(/language-[\w-]+/) || ['language-php'])[0];
                     var wrap = document.createElement('div');
                     wrap.className = 'code-comparison';
-                    wrap.appendChild(side('bad', 'Before', beforeNote, beforeLines, lang));
-                    wrap.appendChild(side('good', 'After', afterNote, afterLines, lang));
+                    var pad = function(note, other) { return note || (other ? '\u00a0' : ''); };
+                    wrap.appendChild(side('bad', 'Before', pad(beforeNote, afterNote), beforeLines, lang));
+                    wrap.appendChild(side('good', 'After', pad(afterNote, beforeNote), afterLines, lang));
                     pre.replaceWith(wrap);
                 });
             }
