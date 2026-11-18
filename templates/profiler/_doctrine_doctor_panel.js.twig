@@ -213,9 +213,105 @@
                 });
             }
 
+            function splitBeforeAfter(root) {
+                var BEFORE = /^\s*(?:\/\/|#|--)\s*Before\b\s*(?::\s*(.*))?$/i;
+                var AFTER = /^\s*(?:\/\/|#|--)\s*After\b(?=\s*(?:$|:|,|\())\s*[:,]?\s*(.*)$/i;
+                var USE = /^\s*use\s+[^;]+;\s*$/;
+                var trim = function(list) {
+                    while (list.length && list[0].trim() === '') list.shift();
+                    while (list.length && list[list.length - 1].trim() === '') list.pop();
+                    return list;
+                };
+                var side = function(kind, label, note, body, lang) {
+                    var div = document.createElement('div');
+                    div.className = 'comparison-side comparison-' + kind;
+                    var tag = document.createElement('span');
+                    tag.className = 'code-label label-' + kind;
+                    tag.textContent = label;
+                    div.appendChild(tag);
+                    if (note) {
+                        var p = document.createElement('div');
+                        p.className = 'comparison-note';
+                        p.textContent = /^[a-z]+(?:\s|,|$)/.test(note) ? note.charAt(0).toUpperCase() + note.slice(1) : note;
+                        div.appendChild(p);
+                    }
+                    var OR = /^\s*(?:\/\/|#|--)\s*Or\b\s*[:,]?\s*(.*)$/i;
+                    var segments = [{ note: '', lines: [] }];
+                    body.forEach(function(l) {
+                        var m = l.match(OR);
+                        if (m) segments.push({ note: 'Or' + (m[1] ? ', ' + m[1] : ''), lines: [] });
+                        else segments[segments.length - 1].lines.push(l);
+                    });
+                    segments.forEach(function(seg, i) {
+                        trim(seg.lines);
+                        if (!seg.lines.length) return;
+                        if (i > 0) {
+                            var sep = document.createElement('div');
+                            sep.className = 'comparison-note comparison-note-or';
+                            sep.textContent = seg.note.replace(/:\s*$/, '');
+                            div.appendChild(sep);
+                        }
+                        var newPre = document.createElement('pre');
+                        var newCode = document.createElement('code');
+                        newCode.className = lang;
+                        newCode.textContent = seg.lines.join('\n');
+                        newPre.appendChild(newCode);
+                        div.appendChild(newPre);
+                    });
+                    return div;
+                };
+                root.querySelectorAll('.suggestion-content pre > code, .suggestion-container pre > code').forEach(function(code) {
+                    var pre = code.parentElement;
+                    if (pre.closest('.code-comparison') || code.classList.contains('prism-highlighted')) return;
+                    var lines = (code.textContent || '').replace(/\r\n?/g, '\n').split('\n');
+                    var befores = [], afters = [];
+                    lines.forEach(function(l, i) {
+                        if (BEFORE.test(l)) befores.push(i);
+                        else if (AFTER.test(l)) afters.push(i);
+                    });
+                    if (befores.length !== 1) return;
+                    var b = befores[0];
+                    var beforeNote = '', afterNote = '', beforeLines, afterLines;
+                    if (afters.length === 0) {
+                        var inline = (lines[b].match(BEFORE)[1] || '').trim();
+                        if (!inline) return;
+                        beforeLines = [inline];
+                        afterLines = trim(lines.slice(0, b).concat(lines.slice(b + 1)));
+                    } else {
+                        var a = afters[0];
+                        if (a < b) return;
+                        var preamble = lines.slice(0, b);
+                        if (!preamble.every(function(l) { return l.trim() === '' || USE.test(l); })) return;
+                        beforeNote = (lines[b].match(BEFORE)[1] || '').trim();
+                        afterNote = (lines[a].match(AFTER)[1] || '').trim();
+                        afterNote = afterNote.replace(/^\(([^)]+)\)\s*:?\s*/, '$1: ').replace(/:\s*$/, '');
+                        beforeLines = trim(lines.slice(b + 1, a));
+                        var rest = lines.slice(a + 1).map(function(l) {
+                            var m = l.match(AFTER);
+                            if (!m) return l;
+                            var indent = l.match(/^\s*/)[0];
+                            var marker = l.trim().match(/^(\/\/|#|--)/)[1];
+                            return indent + marker + ' Or' + (m[1] ? ', ' + m[1] : '');
+                        });
+                        var imports = trim(preamble.slice());
+                        afterLines = trim(imports.length ? imports.concat([''], rest) : rest);
+                    }
+                    if (!beforeLines.length || !afterLines.length) return;
+                    var lang = (code.className.match(/language-[\w-]+/) || ['language-php'])[0];
+                    var wrap = document.createElement('div');
+                    wrap.className = 'code-comparison';
+                    var pad = function(note, other) { return note || (other ? '\u00a0' : ''); };
+                    wrap.appendChild(side('bad', 'Before', pad(beforeNote, afterNote), beforeLines, lang));
+                    wrap.appendChild(side('good', 'After', pad(afterNote, beforeNote), afterLines, lang));
+                    pre.replaceWith(wrap);
+                });
+            }
+
             function highlightAndAddCopyButtons(container) {
                 var root = container || document;
+                splitBeforeAfter(root);
                 root.querySelectorAll('pre[class*="language-"], .query-item pre').forEach(function(pre) {
+                    if (pre.closest('.code-comparison')) return;
                     pre.classList.add('line-numbers');
                 });
 
@@ -238,6 +334,7 @@
 
                 root.querySelectorAll('.query-item').forEach(function(item) {
                     if (item.querySelector('.dd-copy-btn')) return;
+                    if (item.querySelector('.code-comparison')) return;
                     var code = item.querySelector('code');
                     if (!code) return;
                     var btn = document.createElement('button');
