@@ -214,55 +214,77 @@
             }
 
             function splitBeforeAfter(root) {
-                var BEFORE = /^\s*\/\/\s*Before\b\s*:?\s*(.*)$/i;
-                var AFTER = /^\s*\/\/\s*After\b\s*:?\s*(.*)$/i;
+                var BEFORE = /^\s*(?:\/\/|#|--)\s*Before\b\s*(?::\s*(.*))?$/i;
+                var AFTER = /^\s*(?:\/\/|#|--)\s*After\b(?=\s*(?:$|:|,|\())\s*[:,]?\s*(.*)$/i;
+                var USE = /^\s*use\s+[^;]+;\s*$/;
+                var trim = function(list) {
+                    while (list.length && list[0].trim() === '') list.shift();
+                    while (list.length && list[list.length - 1].trim() === '') list.pop();
+                    return list;
+                };
+                var side = function(kind, label, note, body, lang) {
+                    var div = document.createElement('div');
+                    div.className = 'comparison-side comparison-' + kind;
+                    var tag = document.createElement('span');
+                    tag.className = 'code-label label-' + kind;
+                    tag.textContent = label;
+                    div.appendChild(tag);
+                    if (note) {
+                        var p = document.createElement('div');
+                        p.className = 'comparison-note';
+                        p.textContent = note;
+                        div.appendChild(p);
+                    }
+                    var newPre = document.createElement('pre');
+                    var newCode = document.createElement('code');
+                    newCode.className = lang;
+                    newCode.textContent = body.join('\n');
+                    newPre.appendChild(newCode);
+                    div.appendChild(newPre);
+                    return div;
+                };
                 root.querySelectorAll('.suggestion-content pre > code, .suggestion-container pre > code').forEach(function(code) {
                     var pre = code.parentElement;
                     if (pre.closest('.code-comparison') || code.classList.contains('prism-highlighted')) return;
                     var lines = (code.textContent || '').replace(/\r\n?/g, '\n').split('\n');
-                    var first = 0;
-                    while (first < lines.length && lines[first].trim() === '') first++;
-                    if (first >= lines.length || !BEFORE.test(lines[first])) return;
-                    var afterIdx = -1, count = 0;
-                    for (var i = first + 1; i < lines.length; i++) {
-                        if (BEFORE.test(lines[i])) return;
-                        if (AFTER.test(lines[i])) { afterIdx = i; count++; }
+                    var befores = [], afters = [];
+                    lines.forEach(function(l, i) {
+                        if (BEFORE.test(l)) befores.push(i);
+                        else if (AFTER.test(l)) afters.push(i);
+                    });
+                    if (befores.length !== 1) return;
+                    var b = befores[0];
+                    var beforeNote = '', afterNote = '', beforeLines, afterLines;
+                    if (afters.length === 0) {
+                        var inline = (lines[b].match(BEFORE)[1] || '').trim();
+                        if (!inline) return;
+                        beforeLines = [inline];
+                        afterLines = trim(lines.slice(0, b).concat(lines.slice(b + 1)));
+                    } else {
+                        var a = afters[0];
+                        if (a < b) return;
+                        var preamble = lines.slice(0, b);
+                        if (!preamble.every(function(l) { return l.trim() === '' || USE.test(l); })) return;
+                        beforeNote = (lines[b].match(BEFORE)[1] || '').trim();
+                        afterNote = (lines[a].match(AFTER)[1] || '').trim();
+                        afterNote = afterNote.replace(/^\(([^)]+)\)\s*:?\s*/, '$1: ').replace(/:\s*$/, '');
+                        beforeLines = trim(lines.slice(b + 1, a));
+                        var rest = lines.slice(a + 1).map(function(l) {
+                            var m = l.match(AFTER);
+                            if (!m) return l;
+                            var indent = l.match(/^\s*/)[0];
+                            var marker = l.trim().match(/^(\/\/|#|--)/)[1];
+                            return indent + marker + ' Or' + (m[1] ? ', ' + m[1] : '');
+                        });
+                        var imports = trim(preamble.slice());
+                        afterLines = trim(imports.length ? imports.concat([''], rest) : rest);
                     }
-                    if (count !== 1) return;
-                    var trim = function(list) {
-                        while (list.length && list[0].trim() === '') list.shift();
-                        while (list.length && list[list.length - 1].trim() === '') list.pop();
-                        return list;
-                    };
-                    var beforeLines = trim(lines.slice(first + 1, afterIdx));
-                    var afterLines = trim(lines.slice(afterIdx + 1));
                     if (!beforeLines.length || !afterLines.length) return;
                     var lang = (code.className.match(/language-[\w-]+/) || ['language-php'])[0];
-                    var side = function(kind, label, note, body) {
-                        var div = document.createElement('div');
-                        div.className = 'comparison-side comparison-' + kind;
-                        var tag = document.createElement('span');
-                        tag.className = 'code-label label-' + kind;
-                        tag.textContent = label;
-                        div.appendChild(tag);
-                        if (note) {
-                            var p = document.createElement('div');
-                            p.className = 'comparison-note';
-                            p.textContent = note;
-                            div.appendChild(p);
-                        }
-                        var newPre = document.createElement('pre');
-                        var newCode = document.createElement('code');
-                        newCode.className = lang;
-                        newCode.textContent = body.join('\n');
-                        newPre.appendChild(newCode);
-                        div.appendChild(newPre);
-                        return div;
-                    };
                     var wrap = document.createElement('div');
                     wrap.className = 'code-comparison';
-                    wrap.appendChild(side('bad', 'Before', lines[first].match(BEFORE)[1], beforeLines));
-                    wrap.appendChild(side('good', 'After', lines[afterIdx].match(AFTER)[1], afterLines));
+                    wrap.appendChild(side('bad', 'Before', beforeNote, beforeLines, lang));
+                    wrap.appendChild(side('good', 'After', afterNote, afterLines, lang));
                     pre.replaceWith(wrap);
                 });
             }
