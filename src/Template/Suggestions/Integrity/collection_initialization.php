@@ -20,7 +20,9 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Initialize the collection in the constructor'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> is never initialized<?php echo $hasConstructor ? ' by the existing constructor' : ', and the entity has no constructor'; ?>. On a new entity, calling <code>add()</code> or <code>count()</code> on it throws an Error.</p>
+<p><?php echo $hasConstructor
+    ? t('<code>%s::$%s</code> is never initialized by the existing constructor. On a new entity, calling <code>add()</code> or <code>count()</code> on it throws an Error.', $e($shortClass), $e($fieldName))
+    : t('<code>%s::$%s</code> is never initialized, and the entity has no constructor. On a new entity, calling <code>add()</code> or <code>count()</code> on it throws an Error.', $e($shortClass), $e($fieldName)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">use Doctrine\Common\Collections\ArrayCollection;
 
@@ -38,4 +40,4 @@ class <?php echo $e($shortClass); ?> {
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Initialize %s::$%s in constructor', $shortClass, $fieldName)];
+return ['code' => $code, 'description' => t('Initialize %s::$%s in constructor', $shortClass, $fieldName)];

@@ -32,6 +32,8 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $excludeVendorEntities: '%doctrine_doctor.analysis.exclude_third_party_entities%'
 
+    AhmedBhs\DoctrineDoctor\Translation\TwigTranslationExtension: ~
+
     # Tag all analyzers automatically
     AhmedBhs\DoctrineDoctor\Analyzer\:
         resource: '../src/Analyzer/{Performance,Security,Integrity,Configuration}/*'

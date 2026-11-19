@@ -7,7 +7,7 @@ declare(strict_types=1);
  * @var array<string, mixed> $context
  */
 $code = (string) ($context['code'] ?? '');
-$optimization = (string) ($context['optimization'] ?? '');
+$optimization = tr($context['optimization'] ?? '');
 $executionTime = (float) ($context['execution_time'] ?? 0.0);
 $threshold = (float) ($context['threshold'] ?? 0.0);
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
@@ -19,8 +19,8 @@ ob_start();
 <?php echo suggestionHeader('Speed up this slow query'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    The query took <?php echo number_format($executionTime, 2); ?>ms, above the <?php echo $threshold; ?>ms threshold.
-    Run EXPLAIN on it to find the missing index or the scan.
+    <?php echo t('The query took %sms, above the %sms threshold.', number_format($executionTime, 2), (string) $threshold); ?>
+    <?php echo t('Run EXPLAIN on it to find the missing index or the scan.'); ?>
 </div>
 <div class="query-item"><pre><code class="language-<?php echo $isPHP ? 'php' : 'sql'; ?>"><?php echo $e($code); ?></code></pre></div>
 <?php if ('' !== $optimization) { ?>
@@ -32,4 +32,4 @@ ob_start();
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Optimize slow query (%.2fms)', $executionTime)];
+return ['code' => $code, 'description' => t('Optimize slow query (%.2fms)', $executionTime)];

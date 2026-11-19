@@ -13,7 +13,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Count in SQL, not by loading the collection'); ?>
 <div class="suggestion-content">
-<p>For one entity, mark the association <code>EXTRA_LAZY</code>: <code>count()</code> then runs a <code>COUNT</code> query and leaves the collection unloaded. For a list, ask for the counts in the query that loads the list.</p>
+<p><?php echo t('For one entity, mark the association <code>EXTRA_LAZY</code>: <code>count()</code> then runs a <code>COUNT</code> query and leaves the collection unloaded. For a list, ask for the counts in the query that loads the list.'); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'customer', fetch: 'EXTRA_LAZY')]
 private Collection $<?php echo $e($field); ?>;
@@ -29,5 +29,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Count %s without loading it', $association),
+    'description' => t('Count %s without loading it', $association),
 ];

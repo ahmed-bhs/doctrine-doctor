@@ -18,7 +18,9 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Load the existing entity instead of cascading'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> cascades persist to <code><?php echo $e($targetEntity); ?></code>, which <?php echo null !== $referenceCount ? $e((string) $referenceCount) . ' entities reference' : 'other entities reference'; ?>. A new or detached <?php echo $e($targetEntity); ?> passed here is inserted again instead of being linked to the existing row.</p>
+<p><?php echo null !== $referenceCount
+    ? t('<code>%s::$%s</code> cascades persist to <code>%s</code>, which %s entities reference. A new or detached %s passed here is inserted again instead of being linked to the existing row.', $e($entityClass), $e($fieldName), $e($targetEntity), $e((string) $referenceCount), $e($targetEntity))
+    : t('<code>%s::$%s</code> cascades persist to <code>%s</code>, which other entities reference. A new or detached %s passed here is inserted again instead of being linked to the existing row.', $e($entityClass), $e($fieldName), $e($targetEntity), $e($targetEntity)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">// Remove the persist cascade from the mapping
 #[ORM\<?php echo $e($mapping); ?>(targetEntity: <?php echo $e($targetEntity); ?>::class)]
@@ -27,7 +29,7 @@ private <?php echo $e($targetEntity); ?> $<?php echo $e($fieldName); ?>;
 // Link to the existing row
 $entity->set<?php echo $e(ucfirst((string) $fieldName)); ?>($em->getReference(<?php echo $e($targetEntity); ?>::class, $<?php echo $e($fieldName); ?>Id));</code></pre></div>
 
-<p>Keep the persist cascade for children owned by one parent only, such as order lines.</p>
+<p><?php echo t('Keep the persist cascade for children owned by one parent only, such as order lines.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine Cascade Operations'); ?>
 </div>
@@ -36,7 +38,7 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
+    'description' => t(
         'Remove cascade="persist" from independent entity %s to prevent duplicates',
         $targetEntity,
     ),

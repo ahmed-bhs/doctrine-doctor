@@ -354,16 +354,19 @@ class JoinTypeConsistencyAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\A
             $severity = Severity::info();
         } else {
             $title = sprintf('%s with INNER JOIN May Cause Incorrect Results', $aggregation);
+            // The second sentence is whole for each aggregation, so it can be translated.
             $description = sprintf(
-                '%s reads %s, and the join with %s repeats each %s row once per matching %s row. '
-                . 'The %s is inflated by those repeated rows.',
+                '%s reads %s, and the join with %s repeats each %s row once per matching %s row.',
                 $finding['expression'],
                 $finding['table'],
                 $finding['multiplier'],
                 $finding['table'],
                 $finding['multiplier'],
-                'COUNT' === $aggregation ? 'count' : ('AVG' === $aggregation ? 'average is weighted' : 'sum'),
-            );
+            ) . ' ' . match ($aggregation) {
+                'COUNT' => 'The count is inflated by those repeated rows.',
+                'AVG' => 'The average is weighted is inflated by those repeated rows.',
+                default => 'The sum is inflated by those repeated rows.',
+            };
             $severity = Severity::warning();
         }
 

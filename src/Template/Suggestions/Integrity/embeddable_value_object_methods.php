@@ -20,7 +20,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Add value object methods'); ?>
 <div class="suggestion-content">
-<p>Embeddable <code><?php echo $e($embeddableClass); ?></code> lacks <?php echo implode(', ', array_map(static fn (mixed $method): string => '<code>' . $e((string) $method) . '</code>', $missingMethods)); ?>. Without them, callers compare and print its fields by hand.</p>
+<p><?php echo t('Embeddable <code>%s</code> lacks %s. Without them, callers compare and print its fields by hand.', $e($embeddableClass), implode(', ', array_map(static fn (mixed $method): string => '<code>' . $e((string) $method) . '</code>', $missingMethods))); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Embeddable]
 final readonly class <?php echo $e($embeddableClass); ?>
@@ -46,5 +46,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Add the missing value object methods',
+    'description' => t('Add the missing value object methods'),
 ];

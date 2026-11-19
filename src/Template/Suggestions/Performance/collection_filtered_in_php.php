@@ -12,7 +12,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Filter the collection in SQL with matching()'); ?>
 <div class="suggestion-content">
-<p><code>filter()</code> loads every element of <code><?php echo $e($association); ?></code> first. <code>matching()</code> sends the condition to the database when the collection is not loaded yet, and filters in memory when it already is.</p>
+<p><?php echo t('<code>filter()</code> loads every element of <code>%s</code> first. <code>matching()</code> sends the condition to the database when the collection is not loaded yet, and filters in memory when it already is.', $e($association)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">use Doctrine\Common\Collections\Criteria;
 
@@ -24,7 +24,7 @@ $active = $order-><?php echo $e($getter); ?>()->matching(
     Criteria::create()->where(Criteria::expr()->eq('status', 'active'))
 );</code></pre></div>
 
-<p>Criteria use field names of the target entity. If you only need the count, mark the association <code>fetch: 'EXTRA_LAZY'</code>: <code>count()</code> then runs a <code>COUNT</code> query.</p>
+<p><?php echo t("Criteria use field names of the target entity. If you only need the count, mark the association <code>fetch: 'EXTRA_LAZY'</code>: <code>count()</code> then runs a <code>COUNT</code> query."); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/working-with-associations.html#filtering-collections', 'Doctrine: filtering collections'); ?>
 </div>
@@ -34,5 +34,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Use matching() instead of %s()->filter()', $getter),
+    'description' => t('Use matching() instead of %s()->filter()', $getter),
 ];

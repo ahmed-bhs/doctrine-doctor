@@ -18,7 +18,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Pin the collation of the view literals'); ?>
 <div class="suggestion-content">
-<p>The view froze a session collation that differs from the connection's <code><?php echo $e($connectionCollation); ?></code><?php if ($columns) { ?> (columns: <code><?php echo $eCode($columns); ?></code>)<?php } ?>. Comparing these columns with a literal then fails with MySQL error 1267 (illegal mix of collations).</p>
+<p><?php if ($columns) { ?><?php echo t('The view froze a session collation that differs from the connection\'s <code>%s</code> (columns: <code>%s</code>). Comparing these columns with a literal then fails with MySQL error 1267 (illegal mix of collations).', $e($connectionCollation), $eCode($columns)); ?><?php } else { ?><?php echo t('The view froze a session collation that differs from the connection\'s <code>%s</code>. Comparing these columns with a literal then fails with MySQL error 1267 (illegal mix of collations).', $e($connectionCollation)); ?><?php } ?></p>
 <?php if ($fixCommand) { ?>
 <div class="query-item"><pre><code class="language-sql"><?php echo $eCode($fixCommand); ?></code></pre></div>
 <?php } else { ?>
@@ -26,7 +26,7 @@ ob_start();
 SELECT u.* FROM user u
 WHERE u.status = 'active' COLLATE utf8mb4_unicode_ci;</code></pre></div>
 <?php } ?>
-<p>An explicit <code>COLLATE</code> keeps the view correct whichever client recreates it; recreating the view from the application connection also works, until the next restore from another client.</p>
+<p><?php echo t('An explicit <code>COLLATE</code> keeps the view correct whichever client recreates it; recreating the view from the application connection also works, until the next restore from another client.'); ?></p>
 
 <?php echo suggestionDocLink('https://dev.mysql.com/doc/refman/8.4/en/charset-collation-coercibility.html', 'MySQL: Collation Coercibility in Expressions'); ?>
 </div>
@@ -35,7 +35,7 @@ $code = ob_get_clean();
 
 return [
     'code' => $code,
-    'description' => sprintf(
+    'description' => t(
         'View columns collate differently from the connection (%s), which raises error 1267 on comparison',
         $connectionCollation,
     ),

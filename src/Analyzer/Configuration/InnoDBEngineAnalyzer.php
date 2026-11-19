@@ -72,13 +72,11 @@ class InnoDBEngineAnalyzer implements DatabaseAuditAnalyzerInterface
 
                         yield new DatabaseConfigIssue([
                             'title'       => 1 === count($nonInnoDBTables) ? sprintf('Table not using InnoDB: %s', $tableList) : sprintf('%d tables not using InnoDB engine', count($nonInnoDBTables)),
-                            'description' => sprintf(
-                                '%s a non-InnoDB engine (%s): %s. ' .
-                                'Engines such as MyISAM ignore transactions and foreign keys, so a rollback or a crash can leave partial data.',
-                                1 === count($nonInnoDBTables) ? '1 table uses' : count($nonInnoDBTables) . ' tables use',
-                                implode(', ', $engineList),
-                                $tableList,
-                            ),
+                            // One whole sentence per count, so the catalog can translate it.
+                            'description' => (1 === count($nonInnoDBTables)
+                                ? sprintf('1 table uses a non-InnoDB engine (%s): %s. ', implode(', ', $engineList), $tableList)
+                                : sprintf('%d tables use a non-InnoDB engine (%s): %s. ', count($nonInnoDBTables), implode(', ', $engineList), $tableList))
+                                . 'Engines such as MyISAM ignore transactions and foreign keys, so a rollback or a crash can leave partial data.',
                             'severity'   => count($nonInnoDBTables) > 5 ? 'critical' : 'warning',
                             'suggestion' => $this->suggestionFactory->createFromTemplate(
                                 templateName: 'Configuration/configuration',

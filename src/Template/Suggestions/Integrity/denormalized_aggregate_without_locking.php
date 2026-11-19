@@ -24,7 +24,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Add a version column to the aggregate'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($entityClass); ?>::<?php echo $e($methodName); ?>()</code> updates <code><?php echo $e(implode(', ', array_map(fn (string $f): string => '$' . $f, $mutatedFields))); ?></code> from <code><?php echo $e(implode(', ', array_map(fn (string $c): string => '$' . $c, $accessedCollections))); ?></code> without any lock. Two concurrent requests can both read the old value, and the last flush overwrites the other.</p>
+<p><?php echo t('<code>%s::%s()</code> updates <code>%s</code> from <code>%s</code> without any lock. Two concurrent requests can both read the old value, and the last flush overwrites the other.', $e($entityClass), $e($methodName), $e(implode(', ', array_map(fn (string $f): string => '$' . $f, $mutatedFields))), $e(implode(', ', array_map(fn (string $c): string => '$' . $c, $accessedCollections)))); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Entity]
 class <?php echo $e($entityClass); ?>
@@ -36,7 +36,7 @@ class <?php echo $e($entityClass); ?>
 }
 // A conflicting flush now throws OptimisticLockException: retry or report it.</code></pre></div>
 
-<p>Or lock the row for the whole operation:</p>
+<p><?php echo t('Or lock the row for the whole operation:'); ?></p>
 <div class="query-item"><pre><code class="language-php">$em->wrapInTransaction(function () use ($em, $id): void {
     $entity = $em->find(<?php echo $e($entityClass); ?>::class, $id, LockMode::PESSIMISTIC_WRITE);
     $entity-><?php echo $e($methodName); ?>(/* ... */);
@@ -52,7 +52,7 @@ $fieldList = implode(', ', array_map(fn (string $f): string => '$' . $f, $mutate
 
 return [
     'code'        => $code,
-    'description' => sprintf(
+    'description' => t(
         'Lock %s (#[ORM\Version] or a pessimistic lock) before updating %s',
         $entityClass,
         $fieldList,

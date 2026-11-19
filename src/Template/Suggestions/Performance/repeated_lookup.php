@@ -9,7 +9,7 @@ declare(strict_types=1);
 $entity          = (string) ($context['entity'] ?? 'Entity');
 $column          = (string) ($context['column'] ?? 'column_name');
 $queryCount      = (int) ($context['query_count'] ?? 0);
-$triggerLocation = (string) ($context['trigger_location'] ?? 'the calling code');
+$triggerLocation = (string) ($context['trigger_location'] ?? t('the calling code'));
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 ob_start();
@@ -17,8 +17,8 @@ ob_start();
 <?php echo suggestionHeader('Load all values with one IN query'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    <?php echo $queryCount; ?> queries looked up <code><?php echo $e($entity); ?></code> by <code><?php echo $e($column); ?></code>, one value at a time<?php if ('' !== $triggerLocation) { ?>, triggered at <code><?php echo $e($triggerLocation); ?></code><?php } ?>.
-    Collecting the values first lets one query load them all.
+    <?php echo t('%d queries looked up <code>%s</code> by <code>%s</code>, one value at a time%s.', $queryCount, $e($entity), $e($column), '' === $triggerLocation ? '' : t(', triggered at <code>%s</code>', $e($triggerLocation))); ?>
+    <?php echo t('Collecting the values first lets one query load them all.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Before: one query per value
@@ -35,12 +35,12 @@ $entities = $repository-&gt;createQueryBuilder('e', 'e.<?php echo $e($column); ?
     -&gt;getResult();
 $entity = $entities[$value] ?? null;</code></pre></div>
 
-<p>When the values are not known upfront, keep the lookups in an array cache so each value is queried at most once.</p>
+<p><?php echo t('When the values are not known upfront, keep the lookups in an array cache so each value is queried at most once.'); ?></p>
 </div>
 <?php
 $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Load %s by %s with one IN query instead of %d lookups', $entity, $column, $queryCount),
+    'description' => t('Load %s by %s with one IN query instead of %d lookups', $entity, $column, $queryCount),
 ];

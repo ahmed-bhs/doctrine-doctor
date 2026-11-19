@@ -13,7 +13,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Use DateTimeImmutable for soft delete'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> holds a mutable <code>DateTime</code>. Code that receives it can change the deletion date in place, and Doctrine will not notice the change.</p>
+<p><?php echo t('<code>%s::$%s</code> holds a mutable <code>DateTime</code>. Code that receives it can change the deletion date in place, and Doctrine will not notice the change.', $e($shortClass), $e($fieldName)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
 private ?\DateTimeImmutable $<?php echo $e($fieldName); ?> = null;
@@ -30,5 +30,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Use DateTimeImmutable for soft delete field %s::%s', $shortClass, $fieldName),
+    'description' => t('Use DateTimeImmutable for soft delete field %s::%s', $shortClass, $fieldName),
 ];

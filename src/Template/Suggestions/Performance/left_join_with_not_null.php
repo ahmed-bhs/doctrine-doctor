@@ -16,8 +16,8 @@ ob_start();
 <?php echo suggestionHeader('Use INNER JOIN on a NOT NULL field'); ?>
 <div class="suggestion-content">
 <div class="alert <?php echo severityAlertClass($severity); ?>">
-    The query LEFT JOINs <code><?= $e($field) ?></code>, which is NOT NULL, so the join never yields a NULL row.
-    An INNER JOIN returns the same rows and gives the planner more room.
+    <?= t('The query LEFT JOINs <code>%s</code>, which is NOT NULL, so the join never yields a NULL row.', $e($field)) ?>
+    <?= t('An INNER JOIN returns the same rows and gives the planner more room.') ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Before
@@ -33,5 +33,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Use INNER JOIN instead of LEFT JOIN on a NOT NULL field',
+    'description' => t('Use INNER JOIN instead of LEFT JOIN on a NOT NULL field'),
 ];

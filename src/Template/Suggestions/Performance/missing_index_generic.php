@@ -26,8 +26,8 @@ ob_start();
 <?php echo suggestionHeader('Add an index for this query'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger">
-    <code><?php echo $e($tableDisplay); ?></code> was scanned in full (<?php echo (int) $rowsScanned; ?> rows).
-    Run EXPLAIN on the query, then index the columns it uses in WHERE, JOIN and ORDER BY.
+    <?php echo t('<code>%s</code> was scanned in full (%d rows).', $e($tableDisplay), (int) $rowsScanned); ?>
+    <?php echo t('Run EXPLAIN on the query, then index the columns it uses in WHERE, JOIN and ORDER BY.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Replace column1, column2 with the columns of the query
@@ -39,7 +39,7 @@ public function up(Schema $schema): void
 // Or on the entity
 #[ORM\Index(name: '<?php echo $e($indexName); ?>', columns: ['column1', 'column2'])]</code></pre></div>
 
-<p>In a composite index, put the columns compared with <code>=</code> before the ones used in a range.</p>
+<p><?php echo t('In a composite index, put the columns compared with <code>=</code> before the ones used in a range.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index', 'Doctrine indexing documentation'); ?>
 </div>
@@ -48,5 +48,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Add an index on %s to avoid a full scan (%d rows scanned)', $realTableName, $rowsScanned),
+    'description' => t('Add an index on %s to avoid a full scan (%d rows scanned)', (string) $realTableName, (int) $rowsScanned),
 ];

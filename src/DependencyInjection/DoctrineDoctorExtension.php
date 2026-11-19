@@ -92,6 +92,7 @@ class DoctrineDoctorExtension extends Extension implements PrependExtensionInter
     private function registerGlobalParameters(ContainerBuilder $containerBuilder, array $config): void
     {
         $containerBuilder->setParameter('doctrine_doctor.enabled', $config['enabled']);
+        $containerBuilder->setParameter('doctrine_doctor.locale', $config['locale']);
         $containerBuilder->setParameter('doctrine_doctor.profiler.show_debug_info', $config['profiler']['show_debug_info']);
         $containerBuilder->setParameter('doctrine_doctor.analysis.exclude_third_party_entities', $config['analysis']['exclude_third_party_entities']);
         $containerBuilder->setParameter('doctrine_doctor.analysis.exclude_paths', $config['analysis']['exclude_paths']);

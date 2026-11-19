@@ -1,3 +1,25 @@
+        // Fills a translated format: %d and %s in order, or %1$d by position.
+        var ddFormat = function(format) {
+            var values = Array.prototype.slice.call(arguments, 1), next = 0;
+            return format.replace(/%(?:(\d+)\$)?[sd]/g, function(match, position) {
+                return String(position ? values[position - 1] : values[next++]);
+            });
+        };
+        // Captions of the Before/After comparison come from code comments: translate them like the catalog does.
+        var ddNotes = {{ dd_notes()|json_encode(constant('JSON_FORCE_OBJECT'))|raw }};
+        var ddNote = function(note) {
+            if (!note || Object.prototype.hasOwnProperty.call(ddNotes, note)) return note ? ddNotes[note] : note;
+            for (var key in ddNotes) {
+                if (key.indexOf('%s') < 0) continue;
+                var pattern = new RegExp('^' + key.split('%s').map(function(part) { return part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('(.+?)') + '$');
+                var match = note.match(pattern);
+                if (match) {
+                    var next = 1;
+                    return ddNotes[key].replace(/%(?:(\d+)\$)?s/g, function(all, position) { return match[position ? +position : next++]; });
+                }
+            }
+            return note;
+        };
         if (navigator.clipboard) {
             document.querySelectorAll('[data-clipboard-text]').forEach(function(button) {
                 button.classList.remove('hidden');
@@ -214,7 +236,7 @@
             }
 
             function splitBeforeAfter(root) {
-                var BEFORE = /^\s*(?:\/\/|#|--)\s*Before\b\s*(?::\s*(.*))?$/i;
+                var BEFORE = /^\s*(?:\/\/|#|--)\s*Before\b\s*(?:[:,]\s*(.*))?$/i;
                 var AFTER = /^\s*(?:\/\/|#|--)\s*After\b(?=\s*(?:$|:|,|\())\s*[:,]?\s*(.*)$/i;
                 var USE = /^\s*use\s+[^;]+;\s*$/;
                 var trim = function(list) {
@@ -229,6 +251,7 @@
                     tag.className = 'code-label label-' + kind;
                     tag.textContent = label;
                     div.appendChild(tag);
+                    note = ddNote(note);
                     if (note) {
                         var p = document.createElement('div');
                         p.className = 'comparison-note';
@@ -239,7 +262,7 @@
                     var segments = [{ note: '', lines: [] }];
                     body.forEach(function(l) {
                         var m = l.match(OR);
-                        if (m) segments.push({ note: 'Or' + (m[1] ? ', ' + m[1] : ''), lines: [] });
+                        if (m) segments.push({ note: {{ 'Or'|dd_trans|json_encode|raw }} + (m[1] ? ', ' + ddNote(m[1]) : ''), lines: [] });
                         else segments[segments.length - 1].lines.push(l);
                     });
                     segments.forEach(function(seg, i) {
@@ -301,8 +324,8 @@
                     var wrap = document.createElement('div');
                     wrap.className = 'code-comparison';
                     var pad = function(note, other) { return note || (other ? '\u00a0' : ''); };
-                    wrap.appendChild(side('bad', 'Before', pad(beforeNote, afterNote), beforeLines, lang));
-                    wrap.appendChild(side('good', 'After', pad(afterNote, beforeNote), afterLines, lang));
+                    wrap.appendChild(side('bad', {{ 'Before'|dd_trans|json_encode|raw }}, pad(beforeNote, afterNote), beforeLines, lang));
+                    wrap.appendChild(side('good', {{ 'After'|dd_trans|json_encode|raw }}, pad(afterNote, beforeNote), afterLines, lang));
                     pre.replaceWith(wrap);
                 });
             }
@@ -339,14 +362,14 @@
                     if (!code) return;
                     var btn = document.createElement('button');
                     btn.className = 'dd-copy-btn';
-                    btn.textContent = 'Copy';
+                    btn.textContent = {{ 'Copy'|dd_trans|json_encode|raw }};
                     btn.addEventListener('click', function() {
                         var text = code.textContent;
                         navigator.clipboard.writeText(text).then(function() {
-                            btn.textContent = 'Copied!';
+                            btn.textContent = {{ 'Copied!'|dd_trans|json_encode|raw }};
                             btn.classList.add('dd-copied');
                             setTimeout(function() {
-                                btn.textContent = 'Copy';
+                                btn.textContent = {{ 'Copy'|dd_trans|json_encode|raw }};
                                 btn.classList.remove('dd-copied');
                             }, 2000);
                         });
@@ -400,13 +423,11 @@
                         var uniqueCount = content.querySelectorAll('.dd-duplicate-item').length;
                         var totalCount = uniqueCount + removedCount;
                         if (uniqueCount === 1 && totalCount > 1) {
-                            headerStrong.textContent = '1 related finding (' + totalCount + ' occurrences, grouped for readability)';
+                            headerStrong.textContent = ddFormat({{ '1 related finding (%d occurrences, grouped for readability)'|dd_format_raw|json_encode|raw }}, totalCount);
                         } else if (uniqueCount === totalCount) {
-                            var relatedLabel = totalCount === 1 ? 'related finding' : 'related findings';
-                            headerStrong.textContent = totalCount + ' ' + relatedLabel + ' (grouped for readability)';
+                            headerStrong.textContent = ddFormat(totalCount === 1 ? {{ '%d related finding (grouped for readability)'|dd_format_raw|json_encode|raw }} : {{ '%d related findings (grouped for readability)'|dd_format_raw|json_encode|raw }}, totalCount);
                         } else {
-                            var uniqueLabel = uniqueCount === 1 ? 'unique related finding' : 'unique related findings';
-                            headerStrong.textContent = uniqueCount + ' ' + uniqueLabel + ' (' + totalCount + ' total, grouped for readability)';
+                            headerStrong.textContent = ddFormat(uniqueCount === 1 ? {{ '%d unique related finding (%d total, grouped for readability)'|dd_format_raw|json_encode|raw }} : {{ '%d unique related findings (%d total, grouped for readability)'|dd_format_raw|json_encode|raw }}, uniqueCount, totalCount);
                         }
                     }
                 });
@@ -442,7 +463,7 @@
 
                 var meta = controls.querySelector('.dd-issue-meta');
                 if (meta) {
-                    meta.textContent = visibleCount + ' shown / ' + cards.length + ' total';
+                    meta.textContent = ddFormat({{ '%d shown / %d total'|dd_format_raw|json_encode|raw }}, visibleCount, cards.length);
                 }
 
                 var emptyState = controls.nextElementSibling;
@@ -482,7 +503,7 @@
                     if (!emptyState || !emptyState.classList.contains('dd-filter-empty')) {
                         emptyState = document.createElement('div');
                         emptyState.className = 'dd-filter-empty hidden';
-                        emptyState.textContent = 'No issues match the current filters.';
+                        emptyState.textContent = {{ 'No issues match the current filters.'|dd_trans|json_encode|raw }};
                         controls.insertAdjacentElement('afterend', emptyState);
                     }
 
@@ -545,9 +566,9 @@
             }
 
             function actionabilityLabel(key) {
-                if (key === 'schema_change') return 'Schema change';
-                if (key === 'refactor') return 'Refactor';
-                return 'Quick fix';
+                if (key === 'schema_change') return {{ 'Schema change'|dd_trans|json_encode|raw }};
+                if (key === 'refactor') return {{ 'Refactor'|dd_trans|json_encode|raw }};
+                return {{ 'Quick fix'|dd_trans|json_encode|raw }};
             }
 
             function initSuggestionActionabilityChips() {

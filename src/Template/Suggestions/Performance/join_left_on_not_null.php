@@ -17,8 +17,8 @@ ob_start();
 <?php echo suggestionHeader('Use INNER JOIN on a mandatory relation'); ?>
 <div class="suggestion-content">
 <div class="alert <?php echo severityAlertClass($severity); ?>">
-    The LEFT JOIN on <code><?php echo $e($table); ?></code> follows a NOT NULL foreign key, so it never produces a NULL row.
-    An INNER JOIN returns the same rows and leaves the planner free to choose the join order.
+    <?php echo t('The LEFT JOIN on <code>%s</code> follows a NOT NULL foreign key, so it never produces a NULL row.', $e($table)); ?>
+    <?php echo t('An INNER JOIN returns the same rows and leaves the planner free to choose the join order.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Before
@@ -34,5 +34,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Use INNER JOIN instead of LEFT JOIN on a NOT NULL relation',
+    'description' => t('Use INNER JOIN instead of LEFT JOIN on a NOT NULL relation'),
 ];

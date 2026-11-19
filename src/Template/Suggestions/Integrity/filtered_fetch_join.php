@@ -12,7 +12,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Filter with one join, load with another'); ?>
 <div class="suggestion-content">
-<p>The same join both selects the rows of <code><?php echo $e($table); ?></code> and filters them with <code><?php echo $e($condition); ?></code>. Join the collection twice: one alias decides which parents are returned, the other loads the whole collection.</p>
+<p><?php echo t('The same join both selects the rows of <code>%s</code> and filters them with <code>%s</code>. Join the collection twice: one alias decides which parents are returned, the other loads the whole collection.', $e($table), $e($condition)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">// Before
 ->select('p', 'productTaxon')
@@ -24,7 +24,7 @@ ob_start();
 ->innerJoin('p.productTaxons', 'inCollection', 'WITH', 'inCollection.taxon = :collection')
 ->leftJoin('p.productTaxons', 'productTaxon')</code></pre></div>
 
-<p>If the page does not need the collection, keep the filter and remove the alias from <code>select()</code>.</p>
+<p><?php echo t('If the page does not need the collection, keep the filter and remove the alias from <code>select()</code>.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/dql-doctrine-query-language.html#joins', 'Doctrine: fetch joins'); ?>
 </div>
@@ -34,5 +34,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Do not filter the fetch-joined collection %s in WHERE', $table),
+    'description' => t('Do not filter the fetch-joined collection %s in WHERE', $table),
 ];

@@ -21,7 +21,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Remove cascade remove from the ManyToMany'); ?>
 <div class="suggestion-content">
-<p><code><?= $e($shortClass) ?>::$<?= $e($fieldName) ?></code> uses <code>cascade: ['remove']</code> on a ManyToMany association. Deleting a <?= $e($shortClass) ?> also deletes every linked <?= $e($shortTarget) ?>, even those still linked to other rows.</p>
+<p><?php echo t('<code>%s::$%s</code> uses <code>cascade: [\'remove\']</code> on a ManyToMany association. Deleting a %s also deletes every linked %s, even those still linked to other rows.', $e($shortClass), $e($fieldName), $e($shortClass), $e($shortTarget)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">// Before
 #[ORM\ManyToMany(targetEntity: <?= $e($shortTarget) ?>::class, cascade: ['remove'])]
@@ -38,5 +38,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Remove cascade="remove" from ManyToMany relation',
+    'description' => t('Remove cascade="remove" from ManyToMany relation'),
 ];

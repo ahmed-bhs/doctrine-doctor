@@ -17,7 +17,7 @@ ob_start();
 <?php echo suggestionHeader('Use DateTimeImmutable for the timestamp'); ?>
 
 <div class="suggestion-content">
-    <p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> holds a mutable <code>DateTime</code>. A caller that gets it from the getter can modify it in place, and Doctrine does not detect that change.</p>
+    <p><?php echo t('<code>%s::$%s</code> holds a mutable <code>DateTime</code>. A caller that gets it from the getter can modify it in place, and Doctrine does not detect that change.', $e($entityClass), $e($fieldName)); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">// Before
@@ -36,5 +36,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Use DateTimeImmutable for %s::$%s', $entityClass, $fieldName),
+    'description' => t('Use DateTimeImmutable for %s::$%s', $entityClass, $fieldName),
 ];

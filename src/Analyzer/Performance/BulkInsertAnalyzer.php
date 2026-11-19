@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -83,18 +84,17 @@ class BulkInsertAnalyzer implements AnalyzerInterface
         $metadata = $this->findMetadata($table);
         $bypassed = null === $metadata ? [] : $this->bypassedBehaviours($metadata);
 
+        // Translated here: the list of skipped behaviours is built from translated pieces.
         $description = sprintf(
-            '%d single-row INSERT statements ran into %s, one round trip per row.',
+            Translator::format('%d single-row INSERT statements ran into %s, one round trip per row.'),
             $count,
             $table,
         );
 
         if (null !== $metadata) {
-            $description .= sprintf(
-                ' A DBAL multi-row INSERT would bypass the unit of work for %s%s.',
-                $metadata->getName(),
-                [] === $bypassed ? '' : ', so it skips: ' . implode('; ', $bypassed),
-            );
+            $description .= ' ' . ([] === $bypassed
+                ? sprintf(Translator::format('A DBAL multi-row INSERT would bypass the unit of work for %s.'), $metadata->getName())
+                : sprintf(Translator::format('A DBAL multi-row INSERT would bypass the unit of work for %s, so it skips: %s.'), $metadata->getName(), implode('; ', $bypassed)));
         }
 
         $issueData = new IssueData(
@@ -135,15 +135,15 @@ class BulkInsertAnalyzer implements AnalyzerInterface
         $callbacks = array_keys(array_filter($metadata->lifecycleCallbacks));
 
         if ([] !== $callbacks) {
-            $bypassed[] = 'lifecycle callbacks (' . implode(', ', $callbacks) . ')';
+            $bypassed[] = sprintf(Translator::format('lifecycle callbacks (%s)'), implode(', ', $callbacks));
         }
 
         if ([] !== array_filter($metadata->entityListeners)) {
-            $bypassed[] = 'entity listeners (' . implode(', ', array_keys(array_filter($metadata->entityListeners))) . ')';
+            $bypassed[] = sprintf(Translator::format('entity listeners (%s)'), implode(', ', array_keys(array_filter($metadata->entityListeners))));
         }
 
         if ($metadata->isIdGeneratorIdentity() || $metadata->isIdGeneratorSequence()) {
-            $bypassed[] = 'generated identifiers, which are not set back on objects';
+            $bypassed[] = Translator::trans('generated identifiers, which are not set back on objects');
         }
 
         return $bypassed;

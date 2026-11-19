@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Analyzer\Helper;
 
 use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlParserCache;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use PhpMyAdmin\SqlParser\Components\Condition;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 
@@ -53,43 +54,43 @@ class InjectionPatternDetector
 
         if ($this->hasNumericValueInQuotes($sql, $parsedData)) {
             ++$riskLevel;
-            $indicators[] = 'Numeric value in quotes (possible concatenation)';
+            $indicators[] = Translator::trans('Numeric value in quotes (possible concatenation)');
         }
 
         if ($this->hasSQLInjectionKeywords($sql)) {
             $riskLevel += 3;
-            $indicators[] = 'SQL injection keywords detected in string';
+            $indicators[] = Translator::trans('SQL injection keywords detected in string');
         }
 
         if ($this->hasCommentSyntaxInString($sql)) {
             $riskLevel += 2;
-            $indicators[] = 'SQL comment syntax in string value';
+            $indicators[] = Translator::trans('SQL comment syntax in string value');
         }
 
         if ($this->hasConsecutiveQuotes($sql)) {
             ++$riskLevel;
-            $indicators[] = 'Consecutive quotes detected';
+            $indicators[] = Translator::trans('Consecutive quotes detected');
         }
 
         if ($this->hasUnparameterizedLike($sql, $parsedData)) {
             $riskLevel += 2;
-            $indicators[] = 'LIKE clause without parameter';
+            $indicators[] = Translator::trans('LIKE clause without parameter');
         }
 
         if ($this->hasLiteralStringInWhere($sql, $parsedData)) {
             ++$riskLevel;
-            $indicators[] = 'WHERE clause with literal string instead of parameter';
+            $indicators[] = Translator::trans('WHERE clause with literal string instead of parameter');
         }
 
         $hasMultipleLiterals = $this->hasMultipleConditionsWithLiterals($sql, $parsedData);
         if ($hasMultipleLiterals) {
             $riskLevel += 3;
-            $indicators[] = 'Multiple conditions with literal strings (possible injection)';
+            $indicators[] = Translator::trans('Multiple conditions with literal strings (possible injection)');
         }
 
         if ($this->hasSuspiciousLimitOrOffset($sql)) {
             $riskLevel += 3;
-            $indicators[] = 'Quoted or non-numeric LIMIT/OFFSET value (injection vector)';
+            $indicators[] = Translator::trans('Quoted or non-numeric LIMIT/OFFSET value (injection vector)');
         }
 
         if (!$this->hasSQLInjectionKeywords($sql) && !$hasMultipleLiterals && $riskLevel > 2) {

@@ -15,8 +15,8 @@ declare(strict_types=1);
 /** @var array<string, mixed> $context PHPStan: Template context */
 // Extract context
 $options = $context['options'] ?? null;
-$warningMessage = $context['warning_message'] ?? '';
-$infoMessage = $context['info_message'] ?? '';
+$warningMessage = tr($context['warning_message'] ?? '');
+$infoMessage = tr($context['info_message'] ?? '');
 $moneyLibraryLink = $context['money_library_link'] ?? null;
 $doctrineTypesLink = $context['doctrine_types_link'] ?? null;
 
@@ -29,7 +29,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        <?php echo $e($warningMessage); ?> Doctrine hydrates <code>decimal</code> columns as strings, so a <code>float</code> property loses precision and differs from the loaded value on every flush.
+        <?php echo t('%s Doctrine hydrates <code>decimal</code> columns as strings, so a <code>float</code> property loses precision and differs from the loaded value on every flush.', $e($warningMessage)); ?>
     </div>
 
     <?php $option = $options[0] ?? ['title' => 'Change type hint', 'description' => 'Use string type hint', 'code' => 'private string $field;']; ?>
@@ -37,7 +37,7 @@ ob_start();
         <pre><code class="language-php"><?php echo $e($option['code']); ?></code></pre>
     </div>
 
-    <p><?php echo $e($option['description']); ?> <?php echo $e($infoMessage); ?></p>
+    <p><?php echo $e(tr($option['description'])); ?> <?php echo $e($infoMessage); ?></p>
 
     <?php if ($doctrineTypesLink) { ?><?php echo suggestionDocLink((string) $doctrineTypesLink, 'Doctrine Mapping Types Reference'); ?><?php } ?>
 </div>
@@ -46,5 +46,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Type the decimal property as string instead of float',
+    'description' => t('Type the decimal property as string instead of float'),
 ];

@@ -26,7 +26,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Move persistence out of the entity'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($shortClass); ?></code> calls the EntityManager itself, so it cannot be built or tested without a database and flushes at hidden points. Keep the domain logic in the entity and let a service persist it.</p>
+<p><?php echo t('<code>%s</code> calls the EntityManager itself, so it cannot be built or tested without a database and flushes at hidden points. Keep the domain logic in the entity and let a service persist it.', $e($shortClass)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">final class <?php echo $e($shortClass); ?>Service
 {
@@ -47,5 +47,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Move EntityManager calls from the entity to a service',
+    'description' => t('Move EntityManager calls from the entity to a service'),
 ];

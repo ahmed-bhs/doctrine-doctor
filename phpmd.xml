@@ -106,7 +106,7 @@
     <rule ref="rulesets/cleancode.xml/StaticAccess">
         <properties>
             <!-- Allow static factories, value objects, utility helpers + Webmozart\Assert (standard library) + test helpers + caches -->
-            <property name="exceptions" value="\AhmedBhs\DoctrineDoctor\Collection\IssueCollection,\AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection,\AhmedBhs\DoctrineDoctor\ValueObject\Severity,\AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory,\AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType,\AhmedBhs\DoctrineDoctor\ValueObject\SuggestionContentBlock,\AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper,\AhmedBhs\DoctrineDoctor\Analyzer\Helper\InverseOneToOneLoad,\AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProxyOwner,\AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter,\AhmedBhs\DoctrineDoctor\ValueObject\Helper\MarkdownFormatter,\Webmozart\Assert\Assert,\AhmedBhs\DoctrineDoctor\Collector\ServiceHolder,\AhmedBhs\DoctrineDoctor\DTO\QueryData,\AhmedBhs\DoctrineDoctor\Suggestion\StructuredSuggestion,\AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime,\AhmedBhs\DoctrineDoctor\ValueObject\EntityName,\AhmedBhs\DoctrineDoctor\ValueObject\TableName,\AhmedBhs\DoctrineDoctor\ValueObject\SuggestionContent,\AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper,\AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlNormalizationCache,\AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlParserCache,\AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore,\AhmedBhs\DoctrineDoctor\Analyzer\Parser\CachedSqlStructureExtractor,\Symfony\Component\Yaml\Yaml,\Composer\InstalledVersions"/>
+            <property name="exceptions" value="\AhmedBhs\DoctrineDoctor\Collection\IssueCollection,\AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection,\AhmedBhs\DoctrineDoctor\ValueObject\Severity,\AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory,\AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType,\AhmedBhs\DoctrineDoctor\ValueObject\SuggestionContentBlock,\AhmedBhs\DoctrineDoctor\Analyzer\Helper\MappingHelper,\AhmedBhs\DoctrineDoctor\Analyzer\Helper\InverseOneToOneLoad,\AhmedBhs\DoctrineDoctor\Analyzer\Helper\ProxyOwner,\AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter,\AhmedBhs\DoctrineDoctor\ValueObject\Helper\MarkdownFormatter,\Webmozart\Assert\Assert,\AhmedBhs\DoctrineDoctor\Collector\ServiceHolder,\AhmedBhs\DoctrineDoctor\DTO\QueryData,\AhmedBhs\DoctrineDoctor\Suggestion\StructuredSuggestion,\AhmedBhs\DoctrineDoctor\ValueObject\QueryExecutionTime,\AhmedBhs\DoctrineDoctor\ValueObject\EntityName,\AhmedBhs\DoctrineDoctor\ValueObject\TableName,\AhmedBhs\DoctrineDoctor\ValueObject\SuggestionContent,\AhmedBhs\DoctrineDoctor\Tests\Integration\PlatformAnalyzerTestHelper,\AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlNormalizationCache,\AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlParserCache,\AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore,\AhmedBhs\DoctrineDoctor\Analyzer\Parser\CachedSqlStructureExtractor,\AhmedBhs\DoctrineDoctor\Translation\Translator,\Symfony\Component\Yaml\Yaml,\Composer\InstalledVersions"/>
         </properties>
     </rule>
 
@@ -195,7 +195,8 @@
     <rule ref="rulesets/naming.xml/ShortMethodName">
         <properties>
             <property name="minimum" value="3"/>
-            <property name="exceptions" value="get,set,add,has,is,to"/>
+            <!-- t() and tr() translate template texts, short on purpose since every sentence calls them -->
+            <property name="exceptions" value="get,set,add,has,is,to,t,tr"/>
         </properties>
     </rule>
 

@@ -16,7 +16,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Rename the column in snake_case'); ?>
 <div class="suggestion-content">
-<?php echo suggestionAlert($severity, 'Column <code>' . escape($current) . '</code> should be named <code>' . escape($suggested) . '</code>. Lowercase snake_case names (<code>first_name</code>, <code>created_at</code>) need no quoting on any platform.'); ?>
+<?php echo suggestionAlert($severity, t('Column <code>%s</code> should be named <code>%s</code>. Lowercase snake_case names (<code>first_name</code>, <code>created_at</code>) need no quoting on any platform.', escape($current), escape($suggested))); ?>
 
 <?php echo suggestionCodeBlock('', sprintf("// Before\n#[ORM\\Column(name: '%s')]\nprivate \$%s;\n\n// After\n#[ORM\\Column(name: '%s')]\nprivate \$%s;", $current, $fieldName, $suggested, $fieldName)); ?>
 
@@ -27,5 +27,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf("Rename column from '%s' to '%s'", $current, $suggested),
+    'description' => t("Rename column from '%s' to '%s'", $current, $suggested),
 ];

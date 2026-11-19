@@ -19,8 +19,8 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Wrap the writes in one transaction'); ?>
 <div class="suggestion-content">
-<p><?php echo $count; ?> write statements into <code><?php echo $e($table); ?></code> each committed on their own (<?php echo $e(sprintf('%.2f', $totalMs)); ?> ms in total).
-In autocommit mode, every commit waits for the database to flush its log to disk. One transaction pays that cost once.</p>
+<p><?php echo t('%d write statements into <code>%s</code> each committed on their own (%s ms in total).', $count, $e($table), $e(sprintf('%.2f', $totalMs))); ?>
+<?php echo t('In autocommit mode, every commit waits for the database to flush its log to disk. One transaction pays that cost once.'); ?></p>
 
 <div class="query-item"><pre><code class="language-php">// With the ORM: flush once, or in batches inside a transaction
 $entityManager-&gt;wrapInTransaction(function () use ($entityManager, $rows): void {
@@ -36,7 +36,7 @@ $connection-&gt;transactional(function () use ($connection, $rows): void {
     }
 });</code></pre></div>
 
-<p>One transaction is also all or nothing: an error halfway leaves no partial import. For tens of thousands of rows, commit every few thousand so locks and undo logs stay small.</p>
+<p><?php echo t('One transaction is also all or nothing: an error halfway leaves no partial import. For tens of thousands of rows, commit every few thousand so locks and undo logs stay small.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/transactions-and-concurrency.html', 'Doctrine ORM: Transactions and Concurrency'); ?>
 </div>
@@ -45,5 +45,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Wrap %d writes in one transaction', $count),
+    'description' => t('Wrap %d writes in one transaction', $count),
 ];

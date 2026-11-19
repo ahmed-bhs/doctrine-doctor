@@ -17,8 +17,8 @@ ob_start();
 <?php echo suggestionHeader('Paginate entities, not joined rows'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger">
-    With a fetch-joined collection on <code><?php echo $e($entityHint); ?></code>, <code>setMaxResults()</code> limits SQL rows, not entities.
-    Fewer roots than requested come back and some collections are truncated.
+    <?php echo t('With a fetch-joined collection on <code>%s</code>, <code>setMaxResults()</code> limits SQL rows, not entities.', $e($entityHint)); ?>
+    <?php echo t('Fewer roots than requested come back and some collections are truncated.'); ?>
 </div>
 
 <?php if ($offsetPaginatorAvailable) { ?>
@@ -43,7 +43,7 @@ $qb-&gt;setFirstResult($offset)-&gt;setMaxResults(10);
 $orders = iterator_to_array(new Paginator($qb-&gt;getQuery(), fetchJoinCollection: true));</code></pre></div>
 <?php } ?>
 
-<p>In a batch loop, skip the extra COUNT of the paginator: select a page of <code>id</code> values without the join, then fetch-join <code>WHERE o.id IN (:ids)</code>.</p>
+<p><?php echo t('In a batch loop, skip the extra COUNT of the paginator: select a page of <code>id</code> values without the join, then fetch-join <code>WHERE o.id IN (:ids)</code>.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/current/tutorials/pagination.html', 'Doctrine pagination docs'); ?>
 </div>
@@ -52,5 +52,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Use a paginator so the limit applies to entities, not to fetch-joined rows',
+    'description' => t('Use a paginator so the limit applies to entities, not to fetch-joined rows'),
 ];

@@ -22,8 +22,8 @@ ob_start();
 <?php echo suggestionHeader('Flush in batches, not in the loop'); ?>
 <div class="suggestion-content">
 <div class="alert <?php echo severityAlertClass($severity); ?>">
-    flush() ran <?php echo $flushes; ?> times inside a loop, each call computing the change set and opening a transaction.
-    Flushing every 20 entities would need about <?php echo (int) ceil($flushes / 20); ?>.
+    <?php echo t('flush() ran %d times inside a loop, each call computing the change set and opening a transaction.', $flushes); ?>
+    <?php echo t('Flushing every 20 entities would need about %d.', (int) ceil($flushes / 20)); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">foreach ($items as $i =&gt; $item) {
@@ -45,5 +45,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Flush in batches instead of %d times in a loop', $flushes),
+    'description' => t('Flush in batches instead of %d times in a loop', $flushes),
 ];

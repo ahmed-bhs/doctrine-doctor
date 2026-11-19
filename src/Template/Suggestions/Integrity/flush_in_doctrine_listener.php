@@ -13,7 +13,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Move flush() out of the Doctrine listener'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($listenerClass); ?>::<?php echo $e($methodName); ?>()</code> runs while Doctrine is flushing. Let the listener record what changed, and do the follow-up work in the service that called <code>flush()</code>, after it returns.</p>
+<p><?php echo t('<code>%s::%s()</code> runs while Doctrine is flushing. Let the listener record what changed, and do the follow-up work in the service that called <code>flush()</code>, after it returns.', $e($listenerClass), $e($methodName)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">// Before, in the <?php echo $e($event); ?> listener
 $this->sync->run($entity);
@@ -24,7 +24,7 @@ $this->entityManager->flush();
 $this->sync->run($entity);
 $this->entityManager->flush();</code></pre></div>
 
-<p>To change other entities within the same flush, use an <code>onFlush</code> listener and call <code>$uow->computeChangeSet()</code> for each of them.</p>
+<p><?php echo t('To change other entities within the same flush, use an <code>onFlush</code> listener and call <code>$uow->computeChangeSet()</code> for each of them.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/events.html', 'Doctrine Events documentation'); ?>
 </div>
@@ -34,5 +34,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Move flush() out of %s::%s() (%s)', $listenerClass, $methodName, $event),
+    'description' => t('Move flush() out of %s::%s() (%s)', $listenerClass, $methodName, $event),
 ];

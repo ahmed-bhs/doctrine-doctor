@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\ValueObject;
 
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\ValueObject\Helper\MarkdownFormatter;
 use Webmozart\Assert\Assert;
 
@@ -214,12 +215,12 @@ final class SuggestionContentBlock
     public function toText(): string
     {
         return match ($this->type) {
-            self::TYPE_TEXT       => $this->getStringContent(),
+            self::TYPE_TEXT       => $this->getProse(),
             self::TYPE_CODE       => $this->renderCodeText(),
-            self::TYPE_HEADING    => strtoupper($this->getStringContent()),
+            self::TYPE_HEADING    => mb_strtoupper($this->getProse()),
             self::TYPE_LIST       => $this->renderListText(),
-            self::TYPE_WARNING    => ' WARNING: ' . $this->getStringContent(),
-            self::TYPE_INFO       => 'ℹ️  INFO: ' . $this->getStringContent(),
+            self::TYPE_WARNING    => ' WARNING: ' . $this->getProse(),
+            self::TYPE_INFO       => 'ℹ️  INFO: ' . $this->getProse(),
             self::TYPE_LINK       => sprintf('%s: %s', $this->metadata['text'] ?? '', $this->getStringContent()),
             self::TYPE_COMPARISON => $this->renderComparisonText(),
             default               => '',
@@ -236,6 +237,14 @@ final class SuggestionContentBlock
     }
 
     /**
+     * Content shown as prose, translated; code blocks keep their content as is.
+     */
+    private function getProse(): string
+    {
+        return Translator::trans($this->getStringContent());
+    }
+
+    /**
      * Get content as array (with assertion for PHPStan).
      * @return array<int|string, mixed>
      */
@@ -248,7 +257,7 @@ final class SuggestionContentBlock
     private function renderTextHtml(): string
     {
         // Convert basic Markdown: **bold**, `code`, bullet lists
-        $text = $this->getStringContent();
+        $text = $this->getProse();
 
         // Bold text: **text** -> <strong>text</strong>
         $text = (string) preg_replace('/\*\*([^*]+)\*\*/', '<strong>$1</strong>', $text);
@@ -309,7 +318,7 @@ final class SuggestionContentBlock
         $label    = $this->metadata['label'] ?? null;
         $code     = htmlspecialchars($this->getStringContent(), ENT_NOQUOTES, 'UTF-8');
 
-        $labelHtml = $label ? '<div class="code-label ' . ('Bad' === $label ? 'label-bad' : 'label-good') . '">' . $label . '</div>' : '';
+        $labelHtml = $label ? '<div class="code-label ' . ('Bad' === $label ? 'label-bad' : 'label-good') . '">' . htmlspecialchars(Translator::trans($label)) . '</div>' : '';
 
         return <<<HTML
             <div class="code-block">
@@ -323,7 +332,7 @@ final class SuggestionContentBlock
     {
         $level = $this->metadata['level'] ?? 3;
 
-        return sprintf('<h%s>', $level) . htmlspecialchars($this->getStringContent()) . sprintf('</h%s>', $level);
+        return sprintf('<h%s>', $level) . htmlspecialchars($this->getProse()) . sprintf('</h%s>', $level);
     }
 
     private function renderListHtml(): string
@@ -334,7 +343,7 @@ final class SuggestionContentBlock
 
         // Support markdown in list items
         $items = array_map(function ($item): string {
-            $itemStr = is_string($item) ? $item : (string) $item;
+            $itemStr = Translator::trans(is_string($item) ? $item : (string) $item);
             // Bold text
             $itemStr = (string) preg_replace('/\*\*([^*]+)\*\*/', '<strong>$1</strong>', $itemStr);
             // Inline code
@@ -348,14 +357,14 @@ final class SuggestionContentBlock
 
     private function renderWarningHtml(): string
     {
-        $content = MarkdownFormatter::format($this->getStringContent());
+        $content = MarkdownFormatter::format($this->getProse());
 
         return '<div class="alert alert-warning">' . $content . '</div>';
     }
 
     private function renderInfoHtml(): string
     {
-        $content = MarkdownFormatter::format($this->getStringContent());
+        $content = MarkdownFormatter::format($this->getProse());
 
         return '<div class="alert alert-info">' . $content . '</div>';
     }
@@ -363,7 +372,7 @@ final class SuggestionContentBlock
     private function renderLinkHtml(): string
     {
         $rawText = trim((string) ($this->metadata['text'] ?? ''));
-        $text = '' !== $rawText ? $rawText : 'Documentation';
+        $text = Translator::trans('' !== $rawText ? $rawText : 'Documentation');
         $text = htmlspecialchars($text);
         $url  = htmlspecialchars($this->getStringContent());
 
@@ -408,7 +417,7 @@ final class SuggestionContentBlock
         Assert::isIterable($content, '$content must be iterable');
 
         foreach ($content as $i => $item) {
-            $itemStr = is_string($item) ? $item : (string) $item;
+            $itemStr = Translator::trans(is_string($item) ? $item : (string) $item);
             $prefix  = $ordered ? ((int) $i + 1) . '. ' : '- ';
             $items[] = $prefix . $itemStr;
         }

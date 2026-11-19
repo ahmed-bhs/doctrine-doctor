@@ -21,8 +21,8 @@ ob_start();
 <?php echo suggestionHeader('Load each collection in its own query'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    The query fetch-joins <?php echo (int) $joinCount; ?> collections (<?php echo implode(', ', array_map($e, $tables)); ?>), so their rows multiply:
-    1 user with 3 accounts and 2 sessions returns 6 rows. One query per collection returns 3 + 2 rows instead.
+    <?php echo t('The query fetch-joins %d collections (%s), so their rows multiply:', (int) $joinCount, implode(', ', array_map($e, $tables))); ?>
+    <?php echo t('1 user with 3 accounts and 2 sessions returns 6 rows. One query per collection returns 3 + 2 rows instead.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Step 1: the roots with the first collection
@@ -45,5 +45,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Load the %d fetch-joined collections in separate queries to avoid multiplying rows', $joinCount),
+    'description' => t('Load the %d fetch-joined collections in separate queries to avoid multiplying rows', $joinCount),
 ];

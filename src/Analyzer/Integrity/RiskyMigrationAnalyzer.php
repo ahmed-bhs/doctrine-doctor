@@ -16,6 +16,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
@@ -190,12 +191,12 @@ class RiskyMigrationAnalyzer implements MetadataAnalyzerInterface
         $dropped = [];
         foreach ($this->sqlStatements($upMethod) as $sql) {
             if (1 === preg_match('/\bDROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?`?(\w+)/i', $sql, $match)) {
-                $dropped[] = 'table ' . $match[1];
+                $dropped[] = sprintf(Translator::format('table %s'), $match[1]);
             }
             if (1 === preg_match_all('/\bDROP\s+(?:COLUMN\s+)?`?(?!INDEX\b|FOREIGN\b|CONSTRAINT\b|PRIMARY\b|TABLE\b|KEY\b)(\w+)/i', (string) preg_replace('/^\s*DROP\s+TABLE.*/i', '', $sql), $matches)) {
                 $table = 1 === preg_match('/\bALTER\s+TABLE\s+`?(\w+)/i', $sql, $tableMatch) ? $tableMatch[1] . '.' : '';
                 foreach ($matches[1] as $column) {
-                    $dropped[] = 'column ' . $table . $column;
+                    $dropped[] = sprintf(Translator::format('column %s'), $table . $column);
                 }
             }
         }

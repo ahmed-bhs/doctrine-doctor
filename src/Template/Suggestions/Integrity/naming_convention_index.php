@@ -15,7 +15,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Rename the index'); ?>
 <div class="suggestion-content">
-<?php echo suggestionAlert($severity, 'Index <code>' . escape($current) . '</code> should be named <code>' . escape($suggested) . '</code>: <code>idx_</code> or <code>uniq_</code> followed by the column names in snake_case.'); ?>
+<?php echo suggestionAlert($severity, t('Index <code>%s</code> should be named <code>%s</code>: <code>idx_</code> or <code>uniq_</code> followed by the column names in snake_case.', escape($current), escape($suggested))); ?>
 
 <?php echo suggestionCodeBlock('', sprintf("// Before\n#[ORM\\Index(name: '%s', columns: ['...'])]\n\n// After\n#[ORM\\Index(name: '%s', columns: ['...'])]", $current, $suggested)); ?>
 
@@ -26,5 +26,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf("Rename index from '%s' to '%s'", $current, $suggested),
+    'description' => t("Rename index from '%s' to '%s'", $current, $suggested),
 ];

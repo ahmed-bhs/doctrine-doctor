@@ -14,7 +14,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Remove the setter on the audit field'); ?>
 <div class="suggestion-content">
-<div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> has a public setter, so any code can rewrite who created the entity. Set it once in the constructor.</div>
+<div class="alert <?php echo severityAlertClass($severity); ?>"><?php echo t('<code>%s::$%s</code> has a public setter, so any code can rewrite who created the entity. Set it once in the constructor.', $e($shortClass), $e($fieldName)); ?></div>
 
 <div class="query-item"><pre><code class="language-php">class <?php echo $e($shortClass); ?>
 
@@ -38,5 +38,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Remove public setter on blameable field %s::%s', $shortClass, $fieldName),
+    'description' => t('Remove public setter on blameable field %s::%s', $shortClass, $fieldName),
 ];

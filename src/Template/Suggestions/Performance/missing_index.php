@@ -24,7 +24,7 @@ ob_start();
 <?php echo suggestionHeader('Add the missing index'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger">
-    No index covers <code><?php echo $e($tableDisplay); ?></code> (<?php echo $e($columnsList); ?>), so the query scans the whole table.
+    <?php echo t('No index covers <code>%s</code> (%s), so the query scans the whole table.', $e($tableDisplay), $e($columnsList)); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">public function up(Schema $schema): void
@@ -32,7 +32,7 @@ ob_start();
     $this-&gt;addSql('CREATE INDEX <?php echo $e($indexName); ?> ON <?php echo $e($realTableName); ?> (<?php echo $e($columnsList); ?>)');
 }</code></pre></div>
 
-<p>Or declare it on the entity: <code>#[ORM\Index(name: '<?php echo $e($indexName); ?>', columns: [<?php echo implode(', ', array_map(fn ($c): string => "'" . $e(trim($c)) . "'", explode(',', (string) $columnsList))); ?>])]</code></p>
+<p><?php echo t('Or declare it on the entity: <code>%s</code>', "#[ORM\\Index(name: '" . $e($indexName) . "', columns: [" . implode(', ', array_map(fn ($c): string => "'" . $e(trim($c)) . "'", explode(',', (string) $columnsList))) . '])]'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html#index', 'Doctrine indexing'); ?>
 </div>
@@ -41,5 +41,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Add an index on %s(%s)', $realTableName, $columnsList),
+    'description' => t('Add an index on %s(%s)', (string) $realTableName, (string) $columnsList),
 ];

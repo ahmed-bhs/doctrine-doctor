@@ -12,7 +12,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Flush in batches, not in the loop'); ?>
 <div class="suggestion-content">
-<p>flush() ran <?php echo $flushCount; ?> times inside a loop; each call computes the change set and opens a transaction.</p>
+<p><?php echo t('flush() ran %d times inside a loop; each call computes the change set and opens a transaction.', $flushCount); ?></p>
 <div class="query-item"><pre><code class="language-php">// Before
 foreach ($items as $item) {
     $em-&gt;persist($item);
@@ -36,5 +36,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Flush in batches instead of %d times in a loop', $flushCount),
+    'description' => t('Flush in batches instead of %d times in a loop', $flushCount),
 ];

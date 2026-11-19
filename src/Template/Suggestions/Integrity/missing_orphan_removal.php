@@ -30,7 +30,7 @@ ob_start();
 <?php echo suggestionHeader('Add orphanRemoval to the collection'); ?>
 
 <div class="suggestion-content">
-    <p>Removing an item from <code><?php echo $e((string) $entityClass); ?>::$<?php echo $e((string) $fieldName); ?></code> only unlinks it, so the <code><?php echo $e((string) $targetClass); ?></code> row stays in the table<?php if ($isNotNullFK) { ?>, and its NOT NULL foreign key makes the flush fail<?php } ?>. With <code>orphanRemoval</code>, Doctrine deletes the removed child.</p>
+    <p><?php if ($isNotNullFK) { ?><?php echo t('Removing an item from <code>%s::$%s</code> only unlinks it, so the <code>%s</code> row stays in the table, and its NOT NULL foreign key makes the flush fail. With <code>orphanRemoval</code>, Doctrine deletes the removed child.', $e((string) $entityClass), $e((string) $fieldName), $e((string) $targetClass)); ?><?php } else { ?><?php echo t('Removing an item from <code>%s::$%s</code> only unlinks it, so the <code>%s</code> row stays in the table. With <code>orphanRemoval</code>, Doctrine deletes the removed child.', $e((string) $entityClass), $e((string) $fieldName), $e((string) $targetClass)); ?><?php } ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">#[ORM\OneToMany(
@@ -42,7 +42,7 @@ ob_start();
 private Collection $<?php echo $e((string) $fieldName); ?>;</code></pre>
     </div>
 
-    <p>Use it only when the parent owns its children (order and order lines), not for shared entities.</p>
+    <p><?php echo t('Use it only when the parent owns its children (order and order lines), not for shared entities.'); ?></p>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/working-with-associations.html#orphan-removal', 'Doctrine Orphan Removal'); ?>
 </div>
@@ -51,5 +51,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Add orphanRemoval: true to %s::$%s', $entityClass, $fieldName),
+    'description' => t('Add orphanRemoval: true to %s::$%s', $entityClass, $fieldName),
 ];

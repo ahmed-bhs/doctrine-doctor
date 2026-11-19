@@ -26,7 +26,7 @@ ob_start();
 <?php echo suggestionHeader('Avoid loading the OneToOne inverse side'); ?>
 
 <div class="suggestion-content">
-    <p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> is the inverse side of a OneToOne; the foreign key lives in the <code><?php echo $e($targetClass); ?></code> table. Doctrine cannot proxy it, so each loaded <code><?php echo $e($entityClass); ?></code> runs one more SELECT, even if the field is never read.</p>
+    <p><?php echo t('<code>%1$s::$%2$s</code> is the inverse side of a OneToOne; the foreign key lives in the <code>%3$s</code> table. Doctrine cannot proxy it, so each loaded <code>%1$s</code> runs one more SELECT, even if the field is never read.', $e($entityClass), $e($fieldName), $e($targetClass)); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">// Before: <?php echo $e($entityClass); ?> holds the inverse side
@@ -39,7 +39,7 @@ private ?<?php echo $e($targetClass); ?> $<?php echo $e($fieldName); ?> = null;
 private ?<?php echo $e($targetClass); ?> $<?php echo $e($fieldName); ?> = null;</code></pre>
     </div>
 
-    <p>If the mapping cannot move, drop the inverse field, or fetch-join it: <code>-&gt;leftJoin('e.<?php echo $e($fieldName); ?>', 't')-&gt;addSelect('t')</code>.</p>
+    <p><?php echo t('If the mapping cannot move, drop the inverse field, or fetch-join it: <code>-&gt;leftJoin(\'e.%s\', \'t\')-&gt;addSelect(\'t\')</code>.', $e($fieldName)); ?></p>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/faq.html', 'Doctrine FAQ: OneToOne Inverse Side'); ?>
 </div>
@@ -48,5 +48,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Move the foreign key of the OneToOne %s::$%s to the side that is loaded most', $entityClass, $fieldName),
+    'description' => t('Move the foreign key of the OneToOne %s::$%s to the side that is loaded most', $entityClass, $fieldName),
 ];

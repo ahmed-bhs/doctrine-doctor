@@ -23,7 +23,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        Risk: <?php echo $e($riskLevel); ?>. Parameters built by concatenation: <code><?php echo implode(', ', array_map(static fn (mixed $param): string => $e((string) $param), $vulnerableParams)); ?></code>. A value such as <code>' OR '1'='1</code> then changes the query itself.
+        <?php echo t("Risk: %s. Parameters built by concatenation: <code>%s</code>. A value such as <code>' OR '1'='1</code> then changes the query itself.", $e($riskLevel), implode(', ', array_map(static fn (mixed $param): string => $e((string) $param), $vulnerableParams))); ?>
     </div>
 
     <div class="query-item">
@@ -43,4 +43,4 @@ $result = $query-&gt;getResult();</code></pre>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => 'Bind DQL values with setParameter() instead of concatenating them'];
+return ['code' => $code, 'description' => t('Bind DQL values with setParameter() instead of concatenating them')];

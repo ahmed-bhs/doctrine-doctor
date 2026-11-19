@@ -16,7 +16,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Rename the foreign key column'); ?>
 <div class="suggestion-content">
-<?php echo suggestionAlert($severity, 'Foreign key column <code>' . escape($current) . '</code> should be named <code>' . escape($suggested) . '</code>: snake_case with an <code>_id</code> suffix.'); ?>
+<?php echo suggestionAlert($severity, t('Foreign key column <code>%s</code> should be named <code>%s</code>: snake_case with an <code>_id</code> suffix.', escape($current), escape($suggested))); ?>
 
 <?php echo suggestionCodeBlock('', sprintf("// Before\n#[ORM\\JoinColumn(name: '%s')]\nprivate \$%s;\n\n// After\n#[ORM\\JoinColumn(name: '%s')]\nprivate \$%s;", $current, $assocName, $suggested, $assocName)); ?>
 
@@ -27,5 +27,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf("Rename foreign key from '%s' to '%s'", $current, $suggested),
+    'description' => t("Rename foreign key from '%s' to '%s'", $current, $suggested),
 ];

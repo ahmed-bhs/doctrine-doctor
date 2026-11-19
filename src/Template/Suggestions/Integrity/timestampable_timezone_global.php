@@ -23,7 +23,7 @@ ob_start();
 <?php echo suggestionHeader('Store timestamps in UTC'); ?>
 
 <div class="suggestion-content">
-    <p><?php echo $totalFields; ?> timestamp fields use <code>datetime</code>, which stores no timezone. That is fine when the application writes UTC and converts for display; use <code>datetimetz</code> only when the original offset matters.</p>
+    <p><?php echo t('%s timestamp fields use <code>datetime</code>, which stores no timezone. That is fine when the application writes UTC and converts for display; use <code>datetimetz</code> only when the original offset matters.', $totalFields); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">// Writing in UTC
@@ -41,5 +41,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('%d timestamp fields store no timezone; write them in UTC', $totalFields),
+    'description' => t('%d timestamp fields store no timezone; write them in UTC', $totalFields),
 ];

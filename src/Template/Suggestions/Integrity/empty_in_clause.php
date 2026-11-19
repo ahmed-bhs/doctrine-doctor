@@ -29,7 +29,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Check the array before using IN()'); ?>
 <div class="suggestion-content">
-<p>An empty array bound to <code>IN()</code> produces <code>IN ()</code>, which is a SQL syntax error. <?php echo $e((string) ($option['description'] ?? '')); ?></p>
+<p><?php echo t('An empty array bound to <code>IN()</code> produces <code>IN ()</code>, which is a SQL syntax error. %s', $e(tr($option['description'] ?? ''))); ?></p>
 
 <div class="query-item"><pre><code class="language-php"><?php echo $e((string) ($option['code'] ?? '')); ?></code></pre></div>
 
@@ -40,5 +40,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Check the array is not empty before using IN()',
+    'description' => t('Check the array is not empty before using IN()'),
 ];

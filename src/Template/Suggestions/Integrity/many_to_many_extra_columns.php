@@ -21,7 +21,7 @@ ob_start();
 <?php $shortEntity = (false !== strrpos($entity_class, '\\')) ? substr($entity_class, strrpos($entity_class, '\\') + 1) : $entity_class; ?>
 <?php echo suggestionHeader('Map the join table as an entity'); ?>
 <div class="suggestion-content">
-<p>Join table <code><?php echo $e($join_table); ?></code> holds columns beyond the two foreign keys (<code><?php echo implode('</code>, <code>', array_map(static fn (mixed $col): string => $e((string) $col), $extra_columns)); ?></code>). A <code>ManyToMany</code> mapping cannot read or write them, so map the table as its own entity with two <code>ManyToOne</code> associations.</p>
+<p><?php echo t('Join table <code>%s</code> holds columns beyond the two foreign keys (<code>%s</code>). A <code>ManyToMany</code> mapping cannot read or write them, so map the table as its own entity with two <code>ManyToOne</code> associations.', $e($join_table), implode('</code>, <code>', array_map(static fn (mixed $col): string => $e((string) $col), $extra_columns))); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Entity]
 #[ORM\Table(name: '<?php echo $e($join_table); ?>')]
@@ -44,7 +44,7 @@ class <?php echo $e($linkClass); ?>
 <?php } ?>
 }</code></pre></div>
 
-<p>On <code><?php echo $e($shortEntity); ?></code>, replace <code>$<?php echo $e($field_name); ?></code> with <code>#[ORM\OneToMany(targetEntity: <?php echo $e($linkClass); ?>::class, mappedBy: 'owner')]</code>.</p>
+<p><?php echo t('On <code>%s</code>, replace <code>$%s</code> with <code>#[ORM\\OneToMany(targetEntity: %s::class, mappedBy: \'owner\')]</code>.', $e($shortEntity), $e($field_name), $e($linkClass)); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/tutorials/composite-primary-keys.html#use-case-3-join-table-with-metadata', 'Doctrine ORM: join table with metadata'); ?>
 </div>
@@ -53,5 +53,5 @@ class <?php echo $e($linkClass); ?>
 
 return [
     'code' => $code,
-    'description' => 'Map the join table with extra columns as an entity with two ManyToOne associations',
+    'description' => t('Map the join table with extra columns as an entity with two ManyToOne associations'),
 ];

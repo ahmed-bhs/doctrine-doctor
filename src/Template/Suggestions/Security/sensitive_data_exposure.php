@@ -25,7 +25,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Exclude sensitive fields from serialization'); ?>
 <div class="suggestion-content">
-<div class="alert alert-danger"><?php echo $e($shortClass); ?>::<?php echo $e($methodName); ?>() exposes <code><?php echo implode(', ', array_map(static fn (mixed $field): string => $e((string) $field), $exposedFields)); ?></code> (<?php echo $e($exposureType); ?>). These values can then reach API responses, logs or error pages.</div>
+<div class="alert alert-danger"><?php echo t('%s::%s() exposes <code>%s</code> (%s). These values can then reach API responses, logs or error pages.', $e($shortClass), $e($methodName), implode(', ', array_map(static fn (mixed $field): string => $e((string) $field), $exposedFields)), $e($exposureType)); ?></div>
 
 <div class="query-item"><pre><code class="language-php">use Symfony\Component\Serializer\Attribute\Ignore;
 
@@ -39,11 +39,11 @@ class <?php echo $e($shortClass); ?>
     private ?string $apiToken = null;
 }</code></pre></div>
 
-<p>Serialization groups (<code>#[Groups]</code>) work too: list only the public fields in the group you serialize.</p>
+<p><?php echo t('Serialization groups (<code>#[Groups]</code>) work too: list only the public fields in the group you serialize.'); ?></p>
 
 <?php echo suggestionDocLink('https://symfony.com/doc/current/serializer.html#selecting-specific-properties', 'Symfony Serializer Groups'); ?>
 </div>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Exclude sensitive fields from serialization in %s::%s()', $shortClass, $methodName)];
+return ['code' => $code, 'description' => t('Exclude sensitive fields from serialization in %s::%s()', $shortClass, $methodName)];

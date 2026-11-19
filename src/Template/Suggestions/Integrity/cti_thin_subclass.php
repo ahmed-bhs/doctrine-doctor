@@ -23,7 +23,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Store the subclass in the parent table'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($subclass); ?></code> adds <?php echo $ownFieldCount; ?> field(s)<?php if ([] !== $ownFields) { ?> (<code><?php echo $e(implode(', ', array_map(strval(...), $ownFields))); ?></code>)<?php } ?> to <code><?php echo $e($rootClass); ?></code>, which has <?php echo $parentFieldCount; ?>. Each polymorphic query still pays a JOIN for its table; single table inheritance stores these as nullable columns instead.</p>
+<p><?php echo t('<code>%s</code> adds %s field(s)%s to <code>%s</code>, which has %s. Each polymorphic query still pays a JOIN for its table; single table inheritance stores these as nullable columns instead.', $e($subclass), $ownFieldCount, [] !== $ownFields ? ' (<code>' . $e(implode(', ', array_map(strval(...), $ownFields))) . '</code>)' : '', $e($rootClass), $parentFieldCount); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Entity]
 // Before: #[ORM\InheritanceType('JOINED')]
@@ -42,7 +42,7 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
+    'description' => t(
         'Move CTI subclass %s (%d field(s)) to SINGLE_TABLE to drop a JOIN for %d column(s)',
         $subclass,
         $ownFieldCount,

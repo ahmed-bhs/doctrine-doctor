@@ -17,6 +17,7 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -260,6 +261,8 @@ class IneffectiveLikeAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analy
         Severity $severity,
     ): array {
         $executionTimeStr = sprintf('%.2fms', $executionTime);
+        // The search kind is a value of the sentence: translate it, the sentence is translated on display.
+        $likeType = Translator::trans($likeType);
 
         if ($severity->isCritical()) {
             $title = sprintf('LIKE Pattern Causing Slow Query (%s)', $executionTimeStr);

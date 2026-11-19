@@ -30,7 +30,7 @@ ob_start();
 <?php echo suggestionHeader('Record who creates and updates rows'); ?>
 
 <div class="suggestion-content">
-    <p><code><?php echo $e($entityClass); ?></code> records when it changes (<code><?php echo implode('</code>, <code>', array_map(static fn (mixed $field): string => $e((string) $field), $timestampFields)); ?></code>) but not who changed it. Add <code>createdBy</code> and <code>updatedBy</code> to complete the audit trail.</p>
+    <p><?php echo t('<code>%s</code> records when it changes (<code>%s</code>) but not who changed it. Add <code>createdBy</code> and <code>updatedBy</code> to complete the audit trail.', $e($entityClass), implode('</code>, <code>', array_map(static fn (mixed $field): string => $e((string) $field), $timestampFields))); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">use Gedmo\Mapping\Annotation as Gedmo;
@@ -48,7 +48,7 @@ class <?php echo $e($entityClass); ?>
 }</code></pre>
     </div>
 
-    <p>The attributes need <code>stof/doctrine-extensions-bundle</code> with <code>blameable: true</code>; without it, set both fields yourself.</p>
+    <p><?php echo t('The attributes need <code>stof/doctrine-extensions-bundle</code> with <code>blameable: true</code>; without it, set both fields yourself.'); ?></p>
 
     <?php echo suggestionDocLink('https://symfony.com/bundles/StofDoctrineExtensionsBundle/current/index.html#blameable', 'Doctrine Extensions: Blameable'); ?>
 </div>
@@ -57,5 +57,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Add createdBy and updatedBy fields to %s', $entityClass),
+    'description' => t('Add createdBy and updatedBy fields to %s', $entityClass),
 ];

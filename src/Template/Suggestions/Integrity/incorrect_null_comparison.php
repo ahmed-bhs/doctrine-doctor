@@ -17,7 +17,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Use IS NULL instead of = NULL'); ?>
 <div class="suggestion-content">
-<p>In SQL, <code>= NULL</code> and <code>!= NULL</code> evaluate to UNKNOWN, never TRUE, so the condition matches no row. Use <code>IS NULL</code> / <code>IS NOT NULL</code> or the QueryBuilder <code>isNull()</code> helpers.</p>
+<p><?php echo t('In SQL, <code>= NULL</code> and <code>!= NULL</code> evaluate to UNKNOWN, never TRUE, so the condition matches no row. Use <code>IS NULL</code> / <code>IS NOT NULL</code> or the QueryBuilder <code>isNull()</code> helpers.'); ?></p>
 
 <div class="query-item"><pre><code class="language-php">// Before
 <?php echo $e($badCode); ?>
@@ -33,5 +33,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Use IS NULL instead of = NULL for correct SQL NULL comparisons',
+    'description' => t('Use IS NULL instead of = NULL for correct SQL NULL comparisons'),
 ];

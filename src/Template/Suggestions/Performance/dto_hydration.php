@@ -21,8 +21,9 @@ ob_start();
 <?php echo suggestionHeader('Hydrate aggregation results into a DTO'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    <?php echo $queryCount; ?> aggregation <?php echo $queryCount > 1 ? 'queries' : 'query'; ?><?php if ([] !== $aggregations) { ?> (<?php echo implode(', ', array_map(static fn (mixed $aggregation): string => $e((string) $aggregation), $aggregations)); ?>)<?php } ?> <?php echo $queryCount > 1 ? 'return' : 'returns'; ?> untyped arrays.
-    <code>SELECT NEW</code> builds a typed, read-only object per row, without the unit of work.
+    <?php $aggregationList = [] === $aggregations ? '' : ' (' . implode(', ', array_map(static fn (mixed $aggregation): string => $e((string) $aggregation), $aggregations)) . ')'; ?>
+    <?php echo $queryCount > 1 ? t('%d aggregation queries%s return untyped arrays.', $queryCount, $aggregationList) : t('%d aggregation query%s returns untyped arrays.', $queryCount, $aggregationList); ?>
+    <?php echo t('<code>SELECT NEW</code> builds a typed, read-only object per row, without the unit of work.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">final class UserRevenue
@@ -37,7 +38,7 @@ $results = $em-&gt;createQuery('SELECT NEW App\DTO\UserRevenue(u.name, SUM(o.tot
     FROM App\Entity\User u JOIN u.orders o GROUP BY u.id')
     -&gt;getResult();</code></pre></div>
 
-<p>For reports and exports, plain rows through DBAL skip hydration altogether:</p>
+<p><?php echo t('For reports and exports, plain rows through DBAL skip hydration altogether:'); ?></p>
 <div class="query-item"><pre><code class="language-php">$rows = $em-&gt;getConnection()-&gt;fetchAllAssociative(
     'SELECT u.name, SUM(o.total) AS revenue
      FROM users u JOIN orders o ON o.user_id = u.id
@@ -51,9 +52,7 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
-        'Hydrate %d aggregation %s into a DTO with SELECT NEW',
-        $queryCount,
-        $queryCount > 1 ? 'queries' : 'query',
-    ),
+    'description' => $queryCount > 1
+        ? t('Hydrate %d aggregation queries into a DTO with SELECT NEW', $queryCount)
+        : t('Hydrate %d aggregation query into a DTO with SELECT NEW', $queryCount),
 ];

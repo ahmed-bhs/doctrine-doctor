@@ -28,7 +28,7 @@ ob_start();
 <?php echo suggestionHeader('Add cascade remove next to orphanRemoval'); ?>
 
 <div class="suggestion-content">
-    <p><code><?php echo $e((string) $entityClass); ?>::$<?php echo $e((string) $fieldName); ?></code> has <code>orphanRemoval: true</code> without <code>cascade: ['remove']</code>. Children removed from the collection are deleted, but removing the parent deletes them only if the ORM cascade is set, so both paths disagree.</p>
+    <p><?php echo t('<code>%s::$%s</code> has <code>orphanRemoval: true</code> without <code>cascade: [\'remove\']</code>. Children removed from the collection are deleted, but removing the parent deletes them only if the ORM cascade is set, so both paths disagree.', $e((string) $entityClass), $e((string) $fieldName)); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">#[ORM\OneToMany(
@@ -47,5 +47,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf("Add cascade: ['remove'] to %s::$%s", $entityClass, $fieldName),
+    'description' => t("Add cascade: ['remove'] to %s::$%s", $entityClass, $fieldName),
 ];

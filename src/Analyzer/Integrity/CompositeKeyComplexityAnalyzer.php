@@ -110,10 +110,10 @@ class CompositeKeyComplexityAnalyzer implements MetadataAnalyzerInterface
         );
 
         if ([] !== $referencedBy) {
-            $description .= sprintf(
-                ' %d other entit%s (%s) already map the full key.',
+            // One sentence per number, so each can be translated whole.
+            $description .= ' ' . sprintf(
+                1 === count($referencedBy) ? '%d other entity (%s) already map the full key.' : '%d other entities (%s) already map the full key.',
                 count($referencedBy),
-                1 === count($referencedBy) ? 'y' : 'ies',
                 implode(', ', array_map($this->shortClassName(...), $referencedBy)),
             );
             $severity = Severity::critical();

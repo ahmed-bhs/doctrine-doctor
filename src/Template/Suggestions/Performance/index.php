@@ -16,12 +16,12 @@ ob_start();
 <?php echo suggestionHeader('Add a database index'); ?>
 <div class="suggestion-content">
 <div class="alert alert-info">
-    Queries filter, join or sort <code><?php echo $e($table); ?></code> on <code><?php echo $e($columnsList); ?></code> without an index, so the database reads the whole table.
-    An index makes these reads faster at a small cost on each write.
+    <?php echo t('Queries filter, join or sort <code>%s</code> on <code>%s</code> without an index, so the database reads the whole table.', $e($table), $e($columnsList)); ?>
+    <?php echo t('An index makes these reads faster at a small cost on each write.'); ?>
 </div>
 <div class="query-item"><?php echo formatSqlWithHighlight($migrationCode); ?></div>
 </div>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Add an index on %s(%s)', $table, $columnsList)];
+return ['code' => $code, 'description' => t('Add an index on %s(%s)', $table, $columnsList)];

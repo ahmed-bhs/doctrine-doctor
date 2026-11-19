@@ -18,6 +18,7 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\IntegrityIssue;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
@@ -185,9 +186,9 @@ class NullComparisonAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\Analyz
         $issueData = new IssueData(
             type: IssueType::INTEGRITY_INCORRECT_NULL_COMPARISON->value,
             title: 'Incorrect NULL Comparison',
+            // Translated here: a quoted SQL value such as "= ? (bound to NULL)" would split the sentence later.
             description: sprintf(
-                "The query uses '%s', which SQL never evaluates to true (only '%s' tests for NULL). " .
-                "The condition matches no rows, whatever the data.",
+                Translator::format("The query uses '%s', which SQL never evaluates to true (only '%s' tests for NULL). The condition matches no rows, whatever the data."),
                 $fullMatch,
                 $correctSyntax,
             ),

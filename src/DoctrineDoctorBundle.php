@@ -17,6 +17,7 @@ use AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\AnalyzerExecutionModePass;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\ConditionalLoggerPass;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\RemoveOrmServicesPass;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
@@ -51,6 +52,11 @@ class DoctrineDoctorBundle extends Bundle
     #[\Override]
     public function boot(): void
     {
+        if ($this->container?->hasParameter('doctrine_doctor.locale')) {
+            $locale = $this->container->getParameter('doctrine_doctor.locale');
+            Translator::setLocale(\is_string($locale) ? $locale : 'en');
+        }
+
         // Collectors loaded from the profiler storage have no services: give them
         // access to the results of deferred analyses (AnalysisTiming::OnView)
         if ($this->container?->has(AnalysisResultStore::class)) {

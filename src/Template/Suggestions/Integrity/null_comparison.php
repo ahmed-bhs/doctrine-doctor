@@ -16,7 +16,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Compare with IS NULL'); ?>
 <div class="suggestion-content">
-<p>In SQL, <code>= NULL</code> and <code>!= NULL</code> evaluate to UNKNOWN, so the condition never matches a row. Use <code>IS NULL</code> or <code>IS NOT NULL</code>.</p>
+<p><?php echo t('In SQL, <code>= NULL</code> and <code>!= NULL</code> evaluate to UNKNOWN, so the condition never matches a row. Use <code>IS NULL</code> or <code>IS NOT NULL</code>.'); ?></p>
 
 <div class="query-item"><pre><code class="language-sql">-- Before
 <?php echo $e((string) $incorrect); ?>
@@ -24,7 +24,7 @@ ob_start();
 -- After
 <?php echo $e((string) $correct); ?></code></pre></div>
 
-<p>In a QueryBuilder: <code>$qb-&gt;andWhere($qb-&gt;expr()-&gt;isNull('e.<?php echo $e($property); ?>'))</code>.</p>
+<p><?php echo t('In a QueryBuilder: <code>$qb-&gt;andWhere($qb-&gt;expr()-&gt;isNull(\'e.%s\'))</code>.', $e($property)); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html', 'Doctrine Query Language (DQL)'); ?>
 </div>
@@ -33,5 +33,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Use IS NULL instead of = NULL',
+    'description' => t('Use IS NULL instead of = NULL'),
 ];

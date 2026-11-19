@@ -21,8 +21,8 @@ $currentScale = $context['current_scale'] ?? 2;
 // Generate code examples
 $badCode = $context['bad_code'] ?? "#[ORM\Column(type: 'decimal', precision: {$currentPrecision}, scale: {$currentScale})]";
 $goodCode = $context['good_code'] ?? "#[ORM\Column(type: 'decimal', precision: 20, scale: 10)]";
-$description = $context['description'] ?? "Decimal precision insufficient for {$fieldName}";
-$infoMessage = $context['info_message'] ?? "Current: ({$currentPrecision},{$currentScale}), Recommended: (20,10)";
+$description = tr($context['description'] ?? "Decimal precision insufficient for {$fieldName}");
+$infoMessage = tr($context['info_message'] ?? "Current: ({$currentPrecision},{$currentScale}), Recommended: (20,10)");
 
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
@@ -47,5 +47,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Increase decimal precision to handle expected value ranges',
+    'description' => t('Increase decimal precision to handle expected value ranges'),
 ];

@@ -14,7 +14,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader("Add cascade: ['persist'] next to orphanRemoval"); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($parentClass); ?>::$<?php echo $e($parentField); ?></code> deletes children removed from the collection, but new children still need an explicit <code>persist()</code>. A parent that owns its children usually handles both.</p>
+<p><?php echo t('<code>%s::$%s</code> deletes children removed from the collection, but new children still need an explicit <code>persist()</code>. A parent that owns its children usually handles both.', $e($parentClass), $e($parentField)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">class <?php echo $e($parentClass); ?>
 
@@ -34,5 +34,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Add cascade="persist" next to orphanRemoval',
+    'description' => t('Add cascade="persist" next to orphanRemoval'),
 ];

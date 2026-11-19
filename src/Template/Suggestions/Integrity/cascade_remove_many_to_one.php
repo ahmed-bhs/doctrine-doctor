@@ -21,7 +21,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Remove cascade remove from the ManyToOne'); ?>
 <div class="suggestion-content">
-<p><code><?= $e($shortClass) ?>::$<?= $e($fieldName) ?></code> uses <code>cascade: ['remove']</code> on a ManyToOne association. Deleting a <?= $e($shortClass) ?> also deletes its <?= $e($shortTarget) ?>, which other rows may still reference.</p>
+<p><?php echo t('<code>%s::$%s</code> uses <code>cascade: [\'remove\']</code> on a ManyToOne association. Deleting a %s also deletes its %s, which other rows may still reference.', $e($shortClass), $e($fieldName), $e($shortClass), $e($shortTarget)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">// Before
 #[ORM\ManyToOne(targetEntity: <?= $e($shortTarget) ?>::class, cascade: ['remove'])]
@@ -38,5 +38,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Remove cascade="remove" from ManyToOne relation',
+    'description' => t('Remove cascade="remove" from ManyToOne relation'),
 ];

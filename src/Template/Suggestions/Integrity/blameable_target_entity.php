@@ -17,7 +17,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Point the blameable field to the user entity'); ?>
 <div class="suggestion-content">
-<div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> is a blameable field but references <code><?php echo $e($currentTarget); ?></code>. Blameable stores the authenticated user, so the association must target your user class.</div>
+<div class="alert <?php echo severityAlertClass($severity); ?>"><?php echo t('<code>%s::$%s</code> is a blameable field but references <code>%s</code>. Blameable stores the authenticated user, so the association must target your user class.', $e($shortClass), $e($fieldName), $e($currentTarget)); ?></div>
 
 <div class="query-item"><pre><code class="language-php">use Gedmo\Mapping\Annotation as Gedmo;
 
@@ -31,7 +31,7 @@ class <?php echo $e($shortClass); ?>
     private ?User $<?php echo $e($fieldName); ?> = null;
 }</code></pre></div>
 
-<p>If this field is a business relation to <code><?php echo $e($shortTarget); ?></code>, keep it, remove Blameable from it and track the actor in separate audit fields mapped to your user class.</p>
+<p><?php echo t('If this field is a business relation to <code>%s</code>, keep it, remove Blameable from it and track the actor in separate audit fields mapped to your user class.', $e($shortTarget)); ?></p>
 
 <?php echo suggestionDocLink('https://github.com/doctrine-extensions/DoctrineExtensions/blob/main/doc/blameable.md', 'Doctrine Extensions Blameable'); ?>
 </div>
@@ -40,5 +40,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Blameable field %s::%s should reference a User entity', $shortClass, $fieldName),
+    'description' => t('Blameable field %s::%s should reference a User entity', $shortClass, $fieldName),
 ];

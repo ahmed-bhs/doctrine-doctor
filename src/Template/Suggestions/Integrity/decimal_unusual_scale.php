@@ -12,9 +12,9 @@ declare(strict_types=1);
 
 /** @var array<string, mixed> $context PHPStan: Template context */
 // Extract context
-$description = $context['description'] ?? '';
+$description = tr($context['description'] ?? '');
 $currencyScales = $context['currency_scales'] ?? null;
-$infoMessage = $context['info_message'] ?? '';
+$infoMessage = tr($context['info_message'] ?? '');
 
 // Helper function for safe HTML escaping
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
@@ -35,5 +35,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Check that the decimal scale matches the currency',
+    'description' => t('Check that the decimal scale matches the currency'),
 ];

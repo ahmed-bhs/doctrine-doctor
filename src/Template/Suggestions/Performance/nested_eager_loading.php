@@ -28,8 +28,8 @@ ob_start();
 <?php echo suggestionHeader('Fetch-join the whole relation chain'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger">
-    <?php echo $queryCount; ?> queries ran across the <?php echo $depth; ?>-level chain <code><?php echo $e($chain); ?></code>, one per entity and level.
-    Joining every level with <code>addSelect()</code> loads the chain in one query.
+    <?php echo t('%d queries ran across the %d-level chain <code>%s</code>, one per entity and level.', $queryCount, $depth, $e($chain)); ?>
+    <?php echo t('Joining every level with <code>addSelect()</code> loads the chain in one query.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// In <?php echo $e($entities[0]); ?>Repository
@@ -41,7 +41,7 @@ return $this-&gt;createQueryBuilder('<?php echo $e($aliases[0]); ?>')
     -&gt;getQuery()
     -&gt;getResult();</code></pre></div>
 
-<p>For read-only output, select only the displayed columns into a DTO with <code>SELECT NEW</code>.</p>
+<p><?php echo t('For read-only output, select only the displayed columns into a DTO with <code>SELECT NEW</code>.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine Multi-Level JOIN Documentation'); ?>
 </div>
@@ -50,5 +50,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Fetch-join the %d-level chain %s to avoid %d nested N+1 queries', $depth, $chain, $queryCount),
+    'description' => t('Fetch-join the %d-level chain %s to avoid %d nested N+1 queries', $depth, $chain, $queryCount),
 ];

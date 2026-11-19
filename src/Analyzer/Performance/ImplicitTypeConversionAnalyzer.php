@@ -19,6 +19,7 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\DTO\QueryData;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\PerformanceIssue;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -300,13 +301,18 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
     {
         $isParameter = 'string_column_vs_integer_parameter' === $mismatch['kind'];
 
+        // Whole sentences per branch, translated here: a value would otherwise carry an English fragment.
         $description = sprintf(
-            '%s MySQL and MariaDB then convert %s to a number on every row, so its index is not used (full scan)%s.',
-            $isParameter
-                ? sprintf('Text column %s is compared to %s, bound as an integer because DQL infers the type from the PHP int value.', $mismatch['column'], $mismatch['literal'])
-                : sprintf('Text column %s is compared to the number %s.', $mismatch['column'], $mismatch['literal']),
+            Translator::format($isParameter
+                ? 'Text column %s is compared to %s, bound as an integer because DQL infers the type from the PHP int value.'
+                : 'Text column %s is compared to the number %s.'),
             $mismatch['column'],
-            $isParameter ? '' : '; PostgreSQL rejects the comparison',
+            $mismatch['literal'],
+        ) . ' ' . sprintf(
+            Translator::format($isParameter
+                ? 'MySQL and MariaDB then convert %s to a number on every row, so its index is not used (full scan).'
+                : 'MySQL and MariaDB then convert %s to a number on every row, so its index is not used (full scan); PostgreSQL rejects the comparison.'),
+            $mismatch['column'],
         );
 
         $title = $isParameter

@@ -15,7 +15,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Make the embeddable immutable'); ?>
 <div class="suggestion-content">
-<div class="alert <?php echo severityAlertClass($severity); ?>">Embeddable <code><?= $e($embeddableClass) ?></code> has public setters. A value object changed in place also changes every entity holding that instance, so return a new instance instead.</div>
+<div class="alert <?php echo severityAlertClass($severity); ?>"><?php echo t('Embeddable <code>%s</code> has public setters. A value object changed in place also changes every entity holding that instance, so return a new instance instead.', $e($embeddableClass)); ?></div>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Embeddable]
 final readonly class <?= $e($embeddableClass) ?>
@@ -40,5 +40,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Make the embeddable immutable with readonly properties',
+    'description' => t('Make the embeddable immutable with readonly properties'),
 ];
