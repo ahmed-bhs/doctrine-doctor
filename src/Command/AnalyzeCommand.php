@@ -347,7 +347,7 @@ class AnalyzeCommand extends Command
             $code = $this->formatSuggestionCode($suggestion->getCode());
             // Many templates open with the description: printing it twice adds nothing.
             if (!str_contains($code, trim($suggestion->getDescription()))) {
-                $io->text($suggestion->getDescription());
+                $io->text(Translator::trans($suggestion->getDescription()));
             }
             $io->text('<fg=cyan;options=bold>' . Translator::trans('Suggested fix') . '</>');
             $io->text($code);

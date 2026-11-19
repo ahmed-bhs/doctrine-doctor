@@ -114,4 +114,12 @@ final class TranslatorTest extends TestCase
         self::assertStringContainsString('Important :', SuggestionContentBlock::heading('Important:', 4)->toHtml());
         self::assertStringContainsString('Load the full entity', SuggestionContentBlock::code('// Load the full entity when you need to modify it')->toHtml());
     }
+
+    public function test_a_percent_followed_by_a_space_is_not_a_placeholder(): void
+    {
+        Translator::setLocale('fr');
+
+        // "50% for" once read as a "% f" placeholder, and vsprintf failed on the translation.
+        self::assertSame('Variable (0 à 50 % pour les requêtes cachables)', Translator::trans('Varies (0-50% for cacheable queries)'));
+    }
 }

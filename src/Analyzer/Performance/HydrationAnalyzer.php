@@ -73,7 +73,8 @@ class HydrationAnalyzer implements AnalyzerInterface
                             type: IssueType::HYDRATION->value,
                             title: sprintf('Excessive Hydration: %d rows', $rowCount),
                             description: DescriptionHighlighter::highlight(
-                                'The query ' . (null === $queryData->rowCount ? 'fetches up to' : 'returned') . ' {count} rows (threshold: {threshold}). '
+                                // Whole sentences per branch, so each one has its translation.
+                                (null === $queryData->rowCount ? 'The query fetches up to {count} rows (threshold: {threshold}). ' : 'The query returned {count} rows (threshold: {threshold}). ')
                                 . 'Each row becomes an object that Doctrine hydrates and tracks in memory.',
                                 [
                                     'count' => $rowCount,

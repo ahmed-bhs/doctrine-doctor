@@ -20,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
@@ -227,7 +228,7 @@ class UnusedEagerLoadAnalyzer implements AnalyzerInterface
             )
             : DescriptionHighlighter::highlight(
                 'The query loads {count} {type} at once. Each extra JOIN widens the result set and the objects Doctrine has to hydrate.',
-                ['count' => $joinCount, 'type' => $joinType],
+                ['count' => $joinCount, 'type' => Translator::trans($joinType)],
             );
 
         return new IssueData(

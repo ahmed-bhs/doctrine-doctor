@@ -14,6 +14,7 @@ namespace AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\MySQL\Analyzer;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Strategy\Interface\CollationAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Issue\DatabaseConfigIssue;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\Utils\DatabasePlatformDetector;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
@@ -193,7 +194,7 @@ final readonly class MySQLCollationAnalyzer implements CollationAnalyzerInterfac
             : sprintf('ALTER TABLE `%s` COLLATE = ', $databaseName) . self::RECOMMENDED_COLLATION . ';';
 
         return new DatabaseConfigIssue([
-            'title'       => sprintf('%s using collation %s', ucfirst($level), $currentCollation),
+            'title'       => sprintf(Translator::format('%s using collation %s'), Translator::trans(ucfirst($level)), $currentCollation),
             'description' => $description,
             'severity' => Severity::info(), // INFO instead of WARNING (it's a valid choice)
             'suggestion'  => $this->suggestionFactory->createFromTemplate(

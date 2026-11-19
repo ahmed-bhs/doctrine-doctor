@@ -111,7 +111,12 @@ final class Translator
             if (1 === preg_match($regex, $key, $matches)) {
                 array_shift($matches);
 
-                return vsprintf($target, $matches);
+                try {
+                    return vsprintf($target, $matches);
+                } catch (\ValueError) {
+                    // A broken catalog entry must not break the page: keep the English text.
+                    return null;
+                }
             }
         }
 
@@ -138,19 +143,19 @@ final class Translator
 
             $catalog['sources'][$source] = $target;
 
-            if (1 !== preg_match('/%(?:\d+\$)?[-+ 0]*\d*(?:\.\d+)?[sdfu]/', $source)) {
+            if (1 !== preg_match('/%(?:\d+\$)?[-+0]*\d*(?:\.\d+)?[sdfu]/', $source)) {
                 $catalog['exact'][$source] = $target;
                 continue;
             }
 
-            $parts = preg_split('/(%%|%(?:\d+\$)?[-+ 0]*\d*(?:\.\d+)?[sdfu])/', $source, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
+            $parts = preg_split('/(%%|%(?:\d+\$)?[-+0]*\d*(?:\.\d+)?[sdfu])/', $source, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
             $regex = '';
             foreach ($parts as $part) {
                 // A value never spans a sentence end, so a one-sentence entry cannot swallow the next sentence.
                 $regex .= 1 === preg_match('/^%(?!%)/', $part) ? '((?:(?![.!?]\\s+[A-Z0-9`"\'(]).)+?)' : preg_quote(str_replace('%%', '%', $part), '/');
             }
 
-            $catalog['patterns'][] = ['/^' . $regex . '$/su', preg_replace('/%(?:\d+\$)?[-+ 0]*\d*(?:\.\d+)?[dfu]/', '%s', $target) ?? $target];
+            $catalog['patterns'][] = ['/^' . $regex . '$/su', preg_replace('/%(?:\d+\$)?[-+0]*\d*(?:\.\d+)?[dfu]/', '%s', $target) ?? $target];
         }
 
         return self::$catalogs[$locale] = $catalog;

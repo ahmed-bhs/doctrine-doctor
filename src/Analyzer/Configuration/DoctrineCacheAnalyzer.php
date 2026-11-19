@@ -16,6 +16,7 @@ use AhmedBhs\DoctrineDoctor\Analyzer\MetadataAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collection\IssueCollection;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Issue\ConfigurationIssue;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionType;
@@ -273,9 +274,10 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
         $templateName = $isMissing
             ? 'Configuration/missing_cache_production'
             : 'Configuration/array_cache_production';
+        // The label is translated on its own: the title is then built from the translated format.
         $suggestionTitle = $isMissing
-            ? sprintf('Missing Cache in Production (%s)', $cacheLabel)
-            : sprintf('ArrayCache in Production (%s)', $cacheLabel);
+            ? sprintf(Translator::format('Missing Cache in Production (%s)'), Translator::trans($cacheLabel))
+            : sprintf(Translator::format('ArrayCache in Production (%s)'), Translator::trans($cacheLabel));
 
         $suggestion = $this->suggestionFactory->createFromTemplate(
             templateName: $templateName,
@@ -562,7 +564,7 @@ class DoctrineCacheAnalyzer implements MetadataAnalyzerInterface
             suggestionMetadata: new SuggestionMetadata(
                 type: SuggestionType::configuration(),
                 severity: 'metadata' === $cacheType ? Severity::critical() : Severity::warning(),
-                title: sprintf('ArrayCache in Production (%s)', $cacheLabel),
+                title: sprintf(Translator::format('ArrayCache in Production (%s)'), Translator::trans($cacheLabel)),
                 tags: ['configuration', 'cache', 'performance'],
             ),
         );

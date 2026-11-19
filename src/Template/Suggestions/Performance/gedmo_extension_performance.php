@@ -8,7 +8,7 @@ declare(strict_types=1);
  */
 $entity_class = (string) ($context['entity_class'] ?? '');
 $extension_type = (string) ($context['extension_type'] ?? '');
-$impact = (string) ($context['impact'] ?? '');
+$impact = tr($context['impact'] ?? '');
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 ob_start();
 ?>

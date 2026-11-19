@@ -124,7 +124,7 @@ final class SuggestionTemplateCatalogTest extends TestCase
 
     private static function placeholderCount(string $text): int
     {
-        return (int) preg_match_all('/%(?:\d+\$)?[-+ 0]*\d*(?:\.\d+)?[sdfu]/', $text);
+        return (int) preg_match_all('/%(?:\d+\$)?[-+0]*\d*(?:\.\d+)?[sdfu]/', $text);
     }
 
     /** @return list<string> */

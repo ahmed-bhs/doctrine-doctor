@@ -17,6 +17,7 @@ use AhmedBhs\DoctrineDoctor\Collection\QueryDataCollection;
 use AhmedBhs\DoctrineDoctor\DTO\IssueData;
 use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
 use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionMetadata;
@@ -82,7 +83,7 @@ readonly class MissingTransactionOnBatchAnalyzer implements AnalyzerInterface
                 context: [
                     'count' => $count,
                     'total_ms' => $totalMs,
-                    'table' => 1 === preg_match('/^\s*(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+`?(\w+)/i', $unwrappedWrites[0]->sql, $match) ? $match[1] : 'the table',
+                    'table' => 1 === preg_match('/^\s*(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+`?(\w+)/i', $unwrappedWrites[0]->sql, $match) ? $match[1] : Translator::trans('the table'),
                 ],
                 suggestionMetadata: new SuggestionMetadata(
                     type: SuggestionType::performance(),

@@ -36,5 +36,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => t('Replace the leading-wildcard LIKE (%s) with a full-text or trigram index', $like_type),
+    'description' => t('Replace the leading-wildcard LIKE (%s) with a full-text or trigram index', tr($like_type)),
 ];

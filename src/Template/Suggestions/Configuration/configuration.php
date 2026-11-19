@@ -11,9 +11,9 @@ declare(strict_types=1);
  * @var string $fixCommand
  * @var array<string, mixed> $context
  */
-$setting = (string) ($context['setting'] ?? 'unknown_setting');
-$currentValue = (string) ($context['current_value'] ?? '');
-$recommendedValue = (string) ($context['recommended_value'] ?? '');
+$setting = tr($context['setting'] ?? 'unknown_setting');
+$currentValue = tr($context['current_value'] ?? '');
+$recommendedValue = tr($context['recommended_value'] ?? '');
 $description = tr((string) ($context['description'] ?? ''));
 $fixCommand = (string) ($context['fix_command'] ?? '');
 $e                                                                                                                                                               = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
