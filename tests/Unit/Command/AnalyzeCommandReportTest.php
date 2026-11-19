@@ -195,4 +195,18 @@ final class AnalyzeCommandReportTest extends TestCase
 
         return array_column($json['findings'], 'id');
     }
+
+    #[Test]
+    public function a_long_message_is_cut_after_a_whole_sentence_rather_than_at_a_french_colon(): void
+    {
+        $method = new \ReflectionMethod(AnalyzeCommand::class, 'firstSentences');
+        $command = new AnalyzeCommand([], new IssueDeduplicator(), \dirname(__DIR__, 3));
+        $text = 'Customer::$restockRequests est le côté inverse de StockAlert::$customer, et rien en dehors de l\'entité ne le lit. '
+            . 'Doctrine n\'écrit que le côté propriétaire : cette collection ne fait qu\'ajouter du code à garder synchronisé.';
+
+        self::assertSame(
+            'Customer::$restockRequests est le côté inverse de StockAlert::$customer, et rien en dehors de l\'entité ne le lit.',
+            $method->invoke($command, $text),
+        );
+    }
 }

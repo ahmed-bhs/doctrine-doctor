@@ -401,9 +401,15 @@ class AnalyzeCommand extends Command
             return $text;
         }
         $cut = mb_substr($text, 0, $max);
-        $end = max((int) mb_strrpos($cut, '. '), (int) mb_strrpos($cut, ': '));
+        // A whole sentence first; a colon only when no sentence ends early enough, since in French it stands
+        // in the middle of a sentence ("côté propriétaire : ...").
+        $end = (int) mb_strrpos($cut, '. ');
+        if ($end > 60) {
+            return mb_substr($cut, 0, $end + 1);
+        }
+        $end = (int) mb_strrpos($cut, ': ');
 
-        return $end > 60 ? mb_substr($cut, 0, $end + 1) : rtrim($cut) . '...';
+        return $end > 60 ? rtrim(mb_substr($cut, 0, $end)) . '...' : rtrim($cut) . '...';
     }
 
     /**
