@@ -82,6 +82,50 @@ final class Translator
     }
 
     /**
+     * Captions of the Before/After code comparison, keyed by their English text: the panel script
+     * reads them from code comments. They are stored in the catalog as "note: <English text>".
+     *
+     * @return array<string, string>
+     */
+    public static function notes(): array
+    {
+        if (self::DEFAULT_LOCALE === self::$locale) {
+            return [];
+        }
+
+        $notes = [];
+        foreach (self::catalog(self::$locale)['sources'] as $source => $target) {
+            if (str_starts_with($source, 'note: ')) {
+                $notes[substr($source, 6)] = $target;
+            }
+        }
+
+        return $notes;
+    }
+
+    /**
+     * Translates a "// Before: ...", "// After: ..." or "// Or ..." comment of a code example, for output
+     * that shows the code as is (the CLI). Other lines are returned unchanged.
+     */
+    public static function codeComments(string $code): string
+    {
+        if (self::DEFAULT_LOCALE === self::$locale) {
+            return $code;
+        }
+
+        return (string) preg_replace_callback(
+            '/^([ \t]*(?:\/\/|#|--)[ \t]*)(Before|After|Or)\b([ \t]*[:,]?[ \t]*)(.*)$/m',
+            static function (array $match): string {
+                $note = '' === $match[4] ? null : self::trans('note: ' . $match[4]);
+                $caption = null === $note || str_starts_with($note, 'note: ') ? $match[4] : $note;
+
+                return $match[1] . self::trans($match[2]) . $match[3] . $caption;
+            },
+            $code,
+        );
+    }
+
+    /**
      * @param array{exact: array<string, string>, patterns: list<array{0: string, 1: string}>, sources: array<string, string>} $catalog
      */
     private static function lookup(array $catalog, string $text): ?string

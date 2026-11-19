@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Translation;
 
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
+use Twig\TwigFunction;
 
 /**
  * Exposes the translator to the profiler templates: {{ issue.getTitle()|dd_trans }}.
@@ -36,6 +37,13 @@ final class TwigTranslationExtension extends AbstractExtension
      * catalog has a plain quote: quotes are decoded in the text only, never inside a tag, so an
      * attribute cannot be broken and the result stays safe to print raw.
      */
+    public function getFunctions(): array
+    {
+        return [
+            new TwigFunction('dd_notes', Translator::notes(...)),
+        ];
+    }
+
     public static function transHtml(string $html): string
     {
         $plain = preg_replace_callback(

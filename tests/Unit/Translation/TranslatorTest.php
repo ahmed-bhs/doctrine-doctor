@@ -122,4 +122,16 @@ final class TranslatorTest extends TestCase
         // "50% for" once read as a "% f" placeholder, and vsprintf failed on the translation.
         self::assertSame('Variable (0 à 50 % pour les requêtes cachables)', Translator::trans('Varies (0-50% for cacheable queries)'));
     }
+
+    public function test_code_comment_markers_and_captions_are_translated_but_not_the_code(): void
+    {
+        Translator::setLocale('fr');
+
+        $code = "// Before: two collections in one query\n\$em->flush();\n// After: #[ORM\\JoinColumn(nullable: false)]";
+
+        self::assertSame(
+            "// Avant: deux collections dans une seule requête\n\$em->flush();\n// Après: #[ORM\\JoinColumn(nullable: false)]",
+            Translator::codeComments($code),
+        );
+    }
 }

@@ -39,11 +39,58 @@ final class SuggestionTemplateCatalogTest extends TestCase
             }
         }
 
+        foreach ($files as $file) {
+            if ('php' !== $file->getExtension()) {
+                continue;
+            }
+
+            $relative = substr($file->getPathname(), strlen($base) + 1);
+            foreach (array_unique(self::comparisonCaptions((string) file_get_contents($file->getPathname()))) as $caption) {
+                yield $relative . ': note: ' . $caption => [$relative, 'note: ' . $caption];
+            }
+        }
+
         foreach (glob(dirname(__DIR__, 3) . '/templates/profiler/*.twig') ?: [] as $file) {
             foreach (array_unique(self::twigLiterals((string) file_get_contents($file))) as $text) {
                 yield basename($file) . ': ' . $text => [basename($file), $text];
             }
         }
+    }
+
+    /**
+     * The captions the profiler panel reads from "// Before: ...", "// After: ..." and "// Or ..." code comments,
+     * with each echoed value as %s. Mirrors the BEFORE, AFTER and OR patterns of the panel script.
+     *
+     * @return list<string>
+     */
+    private static function comparisonCaptions(string $source): array
+    {
+        $patterns = [
+            'before' => '/^\s*(?:\/\/|#|--)\s*Before\b\s*(?:[:,]\s*(.*))?$/i',
+            'after' => '/^\s*(?:\/\/|#|--)\s*After\b(?=\s*(?:$|:|,|\())\s*[:,]?\s*(.*)$/i',
+            'or' => '/^\s*(?:\/\/|#|--)\s*Or\b\s*[:,]?\s*(.*)$/i',
+        ];
+        $captions = [];
+
+        foreach (explode("\n", $source) as $line) {
+            $line = (string) preg_replace('/^(\s*<[^>]+>)+/', '', $line);
+            foreach ($patterns as $kind => $pattern) {
+                if (1 !== preg_match($pattern, $line, $match) || '' === trim($match[1] ?? '')) {
+                    continue;
+                }
+                $caption = trim($match[1]);
+                if ('after' === $kind) {
+                    $caption = (string) preg_replace(['/^\(([^)]+)\)\s*:?\s*/', '/:\s*$/'], ['$1: ', ''], $caption);
+                }
+                // A "Before:" followed by code is the old line itself, not a caption; WHERE clauses are SQL.
+                if (str_contains($caption, '\\n') || 1 === preg_match('/^(#\[|public |private |protected |\$|[A-Z]\w*\(|WHERE )/', $caption)) {
+                    continue;
+                }
+                $captions[] = (string) preg_replace('/<\?php.*?\?>/', '%s', $caption);
+            }
+        }
+
+        return $captions;
     }
 
     /**

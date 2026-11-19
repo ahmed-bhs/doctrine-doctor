@@ -370,7 +370,7 @@ class AnalyzeCommand extends Command
             if (!$isCode) {
                 $part = implode("\n", array_map(trim(...), explode("\n", $part)));
             }
-            $text .= $isCode ? "\n" . trim($part, "\n") . "\n" : $part;
+            $text .= $isCode ? "\n" . Translator::codeComments(trim($part, "\n")) . "\n" : $part;
         }
 
         return trim(preg_replace('/\n{3,}/', "\n\n", $text) ?? $text);

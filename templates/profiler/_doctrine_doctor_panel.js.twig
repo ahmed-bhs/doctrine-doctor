@@ -5,6 +5,21 @@
                 return String(position ? values[position - 1] : values[next++]);
             });
         };
+        // Captions of the Before/After comparison come from code comments: translate them like the catalog does.
+        var ddNotes = {{ dd_notes()|json_encode(constant('JSON_FORCE_OBJECT'))|raw }};
+        var ddNote = function(note) {
+            if (!note || Object.prototype.hasOwnProperty.call(ddNotes, note)) return note ? ddNotes[note] : note;
+            for (var key in ddNotes) {
+                if (key.indexOf('%s') < 0) continue;
+                var pattern = new RegExp('^' + key.split('%s').map(function(part) { return part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('(.+?)') + '$');
+                var match = note.match(pattern);
+                if (match) {
+                    var next = 1;
+                    return ddNotes[key].replace(/%(?:(\d+)\$)?s/g, function(all, position) { return match[position ? +position : next++]; });
+                }
+            }
+            return note;
+        };
         if (navigator.clipboard) {
             document.querySelectorAll('[data-clipboard-text]').forEach(function(button) {
                 button.classList.remove('hidden');
@@ -221,7 +236,7 @@
             }
 
             function splitBeforeAfter(root) {
-                var BEFORE = /^\s*(?:\/\/|#|--)\s*Before\b\s*(?::\s*(.*))?$/i;
+                var BEFORE = /^\s*(?:\/\/|#|--)\s*Before\b\s*(?:[:,]\s*(.*))?$/i;
                 var AFTER = /^\s*(?:\/\/|#|--)\s*After\b(?=\s*(?:$|:|,|\())\s*[:,]?\s*(.*)$/i;
                 var USE = /^\s*use\s+[^;]+;\s*$/;
                 var trim = function(list) {
@@ -236,6 +251,7 @@
                     tag.className = 'code-label label-' + kind;
                     tag.textContent = label;
                     div.appendChild(tag);
+                    note = ddNote(note);
                     if (note) {
                         var p = document.createElement('div');
                         p.className = 'comparison-note';
@@ -246,7 +262,7 @@
                     var segments = [{ note: '', lines: [] }];
                     body.forEach(function(l) {
                         var m = l.match(OR);
-                        if (m) segments.push({ note: {{ 'Or'|dd_trans|json_encode|raw }} + (m[1] ? ', ' + m[1] : ''), lines: [] });
+                        if (m) segments.push({ note: {{ 'Or'|dd_trans|json_encode|raw }} + (m[1] ? ', ' + ddNote(m[1]) : ''), lines: [] });
                         else segments[segments.length - 1].lines.push(l);
                     });
                     segments.forEach(function(seg, i) {
