@@ -15,7 +15,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Index the discriminator column'); ?>
 <div class="suggestion-content">
-<p>Table <code><?php echo $e($tableName); ?></code> stores <?php echo $subtypeCount; ?> subtypes of <code><?php echo $e($rootClass); ?></code> without an index on <code><?php echo $e($columnName); ?></code>. Doctrine adds <code>WHERE <?php echo $e($columnName); ?> IN (...)</code> to every subclass query, so each one scans the table.</p>
+<p><?php echo t('Table <code>%s</code> stores %s subtypes of <code>%s</code> without an index on <code>%s</code>. Doctrine adds <code>WHERE %s IN (...)</code> to every subclass query, so each one scans the table.', $e($tableName), $subtypeCount, $e($rootClass), $e($columnName), $e($columnName)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Entity]
 #[ORM\Table(name: '<?php echo $e($tableName); ?>')]
@@ -27,7 +27,7 @@ class <?php echo $e($rootClass); ?>
 {
 }</code></pre></div>
 
-<p>If queries usually filter on another column too, a composite index starting with <code><?php echo $e($columnName); ?></code> serves both.</p>
+<p><?php echo t('If queries usually filter on another column too, a composite index starting with <code>%s</code> serves both.', $e($columnName)); ?></p>
 </div>
 
 <?php
@@ -35,7 +35,7 @@ $html = (string) ob_get_clean();
 
 return [
     'code' => $html,
-    'description' => sprintf(
+    'description' => t(
         'Add an index on the discriminator column %s of table %s',
         $columnName,
         $tableName,

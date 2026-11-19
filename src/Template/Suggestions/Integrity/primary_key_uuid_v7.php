@@ -13,7 +13,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Generate UUID v7 instead of v4'); ?>
 <div class="suggestion-content">
-<div class="alert <?php echo severityAlertClass($severity); ?>"><code><?php echo $e($short_name); ?></code> uses random UUID v4 identifiers. Random keys land anywhere in the primary key index, which splits pages on insert; UUID v7 starts with a timestamp, so new rows are appended in order.</div>
+<div class="alert <?php echo severityAlertClass($severity); ?>"><?php echo t('<code>%s</code> uses random UUID v4 identifiers. Random keys land anywhere in the primary key index, which splits pages on insert; UUID v7 starts with a timestamp, so new rows are appended in order.', $e($short_name)); ?></div>
 
 <div class="query-item"><pre><code class="language-php">// Before
 #[ORM\CustomIdGenerator(class: UuidV4Generator::class)]
@@ -35,5 +35,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Generate UUID v7 identifiers instead of v4',
+    'description' => t('Generate UUID v7 identifiers instead of v4'),
 ];

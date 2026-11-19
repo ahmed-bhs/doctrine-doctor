@@ -26,9 +26,9 @@ ob_start();
 <?php echo suggestionHeader('Remove the unused fetch joins'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    <?php echo $count; ?> fetch-joined <?php echo 1 === $count ? 'table is' : 'tables are'; ?> hydrated but never read:
+    <?php echo 1 === $count ? t('%d fetch-joined table is hydrated but never read:', $count) : t('%d fetch-joined tables are hydrated but never read:', $count); ?>
     <code><?php echo implode('</code>, <code>', array_map($e(...), $unusedTables)); ?></code>.
-    Each one adds columns to every row and objects to the unit of work.
+    <?php echo t('Each one adds columns to every row and objects to the unit of work.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Before
@@ -40,7 +40,7 @@ $qb-&gt;select('a'<?php foreach ($unusedAliases as $alias) { ?>, '<?php echo $e(
 // After: select and join only what the code reads
 $qb-&gt;select('a')-&gt;getQuery();</code></pre></div>
 
-<p>If a JOIN also filters rows (INNER JOIN or a WHERE on its alias), keep the JOIN and only drop the alias from the SELECT.</p>
+<p><?php echo t('If a JOIN also filters rows (INNER JOIN or a WHERE on its alias), keep the JOIN and only drop the alias from the SELECT.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL JOIN Documentation'); ?>
 </div>
@@ -49,5 +49,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Remove %d unused fetch join(s) from the query', $count),
+    'description' => t('Remove %d unused fetch join(s) from the query', $count),
 ];

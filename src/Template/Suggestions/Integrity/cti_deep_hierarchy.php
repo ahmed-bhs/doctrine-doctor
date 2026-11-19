@@ -23,7 +23,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Flatten the inheritance hierarchy'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($entityClass); ?></code> sits <?php echo $depth; ?> levels deep in a JOINED hierarchy<?php if ([] !== $chain) { ?> (<code><?php echo $e(implode(' -> ', array_map(strval(...), $chain))); ?></code>)<?php } ?>, so every query on it needs <?php echo $joinsRequired; ?> JOIN(s). If the subclasses share most fields, a single table removes these JOINs.</p>
+<p><?php echo t('<code>%s</code> sits %s levels deep in a JOINED hierarchy%s, so every query on it needs %s JOIN(s). If the subclasses share most fields, a single table removes these JOINs.', $e($entityClass), $depth, [] !== $chain ? ' (<code>' . $e(implode(' -> ', array_map(strval(...), $chain))) . '</code>)' : '', $joinsRequired); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Entity]
 // Before: #[ORM\InheritanceType('JOINED')]
@@ -34,7 +34,7 @@ class <?php echo $e($rootClass); ?>
 {
 }</code></pre></div>
 
-<p>Otherwise, merge intermediate classes that add few fields, or replace a level with an embeddable or an association.</p>
+<p><?php echo t('Otherwise, merge intermediate classes that add few fields, or replace a level with an embeddable or an association.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html', 'Doctrine: Inheritance Mapping'); ?>
 </div>
@@ -44,7 +44,7 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
+    'description' => t(
         'Flatten the %s hierarchy: %d levels deep, %d JOIN(s) per query',
         $entityClass,
         $depth,

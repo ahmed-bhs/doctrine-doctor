@@ -15,7 +15,7 @@ declare(strict_types=1);
 // Extract context
 $badCode = $context['bad_code'] ?? null;
 $goodCode = $context['good_code'] ?? null;
-$description = $context['description'] ?? '';
+$description = tr($context['description'] ?? '');
 $performanceImpact = $context['performance_impact'] ?? [
     'Unnecessary UPDATE queries executed',
     'Increased database load',
@@ -35,7 +35,7 @@ ob_start();
 <?php echo suggestionHeader('Match the property type to the column'); ?>
 
 <div class="suggestion-content">
-    <p><?php echo $e($description); ?> The UnitOfWork compares values with <code>===</code>, so a mismatched type looks changed on every flush and triggers an UPDATE.</p>
+    <p><?php echo t('%s The UnitOfWork compares values with <code>===</code>, so a mismatched type looks changed on every flush and triggers an UPDATE.', $e($description)); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">// Before
@@ -53,5 +53,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Match the property type to the column type to avoid needless UPDATEs',
+    'description' => t('Match the property type to the column type to avoid needless UPDATEs'),
 ];

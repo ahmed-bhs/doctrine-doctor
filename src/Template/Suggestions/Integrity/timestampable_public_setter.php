@@ -17,7 +17,7 @@ ob_start();
 <?php echo suggestionHeader('Remove the timestamp setter'); ?>
 
 <div class="suggestion-content">
-    <p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> has a public setter, so any caller can overwrite a value that Timestampable is meant to set. Keep only the getter.</p>
+    <p><?php echo t('<code>%s::$%s</code> has a public setter, so any caller can overwrite a value that Timestampable is meant to set. Keep only the getter.', $e($entityClass), $e($fieldName)); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">#[ORM\Column]
@@ -37,5 +37,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Remove the public setter of %s::$%s', $entityClass, $fieldName),
+    'description' => t('Remove the public setter of %s::$%s', $entityClass, $fieldName),
 ];

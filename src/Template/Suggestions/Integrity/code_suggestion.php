@@ -9,7 +9,7 @@ declare(strict_types=1);
  * @var string $filePath
  * @var array<string, mixed> $context
  */
-$description = (string) ($context['description'] ?? '');
+$description = tr((string) ($context['description'] ?? ''));
 $code = (string) ($context['code'] ?? '');
 $filePath = (string) ($context['file_path'] ?? '');
 $title = (string) ($context['title'] ?? 'Suggested change');
@@ -24,7 +24,7 @@ ob_start();
 <div class="suggestion-content">
 <p><?php echo nl2br($e($description)); ?></p>
 <?php if ($filePath) { ?>
-<p>In <code><?php echo $e($filePath); ?></code></p>
+<p><?php echo t('In <code>%s</code>', $e($filePath)); ?></p>
 <?php } ?>
 <div class="query-item"><pre><code class="language-php"><?php echo $e($code); ?></code></pre></div>
 </div>

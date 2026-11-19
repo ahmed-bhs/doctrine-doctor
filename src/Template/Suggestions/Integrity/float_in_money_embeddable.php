@@ -16,7 +16,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Store the amount in minor units'); ?>
 <div class="suggestion-content">
-<p>Money embeddable <code><?php echo $e($embeddableClass); ?>::$<?php echo $e($fieldName); ?></code> uses a float, which cannot represent most decimal amounts exactly (<code>0.1 + 0.2 !== 0.3</code>). Store the smallest currency unit as an integer.</p>
+<p><?php echo t('Money embeddable <code>%s::$%s</code> uses a float, which cannot represent most decimal amounts exactly (<code>0.1 + 0.2 !== 0.3</code>). Store the smallest currency unit as an integer.', $e($embeddableClass), $e($fieldName)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Embeddable]
 final readonly class <?php echo $e($embeddableClass); ?>
@@ -36,5 +36,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Use integers (cents) instead of floats for monetary values',
+    'description' => t('Use integers (cents) instead of floats for monetary values'),
 ];

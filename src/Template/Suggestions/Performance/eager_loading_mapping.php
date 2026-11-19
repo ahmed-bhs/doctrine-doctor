@@ -16,8 +16,8 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Remove fetch: EAGER from the mapping'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($entity_class); ?>::$<?php echo $e($field_name); ?></code> is mapped with <code>fetch: 'EAGER'</code>, so <code><?php echo $e($target_short_name); ?></code> is loaded by every query on the entity, needed or not.
-Fetch-join it only in the queries that read it.</p>
+<p><?php echo t("<code>%s::$%s</code> is mapped with <code>fetch: 'EAGER'</code>, so <code>%s</code> is loaded by every query on the entity, needed or not.", $e($entity_class), $e($field_name), $e($target_short_name)); ?>
+<?php echo t('Fetch-join it only in the queries that read it.'); ?></p>
 
 <div class="query-item"><pre><code class="language-php">// Before
 #[ORM\ManyToOne(targetEntity: <?php echo $e($target_short_name); ?>::class, fetch: 'EAGER')]
@@ -33,4 +33,4 @@ $qb-&gt;leftJoin('e.<?php echo $e($field_name); ?>', '<?php echo $e($alias); ?>'
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => 'Remove fetch: "EAGER" from the mapping and fetch-join the relation where it is needed'];
+return ['code' => $code, 'description' => t('Remove fetch: "EAGER" from the mapping and fetch-join the relation where it is needed')];

@@ -18,8 +18,8 @@ ob_start();
 <?php echo suggestionHeader('Count in SQL with GROUP BY'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    <?php echo $queryCount; ?> queries loaded <code><?php echo $e($relation); ?></code> only to count it.
-    One GROUP BY query returns every count at once.
+    <?php echo t('%d queries loaded <code>%s</code> only to count it.', $queryCount, $e($relation)); ?>
+    <?php echo t('One GROUP BY query returns every count at once.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Before: one query per <?php echo $e($entity); ?>
@@ -36,7 +36,7 @@ $rows = $repository-&gt;createQueryBuilder('e')
     -&gt;getQuery()
     -&gt;getArrayResult();</code></pre></div>
 
-<p>To keep the entities, select <code>e, COUNT(r.id) AS <?php echo $e($countAlias); ?></code>: each row is then <code>[0 =&gt; $entity, '<?php echo $e($countAlias); ?>' =&gt; $count]</code>.</p>
+<p><?php echo t('To keep the entities, select <code>e, COUNT(r.id) AS %s</code>: each row is then <code>[0 =&gt; $entity, \'%s\' =&gt; $count]</code>.', $e($countAlias), $e($countAlias)); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#grouping', 'Doctrine DQL GROUP BY Documentation'); ?>
 </div>
@@ -45,5 +45,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Count %s with one GROUP BY query instead of one query per entity', $relation),
+    'description' => t('Count %s with one GROUP BY query instead of one query per entity', $relation),
 ];

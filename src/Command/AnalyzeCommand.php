@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Command;
 
-use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\DatabaseAuditAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
@@ -21,6 +20,7 @@ use AhmedBhs\DoctrineDoctor\Issue\FindingLocation;
 use AhmedBhs\DoctrineDoctor\Issue\FindingLocator;
 use AhmedBhs\DoctrineDoctor\Issue\IssueInterface;
 use AhmedBhs\DoctrineDoctor\Service\IssueDeduplicator;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -246,9 +246,9 @@ class AnalyzeCommand extends Command
     private static function tip(array $finding): string
     {
         $issue = $finding['issue'] ?? null;
-        $title = $issue instanceof IssueInterface ? (string) $issue->getSuggestion()?->getMetadata()->title : '';
+        $title = $issue instanceof IssueInterface ? Translator::trans((string) $issue->getSuggestion()?->getMetadata()->title) : '';
 
-        return sprintf('💡 %s: <fg=gray>--show-suggestion=%s</>', '' !== $title ? $title : 'Details', (string) $finding['id']);
+        return sprintf('💡 %s: <fg=gray>--show-suggestion=%s</>', '' !== $title ? $title : Translator::trans('Details'), (string) $finding['id']);
     }
 
     /**
@@ -336,7 +336,7 @@ class AnalyzeCommand extends Command
 
         foreach (array_column($matches, 'issue') as $issue) {
             $suggestion = $issue->getSuggestion();
-            $io->section(sprintf('Suggestion for %s: %s', $requestedId, $issue->getTitle()));
+            $io->section(sprintf(Translator::format('Suggestion for %s: %s'), $requestedId, Translator::trans($issue->getTitle())));
 
             if (null === $suggestion) {
                 $io->warning('This finding does not provide a suggestion.');
@@ -349,7 +349,7 @@ class AnalyzeCommand extends Command
             if (!str_contains($code, trim($suggestion->getDescription()))) {
                 $io->text($suggestion->getDescription());
             }
-            $io->text('<fg=cyan;options=bold>Suggested fix</>');
+            $io->text('<fg=cyan;options=bold>' . Translator::trans('Suggested fix') . '</>');
             $io->text($code);
         }
 

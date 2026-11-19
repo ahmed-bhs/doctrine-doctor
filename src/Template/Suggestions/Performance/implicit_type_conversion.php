@@ -15,11 +15,11 @@ ob_start();
 <div class="suggestion-content">
 <div class="alert alert-warning">
 <?php if ($isParameter) { ?>
-    <code><?= $e((string) $column) ?></code> is a text column compared to <?= $e((string) $literal) ?>, which DQL binds as an integer because the PHP value is an <code>int</code>.
+    <?= t('<code>%s</code> is a text column compared to %s, which DQL binds as an integer because the PHP value is an <code>int</code>.', $e((string) $column), $e((string) $literal)) ?>
 <?php } else { ?>
-    <code><?= $e((string) $column) ?></code> is a text column compared to the number <code><?= $e((string) $literal) ?></code>; PostgreSQL rejects it.
+    <?= t('<code>%s</code> is a text column compared to the number <code>%s</code>; PostgreSQL rejects it.', $e((string) $column), $e((string) $literal)) ?>
 <?php } ?>
-    MySQL and MariaDB convert the column of every row to a number, so its index cannot be used.
+    <?= t('MySQL and MariaDB convert the column of every row to a number, so its index cannot be used.') ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Before
@@ -39,5 +39,5 @@ $code = ob_get_clean();
 
 return [
     'code' => $code,
-    'description' => 'Compare text columns to strings so the database can use their index',
+    'description' => t('Compare text columns to strings so the database can use their index'),
 ];

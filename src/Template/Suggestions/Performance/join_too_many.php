@@ -20,7 +20,7 @@ ob_start();
 <?php echo suggestionHeader('Split the query into smaller ones'); ?>
 <div class="suggestion-content">
 <div class="alert alert-danger">
-    The query has <?php echo (int) $joinCount; ?> JOINs. Each fetch-joined table adds columns to hydrate, and each to-many JOIN multiplies the rows.
+    <?php echo t('The query has %d JOINs. Each fetch-joined table adds columns to hydrate, and each to-many JOIN multiplies the rows.', (int) $joinCount); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Before: every branch in one query
@@ -36,7 +36,7 @@ $em-&gt;createQuery('SELECT o, i, p FROM App\Entity\Order o
    -&gt;setParameter('orders', $orders)
    -&gt;getResult();</code></pre></div>
 
-<p>For read-only screens, select only the displayed columns into a DTO with <code>SELECT NEW</code>.</p>
+<p><?php echo t('For read-only screens, select only the displayed columns into a DTO with <code>SELECT NEW</code>.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html', 'Doctrine Query Builder'); ?>
 </div>
@@ -45,5 +45,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Split the query with %d JOINs into smaller queries or use DTOs', $joinCount),
+    'description' => t('Split the query with %d JOINs into smaller queries or use DTOs', (int) $joinCount),
 ];

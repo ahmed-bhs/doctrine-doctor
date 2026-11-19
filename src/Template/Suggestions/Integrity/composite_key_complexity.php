@@ -25,7 +25,9 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Add a surrogate primary key'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($shortName); ?></code> has a <?php echo $columnCount; ?>-column primary key (<code><?php echo $e(implode(', ', $identifierFields)); ?></code>)<?php if ([] !== $referencedBy) { ?>, and <?php echo $e(implode(', ', array_map(strval(...), $referencedBy))); ?> must repeat all of it in their foreign keys<?php } ?>. Composite keys also rule out <code>#[ORM\GeneratedValue]</code> and need an array in <code>find()</code>.</p>
+<p><?php echo [] !== $referencedBy
+    ? t('<code>%s</code> has a %s-column primary key (<code>%s</code>), and %s must repeat all of it in their foreign keys. Composite keys also rule out <code>#[ORM\\GeneratedValue]</code> and need an array in <code>find()</code>.', $e($shortName), $columnCount, $e(implode(', ', $identifierFields)), $e(implode(', ', array_map(strval(...), $referencedBy))))
+    : t('<code>%s</code> has a %s-column primary key (<code>%s</code>). Composite keys also rule out <code>#[ORM\\GeneratedValue]</code> and need an array in <code>find()</code>.', $e($shortName), $columnCount, $e(implode(', ', $identifierFields))); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Entity]
 #[ORM\UniqueConstraint(columns: [<?php echo implode(', ', array_map(fn ($f) => "'" . $e((string) $f) . "'", $identifierFields)); ?>])]
@@ -50,7 +52,7 @@ $severity = $columnCount >= 3 ? 'critical' : 'warning';
 
 return [
     'code'        => $code,
-    'description' => sprintf(
+    'description' => t(
         'Replace composite key (%s) with a surrogate primary key in %s',
         implode(', ', $identifierFields),
         $shortName,

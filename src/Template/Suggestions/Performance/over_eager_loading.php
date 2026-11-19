@@ -15,8 +15,8 @@ ob_start();
 <?php echo suggestionHeader('Load each collection in its own query'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    The query has <?php echo $joinCount; ?> JOINs. Each fetch-joined collection multiplies the rows of the others:
-    1 article with 10 comments and 5 tags already returns 50 rows.
+    <?php echo t('The query has %d JOINs. Each fetch-joined collection multiplies the rows of the others:', $joinCount); ?>
+    <?php echo t('1 article with 10 comments and 5 tags already returns 50 rows.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Before: two collections in one query
@@ -31,7 +31,7 @@ $em->createQuery('SELECT a, t FROM App\Entity\Article a
     ->setParameter('articles', $articles)
     ->getResult();</code></pre></div>
 
-<p>To-one joins (ManyToOne, OneToOne) add no rows and can stay in the first query.</p>
+<p><?php echo t('To-one joins (ManyToOne, OneToOne) add no rows and can stay in the first query.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL JOIN Documentation'); ?>
 </div>
@@ -40,5 +40,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Split the %d JOINs so each collection is loaded in its own query', $joinCount),
+    'description' => t('Split the %d JOINs so each collection is loaded in its own query', $joinCount),
 ];

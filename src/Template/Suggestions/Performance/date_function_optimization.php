@@ -15,8 +15,8 @@ ob_start();
 <?php echo suggestionHeader('Compare the date column to a range'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    <code><?php echo $e($function); ?>(<?php echo $e((string) $field); ?>)</code> is computed for every row, so the index on <code><?php echo $e((string) $field); ?></code> cannot be used.
-    A range on the bare column can use it.
+    <?php echo t('<code>%s(%s)</code> is computed for every row, so the index on <code>%s</code> cannot be used.', $e($function), $e((string) $field), $e((string) $field)); ?>
+    <?php echo t('A range on the bare column can use it.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Before: WHERE <?php echo $e((string) $originalClause); ?>
@@ -32,5 +32,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Replace %s() with a range comparison so the index can be used', $function),
+    'description' => t('Replace %s() with a range comparison so the index can be used', $function),
 ];

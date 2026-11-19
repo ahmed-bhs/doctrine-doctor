@@ -27,11 +27,11 @@ ob_start();
 ?>
 <?php
 $why = match ($mismatchType) {
-    'orm_cascade_db_setnull' => "ORM <code>cascade: ['remove']</code> deletes the children, but the database foreign key uses <code>onDelete: 'SET NULL'</code>, so a plain SQL DELETE keeps them with a NULL parent.",
-    'orm_orphan_db_setnull' => "<code>orphanRemoval</code> deletes orphans in the ORM, but the database foreign key uses <code>onDelete: 'SET NULL'</code>, so a plain SQL DELETE keeps them with a NULL parent.",
-    'db_cascade_no_orm' => "The database deletes the children (<code>onDelete: 'CASCADE'</code>) without the ORM, so their preRemove/postRemove callbacks and listeners never run. Add the ORM cascade only if those callbacks must run: it costs one query per child.",
-    'orm_cascade_no_db' => "ORM <code>cascade: ['remove']</code> works through <code>\$em-&gt;remove()</code>, but the foreign key has no <code>onDelete</code>, so a plain SQL DELETE of the parent fails with a constraint violation.",
-    default => 'The ORM cascade and the database <code>onDelete</code> rule disagree, so deleting through the ORM and through SQL give different results.',
+    'orm_cascade_db_setnull' => t("ORM <code>cascade: ['remove']</code> deletes the children, but the database foreign key uses <code>onDelete: 'SET NULL'</code>, so a plain SQL DELETE keeps them with a NULL parent."),
+    'orm_orphan_db_setnull' => t("<code>orphanRemoval</code> deletes orphans in the ORM, but the database foreign key uses <code>onDelete: 'SET NULL'</code>, so a plain SQL DELETE keeps them with a NULL parent."),
+    'db_cascade_no_orm' => t("The database deletes the children (<code>onDelete: 'CASCADE'</code>) without the ORM, so their preRemove/postRemove callbacks and listeners never run. Add the ORM cascade only if those callbacks must run: it costs one query per child."),
+    'orm_cascade_no_db' => t("ORM <code>cascade: ['remove']</code> works through <code>\$em-&gt;remove()</code>, but the foreign key has no <code>onDelete</code>, so a plain SQL DELETE of the parent fails with a constraint violation."),
+    default => t('The ORM cascade and the database <code>onDelete</code> rule disagree, so deleting through the ORM and through SQL give different results.'),
 };
 ?>
 <?php echo suggestionHeader('Align the ORM cascade with onDelete'); ?>
@@ -59,11 +59,11 @@ private <?php echo $e($entityClass); ?> $parent;</code></pre>
 $code = ob_get_clean();
 
 $description = match ($mismatchType) {
-    'orm_cascade_db_setnull' => sprintf("Change DB onDelete to 'CASCADE' to match ORM cascade in %s::\$%s", $entityClass, $fieldName),
-    'orm_orphan_db_setnull' => sprintf("Change DB onDelete to 'CASCADE' to match orphanRemoval in %s::\$%s", $entityClass, $fieldName),
-    'db_cascade_no_orm' => sprintf("Add ORM cascade: ['remove'] in %s::\$%s if the children's remove callbacks must run", $entityClass, $fieldName),
-    'orm_cascade_no_db' => sprintf("Add DB onDelete='CASCADE' to match ORM cascade in %s::\$%s", $entityClass, $fieldName),
-    default => sprintf("Align ORM cascade '%s' with DB onDelete '%s' in %s::\$%s", $ormCascade, $dbOnDelete, $entityClass, $fieldName),
+    'orm_cascade_db_setnull' => t("Change DB onDelete to 'CASCADE' to match ORM cascade in %s::\$%s", $entityClass, $fieldName),
+    'orm_orphan_db_setnull' => t("Change DB onDelete to 'CASCADE' to match orphanRemoval in %s::\$%s", $entityClass, $fieldName),
+    'db_cascade_no_orm' => t("Add ORM cascade: ['remove'] in %s::\$%s if the children's remove callbacks must run", $entityClass, $fieldName),
+    'orm_cascade_no_db' => t("Add DB onDelete='CASCADE' to match ORM cascade in %s::\$%s", $entityClass, $fieldName),
+    default => t("Align ORM cascade '%s' with DB onDelete '%s' in %s::\$%s", (string) $ormCascade, (string) $dbOnDelete, $entityClass, $fieldName),
 };
 
 return [

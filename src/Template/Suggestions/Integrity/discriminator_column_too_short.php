@@ -16,7 +16,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Widen the discriminator column'); ?>
 <div class="suggestion-content">
-<p>Column <code><?php echo $e($columnName); ?></code> holds <?php echo $currentLength; ?> characters, but the value <code><?php echo $e($longestValue); ?></code> needs <?php echo $neededLength; ?>. The database truncates it on INSERT, and Doctrine can no longer map the row back to its class.</p>
+<p><?php echo t('Column <code>%s</code> holds %s characters, but the value <code>%s</code> needs %s. The database truncates it on INSERT, and Doctrine can no longer map the row back to its class.', $e($columnName), $currentLength, $e($longestValue), $neededLength); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Entity]
 #[ORM\InheritanceType('SINGLE_TABLE')]
@@ -26,7 +26,7 @@ class <?php echo $e($rootClass); ?>
 {
 }</code></pre></div>
 
-<p>Shorter discriminator keys also work, but renaming them means rewriting every existing row.</p>
+<p><?php echo t('Shorter discriminator keys also work, but renaming them means rewriting every existing row.'); ?></p>
 </div>
 
 <?php
@@ -34,7 +34,7 @@ $html = (string) ob_get_clean();
 
 return [
     'code' => $html,
-    'description' => sprintf(
+    'description' => t(
         'Discriminator column %s needs at least %d characters to store "%s"',
         $columnName,
         $neededLength,

@@ -14,8 +14,8 @@ declare(strict_types=1);
 $fieldName = $context['field_name'] ?? 'field';
 $currentPrecision = $context['current_precision'] ?? 20;
 $currentScale = $context['current_scale'] ?? 10;
-$description = $context['description'] ?? "Decimal precision may be excessive for {$fieldName}";
-$precisionNeeds = $context['precision_needs'] ?? ["Consider reducing to (10,2) for typical use cases"];
+$description = tr($context['description'] ?? t('Decimal precision may be excessive for %s', $fieldName));
+$precisionNeeds = $context['precision_needs'] ?? [t('Consider reducing to (10,2) for typical use cases')];
 
 // Ensure precision_needs is an array
 if (!is_array($precisionNeeds)) {
@@ -29,7 +29,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Reduce the decimal precision'); ?>
 <div class="suggestion-content">
-<p><?php echo $e((string) $description); ?> Typical ranges: <?php echo $e(implode('; ', array_map(strval(...), $precisionNeeds))); ?>.</p>
+<p><?php echo t('%s Typical ranges: %s.', $e((string) $description), $e(implode('; ', array_map(tr(...), $precisionNeeds)))); ?></p>
 
 <div class="query-item"><pre><code class="language-php">// Money, for example: up to 99 999 999.99
 #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]</code></pre></div>
@@ -41,5 +41,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Reduce decimal precision to the range the values need',
+    'description' => t('Reduce decimal precision to the range the values need'),
 ];

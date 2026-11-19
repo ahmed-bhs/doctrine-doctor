@@ -19,8 +19,8 @@ ob_start();
 <?php echo suggestionHeader('Store the count in a counter column'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    <?php echo $queryCount; ?> COUNT queries ran on the <code><?php echo $e($relation); ?></code> collection, one per <code><?php echo $e($entity); ?></code>.
-    A <code><?php echo $e($counterField); ?></code> column kept up to date when items are added or removed is read with the entity, without a query.
+    <?php echo t('%d COUNT queries ran on the <code>%s</code> collection, one per <code>%s</code>.', $queryCount, $e($relation), $e($entity)); ?>
+    <?php echo t('A <code>%s</code> column kept up to date when items are added or removed is read with the entity, without a query.', $e($counterField)); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Column]
@@ -40,7 +40,7 @@ public function remove<?php echo $e($itemClass); ?>(<?php echo $e($itemClass); ?
     }
 }</code></pre></div>
 
-<p>Fill existing rows once in the migration with <code>UPDATE ... SET <?php echo $e($counterField); ?> = (SELECT COUNT(*) ...)</code>; writes that bypass these methods must update the column too.</p>
+<p><?php echo t('Fill existing rows once in the migration with <code>UPDATE ... SET %s = (SELECT COUNT(*) ...)</code>; writes that bypass these methods must update the column too.', $e($counterField)); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/aggregate-fields.html', 'Doctrine Aggregate Fields Documentation'); ?>
 </div>
@@ -49,5 +49,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Store the %s count in a %s column instead of counting it per entity', $relation, $counterField),
+    'description' => t('Store the %s count in a %s column instead of counting it per entity', $relation, $counterField),
 ];

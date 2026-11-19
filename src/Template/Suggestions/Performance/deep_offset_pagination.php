@@ -14,8 +14,8 @@ ob_start();
 <?php echo suggestionHeader('Paginate with a cursor, not an OFFSET'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    OFFSET <?= (int) $offset ?> makes the database read and discard <?= (int) $offset ?> rows before returning the page.
-    Filtering on the last seen sort key reads only the rows of the page.
+    <?= t('OFFSET %d makes the database read and discard %d rows before returning the page.', (int) $offset, (int) $offset) ?>
+    <?= t('Filtering on the last seen sort key reads only the rows of the page.') ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Before
@@ -28,13 +28,13 @@ $qb-&gt;where('u.id &gt; :lastId')
    -&gt;setMaxResults(20);</code></pre></div>
 
 <?php if ($cursorPaginatorAvailable) { ?>
-<p>ORM 3.7+ builds this clause for you with <code>CursorPaginator</code>, from a deterministic ORDER BY:</p>
+<p><?= t('ORM 3.7+ builds this clause for you with <code>CursorPaginator</code>, from a deterministic ORDER BY:') ?></p>
 <div class="query-item"><pre><code class="language-php">use Doctrine\ORM\Tools\Pagination\CursorPaginator;
 
 $page = (new CursorPaginator(20))-&gt;paginate($qb, $request-&gt;query-&gt;get('cursor'));
 $nextCursor = $page-&gt;hasNextPage() ? $page-&gt;getNextCursorAsString() : null;</code></pre></div>
 <?php } else { ?>
-<p>If OFFSET must stay, cap the page number and index the ORDER BY column.</p>
+<p><?= t('If OFFSET must stay, cap the page number and index the ORDER BY column.') ?></p>
 <?php } ?>
 
 <?php echo suggestionDocLink('https://use-the-index-luke.com/no-offset', 'Use The Index, Luke! No Offset'); ?>
@@ -44,5 +44,5 @@ $code = ob_get_clean();
 
 return [
     'code' => $code,
-    'description' => 'Replace deep OFFSET pagination with keyset pagination on an indexed sort column',
+    'description' => t('Replace deep OFFSET pagination with keyset pagination on an indexed sort column'),
 ];

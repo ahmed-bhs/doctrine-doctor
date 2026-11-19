@@ -25,7 +25,7 @@ final class Translator
 
     private static string $locale = self::DEFAULT_LOCALE;
 
-    /** @var array<string, array{exact: array<string, string>, patterns: list<array{0: string, 1: string}>}> */
+    /** @var array<string, array{exact: array<string, string>, patterns: list<array{0: string, 1: string}>, sources: array<string, string>}> */
     private static array $catalogs = [];
 
     public static function setLocale(string $locale): void
@@ -68,7 +68,21 @@ final class Translator
     }
 
     /**
-     * @param array{exact: array<string, string>, patterns: list<array{0: string, 1: string}>} $catalog
+     * Translates a sprintf format written in a template, before its values are put in.
+     * Unlike trans(), the format is looked up as is, so a translation may reorder the
+     * placeholders (%1$s, %2$s).
+     */
+    public static function format(string $format): string
+    {
+        if (self::DEFAULT_LOCALE === self::$locale) {
+            return $format;
+        }
+
+        return self::catalog(self::$locale)['sources'][$format] ?? $format;
+    }
+
+    /**
+     * @param array{exact: array<string, string>, patterns: list<array{0: string, 1: string}>, sources: array<string, string>} $catalog
      */
     private static function lookup(array $catalog, string $text): ?string
     {
@@ -84,7 +98,7 @@ final class Translator
     }
 
     /**
-     * @param array{exact: array<string, string>, patterns: list<array{0: string, 1: string}>} $catalog
+     * @param array{exact: array<string, string>, patterns: list<array{0: string, 1: string}>, sources: array<string, string>} $catalog
      */
     private static function find(array $catalog, string $key): ?string
     {
@@ -105,7 +119,7 @@ final class Translator
     }
 
     /**
-     * @return array{exact: array<string, string>, patterns: list<array{0: string, 1: string}>}
+     * @return array{exact: array<string, string>, patterns: list<array{0: string, 1: string}>, sources: array<string, string>}
      */
     private static function catalog(string $locale): array
     {
@@ -115,12 +129,14 @@ final class Translator
 
         $file = dirname(__DIR__, 2) . '/translations/' . basename($locale) . '.php';
         $entries = is_file($file) ? require $file : [];
-        $catalog = ['exact' => [], 'patterns' => []];
+        $catalog = ['exact' => [], 'patterns' => [], 'sources' => []];
 
         foreach (is_array($entries) ? $entries : [] as $source => $target) {
             if (!is_string($source) || !is_string($target)) {
                 continue;
             }
+
+            $catalog['sources'][$source] = $target;
 
             if (1 !== preg_match('/%(?:\d+\$)?[-+ 0]*\d*(?:\.\d+)?[sdfu]/', $source)) {
                 $catalog['exact'][$source] = $target;
@@ -130,7 +146,8 @@ final class Translator
             $parts = preg_split('/(%%|%(?:\d+\$)?[-+ 0]*\d*(?:\.\d+)?[sdfu])/', $source, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
             $regex = '';
             foreach ($parts as $part) {
-                $regex .= 1 === preg_match('/^%(?!%)/', $part) ? '(.+?)' : preg_quote(str_replace('%%', '%', $part), '/');
+                // A value never spans a sentence end, so a one-sentence entry cannot swallow the next sentence.
+                $regex .= 1 === preg_match('/^%(?!%)/', $part) ? '((?:(?![.!?]\\s+[A-Z0-9`"\'(]).)+?)' : preg_quote(str_replace('%%', '%', $part), '/');
             }
 
             $catalog['patterns'][] = ['/^' . $regex . '$/su', preg_replace('/%(?:\d+\$)?[-+ 0]*\d*(?:\.\d+)?[dfu]/', '%s', $target) ?? $target];

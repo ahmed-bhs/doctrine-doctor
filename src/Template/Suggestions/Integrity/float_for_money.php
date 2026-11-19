@@ -16,7 +16,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Store money as an integer amount'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> stores money as a float, which cannot represent most decimal amounts exactly (<code>0.1 + 0.2 !== 0.3</code>). Rounding errors then show up in totals and comparisons.</p>
+<p><?php echo t('<code>%s::$%s</code> stores money as a float, which cannot represent most decimal amounts exactly (<code>0.1 + 0.2 !== 0.3</code>). Rounding errors then show up in totals and comparisons.', $e($entityClass), $e($fieldName)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">use Money\{Currency, Money};
 
@@ -29,7 +29,7 @@ public function get<?php echo $e(ucfirst($fieldName)); ?>(): Money
     return new Money($this-><?php echo $e($fieldName); ?>Cents, new Currency('EUR'));
 }</code></pre></div>
 
-<p>A <code>decimal</code> column mapped to a PHP <code>string</code> also keeps exact values.</p>
+<p><?php echo t('A <code>decimal</code> column mapped to a PHP <code>string</code> also keeps exact values.'); ?></p>
 
 <?php echo suggestionDocLink('https://github.com/moneyphp/money', 'Money PHP library'); ?>
 </div>
@@ -38,5 +38,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Replace float with an integer amount or a decimal column',
+    'description' => t('Replace float with an integer amount or a decimal column'),
 ];

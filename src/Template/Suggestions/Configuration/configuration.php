@@ -14,7 +14,7 @@ declare(strict_types=1);
 $setting = (string) ($context['setting'] ?? 'unknown_setting');
 $currentValue = (string) ($context['current_value'] ?? '');
 $recommendedValue = (string) ($context['recommended_value'] ?? '');
-$description = (string) ($context['description'] ?? '');
+$description = tr((string) ($context['description'] ?? ''));
 $fixCommand = (string) ($context['fix_command'] ?? '');
 $e                                                                                                                                                               = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 $eCode                                                                                                                                                           = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_NOQUOTES, 'UTF-8');
@@ -22,7 +22,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Change ' . $setting); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($setting); ?></code> is set to <code><?php echo $e($currentValue); ?></code>; the recommended value is <code><?php echo $e($recommendedValue); ?></code>.<?php if ($description) {
+<p><?php echo t('<code>%s</code> is set to <code>%s</code>; the recommended value is <code>%s</code>.', $e($setting), $e($currentValue), $e($recommendedValue)); ?><?php if ($description) {
     ?> <?php echo $e($description); ?><?php
 } ?></p>
 <?php if ($fixCommand) { ?>
@@ -34,4 +34,4 @@ ob_start();
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Change %s from "%s" to "%s"', $setting, $currentValue, $recommendedValue)];
+return ['code' => $code, 'description' => t('Change %s from "%s" to "%s"', $setting, $currentValue, $recommendedValue)];

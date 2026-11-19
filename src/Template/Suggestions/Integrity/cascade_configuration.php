@@ -26,9 +26,9 @@ ob_start();
 <?php echo suggestionHeader($isComposition ? 'Cascade persist and remove to owned children' : 'Cascade only persist to independent entities'); ?>
 <div class="suggestion-content">
 <?php if ($isComposition) { ?>
-<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> (<?php echo $e($issueType); ?>) looks like a composition: each <?php echo $e($shortTarget); ?> belongs to one <?php echo $e($shortClass); ?>. Let the parent persist and delete its children.</p>
+<p><?php echo t('<code>%s::$%s</code> (%s) looks like a composition: each %s belongs to one %s. Let the parent persist and delete its children.', $e($shortClass), $e($fieldName), $e($issueType), $e($shortTarget), $e($shortClass)); ?></p>
 <?php } else { ?>
-<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> (<?php echo $e($issueType); ?>) links independent entities. <code>cascade: ['remove']</code> here would delete <?php echo $e($shortTarget); ?> rows that other records may still use.</p>
+<p><?php echo t('<code>%s::$%s</code> (%s) links independent entities. <code>cascade: [\'remove\']</code> here would delete %s rows that other records may still use.', $e($shortClass), $e($fieldName), $e($issueType), $e($shortTarget)); ?></p>
 <?php } ?>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\OneToMany(
@@ -44,4 +44,4 @@ private Collection $<?php echo $e($fieldName); ?>;</code></pre></div>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Cascade configuration for %s::$%s', $shortClass, $fieldName)];
+return ['code' => $code, 'description' => t('Cascade configuration for %s::$%s', $shortClass, $fieldName)];

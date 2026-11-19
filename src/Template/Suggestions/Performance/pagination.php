@@ -17,8 +17,8 @@ ob_start();
 <?php echo suggestionHeader('Paginate the result'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    <?php if ('' === $method) { ?>The query<?php } else { ?><code><?php echo $e($method); ?>()</code><?php } ?> <?php if ($resultCount > 0) { ?>returned <?php echo $e($resultCountLabel); ?> entities<?php } else { ?>loads the whole table<?php } ?> in one go.
-    Every one of them is hydrated and kept in memory, and the number grows with the table.
+    <?php echo t('%s %s in one go.', '' === $method ? t('The query') : '<code>' . $e($method) . '()</code>', $resultCount > 0 ? t('returned %s entities', $e($resultCountLabel)) : t('loads the whole table')); ?>
+    <?php echo t('Every one of them is hydrated and kept in memory, and the number grows with the table.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">$entities = $repository-&gt;createQueryBuilder('e')
@@ -28,7 +28,7 @@ ob_start();
     -&gt;getQuery()
     -&gt;getResult();</code></pre></div>
 
-<p>For batch jobs, iterate with <code>toIterable()</code> and call <code>$em-&gt;clear()</code> every few hundred entities.</p>
+<p><?php echo t('For batch jobs, iterate with <code>toIterable()</code> and call <code>$em-&gt;clear()</code> every few hundred entities.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/pagination.html', 'Doctrine pagination'); ?>
 </div>
@@ -37,5 +37,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Paginate the %s results of %s', $resultCountLabel, $method),
+    'description' => t('Paginate the %s results of %s', $resultCountLabel, $method),
 ];

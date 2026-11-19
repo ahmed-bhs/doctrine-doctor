@@ -16,8 +16,8 @@ ob_start();
 <?php echo suggestionHeader('Remove the unused JOIN'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    The <?php echo $e($type); ?> JOIN on <code><?php echo $e($table); ?></code> (alias <code><?php echo $e($alias); ?></code>) is neither selected nor used in a condition.
-    The database still performs it for every row.
+    <?php echo t('The %s JOIN on <code>%s</code> (alias <code>%s</code>) is neither selected nor used in a condition.', $e($type), $e($table), $e($alias)); ?>
+    <?php echo t('The database still performs it for every row.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Remove this line if the relation is not read
@@ -27,7 +27,7 @@ ob_start();
 -&gt;leftJoin('o.relation', '<?php echo $e($alias); ?>')
 -&gt;addSelect('<?php echo $e($alias); ?>')</code></pre></div>
 
-<p>An INNER JOIN also filters out rows without a match: keep it if that filter is intended.</p>
+<p><?php echo t('An INNER JOIN also filters out rows without a match: keep it if that filter is intended.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/dql-doctrine-query-language.html#joins', 'Doctrine ORM Joins'); ?>
 </div>
@@ -36,5 +36,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Remove the unused JOIN or add its alias to the SELECT',
+    'description' => t('Remove the unused JOIN or add its alias to the SELECT'),
 ];

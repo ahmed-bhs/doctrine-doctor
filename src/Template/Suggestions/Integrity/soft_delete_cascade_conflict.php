@@ -13,7 +13,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Drop onDelete CASCADE on soft-deleted rows'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> uses <code>onDelete: 'CASCADE'</code> on a soft-deleteable entity. A soft delete is an UPDATE, so the cascade never fires then, and a hard delete physically removes children that soft delete was meant to keep.</p>
+<p><?php echo t('<code>%s::$%s</code> uses <code>onDelete: \'CASCADE\'</code> on a soft-deleteable entity. A soft delete is an UPDATE, so the cascade never fires then, and a hard delete physically removes children that soft delete was meant to keep.', $e($shortClass), $e($fieldName)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">// Before
 #[ORM\JoinColumn(onDelete: 'CASCADE')]
@@ -23,7 +23,7 @@ private ?Category $<?php echo $e($fieldName); ?>;
 #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
 private ?Category $<?php echo $e($fieldName); ?>;</code></pre></div>
 
-<p>To soft-delete the children with their parent, use an ORM <code>cascade: ['remove']</code> instead: Gedmo turns each removal into a soft delete.</p>
+<p><?php echo t('To soft-delete the children with their parent, use an ORM <code>cascade: [\'remove\']</code> instead: Gedmo turns each removal into a soft delete.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine ORM Cascade Operations'); ?>
 </div>
@@ -32,5 +32,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Replace onDelete CASCADE on %s::%s, which conflicts with soft delete', $shortClass, $fieldName),
+    'description' => t('Replace onDelete CASCADE on %s::%s, which conflicts with soft delete', $shortClass, $fieldName),
 ];

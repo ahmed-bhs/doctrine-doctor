@@ -16,7 +16,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader("Align onDelete with cascade: ['remove']"); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($parentClass); ?>::$<?php echo $e($parentField); ?></code> deletes its children through <code>cascade: ['remove']</code>, but the foreign key on <code><?php echo $e($childClass); ?>::$<?php echo $e($childField); ?></code> uses <code>onDelete: 'SET NULL'</code>. A delete through the ORM removes the children, a delete in SQL keeps them with a NULL parent.</p>
+<p><?php echo t("<code>%s::$%s</code> deletes its children through <code>cascade: ['remove']</code>, but the foreign key on <code>%s::$%s</code> uses <code>onDelete: 'SET NULL'</code>. A delete through the ORM removes the children, a delete in SQL keeps them with a NULL parent.", $e($parentClass), $e($parentField), $e($childClass), $e($childField)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">class <?php echo $e($childClass); ?>
 
@@ -27,7 +27,7 @@ ob_start();
     private <?php echo $e($parentClass); ?> $<?php echo $e($childField); ?>;
 }</code></pre></div>
 
-<p>If children must outlive their parent, remove <code>cascade: ['remove']</code> from <code>$<?php echo $e($parentField); ?></code> instead.</p>
+<p><?php echo t("If children must outlive their parent, remove <code>cascade: ['remove']</code> from <code>$%s</code> instead.", $e($parentField)); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/working-with-associations.html#transitive-persistence-cascade-operations', 'Doctrine ORM Cascade Operations'); ?>
 </div>
@@ -36,5 +36,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Use onDelete="CASCADE" to match cascade="remove"',
+    'description' => t('Use onDelete="CASCADE" to match cascade="remove"'),
 ];

@@ -9,6 +9,7 @@
 
 declare(strict_types=1);
 
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use Doctrine\SqlFormatter\HtmlHighlighter;
 use Doctrine\SqlFormatter\SqlFormatter;
 
@@ -68,6 +69,32 @@ function escapeContext(string $str, string $context = 'html'): string
 }
 
 /**
+ * Translate a text of a template, then put its values in.
+ * The format is written by the template author and may hold markup (<code>, <strong>);
+ * the values must already be escaped by the caller. The French text lives in translations/fr.php.
+ * @param string $format English sprintf format
+ * @param string|int|float|null ...$values Escaped values
+ * @return string The translated text
+ */
+function t(string $format, string|int|float|null ...$values): string
+{
+    $translated = Translator::format($format);
+
+    return [] === $values ? $translated : vsprintf($translated, $values);
+}
+
+/**
+ * Translate a text received from an analyzer, already formatted with its values.
+ * @param mixed $text The text, null or a scalar
+ * @return string The translated plain text, to escape before output
+ */
+function tr(mixed $text): string
+{
+    // The context may arrive HTML-escaped: decode it so the catalog matches, the template escapes the result.
+    return Translator::trans(html_entity_decode(is_scalar($text) ? (string) $text : '', ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+}
+
+/**
  * Map an issue severity onto the Bootstrap-style alert class used by the panel.
  * Templates receive the severity through the 'severity' context key, injected by
  * SuggestionFactory, so the banner always matches the severity the analyzer reported.
@@ -90,7 +117,7 @@ function severityAlertClass(string $severity): string
  */
 function suggestionHeader(string $title): string
 {
-    return '<div class="suggestion-header"><h4>' . htmlspecialchars($title, ENT_NOQUOTES | ENT_HTML5, 'UTF-8') . "</h4></div>\n";
+    return '<div class="suggestion-header"><h4>' . htmlspecialchars(Translator::trans($title), ENT_NOQUOTES | ENT_HTML5, 'UTF-8') . "</h4></div>\n";
 }
 
 /**
@@ -113,7 +140,7 @@ function suggestionAlert(string $severity, string $html): string
  */
 function suggestionCodeBlock(string $title, string $code, string $language = 'php'): string
 {
-    $heading = '' === $title ? '' : '<h4>' . escape($title) . "</h4>\n";
+    $heading = '' === $title ? '' : '<h4>' . escape(Translator::trans($title)) . "</h4>\n";
 
     return $heading
         . '<div class="query-item"><pre><code class="language-' . escapeContext($language, 'css') . '">'
@@ -132,6 +159,6 @@ function suggestionDocLink(string $url, string $label): string
     // The label is element text, so quotes need no entity encoding: escaping them
     // would render &apos; in the panel. The href stays attribute-escaped.
     return '<p><a href="' . escape($url) . '" target="_blank" rel="noopener noreferrer" class="doc-link">'
-        . htmlspecialchars($label, ENT_NOQUOTES | ENT_HTML5, 'UTF-8')
+        . htmlspecialchars(Translator::trans($label), ENT_NOQUOTES | ENT_HTML5, 'UTF-8')
         . '</a></p>';
 }

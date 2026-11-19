@@ -10,7 +10,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Use a persistent cache pool in production'); ?>
 <div class="suggestion-content">
-<p><?php echo $e($cacheLabel); ?> uses <code><?php echo $e($currentConfig); ?></code> in production. An array cache is emptied after each request, so Doctrine parses metadata and compiles DQL again on every request.</p>
+<p><?php echo t('%s uses <code>%s</code> in production. An array cache is emptied after each request, so Doctrine parses metadata and compiles DQL again on every request.', $e($cacheLabel), $e($currentConfig)); ?></p>
 
 <div class="query-item"><pre><code class="language-yaml"># config/packages/doctrine.yaml
 when@prod:
@@ -25,7 +25,7 @@ when@prod:
                 doctrine.system_cache_pool: { adapter: cache.system }
                 doctrine.result_cache_pool: { adapter: cache.app }</code></pre></div>
 
-<p>For the result cache, use Redis (<code>cache.adapter.redis</code>) when several servers must share it, or APCu (<code>cache.adapter.apcu</code>) on a single server.</p>
+<p><?php echo t('For the result cache, use Redis (<code>cache.adapter.redis</code>) when several servers must share it, or APCu (<code>cache.adapter.apcu</code>) on a single server.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html', 'Doctrine ORM Caching Documentation'); ?>
 </div>
@@ -34,5 +34,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Replace the array cache with a persistent pool in production',
+    'description' => t('Replace the array cache with a persistent pool in production'),
 ];

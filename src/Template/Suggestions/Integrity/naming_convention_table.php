@@ -16,7 +16,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Rename the table in snake_case'); ?>
 <div class="suggestion-content">
-<?php echo suggestionAlert($severity, 'Table <code>' . escape($current) . '</code> should be named <code>' . escape($suggested) . '</code>: lowercase snake_case, not an SQL reserved word. Generate a migration after renaming.'); ?>
+<?php echo suggestionAlert($severity, t('Table <code>%s</code> should be named <code>%s</code>: lowercase snake_case, not an SQL reserved word. Generate a migration after renaming.', escape($current), escape($suggested))); ?>
 
 <?php echo suggestionCodeBlock('', sprintf("// Before\n#[ORM\\Table(name: '%s')]\nclass %s {}\n\n// After\n#[ORM\\Table(name: '%s')]\nclass %s {}", $current, $entityClass, $suggested, $entityClass)); ?>
 
@@ -27,5 +27,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf("Rename table from '%s' to '%s'", $current, $suggested),
+    'description' => t("Rename table from '%s' to '%s'", $current, $suggested),
 ];

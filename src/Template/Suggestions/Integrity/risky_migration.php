@@ -13,7 +13,7 @@ ob_start();
 <?php if ('drops' === $case) { ?>
 <?php echo suggestionHeader('Keep the data before dropping it'); ?>
 <div class="suggestion-content">
-<p>Split the change: first deploy code that no longer reads the column, then drop it in a later migration. If the data still matters, copy it first.</p>
+<p><?php echo t('Split the change: first deploy code that no longer reads the column, then drop it in a later migration. If the data still matters, copy it first.'); ?></p>
 
 <div class="query-item"><pre><code class="language-php">public function up(Schema $schema): void
 {
@@ -24,7 +24,7 @@ ob_start();
 <?php } elseif ('irreversible' === $case) { ?>
 <?php echo suggestionHeader('Write the down() that undoes up()'); ?>
 <div class="suggestion-content">
-<p>Each statement of <code><?php echo $e($class); ?>::up()</code> needs its opposite in <code>down()</code>. When it cannot be undone, say it explicitly.</p>
+<p><?php echo t('Each statement of <code>%s::up()</code> needs its opposite in <code>down()</code>. When it cannot be undone, say it explicitly.', $e($class)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">public function down(Schema $schema): void
 {
@@ -33,7 +33,7 @@ ob_start();
 <?php } else { ?>
 <?php echo suggestionHeader('Write SQL, not entities, in migrations'); ?>
 <div class="suggestion-content">
-<p>A migration runs months later, against the entities of that day. Move data with SQL, which stays true to the schema of the migration.</p>
+<p><?php echo t('A migration runs months later, against the entities of that day. Move data with SQL, which stays true to the schema of the migration.'); ?></p>
 
 <div class="query-item"><pre><code class="language-php">$this->addSql("UPDATE sylius_order SET notes = 'migrated' WHERE notes IS NULL");</code></pre></div>
 <?php } ?>
@@ -46,5 +46,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Make %s safe to run and to roll back', $class),
+    'description' => t('Make %s safe to run and to roll back', $class),
 ];

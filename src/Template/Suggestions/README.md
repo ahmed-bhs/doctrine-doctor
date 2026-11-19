@@ -158,6 +158,19 @@ private function createSuggestion(): SuggestionInterface
 - Create overly complex templates
 - Duplicate content across templates
 
+## 🌍 Translating a Template
+
+A template exists once, in English. Wrap its prose in `t()`, with a `%s` for each escaped value:
+
+```php
+<p><?php echo t('<code>%s</code> is loaded on every request.', $e($entity)); ?></p>
+```
+
+Then add the English format and its French text to `translations/fr.php`. Titles given to
+`suggestionHeader()`, `suggestionCodeBlock()` and `suggestionDocLink()` are translated without `t()`.
+Code examples are never translated. `SuggestionTemplateCatalogTest` fails when a text has no French entry,
+or when the French entry has other placeholders or markup.
+
 ## 🔍 Testing Your Template
 
 1. **Manually**: Run the analyzer and check the output

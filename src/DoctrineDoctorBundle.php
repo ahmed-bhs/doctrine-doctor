@@ -11,13 +11,13 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor;
 
-use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Analyzer\StaticAnalyzerInterface;
 use AhmedBhs\DoctrineDoctor\Collector\AnalysisResultStore;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\AnalyzerExecutionModePass;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\ConditionalLoggerPass;
 use AhmedBhs\DoctrineDoctor\DependencyInjection\Compiler\RemoveOrmServicesPass;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;

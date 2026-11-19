@@ -10,7 +10,7 @@ $parentEntity    = (string) ($context['parent_entity'] ?? 'Entity');
 $collectionField = (string) ($context['collection_field'] ?? 'items');
 $childEntity     = (string) ($context['child_entity'] ?? 'RelatedEntity');
 $queryCount      = (int) ($context['query_count'] ?? 0);
-$triggerLocation = (string) ($context['trigger_location'] ?? 'the calling code');
+$triggerLocation = (string) ($context['trigger_location'] ?? t('the calling code'));
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 
 $lcCollectionField = lcfirst($collectionField);
@@ -21,8 +21,8 @@ ob_start();
 <?php echo suggestionHeader('Fetch-join the collection'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    <?php echo $queryCount; ?> queries loaded <code><?php echo $e($parentEntity); ?>::$<?php echo $e($collectionField); ?></code> (<?php echo $e($childEntity); ?>) one parent at a time<?php if ('' !== $triggerLocation) { ?>, triggered at <code><?php echo $e($triggerLocation); ?></code><?php } ?>.
-    Selecting the joined collection loads it with the parents.
+    <?php echo t('%d queries loaded <code>%s::$%s</code> (%s) one parent at a time%s.', $queryCount, $e($parentEntity), $e($collectionField), $e($childEntity), '' === $triggerLocation ? '' : t(', triggered at <code>%s</code>', $e($triggerLocation))); ?>
+    <?php echo t('Selecting the joined collection loads it with the parents.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">$entities = $repository-&gt;createQueryBuilder('e')
@@ -32,7 +32,7 @@ ob_start();
     -&gt;getResult();
 // 1 query instead of <?php echo $queryCount; ?></code></pre></div>
 
-<p>If the code only calls <code>count()</code>, <code>contains()</code> or <code>slice()</code>, map the collection with <code>fetch: 'EXTRA_LAZY'</code> instead.</p>
+<p><?php echo t("If the code only calls <code>count()</code>, <code>contains()</code> or <code>slice()</code>, map the collection with <code>fetch: 'EXTRA_LAZY'</code> instead."); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins', 'Doctrine DQL Joins Documentation'); ?>
 </div>
@@ -41,5 +41,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Fetch-join %s::$%s with addSelect(), or map it EXTRA_LAZY', $parentEntity, $collectionField),
+    'description' => t('Fetch-join %s::$%s with addSelect(), or map it EXTRA_LAZY', $parentEntity, $collectionField),
 ];

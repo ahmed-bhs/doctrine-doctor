@@ -15,7 +15,7 @@ ob_start();
 <?php echo suggestionHeader('Use a default expression object'); ?>
 
 <div class="suggestion-content">
-    <p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> uses the raw string <code><?php echo $e($defaultValue); ?></code> as its default. ORM 3.6 deprecates string defaults on temporal columns and ORM 4.0 removes them; DBAL 4.4 replaces them with expression objects.</p>
+    <p><?php echo t('<code>%s::$%s</code> uses the raw string <code>%s</code> as its default. ORM 3.6 deprecates string defaults on temporal columns and ORM 4.0 removes them; DBAL 4.4 replaces them with expression objects.', $e($entityClass), $e($fieldName), $e($defaultValue)); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">// Before
@@ -28,14 +28,14 @@ use Doctrine\DBAL\Schema\DefaultExpression\<?php echo $e($expressionName); ?>;
 private \DateTimeImmutable $<?php echo $e($fieldName); ?>;</code></pre>
     </div>
 
-    <p>For entities written only through the ORM, setting the value in the constructor and dropping the database default also works.</p>
+    <p><?php echo t('For entities written only through the ORM, setting the value in the constructor and dropping the database default also works.'); ?></p>
 </div>
 <?php
 $html = (string) ob_get_clean();
 
 return [
     'code' => $html,
-    'description' => sprintf(
+    'description' => t(
         'Replace the string default on %s::$%s with a %s instance',
         $entityClass,
         $fieldName,

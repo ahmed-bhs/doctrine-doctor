@@ -13,7 +13,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Replace the soft delete setter'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> has a public setter, so any caller can backdate or clear a deletion. Expose <code>delete()</code> and <code>restore()</code> instead.</p>
+<p><?php echo t('<code>%s::$%s</code> has a public setter, so any caller can backdate or clear a deletion. Expose <code>delete()</code> and <code>restore()</code> instead.', $e($shortClass), $e($fieldName)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">public function delete(): void
 {
@@ -37,5 +37,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Remove public setter on soft delete field %s::%s', $shortClass, $fieldName),
+    'description' => t('Remove public setter on soft delete field %s::%s', $shortClass, $fieldName),
 ];

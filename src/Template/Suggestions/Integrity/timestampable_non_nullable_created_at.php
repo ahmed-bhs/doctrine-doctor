@@ -17,7 +17,7 @@ ob_start();
 <?php echo suggestionHeader('Make the timestamp NOT NULL'); ?>
 
 <div class="suggestion-content">
-    <p><code><?= $e($entityClass) ?>::$<?= $e($fieldName) ?></code> is nullable, but a timestamp is always set when the row is written. NOT NULL lets the database reject rows that skipped it.</p>
+    <p><?php echo t('<code>%s::$%s</code> is nullable, but a timestamp is always set when the row is written. NOT NULL lets the database reject rows that skipped it.', $e($entityClass), $e($fieldName)); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">// Before
@@ -37,5 +37,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Make %s::$%s NOT NULL', $entityClass, $fieldName),
+    'description' => t('Make %s::$%s NOT NULL', $entityClass, $fieldName),
 ];

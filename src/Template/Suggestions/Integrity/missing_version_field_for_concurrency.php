@@ -13,7 +13,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Add a version field for optimistic locking'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($entity_class); ?></code> is written concurrently without a <code>#[ORM\Version]</code> field, so the last flush silently overwrites earlier changes. With a version, Doctrine adds <code>WHERE version = ?</code> to each UPDATE and throws <code>OptimisticLockException</code> on a conflict.</p>
+<p><?php echo t('<code>%s</code> is written concurrently without a <code>#[ORM\Version]</code> field, so the last flush silently overwrites earlier changes. With a version, Doctrine adds <code>WHERE version = ?</code> to each UPDATE and throws <code>OptimisticLockException</code> on a conflict.', $e($entity_class)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Version]
 #[ORM\Column(type: Types::INTEGER)]
@@ -26,7 +26,7 @@ try {
     // reload the entity, reapply the change, retry
 }</code></pre></div>
 
-<p>Under high contention, lock the row on read instead with <code>$em-&gt;find(<?php echo $e($entity_class); ?>::class, $id, LockMode::PESSIMISTIC_WRITE)</code> inside a transaction.</p>
+<p><?php echo t('Under high contention, lock the row on read instead with <code>$em-&gt;find(%s::class, $id, LockMode::PESSIMISTIC_WRITE)</code> inside a transaction.', $e($entity_class)); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/transactions-and-concurrency.html#optimistic-locking', 'Doctrine ORM Optimistic Locking'); ?>
 </div>
@@ -35,5 +35,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Add an #[ORM\Version] field for optimistic locking',
+    'description' => t('Add an #[ORM\Version] field for optimistic locking'),
 ];

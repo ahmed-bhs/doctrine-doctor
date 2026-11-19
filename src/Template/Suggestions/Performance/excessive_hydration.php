@@ -19,8 +19,8 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Hydrate fewer rows or lighter results'); ?>
 <div class="suggestion-content">
-<p>The query hydrated <?php echo (int) $rowCount; ?> rows into managed entities, each one tracked by the unit of work.
-A read-only screen rarely needs that: page the result or hydrate plain data.</p>
+<p><?php echo t('The query hydrated %d rows into managed entities, each one tracked by the unit of work.', (int) $rowCount); ?>
+<?php echo t('A read-only screen rarely needs that: page the result or hydrate plain data.'); ?></p>
 
 <div class="query-item"><pre><code class="language-php">// Page the result
 $query-&gt;setFirstResult($offset)-&gt;setMaxResults(50);
@@ -38,5 +38,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Query hydrated %d rows: paginate or use DTO or array hydration', $rowCount),
+    'description' => t('Query hydrated %d rows: paginate or use DTO or array hydration', $rowCount),
 ];

@@ -25,7 +25,7 @@ ob_start();
 <?php echo suggestionHeader('Add a database unique constraint'); ?>
 
 <div class="suggestion-content">
-    <p><code>#[UniqueEntity]</code> on <code><?php echo $e($entityClass); ?></code> checks uniqueness in PHP only. Two concurrent requests can both pass the check and insert duplicates unless the database enforces it.</p>
+    <p><?php echo t('<code>#[UniqueEntity]</code> on <code>%s</code> checks uniqueness in PHP only. Two concurrent requests can both pass the check and insert duplicates unless the database enforces it.', $e($entityClass)); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">#[ORM\Entity]
@@ -38,9 +38,9 @@ class <?php echo $e($entityClass); ?>
     </div>
 
 <?php if ($isSingleColumn && 1 === count($fields)) { ?>
-    <p>For a single column, <code>#[ORM\Column(unique: true)]</code> on <code>$<?php echo $e($fields[0]); ?></code> does the same. Generate a migration afterwards.</p>
+    <p><?php echo t('For a single column, <code>#[ORM\Column(unique: true)]</code> on <code>$%s</code> does the same. Generate a migration afterwards.', $e($fields[0])); ?></p>
 <?php } else { ?>
-    <p>Generate a migration afterwards; it fails if duplicates already exist.</p>
+    <p><?php echo t('Generate a migration afterwards; it fails if duplicates already exist.'); ?></p>
 <?php } ?>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/attributes-reference.html#uniqueconstraint', 'Doctrine UniqueConstraint reference'); ?>
@@ -52,5 +52,5 @@ $fieldList = implode(', ', $fields);
 
 return [
     'code'        => $code,
-    'description' => sprintf('Add a database unique constraint on %s for %s', $fieldList, $entityClass),
+    'description' => t('Add a database unique constraint on %s for %s', $fieldList, $entityClass),
 ];

@@ -11,8 +11,8 @@ ob_start();
 <?php echo suggestionHeader('Add an ORDER BY to paginated queries'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    LIMIT or OFFSET without ORDER BY returns rows in an undefined order, so two pages can repeat or skip rows.
-    Sort on a unique column, or add the primary key as a tie-breaker.
+    <?= t('LIMIT or OFFSET without ORDER BY returns rows in an undefined order, so two pages can repeat or skip rows.') ?>
+    <?= t('Sort on a unique column, or add the primary key as a tie-breaker.') ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">// Before
@@ -32,5 +32,5 @@ $code = ob_get_clean();
 
 return [
     'code' => $code,
-    'description' => 'Add a deterministic ORDER BY when paginating with LIMIT/OFFSET',
+    'description' => t('Add a deterministic ORDER BY when paginating with LIMIT/OFFSET'),
 ];

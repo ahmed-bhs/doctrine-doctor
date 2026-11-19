@@ -15,8 +15,8 @@ ob_start();
 <?php echo suggestionHeader('Cache the entity in the second-level cache'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    The same entity load ran <?php echo $count; ?> times, <?php echo number_format($avgTime, 2); ?>ms on average.
-    The second-level cache serves the entity after the first load without a query.
+    <?php echo t('The same entity load ran %d times, %sms on average.', $count, number_format($avgTime, 2)); ?>
+    <?php echo t('The second-level cache serves the entity after the first load without a query.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Entity]
@@ -27,7 +27,7 @@ class Product
 
 // config/packages/doctrine.yaml: doctrine.orm.second_level_cache.enabled: true</code></pre></div>
 
-<p>Use <code>READ_ONLY</code> only for entities that never change; use <code>NONSTRICT_READ_WRITE</code> or <code>READ_WRITE</code> for the others.</p>
+<p><?php echo t('Use <code>READ_ONLY</code> only for entities that never change; use <code>NONSTRICT_READ_WRITE</code> or <code>READ_WRITE</code> for the others.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/second-level-cache.html', 'Doctrine ORM Second Level Cache'); ?>
 </div>
@@ -36,5 +36,5 @@ $code = ob_get_clean();
 
 return [
     'code' => $code,
-    'description' => sprintf('Enable the second-level cache for this entity (%d repeated loads)', $count),
+    'description' => t('Enable the second-level cache for this entity (%d repeated loads)', $count),
 ];

@@ -15,8 +15,8 @@ ob_start();
 <?php echo suggestionHeader('Replace per-entity writes with one statement'); ?>
 <div class="suggestion-content">
 <div class="alert alert-warning">
-    <?php echo $operationCount; ?> separate <?php echo $isDelete ? 'DELETE' : 'UPDATE'; ?> statements ran on <code><?php echo $e($table); ?></code>, one per entity.
-    One set-based statement does the same work in one round trip, but skips lifecycle callbacks, listeners and cascades.
+    <?php echo t('%d separate %s statements ran on <code>%s</code>, one per entity.', $operationCount, $isDelete ? 'DELETE' : 'UPDATE', $e($table)); ?>
+    <?php echo t('One set-based statement does the same work in one round trip, but skips lifecycle callbacks, listeners and cascades.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-php">use Doctrine\DBAL\ArrayParameterType;
@@ -35,7 +35,7 @@ $em-&gt;getConnection()-&gt;executeStatement(
     [ParameterType::STRING, ArrayParameterType::INTEGER],
 );<?php } ?></code></pre></div>
 
-<p>To keep the listeners, stay in the ORM and flush and clear in batches; it still sends one statement per entity.</p>
+<p><?php echo t('To keep the listeners, stay in the ORM and flush and clear in batches; it still sends one statement per entity.'); ?></p>
 <div class="query-item"><pre><code class="language-php">foreach ($entities as $i =&gt; $entity) {
     $entity-&gt;archive();
     if (0 === ($i + 1) % 50) {
@@ -50,4 +50,4 @@ $em-&gt;flush();</code></pre></div>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Replace %d per-entity writes with one set-based statement, or batch them with flush() and clear()', $operationCount)];
+return ['code' => $code, 'description' => t('Replace %d per-entity writes with one set-based statement, or batch them with flush() and clear()', $operationCount)];

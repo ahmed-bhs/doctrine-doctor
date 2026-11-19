@@ -17,7 +17,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Make the creator column NOT NULL'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> is nullable, so a row can be saved without knowing who created it. Require the creator in the constructor and drop the public setter.</p>
+<p><?php echo t('<code>%s::$%s</code> is nullable, so a row can be saved without knowing who created it. Require the creator in the constructor and drop the public setter.', $e($shortClass), $e($fieldName)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Entity]
 class <?php echo $e($shortClass); ?>
@@ -40,5 +40,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Make createdBy non-nullable for reliable audit data',
+    'description' => t('Make createdBy non-nullable for reliable audit data'),
 ];

@@ -28,8 +28,8 @@ ob_start();
 <?php echo suggestionHeader('Cache the result of this repeated query'); ?>
 <div class="suggestion-content">
 <div class="alert <?php echo severityAlertClass($severity); ?>">
-    The same query ran <?php echo $count; ?> <?php echo 1 === $count ? 'time' : 'times'; ?> (<?php echo number_format($totalTime, 2); ?>ms total, <?php echo number_format($avgTime, 2); ?>ms on average).
-    A result cache answers the repeats without reaching the database.
+    <?php echo 1 === $count ? t('The same query ran %d time (%sms total, %sms on average).', $count, number_format($totalTime, 2), number_format($avgTime, 2)) : t('The same query ran %d times (%sms total, %sms on average).', $count, number_format($totalTime, 2), number_format($avgTime, 2)); ?>
+    <?php echo t('A result cache answers the repeats without reaching the database.'); ?>
 </div>
 
 <div class="query-item"><pre><code class="language-sql"><?php echo $e($sql); ?></code></pre></div>
@@ -39,7 +39,7 @@ ob_start();
 // When the data changes, drop the entry
 $em-&gt;getConfiguration()-&gt;getResultCache()?-&gt;deleteItem('product_' . $id);</code></pre></div>
 
-<p>If the repeats come from one request, store the result in a variable instead of caching it.</p>
+<p><?php echo t('If the repeats come from one request, store the result in a variable instead of caching it.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/stable/reference/caching.html', 'Doctrine ORM Caching'); ?>
 </div>
@@ -48,7 +48,7 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf(
+    'description' => t(
         'Cache frequently executed query (%d executions, %sms total)',
         $count,
         number_format($totalTime, 2),

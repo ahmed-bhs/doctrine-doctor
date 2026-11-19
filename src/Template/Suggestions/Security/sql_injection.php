@@ -21,7 +21,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        <?php echo $e($className); ?>::<?php echo $e($methodName); ?>() builds a query by string concatenation (<?php echo $e($vulnType); ?>). Input containing quotes can change what the query does.
+        <?php echo t('%s::%s() builds a query by string concatenation (%s). Input containing quotes can change what the query does.', $e($className), $e($methodName), $e($vulnType)); ?>
     </div>
 
 <?php if ($isDbal) { ?>
@@ -56,4 +56,4 @@ $qb-&gt;select('u')
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => 'Bind query values as parameters instead of concatenating them'];
+return ['code' => $code, 'description' => t('Bind query values as parameters instead of concatenating them')];

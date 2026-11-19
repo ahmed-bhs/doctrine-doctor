@@ -21,7 +21,7 @@ ob_start();
 <?php echo suggestionHeader('Group related fields in an embeddable'); ?>
 
 <div class="suggestion-content">
-    <p><code><?= $e($entityClass) ?></code> has fields that belong together: <code><?= implode(', ', array_map(static fn (mixed $field): string => $e((string) $field), $fields)) ?></code>. An embeddable keeps them and their validation in one value object.</p>
+    <p><?php echo t('<code>%s</code> has fields that belong together: <code>%s</code>. An embeddable keeps them and their validation in one value object.', $e($entityClass), implode(', ', array_map(static fn (mixed $field): string => $e((string) $field), $fields))); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">#[ORM\Embeddable]
@@ -47,5 +47,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Group related fields of %s in an embeddable', $entityClass),
+    'description' => t('Group related fields of %s in an embeddable', $entityClass),
 ];

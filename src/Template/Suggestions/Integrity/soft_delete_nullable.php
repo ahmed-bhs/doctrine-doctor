@@ -13,7 +13,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Make the soft delete field nullable'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($shortClass); ?>::$<?php echo $e($fieldName); ?></code> is NOT NULL. Soft delete treats NULL as active and a date as deleted, so every row needs a date and counts as deleted.</p>
+<p><?php echo t('<code>%s::$%s</code> is NOT NULL. Soft delete treats NULL as active and a date as deleted, so every row needs a date and counts as deleted.', $e($shortClass), $e($fieldName)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
 private ?\DateTimeImmutable $<?php echo $e($fieldName); ?> = null;
@@ -30,5 +30,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Make soft delete field %s::%s nullable', $shortClass, $fieldName),
+    'description' => t('Make soft delete field %s::%s nullable', $shortClass, $fieldName),
 ];

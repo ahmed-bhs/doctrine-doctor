@@ -15,7 +15,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Keep only the owning side'); ?>
 <div class="suggestion-content">
-<p>Remove <code><?php echo $e($entityClass); ?>::$<?php echo $e($field); ?></code> with its getter, adder and remover, and keep <code><?php echo $e($targetClass); ?>::$<?php echo $e($mappedBy); ?></code>. When you need the list, ask the repository, and a DQL join still works without the inverse side.</p>
+<p><?php echo t('Remove <code>%s::$%s</code> with its getter, adder and remover, and keep <code>%s::$%s</code>. When you need the list, ask the repository, and a DQL join still works without the inverse side.', $e($entityClass), $e($field), $e($targetClass), $e($mappedBy)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">// Load the list when you need it
 $<?php echo $e($field); ?> = $<?php echo $e(lcfirst((string) $targetClass)); ?>Repository->findBy(['<?php echo $e($mappedBy); ?>' => $<?php echo $e($owner); ?>]);
@@ -33,5 +33,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Remove the unused inverse side %s::$%s', $entityClass, $field),
+    'description' => t('Remove the unused inverse side %s::$%s', $entityClass, $field),
 ];

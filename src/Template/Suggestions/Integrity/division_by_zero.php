@@ -14,7 +14,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Guard the divisor with NULLIF()'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e((string) $unsafe_division); ?></code> raises an error on PostgreSQL and SQL Server when <code><?php echo $e((string) $divisor); ?></code> is 0. <code>NULLIF(<?php echo $e((string) $divisor); ?>, 0)</code> turns that case into <code>NULL</code>.</p>
+<p><?php echo t('<code>%s</code> raises an error on PostgreSQL and SQL Server when <code>%s</code> is 0. <code>NULLIF(%s, 0)</code> turns that case into <code>NULL</code>.', $e((string) $unsafe_division), $e((string) $divisor), $e((string) $divisor)); ?></p>
 
 <div class="query-item"><pre><code class="language-sql">-- Before
 <?php echo $e((string) $unsafe_division); ?>
@@ -30,5 +30,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Use NULLIF() to prevent division by zero',
+    'description' => t('Use NULLIF() to prevent division by zero'),
 ];

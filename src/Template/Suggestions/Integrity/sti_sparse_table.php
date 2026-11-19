@@ -28,7 +28,7 @@ ob_start();
 <?php echo suggestionHeader('Consider JOINED inheritance'); ?>
 
 <div class="suggestion-content">
-    <p><code><?php echo $e($subclass); ?></code> uses <?php echo $ownFieldsCount; ?> of the <?php echo $totalColumns; ?> columns of the single table shared by <?php echo $subclassCount; ?> subclasses (<?php echo $sparsePercentage; ?>% unused). Its rows carry NULL in every column of the other subclasses.</p>
+    <p><?php echo t('<code>%s</code> uses %s of the %s columns of the single table shared by %s subclasses (%s unused). Its rows carry NULL in every column of the other subclasses.', $e($subclass), $ownFieldsCount, $totalColumns, $subclassCount, $sparsePercentage . '%'); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">#[ORM\Entity]
@@ -48,7 +48,7 @@ class <?php echo $e($subclass); ?> extends <?php echo $e($rootClass); ?>
 }</code></pre>
     </div>
 
-    <p>JOINED adds a join per query on the hierarchy; keep single table if the subclasses are mostly read together.</p>
+    <p><?php echo t('JOINED adds a join per query on the hierarchy; keep single table if the subclasses are mostly read together.'); ?></p>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html#class-table-inheritance', 'Doctrine: Class Table Inheritance'); ?>
 </div>
@@ -57,5 +57,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Consider JOINED inheritance for %s: %s uses %d of %d columns', $rootClass, $subclass, $ownFieldsCount, $totalColumns),
+    'description' => t('Consider JOINED inheritance for %s: %s uses %d of %d columns', $rootClass, $subclass, $ownFieldsCount, $totalColumns),
 ];

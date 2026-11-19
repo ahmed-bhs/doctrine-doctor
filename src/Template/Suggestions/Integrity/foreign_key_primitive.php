@@ -24,7 +24,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Map the foreign key as an association'); ?>
 <div class="suggestion-content">
-<p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> stores the id of a <code><?php echo $e($targetEntity); ?></code> as a plain integer. Doctrine then cannot load, join or check the related entity, and every caller must look it up by hand.</p>
+<p><?php echo t('<code>%s::$%s</code> stores the id of a <code>%s</code> as a plain integer. Doctrine then cannot load, join or check the related entity, and every caller must look it up by hand.', $e($entityClass), $e($fieldName), $e($targetEntity)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">use <?php echo $e($targetFqcn); ?>;
 
@@ -37,7 +37,7 @@ private int $<?php echo $e($fieldName); ?>;
 #[ORM\JoinColumn(name: '<?php echo $e($columnName); ?>', nullable: false)]
 private <?php echo $e($targetShort); ?> $<?php echo $e($propertyName); ?>;</code></pre></div>
 
-<p>Keeping the column name keeps the data: the migration only adds the foreign key constraint, and fails if a row points to a missing <?php echo $e($targetShort); ?>.</p>
+<p><?php echo t('Keeping the column name keeps the data: the migration only adds the foreign key constraint, and fails if a row points to a missing %s.', $e($targetShort)); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/association-mapping.html', 'Doctrine Association Mapping'); ?>
 </div>
@@ -46,5 +46,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => 'Map the foreign key as an association',
+    'description' => t('Map the foreign key as an association'),
 ];

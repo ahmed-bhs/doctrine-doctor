@@ -11,7 +11,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Reset the EntityManager or stop after a failed flush'); ?>
 <div class="suggestion-content">
-<p>After a failed <code>flush()</code> in <code><?php echo $e($method); ?>()</code>, the EntityManager is closed and its pending changes are lost. Either stop, or get a fresh EntityManager from the registry before going on.</p>
+<p><?php echo t('After a failed <code>flush()</code> in <code>%s()</code>, the EntityManager is closed and its pending changes are lost. Either stop, or get a fresh EntityManager from the registry before going on.', $e($method)); ?></p>
 
 <div class="query-item"><pre><code class="language-php">foreach ($rows as $row) {
     try {
@@ -23,7 +23,7 @@ ob_start();
     }
 }</code></pre></div>
 
-<p>Check a row before persisting it when you can, so that a duplicate does not reach the database at all.</p>
+<p><?php echo t('Check a row before persisting it when you can, so that a duplicate does not reach the database at all.'); ?></p>
 
 <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/transactions-and-concurrency.html#exception-handling', 'Doctrine: exception handling'); ?>
 </div>
@@ -33,5 +33,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Do not reuse the EntityManager after a failed flush in %s()', $method),
+    'description' => t('Do not reuse the EntityManager after a failed flush in %s()', $method),
 ];

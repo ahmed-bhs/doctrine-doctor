@@ -17,7 +17,7 @@ ob_start();
 <?php echo suggestionHeader('Store timestamps in UTC'); ?>
 
 <div class="suggestion-content">
-    <p><code><?php echo $e($entityClass); ?>::$<?php echo $e($fieldName); ?></code> uses <code>datetime</code>, which drops the timezone. Values written from different timezones become ambiguous unless they are all converted to UTC first.</p>
+    <p><?php echo t('<code>%s::$%s</code> uses <code>datetime</code>, which drops the timezone. Values written from different timezones become ambiguous unless they are all converted to UTC first.', $e($entityClass), $e($fieldName)); ?></p>
 
     <div class="query-item">
         <pre><code class="language-php">#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
@@ -30,7 +30,7 @@ public function onCreate(): void
 }</code></pre>
     </div>
 
-    <p>To keep the original offset instead, map the field as <code>datetimetz_immutable</code>.</p>
+    <p><?php echo t('To keep the original offset instead, map the field as <code>datetimetz_immutable</code>.'); ?></p>
 
     <?php echo suggestionDocLink('https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#datetimetz', 'Doctrine DateTimeTZ'); ?>
 </div>
@@ -39,5 +39,5 @@ $code = ob_get_clean();
 
 return [
     'code'        => $code,
-    'description' => sprintf('Store %s::$%s in UTC or map it as datetimetz', $entityClass, $fieldName),
+    'description' => t('Store %s::$%s in UTC or map it as datetimetz', $entityClass, $fieldName),
 ];

@@ -19,7 +19,7 @@ ob_start();
 ?>
 <?php echo suggestionHeader('Use a cryptographically secure generator'); ?>
 <div class="suggestion-content">
-<div class="alert alert-danger"><?php echo $e($shortClass); ?>::<?php echo $e($methodName); ?>() calls <code><?php echo $e($insecureFunction); ?>()</code>, whose output can be predicted. Tokens, passwords and session IDs need <code>random_bytes()</code> or <code>random_int()</code>.</div>
+<div class="alert alert-danger"><?php echo t('%s::%s() calls <code>%s()</code>, whose output can be predicted. Tokens, passwords and session IDs need <code>random_bytes()</code> or <code>random_int()</code>.', $e($shortClass), $e($methodName), $e($insecureFunction)); ?></div>
 
 <div class="query-item"><pre><code class="language-php">// Before
 $token = bin2hex(<?php echo $e($insecureFunction); ?>(16));
@@ -33,4 +33,4 @@ $pin = random_int(100000, 999999);</code></pre></div>
 <?php
 $code = ob_get_clean();
 
-return ['code' => $code, 'description' => sprintf('Replace %s() with random_bytes() in %s::%s()', $insecureFunction, $shortClass, $methodName)];
+return ['code' => $code, 'description' => t('Replace %s() with random_bytes() in %s::%s()', $insecureFunction, $shortClass, $methodName)];
