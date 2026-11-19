@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace AhmedBhs\DoctrineDoctor\Issue;
 
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueCategory;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 
@@ -29,12 +30,22 @@ class DQLInjectionIssue extends AbstractIssue
                 '%d %s risk quer%s show signs of SQL/DQL injection (%s). ' .
                 'Input concatenated into a query can change its meaning and read or modify any data.',
                 $queryCount,
-                $riskLevel,
+                self::riskLevelLabel((string) $riskLevel),
                 $queryCount > 1 ? 'ies' : 'y',
                 implode(', ', $indicators),
             ),
             'severity' => $data['severity'] ?? 'critical',
         ], $data));
+    }
+
+    /**
+     * The risk level as shown in the description: its own catalog entry, since "warning" reads as a severity elsewhere.
+     */
+    private static function riskLevelLabel(string $riskLevel): string
+    {
+        $label = Translator::trans('risk level: ' . $riskLevel);
+
+        return str_starts_with($label, 'risk level: ') ? $riskLevel : $label;
     }
 
     #[\Override]

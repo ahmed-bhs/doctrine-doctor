@@ -120,7 +120,7 @@ final class TranslatorTest extends TestCase
         Translator::setLocale('fr');
 
         // "50% for" once read as a "% f" placeholder, and vsprintf failed on the translation.
-        self::assertSame('Variable (0 à 50 % pour les requêtes cachables)', Translator::trans('Varies (0-50% for cacheable queries)'));
+        self::assertSame('Variable (0 à 50 % pour les requêtes pouvant être mises en cache)', Translator::trans('Varies (0-50% for cacheable queries)'));
     }
 
     public function test_code_comment_markers_and_captions_are_translated_but_not_the_code(): void
