@@ -1786,7 +1786,7 @@ return [
     'Security' => 'Sécurité',
     'Show all grouped queries (%d unique)' => 'Afficher toutes les requêtes groupées (%d uniques)',
     'Show similar issues' => 'Afficher les problèmes similaires',
-    'Slowest Queries' => 'Requêtes les plus lentes',
+    'Slowest Queries' => 'Requêtes lentes',
     'Sort: Severity' => 'Tri : sévérité',
     'Status' => 'Statut',
     'Suggested Fix' => 'Correctif suggéré',
