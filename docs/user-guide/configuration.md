@@ -156,7 +156,7 @@ doctrine_doctor:
 
 Code examples are never translated, only the prose around them and the captions of the Before/After comparison. The command options and `--help` stay in English. The JSON output keeps the severity values (`critical`, `warning`, `info`) in English.
 
-**Adding a language**: copy `translations/fr.php` to `translations/<locale>.php` and translate the values. A key holds the English text, with `%s` or `%d` where a value goes and `{name}` for a highlighted value; the translation must keep the same placeholders. A key starting with `note: ` is a caption of a Before/After code comparison.
+**Adding a language**: copy `translations/fr.php` to `translations/<locale>.php` and translate the values. A key holds the English text, with `%s` or `%d` where a value goes and `{name}` for a highlighted value; the translation must keep the same placeholders. A key starting with `note:` is a caption of a Before/After code comparison.
 
 ---
 
