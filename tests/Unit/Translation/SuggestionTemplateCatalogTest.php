@@ -38,6 +38,34 @@ final class SuggestionTemplateCatalogTest extends TestCase
                 yield $relative . ': ' . $text => [$relative, $text];
             }
         }
+
+        foreach (glob(dirname(__DIR__, 3) . '/templates/profiler/*.twig') ?: [] as $file) {
+            foreach (array_unique(self::twigLiterals((string) file_get_contents($file))) as $text) {
+                yield basename($file) . ': ' . $text => [basename($file), $text];
+            }
+        }
+    }
+
+    /**
+     * The literals of a Twig expression that goes through dd_trans, dd_format or dd_format_raw.
+     *
+     * @return list<string>
+     */
+    private static function twigLiterals(string $source): array
+    {
+        preg_match_all('/\{\{((?:(?!\}\}).)*\|dd_(?:trans|format|format_raw)\b(?:(?!\}\}).)*)\}\}/s', $source, $expressions);
+        $texts = [];
+
+        foreach ($expressions[1] as $expression) {
+            // Only the part before the filter holds texts; the filter arguments are values.
+            $subject = (string) preg_replace('/\|dd_(?:trans|format|format_raw)\b.*$/s', '', $expression);
+            preg_match_all("/'((?:[^'\\\\]|\\\\.)*)'/", $subject, $literals);
+            foreach ($literals[1] as $literal) {
+                $texts[] = stripslashes($literal);
+            }
+        }
+
+        return $texts;
     }
 
     #[DataProvider('templateTexts')]

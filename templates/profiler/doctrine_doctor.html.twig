@@ -24,16 +24,16 @@
                                 type="button"
                                 class="dd-duplicate-badge dd-toggle"
                                 data-toggle-selector="#{{ prefix }}-duplicates-{{ loop_index }}"
-                                data-toggle-alt-content="Hide similar"
+                                data-toggle-alt-content="{{ 'Hide similar'|dd_trans }}"
                                 aria-controls="{{ prefix }}-duplicates-{{ loop_index }}"
                                 aria-expanded="false"
-                                title="Show similar issues"
+                                title="{{ 'Show similar issues'|dd_trans }}"
                             >
                                 <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                                     <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                                     <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
                                 </svg>
-                                <span class="dd-btn-text">{{ issue.getDuplicatedIssues()|length }} similar</span>
+                                <span class="dd-btn-text">{{ '%d similar'|dd_format(issue.getDuplicatedIssues()|length) }}</span>
                                 <svg class="dd-btn-chevron" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
                                     <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
                                 </svg>
@@ -45,7 +45,7 @@
         </div>
 
         <div class="issue-body">
-            <p class="issue-description">{{ issue.getDescription()|dd_trans|raw|nl2br }}</p>
+            <p class="issue-description">{{ issue.getDescription()|dd_trans_html|raw|nl2br }}</p>
 
             {# Action buttons container #}
             <div class="issue-actions">
@@ -54,7 +54,7 @@
                         type="button"
                         class="dd-btn dd-btn-primary dd-btn-sm dd-toggle dd-action-fix"
                         data-toggle-selector="#{{ prefix }}-suggestion-{{ loop_index }}"
-                        data-toggle-alt-content="Hide suggestion"
+                        data-toggle-alt-content="{{ 'Hide suggestion'|dd_trans }}"
                         aria-controls="{{ prefix }}-suggestion-{{ loop_index }}"
                         aria-expanded="false"
                     >
@@ -62,7 +62,7 @@
                             <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                             <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
                         </svg>
-                        <span class="dd-btn-text">Suggested Fix</span>
+                        <span class="dd-btn-text">{{ 'Suggested Fix'|dd_trans }}</span>
                         <svg class="dd-btn-chevron" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
                         </svg>
@@ -74,7 +74,7 @@
                         type="button"
                         class="dd-btn dd-btn-secondary dd-btn-sm dd-toggle dd-action-queries"
                         data-toggle-selector="#{{ prefix }}-queries-{{ loop_index }}"
-                        data-toggle-alt-content="Hide queries"
+                        data-toggle-alt-content="{{ 'Hide queries'|dd_trans }}"
                         aria-controls="{{ prefix }}-queries-{{ loop_index }}"
                         aria-expanded="false"
                     >
@@ -82,7 +82,7 @@
                             <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                             <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
                         </svg>
-                        <span class="dd-btn-text">Queries</span>
+                        <span class="dd-btn-text">{{ 'Queries'|dd_trans }}</span>
                         <span class="dd-btn-badge">{{ issue.getQueries()|length }}</span>
                         <svg class="dd-btn-chevron" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
@@ -95,7 +95,7 @@
                         type="button"
                         class="dd-btn dd-btn-secondary dd-btn-sm dd-toggle dd-action-trace"
                         data-toggle-selector="#{{ prefix }}-backtrace-{{ loop_index }}"
-                        data-toggle-alt-content="Hide trace"
+                        data-toggle-alt-content="{{ 'Hide trace'|dd_trans }}"
                         aria-controls="{{ prefix }}-backtrace-{{ loop_index }}"
                         aria-expanded="false"
                     >
@@ -103,7 +103,7 @@
                             <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
                             <path d="M6.854 4.646a.5.5 0 0 1 0 .708L4.207 8l2.647 2.646a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 0 1 .708 0zm2.292 0a.5.5 0 0 0 0 .708L11.793 8l-2.647 2.646a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708 0z"/>
                         </svg>
-                        <span class="dd-btn-text">Trace</span>
+                        <span class="dd-btn-text">{{ 'Trace'|dd_trans }}</span>
                         <svg class="dd-btn-chevron" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
                         </svg>
@@ -114,7 +114,7 @@
             {% if issue.getDuplicatedIssues()|length > 0 %}
                 <div id="{{ prefix }}-duplicates-{{ loop_index }}" class="dd-collapsible dd-duplicates-panel hidden">
                     <div class="dd-duplicates-header">
-                        <strong>{{ issue.getDuplicatedIssues()|length }} related finding{{ issue.getDuplicatedIssues()|length > 1 ? 's' : '' }} (grouped for readability)</strong>
+                        <strong>{{ (issue.getDuplicatedIssues()|length > 1 ? '%d related findings (grouped for readability)' : '%d related finding (grouped for readability)')|dd_format(issue.getDuplicatedIssues()|length) }}</strong>
                     </div>
                     <div class="dd-duplicates-content">
                         {% for duplicatedIssue in issue.getDuplicatedIssues() %}
@@ -143,10 +143,10 @@
                                         <span class="dd-duplicate-location" title="{{ locationLabel }}">{{ locationLabel }}</span>
                                     {% endif %}
                                     {% if duplicatedIssue.getQueries()|length > 0 %}
-                                        <span class="dd-duplicate-query-count">{{ duplicatedIssue.getQueries()|length }} quer{{ duplicatedIssue.getQueries()|length > 1 ? 'ies' : 'y' }}</span>
+                                        <span class="dd-duplicate-query-count">{{ (duplicatedIssue.getQueries()|length > 1 ? '%d queries' : '%d query')|dd_format(duplicatedIssue.getQueries()|length) }}</span>
                                     {% endif %}
                                 </div>
-                                {% set dupDesc = duplicatedIssue.getDescription()|striptags|trim %}
+                                {% set dupDesc = duplicatedIssue.getDescription()|dd_trans_html|striptags|trim %}
                                 {% if dupDesc %}
                                     <p class="dd-duplicate-description">{{ dupDesc }}</p>
                                 {% endif %}
@@ -176,7 +176,7 @@
                         {{ suggestionCode|raw }}
                     {% else %}
                         <div class="suggestion-header">
-                            <h4>Suggested fix</h4>
+                            <h4>{{ 'Suggested fix'|dd_trans }}</h4>
                         </div>
                         <div class="suggestion-content">
                             <div class="query-item">
@@ -232,23 +232,23 @@
 
         {% set text %}
             <div class="sf-toolbar-info-piece">
-                <b>Total Issues</b>
+                <b>{{ 'Total Issues'|dd_trans }}</b>
                 <span class="sf-toolbar-status {{ collector.getStats.total_issues > 0 ? 'sf-toolbar-status-yellow' : '' }}">{{ collector.getStats.total_issues }}</span>
             </div>
             <div class="sf-toolbar-info-piece">
-                <b>Critical Issues</b>
+                <b>{{ 'Critical Issues'|dd_trans }}</b>
                 <span class="sf-toolbar-status {{ collector.getStats.critical > 0 ? 'sf-toolbar-status-red' : '' }}">{{ collector.getStats.critical }}</span>
             </div>
             <div class="sf-toolbar-info-piece">
-                <b>Warnings</b>
+                <b>{{ 'Warnings'|dd_trans }}</b>
                 <span class="sf-toolbar-status {{ collector.getStats.warning > 0 ? 'sf-toolbar-status-yellow' : '' }}">{{ collector.getStats.warning }}</span>
             </div>
             <div class="sf-toolbar-info-piece">
-                <b>Info</b>
+                <b>{{ 'Info'|dd_trans }}</b>
                 <span>{{ collector.getStats.info }}</span>
             </div>
             <div class="sf-toolbar-info-piece">
-                <b>Queries Analyzed</b>
+                <b>{{ 'Queries Analyzed'|dd_trans }}</b>
                 <span>{{ collector.timelineQueries|length }}</span>
             </div>
         {% endset %}
@@ -297,12 +297,12 @@
 {% block panel %}
     <h2 style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
         <span>Doctrine Doctor</span>
-        <button type="button" class="btn btn-sm" id="dd-export-button">Export JSON</button>
+        <button type="button" class="btn btn-sm" id="dd-export-button">{{ 'Export JSON'|dd_trans }}</button>
     </h2>
 
     {% if collector.analysisPending %}
         <div class="empty">
-            <p>The queries of this request have not been analyzed yet. Run <code>bin/console doctrine:doctor:analyze-profile {{ token }}</code> and reload this page.</p>
+            <p>{{ 'The queries of this request have not been analyzed yet. Run <code>bin/console doctrine:doctor:analyze-profile %s</code> and reload this page.'|dd_format(token|e)|raw }}</p>
         </div>
     {% endif %}
 
@@ -336,50 +336,50 @@
         <div class="metric-group">
             <div class="metric">
                 <span class="value">{{ dbInfo.driver }}</span>
-                <span class="label">Database Engine</span>
+                <span class="label">{{ 'Database Engine'|dd_trans }}</span>
             </div>
 
             <div class="metric">
                 <span class="value">{{ dbInfo.database_version }}</span>
-                <span class="label">Database Version</span>
+                <span class="label">{{ 'Database Version'|dd_trans }}</span>
             </div>
 
             <div class="metric">
                 <span class="value {{ dbInfo.is_deprecated ? 'status-error' : '' }}">{{ dbInfo.doctrine_version }}</span>
-                <span class="label">ORM Version</span>
+                <span class="label">{{ 'ORM Version'|dd_trans }}</span>
             </div>
 
             {% if dbInfo.is_deprecated %}
                 <div class="metric">
-                    <span class="value status-error">Deprecated</span>
-                    <span class="label">Status</span>
+                    <span class="value status-error">{{ 'Deprecated'|dd_trans }}</span>
+                    <span class="label">{{ 'Status'|dd_trans }}</span>
                 </div>
             {% endif %}
             <div class="metric">
                 <span class="value {{ collector.getStats.critical > 0 ? 'status-error' : '' }}">{{ collector.getStats.critical }}</span>
-                <span class="label">Critical</span>
+                <span class="label">{{ 'Critical'|dd_trans }}</span>
             </div>
 
             <div class="metric">
                 <span class="value {{ collector.getStats.warning > 0 ? 'status-warning' : '' }}">{{ collector.getStats.warning }}</span>
-                <span class="label">Warnings</span>
+                <span class="label">{{ 'Warnings'|dd_trans }}</span>
             </div>
 
             <div class="metric">
                 <span class="value {{ collector.getStats.info > 0 ? 'status-info' : '' }}">{{ collector.getStats.info }}</span>
-                <span class="label">Info</span>
+                <span class="label">{{ 'Info'|dd_trans }}</span>
             </div>
 
             <div class="metric">
                 <span class="value status-info">{{ collector.timelineQueries|length }}</span>
-                <span class="label">Queries Analyzed</span>
+                <span class="label">{{ 'Queries Analyzed'|dd_trans }}</span>
             </div>
 
             {% set overhead = collector.getProfilerOverhead %}
             {% if overhead.total_time_ms > 0 %}
                 <div class="metric">
-                    <span class="value dd-overhead-value" title="Time spent by Doctrine Doctor analysis (excluded from app performance)">{{ overhead.total_time_ms|number_format(2) }} ms</span>
-                    <span class="label">Profiler Overhead</span>
+                    <span class="value dd-overhead-value" title="{{ 'Time spent by Doctrine Doctor analysis (excluded from app performance)'|dd_trans }}">{{ overhead.total_time_ms|number_format(2) }} ms</span>
+                    <span class="label">{{ 'Profiler Overhead'|dd_trans }}</span>
                 </div>
             {% endif %}
         </div>
@@ -391,7 +391,7 @@
                 <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
             </svg>
             <div>
-                <strong>Deprecated Version Detected</strong>
+                <strong>{{ 'Deprecated Version Detected'|dd_trans }}</strong>
                 <p class="dd-alert-deprecation-message">{{ dbInfo.deprecation_message }}</p>
             </div>
         </div>
@@ -401,67 +401,67 @@
         <div class="tab-navigation" role="tablist">
             <button class="tab-control{{ collector.getIssueCountByCategory('performance') == 0 ? ' disabled' }} active" data-tab-id="dd-tab-0" role="tab" aria-controls="dd-tab-0" aria-selected="true">
                 <span class="dd-tab-icon" aria-hidden="true">⚡</span>
-                <span class="dd-tab-label">Performance</span>
+                <span class="dd-tab-label">{{ 'Performance'|dd_trans }}</span>
                 <span class="dd-tab-count">{{ collector.getIssueCountByCategory('performance') }}</span>
             </button>
             <button class="tab-control{{ collector.getIssueCountByCategory('security') == 0 ? ' disabled' }}" data-tab-id="dd-tab-1" role="tab" aria-controls="dd-tab-1" tabindex="-1">
                 <span class="dd-tab-icon" aria-hidden="true">🛡️</span>
-                <span class="dd-tab-label">Security</span>
+                <span class="dd-tab-label">{{ 'Security'|dd_trans }}</span>
                 <span class="dd-tab-count">{{ collector.getIssueCountByCategory('security') }}</span>
             </button>
             <button class="tab-control{{ collector.getIssueCountByCategory('integrity') == 0 ? ' disabled' }}" data-tab-id="dd-tab-2" role="tab" aria-controls="dd-tab-2" tabindex="-1">
                 <span class="dd-tab-icon" aria-hidden="true">🧩</span>
-                <span class="dd-tab-label">Integrity</span>
+                <span class="dd-tab-label">{{ 'Integrity'|dd_trans }}</span>
                 <span class="dd-tab-count">{{ collector.getIssueCountByCategory('integrity') }}</span>
             </button>
             <button class="tab-control{{ collector.getIssueCountByCategory('configuration') == 0 ? ' disabled' }}" data-tab-id="dd-tab-3" role="tab" aria-controls="dd-tab-3" tabindex="-1">
                 <span class="dd-tab-icon" aria-hidden="true">🔧</span>
-                <span class="dd-tab-label">Configuration</span>
+                <span class="dd-tab-label">{{ 'Configuration'|dd_trans }}</span>
                 <span class="dd-tab-count">{{ collector.getIssueCountByCategory('configuration') }}</span>
             </button>
             <button class="tab-control{{ collector.timelineQueries is empty ? ' disabled' }}" data-tab-id="dd-tab-4" role="tab" aria-controls="dd-tab-4" tabindex="-1">
-                <span class="dd-tab-label">Slowest Queries</span>
+                <span class="dd-tab-label">{{ 'Slowest Queries'|dd_trans }}</span>
                 <span class="dd-tab-count">{{ collector.groupedQueriesByTime|length }}</span>
             </button>
             {% if collector.isDebugInfoEnabled %}
             <button class="tab-control" data-tab-id="dd-tab-5" role="tab" aria-controls="dd-tab-5" tabindex="-1">
-                <span class="dd-tab-label">Debug Information</span>
+                <span class="dd-tab-label">{{ 'Debug Information'|dd_trans }}</span>
             </button>
             {% endif %}
         </div>
         <div class="tab {{ collector.getIssueCountByCategory('performance') == 0 ? 'disabled' }} block" id="dd-tab-0" role="tabpanel" aria-labelledby="dd-tab-0">
             <h3 class="tab-title hidden">
                 <span class="dd-tab-icon" aria-hidden="true">⚡</span>
-                <span class="dd-tab-label">Performance</span>
+                <span class="dd-tab-label">{{ 'Performance'|dd_trans }}</span>
                 <span class="dd-tab-count">{{ collector.getIssueCountByCategory('performance') }}</span>
             </h3>
             <div class="tab-content">
                 {% set performanceIssues = collector.getIssuesByCategory('performance') %}
                 {% if performanceIssues is empty %}
                     <div class="empty">
-                        <p>No performance issues detected.</p>
+                        <p>{{ 'No performance issues detected.'|dd_trans }}</p>
                     </div>
                 {% else %}
                     {% import _self as macros %}
                     <div class="dd-issue-controls" data-controls-for="performance">
                         <div class="dd-control-group">
-                            <input type="search" class="dd-issue-search" data-filter-search placeholder="Search title/type..." aria-label="Search performance issues">
+                            <input type="search" class="dd-issue-search" data-filter-search placeholder="{{ 'Search title/type...'|dd_trans }}" aria-label="{{ 'Search performance issues'|dd_trans }}">
                         </div>
-                        <div class="dd-control-group dd-severity-filters" role="group" aria-label="Filter by severity">
-                            <button type="button" class="dd-chip is-active" data-filter-severity="all">All</button>
-                            <button type="button" class="dd-chip" data-filter-severity="critical">Critical</button>
-                            <button type="button" class="dd-chip" data-filter-severity="warning">Warnings</button>
-                            <button type="button" class="dd-chip" data-filter-severity="info">Info</button>
+                        <div class="dd-control-group dd-severity-filters" role="group" aria-label="{{ 'Filter by severity'|dd_trans }}">
+                            <button type="button" class="dd-chip is-active" data-filter-severity="all">{{ 'All'|dd_trans }}</button>
+                            <button type="button" class="dd-chip" data-filter-severity="critical">{{ 'Critical'|dd_trans }}</button>
+                            <button type="button" class="dd-chip" data-filter-severity="warning">{{ 'Warnings'|dd_trans }}</button>
+                            <button type="button" class="dd-chip" data-filter-severity="info">{{ 'Info'|dd_trans }}</button>
                         </div>
                         <div class="dd-control-group">
-                            <select class="dd-issue-sort" data-filter-sort aria-label="Sort performance issues">
-                                <option value="severity_desc">Sort: Severity</option>
-                                <option value="title_asc">Title A-Z</option>
-                                <option value="title_desc">Title Z-A</option>
+                            <select class="dd-issue-sort" data-filter-sort aria-label="{{ 'Sort performance issues'|dd_trans }}">
+                                <option value="severity_desc">{{ 'Sort: Severity'|dd_trans }}</option>
+                                <option value="title_asc">{{ 'Title A-Z'|dd_trans }}</option>
+                                <option value="title_desc">{{ 'Title Z-A'|dd_trans }}</option>
                             </select>
-                            <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>Reset</button>
+                            <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>{{ 'Reset'|dd_trans }}</button>
                         </div>
-                        <span class="dd-issue-meta">{{ performanceIssues|length }} shown / {{ performanceIssues|length }} total</span>
+                        <span class="dd-issue-meta">{{ '%d shown / %d total'|dd_format(performanceIssues|length, performanceIssues|length) }}</span>
                     </div>
                     <div class="dd-issue-list" data-issue-list="performance">
                         {% for issue in performanceIssues %}
@@ -475,36 +475,36 @@
         <div class="tab {{ collector.getIssueCountByCategory('security') == 0 ? 'disabled' }} hidden" id="dd-tab-1" role="tabpanel" aria-labelledby="dd-tab-1">
             <h3 class="tab-title hidden">
                 <span class="dd-tab-icon" aria-hidden="true">🛡️</span>
-                <span class="dd-tab-label">Security</span>
+                <span class="dd-tab-label">{{ 'Security'|dd_trans }}</span>
                 <span class="dd-tab-count">{{ collector.getIssueCountByCategory('security') }}</span>
             </h3>
             <div class="tab-content">
                 {% set securityIssues = collector.getIssuesByCategory('security') %}
                 {% if securityIssues is empty %}
                     <div class="empty">
-                        <p>No security issues detected.</p>
+                        <p>{{ 'No security issues detected.'|dd_trans }}</p>
                     </div>
                 {% else %}
                     {% import _self as macros %}
                     <div class="dd-issue-controls" data-controls-for="security">
                         <div class="dd-control-group">
-                            <input type="search" class="dd-issue-search" data-filter-search placeholder="Search title/type..." aria-label="Search security issues">
+                            <input type="search" class="dd-issue-search" data-filter-search placeholder="{{ 'Search title/type...'|dd_trans }}" aria-label="{{ 'Search security issues'|dd_trans }}">
                         </div>
-                        <div class="dd-control-group dd-severity-filters" role="group" aria-label="Filter by severity">
-                            <button type="button" class="dd-chip is-active" data-filter-severity="all">All</button>
-                            <button type="button" class="dd-chip" data-filter-severity="critical">Critical</button>
-                            <button type="button" class="dd-chip" data-filter-severity="warning">Warnings</button>
-                            <button type="button" class="dd-chip" data-filter-severity="info">Info</button>
+                        <div class="dd-control-group dd-severity-filters" role="group" aria-label="{{ 'Filter by severity'|dd_trans }}">
+                            <button type="button" class="dd-chip is-active" data-filter-severity="all">{{ 'All'|dd_trans }}</button>
+                            <button type="button" class="dd-chip" data-filter-severity="critical">{{ 'Critical'|dd_trans }}</button>
+                            <button type="button" class="dd-chip" data-filter-severity="warning">{{ 'Warnings'|dd_trans }}</button>
+                            <button type="button" class="dd-chip" data-filter-severity="info">{{ 'Info'|dd_trans }}</button>
                         </div>
                         <div class="dd-control-group">
-                            <select class="dd-issue-sort" data-filter-sort aria-label="Sort security issues">
-                                <option value="severity_desc">Sort: Severity</option>
-                                <option value="title_asc">Title A-Z</option>
-                                <option value="title_desc">Title Z-A</option>
+                            <select class="dd-issue-sort" data-filter-sort aria-label="{{ 'Sort security issues'|dd_trans }}">
+                                <option value="severity_desc">{{ 'Sort: Severity'|dd_trans }}</option>
+                                <option value="title_asc">{{ 'Title A-Z'|dd_trans }}</option>
+                                <option value="title_desc">{{ 'Title Z-A'|dd_trans }}</option>
                             </select>
-                            <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>Reset</button>
+                            <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>{{ 'Reset'|dd_trans }}</button>
                         </div>
-                        <span class="dd-issue-meta">{{ securityIssues|length }} shown / {{ securityIssues|length }} total</span>
+                        <span class="dd-issue-meta">{{ '%d shown / %d total'|dd_format(securityIssues|length, securityIssues|length) }}</span>
                     </div>
                     <div class="dd-issue-list" data-issue-list="security">
                         {% for issue in securityIssues %}
@@ -518,36 +518,36 @@
         <div class="tab {{ collector.getIssueCountByCategory('integrity') == 0 ? 'disabled' }} hidden" id="dd-tab-2" role="tabpanel" aria-labelledby="dd-tab-2">
             <h3 class="tab-title hidden">
                 <span class="dd-tab-icon" aria-hidden="true">🧩</span>
-                <span class="dd-tab-label">Integrity</span>
+                <span class="dd-tab-label">{{ 'Integrity'|dd_trans }}</span>
                 <span class="dd-tab-count">{{ collector.getIssueCountByCategory('integrity') }}</span>
             </h3>
             <div class="tab-content">
                 {% set integrityIssues = collector.getIssuesByCategory('integrity') %}
                 {% if integrityIssues is empty %}
                     <div class="empty">
-                        <p>No integrity issues detected.</p>
+                        <p>{{ 'No integrity issues detected.'|dd_trans }}</p>
                     </div>
                 {% else %}
                     {% import _self as macros %}
                     <div class="dd-issue-controls" data-controls-for="integrity">
                         <div class="dd-control-group">
-                            <input type="search" class="dd-issue-search" data-filter-search placeholder="Search title/type..." aria-label="Search integrity issues">
+                            <input type="search" class="dd-issue-search" data-filter-search placeholder="{{ 'Search title/type...'|dd_trans }}" aria-label="{{ 'Search integrity issues'|dd_trans }}">
                         </div>
-                        <div class="dd-control-group dd-severity-filters" role="group" aria-label="Filter by severity">
-                            <button type="button" class="dd-chip is-active" data-filter-severity="all">All</button>
-                            <button type="button" class="dd-chip" data-filter-severity="critical">Critical</button>
-                            <button type="button" class="dd-chip" data-filter-severity="warning">Warnings</button>
-                            <button type="button" class="dd-chip" data-filter-severity="info">Info</button>
+                        <div class="dd-control-group dd-severity-filters" role="group" aria-label="{{ 'Filter by severity'|dd_trans }}">
+                            <button type="button" class="dd-chip is-active" data-filter-severity="all">{{ 'All'|dd_trans }}</button>
+                            <button type="button" class="dd-chip" data-filter-severity="critical">{{ 'Critical'|dd_trans }}</button>
+                            <button type="button" class="dd-chip" data-filter-severity="warning">{{ 'Warnings'|dd_trans }}</button>
+                            <button type="button" class="dd-chip" data-filter-severity="info">{{ 'Info'|dd_trans }}</button>
                         </div>
                         <div class="dd-control-group">
-                            <select class="dd-issue-sort" data-filter-sort aria-label="Sort integrity issues">
-                                <option value="severity_desc">Sort: Severity</option>
-                                <option value="title_asc">Title A-Z</option>
-                                <option value="title_desc">Title Z-A</option>
+                            <select class="dd-issue-sort" data-filter-sort aria-label="{{ 'Sort integrity issues'|dd_trans }}">
+                                <option value="severity_desc">{{ 'Sort: Severity'|dd_trans }}</option>
+                                <option value="title_asc">{{ 'Title A-Z'|dd_trans }}</option>
+                                <option value="title_desc">{{ 'Title Z-A'|dd_trans }}</option>
                             </select>
-                            <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>Reset</button>
+                            <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>{{ 'Reset'|dd_trans }}</button>
                         </div>
-                        <span class="dd-issue-meta">{{ integrityIssues|length }} shown / {{ integrityIssues|length }} total</span>
+                        <span class="dd-issue-meta">{{ '%d shown / %d total'|dd_format(integrityIssues|length, integrityIssues|length) }}</span>
                     </div>
                     <div class="dd-issue-list" data-issue-list="integrity">
                         {% for issue in integrityIssues %}
@@ -561,36 +561,36 @@
         <div class="tab {{ collector.getIssueCountByCategory('configuration') == 0 ? 'disabled' }} hidden" id="dd-tab-3" role="tabpanel" aria-labelledby="dd-tab-3">
             <h3 class="tab-title hidden">
                 <span class="dd-tab-icon" aria-hidden="true">🔧</span>
-                <span class="dd-tab-label">Configuration</span>
+                <span class="dd-tab-label">{{ 'Configuration'|dd_trans }}</span>
                 <span class="dd-tab-count">{{ collector.getIssueCountByCategory('configuration') }}</span>
             </h3>
             <div class="tab-content">
                 {% set configurationIssues = collector.getIssuesByCategory('configuration') %}
                 {% if configurationIssues is empty %}
                     <div class="empty">
-                        <p>No database configuration issues detected. Your database is properly configured!</p>
+                        <p>{{ 'No database configuration issues detected. Your database is properly configured!'|dd_trans }}</p>
                     </div>
                 {% else %}
                     {% import _self as macros %}
                     <div class="dd-issue-controls" data-controls-for="configuration">
                         <div class="dd-control-group">
-                            <input type="search" class="dd-issue-search" data-filter-search placeholder="Search title/type..." aria-label="Search configuration issues">
+                            <input type="search" class="dd-issue-search" data-filter-search placeholder="{{ 'Search title/type...'|dd_trans }}" aria-label="{{ 'Search configuration issues'|dd_trans }}">
                         </div>
-                        <div class="dd-control-group dd-severity-filters" role="group" aria-label="Filter by severity">
-                            <button type="button" class="dd-chip is-active" data-filter-severity="all">All</button>
-                            <button type="button" class="dd-chip" data-filter-severity="critical">Critical</button>
-                            <button type="button" class="dd-chip" data-filter-severity="warning">Warnings</button>
-                            <button type="button" class="dd-chip" data-filter-severity="info">Info</button>
+                        <div class="dd-control-group dd-severity-filters" role="group" aria-label="{{ 'Filter by severity'|dd_trans }}">
+                            <button type="button" class="dd-chip is-active" data-filter-severity="all">{{ 'All'|dd_trans }}</button>
+                            <button type="button" class="dd-chip" data-filter-severity="critical">{{ 'Critical'|dd_trans }}</button>
+                            <button type="button" class="dd-chip" data-filter-severity="warning">{{ 'Warnings'|dd_trans }}</button>
+                            <button type="button" class="dd-chip" data-filter-severity="info">{{ 'Info'|dd_trans }}</button>
                         </div>
                         <div class="dd-control-group">
-                            <select class="dd-issue-sort" data-filter-sort aria-label="Sort configuration issues">
-                                <option value="severity_desc">Sort: Severity</option>
-                                <option value="title_asc">Title A-Z</option>
-                                <option value="title_desc">Title Z-A</option>
+                            <select class="dd-issue-sort" data-filter-sort aria-label="{{ 'Sort configuration issues'|dd_trans }}">
+                                <option value="severity_desc">{{ 'Sort: Severity'|dd_trans }}</option>
+                                <option value="title_asc">{{ 'Title A-Z'|dd_trans }}</option>
+                                <option value="title_desc">{{ 'Title Z-A'|dd_trans }}</option>
                             </select>
-                            <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>Reset</button>
+                            <button type="button" class="dd-btn dd-btn-secondary dd-btn-sm" data-filter-reset>{{ 'Reset'|dd_trans }}</button>
                         </div>
-                        <span class="dd-issue-meta">{{ configurationIssues|length }} shown / {{ configurationIssues|length }} total</span>
+                        <span class="dd-issue-meta">{{ '%d shown / %d total'|dd_format(configurationIssues|length, configurationIssues|length) }}</span>
                     </div>
                     <div class="dd-issue-list" data-issue-list="configuration">
                         {% for issue in configurationIssues %}
@@ -603,13 +603,13 @@
 
         <div class="tab {{ collector.timelineQueries is empty ? 'disabled' }} hidden" id="dd-tab-4" role="tabpanel" aria-labelledby="dd-tab-4">
             <h3 class="tab-title hidden">
-                <span class="dd-tab-label">Slowest Queries</span>
+                <span class="dd-tab-label">{{ 'Slowest Queries'|dd_trans }}</span>
                 <span class="dd-tab-count">{{ collector.groupedQueriesByTime|length }}</span>
             </h3>
             <div class="tab-content">
                 {% if collector.timelineQueries is empty %}
                     <div class="empty">
-                        <p>No queries recorded.</p>
+                        <p>{{ 'No queries recorded.'|dd_trans }}</p>
                     </div>
                 {% else %}
                     {% set groupedQueries = collector.groupedQueriesByTime|slice(0, 10) %}
@@ -617,11 +617,11 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Count</th>
-                                <th>Total Time</th>
-                                <th>Avg Time</th>
-                                <th>Min/Max</th>
-                                <th class="dd-w-full">Query</th>
+                                <th>{{ 'Count'|dd_trans }}</th>
+                                <th>{{ 'Total Time'|dd_trans }}</th>
+                                <th>{{ 'Avg Time'|dd_trans }}</th>
+                                <th>{{ 'Min/Max'|dd_trans }}</th>
+                                <th class="dd-w-full">{{ 'Query'|dd_trans }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -653,8 +653,8 @@
                                     </td>
                                     <td>
                                         <div class="text-small">
-                                            <button type="button" class="sf-toggle link-inverse" data-toggle-selector="#query-{{ loop.index }}" data-toggle-alt-content="Hide query" aria-controls="query-{{ loop.index }}" aria-expanded="false">
-                                                View query
+                                            <button type="button" class="sf-toggle link-inverse" data-toggle-selector="#query-{{ loop.index }}" data-toggle-alt-content="{{ 'Hide query'|dd_trans }}" aria-controls="query-{{ loop.index }}" aria-expanded="false">
+                                                {{ 'View query'|dd_trans }}
                                             </button>
                                         </div>
                                         <div id="query-{{ loop.index }}" class="hidden dd-mt-5">
@@ -670,8 +670,8 @@
 
                     {% if collector.groupedQueriesByTime|length > 10 %}
                         <div class="text-small font-normal dd-mt-20">
-                            <button type="button" class="sf-toggle link-inverse" data-toggle-selector="#all-queries" data-toggle-alt-content="Hide all queries" aria-controls="all-queries" aria-expanded="false">
-                                Show all grouped queries ({{ collector.groupedQueriesByTime|length }} unique)
+                            <button type="button" class="sf-toggle link-inverse" data-toggle-selector="#all-queries" data-toggle-alt-content="{{ 'Hide all queries'|dd_trans }}" aria-controls="all-queries" aria-expanded="false">
+                                {{ 'Show all grouped queries (%d unique)'|dd_format(collector.groupedQueriesByTime|length) }}
                             </button>
                         </div>
                         <div id="all-queries" class="hidden dd-mt-10">
@@ -679,10 +679,10 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Count</th>
-                                        <th>Total Time</th>
-                                        <th>Avg Time</th>
-                                        <th class="dd-w-full">Query</th>
+                                        <th>{{ 'Count'|dd_trans }}</th>
+                                        <th>{{ 'Total Time'|dd_trans }}</th>
+                                        <th>{{ 'Avg Time'|dd_trans }}</th>
+                                        <th class="dd-w-full">{{ 'Query'|dd_trans }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -712,80 +712,80 @@
 
         {% if collector.isDebugInfoEnabled %}
             <div class="tab hidden" id="dd-tab-5" role="tabpanel" aria-labelledby="dd-tab-5">
-                <h3 class="tab-title hidden">Debug Information</h3>
+                <h3 class="tab-title hidden">{{ 'Debug Information'|dd_trans }}</h3>
                 <div class="tab-content">
                     <div class="help">
-                        <p><strong>Note:</strong> This debug section is only visible because <code>show_debug_info</code> is enabled in your configuration.</p>
+                        <p>{{ '<strong>Note:</strong> This debug section is only visible because <code>show_debug_info</code> is enabled in your configuration.'|dd_trans|raw }}</p>
                     </div>
                     {% set debug = collector.getDebug %}
                     <table class="alt">
                         <thead>
                             <tr>
-                                <th class="dd-w-30">Metric</th>
-                                <th>Value</th>
+                                <th class="dd-w-30">{{ 'Metric'|dd_trans }}</th>
+                                <th>{{ 'Value'|dd_trans }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <th>Debug Data Available</th>
+                                <th>{{ 'Debug Data Available'|dd_trans }}</th>
                                 <td>{{ debug is empty ? 'No' : 'Yes' }}</td>
                             </tr>
                             {% if debug is not empty %}
                                 <tr>
-                                    <th>Doctrine Collector Exists</th>
+                                    <th>{{ 'Doctrine Collector Exists'|dd_trans }}</th>
                                     <td>{{ debug.doctrine_collector_exists|default('N/A') ? 'Yes' : 'No' }}</td>
                                 </tr>
                                 <tr>
-                                    <th>Analyzers Count</th>
+                                    <th>{{ 'Analyzers Count'|dd_trans }}</th>
                                     <td><strong>{{ debug.analyzers_count|default('N/A') }}</strong></td>
                                 </tr>
                                 <tr>
-                                    <th>Total Queries Found</th>
+                                    <th>{{ 'Total Queries Found'|dd_trans }}</th>
                                     <td><strong>{{ debug.total_queries|default('N/A') }}</strong></td>
                                 </tr>
                                 <tr>
-                                    <th>Timeline Queries Count</th>
+                                    <th>{{ 'Timeline Queries Count'|dd_trans }}</th>
                                     <td><strong>{{ collector.timelineQueries|length }}</strong></td>
                                 </tr>
                                 <tr>
-                                    <th>Issues Count</th>
+                                    <th>{{ 'Issues Count'|dd_trans }}</th>
                                     <td><strong class="{{ collector.getIssues|length > 0 ? 'status-error' : 'status-success' }}">{{ collector.getIssues|length }}</strong></td>
                                 </tr>
                                 {% if debug.profiler_overhead_ms is defined and debug.profiler_overhead_ms > 0 %}
                                     <tr class="dd-bg-muted">
                                         <th colspan="2" class="dd-p-10 dd-bt-2-muted">
-                                            <strong>Profiler Overhead (Excluded from App Performance)</strong>
+                                            <strong>{{ 'Profiler Overhead (Excluded from App Performance)'|dd_trans }}</strong>
                                         </th>
                                     </tr>
                                     {% set overhead = collector.getProfilerOverhead %}
                                     <tr>
-                                        <th class="dd-pl-20">Query Analysis Time</th>
+                                        <th class="dd-pl-20">{{ 'Query Analysis Time'|dd_trans }}</th>
                                         <td><strong>{{ overhead.analysis_time_ms|number_format(2) }} ms</strong></td>
                                     </tr>
                                     <tr>
-                                        <th class="dd-pl-20">Database Info Collection Time</th>
+                                        <th class="dd-pl-20">{{ 'Database Info Collection Time'|dd_trans }}</th>
                                         <td><strong>{{ overhead.db_info_time_ms|number_format(2) }} ms</strong></td>
                                     </tr>
                                     <tr>
-                                        <th class="dd-pl-20">Total Profiler Overhead</th>
+                                        <th class="dd-pl-20">{{ 'Total Profiler Overhead'|dd_trans }}</th>
                                         <td><strong class="dd-muted-strong">{{ overhead.total_time_ms|number_format(2) }} ms</strong></td>
                                     </tr>
                                     <tr>
                                         <td colspan="2" class="dd-p-10 dd-fs-90 dd-text-muted-666 dd-bg-muted">
-                                            <em>ℹ️ This time is isolated using Stopwatch with category "doctrine_doctor_profiling" and is NOT included in your application's performance metrics.</em>
+                                            <em>ℹ️ {{ 'This time is isolated using Stopwatch with category "doctrine_doctor_profiling" and is NOT included in your application\'s performance metrics.'|dd_trans }}</em>
                                         </td>
                                     </tr>
                                 {% endif %}
                                 {% if debug.analyzer_stats is defined %}
                                     <tr>
-                                        <th>Analyzer Performance</th>
+                                        <th>{{ 'Analyzer Performance'|dd_trans }}</th>
                                         <td>
                                             <table class="alt">
                                                 <thead>
                                                     <tr>
-                                                        <th>Analyzer</th>
-                                                        <th>Issues Found</th>
-                                                        <th>Execution Time</th>
+                                                        <th>{{ 'Analyzer'|dd_trans }}</th>
+                                                        <th>{{ 'Issues Found'|dd_trans }}</th>
+                                                        <th>{{ 'Execution Time'|dd_trans }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -803,7 +803,7 @@
                                 {% endif %}
                                 {% if debug.analyzer_errors is defined and debug.analyzer_errors is not empty %}
                                     <tr>
-                                        <th>Analyzer Errors</th>
+                                        <th>{{ 'Analyzer Errors'|dd_trans }}</th>
                                         <td>
                                             <pre class="sf-dump">{{ debug.analyzer_errors|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
                                         </td>
@@ -811,7 +811,7 @@
                                 {% endif %}
                             {% else %}
                                 <tr>
-                                    <td colspan="2"><span class="label status-error">Collector did not collect data</span></td>
+                                    <td colspan="2"><span class="label status-error">{{ 'Collector did not collect data'|dd_trans }}</span></td>
                                 </tr>
                             {% endif %}
                         </tbody>

@@ -69,13 +69,13 @@ class AnalyzeCommand extends Command
         $format = (string) $input->getOption('error-format');
 
         if (!\in_array($failOn, ['critical', 'warning', 'info', 'never'], true)) {
-            $io->error('The --fail-on value must be critical, warning, info, or never.');
+            $io->error(Translator::trans('The --fail-on value must be critical, warning, info, or never.'));
 
             return self::INVALID;
         }
 
         if (!\in_array($format, ['table', 'github', 'json'], true)) {
-            $io->error('The --error-format value must be table, github or json.');
+            $io->error(Translator::trans('The --error-format value must be table, github or json.'));
 
             return self::INVALID;
         }
@@ -94,7 +94,7 @@ class AnalyzeCommand extends Command
         if (false !== $generate) {
             $file = \is_string($generate) && '' !== $generate ? $generate : 'doctrine-doctor-baseline.json';
             $this->writeBaseline($file, $findings);
-            $io->success(sprintf('Baseline with %d findings written to %s.', count($findings), $file));
+            $io->success(sprintf(Translator::format('Baseline with %d findings written to %s.'), count($findings), $file));
 
             return self::SUCCESS;
         }
@@ -110,7 +110,7 @@ class AnalyzeCommand extends Command
         if (\is_string($baselineFile) && '' !== $baselineFile) {
             $known = $this->readBaseline($baselineFile);
             if (null === $known) {
-                $io->error(sprintf('Cannot read the baseline file %s.', $baselineFile));
+                $io->error(sprintf(Translator::format('Cannot read the baseline file %s.'), $baselineFile));
 
                 return self::INVALID;
             }
@@ -137,7 +137,7 @@ class AnalyzeCommand extends Command
         };
 
         if ([] !== $analyzerErrors) {
-            $io->error(array_merge(['One or more analyzers failed:'], $analyzerErrors));
+            $io->error(array_merge([Translator::trans('One or more analyzers failed:')], $analyzerErrors));
 
             return self::FAILURE;
         }
@@ -185,14 +185,14 @@ class AnalyzeCommand extends Command
      */
     private function renderTable(SymfonyStyle $io, OutputInterface $output, array $analysis, array $findings, int $ignored, int $unmatched): void
     {
-        $io->title('Doctrine Doctor static analysis');
+        $io->title(Translator::trans('Doctrine Doctor static analysis'));
         $this->renderSummary($io, $analysis['count'], $findings, $analysis['duration_ms'], $ignored);
 
         if ([] !== $analysis['timings'] && $output->isVerbose()) {
             $timings = $analysis['timings'];
             uasort($timings, static fn (array $left, array $right): int => $right['execution_time_ms'] <=> $left['execution_time_ms']);
-            $io->section('Analyzer timings');
-            $io->table(['Analyzer', 'Findings', 'Time'], array_map(
+            $io->section(Translator::trans('Analyzer timings'));
+            $io->table([Translator::trans('Analyzer'), Translator::trans('Findings'), Translator::trans('Time')], array_map(
                 static fn (string $class, array $stats): array => [substr((string) strrchr('\\' . $class, '\\'), 1), $stats['issues_found'], sprintf('%.2f ms', $stats['execution_time_ms'])],
                 array_keys($timings),
                 array_values($timings),
@@ -202,7 +202,7 @@ class AnalyzeCommand extends Command
         $this->renderFindings($io, $findings);
 
         if ($unmatched > 0) {
-            $io->note(sprintf('%d baseline entries no longer match a finding: regenerate the baseline with --generate-baseline.', $unmatched));
+            $io->note(sprintf(Translator::format('%d baseline entries no longer match a finding: regenerate the baseline with --generate-baseline.'), $unmatched));
         }
 
         if (false !== getenv('GITHUB_ACTIONS') && 'true' === getenv('GITHUB_ACTIONS')) {
@@ -248,7 +248,7 @@ class AnalyzeCommand extends Command
         $issue = $finding['issue'] ?? null;
         $title = $issue instanceof IssueInterface ? Translator::trans((string) $issue->getSuggestion()?->getMetadata()->title) : '';
 
-        return sprintf('💡 %s: <fg=gray>--show-suggestion=%s</>', '' !== $title ? $title : Translator::trans('Details'), (string) $finding['id']);
+        return sprintf(Translator::format('💡 %s: <fg=gray>--show-suggestion=%s</>'), '' !== $title ? $title : Translator::trans('Details'), (string) $finding['id']);
     }
 
     /**
@@ -259,12 +259,12 @@ class AnalyzeCommand extends Command
         $counts = $this->totals($findings);
 
         $io->definitionList(
-            ['Analyzers' => $analyzerCount],
-            ['Findings' => count($findings) . ($ignored > 0 ? sprintf(' (%d ignored by the baseline)', $ignored) : '')],
-            ['Duration' => sprintf('%.2f ms', $durationMs)],
+            [Translator::trans('Analyzers') => $analyzerCount],
+            [Translator::trans('Findings') => count($findings) . ($ignored > 0 ? ' ' . sprintf(Translator::format('(%d ignored by the baseline)'), $ignored) : '')],
+            [Translator::trans('Duration') => sprintf('%.2f ms', $durationMs)],
         );
         $io->text(sprintf(
-            '<fg=red;options=bold>%d critical</>  <fg=yellow;options=bold>%d %s</>  <fg=blue;options=bold>%d info</>',
+            Translator::format('<fg=red;options=bold>%d critical</>  <fg=yellow;options=bold>%d %s</>  <fg=blue;options=bold>%d info</>'),
             $counts['critical'],
             $counts['warning'],
             1 === $counts['warning'] ? 'warning' : 'warnings',
@@ -281,21 +281,21 @@ class AnalyzeCommand extends Command
     private function renderFindings(SymfonyStyle $io, array $findings): void
     {
         if ([] === $findings) {
-            $io->success('No findings detected.');
+            $io->success(Translator::trans('No findings detected.'));
 
             return;
         }
 
         $byFile = [];
         foreach ($findings as $finding) {
-            $byFile[$finding['file'] ?? 'Configuration and database'][] = $finding;
+            $byFile[$finding['file'] ?? Translator::trans('Configuration and database')][] = $finding;
         }
         ksort($byFile);
 
-        $marks = ['critical' => '<fg=red;options=bold>critical</>', 'warning' => '<fg=yellow;options=bold>warning</>', 'info' => '<fg=blue>info</>'];
+        $marks = ['critical' => '<fg=red;options=bold>' . Translator::trans('critical') . '</>', 'warning' => '<fg=yellow;options=bold>' . Translator::trans('warning') . '</>', 'info' => '<fg=blue>' . Translator::trans('info') . '</>'];
         foreach ($byFile as $file => $rows) {
             usort($rows, static fn (array $left, array $right): int => [$left['line'] ?? 0, $left['title']] <=> [$right['line'] ?? 0, $right['title']]);
-            $io->table(['Line', (string) $file], array_map(static fn (array $finding): array => [
+            $io->table([Translator::trans('Line'), (string) $file], array_map(static fn (array $finding): array => [
                 $finding['line'] ?? '',
                 rtrim(sprintf(
                     "%s  %s\n%s\n<fg=gray>🪪  %s</>\n%s",
@@ -310,7 +310,7 @@ class AnalyzeCommand extends Command
 
         $totals = $this->totals($findings);
         $message = sprintf(
-            'Found %d %s: %d critical, %d %s, %d info. Show a fix with --show-suggestion=<id>.',
+            Translator::format('Found %d %s: %d critical, %d %s, %d info. Show a fix with --show-suggestion=<id>.'),
             count($findings),
             1 === count($findings) ? 'finding' : 'findings',
             $totals['critical'],
@@ -329,7 +329,7 @@ class AnalyzeCommand extends Command
         $matches = array_values(array_filter($findings, static fn (array $finding): bool => $requestedId === $finding['id']));
 
         if ([] === $matches) {
-            $io->error(sprintf('Unknown finding ID "%s". Run the command without --show-suggestion to list the findings and their IDs.', $requestedId));
+            $io->error(sprintf(Translator::format('Unknown finding ID "%s". Run the command without --show-suggestion to list the findings and their IDs.'), $requestedId));
 
             return false;
         }
@@ -339,7 +339,7 @@ class AnalyzeCommand extends Command
             $io->section(sprintf(Translator::format('Suggestion for %s: %s'), $requestedId, Translator::trans($issue->getTitle())));
 
             if (null === $suggestion) {
-                $io->warning('This finding does not provide a suggestion.');
+                $io->warning(Translator::trans('This finding does not provide a suggestion.'));
 
                 continue;
             }

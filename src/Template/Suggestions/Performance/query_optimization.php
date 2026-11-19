@@ -7,7 +7,7 @@ declare(strict_types=1);
  * @var array<string, mixed> $context
  */
 $code = (string) ($context['code'] ?? '');
-$optimization = (string) ($context['optimization'] ?? '');
+$optimization = tr($context['optimization'] ?? '');
 $executionTime = (float) ($context['execution_time'] ?? 0.0);
 $threshold = (float) ($context['threshold'] ?? 0.0);
 $e = fn (?string $str): string => htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');

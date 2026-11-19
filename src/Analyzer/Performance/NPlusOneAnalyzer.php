@@ -24,6 +24,7 @@ use AhmedBhs\DoctrineDoctor\Factory\IssueFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Factory\SuggestionFactoryInterface;
 use AhmedBhs\DoctrineDoctor\Infrastructure\Cache\SqlNormalizationCache;
 use AhmedBhs\DoctrineDoctor\Suggestion\SuggestionInterface;
+use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\Utils\DescriptionHighlighter;
 use AhmedBhs\DoctrineDoctor\ValueObject\IssueType;
 use AhmedBhs\DoctrineDoctor\ValueObject\Severity;
@@ -801,20 +802,21 @@ class NPlusOneAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyzer\AnalyzerInte
             $values['table'] = $table;
         }
 
+        // Each piece is translated on its own: the pieces are put together after translation.
         $description = DescriptionHighlighter::highlight(
-            $origin . (null !== $table ? ' ran the same query on {table} {count} times ({time}ms SQL)' : ' ran the same query {count} times ({time}ms SQL)'),
+            sprintf(Translator::format(null !== $table ? '%s ran the same query on {table} {count} times ({time}ms SQL)' : '%s ran the same query {count} times ({time}ms SQL)'), Translator::trans($origin)),
             $values,
         );
 
         if ($this->isVendorCode($backtrace)) {
-            $description .= ', called from vendor code';
+            $description .= Translator::trans(', called from vendor code');
         }
 
         $isLowTimeHighCount = $count > self::QUERY_COUNT_WARNING_THRESHOLD && $totalTime < self::LOW_EXECUTION_TIME_THRESHOLD;
 
-        $description .= $isLowTimeHighCount
-            ? '. SQL time is low, but each query also costs a round trip, a hydration and a UnitOfWork snapshot in PHP.'
-            : '. One query runs per loop iteration, so response time grows with the number of rows.';
+        $description .= '. ' . Translator::trans($isLowTimeHighCount
+            ? 'SQL time is low, but each query also costs a round trip, a hydration and a UnitOfWork snapshot in PHP.'
+            : 'One query runs per loop iteration, so response time grows with the number of rows.');
 
         return $description;
     }

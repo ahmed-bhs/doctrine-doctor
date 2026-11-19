@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Translation;
 
 use AhmedBhs\DoctrineDoctor\Translation\Translator;
+use AhmedBhs\DoctrineDoctor\Translation\TwigTranslationExtension;
 use PHPUnit\Framework\TestCase;
 
 final class TranslatorTest extends TestCase
@@ -92,5 +93,16 @@ final class TranslatorTest extends TestCase
             . 'Doctrine can see a change on every flush and issue needless UPDATEs, and values can differ from what the code expects.';
 
         self::assertStringNotContainsString('Doctrine can see', Translator::trans($text));
+    }
+
+    public function test_html_description_is_translated_without_decoding_tags(): void
+    {
+        Translator::setLocale('fr');
+
+        $html = 'A query on table &quot;sylius_taxon&quot; filters by &quot;enabled&quot;, which leads no index. It is cheap on a small table and becomes a full scan as the table grows.';
+        self::assertStringStartsWith('Une requête sur la table « sylius_taxon »', TwigTranslationExtension::transHtml($html));
+
+        // A quote entity inside a tag stays encoded, so the attribute is not broken.
+        self::assertSame('<a title="x &quot; y">z</a>', TwigTranslationExtension::transHtml('<a title="x &quot; y">z</a>'));
     }
 }
