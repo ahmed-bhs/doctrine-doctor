@@ -13,6 +13,7 @@ namespace AhmedBhs\DoctrineDoctor\Tests\Unit\Translation;
 
 use AhmedBhs\DoctrineDoctor\Translation\Translator;
 use AhmedBhs\DoctrineDoctor\Translation\TwigTranslationExtension;
+use AhmedBhs\DoctrineDoctor\ValueObject\SuggestionContentBlock;
 use PHPUnit\Framework\TestCase;
 
 final class TranslatorTest extends TestCase
@@ -104,5 +105,13 @@ final class TranslatorTest extends TestCase
 
         // A quote entity inside a tag stays encoded, so the attribute is not broken.
         self::assertSame('<a title="x &quot; y">z</a>', TwigTranslationExtension::transHtml('<a title="x &quot; y">z</a>'));
+    }
+
+    public function test_content_block_prose_is_translated_but_not_its_code(): void
+    {
+        Translator::setLocale('fr');
+
+        self::assertStringContainsString('Important :', SuggestionContentBlock::heading('Important:', 4)->toHtml());
+        self::assertStringContainsString('Load the full entity', SuggestionContentBlock::code('// Load the full entity when you need to modify it')->toHtml());
     }
 }
