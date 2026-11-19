@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- French translation: `locale: fr` shows the profiler panel, the `doctrine:doctor:analyze` command, the issue titles
+  and descriptions and the suggestions in French. English stays the default and the fallback for a missing text. The
+  translations live in `translations/fr.php`; code examples are not translated.
 - `NPlusOneSql` tells an identical query from an N+1: the same SQL with the same parameters, run several times in one
   request (a Twig function called in a loop, a service called from several templates), is now reported as
   `Identical Query Repeated`, with the advice to keep the result for the request. An IN (...) cannot replace it.
