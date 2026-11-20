@@ -2052,4 +2052,8 @@ return [
     'ArrayCache in Production (Cache)' => 'ArrayCache en production (cache)',
     'Database using collation %s' => 'La base utilise la collation %s',
     'Table using collation %s' => 'La table utilise la collation %s',
+    'parameter #%d' => 'un paramètre (#%d)',
+    'risk level: high' => 'élevé',
+    'risk level: medium' => 'moyen',
+    'risk level: low' => 'faible',
 ];
