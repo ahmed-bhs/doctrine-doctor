@@ -12,6 +12,9 @@ declare(strict_types=1);
 $query = (string) ($context['query'] ?? 'SELECT u FROM User u WHERE u.name = :username');
 $vulnerableParams = $context['vulnerable_parameters'] ?? ['username'];
 $riskLevel = (string) ($context['risk_level'] ?? 'high');
+// The risk level has its own catalog entry, since "warning" reads as a severity elsewhere.
+$riskLabel = tr('risk level: ' . $riskLevel);
+$riskLabel = str_starts_with($riskLabel, 'risk level: ') ? $riskLevel : $riskLabel;
 if (!is_array($vulnerableParams) || [] === $vulnerableParams) {
     $vulnerableParams = ['username'];
 }
@@ -23,7 +26,7 @@ ob_start();
 
 <div class="suggestion-content">
     <div class="alert alert-danger">
-        <?php echo t("Risk: %s. Parameters built by concatenation: <code>%s</code>. A value such as <code>' OR '1'='1</code> then changes the query itself.", $e($riskLevel), implode(', ', array_map(static fn (mixed $param): string => $e((string) $param), $vulnerableParams))); ?>
+        <?php echo t("Risk: %s. Parameters built by concatenation: <code>%s</code>. A value such as <code>' OR '1'='1</code> then changes the query itself.", $e($riskLabel), implode(', ', array_map(static fn (mixed $param): string => $e(tr($param)), $vulnerableParams))); ?>
     </div>
 
     <div class="query-item">

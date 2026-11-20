@@ -307,7 +307,7 @@ class ImplicitTypeConversionAnalyzer implements \AhmedBhs\DoctrineDoctor\Analyze
                 ? 'Text column %s is compared to %s, bound as an integer because DQL infers the type from the PHP int value.'
                 : 'Text column %s is compared to the number %s.'),
             $mismatch['column'],
-            $mismatch['literal'],
+            Translator::trans($mismatch['literal']),
         ) . ' ' . sprintf(
             Translator::format($isParameter
                 ? 'MySQL and MariaDB then convert %s to a number on every row, so its index is not used (full scan).'

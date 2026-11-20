@@ -15,7 +15,7 @@ ob_start();
 <div class="suggestion-content">
 <div class="alert alert-warning">
 <?php if ($isParameter) { ?>
-    <?= t('<code>%s</code> is a text column compared to %s, which DQL binds as an integer because the PHP value is an <code>int</code>.', $e((string) $column), $e((string) $literal)) ?>
+    <?= t('<code>%s</code> is a text column compared to %s, which DQL binds as an integer because the PHP value is an <code>int</code>.', $e((string) $column), $e(tr($literal))) ?>
 <?php } else { ?>
     <?= t('<code>%s</code> is a text column compared to the number <code>%s</code>; PostgreSQL rejects it.', $e((string) $column), $e((string) $literal)) ?>
 <?php } ?>
